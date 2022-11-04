@@ -1,0 +1,14 @@
+syntax = "proto3";
+package bfs.bfs;
+
+import "gogoproto/gogo.proto";
+import "bfs/bfs/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
+
+// GenesisState defines the bfs module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}
