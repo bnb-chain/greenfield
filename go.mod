@@ -2,8 +2,6 @@ module github.com/bnb-chain/bfs
 
 go 1.18
 
-replace github.com/cosmos/cosmos-sdk v0.46.4 => github.com/bnb-chain/bfs-cosmos-sdk v0.0.1
-
 require (
 	github.com/cosmos/cosmos-sdk v0.46.4
 	github.com/cosmos/ibc-go/v5 v5.0.0
@@ -206,5 +204,6 @@ require (
 
 replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
+	github.com/cosmos/cosmos-sdk v0.46.4 => github.com/bnb-chain/bfs-cosmos-sdk v0.0.1
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
