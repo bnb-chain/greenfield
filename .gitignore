@@ -5,3 +5,4 @@ release/
 .vscode/
 .DS_Store
 build/
+vendor/
