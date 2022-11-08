@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -39,6 +40,7 @@ import (
 
 	"github.com/bnb-chain/bfs/app"
 	appparams "github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/bfs/version"
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -144,6 +146,33 @@ func initRootCmd(
 		keys.Commands(app.DefaultNodeHome),
 		startWithTunnelingCommand(a, app.DefaultNodeHome),
 	)
+
+	overrideOrAppendCommand(rootCmd, map[string]*cobra.Command{
+		"version": versionCommand(),
+	})
+}
+
+func overrideOrAppendCommand(cmd *cobra.Command, overrides map[string]*cobra.Command) {
+	for _, subCmd := range cmd.Commands() {
+		if _, ok := overrides[subCmd.Use]; ok {
+			cmd.RemoveCommand(subCmd)
+		}
+	}
+
+	for _, newCmd := range overrides {
+		cmd.AddCommand(newCmd)
+	}
+}
+
+func versionCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print the application binary version information",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			fmt.Print(version.Version())
+			return nil
+		},
+	}
 }
 
 // queryCommand returns the sub-command to send queries to the app

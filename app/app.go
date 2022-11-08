@@ -19,7 +19,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -104,6 +103,7 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/bnb-chain/bfs/version"
 	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
 	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
 	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
@@ -276,7 +276,7 @@ func New(
 		baseAppOptions...,
 	)
 	bApp.SetCommitMultiStoreTracer(traceStore)
-	bApp.SetVersion(version.Version)
+	bApp.SetVersion(version.AppVersion)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	keys := sdk.NewKVStoreKeys(
