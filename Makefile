@@ -22,3 +22,7 @@ build-windows:
 
 build-mac:
 	GOOS=darwin go build -o build/bin/bfsd-mac -ldflags="$(ldflags)" ./cmd/bfsd/main.go
+
+docker-image:
+	go mod vendor # temporary, should be removed after open source
+	docker build . -t ${IMAGE_NAME}
