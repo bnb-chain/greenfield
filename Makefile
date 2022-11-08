@@ -1,0 +1,24 @@
+.PHONY: build build-linux build-macos build-windows
+
+VERSION=$(shell git describe --tags)
+GIT_COMMIT=$(shell git rev-parse HEAD)
+GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d')
+REPO=github.com/bnb-chain/bfs
+IMAGE_NAME=ghcr.io/bnb-chain/bfs
+REPO=github.com/bnb-chain/bfs
+
+ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
+          -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
+          -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
+
+build: 
+	go build -o build/bin/bfsd -ldflags="$(ldflags)" ./cmd/bfsd/main.go
+
+build-linux:
+	GOOS=linux go build -o build/bin/bfsd-linux -ldflags="$(ldflags)" ./cmd/bfsd/main.go
+
+build-windows:
+	GOOS=windows go build -o build/bin/bfsd-windows -ldflags="$(ldflags)" ./cmd/bfsd/main.go
+
+build-mac:
+	GOOS=darwin go build -o build/bin/bfsd-mac -ldflags="$(ldflags)" ./cmd/bfsd/main.go
