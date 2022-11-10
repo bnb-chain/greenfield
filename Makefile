@@ -1,4 +1,5 @@
 .PHONY: build build-linux build-macos build-windows
+.PHONY: tools proto test
 
 VERSION=$(shell git describe --tags)
 GIT_COMMIT=$(shell git rev-parse HEAD)
@@ -10,6 +11,12 @@ REPO=github.com/bnb-chain/bfs
 ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
+
+tools:
+	curl https://get.ignite.com/cli! | bash
+
+proto:
+	ignite generate proto-go 
 
 build: 
 	go build -o build/bin/bfsd -ldflags="$(ldflags)" ./cmd/bfsd/main.go

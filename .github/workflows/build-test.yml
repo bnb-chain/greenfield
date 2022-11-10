@@ -15,7 +15,7 @@ jobs:
   build-test:
     strategy:
       matrix:
-        go-version: [1.17.x]
+        go-version: [1.18.x]
         os: [ubuntu-18.04]
     runs-on: ${{ matrix.os }}
     env:
@@ -45,8 +45,10 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
+    
     - name: Setup GitHub Token
       run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
+    
     - name: Test Build
       run: |
         make build
