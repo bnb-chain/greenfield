@@ -26,3 +26,6 @@ build-mac:
 docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}
+
+test:
+	go test ./...
