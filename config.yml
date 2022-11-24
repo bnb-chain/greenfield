@@ -1,7 +1,7 @@
 version: 1
 accounts:
   - name: alice
-    coins: ["20000token", "200000000stake"]
+    coins: ["200000000token", "200000000stake"]
   - name: bob
     coins: ["10000token", "100000000stake"]
 validators:

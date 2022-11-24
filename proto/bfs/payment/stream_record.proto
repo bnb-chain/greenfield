@@ -1,0 +1,15 @@
+syntax = "proto3";
+package bnbchain.bfs.payment;
+
+option go_package = "github.com/bnb-chain/bfs/x/payment/types";
+
+message StreamRecord {
+  string account = 1;
+  int64 crudTimestamp = 2;
+  int64 netflowRate = 3;
+  int64 staticBalance = 4;
+  int64 bufferBalance = 5;
+  int64 frozenNetflowRate = 6;
+  int32 status = 7;
+
+}

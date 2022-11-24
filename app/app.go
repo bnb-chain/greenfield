@@ -108,6 +108,9 @@ import (
 	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
 	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
 
+	paymentmodule "github.com/bnb-chain/bfs/x/payment"
+	paymentmodulekeeper "github.com/bnb-chain/bfs/x/payment/keeper"
+	paymentmoduletypes "github.com/bnb-chain/bfs/x/payment/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
 	appparams "github.com/bnb-chain/bfs/app/params"
@@ -167,6 +170,7 @@ var (
 		ica.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		bfsmodule.AppModuleBasic{},
+		paymentmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -180,6 +184,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		paymentmoduletypes.ModuleName:  {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -241,6 +246,8 @@ type App struct {
 	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
 
 	BfsKeeper bfsmodulekeeper.Keeper
+
+	PaymentKeeper paymentmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -286,6 +293,7 @@ func New(
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
 		bfsmoduletypes.StoreKey,
+		paymentmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -511,6 +519,16 @@ func New(
 	)
 	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
+		appCodec,
+		keys[paymentmoduletypes.StoreKey],
+		keys[paymentmoduletypes.MemStoreKey],
+		app.GetSubspace(paymentmoduletypes.ModuleName),
+
+		app.BankKeeper,
+	)
+	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Sealing prevents other modules from creating scoped sub-keepers
@@ -557,6 +575,7 @@ func New(
 		transferModule,
 		icaModule,
 		bfsModule,
+		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -587,6 +606,7 @@ func New(
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
 		bfsmoduletypes.ModuleName,
+		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -612,6 +632,7 @@ func New(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		bfsmoduletypes.ModuleName,
+		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -642,6 +663,7 @@ func New(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		bfsmoduletypes.ModuleName,
+		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -672,6 +694,7 @@ func New(
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
 		bfsModule,
+		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -871,6 +894,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
 	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
+	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

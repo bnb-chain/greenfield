@@ -1,0 +1,10 @@
+syntax = "proto3";
+package bnbchain.bfs.payment;
+
+option go_package = "github.com/bnb-chain/bfs/x/payment/types";
+
+message EventCreatePaymentAccount {
+  string addr = 1;
+  string owner = 2;
+  uint64 index = 3;
+}
