@@ -11,5 +11,4 @@ message StreamRecord {
   int64 bufferBalance = 5;
   int64 frozenNetflowRate = 6;
   int32 status = 7;
-
 }

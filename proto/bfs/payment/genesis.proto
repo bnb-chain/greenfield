@@ -1,11 +1,11 @@
 syntax = "proto3";
 package bnbchain.bfs.payment;
 
-import "gogoproto/gogo.proto";
 import "bfs/payment/params.proto";
-import "bfs/payment/stream_record.proto";
-import "bfs/payment/payment_account_count.proto";
 import "bfs/payment/payment_account.proto";
+import "bfs/payment/payment_account_count.proto";
+import "bfs/payment/stream_record.proto";
+import "gogoproto/gogo.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";

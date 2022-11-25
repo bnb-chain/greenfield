@@ -8,5 +8,4 @@ option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  
 }

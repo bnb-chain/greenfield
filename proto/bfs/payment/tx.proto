@@ -7,11 +7,11 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 // Msg defines the Msg service.
 service Msg {
-      rpc CreatePaymentAccount(MsgCreatePaymentAccount) returns (MsgCreatePaymentAccountResponse);
+  rpc CreatePaymentAccount(MsgCreatePaymentAccount) returns (MsgCreatePaymentAccountResponse);
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc Sponse(MsgSponse) returns (MsgSponseResponse);
-// this line is used by starport scaffolding # proto/tx/rpc
+  // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 message MsgCreatePaymentAccount {
@@ -29,8 +29,7 @@ message MsgDeposit {
   int64 amount = 3;
 }
 
-message MsgDepositResponse {
-}
+message MsgDepositResponse {}
 
 message MsgWithdraw {
   string creator = 1;
@@ -38,8 +37,7 @@ message MsgWithdraw {
   int64 amount = 3;
 }
 
-message MsgWithdrawResponse {
-}
+message MsgWithdrawResponse {}
 
 message MsgSponse {
   string creator = 1;
@@ -47,7 +45,6 @@ message MsgSponse {
   int64 rate = 3;
 }
 
-message MsgSponseResponse {
-}
+message MsgSponseResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
