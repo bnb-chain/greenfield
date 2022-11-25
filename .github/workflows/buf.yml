@@ -1,5 +1,7 @@
 # Protobuf files lint and backwards compatibility check job
 # reference: <https://docs.buf.build/ci-cd/github-actions>
+name: protobuf-check
+
 on:
   push:
     branches:
@@ -11,11 +13,9 @@ on:
       - develop
 
 jobs:
-  buf-check:
+  protobuf-check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: bufbuild/buf-setup-action@v1
-      - uses: bufbuild/buf-lint-action@v1
-        with:
-          input: proto
+      - run: buf format --diff --exit-code
