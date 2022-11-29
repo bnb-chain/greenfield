@@ -12,12 +12,6 @@ import (
 func (k msgServer) Sponse(goCtx context.Context, msg *types.MsgSponse) (*types.MsgSponseResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if msg.Rate <= 0 {
-		return nil, fmt.Errorf("rate must be positive")
-	}
-	if msg.Creator == msg.To {
-		return nil, fmt.Errorf("can not sponse to yourself")
-	}
 	fromStream, found := k.Keeper.GetStreamRecord(ctx, msg.Creator)
 	if !found {
 		return nil, fmt.Errorf("creator stream record not found")

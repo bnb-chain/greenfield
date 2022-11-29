@@ -11,13 +11,13 @@ import (
 
 var _ = strconv.Itoa(0)
 
-func CmdGetPaymentAccountsByUser() *cobra.Command {
+func CmdGetPaymentAccountsByOwner() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-payment-accounts-by-user [user]",
-		Short: "Query get-payment-accounts-by-user",
+		Use:   "get-payment-accounts-by-owner [owner]",
+		Short: "Query get-payment-accounts-by-owner",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			reqUser := args[0]
+			reqOwner := args[0]
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -26,12 +26,12 @@ func CmdGetPaymentAccountsByUser() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryGetPaymentAccountsByUserRequest{
+			params := &types.QueryGetPaymentAccountsByOwnerRequest{
 
-				User: reqUser,
+				Owner: reqOwner,
 			}
 
-			res, err := queryClient.GetPaymentAccountsByUser(cmd.Context(), params)
+			res, err := queryClient.GetPaymentAccountsByOwner(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

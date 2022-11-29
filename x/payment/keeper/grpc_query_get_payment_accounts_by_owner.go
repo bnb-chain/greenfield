@@ -11,19 +11,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) GetPaymentAccountsByUser(goCtx context.Context, req *types.QueryGetPaymentAccountsByUserRequest) (*types.QueryGetPaymentAccountsByUserResponse, error) {
+func (k Keeper) GetPaymentAccountsByOwner(goCtx context.Context, req *types.QueryGetPaymentAccountsByOwnerRequest) (*types.QueryGetPaymentAccountsByOwnerResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	countRecord, found := k.GetPaymentAccountCount(ctx, req.User)
+	countRecord, found := k.GetPaymentAccountCount(ctx, req.Owner)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 	count := countRecord.Count
-	user := sdk.MustAccAddressFromBech32(req.User)
+	user := sdk.MustAccAddressFromBech32(req.Owner)
 	var paymentAccounts []string
 	var i uint64
 	for i = 0; i < count; i++ {
@@ -33,7 +33,7 @@ func (k Keeper) GetPaymentAccountsByUser(goCtx context.Context, req *types.Query
 		paymentAccounts = append(paymentAccounts, paymentAccount)
 	}
 
-	return &types.QueryGetPaymentAccountsByUserResponse{
+	return &types.QueryGetPaymentAccountsByOwnerResponse{
 		PaymentAccounts: paymentAccounts,
 	}, nil
 }

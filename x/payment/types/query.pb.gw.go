@@ -375,8 +375,8 @@ func local_request_Query_DynamicBalance_0(ctx context.Context, marshaler runtime
 
 }
 
-func request_Query_GetPaymentAccountsByUser_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryGetPaymentAccountsByUserRequest
+func request_Query_GetPaymentAccountsByOwner_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryGetPaymentAccountsByOwnerRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -386,24 +386,24 @@ func request_Query_GetPaymentAccountsByUser_0(ctx context.Context, marshaler run
 		_   = err
 	)
 
-	val, ok = pathParams["user"]
+	val, ok = pathParams["owner"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "owner")
 	}
 
-	protoReq.User, err = runtime.String(val)
+	protoReq.Owner, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "owner", err)
 	}
 
-	msg, err := client.GetPaymentAccountsByUser(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.GetPaymentAccountsByOwner(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_GetPaymentAccountsByUser_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryGetPaymentAccountsByUserRequest
+func local_request_Query_GetPaymentAccountsByOwner_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryGetPaymentAccountsByOwnerRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -413,18 +413,18 @@ func local_request_Query_GetPaymentAccountsByUser_0(ctx context.Context, marshal
 		_   = err
 	)
 
-	val, ok = pathParams["user"]
+	val, ok = pathParams["owner"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "owner")
 	}
 
-	protoReq.User, err = runtime.String(val)
+	protoReq.Owner, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "owner", err)
 	}
 
-	msg, err := server.GetPaymentAccountsByUser(ctx, &protoReq)
+	msg, err := server.GetPaymentAccountsByOwner(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -619,7 +619,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 
 	})
 
-	mux.Handle("GET", pattern_Query_GetPaymentAccountsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_GetPaymentAccountsByOwner_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -630,7 +630,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_GetPaymentAccountsByUser_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_GetPaymentAccountsByOwner_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -638,7 +638,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_GetPaymentAccountsByUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_GetPaymentAccountsByOwner_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -843,7 +843,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
-	mux.Handle("GET", pattern_Query_GetPaymentAccountsByUser_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_GetPaymentAccountsByOwner_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -852,14 +852,14 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_GetPaymentAccountsByUser_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_GetPaymentAccountsByOwner_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_GetPaymentAccountsByUser_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_GetPaymentAccountsByOwner_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -867,23 +867,23 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "bfs", "payment", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bfs", "payment", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_StreamRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "bfs", "payment", "stream_record", "account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_StreamRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bfs", "payment", "stream_record", "account"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_StreamRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "bfs", "payment", "stream_record"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_StreamRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bfs", "payment", "stream_record"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PaymentAccountCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "bfs", "payment", "payment_account_count", "owner"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccountCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bfs", "payment", "payment_account_count", "owner"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PaymentAccountCountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "bfs", "payment", "payment_account_count"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccountCountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bfs", "payment", "payment_account_count"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PaymentAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "bfs", "payment", "payment_account", "addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bfs", "payment", "payment_account", "addr"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_PaymentAccountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "bfs", "payment", "payment_account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"bfs", "payment", "payment_account"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_DynamicBalance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "bfs", "payment", "dynamic_balance", "account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DynamicBalance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bfs", "payment", "dynamic_balance", "account"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GetPaymentAccountsByUser_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "bfs", "payment", "get_payment_accounts_by_user", "user"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetPaymentAccountsByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"bfs", "payment", "get_payment_accounts_by_owner", "owner"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -903,5 +903,5 @@ var (
 
 	forward_Query_DynamicBalance_0 = runtime.ForwardResponseMessage
 
-	forward_Query_GetPaymentAccountsByUser_0 = runtime.ForwardResponseMessage
+	forward_Query_GetPaymentAccountsByOwner_0 = runtime.ForwardResponseMessage
 )

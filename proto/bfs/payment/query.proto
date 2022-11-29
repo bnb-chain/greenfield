@@ -16,46 +16,46 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/params";
+    option (google.api.http).get = "/bfs/payment/params";
   }
   // Queries a StreamRecord by index.
   rpc StreamRecord(QueryGetStreamRecordRequest) returns (QueryGetStreamRecordResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/stream_record/{account}";
+    option (google.api.http).get = "/bfs/payment/stream_record/{account}";
   }
 
   // Queries a list of StreamRecord items.
   rpc StreamRecordAll(QueryAllStreamRecordRequest) returns (QueryAllStreamRecordResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/stream_record";
+    option (google.api.http).get = "/bfs/payment/stream_record";
   }
 
   // Queries a PaymentAccountCount by index.
   rpc PaymentAccountCount(QueryGetPaymentAccountCountRequest) returns (QueryGetPaymentAccountCountResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/payment_account_count/{owner}";
+    option (google.api.http).get = "/bfs/payment/payment_account_count/{owner}";
   }
 
   // Queries a list of PaymentAccountCount items.
   rpc PaymentAccountCountAll(QueryAllPaymentAccountCountRequest) returns (QueryAllPaymentAccountCountResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/payment_account_count";
+    option (google.api.http).get = "/bfs/payment/payment_account_count";
   }
 
   // Queries a PaymentAccount by index.
   rpc PaymentAccount(QueryGetPaymentAccountRequest) returns (QueryGetPaymentAccountResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/payment_account/{addr}";
+    option (google.api.http).get = "/bfs/payment/payment_account/{addr}";
   }
 
   // Queries a list of PaymentAccount items.
   rpc PaymentAccountAll(QueryAllPaymentAccountRequest) returns (QueryAllPaymentAccountResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/payment_account";
+    option (google.api.http).get = "/bfs/payment/payment_account";
   }
 
   // Queries a list of DynamicBalance items.
   rpc DynamicBalance(QueryDynamicBalanceRequest) returns (QueryDynamicBalanceResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/dynamic_balance/{account}";
+    option (google.api.http).get = "/bfs/payment/dynamic_balance/{account}";
   }
 
-  // Queries a list of GetPaymentAccountsByUser items.
-  rpc GetPaymentAccountsByUser(QueryGetPaymentAccountsByUserRequest) returns (QueryGetPaymentAccountsByUserResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/get_payment_accounts_by_user/{user}";
+  // Queries a list of GetPaymentAccountsByOwner items.
+  rpc GetPaymentAccountsByOwner(QueryGetPaymentAccountsByOwnerRequest) returns (QueryGetPaymentAccountsByOwnerResponse) {
+    option (google.api.http).get = "/bfs/payment/get_payment_accounts_by_owner/{owner}";
   }
 
   // this line is used by starport scaffolding # 2
@@ -131,11 +131,11 @@ message QueryDynamicBalanceResponse {
   int64 currentTimestamp = 3;
 }
 
-message QueryGetPaymentAccountsByUserRequest {
-  string user = 1;
+message QueryGetPaymentAccountsByOwnerRequest {
+  string owner = 1;
 }
 
-message QueryGetPaymentAccountsByUserResponse {
+message QueryGetPaymentAccountsByOwnerResponse {
   repeated string paymentAccounts = 1;
 }
 

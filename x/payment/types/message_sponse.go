@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -42,6 +43,12 @@ func (msg *MsgSponse) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if msg.Rate <= 0 {
+		return fmt.Errorf("rate must be positive")
+	}
+	if msg.Creator == msg.To {
+		return fmt.Errorf("can not sponse to yourself")
 	}
 	return nil
 }
