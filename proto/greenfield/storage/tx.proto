@@ -1,0 +1,187 @@
+syntax = "proto3";
+package bnbchain.greenfield.storage;
+
+import "greenfield/storage/common.proto";
+import "cosmos/msg/v1/msg.proto";
+// this line is used by starport scaffolding # proto/tx/import
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc CreateBucket(MsgCreateBucket) returns (MsgCreateBucketResponse);
+  rpc DeleteBucket(MsgDeleteBucket) returns (MsgDeleteBucketResponse);
+  rpc CreateObject(MsgCreateObject) returns (MsgCreateObjectResponse);
+  rpc SealObject(MsgSealObject) returns (MsgSealObjectResponse);
+  rpc RejectUnsealedObject(MsgRejectUnsealedObject) returns (MsgRejectUnsealedObjectResponse);
+  rpc DeleteObject(MsgDeleteObject) returns (MsgDeleteObjectResponse);
+  rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
+  rpc DeleteGroup(MsgDeleteGroup) returns (MsgDeleteGroupResponse);
+  rpc UpdateGroupMember(MsgUpdateGroupMember) returns (MsgUpdateGroupMemberResponse);
+  rpc LeaveGroup(MsgLeaveGroup) returns (MsgLeaveGroupResponse);
+  rpc CopyObject(MsgCopyObject) returns (MsgCopyObjectResponse);
+  // this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgCreateBucket {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of bucket creator, it is also the bucket owner.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is a globally unique name of bucket
+  string bucket_name = 2;
+  // isPublic means the bucket is private or public. if private, only bucket owner or grantee can access it,
+  // otherwise every greenfield user can access it.
+  bool is_public = 3;
+  // payment_address is an account address specified by bucket owner to pay the read fee. Default: creator
+  string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_address is the address of primary sp.
+  string primary_sp_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primarySPSignature is the signature of the primary SP which indicates that primary sp confirm the user's request.
+  bytes primary_sp_signature = 7;
+}
+
+message MsgCreateBucketResponse {}
+
+message MsgDeleteBucket {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket to be deleted.
+  string bucket_name = 2;
+}
+
+message MsgDeleteBucketResponse {}
+
+message MsgCreateObject {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of object uploader
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object is stored.
+  string bucket_name = 2;
+  // object_name is the name of object
+  string object_name = 3;
+  // payloadSize is size of the object's payload
+  uint64 payload_size = 4;
+  // isPublic means the bucket is private or public. if private, only bucket owner or grantee can access it,
+  // otherwise every greenfield user can access it.
+  bool is_public = 5;
+  // contentType is a standard MIME type describing the format of the object.
+  string content_type = 6;
+  // primarySPSignature is the signature of the primary SP which indicates that primary sp confirm the user's request.
+  bytes primary_sp_signature = 7;
+  // expectChecksum is a list of hashes which was generate by redundancy algorithm.
+  repeated bytes expect_checksum = 8;
+  // expect_secondarySPs is a list of StorageProvider address
+  repeated string expect_secondary_sp_addresses = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgCreateObjectResponse {}
+
+message MsgSealObject {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of primary SP
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object is stored.
+  string bucket_name = 2;
+  // object_name is the name of object to be sealed.
+  string object_name = 3;
+  // sp_signatures is the signature info of sp which can prove that it has store the payload data.
+  // include primary and secondary sp
+  // The signature contains the sp address, total pieces checksum, sig bytes.
+  repeated bytes sp_signatures = 4;
+}
+
+message MsgSealObjectResponse {}
+
+message MsgRejectUnsealedObject {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of the object owner
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object is stored.
+  string bucket_name = 2;
+  // object_name is the name of unsealed object to be reject.
+  string object_name = 3;
+}
+
+message MsgRejectUnsealedObjectResponse {}
+
+message MsgCopyObject {
+  string creator = 1;
+  string src_bucket_name = 2;
+  string dst_bucket_name = 3;
+  string src_object_name = 4;
+  string dst_object_name = 5;
+  bytes dst_primary_sp_signature = 6;
+}
+
+message MsgCopyObjectResponse {}
+
+message MsgDeleteObject {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of the grantee who has the DeleteObject permission of the object to be deleted.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object which to be deleted is stored.
+  string bucket_name = 2;
+  // object_name is the name of the object which to be deleted.
+  string object_name = 3;
+}
+
+message MsgDeleteObjectResponse {}
+
+message MsgCreateGroup {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of group owner
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of the group. it's not globally unique.
+  string group_name = 2;
+  // member_request is a list of member which to be add or remove
+  repeated string members = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgCreateGroupResponse {}
+
+message MsgDeleteGroup {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of the grantee who has the DeleteGroup permission of the group to be deleted.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of the group which to be deleted
+  string group_name = 2;
+}
+
+message MsgDeleteGroupResponse {}
+
+enum MemberOption {
+  MEM_OPT_ADD = 0;
+  MEM_OPT_DELETE = 1;
+}
+
+message MemberRequest {
+  // address is the account address of the member.
+  string address = 1;
+  // memberOption
+  MemberOption option = 2;
+}
+
+message MsgUpdateGroupMember {
+  option (cosmos.msg.v1.signer) = "creator";
+  // creator is the account address of the grantee who has the UpdateGroupMember permission of the group.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of the group which to be updated
+  string group_name = 2;
+  // member_request is a list of member which to be add or remove
+  repeated MemberRequest member_request = 3;
+}
+
+message MsgUpdateGroupMemberResponse {}
+
+message MsgLeaveGroup {
+  option (cosmos.msg.v1.signer) = "creator";
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 3;
+}
+
+message MsgLeaveGroupResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message

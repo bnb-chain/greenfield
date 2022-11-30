@@ -1,0 +1,16 @@
+syntax = "proto3";
+package bnbchain.greenfield.storage;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  uint64 MaxSegmentSize = 1;
+  uint32 RedundantDataChunkNum = 2;
+  uint32 RedundantParityChunkNum = 3;
+  uint64 MaxPayloadSize = 4;
+}
