@@ -7,7 +7,7 @@ import (
 
 // FindAccount find a specific address from an account list
 func FindAccount(accs []simtypes.Account, address string) (simtypes.Account, bool) {
-	creator, err := sdk.AccAddressFromBech32(address)
+	creator, err := sdk.AccAddressFromHexUnsafe(address)
 	if err != nil {
 		panic(err)
 	}

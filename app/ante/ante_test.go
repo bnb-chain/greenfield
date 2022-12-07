@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -17,6 +18,9 @@ import (
 func (suite *AnteTestSuite) TestAnteHandler() {
 	var acc authtypes.AccountI
 	addr, privKey := tests.NewAddrKey()
+	fmt.Printf("Private Key: %s\n", hex.EncodeToString(privKey.Bytes()))
+	fmt.Printf("Public Key: %s\n", hex.EncodeToString(privKey.PubKey().Bytes()))
+	fmt.Printf("Address: %s\n", addr.String())
 
 	setup := func() {
 		suite.enableFeeMarket = false
@@ -83,7 +87,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				gasAmount := sdk.NewCoins(coinAmount)
 				gas := uint64(200000)
-				//reusing the gasAmount for deposit
+				// reusing the gasAmount for deposit
 				deposit := sdk.NewCoins(coinAmount)
 				txBuilder := suite.CreateTestEIP712SubmitProposal(from, privKey, "ethermint_9000-1", gas, gasAmount, deposit)
 				return txBuilder.GetTx()

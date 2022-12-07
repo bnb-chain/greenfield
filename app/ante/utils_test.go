@@ -3,7 +3,6 @@ package ante_test
 import (
 	"encoding/hex"
 	"encoding/json"
-	"os"
 	"testing"
 	"time"
 
@@ -11,7 +10,6 @@ import (
 	"github.com/bnb-chain/bfs/app/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdkcryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
@@ -20,10 +18,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	"github.com/cosmos/cosmos-sdk/testutil/testdata"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	"github.com/cosmos/cosmos-sdk/x/auth/migrations/legacytx"
-	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -32,12 +29,7 @@ import (
 	types5 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	types3 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	cryptocodec "github.com/evmos/ethermint/crypto/codec"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"github.com/evmos/ethermint/ethereum/eip712"
 	"github.com/evmos/ethermint/tests"
-	"github.com/evmos/ethermint/types"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -46,8 +38,14 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"fmt"
 	"github.com/bnb-chain/bfs/app"
 	"github.com/bnb-chain/bfs/app/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"math/big"
 )
 
 type AnteTestSuite struct {
@@ -84,7 +82,7 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encCfg.TxConfig)
 
-	anteHandler := ante.NewAnteHandler(sdkante.HandlerOptions{
+	anteHandler, _ := ante.NewAnteHandler(sdkante.HandlerOptions{
 		AccountKeeper:   suite.app.AccountKeeper,
 		BankKeeper:      suite.app.BankKeeper,
 		FeegrantKeeper:  suite.app.FeeGrantKeeper,
@@ -117,7 +115,6 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 		valAddr,
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
-		// TODO: can this values be empty strings?
 		types3.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
 		types3.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 		sdk.OneInt(),
@@ -179,73 +176,56 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 
 	nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, from)
 	suite.Require().NoError(err)
-
-	pc, err := types.ParseChainID(chainId)
-	suite.Require().NoError(err)
-	ethChainId := pc.Uint64()
-
-	// GenerateTypedData TypedData
-	var ethermintCodec codec.ProtoCodecMarshaler
-	registry := codectypes.NewInterfaceRegistry()
-	types.RegisterInterfaces(registry)
-	ethermintCodec = codec.NewProtoCodec(registry)
-	cryptocodec.RegisterInterfaces(registry)
-
-	fee := legacytx.NewStdFee(gas, gasAmount)
-	accNumber := suite.app.AccountKeeper.GetAccount(suite.ctx, from).GetAccountNumber()
-
-	data := legacytx.StdSignBytes(chainId, accNumber, nonce, 0, fee, []sdk.Msg{msg}, "", nil)
-	typedData, err := eip712.WrapTxToTypedData(ethermintCodec, ethChainId, msg, data, &eip712.FeeDelegationOptions{
-		FeePayer: from,
-	})
+	acc, err := authante.GetSignerAcc(suite.ctx, suite.app.AccountKeeper, from)
 	suite.Require().NoError(err)
 
-	sigHash, err := eip712.ComputeTypedDataHash(typedData)
+	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
+
+	txBuilder.SetFeeAmount(gasAmount)
+	txBuilder.SetGasLimit(gas)
+
+	err = txBuilder.SetMsgs(msg)
 	suite.Require().NoError(err)
+
+	signerData := signing.SignerData{
+		Address:       from.String(),
+		ChainID:       chainId,
+		AccountNumber: acc.GetAccountNumber(),
+		Sequence:      nonce,
+		PubKey:        acc.GetPubKey(),
+	}
+
+	msgTypes, _, err := tx.GetMsgTypes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx(), big.NewInt(9000))
+	suite.Require().NoError(err)
+
+	msgTypesJson, _ := json.Marshal(msgTypes)
+	fmt.Printf("Msg Types: %s\n", string(msgTypesJson))
+	msgJson, _ := json.Marshal(txBuilder.GetTx().GetMsgs()[0])
+	fmt.Printf("Msg: %s\n", string(msgJson))
+
+	sigHash, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx())
+	suite.Require().NoError(err)
+	fmt.Printf("SigHash: %s\n", hex.EncodeToString(sigHash))
 
 	// Sign typedData
 	keyringSigner := tests.NewSigner(priv)
-	signature, pubKey, err := keyringSigner.SignByAddress(from, sigHash)
+	signature, pubkey, err := keyringSigner.SignByAddress(from, sigHash)
 	suite.Require().NoError(err)
 	signature[crypto.RecoveryIDOffset] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
+	fmt.Printf("Signature: %s\n", hex.EncodeToString(signature))
 
-	// Add ExtensionOptionsWeb3Tx extension
-	var option *codectypes.Any
-	option, err = codectypes.NewAnyWithValue(&types.ExtensionOptionsWeb3Tx{
-		FeePayer:         from.String(),
-		TypedDataChainID: ethChainId,
-		FeePayerSig:      signature,
-	})
-	suite.Require().NoError(err)
-
-	suite.clientCtx.TxConfig.SignModeHandler()
-	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
-	builder, ok := txBuilder.(authtx.ExtensionOptionsTxBuilder)
-	suite.Require().True(ok)
-
-	builder.SetExtensionOptions(option)
-	builder.SetFeeAmount(gasAmount)
-	builder.SetGasLimit(gas)
-
-	sigsV2 := signing.SignatureV2{
-		PubKey: pubKey,
-		Data: &signing.SingleSignatureData{
-			SignMode: signing.SignMode_SIGN_MODE_LEGACY_AMINO_JSON,
+	sigsV2 := signingtypes.SignatureV2{
+		PubKey: pubkey,
+		Data: &signingtypes.SingleSignatureData{
+			SignMode:  signingtypes.SignMode_SIGN_MODE_EIP_712,
+			Signature: signature,
 		},
 		Sequence: nonce,
 	}
 
-	err = builder.SetSignatures(sigsV2)
+	err = txBuilder.SetSignatures(sigsV2)
 	suite.Require().NoError(err)
-
-	err = builder.SetMsgs(msg)
-	suite.Require().NoError(err)
-
-	return builder
-}
-
-func NextFn(ctx sdk.Context, _ sdk.Tx, _ bool) (sdk.Context, error) {
-	return ctx, nil
+	return txBuilder
 }
 
 var _ sdk.Tx = &invalidTx{}
@@ -347,7 +327,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	encCfg := app.MakeEncodingConfig()
 
 	nApp := app.New(
-		logger, db, os.Stdout, true, map[int64]bool{}, app.DefaultNodeHome, 0, encCfg, simapp.EmptyAppOptions{}, options...)
+		logger, db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encCfg, simapp.EmptyAppOptions{}, options...)
 
 	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
 	genesisState, _ = genesisStateWithValSet(nApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
@@ -362,7 +342,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 			AppStateBytes: stateBytes,
 		},
 	)
-	//nApp.Commit()
+	// nApp.Commit()
 
 	return nApp, encCfg, nil
 }

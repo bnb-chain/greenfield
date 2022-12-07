@@ -3,8 +3,11 @@ module github.com/bnb-chain/bfs
 go 1.18
 
 require (
+	cosmossdk.io/errors v1.0.0-beta.7
+	cosmossdk.io/math v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.46.4
 	github.com/cosmos/ibc-go/v5 v5.0.0
+	github.com/ethereum/go-ethereum v1.10.19
 	github.com/evmos/ethermint v0.6.1-0.20220919141022-34226aa7b1fa //TODO: update to ethermint v0.20.0 after it's released.
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
@@ -21,11 +24,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 )
 
-require (
-	cosmossdk.io/errors v1.0.0-beta.7
-	cosmossdk.io/math v1.0.0-beta.3
-	github.com/ethereum/go-ethereum v1.10.19
-)
+require golang.org/x/text v0.4.0 // indirect
 
 require (
 	cloud.google.com/go v0.105.0 // indirect
@@ -213,7 +212,6 @@ require (
 	golang.org/x/sync v0.0.0-20220929204114-8fcdb60fdcc0 // indirect
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/term v0.1.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
 	golang.org/x/tools v0.1.13-0.20220803210227-8b9a1fbdf5c3 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/api v0.100.0 // indirect
@@ -229,6 +227,6 @@ require (
 
 replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk v0.46.4 => github.com/bnb-chain/bfs-cosmos-sdk v0.0.2-0.20221109173604-ad0f3d8d7663
+	github.com/cosmos/cosmos-sdk v0.46.4 => github.com/bnb-chain/bfs-cosmos-sdk v0.0.2-0.20221207114241-588ee660d3a4
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
