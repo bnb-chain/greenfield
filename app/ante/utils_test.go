@@ -3,6 +3,8 @@ package ante_test
 import (
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
+	"math/big"
 	"testing"
 	"time"
 
@@ -38,15 +40,15 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"fmt"
 	"github.com/bnb-chain/bfs/app"
 	"github.com/bnb-chain/bfs/app/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	"math/big"
 )
+
+const genesisAccountPrivateKeyForTest = "02DCA3F2C6CDF541934FA043A0ADBD891968EC7B948691ABA0C3CACA59A5DAC753"
 
 type AnteTestSuite struct {
 	suite.Suite
@@ -195,24 +197,24 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		PubKey:        acc.GetPubKey(),
 	}
 
-	msgTypes, _, err := tx.GetMsgTypes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx(), big.NewInt(9000))
+	msgTypes, _, err := tx.GetMsgTypes(suite.app.AppCodec(), signerData, txBuilder.GetTx(), big.NewInt(9000))
 	suite.Require().NoError(err)
 
-	msgTypesJson, _ := json.Marshal(msgTypes)
-	fmt.Printf("Msg Types: %s\n", string(msgTypesJson))
-	msgJson, _ := json.Marshal(txBuilder.GetTx().GetMsgs()[0])
-	fmt.Printf("Msg: %s\n", string(msgJson))
+	msgTypesJson, _ := json.MarshalIndent(msgTypes, "", "  ")
+	fmt.Println("Msg Types:\n", string(msgTypesJson))
+	msgJson, _ := json.MarshalIndent(txBuilder.GetTx().GetMsgs()[0], "", "  ")
+	fmt.Println("Msg:\n", string(msgJson))
 
 	sigHash, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx())
 	suite.Require().NoError(err)
-	fmt.Printf("SigHash: %s\n", hex.EncodeToString(sigHash))
+	fmt.Println("SigHash:", hex.EncodeToString(sigHash))
 
 	// Sign typedData
 	keyringSigner := tests.NewSigner(priv)
 	signature, pubkey, err := keyringSigner.SignByAddress(from, sigHash)
 	suite.Require().NoError(err)
 	signature[crypto.RecoveryIDOffset] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
-	fmt.Printf("Signature: %s\n", hex.EncodeToString(signature))
+	fmt.Println("Signature:", hex.EncodeToString(signature))
 
 	sigsV2 := signingtypes.SignatureV2{
 		PubKey: pubkey,
@@ -313,7 +315,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 
 	// generate genesis account
-	bz, _ := hex.DecodeString("02DCA3F2C6CDF541934FA043A0ADBD891968EC7B948691ABA0C3CACA59A5DAC753")
+	bz, _ := hex.DecodeString(genesisAccountPrivateKeyForTest)
 	senderPubKey := &ethsecp256k1.PubKey{Key: bz}
 
 	acc := authtypes.NewBaseAccount(senderPubKey.Address().Bytes(), senderPubKey, 0, 0)

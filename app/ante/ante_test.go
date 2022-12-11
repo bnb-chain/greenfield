@@ -18,9 +18,9 @@ import (
 func (suite *AnteTestSuite) TestAnteHandler() {
 	var acc authtypes.AccountI
 	addr, privKey := tests.NewAddrKey()
-	fmt.Printf("Private Key: %s\n", hex.EncodeToString(privKey.Bytes()))
-	fmt.Printf("Public Key: %s\n", hex.EncodeToString(privKey.PubKey().Bytes()))
-	fmt.Printf("Address: %s\n", addr.String())
+	fmt.Println("Private Key:", hex.EncodeToString(privKey.Bytes()))
+	fmt.Println("Public Key:", hex.EncodeToString(privKey.PubKey().Bytes()))
+	fmt.Println("Address:", addr.String())
 
 	setup := func() {
 		suite.enableFeeMarket = false
@@ -31,7 +31,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		suite.app.AccountKeeper.SetAccount(suite.ctx, acc)
 
 		// get coins from validator
-		bz, _ := hex.DecodeString("02DCA3F2C6CDF541934FA043A0ADBD891968EC7B948691ABA0C3CACA59A5DAC753")
+		bz, _ := hex.DecodeString(genesisAccountPrivateKeyForTest)
 		senderPubKey := &ethsecp256k1.PubKey{Key: bz}
 		_ = suite.app.BankKeeper.SendCoins(suite.ctx, senderPubKey.Address().Bytes(), acc.GetAddress(), sdk.Coins{sdk.Coin{
 			Denom:  sdk.DefaultBondDenom,

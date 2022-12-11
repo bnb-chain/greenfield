@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -34,8 +33,6 @@ import (
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-
-	// this line is used by starport scaffolding # root/moduleImport
 
 	"github.com/bnb-chain/bfs/app"
 	appparams "github.com/bnb-chain/bfs/app/params"
@@ -84,8 +81,9 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
+		flags.FlagChainID:        "bfs_9000-1",
 		flags.FlagKeyringBackend: "test",
+		flags.FlagSignMode:       flags.SignModeEIP712,
 	})
 
 	return rootCmd, encodingConfig
