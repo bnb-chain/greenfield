@@ -36,6 +36,7 @@ import (
 
 	"github.com/bnb-chain/bfs/app"
 	appparams "github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/bfs/crypto/keyring"
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -46,6 +47,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
+		WithKeyringOptions(keyring.ETHAlgoOption()).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).

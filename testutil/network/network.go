@@ -5,20 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/bfs/app"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/crypto/hd"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdkkeyring "github.com/cosmos/cosmos-sdk/crypto/keyring"
 	pruningtypes "github.com/cosmos/cosmos-sdk/pruning/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/testutil/network"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	ethHd "github.com/evmos/ethermint/crypto/hd"
 	"github.com/stretchr/testify/require"
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmdb "github.com/tendermint/tm-db"
+
+	"github.com/bnb-chain/bfs/app"
+	"github.com/bnb-chain/bfs/crypto/keyring"
 )
 
 type (
@@ -74,7 +75,7 @@ func DefaultConfig() network.Config {
 		BondedTokens:    sdk.TokensFromConsensusPower(100, sdk.DefaultPowerReduction),
 		PruningStrategy: pruningtypes.PruningOptionNothing,
 		CleanupDir:      true,
-		SigningAlgo:     string(hd.Secp256k1Type),
-		KeyringOptions:  []keyring.Option{},
+		SigningAlgo:     string(ethHd.EthSecp256k1Type),
+		KeyringOptions:  []sdkkeyring.Option{keyring.ETHAlgoOption()},
 	}
 }
