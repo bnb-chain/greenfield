@@ -13,7 +13,7 @@ faucet:
 
 init:
   client:
-    chain-id: "bfs_9000-1"
+    chain-id: "inscription_9000-1"
 
 genesis:
-  chain_id: "bfs_9000-1"
+  chain_id: "inscription_9000-1"

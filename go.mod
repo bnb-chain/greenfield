@@ -228,6 +228,6 @@ require (
 
 replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk v0.46.4 => github.com/bnb-chain/bfs-cosmos-sdk v0.0.2-0.20221213135746-ee1ee030c252
+	github.com/cosmos/cosmos-sdk v0.46.4 => github.com/bnb-chain/bfs-cosmos-sdk v0.0.2-0.20221213143134-4522e10f6c55
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 )
