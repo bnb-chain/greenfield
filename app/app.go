@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	storagemodulekeeper "github.com/bnb-chain/inscription/x/storage/keeper"
 	"io"
 	"net/http"
 	"os"
@@ -104,19 +105,17 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
-	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
-	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
-	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
-
+	storagemodule "github.com/bnb-chain/inscription/x/storage"
+	storagemoduletypes "github.com/bnb-chain/inscription/x/storage/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	appparams "github.com/bnb-chain/bfs/app/params"
-	"github.com/bnb-chain/bfs/docs"
+	appparams "github.com/bnb-chain/inscription/app/params"
+	"github.com/bnb-chain/inscription/docs"
 )
 
 const (
 	AccountAddressPrefix = "cosmos"
-	Name                 = "bfs"
+	Name                 = "inscription"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -166,7 +165,7 @@ var (
 		transfer.AppModuleBasic{},
 		ica.AppModuleBasic{},
 		vesting.AppModuleBasic{},
-		bfsmodule.AppModuleBasic{},
+		storagemodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -240,7 +239,7 @@ type App struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 	ScopedICAHostKeeper  capabilitykeeper.ScopedKeeper
 
-	BfsKeeper bfsmodulekeeper.Keeper
+	StorageKeeper storagemodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -285,7 +284,7 @@ func New(
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		bfsmoduletypes.StoreKey,
+		storagemoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -503,13 +502,13 @@ func New(
 		govConfig,
 	)
 
-	app.BfsKeeper = *bfsmodulekeeper.NewKeeper(
+	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
 		appCodec,
-		keys[bfsmoduletypes.StoreKey],
-		keys[bfsmoduletypes.MemStoreKey],
-		app.GetSubspace(bfsmoduletypes.ModuleName),
+		keys[storagemoduletypes.StoreKey],
+		keys[storagemoduletypes.MemStoreKey],
+		app.GetSubspace(storagemoduletypes.ModuleName),
 	)
-	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
+	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -556,7 +555,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		icaModule,
-		bfsModule,
+		storageModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -586,7 +585,7 @@ func New(
 		group.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		storagemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -611,7 +610,7 @@ func New(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		storagemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -641,7 +640,7 @@ func New(
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		storagemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -671,7 +670,7 @@ func New(
 		evidence.NewAppModule(app.EvidenceKeeper),
 		ibc.NewAppModule(app.IBCKeeper),
 		transferModule,
-		bfsModule,
+		storageModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -870,7 +869,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(icacontrollertypes.SubModuleName)
 	paramsKeeper.Subspace(icahosttypes.SubModuleName)
-	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
+	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

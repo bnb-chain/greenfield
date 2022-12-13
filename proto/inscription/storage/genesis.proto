@@ -1,0 +1,14 @@
+syntax = "proto3";
+package inscription.storage;
+
+import "gogoproto/gogo.proto";
+import "inscription/storage/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/bnb-chain/inscription/x/storage/types";
+
+// GenesisState defines the storage module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}

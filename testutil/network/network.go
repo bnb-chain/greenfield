@@ -5,8 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/bfs/app"
-
+	"github.com/bnb-chain/inscription/app"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
