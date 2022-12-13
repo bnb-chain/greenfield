@@ -72,7 +72,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	var encCfg params.EncodingConfig
 	suite.app, encCfg, _ = NewApp()
 
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 2, ChainID: "ethermint_9000-1", Time: time.Now().UTC()})
+	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 2, ChainID: "inscription_9000-1", Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
 
@@ -339,7 +339,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	// Initialize the chain
 	nApp.InitChain(
 		abci.RequestInitChain{
-			ChainId:       "ethermint_9000-1",
+			ChainId:       "inscription_9000-1",
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 		},

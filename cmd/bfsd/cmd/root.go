@@ -83,7 +83,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        "bfs_9000-1",
+		flags.FlagChainID:        app.Name + "_" + app.EIP155ChainID + "-" + app.Epoch,
 		flags.FlagKeyringBackend: "test",
 		flags.FlagSignMode:       flags.SignModeEIP712,
 	})

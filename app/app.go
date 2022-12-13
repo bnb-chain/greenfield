@@ -104,19 +104,18 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	appparams "github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/bfs/docs"
 	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
 	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
 	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
-
-	// this line is used by starport scaffolding # stargate/app/moduleImport
-
-	appparams "github.com/bnb-chain/bfs/app/params"
-	"github.com/bnb-chain/bfs/docs"
 )
 
 const (
 	AccountAddressPrefix = "cosmos"
-	Name                 = "bfs"
+	Name                 = "inscription"
+	EIP155ChainID        = "9000"
+	Epoch                = "1"
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
