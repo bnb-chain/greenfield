@@ -86,6 +86,11 @@ import (
 	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
 	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
 	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
+
+	bridgemodule "github.com/bnb-chain/bfs/x/bridge"
+	bridgemodulekeeper "github.com/bnb-chain/bfs/x/bridge/keeper"
+	bridgemoduletypes "github.com/bnb-chain/bfs/x/bridge/types"
+	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (
@@ -134,6 +139,7 @@ var (
 		upgrade.AppModuleBasic{},
 		bfsmodule.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
+		bridgemodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -144,6 +150,7 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
+		bridgemoduletypes.ModuleName:   {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -193,6 +200,8 @@ type App struct {
 	CrossChainKeeper crosschainkeeper.Keeper
 
 	BfsKeeper bfsmodulekeeper.Keeper
+
+	BridgeKeeper bridgemodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -239,6 +248,7 @@ func New(
 		icacontrollertypes.StoreKey,
 		bfsmoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
+		bridgemoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -375,6 +385,16 @@ func New(
 
 	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.BridgeKeeper = *bridgemodulekeeper.NewKeeper(
+		appCodec,
+		keys[bridgemoduletypes.StoreKey],
+		keys[bridgemoduletypes.MemStoreKey],
+		app.GetSubspace(bridgemoduletypes.ModuleName),
+
+		app.BankKeeper,
+	)
+	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
@@ -402,6 +422,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper),
 		bfsModule,
+		bridgeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -424,6 +445,7 @@ func New(
 		paramstypes.ModuleName,
 		bfsmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
+		bridgemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -441,6 +463,7 @@ func New(
 		upgradetypes.ModuleName,
 		bfsmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
+		bridgemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -463,6 +486,7 @@ func New(
 		upgradetypes.ModuleName,
 		bfsmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
+		bridgemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -487,6 +511,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper),
 		bfsModule,
+		bridgeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -691,6 +716,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
+	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

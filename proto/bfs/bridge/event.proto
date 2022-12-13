@@ -1,0 +1,19 @@
+syntax = "proto3";
+package bnbchain.bfs.bridge;
+
+import "cosmos/base/v1beta1/coin.proto";
+
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/bnb-chain/bfs/x/bridge/types";
+
+message EventCrossTransferOut {
+  string from = 1;
+  string to = 2;
+  cosmos.base.v1beta1.Coin amount = 3;
+  uint64 expire_time = 4;
+  cosmos.base.v1beta1.Coin relayer_fee = 5;
+  uint64 sequence = 6;
+}
+
+// this line is used by starport scaffolding # proto/tx/message
