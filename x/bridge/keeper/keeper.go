@@ -11,6 +11,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
+const (
+	DestChainId sdk.ChainID = 1 // TODO:  remove this to config
+)
+
 type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
@@ -34,6 +38,7 @@ func NewKeeper(
 
 	bankKeeper types.BankKeeper,
 	stakingKeepr types.StakingKeeper,
+	crossChainKeeper types.CrossChainKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -41,12 +46,16 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramstore:    ps,
-		bankKeeper:    bankKeeper,
-		stakingKeeper: stakingKeepr,
+		cdc:        cdc,
+		storeKey:   storeKey,
+		memKey:     memKey,
+		paramstore: ps,
+
+		DestChainId: DestChainId,
+
+		bankKeeper:       bankKeeper,
+		stakingKeeper:    stakingKeepr,
+		crossChainKeeper: crossChainKeeper,
 	}
 }
 

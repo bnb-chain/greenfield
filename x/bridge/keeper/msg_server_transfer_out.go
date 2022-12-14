@@ -17,7 +17,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !time.Unix(int64(msg.ExpireTime), 0).After(ctx.BlockHeader().Time.Add(types.MinTransferOutExpireTimeGap)) {
-		return nil, errors.Wrapf(types.ErrInvalidExpireTime, fmt.Sprintf("decode payload error"))
+		return nil, errors.Wrapf(types.ErrInvalidExpireTime, fmt.Sprintf("expire time should be %f seconds after now", types.MinTransferOutExpireTimeGap.Seconds()))
 	}
 
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
@@ -25,11 +25,11 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, errors.Wrapf(types.ErrUnsupportedDenom, fmt.Sprintf("denom is not supported"))
 	}
 
-	relayeFee := sdk.Coin{
+	relayFee := sdk.Coin{
 		Denom:  bondDenom,
 		Amount: types.CrossTransferOutRelayFee,
 	}
-	transferAmount := sdk.Coins{*msg.Amount}.Add(relayeFee)
+	transferAmount := sdk.Coins{*msg.Amount}.Add(relayFee)
 
 	fromAddress := msg.GetSigners()[0]
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAddress, crosschaintypes.ModuleName, transferAmount)
@@ -55,7 +55,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 
 	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.DestChainId, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
-		encodedPackage, *relayeFee.Amount.BigInt())
+		encodedPackage, *relayFee.Amount.BigInt())
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		To:         toAddress.String(),
 		Amount:     msg.Amount,
 		ExpireTime: msg.ExpireTime,
-		RelayerFee: &relayeFee,
+		RelayerFee: &relayFee,
 		Sequence:   sendSeq,
 	}
 	ctx.EventManager().EmitTypedEvent(&transferOutEvent)

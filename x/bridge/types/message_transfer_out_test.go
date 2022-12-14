@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/bnb-chain/bfs/testutil/sample"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 )
@@ -17,13 +18,71 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgTransferOut{
-				Creator: "invalid_address",
+				From: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
-			name: "valid address",
+			name: "invalid to address",
 			msg: MsgTransferOut{
-				Creator: sample.AccAddress(),
+				From: sample.AccAddress(),
+				To:   "invalid address",
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name: "invalid amount",
+			msg: MsgTransferOut{
+				From:   sample.AccAddress(),
+				To:     "0x0000000000000000000000000000000000001000",
+				Amount: nil,
+			},
+			err: sdkerrors.ErrInvalidCoins,
+		},
+		{
+			name: "invalid amount",
+			msg: MsgTransferOut{
+				From: sample.AccAddress(),
+				To:   "0x0000000000000000000000000000000000001000",
+				Amount: &sdk.Coin{
+					Denom:  "%%%%%",
+					Amount: sdk.NewInt(1),
+				},
+			},
+			err: sdkerrors.ErrInvalidCoins,
+		},
+		{
+			name: "invalid amount",
+			msg: MsgTransferOut{
+				From: sample.AccAddress(),
+				To:   "0x0000000000000000000000000000000000001000",
+				Amount: &sdk.Coin{
+					Denom:  "coin",
+					Amount: sdk.NewInt(-1),
+				},
+			},
+			err: sdkerrors.ErrInvalidCoins,
+		},
+		{
+			name: "invalid amount",
+			msg: MsgTransferOut{
+				From: sample.AccAddress(),
+				To:   "0x0000000000000000000000000000000000001000",
+				Amount: &sdk.Coin{
+					Denom:  "coin",
+					Amount: sdk.NewInt(0),
+				},
+			},
+			err: sdkerrors.ErrInvalidCoins,
+		},
+		{
+			name: "invalid amount",
+			msg: MsgTransferOut{
+				From: sample.AccAddress(),
+				To:   "0x0000000000000000000000000000000000001000",
+				Amount: &sdk.Coin{
+					Denom:  "coin",
+					Amount: sdk.NewInt(1),
+				},
 			},
 		},
 	}

@@ -16,7 +16,7 @@ const (
 	TransferOutChannelID sdk.ChannelID = 1
 )
 
-var CrossTransferOutRelayFee = sdk.NewInt(10000000000) // TODO: to be determined
+var CrossTransferOutRelayFee = sdk.NewInt(1) // TODO: to be determined
 
 type TransferOutSynPackage struct {
 	TokenSymbol     [32]byte

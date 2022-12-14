@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/cosmos/cosmos-sdk/bsc"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -42,7 +43,25 @@ func (msg *MsgTransferOut) GetSignBytes() []byte {
 func (msg *MsgTransferOut) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
+
+	_, err = bsc.NewSmartChainAddress(msg.To)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
+	}
+
+	if msg.Amount == nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount should not be nil")
+	}
+
+	if !msg.Amount.IsValid() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+	}
+
+	if !msg.Amount.IsPositive() {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount should be positive")
+	}
+
 	return nil
 }

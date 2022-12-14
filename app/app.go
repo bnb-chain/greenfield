@@ -150,6 +150,7 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
+		crosschaintypes.ModuleName:     nil,
 		bridgemoduletypes.ModuleName:   {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
@@ -392,6 +393,8 @@ func New(
 		app.GetSubspace(bridgemoduletypes.ModuleName),
 
 		app.BankKeeper,
+		app.StakingKeeper,
+		app.CrossChainKeeper,
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -586,6 +589,9 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 		panic(err)
 	}
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
+
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(1), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
+
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
