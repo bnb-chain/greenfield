@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -35,10 +34,9 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	// this line is used by starport scaffolding # root/moduleImport
-
 	"github.com/bnb-chain/bfs/app"
 	appparams "github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/bfs/crypto/keyring"
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -49,6 +47,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
+		WithKeyringOptions(keyring.ETHAlgoOption()).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
@@ -84,8 +83,9 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
+		flags.FlagChainID:        app.Name + "_" + app.EIP155ChainID + "-" + app.Epoch,
 		flags.FlagKeyringBackend: "test",
+		flags.FlagSignMode:       flags.SignModeEIP712,
 	})
 
 	return rootCmd, encodingConfig
@@ -103,7 +103,8 @@ func initRootCmd(
 	encodingConfig appparams.EncodingConfig,
 ) {
 	// Set config
-	initSDKConfig()
+	cfg := sdk.GetConfig()
+	cfg.Seal()
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),

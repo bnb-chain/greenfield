@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/std"
+	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
 	"github.com/bnb-chain/bfs/app/params"
@@ -14,7 +15,9 @@ func makeEncodingConfig() params.EncodingConfig {
 	amino := codec.NewLegacyAmino()
 	interfaceRegistry := types.NewInterfaceRegistry()
 	marshaler := codec.NewProtoCodec(interfaceRegistry)
-	txCfg := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
+	txCfg := tx.NewTxConfig(marshaler, []signingtypes.SignMode{
+		signingtypes.SignMode_SIGN_MODE_EIP_712,
+	})
 
 	return params.EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
