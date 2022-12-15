@@ -103,8 +103,7 @@ func initRootCmd(
 	encodingConfig appparams.EncodingConfig,
 ) {
 	// Set config
-	cfg := sdk.GetConfig()
-	cfg.Seal()
+	initSDKConfig()
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),

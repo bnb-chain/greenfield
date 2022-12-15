@@ -115,6 +115,8 @@ const (
 	Name          = "inscription"
 	EIP155ChainID = "9000"
 	Epoch         = "1"
+
+	CoinType = 60
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
