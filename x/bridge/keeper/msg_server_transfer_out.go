@@ -39,7 +39,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 
 	toAddress, err := bsc.NewSmartChainAddress(msg.To)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidToAddress, fmt.Sprintf("to address is not invalid"))
+		return nil, errors.Wrapf(types.ErrInvalidAddress, fmt.Sprintf("to address is not invalid"))
 	}
 
 	transferPackage := types.TransferOutSynPackage{

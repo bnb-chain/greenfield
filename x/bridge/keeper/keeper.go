@@ -3,7 +3,9 @@ package keeper
 import (
 	"fmt"
 
+	"cosmossdk.io/errors"
 	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -61,4 +63,19 @@ func NewKeeper(
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynPackage, refundReason types.RefundReason) ([]byte, error) {
+	refundPackage := &types.TransferInRefundPackage{
+		ContractAddr:    transferInClaim.ContractAddress,
+		RefundAddresses: transferInClaim.RefundAddresses,
+		RefundAmounts:   transferInClaim.Amounts,
+		RefundReason:    refundReason,
+	}
+
+	encodedBytes, err := rlp.EncodeToBytes(refundPackage)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidPackage, fmt.Sprintf("encode refund package error"))
+	}
+	return encodedBytes, nil
 }
