@@ -1,0 +1,20 @@
+syntax = "proto3";
+package bnbchain.bfs.sp;
+
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+
+message EventCreateStorageProvider {
+  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string funding_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string total_deposit = 3;
+}
+
+message EventEditStorageProvider {}
+
+message EventDeposit {
+  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string deposit = 2;
+  string total_deposit = 3;
+}

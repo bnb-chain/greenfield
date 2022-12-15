@@ -1,0 +1,22 @@
+syntax = "proto3";
+package bnbchain.bfs.sp;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+
+// DepositAuthorization defines authorization for sp deposit.
+//
+// Since: cosmos-sdk 0.43
+message DepositAuthorization {
+  // option (cosmos_proto.implements_interface) = "Authorization";
+
+  // max_deposit specifies the maximum amount of tokens can be deposit to a storage provider. If it is
+  // empty, there is no spend limit and any amount of coins can be deposit.
+  cosmos.base.v1beta1.Coin max_deposit = 1;
+
+  // sp_address is the operator address of storage provider.
+  string sp_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}

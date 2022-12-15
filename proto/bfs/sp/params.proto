@@ -1,0 +1,25 @@
+syntax = "proto3";
+package bnbchain.bfs.sp;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // max_storage_providers is the maximum number of validators.
+  uint32 max_storage_providers = 1;
+
+  // deposit_denom defines the staking coin denomination.
+  string deposit_denom = 2;
+  // min_deposit_amount defines the minimum deposit amount for storage providers.
+  string min_deposit = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
