@@ -106,6 +106,16 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 		}
 	}
 
+	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutFailAck{
+		From: transferOutPackage.RefundAddress.String(),
+		To:   transferOutPackage.Recipient.String(),
+		Amount: &sdk.Coin{
+			Denom:  symbol,
+			Amount: sdk.NewIntFromBigInt(transferOutPackage.Amount),
+		},
+		ExpireTime: transferOutPackage.ExpireTime,
+	})
+
 	return sdk.ExecuteResult{}
 }
 

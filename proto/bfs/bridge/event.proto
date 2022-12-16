@@ -22,4 +22,11 @@ message EventCrossTransferOutRefund {
   uint32 refund_reason = 3;
 }
 
+message EventCrossTransferOutFailAck {
+  string from = 1;
+  string to = 2;
+  cosmos.base.v1beta1.Coin amount = 3;
+  uint64 expire_time = 4;
+}
+
 // this line is used by starport scaffolding # proto/tx/message
