@@ -67,6 +67,15 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 		}
 	}
 
+	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutRefund{
+		RefundAddress: refundPackage.RefundAddr.String(),
+		Amount: &sdk.Coin{
+			Denom:  symbol,
+			Amount: sdk.NewIntFromBigInt(refundPackage.RefundAmount),
+		},
+		RefundReason: uint32(refundPackage.RefundReason),
+	})
+
 	return sdk.ExecuteResult{}
 }
 
@@ -130,7 +139,6 @@ func (app *TransferInApp) checkTransferInSynPackage(transferInPackage *types.Tra
 	for _, addr := range transferInPackage.RefundAddresses {
 		if addr.IsEmpty() {
 			return errors.Wrapf(types.ErrInvalidAddress, "refund address should not be empty")
-
 		}
 	}
 
