@@ -15,8 +15,10 @@ const (
 	MinTransferOutExpireTimeGap = 60 * time.Second
 
 	TransferOutChannel = "transferOut"
+	TransferInChannel  = "transferIn"
 
 	TransferOutChannelID sdk.ChannelID = 1
+	TransferInChannelID  sdk.ChannelID = 3
 )
 
 var CrossTransferOutRelayFee = sdk.NewInt(1) // TODO: to be determined

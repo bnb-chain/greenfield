@@ -54,6 +54,9 @@ import (
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
+	"github.com/cosmos/cosmos-sdk/x/oracle"
+	oraclekeeper "github.com/cosmos/cosmos-sdk/x/oracle/keeper"
+	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -139,6 +142,7 @@ var (
 		upgrade.AppModuleBasic{},
 		bfsmodule.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
+		oracle.AppModuleBasic{},
 		bridgemodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
@@ -151,7 +155,7 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		crosschaintypes.ModuleName:     nil,
-		bridgemoduletypes.ModuleName:   {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		bridgemoduletypes.ModuleName:   nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
@@ -199,6 +203,7 @@ type App struct {
 	ParamsKeeper     paramskeeper.Keeper
 	FeeGrantKeeper   feegrantkeeper.Keeper
 	CrossChainKeeper crosschainkeeper.Keeper
+	OracleKeeper     oraclekeeper.Keeper
 
 	BfsKeeper bfsmodulekeeper.Keeper
 
@@ -249,6 +254,7 @@ func New(
 		icacontrollertypes.StoreKey,
 		bfsmoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
+		oracletypes.StoreKey,
 		bridgemoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
@@ -330,6 +336,16 @@ func New(
 		appCodec,
 		keys[crosschaintypes.StoreKey],
 		app.GetSubspace(crosschaintypes.ModuleName),
+	)
+
+	app.OracleKeeper = oraclekeeper.NewKeeper(
+		appCodec,
+		keys[crosschaintypes.StoreKey],
+		app.GetSubspace(crosschaintypes.ModuleName),
+		authtypes.FeeCollectorName,
+		app.CrossChainKeeper,
+		app.BankKeeper,
+		app.StakingKeeper,
 	)
 
 	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(
@@ -424,6 +440,7 @@ func New(
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper),
+		oracle.NewAppModule(app.OracleKeeper),
 		bfsModule,
 		bridgeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -448,6 +465,7 @@ func New(
 		paramstypes.ModuleName,
 		bfsmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
+		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
@@ -466,6 +484,7 @@ func New(
 		upgradetypes.ModuleName,
 		bfsmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
+		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
@@ -489,6 +508,7 @@ func New(
 		upgradetypes.ModuleName,
 		bfsmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
+		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
@@ -513,6 +533,7 @@ func New(
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper),
+		oracle.NewAppModule(app.OracleKeeper),
 		bfsModule,
 		bridgeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -566,7 +587,17 @@ func New(
 
 	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
+	app.initModules()
+
 	return app
+}
+
+func (app *App) initModules() {
+	app.initBridge()
+}
+
+func (app *App) initBridge() {
+	bridgemodulekeeper.RegisterCrossApps(app.BridgeKeeper)
 }
 
 // Name returns the name of the App
@@ -722,6 +753,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
 	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
+	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 

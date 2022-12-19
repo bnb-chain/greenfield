@@ -11,10 +11,30 @@ import (
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 )
 
+func RegisterCrossApps(keeper Keeper) {
+	transferOutRefundApp := NewTransferOutApp(keeper)
+	err := keeper.crossChainKeeper.RegisterChannel(types.TransferOutChannel, types.TransferOutChannelID, transferOutRefundApp)
+	if err != nil {
+		panic(err)
+	}
+
+	transferInApp := NewTransferInApp(keeper)
+	err = keeper.crossChainKeeper.RegisterChannel(types.TransferInChannel, types.TransferInChannelID, transferInApp)
+	if err != nil {
+		panic(err)
+	}
+}
+
 var _ sdk.CrossChainApplication = &TransferOutApp{}
 
 type TransferOutApp struct {
 	bridgeKeeper Keeper
+}
+
+func NewTransferOutApp(keeper Keeper) *TransferOutApp {
+	return &TransferOutApp{
+		bridgeKeeper: keeper,
+	}
 }
 
 func (app *TransferOutApp) checkPackage(refundPackage *types.TransferOutRefundPackage) error {
