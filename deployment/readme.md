@@ -76,5 +76,8 @@ bash ./deployment/localup/localup.sh all ${SIZE}
 bash ./deployment/localup/localup.sh stop
 ```
 
-
+3. Send Tx
+```bash
+./build/bin/bfsd tx bank send 0xAa52014550825A7fE871cb2e7A053EF1D0D283c6 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750
+```
 
