@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/bnb-chain/bfs/x/bridge/types"
-	"github.com/cosmos/cosmos-sdk/bsc"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -26,7 +25,7 @@ func CmdTransferOut() *cobra.Command {
 				return err
 			}
 
-			toAddr, err := bsc.NewSmartChainAddress(args[0])
+			toAddr, err := sdk.ETHAddressFromHexUnsafe(args[0])
 			if err != nil {
 				return err
 			}

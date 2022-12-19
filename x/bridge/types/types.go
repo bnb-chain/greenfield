@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/bsc"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -34,9 +33,9 @@ const (
 
 type TransferOutSynPackage struct {
 	TokenSymbol     [32]byte
-	ContractAddress bsc.SmartChainAddress
+	ContractAddress sdk.EthAddress
 	Amount          *big.Int
-	Recipient       bsc.SmartChainAddress
+	Recipient       sdk.EthAddress
 	RefundAddress   sdk.AccAddress
 	ExpireTime      uint64
 }
@@ -81,10 +80,10 @@ func BytesToSymbol(symbolBytes [32]byte) string {
 
 type TransferInSynPackage struct {
 	TokenSymbol       [32]byte
-	ContractAddress   bsc.SmartChainAddress
+	ContractAddress   sdk.EthAddress
 	Amounts           []*big.Int
 	ReceiverAddresses []sdk.AccAddress
-	RefundAddresses   []bsc.SmartChainAddress
+	RefundAddresses   []sdk.EthAddress
 	ExpireTime        uint64
 }
 
@@ -99,8 +98,8 @@ func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPa
 }
 
 type TransferInRefundPackage struct {
-	ContractAddr    bsc.SmartChainAddress
+	ContractAddr    sdk.EthAddress
 	RefundAmounts   []*big.Int
-	RefundAddresses []bsc.SmartChainAddress
+	RefundAddresses []sdk.EthAddress
 	RefundReason    RefundReason
 }

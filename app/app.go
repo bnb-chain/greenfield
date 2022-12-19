@@ -597,6 +597,11 @@ func (app *App) initModules() {
 }
 
 func (app *App) initBridge() {
+	err := app.CrossChainKeeper.RegisterDestChain(sdk.ChainID(1))
+	if err != nil {
+		panic("register dest chain error")
+	}
+
 	bridgemodulekeeper.RegisterCrossApps(app.BridgeKeeper)
 }
 

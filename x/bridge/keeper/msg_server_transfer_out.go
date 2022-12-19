@@ -7,7 +7,6 @@ import (
 
 	"cosmossdk.io/errors"
 	"github.com/bnb-chain/bfs/x/bridge/types"
-	"github.com/cosmos/cosmos-sdk/bsc"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
@@ -37,7 +36,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, err
 	}
 
-	toAddress, err := bsc.NewSmartChainAddress(msg.To)
+	toAddress, err := sdk.ETHAddressFromHexUnsafe(msg.To)
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidAddress, fmt.Sprintf("to address is not invalid"))
 	}
