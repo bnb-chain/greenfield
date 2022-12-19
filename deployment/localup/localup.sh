@@ -79,9 +79,10 @@ function generate_genesis() {
     persistent_peers=$(joinByString ',' ${node_ids})
     for ((i=0;i<${size};i++));do
         cp ${workspace}/.local/validator0/config/genesis.json ${workspace}/.local/validator${i}/config/
-        sed -i -e "s/minimum-gas-prices = \"0stake\"/minimum-gas-prices = \"0${STAKING_BOND_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
-        sed -i -e "s/denom-to-suggest = \"uatom\"/denom-to-suggest = \"${STAKING_BOND_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
-        sed -i -e "s/stake/${STAKING_BOND_DENOM}/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/minimum-gas-prices = \"0stake\"/minimum-gas-prices = \"0${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
+        sed -i -e "s/denom-to-suggest = \"uatom\"/denom-to-suggest = \"${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
+        sed -i -e "s/stake/${BASIC_DENOM}/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"denom_metadata\": \[\]/\"denom_metadata\": \[${NATIVE_COIN_DESC}\]/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/persistent_peers = \".*\"/persistent_peers = \"${persistent_peers}\"/g" ${workspace}/.local/validator${i}/config/config.toml
         sed -i -e "s/addr_book_strict = true/addr_book_strict = false/g" ${workspace}/.local/validator${i}/config/config.toml
         sed -i -e "s/allow_duplicate_ip = false/allow_duplicate_ip = true/g" ${workspace}/.local/validator${i}/config/config.toml
