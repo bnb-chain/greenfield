@@ -81,3 +81,9 @@ bash ./deployment/localup/localup.sh stop
 ./build/bin/bfsd tx bank send 0xAa52014550825A7fE871cb2e7A053EF1D0D283c6 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750
 ```
 
+4. Restart the chain without state initialization
+```bash
+bash ./deployment/localup/localup.sh stop
+bash ./deployment/localup/localup.sh start ${SIZE}
+```
+
