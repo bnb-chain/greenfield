@@ -20,6 +20,9 @@ jobs:
         go-version: [1.18.x]
         os: [ubuntu-18.04]
     runs-on: ${{ matrix.os }}
+    env:
+      GOPRIVATE: github.com/bnb-chain
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_SECRET }}
     steps:
       - uses: actions/setup-go@v3
         with:
