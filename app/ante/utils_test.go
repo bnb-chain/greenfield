@@ -58,6 +58,7 @@ type AnteTestSuite struct {
 	clientCtx       client.Context
 	anteHandler     sdk.AnteHandler
 	enableFeeMarket bool
+	// nolint:unused
 	evmParamsOption func(*evmtypes.Params)
 }
 

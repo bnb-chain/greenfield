@@ -4,8 +4,9 @@ import (
 	"encoding/hex"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -173,6 +174,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9001-1", gas, amount)
 				sigsV2 := signing.SignatureV2{}
+				// nolint:errcheck
 				txBuilder.SetSignatures(sigsV2)
 				return txBuilder.GetTx()
 			}, false, false, false,
@@ -193,6 +195,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					},
 					Sequence: nonce - 1,
 				}
+				// nolint:errcheck
 				txBuilder.SetSignatures(sigsV2)
 				return txBuilder.GetTx()
 			}, false, false, false,
@@ -213,6 +216,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 					},
 					Sequence: nonce,
 				}
+				// nolint:errcheck
 				txBuilder.SetSignatures(sigsV2)
 				return txBuilder.GetTx()
 			}, false, false, false,
