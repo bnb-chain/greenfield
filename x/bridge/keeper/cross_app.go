@@ -167,7 +167,7 @@ func (app *TransferInApp) checkTransferInSynPackage(transferInPackage *types.Tra
 	}
 
 	for _, addr := range transferInPackage.RefundAddresses {
-		if addr.IsEmpty() {
+		if addr.Empty() {
 			return errors.Wrapf(types.ErrInvalidAddress, "refund address should not be empty")
 		}
 	}

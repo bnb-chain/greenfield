@@ -27,7 +27,7 @@ func (msg *MsgTransferOut) Type() string {
 }
 
 func (msg *MsgTransferOut) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.From)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.From)
 	if err != nil {
 		panic(err)
 	}
@@ -40,7 +40,7 @@ func (msg *MsgTransferOut) GetSignBytes() []byte {
 }
 
 func (msg *MsgTransferOut) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.From)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.From)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
