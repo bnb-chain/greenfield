@@ -355,6 +355,7 @@ func New(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.AccountKeeper,
+		app.AuthzKeeper,
 		app.BankKeeper,
 		app.GetSubspace(stakingtypes.ModuleName),
 	)
