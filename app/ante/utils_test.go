@@ -115,7 +115,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 	// Build MsgCreateValidator
 	valAddr := sdk.ValAddress(from.Bytes())
 	privEd := ed25519.GenPrivKey()
-	addr1 := sdk.AccAddress(privEd.PubKey().Address())
+	addr1 := sdk.AccAddress(from.Bytes())
 	blsSecretKey, _ := bls.RandKey()
 	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
 	msgCreate, err := types3.NewMsgCreateValidator(
