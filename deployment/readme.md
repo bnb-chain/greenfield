@@ -30,6 +30,7 @@ The ~/.bfsd folder has the following structure:
 ```bash
 # new key
 ./build/bin/bfsd keys add validator --keyring-backend test
+./build/bin/bfsd keys add relayer --keyring-backend test --algo eth_bls
 
 # list accounts
 ./build/bin/bfsd keys list --keyring-backend test
@@ -43,13 +44,15 @@ See more details: https://docs.cosmos.network/v0.46/run-node/keyring.html#availa
 Before starting the chain, you need to populate the state with at least one account.
 ```bash
 VALIDATOR=$(./build/bin/bfsd keys show validator -a --keyring-backend test)
+RELAYER=$(./build/bin/bfsd keys show relayer -a --keyring-backend test)
+RELAYER_BLS=$(./build/bin/bfsd keys show relayer -a --keyring-backend test --output json | jq -r .pubkey_hex)"
 ./build/bin/bfsd add-genesis-account $VALIDATOR 100000000000bnb
 ```
 
 5. Create validator in genesis state
 ```bash
 # create a gentx.
-./build/bin/bfsd gentx validator 1000000000bnb --keyring-backend=test --chain-id=inscription_9000-121 \
+./build/bin/bfsd gentx validator 1000000000bnb $VALIDATOR $RELAYER $RELAYER_BLS --keyring-backend=test --chain-id=inscription_9000-121 \
     --moniker="validator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=1.0 \
@@ -78,7 +81,7 @@ bash ./deployment/localup/localup.sh stop
 
 3. Send Tx
 ```bash
-./build/bin/bfsd tx bank send 0xAa52014550825A7fE871cb2e7A053EF1D0D283c6 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750
+./build/bin/bfsd tx bank send validator0 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block
 ```
 
 4. Restart the chain without state initialization
@@ -86,4 +89,3 @@ bash ./deployment/localup/localup.sh stop
 bash ./deployment/localup/localup.sh stop
 bash ./deployment/localup/localup.sh start ${SIZE}
 ```
-

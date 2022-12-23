@@ -16,7 +16,7 @@ ARG USER=bfs
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-ENV PACKAGES ca-certificates bash curl
+ENV PACKAGES ca-certificates bash curl libstdc++
 ENV WORKDIR=/server
 
 RUN apk add --no-cache $PACKAGES \

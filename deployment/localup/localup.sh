@@ -25,12 +25,14 @@ function init() {
     mkdir -p ${workspace}/.local
     for ((i=0;i<${size};i++));do
         mkdir -p ${workspace}/.local/validator${i}
+        mkdir -p ${workspace}/.local/relayer${i}
 
         # init chain
         ${bin} init validator${i} --chain-id ${CHAIN_ID} --staking-bond-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
 
         # create genesis accounts
         ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info
+        ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/info
     done
 }
 
@@ -50,8 +52,13 @@ function generate_genesis() {
         done
 
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
+
+        validatorAddr=${validator_addrs[$i]}
+        relayerAddr="$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})"
+        relayerBLSKey="$(${bin} keys show relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --output json | jq -r .pubkey_hex)"
+        
         # create bond validator tx
-        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} \
+        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $validatorAddr $relayerAddr $relayerBLSKey \
             --home ${workspace}/.local/validator${i} \
             --keyring-backend=test \
             --chain-id=${CHAIN_ID} \
@@ -64,7 +71,6 @@ function generate_genesis() {
             --node tcp://localhost:$((${p2p_port_start}+${i})) \
             --node-id "validator${i}" \
             --ip 127.0.0.1
-
         cp ${workspace}/.local/validator${i}/config/gentx/gentx-validator${i}.json ${workspace}/.local/gentx/
     done
 
