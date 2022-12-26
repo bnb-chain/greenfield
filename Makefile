@@ -4,9 +4,9 @@
 VERSION=$(shell git describe --tags)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d')
-REPO=github.com/bnb-chain/bfs
-IMAGE_NAME=ghcr.io/bnb-chain/bfs
-REPO=github.com/bnb-chain/bfs
+REPO=github.com/bnb-chain/inscription
+IMAGE_NAME=ghcr.io/bnb-chain/inscription
+REPO=github.com/bnb-chain/inscription
 
 ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
