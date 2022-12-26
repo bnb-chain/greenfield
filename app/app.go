@@ -19,7 +19,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
@@ -104,19 +103,20 @@ import (
 	tmos "github.com/tendermint/tendermint/libs/os"
 	dbm "github.com/tendermint/tm-db"
 
+	appparams "github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/bfs/docs"
+	"github.com/bnb-chain/bfs/version"
 	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
 	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
 	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
-
-	// this line is used by starport scaffolding # stargate/app/moduleImport
-
-	appparams "github.com/bnb-chain/bfs/app/params"
-	"github.com/bnb-chain/bfs/docs"
 )
 
 const (
-	AccountAddressPrefix = "cosmos"
-	Name                 = "bfs"
+	Name          = "inscription"
+	EIP155ChainID = "9000"
+	Epoch         = "1"
+
+	CoinType = 60
 )
 
 // this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
@@ -276,7 +276,7 @@ func New(
 		baseAppOptions...,
 	)
 	bApp.SetCommitMultiStoreTracer(traceStore)
-	bApp.SetVersion(version.Version)
+	bApp.SetVersion(version.AppVersion)
 	bApp.SetInterfaceRegistry(interfaceRegistry)
 
 	keys := sdk.NewKVStoreKeys(
@@ -355,6 +355,7 @@ func New(
 		appCodec,
 		keys[stakingtypes.StoreKey],
 		app.AccountKeeper,
+		app.AuthzKeeper,
 		app.BankKeeper,
 		app.GetSubspace(stakingtypes.ModuleName),
 	)

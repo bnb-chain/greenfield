@@ -10,3 +10,10 @@ validators:
 faucet:
   name: bob
   coins: ["5token", "100000stake"]
+
+init:
+  client:
+    chain-id: "inscription_9000-1"
+
+genesis:
+  chain_id: "inscription_9000-1"

@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -35,10 +35,10 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
 
-	// this line is used by starport scaffolding # root/moduleImport
-
 	"github.com/bnb-chain/bfs/app"
 	appparams "github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/bfs/crypto/keyring"
+	"github.com/bnb-chain/bfs/version"
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -49,6 +49,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
 		WithTxConfig(encodingConfig.TxConfig).
 		WithLegacyAmino(encodingConfig.Amino).
+		WithKeyringOptions(keyring.ETHAlgoOption()).
 		WithInput(os.Stdin).
 		WithAccountRetriever(types.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
@@ -84,8 +85,9 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 
 	initRootCmd(rootCmd, encodingConfig)
 	overwriteFlagDefaults(rootCmd, map[string]string{
-		flags.FlagChainID:        strings.ReplaceAll(app.Name, "-", ""),
+		flags.FlagChainID:        app.Name + "_" + app.EIP155ChainID + "-" + app.Epoch,
 		flags.FlagKeyringBackend: "test",
+		flags.FlagSignMode:       flags.SignModeEIP712,
 	})
 
 	return rootCmd, encodingConfig
@@ -144,6 +146,33 @@ func initRootCmd(
 		keys.Commands(app.DefaultNodeHome),
 		startWithTunnelingCommand(a, app.DefaultNodeHome),
 	)
+
+	overrideOrAppendCommand(rootCmd, map[string]*cobra.Command{
+		"version": versionCommand(),
+	})
+}
+
+func overrideOrAppendCommand(cmd *cobra.Command, overrides map[string]*cobra.Command) {
+	for _, subCmd := range cmd.Commands() {
+		if _, ok := overrides[subCmd.Use]; ok {
+			cmd.RemoveCommand(subCmd)
+		}
+	}
+
+	for _, newCmd := range overrides {
+		cmd.AddCommand(newCmd)
+	}
+}
+
+func versionCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "version",
+		Short: "Print the application binary version information",
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			fmt.Print(version.Version())
+			return nil
+		},
+	}
 }
 
 // queryCommand returns the sub-command to send queries to the app
@@ -230,6 +259,7 @@ func overwriteFlagDefaults(c *cobra.Command, defaults map[string]string) {
 	set := func(s *pflag.FlagSet, key, val string) {
 		if f := s.Lookup(key); f != nil {
 			f.DefValue = val
+			// nolint: errcheck
 			f.Value.Set(val)
 		}
 	}
@@ -304,7 +334,7 @@ func (a appCreator) newApp(
 		baseapp.SetIndexEvents(cast.ToStringSlice(appOpts.Get(server.FlagIndexEvents))),
 		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
-		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagIAVLFastNode))),
+		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
 	)
 }
 
