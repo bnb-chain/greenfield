@@ -11,10 +11,9 @@ var _ sdk.Msg = &MsgTransferOut{}
 
 func NewMsgTransferOut(from string, to string, amount *sdk.Coin, expireTime uint64) *MsgTransferOut {
 	return &MsgTransferOut{
-		From:       from,
-		To:         to,
-		Amount:     amount,
-		ExpireTime: expireTime,
+		From:   from,
+		To:     to,
+		Amount: amount,
 	}
 }
 

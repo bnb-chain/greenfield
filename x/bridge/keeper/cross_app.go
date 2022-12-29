@@ -133,7 +133,6 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 			Denom:  symbol,
 			Amount: sdk.NewIntFromBigInt(transferOutPackage.Amount),
 		},
-		ExpireTime: transferOutPackage.ExpireTime,
 	})
 
 	return sdk.ExecuteResult{}
@@ -223,18 +222,6 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 		return sdk.ExecuteResult{
 			Payload: refundPackage,
 			Err:     types.ErrUnsupportedDenom,
-		}
-	}
-
-	if int64(transferInPackage.ExpireTime) < ctx.BlockHeader().Time.Unix() {
-		refundPackage, sdkErr := app.bridgeKeeper.GetRefundTransferInPayload(transferInPackage, types.Timeout)
-		if sdkErr != nil {
-			app.bridgeKeeper.Logger(ctx).Error("refund transfer in error", "err", sdkErr.Error())
-			panic(sdkErr)
-		}
-		return sdk.ExecuteResult{
-			Payload: refundPackage,
-			Err:     errors.Wrapf(types.ErrInvalidLength, "transfer in package is expired"),
 		}
 	}
 

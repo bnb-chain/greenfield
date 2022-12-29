@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"cosmossdk.io/errors"
 	"github.com/bnb-chain/bfs/x/bridge/types"
@@ -14,10 +13,6 @@ import (
 
 func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut) (*types.MsgTransferOutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if !time.Unix(int64(msg.ExpireTime), 0).After(ctx.BlockHeader().Time.Add(types.MinTransferOutExpireTimeGap)) {
-		return nil, errors.Wrapf(types.ErrInvalidExpireTime, fmt.Sprintf("expire time should be %f seconds after now", types.MinTransferOutExpireTimeGap.Seconds()))
-	}
 
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
@@ -45,7 +40,6 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		RefundAddress: fromAddress.Bytes(),
 		Recipient:     toAddress,
 		Amount:        msg.Amount.Amount.BigInt(),
-		ExpireTime:    msg.ExpireTime,
 	}
 
 	encodedPackage, err := rlp.EncodeToBytes(transferPackage)
@@ -64,7 +58,6 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		From:       fromAddress.String(),
 		To:         toAddress.String(),
 		Amount:     msg.Amount,
-		ExpireTime: msg.ExpireTime,
 		RelayerFee: &relayFee,
 		Sequence:   sendSeq,
 	}

@@ -11,9 +11,8 @@ message EventCrossTransferOut {
   string from = 1;
   string to = 2;
   cosmos.base.v1beta1.Coin amount = 3;
-  uint64 expire_time = 4;
-  cosmos.base.v1beta1.Coin relayer_fee = 5;
-  uint64 sequence = 6;
+  cosmos.base.v1beta1.Coin relayer_fee = 4;
+  uint64 sequence = 5;
 }
 
 message EventCrossTransferOutRefund {
@@ -26,7 +25,6 @@ message EventCrossTransferOutFailAck {
   string from = 1;
   string to = 2;
   cosmos.base.v1beta1.Coin amount = 3;
-  uint64 expire_time = 4;
 }
 
 // this line is used by starport scaffolding # proto/tx/message
