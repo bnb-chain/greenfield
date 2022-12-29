@@ -207,6 +207,7 @@ func New(
 	homePath string,
 	invCheckPeriod uint,
 	encodingConfig appparams.EncodingConfig,
+	customAppConfig *AppConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *App {

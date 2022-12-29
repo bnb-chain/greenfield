@@ -30,6 +30,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
@@ -39,6 +40,10 @@ import (
 	appparams "github.com/bnb-chain/bfs/app/params"
 	"github.com/bnb-chain/bfs/crypto/keyring"
 	"github.com/bnb-chain/bfs/version"
+)
+
+var (
+	appConfig *app.AppConfig = app.NewDefaultAppConfig()
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -75,11 +80,15 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
-			return server.InterceptConfigsPreRunHandler(
-				cmd, customAppTemplate, customAppConfig, customTMConfig,
+			err = server.InterceptConfigsPreRunHandler(
+				cmd, app.CustomAppTemplate, app.NewDefaultAppConfig(), customTMConfig,
 			)
+			if err != nil {
+				return err
+			}
+
+			return ParseAppConfigInPlace()
 		},
 	}
 
@@ -91,6 +100,28 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	})
 
 	return rootCmd, encodingConfig
+}
+
+func ParseAppConfigInPlace() error {
+	homeDir := viper.GetString(flags.FlagHome)
+
+	tmpViper := viper.New()
+	tmpViper.SetConfigName("app")
+	tmpViper.SetConfigType("toml")
+	tmpViper.AddConfigPath(homeDir)
+	tmpViper.AddConfigPath(filepath.Join(homeDir, "config"))
+
+	// If a config file is found, read it in.
+	if err := tmpViper.ReadInConfig(); err != nil {
+		return err
+	}
+
+	appConfig = app.NewDefaultAppConfig()
+	err := tmpViper.Unmarshal(appConfig)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // initTendermintConfig helps to override default Tendermint Config values.
@@ -323,6 +354,7 @@ func (a appCreator) newApp(
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		a.encodingConfig,
+		appConfig,
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
@@ -362,6 +394,7 @@ func (a appCreator) appExport(
 		homePath,
 		uint(1),
 		a.encodingConfig,
+		appConfig,
 		appOpts,
 	)
 

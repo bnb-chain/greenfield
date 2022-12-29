@@ -26,7 +26,10 @@ require (
 
 require golang.org/x/text v0.4.0 // indirect
 
-require github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
+require (
+	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
+	github.com/spf13/viper v1.13.0
+)
 
 require (
 	cloud.google.com/go v0.105.0 // indirect
@@ -198,7 +201,6 @@ require (
 	github.com/sirupsen/logrus v1.9.0 // indirect
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/spf13/viper v1.13.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/supranational/blst v0.3.8-0.20220526154634-513d2456b344 // indirect
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7 // indirect
