@@ -15,7 +15,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/client/rpc"
 	"github.com/cosmos/cosmos-sdk/server"
-	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/snapshots"
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
@@ -30,6 +29,7 @@ import (
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	tmcfg "github.com/tendermint/tendermint/config"
 	tmcli "github.com/tendermint/tendermint/libs/cli"
 	"github.com/tendermint/tendermint/libs/log"
@@ -39,6 +39,10 @@ import (
 	appparams "github.com/bnb-chain/bfs/app/params"
 	"github.com/bnb-chain/bfs/crypto/keyring"
 	"github.com/bnb-chain/bfs/version"
+)
+
+var (
+	appConfig *app.AppConfig = app.NewDefaultAppConfig()
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -75,11 +79,15 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := initAppConfig()
 			customTMConfig := initTendermintConfig()
-			return server.InterceptConfigsPreRunHandler(
-				cmd, customAppTemplate, customAppConfig, customTMConfig,
+			err = server.InterceptConfigsPreRunHandler(
+				cmd, app.CustomAppTemplate, app.NewDefaultAppConfig(), customTMConfig,
 			)
+			if err != nil {
+				return err
+			}
+
+			return ParseAppConfigInPlace()
 		},
 	}
 
@@ -91,6 +99,28 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	})
 
 	return rootCmd, encodingConfig
+}
+
+func ParseAppConfigInPlace() error {
+	homeDir := viper.GetString(flags.FlagHome)
+
+	tmpViper := viper.New()
+	tmpViper.SetConfigName("app")
+	tmpViper.SetConfigType("toml")
+	tmpViper.AddConfigPath(homeDir)
+	tmpViper.AddConfigPath(filepath.Join(homeDir, "config"))
+
+	// If a config file is found, read it in.
+	if err := tmpViper.ReadInConfig(); err != nil {
+		return err
+	}
+
+	appConfig = app.NewDefaultAppConfig()
+	err := tmpViper.Unmarshal(appConfig)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 // initTendermintConfig helps to override default Tendermint Config values.
@@ -323,6 +353,7 @@ func (a appCreator) newApp(
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		a.encodingConfig,
+		appConfig,
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
@@ -362,6 +393,7 @@ func (a appCreator) appExport(
 		homePath,
 		uint(1),
 		a.encodingConfig,
+		appConfig,
 		appOpts,
 	)
 
@@ -372,60 +404,4 @@ func (a appCreator) appExport(
 	}
 
 	return app.ExportAppStateAndValidators(forZeroHeight, jailAllowedAddrs)
-}
-
-// initAppConfig helps to override default appConfig template and configs.
-// return "", nil if no custom configuration is required for the application.
-func initAppConfig() (string, interface{}) {
-	// The following code snippet is just for reference.
-
-	// WASMConfig defines configuration for the wasm module.
-	type WASMConfig struct {
-		// This is the maximum sdk gas (wasm and storage) that we allow for any x/wasm "smart" queries
-		QueryGasLimit uint64 `mapstructure:"query_gas_limit"`
-
-		// Address defines the gRPC-web server to listen on
-		LruSize uint64 `mapstructure:"lru_size"`
-	}
-
-	type CustomAppConfig struct {
-		serverconfig.Config
-
-		WASM WASMConfig `mapstructure:"wasm"`
-	}
-
-	// Optionally allow the chain developer to overwrite the SDK's default
-	// server config.
-	srvCfg := serverconfig.DefaultConfig()
-	// The SDK's default minimum gas price is set to "" (empty value) inside
-	// app.toml. If left empty by validators, the node will halt on startup.
-	// However, the chain developer can set a default app.toml value for their
-	// validators here.
-	//
-	// In summary:
-	// - if you leave srvCfg.MinGasPrices = "", all validators MUST tweak their
-	//   own app.toml config,
-	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
-	//   own app.toml to override, or use this default value.
-	//
-	// In simapp, we set the min gas prices to 0.
-	srvCfg.MinGasPrices = "0stake"
-
-	customAppConfig := CustomAppConfig{
-		Config: *srvCfg,
-		WASM: WASMConfig{
-			LruSize:       1,
-			QueryGasLimit: 300000,
-		},
-	}
-
-	customAppTemplate := serverconfig.DefaultConfigTemplate + `
-[wasm]
-# This is the maximum sdk gas (wasm and storage) that we allow for any x/wasm "smart" queries
-query_gas_limit = 300000
-# This is the number of wasm vm instances we keep cached in memory for speed-up
-# Warning: this is currently unstable and may lead to crashes, best to keep for 0 unless testing locally
-lru_size = 0`
-
-	return customAppTemplate, customAppConfig
 }
