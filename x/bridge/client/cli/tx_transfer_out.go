@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/bnb-chain/bfs/x/bridge/types"
@@ -34,17 +33,11 @@ func CmdTransferOut() *cobra.Command {
 			if err != nil {
 				return err
 			}
-
-			expireTime, err := strconv.ParseUint(args[2], 10, 64)
-			if err != nil {
-				return fmt.Errorf("expire time(%s) is invalid", args[2])
-			}
-
+			
 			msg := types.NewMsgTransferOut(
 				clientCtx.GetFromAddress().String(),
 				toAddr.String(),
 				&coin,
-				expireTime,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

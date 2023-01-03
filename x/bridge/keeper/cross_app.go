@@ -138,7 +138,7 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 	return sdk.ExecuteResult{}
 }
 
-func (app *TransferOutApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, _ int64) sdk.ExecuteResult {
+func (app *TransferOutApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, _ *big.Int) sdk.ExecuteResult {
 	app.bridgeKeeper.Logger(ctx).Error("received transfer out syn package ")
 	return sdk.ExecuteResult{}
 }
@@ -196,7 +196,7 @@ func (app *TransferInApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte)
 	return sdk.ExecuteResult{}
 }
 
-func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, relayerFee int64) sdk.ExecuteResult {
+func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, relayerFee *big.Int) sdk.ExecuteResult {
 	transferInPackage, err := types.DeserializeTransferInSynPackage(payload)
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("unmarshal transfer in claim error", "err", err.Error(), "claim", string(payload))

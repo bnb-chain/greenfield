@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	DestChainId sdk.ChainID = 1 // TODO:  remove this to config
+	DestChainId sdk.ChainID = 2 // TODO:  remove this to config
 )
 
 type (

@@ -9,7 +9,7 @@ const TypeMsgTransferOut = "transfer_out"
 
 var _ sdk.Msg = &MsgTransferOut{}
 
-func NewMsgTransferOut(from string, to string, amount *sdk.Coin, expireTime uint64) *MsgTransferOut {
+func NewMsgTransferOut(from string, to string, amount *sdk.Coin) *MsgTransferOut {
 	return &MsgTransferOut{
 		From:   from,
 		To:     to,
