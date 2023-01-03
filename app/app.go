@@ -216,6 +216,10 @@ type App struct {
 	// sm is the simulation manager
 	sm           *module.SimulationManager
 	configurator module.Configurator
+
+	// app config
+
+	appConfig *AppConfig
 }
 
 // New returns a reference to an initialized blockchain app
@@ -408,6 +412,8 @@ func New(
 		keys[bridgemoduletypes.MemStoreKey],
 		app.GetSubspace(bridgemoduletypes.ModuleName),
 
+		sdk.ChainID(app.appConfig.CrossChain.DestChainId),
+
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CrossChainKeeper,
@@ -596,12 +602,16 @@ func (app *App) initModules() {
 	app.initBridge()
 }
 
-func (app *App) initBridge() {
-	err := app.CrossChainKeeper.RegisterDestChain(sdk.ChainID(1))
+func (app *App) initCrossChain() {
+	app.CrossChainKeeper.SetSrcChainID(sdk.ChainID(app.appConfig.CrossChain.SrcChainId))
+
+	err := app.CrossChainKeeper.RegisterDestChain(sdk.ChainID(app.appConfig.CrossChain.DestChainId))
 	if err != nil {
 		panic("register dest chain error")
 	}
+}
 
+func (app *App) initBridge() {
 	bridgemodulekeeper.RegisterCrossApps(app.BridgeKeeper)
 }
 
@@ -626,7 +636,9 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	}
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(1), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
+	// init cross chain channel permissions
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }

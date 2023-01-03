@@ -53,7 +53,7 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
-		crosschaintypes.ModuleName:     nil,
+		crosschaintypes.ModuleName:     {authtypes.Minter},
 		types.ModuleName:               nil,
 	}
 )
@@ -66,6 +66,8 @@ type BridgeKeeperSuite struct {
 	Ctx sdk.Context
 
 	BankKeeper *bankkeeper.BaseKeeper
+
+	AccountKeeper authkeeper.AccountKeeper
 }
 
 func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context) {
@@ -101,18 +103,9 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 
 	require.NoError(t, stateStore.LoadLatestVersion())
 
-	//registry := codectypes.NewInterfaceRegistry()
-	//cdc := codec.NewProtoCodec(registry)
-
 	cdcConfig := app.MakeEncodingConfig()
 
 	cdc := cdcConfig.Marshaler
-
-	//registry.RegisterInterface("AccountI", (*authtypes.AccountI)(nil))
-	//registry.RegisterImplementations(
-	//	(*authtypes.AccountI)(nil),
-	//	&authtypes.BaseAccount{},
-	//)
 
 	paramKeeper := initParamsKeeper(cdc, types.Amino, keys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
@@ -167,6 +160,9 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
+
+		sdk.ChainID(2),
+
 		bankKeeper,
 		stakingKeeper,
 		crossChainKeeper,
@@ -182,6 +178,10 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		Denom:  "stake",
 		Amount: sdk.NewInt(1000000000),
 	}})
+	bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
+		Denom:  "stake",
+		Amount: sdk.NewInt(1000000000),
+	}})
 
 	crossChainKeeper.SetSrcChainID(sdk.ChainID(1))
 	crossChainKeeper.RegisterDestChain(sdk.ChainID(2))
@@ -193,10 +193,11 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 	k.SetParams(ctx, types.DefaultParams())
 
 	return &BridgeKeeperSuite{
-		Cdc:          cdc,
-		BridgeKeeper: k,
-		Ctx:          sdk.Context{},
-		BankKeeper:   &bankKeeper,
+		Cdc:           cdc,
+		BridgeKeeper:  k,
+		Ctx:           sdk.Context{},
+		BankKeeper:    &bankKeeper,
+		AccountKeeper: accountKeeper,
 	}, k, ctx
 }
 

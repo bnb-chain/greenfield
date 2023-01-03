@@ -13,10 +13,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-const (
-	DestChainId sdk.ChainID = 2 // TODO:  remove this to config
-)
-
 type (
 	Keeper struct {
 		cdc        codec.BinaryCodec
@@ -38,6 +34,8 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 
+	destChainId sdk.ChainID,
+
 	bankKeeper types.BankKeeper,
 	stakingKeepr types.StakingKeeper,
 	crossChainKeeper types.CrossChainKeeper,
@@ -53,7 +51,7 @@ func NewKeeper(
 		memKey:     memKey,
 		paramstore: ps,
 
-		DestChainId: DestChainId,
+		DestChainId: destChainId,
 
 		bankKeeper:       bankKeeper,
 		stakingKeeper:    stakingKeepr,

@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"math/big"
-	"time"
 
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
@@ -11,8 +10,6 @@ import (
 )
 
 const (
-	MinTransferOutExpireTimeGap = 60 * time.Second
-
 	TransferOutChannel = "transferOut"
 	TransferInChannel  = "transferIn"
 

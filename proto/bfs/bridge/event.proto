@@ -27,4 +27,10 @@ message EventCrossTransferOutFailAck {
   cosmos.base.v1beta1.Coin amount = 3;
 }
 
+message EventCrossTransferIn {
+  repeated cosmos.base.v1beta1.Coin amounts = 1;
+  repeated string receiver_addresses = 2;
+  repeated string refund_addresses = 3;
+}
+
 // this line is used by starport scaffolding # proto/tx/message

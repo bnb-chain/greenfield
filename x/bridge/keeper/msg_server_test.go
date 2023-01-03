@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCrossTransferOut(t *testing.T) {
@@ -31,7 +32,23 @@ func TestCrossTransferOut(t *testing.T) {
 	}})
 
 	_, err = msgServer.TransferOut(ctx, msgTransferOut)
-	if err != nil {
-		println(err.Error())
-	}
+	require.Nil(t, err, "error should be nil")
+}
+
+func TestCrossTransferOutWrong(t *testing.T) {
+	suite, k, ctx := keepertest.BridgeKeeper(t)
+
+	msgServer := keeper.NewMsgServerImpl(*k)
+
+	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
+	addr2, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
+
+	msgTransferOut := types.NewMsgTransferOut(addr1.String(), addr2.String(), &sdk.Coin{
+		Denom:  "wrongdenom",
+		Amount: sdk.NewInt(1),
+	})
+
+	_, err = msgServer.TransferOut(ctx, msgTransferOut)
+	require.NotNil(t, err, "error should not be nil")
+	require.Contains(t, err.Error(), "denom is not supported")
 }

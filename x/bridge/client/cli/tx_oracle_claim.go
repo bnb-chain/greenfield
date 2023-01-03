@@ -29,6 +29,7 @@ func CmdOracleClaim() *cobra.Command {
 				1,
 				1,
 				1,
+				1,
 				[]byte{1, 2, 3, 4},
 				[]uint64{1, 2, 3, 4},
 				bytes.Repeat([]byte{1}, 96),

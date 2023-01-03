@@ -37,7 +37,7 @@ func NewTransferOutApp(keeper Keeper) *TransferOutApp {
 	}
 }
 
-func (app *TransferOutApp) checkPackage(refundPackage *types.TransferOutRefundPackage) error {
+func (app *TransferOutApp) CheckPackage(refundPackage *types.TransferOutRefundPackage) error {
 	if refundPackage.RefundAddr.Empty() {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "refund address is empty")
 	}
@@ -63,7 +63,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 		}
 	}
 
-	err = app.checkPackage(refundPackage)
+	err = app.CheckPackage(refundPackage)
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("check transfer out refund package error", "err", err.Error(), "claim", hex.EncodeToString(payload))
 		return sdk.ExecuteResult{
@@ -155,7 +155,7 @@ func NewTransferInApp(bridgeKeeper Keeper) *TransferInApp {
 	}
 }
 
-func (app *TransferInApp) checkTransferInSynPackage(transferInPackage *types.TransferInSynPackage) error {
+func (app *TransferInApp) CheckTransferInSynPackage(transferInPackage *types.TransferInSynPackage) error {
 	if len(transferInPackage.Amounts) == 0 {
 		return errors.Wrapf(types.ErrInvalidLength, "length of Amounts should not be 0")
 	}
@@ -173,13 +173,13 @@ func (app *TransferInApp) checkTransferInSynPackage(transferInPackage *types.Tra
 
 	for _, addr := range transferInPackage.ReceiverAddresses {
 		if addr.Empty() {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "refund address is empty")
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address should not be empty")
 		}
 	}
 
 	for _, amount := range transferInPackage.Amounts {
 		if amount.Cmp(big.NewInt(0)) < 0 {
-			return errors.Wrapf(types.ErrInvalidAmount, "amount to refund should not be negative")
+			return errors.Wrapf(types.ErrInvalidAmount, "amount should not be negative")
 		}
 	}
 
@@ -203,7 +203,7 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 		panic("unmarshal transfer in claim error")
 	}
 
-	err = app.checkTransferInSynPackage(transferInPackage)
+	err = app.CheckTransferInSynPackage(transferInPackage)
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("check transfer in package error", "err", err.Error(), "claim", string(payload))
 		panic(err)
@@ -241,6 +241,25 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 			}
 		}
 	}
+
+	// emit event
+	amounts := make([]*sdk.Coin, 0, len(transferInPackage.Amounts))
+	for _, amount := range transferInPackage.Amounts {
+		amounts = append(amounts, &sdk.Coin{
+			Denom:  symbol,
+			Amount: sdk.NewIntFromBigInt(amount),
+		})
+	}
+	receiverAddresses, refundAddresses := make([]string, 0, len(transferInPackage.Amounts)), make([]string, 0, len(transferInPackage.Amounts))
+	for idx, _ := range transferInPackage.ReceiverAddresses {
+		receiverAddresses = append(receiverAddresses, transferInPackage.ReceiverAddresses[idx].String())
+		refundAddresses = append(refundAddresses, transferInPackage.RefundAddresses[idx].String())
+	}
+	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferIn{
+		Amounts:           amounts,
+		ReceiverAddresses: receiverAddresses,
+		RefundAddresses:   refundAddresses,
+	})
 
 	return sdk.ExecuteResult{}
 }
