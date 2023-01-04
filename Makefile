@@ -21,15 +21,6 @@ proto:
 build: 
 	go build -o build/bin/bfsd -ldflags="$(ldflags)" ./cmd/bfsd/main.go
 
-build-linux:
-	GOOS=linux go build -o build/bin/bfsd-linux -ldflags="$(ldflags)" ./cmd/bfsd/main.go
-
-build-windows:
-	GOOS=windows go build -o build/bin/bfsd-windows -ldflags="$(ldflags)" ./cmd/bfsd/main.go
-
-build-mac:
-	GOOS=darwin go build -o build/bin/bfsd-mac -ldflags="$(ldflags)" ./cmd/bfsd/main.go
-
 docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}

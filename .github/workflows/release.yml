@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         go-version: [1.18.x]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: [ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Code
@@ -43,12 +43,11 @@ jobs:
         run: git config --global url.https://${{ secrets.GH_ACCESS_SECRET }}@github.com/.insteadOf https://github.com/
 
       # ==============================
-      #       Linux/Macos/Windows Build
+      #       Linux/Macos Build
       # ==============================
 
       - name: Build Binary for ${{matrix.os}}
         run: |
-          go mod tidy -e
           make build
           
       # ==============================
@@ -67,13 +66,6 @@ jobs:
         if: matrix.os == 'macos-latest'
         with:
           name: macos
-          path: ./build/bin/bfsd
-      
-      - name: Upload Windows Build
-        uses: actions/upload-artifact@v3
-        if: matrix.os == 'windows-latest'
-        with:
-          name: windows
           path: ./build/bin/bfsd
 
   release:
@@ -103,17 +95,10 @@ jobs:
           name: macos
           path: ./macos
       
-      - name: Download Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: windows
-          path: ./windows
-      
       # Rename assets
       - run: |
           mv ./linux/bfsd ./linux/linux
           mv ./macos/bfsd ./macos/macos
-          mv ./windows/bfsd ./windows/windows.exe
 
       # ==============================
       #       Create release
@@ -141,4 +126,3 @@ jobs:
           files: |
             ./linux/linux
             ./macos/macos
-            ./windows/windows.exe
