@@ -1,6 +1,14 @@
 # Changelog
 
-## v0.0.2 
+## v0.0.1
+This is the first release of the inscription.
+
+It includes three key features:
+1. EIP721 signing schema support
+2. New staking mechanism
+3. Local network set scripts
+
+
 FEATURES
 * [\#11](https://github.com/bnb-chain/inscription/pull/11) feat: customize staking module for inscription 
 * [\#10](https://github.com/bnb-chain/inscription/pull/10) deployment: local setup scripts
