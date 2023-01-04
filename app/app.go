@@ -87,9 +87,6 @@ import (
 	paymentmodulekeeper "github.com/bnb-chain/bfs/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/bfs/x/payment/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
-
-	appparams "github.com/bnb-chain/bfs/app/params"
-	"github.com/bnb-chain/bfs/docs"
 )
 
 const (

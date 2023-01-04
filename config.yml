@@ -1,19 +1,28 @@
 version: 1
 accounts:
   - name: alice
-    coins: ["200000000token", "200000000stake"]
+    coins: ["20000token", "200000000stake"]
+    mnemonic: "marine giant loud party thrive venture winter ill grid kind bus shaft custom bunker cable trend another mosquito banner curtain rib asthma board beach"
   - name: bob
-    coins: ["10000token", "100000000stake"]
+    coins: ["10000token", "200000000stake"]
+    mnemonic: "bridge zoo loyal super right wet cool nice interest bronze bring behave smoke transfer palace arctic cool thank outer runway blade diesel giraffe goat"
 validators:
   - name: alice
     bonded: "100000000stake"
+    validator_addr: 0xb7B7BC92b60794be9f83D4ebAB30760407bA1676
+    relayer_addr: 0xb7B7BC92b60794be9f83D4ebAB30760407bA1676
+    relayer_blskey: ac1e598ae0ccbeeaafa31bc6faefa85c2ae3138699cac79169cd718f1a38445201454ec092a86f200e08a15266bdc6e9
+    gentx:
+      min-self-delegation: 10000
 faucet:
   name: bob
   coins: ["5token", "100000stake"]
-
 init:
   client:
     chain-id: "inscription_9000-1"
-
 genesis:
   chain_id: "inscription_9000-1"
+  app_state:
+    gov:
+      voting_params:
+        voting_period: "300s"
