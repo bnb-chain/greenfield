@@ -31,8 +31,9 @@ function init() {
         ${bin} init validator${i} --chain-id ${CHAIN_ID} --staking-bond-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
 
         # create genesis accounts
-        ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info
-        ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/info
+        ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info 2>&1
+        ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/info 2>&1
+        ${bin} keys add relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/info 2>&1
     done
 }
 
@@ -55,7 +56,7 @@ function generate_genesis() {
 
         validatorAddr=${validator_addrs[$i]}
         relayerAddr="$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})"
-        relayerBLSKey="$(${bin} keys show relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --output json | jq -r .pubkey_hex)"
+        relayerBLSKey="$(${bin} keys show relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --output json | jq -r .pubkey_hex)"
         
         # create bond validator tx
         ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $validatorAddr $relayerAddr $relayerBLSKey \
@@ -87,7 +88,7 @@ function generate_genesis() {
         cp ${workspace}/.local/validator0/config/genesis.json ${workspace}/.local/validator${i}/config/
         sed -i -e "s/minimum-gas-prices = \"0stake\"/minimum-gas-prices = \"0${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/denom-to-suggest = \"uatom\"/denom-to-suggest = \"${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
-        sed -i -e "s/stake/${BASIC_DENOM}/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"stake\"/\"${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"denom_metadata\": \[\]/\"denom_metadata\": \[${NATIVE_COIN_DESC}\]/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/persistent_peers = \".*\"/persistent_peers = \"${persistent_peers}\"/g" ${workspace}/.local/validator${i}/config/config.toml
         sed -i -e "s/addr_book_strict = true/addr_book_strict = false/g" ${workspace}/.local/validator${i}/config/config.toml
