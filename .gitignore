@@ -6,3 +6,6 @@ release/
 .DS_Store
 spec/
 Taskfile.yaml
+build/
+vendor/
+.local

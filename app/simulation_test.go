@@ -20,6 +20,7 @@ func init() {
 	simapp.GetSimulatorFlags()
 }
 
+// nolint: unused
 var defaultConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
 		MaxBytes: 200000,
@@ -66,6 +67,7 @@ func BenchmarkSimulation(b *testing.B) {
 		app.DefaultNodeHome,
 		0,
 		encoding,
+		app.NewDefaultAppConfig(),
 		simapp.EmptyAppOptions{},
 	)
 
