@@ -269,6 +269,7 @@ func New(
 		BaseApp:           bApp,
 		cdc:               cdc,
 		appCodec:          appCodec,
+		appConfig:         customAppConfig,
 		interfaceRegistry: interfaceRegistry,
 		invCheckPeriod:    invCheckPeriod,
 		keys:              keys,
