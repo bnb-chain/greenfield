@@ -32,8 +32,8 @@ function init() {
 
         # create genesis accounts
         ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info 2>&1
-        ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/info 2>&1
-        ${bin} keys add relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/info 2>&1
+        ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/relayer_info 2>&1
+        ${bin} keys add relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/relayer_bls_info 2>&1
     done
 }
 
@@ -45,11 +45,22 @@ function generate_genesis() {
         validator_addrs+=("$(${bin} keys show validator${i} -a --keyring-backend test --home ${workspace}/.local/validator${i})")
     done
 
+    declare -a relayer_addrs=()
+    for ((i=0;i<${size};i++));do
+        # export validator addresses
+        relayer_addrs+=("$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})")
+    done
+
     mkdir -p ${workspace}/.local/gentx
     for ((i=0;i<${size};i++));do
         for validator_addr in "${validator_addrs[@]}";do
             # init genesis account in genesis state
             ${bin} add-genesis-account $validator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+        done
+
+        for relayer_addr in "${relayer_addrs[@]}";do
+            # init genesis account in genesis state
+            ${bin} add-genesis-account $relayer_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
