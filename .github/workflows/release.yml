@@ -1,17 +1,5 @@
-# This workflow is useful if you want to automate the process of:
-#
-# a) Creating a new prelease when you push a new tag with a "v" prefix (version).
-#
-#    This type of prerelease is meant to be used for production: alpha, beta, rc, etc. types of releases.
-#    After the prerelease is created, you need to make your changes on the release page at the relevant
-#    Github page and publish your release.
-#
-# b) Creating/updating the "latest" prerelease when you push to your default branch.
-#
-#    This type of prelease is useful to make your bleeding-edge binaries available to advanced users.
-#
-# The workflow will not run if there is no tag pushed with a "v" prefix and no change pushed to your 
-# default branch.
+name: Release
+
 on:
   push:
     # Publish `v1.2.3` tags as releases.
@@ -19,39 +7,138 @@ on:
       - v*
 
 jobs:
-  might_release:
+  build:
+    name: Build Release
+    strategy:
+      matrix:
+        go-version: [1.18.x]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - uses: actions/cache@v3
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          # * Build cache (Mac)
+          # * Build cache (Windows)
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+            ~\AppData\Local\go-build
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Setup GitHub Token
+        run: git config --global url.https://${{ secrets.GH_ACCESS_SECRET }}@github.com/.insteadOf https://github.com/
+
+      # ==============================
+      #       Linux/Macos/Windows Build
+      # ==============================
+
+      - name: Build Binary for ${{matrix.os}}
+        run: |
+          go mod tidy -e
+          make build
+          
+      # ==============================
+      #       Upload artifacts
+      # ==============================
+
+      - name: Upload Linux Build
+        uses: actions/upload-artifact@v3
+        if: matrix.os == 'ubuntu-latest'
+        with:
+          name: linux
+          path: ./build/bin/bfsd
+
+      - name: Upload MacOS Build
+        uses: actions/upload-artifact@v3
+        if: matrix.os == 'macos-latest'
+        with:
+          name: macos
+          path: ./build/bin/bfsd
+      
+      - name: Upload Windows Build
+        uses: actions/upload-artifact@v3
+        if: matrix.os == 'windows-latest'
+        with:
+          name: windows
+          path: ./build/bin/bfsd
+
+  release:
+    name: Release
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-        
-      - name: Prepare Release Variables 
-        id: vars
-        uses: ignite/cli/actions/release/vars@develop
+      - name: Set Env
+        run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-      - name: Issue Release Assets 
-        uses: ignite/cli/actions/cli@develop
-        if: ${{ steps.vars.outputs.should_release == 'true' }}
-        with:
-          args: chain build --release --release.prefix ${{ steps.vars.outputs.tarball_prefix }} -t linux:amd64 -t darwin:amd64 -t darwin:arm64
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Delete the "latest" Release
-        uses: dev-drprasad/delete-tag-and-release@v0.2.0
-        if: ${{ steps.vars.outputs.is_release_type_latest == 'true' }}
-        with:
-          tag_name: ${{ steps.vars.outputs.tag_name }}
-          delete_release: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # ==============================
+      #       Download artifacts
+      # ==============================
 
-      - name: Publish the Release
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: linux
+          path: ./linux
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: macos
+          path: ./macos
+      
+      - name: Download Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: windows
+          path: ./windows
+      
+      # Rename assets
+      - run: |
+          mv ./linux/bfsd ./linux/linux
+          mv ./macos/bfsd ./macos/macos
+          mv ./windows/bfsd ./windows/windows.exe
+
+      # ==============================
+      #       Create release
+      # ==============================
+      - name: Generate Change Log
+        id: changelog
+        run: |
+          chmod 755 ./.github/generate_change_log.sh
+          CHANGELOG=$(./.github/generate_change_log.sh ${{ env.RELEASE_VERSION }})
+          echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+          echo "$CHANGELOG" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Create Release
         uses: softprops/action-gh-release@v1
-        if: ${{ steps.vars.outputs.should_release == 'true' }}
-        with:
-          tag_name: ${{ steps.vars.outputs.tag_name }}
-          files: release/*
-          prerelease: true 
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_SECRET }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ env.RELEASE_VERSION}}
+          release_name: ${{ env.RELEASE_VERSION}}
+          body: |
+            ${{ env.CHANGELOG }}
+          draft: false
+          prerelease: false
+          files: |
+            ./linux/linux
+            ./macos/macos
+            ./windows/windows.exe
