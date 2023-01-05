@@ -1,8 +1,8 @@
 syntax = "proto3";
 package bnbchain.bfs.payment;
 
-import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -29,7 +29,11 @@ message MsgCreatePaymentAccountResponse {
 message MsgDeposit {
   string creator = 1;
   string to = 2;
-  string amount = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgDepositResponse {}
@@ -37,7 +41,11 @@ message MsgDepositResponse {}
 message MsgWithdraw {
   string creator = 1;
   string from = 2;
-  string amount = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgWithdrawResponse {}
@@ -45,7 +53,11 @@ message MsgWithdrawResponse {}
 message MsgSponse {
   string creator = 1;
   string to = 2;
-  string rate = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message MsgSponseResponse {}

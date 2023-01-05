@@ -127,7 +127,11 @@ message QueryDynamicBalanceRequest {
 }
 
 message QueryDynamicBalanceResponse {
-  string dynamicBalance = 1 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string dynamicBalance = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   StreamRecord streamRecord = 2 [(gogoproto.nullable) = false];
   int64 currentTimestamp = 3;
 }
