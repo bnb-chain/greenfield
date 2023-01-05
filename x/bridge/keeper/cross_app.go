@@ -71,11 +71,11 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 		}
 	}
 
-	symbol := types.BytesToSymbol(refundPackage.TokenSymbol)
+	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx) // only support native token so far
 	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, refundPackage.RefundAddr,
 		sdk.Coins{
 			sdk.Coin{
-				Denom:  symbol,
+				Denom:  denom,
 				Amount: sdk.NewIntFromBigInt(refundPackage.RefundAmount),
 			},
 		},
@@ -90,7 +90,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutRefund{
 		RefundAddress: refundPackage.RefundAddr.String(),
 		Amount: &sdk.Coin{
-			Denom:  symbol,
+			Denom:  denom,
 			Amount: sdk.NewIntFromBigInt(refundPackage.RefundAmount),
 		},
 		RefundReason: uint32(refundPackage.RefundReason),
@@ -109,11 +109,11 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 		}
 	}
 
-	symbol := types.BytesToSymbol(transferOutPackage.TokenSymbol)
+	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx) // only support native token so far
 	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, transferOutPackage.RefundAddress,
 		sdk.Coins{
 			sdk.Coin{
-				Denom:  symbol,
+				Denom:  denom,
 				Amount: sdk.NewIntFromBigInt(transferOutPackage.Amount),
 			},
 		},
@@ -130,7 +130,7 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 		From: transferOutPackage.RefundAddress.String(),
 		To:   transferOutPackage.Recipient.String(),
 		Amount: &sdk.Coin{
-			Denom:  symbol,
+			Denom:  denom,
 			Amount: sdk.NewIntFromBigInt(transferOutPackage.Amount),
 		},
 	})
@@ -209,24 +209,10 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 		panic(err)
 	}
 
-	symbol := types.BytesToSymbol(transferInPackage.TokenSymbol)
-	bondDenom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx)
-
-	// only support bond denom
-	if symbol != bondDenom {
-		refundPackage, err := app.bridgeKeeper.GetRefundTransferInPayload(transferInPackage, types.UnsupportedSymbol)
-		if err != nil {
-			app.bridgeKeeper.Logger(ctx).Error("get refund transfer in payload error", "err", err)
-			panic(err)
-		}
-		return sdk.ExecuteResult{
-			Payload: refundPackage,
-			Err:     types.ErrUnsupportedDenom,
-		}
-	}
+	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx)
 
 	for idx, receiverAddr := range transferInPackage.ReceiverAddresses {
-		amount := sdk.NewCoin(symbol, sdk.NewIntFromBigInt(transferInPackage.Amounts[idx]))
+		amount := sdk.NewCoin(denom, sdk.NewIntFromBigInt(transferInPackage.Amounts[idx]))
 		err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, receiverAddr, sdk.Coins{amount})
 		if err != nil {
 			app.bridgeKeeper.Logger(ctx).Error("send coins error", "err", err.Error())
@@ -246,7 +232,7 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 	amounts := make([]*sdk.Coin, 0, len(transferInPackage.Amounts))
 	for _, amount := range transferInPackage.Amounts {
 		amounts = append(amounts, &sdk.Coin{
-			Denom:  symbol,
+			Denom:  denom,
 			Amount: sdk.NewIntFromBigInt(amount),
 		})
 	}

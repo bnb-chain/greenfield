@@ -65,7 +65,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynPackage, refundReason types.RefundReason) ([]byte, error) {
 	refundPackage := &types.TransferInRefundPackage{
-		ContractAddr:    transferInClaim.ContractAddress,
 		RefundAddresses: transferInClaim.RefundAddresses,
 		RefundAmounts:   transferInClaim.Amounts,
 		RefundReason:    refundReason,

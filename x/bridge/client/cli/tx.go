@@ -2,22 +2,12 @@ package cli
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	// "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/bnb-chain/bfs/x/bridge/types"
-)
-
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
-)
-
-const (
-	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
-	listSeparator              = ","
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -31,7 +21,6 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdTransferOut())
-	cmd.AddCommand(CmdOracleClaim())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

@@ -24,7 +24,6 @@ func TestTransferOutCheck(t *testing.T) {
 	}{
 		{
 			refundPackage: types.TransferOutRefundPackage{
-				TokenSymbol:  [32]byte{},
 				RefundAmount: big.NewInt(1),
 				RefundAddr:   []byte{},
 				RefundReason: 0,
@@ -34,7 +33,6 @@ func TestTransferOutCheck(t *testing.T) {
 		},
 		{
 			refundPackage: types.TransferOutRefundPackage{
-				TokenSymbol:  [32]byte{},
 				RefundAmount: big.NewInt(-1),
 				RefundAddr:   bytes.Repeat([]byte{1}, 20),
 				RefundReason: 0,
@@ -44,7 +42,6 @@ func TestTransferOutCheck(t *testing.T) {
 		},
 		{
 			refundPackage: types.TransferOutRefundPackage{
-				TokenSymbol:  [32]byte{},
 				RefundAmount: big.NewInt(1),
 				RefundAddr:   bytes.Repeat([]byte{1}, 20),
 				RefundReason: 0,
@@ -72,7 +69,6 @@ func TestTransferOutAck(t *testing.T) {
 	require.Nil(t, err, "generate key failed")
 
 	refundPackage := types.TransferOutRefundPackage{
-		TokenSymbol:  types.SymbolToBytes("stake"),
 		RefundAmount: big.NewInt(1),
 		RefundAddr:   addr1,
 		RefundReason: 1,
@@ -103,11 +99,9 @@ func TestTransferOutFailAck(t *testing.T) {
 	require.Nil(t, err, "generate key failed")
 
 	synPackage := types.TransferOutSynPackage{
-		TokenSymbol:     types.SymbolToBytes("stake"),
-		ContractAddress: sdk.EthAddress{},
-		Amount:          big.NewInt(1),
-		Recipient:       sdk.EthAddress{},
-		RefundAddress:   addr1,
+		Amount:        big.NewInt(1),
+		Recipient:     sdk.EthAddress{},
+		RefundAddress: addr1,
 	}
 
 	packageBytes, err := rlp.EncodeToBytes(&synPackage)
@@ -136,8 +130,6 @@ func TestTransferInCheck(t *testing.T) {
 	}{
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{},
 				ReceiverAddresses: []sdk.AccAddress{},
 				RefundAddresses:   []sdk.EthAddress{},
@@ -147,8 +139,6 @@ func TestTransferInCheck(t *testing.T) {
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{big.NewInt(1)},
 				ReceiverAddresses: []sdk.AccAddress{},
 				RefundAddresses:   []sdk.EthAddress{},
@@ -158,8 +148,6 @@ func TestTransferInCheck(t *testing.T) {
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{big.NewInt(1)},
 				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{}},
 				RefundAddresses:   []sdk.EthAddress{},
@@ -169,8 +157,6 @@ func TestTransferInCheck(t *testing.T) {
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{big.NewInt(1)},
 				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{}},
 				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{}},
@@ -180,8 +166,6 @@ func TestTransferInCheck(t *testing.T) {
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{big.NewInt(1)},
 				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{}},
 				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
@@ -191,8 +175,6 @@ func TestTransferInCheck(t *testing.T) {
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{big.NewInt(-1)},
 				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{1}},
 				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
@@ -202,8 +184,6 @@ func TestTransferInCheck(t *testing.T) {
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				TokenSymbol:       [32]byte{},
-				ContractAddress:   sdk.EthAddress{},
 				Amounts:           []*big.Int{big.NewInt(1)},
 				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{1}},
 				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
@@ -231,8 +211,6 @@ func TestTransferInSyn(t *testing.T) {
 	require.Nil(t, err, "generate key failed")
 
 	transferInSynPackage := types.TransferInSynPackage{
-		TokenSymbol:       types.SymbolToBytes("stake"),
-		ContractAddress:   sdk.EthAddress{},
 		Amounts:           []*big.Int{big.NewInt(1)},
 		ReceiverAddresses: []sdk.AccAddress{addr1},
 		RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
@@ -256,28 +234,4 @@ func TestTransferInSyn(t *testing.T) {
 	require.Equal(t, transferInSynPackage.Amounts[0].String(), accountBalanceAfter.Amount.BigInt().String())
 
 	require.Equal(t, big.NewInt(0).Add(moduleBalanceAfter.Amount.BigInt(), transferInSynPackage.Amounts[0]).String(), moduleBalanceBefore.Amount.BigInt().String())
-}
-
-func TestTransferInSynWrong(t *testing.T) {
-	suite, _, ctx := keepertest.BridgeKeeper(t)
-
-	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
-	require.Nil(t, err, "generate key failed")
-
-	transferInSynPackage := types.TransferInSynPackage{
-		TokenSymbol:       types.SymbolToBytes("wrongdenom"),
-		ContractAddress:   sdk.EthAddress{},
-		Amounts:           []*big.Int{big.NewInt(1)},
-		ReceiverAddresses: []sdk.AccAddress{addr1},
-		RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
-	}
-
-	packageBytes, err := rlp.EncodeToBytes(&transferInSynPackage)
-	require.Nil(t, err, "encode refund package error")
-
-	transferInApp := keeper.NewTransferInApp(*suite.BridgeKeeper)
-
-	result := transferInApp.ExecuteSynPackage(ctx, packageBytes, big.NewInt(0))
-	require.NotNil(t, result.Err, "error should not be nil")
-	require.Contains(t, result.Err.Error(), "denom is not unsupported")
 }

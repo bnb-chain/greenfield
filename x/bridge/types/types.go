@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"math/big"
 
 	"cosmossdk.io/errors"
@@ -22,17 +21,14 @@ var CrossTransferOutRelayFee = sdk.NewInt(1) // TODO: to be determined
 type RefundReason uint32
 
 const (
-	UnsupportedSymbol   RefundReason = 1
-	InsufficientBalance RefundReason = 2
-	Unknown             RefundReason = 3
+	InsufficientBalance RefundReason = 1
+	Unknown             RefundReason = 2
 )
 
 type TransferOutSynPackage struct {
-	TokenSymbol     [32]byte
-	ContractAddress sdk.EthAddress
-	Amount          *big.Int
-	Recipient       sdk.EthAddress
-	RefundAddress   sdk.AccAddress
+	Amount        *big.Int
+	Recipient     sdk.EthAddress
+	RefundAddress sdk.AccAddress
 }
 
 func DeserializeTransferOutSynPackage(serializedPackage []byte) (*TransferOutSynPackage, error) {
@@ -45,7 +41,6 @@ func DeserializeTransferOutSynPackage(serializedPackage []byte) (*TransferOutSyn
 }
 
 type TransferOutRefundPackage struct {
-	TokenSymbol  [32]byte
 	RefundAmount *big.Int
 	RefundAddr   sdk.AccAddress
 	RefundReason RefundReason
@@ -60,22 +55,7 @@ func DeserializeTransferOutRefundPackage(serializedPackage []byte) (*TransferOut
 	return &tp, nil
 }
 
-func SymbolToBytes(symbol string) [32]byte {
-	// length of bound token symbol length should not be larger than 32
-	serializedBytes := [32]byte{}
-	copy(serializedBytes[:], symbol)
-	return serializedBytes
-}
-
-func BytesToSymbol(symbolBytes [32]byte) string {
-	tokenSymbolBytes := make([]byte, 32)
-	copy(tokenSymbolBytes[:], symbolBytes[:])
-	return string(bytes.Trim(tokenSymbolBytes, "\x00"))
-}
-
 type TransferInSynPackage struct {
-	TokenSymbol       [32]byte
-	ContractAddress   sdk.EthAddress
 	Amounts           []*big.Int
 	ReceiverAddresses []sdk.AccAddress
 	RefundAddresses   []sdk.EthAddress
@@ -92,7 +72,6 @@ func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPa
 }
 
 type TransferInRefundPackage struct {
-	ContractAddr    sdk.EthAddress
 	RefundAmounts   []*big.Int
 	RefundAddresses []sdk.EthAddress
 	RefundReason    RefundReason
