@@ -236,8 +236,8 @@ github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dR
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
 github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20221226030232-b9169c2815cf h1:opUYoQ0ALSg6SfyDmEhXgjgc/V6RLwPchjJkFCZkpL4=
 github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20221226030232-b9169c2815cf/go.mod h1:weE9S2ElFu9NlLz04FULp9w5lJSP//Eg04VMrrLMxQY=
-github.com/bnb-chain/inscription-tendermint v0.34.25-0.20221220071916-c8af7bf22b25 h1:6ZqX7HXAWM0I8DxoPFV1Y7ZUoLkQMMbYxSa6cdQ+nt4=
-github.com/bnb-chain/inscription-tendermint v0.34.25-0.20221220071916-c8af7bf22b25/go.mod h1:/v9z9F6cq0+f7EGG92lYSLBcPYQDILoK91X8YM28hWo=
+github.com/bnb-chain/inscription-tendermint v0.34.25-0.20230105070542-7af7d2210d96 h1:MBbae8Z5MOQ0zHUKoGqqclHYmGcvAwpWO1xaPjR6vyw=
+github.com/bnb-chain/inscription-tendermint v0.34.25-0.20230105070542-7af7d2210d96/go.mod h1:/v9z9F6cq0+f7EGG92lYSLBcPYQDILoK91X8YM28hWo=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bradfitz/gomemcache v0.0.0-20170208213004-1952afaa557d/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=
