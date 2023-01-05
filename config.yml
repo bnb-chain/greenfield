@@ -1,7 +1,7 @@
 version: 1
 accounts:
   - name: alice
-    coins: ["20000token", "200000000stake"]
+    coins: ["200000000000000token", "200000000stake"]
     mnemonic: "marine giant loud party thrive venture winter ill grid kind bus shaft custom bunker cable trend another mosquito banner curtain rib asthma board beach"
   - name: bob
     coins: ["10000token", "200000000stake"]

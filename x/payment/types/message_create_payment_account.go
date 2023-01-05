@@ -24,7 +24,7 @@ func (msg *MsgCreatePaymentAccount) Type() string {
 }
 
 func (msg *MsgCreatePaymentAccount) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func (msg *MsgCreatePaymentAccount) GetSignBytes() []byte {
 }
 
 func (msg *MsgCreatePaymentAccount) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

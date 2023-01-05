@@ -21,7 +21,7 @@ func (k msgServer) CreatePaymentAccount(goCtx context.Context, msg *types.MsgCre
 	if count >= params.PaymentAccountCountLimit {
 		return nil, errorsmod.Wrapf(types.ErrReachPaymentAccountLimit, "current count: %d", count)
 	}
-	creator := sdk.MustAccAddressFromBech32(msg.Creator)
+	creator := sdk.MustAccAddressFromHex(msg.Creator)
 	// TODO: charge fee
 	// calculate the addr
 	b := make([]byte, 8)

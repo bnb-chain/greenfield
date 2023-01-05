@@ -10,7 +10,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// bank transfer
-	creator, _ := sdk.AccAddressFromBech32(msg.Creator)
+	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, sdk.NewInt(msg.Amount)))
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, coins)
 	if err != nil {

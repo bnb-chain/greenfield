@@ -23,7 +23,7 @@ func (k Keeper) GetPaymentAccountsByOwner(goCtx context.Context, req *types.Quer
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 	count := countRecord.Count
-	user := sdk.MustAccAddressFromBech32(req.Owner)
+	user := sdk.MustAccAddressFromHex(req.Owner)
 	var paymentAccounts []string
 	var i uint64
 	for i = 0; i < count; i++ {

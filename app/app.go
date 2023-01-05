@@ -90,7 +90,7 @@ import (
 )
 
 const (
-	Name          = "inscription"
+	Name          = "bfs"
 	EIP155ChainID = "9000"
 	Epoch         = "1"
 
