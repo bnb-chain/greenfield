@@ -314,28 +314,6 @@ func New(
 		app.AccountKeeper,
 	)
 
-	// Register the upgrade keeper
-	upgradeHandler := map[string]upgradetypes.UpgradeHandler{
-		// Add specific actions when the upgrade happen
-		// ex.
-		// "BEP111": func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		// 	app.Logger().Info("upgrade to ", plan.Name)
-		// 	return fromVM, nil
-		// },
-	}
-
-	var err error
-	ms := app.CommitMultiStore()
-	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.Logger())
-	upgradeKeeperOpts := []upgradekeeper.KeeperOption{
-		upgradekeeper.RegisterUpgradePlan(ctx, bApp.AppConfig().Upgrade),
-		upgradekeeper.RegisterUpgradeHandler(upgradeHandler),
-	}
-	app.UpgradeKeeper, err = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath, upgradeKeeperOpts...)
-	if err != nil {
-		panic(err)
-	}
-
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.StakingKeeper = *stakingKeeper.SetHooks(
@@ -368,6 +346,45 @@ func New(
 		keys[bfsmoduletypes.MemStoreKey],
 		app.GetSubspace(bfsmoduletypes.ModuleName),
 	)
+
+	// Register the upgrade keeper
+	upgradeHandler := map[string]upgradetypes.UpgradeHandler{
+		// Add specific actions when the upgrade happen
+		// ex.
+		// upgradetypes.BEP111: func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+		// 	app.Logger().Info("upgrade to ", plan.Name)
+		// 	return fromVM, nil
+		// },
+	}
+
+	upgradeInitlizier := map[string]upgradetypes.UpgradeInitializer{
+		// Add specific actions when restart the program
+		// ex.
+		// upgradetypes.BEP111: func() error {
+		// 	app.Logger().Info("Init BEP111")
+		// 	return nil
+		// },
+	}
+
+	var err error
+	ms := app.CommitMultiStore()
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.Logger())
+	upgradeKeeperOpts := []upgradekeeper.KeeperOption{
+		upgradekeeper.RegisterUpgradePlan(ctx.ChainID(), bApp.AppConfig().Upgrade),
+		upgradekeeper.RegisterUpgradeHandler(upgradeHandler),
+		upgradekeeper.RegisterUpgradeInitializer(upgradeInitlizier),
+	}
+	app.UpgradeKeeper, err = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath, upgradeKeeperOpts...)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		err = app.UpgradeKeeper.InitUpgraded(ctx)
+		if err != nil {
+			panic(err)
+		}
+	}()
+
 	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
@@ -507,7 +524,7 @@ func New(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
-
+	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
