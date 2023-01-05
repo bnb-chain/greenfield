@@ -218,8 +218,8 @@ github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdn
 github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
-github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230105091333-87a65293d954 h1:hUQrI/pFYNyvsnoG/jN0G46SslDBmOOQrTSMge239Fo=
-github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230105091333-87a65293d954/go.mod h1:weE9S2ElFu9NlLz04FULp9w5lJSP//Eg04VMrrLMxQY=
+github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230105124059-a3f4ae4a3050 h1:VBVUn4IICQ9BFzVCZSIE9cLgHsP7epLIFUqn1Dtp4yM=
+github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230105124059-a3f4ae4a3050/go.mod h1:6dLqabxtCWZ1hLHsUNXGRY8A4vlFFNBXA3BLD5sC7xw=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bradfitz/gomemcache v0.0.0-20170208213004-1952afaa557d/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=
