@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -ex
 
-bfsd="$GOPATH/bin/bfsd --home $HOME/.bfs"
+bfsd="./build/bin/bfsd --home $HOME/.bfs"
 $bfsd keys list
 
 alice_addr=$($bfsd keys list --output json | jq -r '.[0].address')
