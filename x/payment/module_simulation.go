@@ -40,6 +40,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgSponse int = 100
 
+	opWeightMsgDisableRefund = "op_weight_msg_disable_refund"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgDisableRefund int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -116,6 +120,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgSponse,
 		paymentsimulation.SimulateMsgSponse(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgDisableRefund int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgDisableRefund, &weightMsgDisableRefund, nil,
+		func(_ *rand.Rand) {
+			weightMsgDisableRefund = defaultWeightMsgDisableRefund
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgDisableRefund,
+		paymentsimulation.SimulateMsgDisableRefund(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package bnbchain.bfs.payment;
 
 import "cosmos_proto/cosmos.proto";
@@ -14,9 +15,10 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc Sponse(MsgSponse) returns (MsgSponseResponse);
-  // this line is used by starport scaffolding # proto/tx/rpc
-}
 
+  // this line is used by starport scaffolding # proto/tx/rpc
+  rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
+}
 message MsgCreatePaymentAccount {
   string creator = 1;
 }
@@ -50,6 +52,7 @@ message MsgWithdraw {
 
 message MsgWithdrawResponse {}
 
+// keep it for test temporarily
 message MsgSponse {
   string creator = 1;
   string to = 2;
@@ -63,3 +66,9 @@ message MsgSponse {
 message MsgSponseResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
+message MsgDisableRefund {
+  string creator = 1;
+  string addr = 2;
+}
+
+message MsgDisableRefundResponse {}

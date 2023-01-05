@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
 set -ex
 
-bfsd="./build/bin/bfsd --home $HOME/.bfs"
+function check_operation() {
+	printf "\n=================== Checking $1 ===================\n"
+	echo "$2"
+
+	echo "$2" | grep -q $3
+	if [ $? -ne 0 ]; then
+		echo "Checking $1 Failed"
+		exit 1
+	fi
+}
+
+bfsd="/Users/owen/go/bin/bfsd --home $HOME/.bfs"
+#bfsd="./build/bin/bfsd --home $HOME/.bfs"
 $bfsd keys list
 
 alice_addr=$($bfsd keys list --output json | jq -r '.[0].address')
@@ -18,3 +30,8 @@ $bfsd q payment dynamic-balance "$payment_account"
 sleep 5
 $bfsd q payment dynamic-balance "$alice_addr"
 $bfsd q payment dynamic-balance "$payment_account"
+
+# disable payment account refund
+$bfsd tx payment disable-refund "$payment_account" --from alice -y
+refundable=$($bfsd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
+check_operation "disable refund" "$refundable" "false"
