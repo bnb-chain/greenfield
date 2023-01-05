@@ -6,6 +6,7 @@ import "bfs/payment/payment_account.proto";
 import "bfs/payment/payment_account_count.proto";
 import "bfs/payment/stream_record.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 // this line is used by starport scaffolding # 1
@@ -126,7 +127,7 @@ message QueryDynamicBalanceRequest {
 }
 
 message QueryDynamicBalanceResponse {
-  int64 dynamicBalance = 1;
+  string dynamicBalance = 1 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   StreamRecord streamRecord = 2 [(gogoproto.nullable) = false];
   int64 currentTimestamp = 3;
 }

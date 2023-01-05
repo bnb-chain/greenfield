@@ -24,8 +24,8 @@ func (k Keeper) DynamicBalance(goCtx context.Context, req *types.QueryDynamicBal
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 	currentTimestamp := ctx.BlockTime().Unix()
-	flowDelta := (currentTimestamp - streamRecord.CrudTimestamp) * streamRecord.NetflowRate
-	dynamicBalance := streamRecord.StaticBalance + flowDelta
+	flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - streamRecord.CrudTimestamp)
+	dynamicBalance := streamRecord.StaticBalance.Add(flowDelta)
 	return &types.QueryDynamicBalanceResponse{
 		DynamicBalance:   dynamicBalance,
 		StreamRecord:     streamRecord,

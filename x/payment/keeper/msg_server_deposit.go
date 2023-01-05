@@ -11,7 +11,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	// bank transfer
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, sdk.NewInt(msg.Amount)))
+	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, msg.Amount))
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, creator, types.ModuleName, coins)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	// 1. check if the stream should be liquidated
 	// 2. if the account is frozen, assume it
 	k.UpdateStreamRecord(ctx, &streamRecord)
-	streamRecord.StaticBalance += msg.Amount
+	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(msg.Amount)
 	k.SetStreamRecord(ctx, streamRecord)
 	return &types.MsgDepositResponse{}, nil
 }

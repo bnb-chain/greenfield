@@ -26,7 +26,7 @@ func (k msgServer) Sponse(goCtx context.Context, msg *types.MsgSponse) (*types.M
 	if toStream.Status != types.StreamPaymentAccountStatusNormal {
 		return nil, fmt.Errorf("to stream record status is not normal")
 	}
-	err := k.Keeper.UpdateStreamRecordByRate(ctx, &fromStream, -msg.Rate)
+	err := k.Keeper.UpdateStreamRecordByRate(ctx, &fromStream, msg.Rate.Neg())
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "update stream record by rate failed, creator: %s", msg.Creator)
 	}

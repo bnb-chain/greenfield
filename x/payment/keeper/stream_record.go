@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -70,22 +71,22 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		return
 	}
 
-	flowDelta := (currentTimestamp - timestamp) * streamRecord.NetflowRate
-	streamRecord.StaticBalance += flowDelta
+	flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
+	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(flowDelta)
 	streamRecord.CrudTimestamp = currentTimestamp
 }
 
-func (k Keeper) UpdateStreamRecordByRate(ctx sdk.Context, streamRecord *types.StreamRecord, rate int64) error {
+func (k Keeper) UpdateStreamRecordByRate(ctx sdk.Context, streamRecord *types.StreamRecord, rate sdkmath.Int) error {
 	k.UpdateStreamRecord(ctx, streamRecord)
-	streamRecord.NetflowRate += rate
-	if rate < 0 {
+	streamRecord.NetflowRate = streamRecord.NetflowRate.Add(rate)
+	if rate.IsNegative() {
 		reserveTime := k.GetParams(ctx).ReserveTime
-		addtionalReserveBalance := -rate * int64(reserveTime)
-		if addtionalReserveBalance >= streamRecord.StaticBalance {
+		addtionalReserveBalance := rate.Abs().Mul(sdkmath.NewIntFromUint64(reserveTime))
+		if addtionalReserveBalance.GTE(streamRecord.StaticBalance) {
 			return fmt.Errorf("static balance is not enough, have: %d, need: %d", streamRecord.StaticBalance, addtionalReserveBalance)
 		}
-		streamRecord.StaticBalance -= addtionalReserveBalance
-		streamRecord.BufferBalance += addtionalReserveBalance
+		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(addtionalReserveBalance)
+		streamRecord.BufferBalance = streamRecord.StaticBalance.Add(addtionalReserveBalance)
 	}
 	return nil
 }

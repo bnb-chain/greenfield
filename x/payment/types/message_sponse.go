@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -10,7 +11,7 @@ const TypeMsgSponse = "sponse"
 
 var _ sdk.Msg = &MsgSponse{}
 
-func NewMsgSponse(creator string, to string, rate int64) *MsgSponse {
+func NewMsgSponse(creator string, to string, rate sdkmath.Int) *MsgSponse {
 	return &MsgSponse{
 		Creator: creator,
 		To:      to,
@@ -44,7 +45,7 @@ func (msg *MsgSponse) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	if msg.Rate <= 0 {
+	if !msg.Rate.IsPositive() {
 		return fmt.Errorf("rate must be positive")
 	}
 	if msg.Creator == msg.To {

@@ -9,10 +9,9 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 message StreamRecord {
   string account = 1;
   int64 crudTimestamp = 2;
-  string netflowRate = 3
-      [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
-  int64 staticBalance = 4;
-  int64 bufferBalance = 5;
-  sint64 frozenNetflowRate = 6;
+  string netflowRate = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string staticBalance = 4 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string bufferBalance = 5 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  string frozenNetflowRate = 6 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
   int32 status = 7;
 }

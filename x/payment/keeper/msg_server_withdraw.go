@@ -16,7 +16,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, types.ErrStreamRecordNotFound
 	}
 	k.UpdateStreamRecord(ctx, &streamRecord)
-	if streamRecord.StaticBalance < msg.Amount {
+	if streamRecord.StaticBalance.LT(msg.Amount) {
 		return nil, types.ErrInsufficientBalance
 	}
 	// check whether creator can withdraw
@@ -34,13 +34,13 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 	// bank transfer
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, sdk.NewInt(msg.Amount)))
+	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, msg.Amount))
 	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
 	if err != nil {
 		return nil, err
 	}
 	// change stream record
-	streamRecord.StaticBalance -= msg.Amount
+	streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(msg.Amount)
 	k.SetStreamRecord(ctx, streamRecord)
 
 	return &types.MsgWithdrawResponse{}, nil

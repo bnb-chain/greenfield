@@ -1,13 +1,14 @@
 package cli
 
 import (
+	sdkmath "cosmossdk.io/math"
+	"fmt"
 	"strconv"
 
 	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
 
@@ -20,9 +21,9 @@ func CmdDeposit() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argTo := args[0]
-			argAmount, err := cast.ToInt64E(args[1])
-			if err != nil {
-				return err
+			argAmount, ok := sdkmath.NewIntFromString(args[1])
+			if !ok {
+				return fmt.Errorf("invalid amount %s", args[1])
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)

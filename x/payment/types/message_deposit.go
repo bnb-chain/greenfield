@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -9,7 +10,7 @@ const TypeMsgDeposit = "deposit"
 
 var _ sdk.Msg = &MsgDeposit{}
 
-func NewMsgDeposit(creator string, to string, amount int64) *MsgDeposit {
+func NewMsgDeposit(creator string, to string, amount sdkmath.Int) *MsgDeposit {
 	return &MsgDeposit{
 		Creator: creator,
 		To:      to,
