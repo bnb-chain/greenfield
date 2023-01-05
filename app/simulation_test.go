@@ -63,7 +63,6 @@ func BenchmarkSimulation(b *testing.B) {
 		db,
 		nil,
 		true,
-		map[int64]bool{},
 		app.DefaultNodeHome,
 		0,
 		encoding,

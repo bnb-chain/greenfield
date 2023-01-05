@@ -201,7 +201,6 @@ func New(
 	db dbm.DB,
 	traceStore io.Writer,
 	loadLatest bool,
-	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
 	encodingConfig appparams.EncodingConfig,
@@ -348,44 +347,17 @@ func New(
 	)
 
 	// Register the upgrade keeper
-	upgradeHandler := map[string]upgradetypes.UpgradeHandler{
-		// Add specific actions when the upgrade happen
-		// ex.
-		// upgradetypes.BEP111: func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-		// 	app.Logger().Info("upgrade to ", plan.Name)
-		// 	return fromVM, nil
-		// },
-	}
-
-	upgradeInitlizier := map[string]upgradetypes.UpgradeInitializer{
-		// Add specific actions when restart the program
-		// ex.
-		// upgradetypes.BEP111: func() error {
-		// 	app.Logger().Info("Init BEP111")
-		// 	return nil
-		// },
-	}
-
+	upgradeInitlizier, upgradeHandler := UpgradeInitializerAndHandler(app.AccountKeeper)
 	var err error
-	ms := app.CommitMultiStore()
-	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.Logger())
 	upgradeKeeperOpts := []upgradekeeper.KeeperOption{
-		upgradekeeper.RegisterUpgradePlan(ctx.ChainID(), bApp.AppConfig().Upgrade),
+		upgradekeeper.RegisterUpgradePlan(app.ChainID(), bApp.AppConfig().Upgrade),
 		upgradekeeper.RegisterUpgradeHandler(upgradeHandler),
 		upgradekeeper.RegisterUpgradeInitializer(upgradeInitlizier),
 	}
-	app.UpgradeKeeper, err = upgradekeeper.NewKeeper(skipUpgradeHeights, keys[upgradetypes.StoreKey], appCodec, homePath, upgradeKeeperOpts...)
+	app.UpgradeKeeper, err = upgradekeeper.NewKeeper(keys[upgradetypes.StoreKey], appCodec, homePath, upgradeKeeperOpts...)
 	if err != nil {
 		panic(err)
 	}
-	defer func() {
-		if loadLatest {
-			err = app.UpgradeKeeper.InitUpgraded(ctx)
-			if err != nil {
-				panic(err)
-			}
-		}
-	}()
 
 	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -530,6 +502,18 @@ func New(
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
+		}
+
+		// Execute the upgraded register, such as the newly added Msg type
+		// ex.
+		// app.GovKeeper.Router().RegisterService(...)
+		ms := app.CommitMultiStore()
+		ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
+		if loadLatest {
+			err = app.UpgradeKeeper.InitUpgraded(ctx)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}
 

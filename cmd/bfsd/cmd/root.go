@@ -322,11 +322,6 @@ func (a appCreator) newApp(
 		cache = store.NewCommitKVStoreCacheManager()
 	}
 
-	skipUpgradeHeights := make(map[int64]bool)
-	for _, h := range cast.ToIntSlice(appOpts.Get(server.FlagUnsafeSkipUpgrades)) {
-		skipUpgradeHeights[int64(h)] = true
-	}
-
 	pruningOpts, err := server.GetPruningOptionsFromFlags(appOpts)
 	if err != nil {
 		panic(err)
@@ -352,7 +347,6 @@ func (a appCreator) newApp(
 		db,
 		traceStore,
 		true,
-		skipUpgradeHeights,
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		a.encodingConfig,
@@ -394,7 +388,6 @@ func (a appCreator) appExport(
 		db,
 		traceStore,
 		height == -1, // -1: no height provided
-		map[int64]bool{},
 		homePath,
 		uint(1),
 		a.encodingConfig,
