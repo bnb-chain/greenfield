@@ -379,9 +379,11 @@ func New(
 		panic(err)
 	}
 	defer func() {
-		err = app.UpgradeKeeper.InitUpgraded(ctx)
-		if err != nil {
-			panic(err)
+		if loadLatest {
+			err = app.UpgradeKeeper.InitUpgraded(ctx)
+			if err != nil {
+				panic(err)
+			}
 		}
 	}()
 
