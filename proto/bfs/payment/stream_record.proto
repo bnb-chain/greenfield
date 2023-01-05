@@ -1,12 +1,16 @@
 syntax = "proto3";
 package bnbchain.bfs.payment;
 
+import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 message StreamRecord {
   string account = 1;
   int64 crudTimestamp = 2;
-  sint64 netflowRate = 3;
+  string netflowRate = 3
+      [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
   int64 staticBalance = 4;
   int64 bufferBalance = 5;
   sint64 frozenNetflowRate = 6;
