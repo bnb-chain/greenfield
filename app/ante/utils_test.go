@@ -341,7 +341,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	encCfg := app.MakeEncodingConfig()
 
 	nApp := app.New(
-		logger, db, nil, true, map[int64]bool{}, app.DefaultNodeHome, 0, encCfg, app.NewDefaultAppConfig(), simapp.EmptyAppOptions{}, options...)
+		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, app.NewDefaultAppConfig(), simapp.EmptyAppOptions{}, options...)
 
 	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
 	genesisState, _ = genesisStateWithValSet(nApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
