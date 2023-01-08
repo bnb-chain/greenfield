@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package bnbchain.bfs.payment;
 
+import "bfs/payment/mock_bucket_meta.proto";
 import "bfs/payment/params.proto";
 import "bfs/payment/payment_account.proto";
 import "bfs/payment/payment_account_count.proto";
@@ -63,6 +64,14 @@ service Query {
   }
 
   // this line is used by starport scaffolding # 2
+
+  // Queries a list of MockBucketMeta items.
+  rpc MockBucketMeta(QueryGetMockBucketMetaRequest) returns (QueryGetMockBucketMetaResponse) {
+    option (google.api.http).get = "/bnb-chain/bfs/payment/mock_bucket_meta/{bucketName}";
+  }
+  rpc MockBucketMetaAll(QueryAllMockBucketMetaRequest) returns (QueryAllMockBucketMetaResponse) {
+    option (google.api.http).get = "/bnb-chain/bfs/payment/mock_bucket_meta";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -148,3 +157,19 @@ message QueryGetPaymentAccountsByOwnerResponse {
 }
 
 // this line is used by starport scaffolding # 3
+message QueryGetMockBucketMetaRequest {
+  string bucketName = 1;
+}
+
+message QueryGetMockBucketMetaResponse {
+  MockBucketMeta mockBucketMeta = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllMockBucketMetaRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllMockBucketMetaResponse {
+  repeated MockBucketMeta mockBucketMeta = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

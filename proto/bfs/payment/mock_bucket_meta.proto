@@ -1,0 +1,14 @@
+syntax = "proto3";
+package bnbchain.bfs.payment;
+
+option go_package = "github.com/bnb-chain/bfs/x/payment/types";
+
+message MockBucketMeta {
+  string bucketName = 1;
+  string owner = 2;
+  string readPaymentAccount = 3;
+  string storePaymentAccount = 4;
+  string spAddress = 5;
+  uint64 readPacket = 6;
+  uint64 priceTime = 7;
+}

@@ -54,6 +54,14 @@ func TestGenesisState_Validate(t *testing.T) {
 		BucketName: "1",
 },
 },
+MockBucketMetaList: []types.MockBucketMeta{
+	{
+		BucketName: "0",
+},
+	{
+		BucketName: "1",
+},
+},
 // this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -101,6 +109,20 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
+	desc:     "duplicated mockBucketMeta",
+	genState: &types.GenesisState{
+		MockBucketMetaList: []types.MockBucketMeta{
+			{
+				BucketName: "0",
+},
+			{
+				BucketName: "0",
+},
+		},
+	},
+	valid:    false,
+},
+{
 	desc:     "duplicated mockBucketMeta",
 	genState: &types.GenesisState{
 		MockBucketMetaList: []types.MockBucketMeta{

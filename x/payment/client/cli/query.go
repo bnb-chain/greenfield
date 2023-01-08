@@ -35,7 +35,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 	cmd.AddCommand(CmdGetPaymentAccountsByOwner())
 
-	// this line is used by starport scaffolding # 1
+	cmd.AddCommand(CmdListMockBucketMeta())
+	cmd.AddCommand(CmdShowMockBucketMeta())
+// this line is used by starport scaffolding # 1
 
 	return cmd
 }

@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package bnbchain.bfs.payment;
 
+import "bfs/payment/mock_bucket_meta.proto";
 import "bfs/payment/params.proto";
 import "bfs/payment/payment_account.proto";
 import "bfs/payment/payment_account_count.proto";
@@ -20,4 +21,5 @@ message GenesisState {
   repeated PaymentAccount paymentAccountList = 4 [(gogoproto.nullable) = false];
 
   // this line is used by starport scaffolding # genesis/proto/state
+  repeated MockBucketMeta mockBucketMetaList = 5 [(gogoproto.nullable) = false];
 }

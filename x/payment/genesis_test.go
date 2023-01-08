@@ -46,6 +46,14 @@ func TestGenesis(t *testing.T) {
 			BucketName: "1",
 },
 	},
+	MockBucketMetaList: []types.MockBucketMeta{
+		{
+			BucketName: "0",
+},
+		{
+			BucketName: "1",
+},
+	},
 	// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -61,5 +69,6 @@ func TestGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.PaymentAccountCountList, got.PaymentAccountCountList)
 	require.ElementsMatch(t, genesisState.PaymentAccountList, got.PaymentAccountList)
 	require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
+require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
 // this line is used by starport scaffolding # genesis/test/assert
 }
