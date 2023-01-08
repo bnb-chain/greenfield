@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package bnbchain.bfs.payment;
 
 import "bfs/payment/params.proto";
@@ -9,6 +10,7 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
+
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";
@@ -19,6 +21,7 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/bfs/payment/params";
   }
+
   // Queries a StreamRecord by index.
   rpc StreamRecord(QueryGetStreamRecordRequest) returns (QueryGetStreamRecordResponse) {
     option (google.api.http).get = "/bfs/payment/stream_record/{account}";

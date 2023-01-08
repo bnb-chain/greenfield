@@ -44,6 +44,22 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgDisableRefund int = 100
 
+	opWeightMsgMockCreateBucket = "op_weight_msg_mock_create_bucket"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgMockCreateBucket int = 100
+
+	opWeightMsgCreateMockBucketMeta = "op_weight_msg_mock_bucket_meta"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCreateMockBucketMeta int = 100
+
+	opWeightMsgUpdateMockBucketMeta = "op_weight_msg_mock_bucket_meta"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgUpdateMockBucketMeta int = 100
+
+	opWeightMsgDeleteMockBucketMeta = "op_weight_msg_mock_bucket_meta"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgDeleteMockBucketMeta int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -131,6 +147,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgDisableRefund,
 		paymentsimulation.SimulateMsgDisableRefund(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgMockCreateBucket int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgMockCreateBucket, &weightMsgMockCreateBucket, nil,
+		func(_ *rand.Rand) {
+			weightMsgMockCreateBucket = defaultWeightMsgMockCreateBucket
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgMockCreateBucket,
+		paymentsimulation.SimulateMsgMockCreateBucket(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

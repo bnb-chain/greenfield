@@ -38,7 +38,15 @@ func TestGenesis(t *testing.T) {
 				Addr: "1",
 			},
 		},
-		// this line is used by starport scaffolding # genesis/test/state
+		MockBucketMetaList: []types.MockBucketMeta{
+		{
+			BucketName: "0",
+},
+		{
+			BucketName: "1",
+},
+	},
+	// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := keepertest.PaymentKeeper(t)
@@ -52,5 +60,6 @@ func TestGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.StreamRecordList, got.StreamRecordList)
 	require.ElementsMatch(t, genesisState.PaymentAccountCountList, got.PaymentAccountCountList)
 	require.ElementsMatch(t, genesisState.PaymentAccountList, got.PaymentAccountList)
-	// this line is used by starport scaffolding # genesis/test/assert
+	require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
+// this line is used by starport scaffolding # genesis/test/assert
 }

@@ -18,6 +18,7 @@ service Msg {
 
   // this line is used by starport scaffolding # proto/tx/rpc
   rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
+  rpc MockCreateBucket(MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
 }
 message MsgCreatePaymentAccount {
   string creator = 1;
@@ -72,3 +73,14 @@ message MsgDisableRefund {
 }
 
 message MsgDisableRefundResponse {}
+
+message MsgMockCreateBucket {
+  string operator = 1;
+  string bucketName = 2;
+  string readPaymentAccount = 3;
+  string storePaymentAccount = 4;
+  string spAddress = 5;
+  uint64 readPacket = 6;
+}
+
+message MsgMockCreateBucketResponse {}

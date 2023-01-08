@@ -15,7 +15,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgWithdraw{}, "payment/Withdraw", nil)
 	cdc.RegisterConcrete(&MsgSponse{}, "payment/Sponse", nil)
 	cdc.RegisterConcrete(&MsgDisableRefund{}, "payment/DisableRefund", nil)
-// this line is used by starport scaffolding # 2
+	cdc.RegisterConcrete(&MsgMockCreateBucket{}, "payment/MockCreateBucket", nil)
+	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -32,9 +33,12 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSponse{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgDisableRefund{},
-)
-// this line is used by starport scaffolding # 3
+		&MsgDisableRefund{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMockCreateBucket{},
+	)
+	// this line is used by starport scaffolding # 3
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
