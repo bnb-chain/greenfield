@@ -346,7 +346,7 @@ func New(
 	app.OracleKeeper = oraclekeeper.NewKeeper(
 		appCodec,
 		keys[crosschaintypes.StoreKey],
-		app.GetSubspace(crosschaintypes.ModuleName),
+		app.GetSubspace(oracletypes.ModuleName),
 		authtypes.FeeCollectorName,
 		app.CrossChainKeeper,
 		app.BankKeeper,
