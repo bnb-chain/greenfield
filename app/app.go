@@ -601,6 +601,8 @@ func New(
 
 func (app *App) initModules() {
 	app.initBridge()
+
+	app.initCrossChain()
 }
 
 func (app *App) initCrossChain() {
