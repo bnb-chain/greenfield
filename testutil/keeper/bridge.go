@@ -174,17 +174,26 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 
 	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
 
-	bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
+	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
 		Amount: sdk.NewInt(1000000000),
 	}})
-	bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
+	if err != nil {
+		panic("mint coins error")
+	}
+	err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
 		Amount: sdk.NewInt(1000000000),
 	}})
+	if err != nil {
+		panic("mint coins error")
+	}
 
 	crossChainKeeper.SetSrcChainID(sdk.ChainID(1))
-	crossChainKeeper.RegisterDestChain(sdk.ChainID(2))
+	err = crossChainKeeper.RegisterDestChain(sdk.ChainID(2))
+	if err != nil {
+		panic("register dest chain error")
+	}
 
 	crossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(2), types.TransferOutChannelID, sdk.ChannelAllow)
 	crossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(2), types.TransferInChannelID, sdk.ChannelAllow)

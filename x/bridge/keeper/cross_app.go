@@ -87,7 +87,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 		}
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutRefund{
+	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutRefund{
 		RefundAddress: refundPackage.RefundAddr.String(),
 		Amount: &sdk.Coin{
 			Denom:  denom,
@@ -95,6 +95,9 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 		},
 		RefundReason: uint32(refundPackage.RefundReason),
 	})
+	if err != nil {
+		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
+	}
 
 	return sdk.ExecuteResult{}
 }
@@ -126,7 +129,7 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 		}
 	}
 
-	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutFailAck{
+	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutFailAck{
 		From: transferOutPackage.RefundAddress.String(),
 		To:   transferOutPackage.Recipient.String(),
 		Amount: &sdk.Coin{
@@ -134,6 +137,9 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 			Amount: sdk.NewIntFromBigInt(transferOutPackage.Amount),
 		},
 	})
+	if err != nil {
+		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
+	}
 
 	return sdk.ExecuteResult{}
 }
@@ -237,15 +243,18 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 		})
 	}
 	receiverAddresses, refundAddresses := make([]string, 0, len(transferInPackage.Amounts)), make([]string, 0, len(transferInPackage.Amounts))
-	for idx, _ := range transferInPackage.ReceiverAddresses {
+	for idx := range transferInPackage.ReceiverAddresses {
 		receiverAddresses = append(receiverAddresses, transferInPackage.ReceiverAddresses[idx].String())
 		refundAddresses = append(refundAddresses, transferInPackage.RefundAddresses[idx].String())
 	}
-	ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferIn{
+	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferIn{
 		Amounts:           amounts,
 		ReceiverAddresses: receiverAddresses,
 		RefundAddresses:   refundAddresses,
 	})
+	if err != nil {
+		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
+	}
 
 	return sdk.ExecuteResult{}
 }

@@ -72,7 +72,7 @@ func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynP
 
 	encodedBytes, err := rlp.EncodeToBytes(refundPackage)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPackage, fmt.Sprintf("encode refund package error"))
+		return nil, errors.Wrapf(types.ErrInvalidPackage, "encode refund package error")
 	}
 	return encodedBytes, nil
 }

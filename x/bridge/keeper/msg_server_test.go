@@ -26,10 +26,11 @@ func TestCrossTransferOut(t *testing.T) {
 		Amount: sdk.NewInt(1),
 	})
 
-	suite.BankKeeper.SendCoinsFromModuleToAccount(ctx, types2.FeeCollectorName, addr1, sdk.Coins{sdk.Coin{
+	err = suite.BankKeeper.SendCoinsFromModuleToAccount(ctx, types2.FeeCollectorName, addr1, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
 		Amount: sdk.NewInt(1000),
 	}})
+	require.Nil(t, err, "error should be nil")
 
 	_, err = msgServer.TransferOut(ctx, msgTransferOut)
 	require.Nil(t, err, "error should be nil")

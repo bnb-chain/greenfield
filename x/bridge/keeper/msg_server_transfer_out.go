@@ -61,7 +61,10 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		RelayerFee: &relayFee,
 		Sequence:   sendSeq,
 	}
-	ctx.EventManager().EmitTypedEvent(&transferOutEvent)
+	err = ctx.EventManager().EmitTypedEvent(&transferOutEvent)
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.MsgTransferOutResponse{}, nil
 }
