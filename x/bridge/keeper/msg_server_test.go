@@ -19,7 +19,10 @@ func TestCrossTransferOut(t *testing.T) {
 	msgServer := keeper.NewMsgServerImpl(*k)
 
 	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
+	require.Nil(t, err, "error should be nil")
+
 	addr2, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
+	require.Nil(t, err, "error should be nil")
 
 	msgTransferOut := types.NewMsgTransferOut(addr1.String(), addr2.String(), &sdk.Coin{
 		Denom:  "stake",
@@ -42,7 +45,10 @@ func TestCrossTransferOutWrong(t *testing.T) {
 	msgServer := keeper.NewMsgServerImpl(*k)
 
 	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
+	require.Nil(t, err, "error should be nil")
+
 	addr2, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
+	require.Nil(t, err, "error should be nil")
 
 	msgTransferOut := types.NewMsgTransferOut(addr1.String(), addr2.String(), &sdk.Coin{
 		Denom:  "wrongdenom",

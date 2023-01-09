@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
 
 	"cosmossdk.io/errors"
 	"github.com/bnb-chain/bfs/x/bridge/types"
@@ -16,7 +15,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 
 	bondDenom := k.stakingKeeper.BondDenom(ctx)
 	if msg.Amount.Denom != bondDenom {
-		return nil, errors.Wrapf(types.ErrUnsupportedDenom, fmt.Sprintf("denom is not supported"))
+		return nil, errors.Wrapf(types.ErrUnsupportedDenom, "denom is not supported")
 	}
 
 	relayFee := sdk.Coin{
@@ -33,7 +32,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 
 	toAddress, err := sdk.ETHAddressFromHexUnsafe(msg.To)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidAddress, fmt.Sprintf("to address is not invalid"))
+		return nil, errors.Wrapf(types.ErrInvalidAddress, "to address is not invalid")
 	}
 
 	transferPackage := types.TransferOutSynPackage{
@@ -44,7 +43,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 
 	encodedPackage, err := rlp.EncodeToBytes(transferPackage)
 	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidPackage, fmt.Sprintf("encode transfer out package error"))
+		return nil, errors.Wrapf(types.ErrInvalidPackage, "encode transfer out package error")
 	}
 
 	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.DestChainId, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
