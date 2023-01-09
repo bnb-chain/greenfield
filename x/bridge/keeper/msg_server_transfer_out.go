@@ -21,7 +21,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 
 	relayFee := sdk.Coin{
 		Denom:  bondDenom,
-		Amount: types.CrossTransferOutRelayFee,
+		Amount: sdk.NewIntFromBigInt(k.GetTransferOutRelayerFee(ctx)),
 	}
 	transferAmount := sdk.Coins{*msg.Amount}.Add(relayFee)
 

@@ -225,10 +225,14 @@ require (
 replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 <<<<<<< HEAD
+<<<<<<< HEAD
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230112115134-495785e45050
 =======
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230109084254-8993f0f90ff3
 >>>>>>> e678cc7 (update dependency for cosmos sdk)
+=======
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/inscription-cosmos-sdk v0.0.2-0.20230109091900-c7f530073fc9
+>>>>>>> a192644 (add params for bridge module)
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/tendermint/tendermint => github.com/bnb-chain/inscription-tendermint v0.0.1
 )

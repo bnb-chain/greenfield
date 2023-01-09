@@ -7,6 +7,5 @@ option go_package = "github.com/bnb-chain/bfs/x/bridge/types";
 
 // Params defines the parameters for the module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-  
+  string transfer_out_relayer_fee = 1;
 }
