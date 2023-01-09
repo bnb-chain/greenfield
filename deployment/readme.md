@@ -89,3 +89,21 @@ bash ./deployment/localup/localup.sh stop
 bash ./deployment/localup/localup.sh stop
 bash ./deployment/localup/localup.sh start ${SIZE}
 ```
+
+## Quickly Setup Fullnode
+1. Start
+```bash
+SIZE=3 # The number of nodes in the cluster.
+bash ./deployment/localup/localup_fullnode.sh all ${SIZE}
+```
+
+2. Stop
+```bash
+bash ./deployment/localup/localup_fullnode.sh stop
+```
+
+3. Restart the fullnodes without initialization
+```bash
+bash ./deployment/localup/localup_fullnode.sh stop
+bash ./deployment/localup/localup_fullnode.sh start ${SIZE}
+```
