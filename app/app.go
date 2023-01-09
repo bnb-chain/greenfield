@@ -350,7 +350,7 @@ func New(
 		authtypes.FeeCollectorName,
 		app.CrossChainKeeper,
 		app.BankKeeper,
-		app.StakingKeeper,
+		&stakingKeeper,
 	)
 
 	app.FeeGrantKeeper = feegrantkeeper.NewKeeper(

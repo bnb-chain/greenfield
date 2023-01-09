@@ -168,7 +168,7 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		crossChainKeeper,
 	)
 
-	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, log.NewNopLogger())
+	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
 
 	stakingKeeper.SetParams(ctx, stakingtypes.DefaultParams())
 
