@@ -20,12 +20,14 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 }
 
 // GetTransferOutRelayerFee gets the transfer out relayer fee param
-func (k Keeper) GetTransferOutRelayerFee(ctx sdk.Context) (relayerFee *big.Int) {
+func (k Keeper) GetTransferOutRelayerFee(ctx sdk.Context) *big.Int {
 	var relayerFeeParam string
 	k.paramstore.Get(ctx, types.KeyParamTransferOutRelayerFee, &relayerFeeParam)
-	relayerFee, valid := relayerFee.SetString(relayerFeeParam, 10)
+	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
 	}
 	return relayerFee
 }
+
+//0xB73C0Aac4C1E606C6E495d848196355e6CB30381
