@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -93,17 +92,18 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		streamRecord.StaticBalance = streamRecord.StaticBalance.Add(staticBalance)
 	}
 	if streamRecord.StaticBalance.IsNegative() {
-		// todo: auto transfer from bank
 		if autoTransfer {
 			account := sdk.MustAccAddressFromHex(streamRecord.Account)
 			coins := sdk.NewCoins(sdk.NewCoin(types.Denom, streamRecord.StaticBalance.Abs()))
 			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
 			if err != nil {
-				return fmt.Errorf("not enough balance for user %s, err: %w", streamRecord.Account, err)
+				ctx.Logger().Info("auto transfer failed", "account", streamRecord.Account, "err", err, "coins", coins)
+			} else {
+				streamRecord.StaticBalance = sdkmath.ZeroInt()
 			}
-			streamRecord.StaticBalance = sdkmath.ZeroInt()
-		} else {
-			return fmt.Errorf("static balance of %s is negative: %s", streamRecord.Account, streamRecord.StaticBalance)
+		}
+		// if static balance is still negtive, check whether forced settlement is needed
+		if streamRecord.StaticBalance.IsNegative() {
 		}
 	}
 	return nil

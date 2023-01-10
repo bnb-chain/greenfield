@@ -15,8 +15,8 @@ var (
 )
 
 var (
-	KeyLiquidateTime            = []byte("LiquidateTime")
-	DefaultLiquidateTime uint64 = 24 * 60 * 60 // 1 day
+	KeyForcedSettleTime            = []byte("ForcedSettleTime")
+	DefaultForcedSettleTime uint64 = 24 * 60 * 60 // 1 day
 )
 
 var (
@@ -32,12 +32,12 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	reserveTime uint64,
-	liquidateTime uint64,
+	forcedSettleTime uint64,
 	paymentAccountCountLimit uint64,
 ) Params {
 	return Params{
 		ReserveTime:              reserveTime,
-		LiquidateTime:            liquidateTime,
+		ForcedSettleTime:         forcedSettleTime,
 		PaymentAccountCountLimit: paymentAccountCountLimit,
 	}
 }
@@ -46,7 +46,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultReserveTime,
-		DefaultLiquidateTime,
+		DefaultForcedSettleTime,
 		DefaultPaymentAccountCountLimit,
 	)
 }
@@ -55,7 +55,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyReserveTime, &p.ReserveTime, validateReserveTime),
-		paramtypes.NewParamSetPair(KeyLiquidateTime, &p.LiquidateTime, validateLiquidateTime),
+		paramtypes.NewParamSetPair(KeyForcedSettleTime, &p.ForcedSettleTime, validateForcedSettleTime),
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
 	}
 }
@@ -66,7 +66,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateLiquidateTime(p.LiquidateTime); err != nil {
+	if err := validateForcedSettleTime(p.ForcedSettleTime); err != nil {
 		return err
 	}
 
@@ -96,15 +96,15 @@ func validateReserveTime(v interface{}) error {
 	return nil
 }
 
-// validateLiquidateTime validates the LiquidateTime param
-func validateLiquidateTime(v interface{}) error {
-	liquidateTime, ok := v.(uint64)
+// validateForcedSettleTime validates the ForcedSettleTime param
+func validateForcedSettleTime(v interface{}) error {
+	ForcedSettleTime, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
 	// TODO implement validation
-	_ = liquidateTime
+	_ = ForcedSettleTime
 
 	return nil
 }

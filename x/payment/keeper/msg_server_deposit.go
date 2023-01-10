@@ -27,7 +27,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return &types.MsgDepositResponse{}, nil
 	} else {
 		// TODO:
-		// 1. check if the stream should be liquidated
+		// 1. check if the stream should be forced settled
 		// 2. if the account is frozen, assume it
 		err := k.UpdateStreamRecord(ctx, &streamRecord, sdkmath.ZeroInt(), msg.Amount, false)
 		return &types.MsgDepositResponse{}, err

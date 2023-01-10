@@ -10,6 +10,6 @@ message Params {
   option (gogoproto.goproto_stringer) = false;
 
   uint64 reserveTime = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
-  uint64 liquidateTime = 2 [(gogoproto.moretags) = "yaml:\"liquidate_time\""];
+  uint64 forcedSettleTime = 2 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
   uint64 paymentAccountCountLimit = 3 [(gogoproto.moretags) = "yaml:\"payment_account_count_limit\""];
 }
