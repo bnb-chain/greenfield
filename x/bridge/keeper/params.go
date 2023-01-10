@@ -19,15 +19,21 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramstore.SetParamSet(ctx, &params)
 }
 
-// GetTransferOutRelayerFee gets the transfer out relayer fee param
-func (k Keeper) GetTransferOutRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
-	k.paramstore.Get(ctx, types.KeyParamTransferOutRelayerFee, &relayerFeeParam)
-	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
-	if !valid {
-		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
-	}
-	return relayerFee
-}
+// GetTransferOutRelayerFee gets the transfer out relayer syn fee param
+func (k Keeper) GetTransferOutRelayerFee(ctx sdk.Context) (*big.Int, *big.Int) {
+	var relayerSynFeeParam, relayerAckFeeParam string
 
-//0xB73C0Aac4C1E606C6E495d848196355e6CB30381
+	k.paramstore.Get(ctx, types.KeyParamTransferOutRelayerSynFee, &relayerSynFeeParam)
+	relayerSynFee, valid := big.NewInt(0).SetString(relayerSynFeeParam, 10)
+	if !valid {
+		panic(fmt.Sprintf("invalid relayer fee: %s", relayerSynFeeParam))
+	}
+
+	k.paramstore.Get(ctx, types.KeyParamTransferOutRelayerAckFee, &relayerAckFeeParam)
+	relayerAckFee, valid := big.NewInt(0).SetString(relayerAckFeeParam, 10)
+	if !valid {
+		panic(fmt.Sprintf("invalid relayer fee: %s", relayerAckFeeParam))
+	}
+
+	return relayerSynFee, relayerAckFee
+}

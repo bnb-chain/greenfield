@@ -52,7 +52,7 @@ function generate_genesis() {
         done
 
         # init balance for cross chain module
-        ${bin} add-genesis-account 0xB73C0Aac4C1E606C6E495d848196355e6CB30381 ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+#        ${bin} add-genesis-account 0xB73C0Aac4C1E606C6E495d848196355e6CB30381 ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
 
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
 

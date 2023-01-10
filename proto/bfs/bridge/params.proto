@@ -7,5 +7,6 @@ option go_package = "github.com/bnb-chain/bfs/x/bridge/types";
 
 // Params defines the parameters for the module.
 message Params {
-  string transfer_out_relayer_fee = 1;
+  string transfer_out_relayer_syn_fee = 1;
+  string transfer_out_relayer_ack_fee = 2;
 }

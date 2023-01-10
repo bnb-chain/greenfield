@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"math/big"
 
 	"cosmossdk.io/errors"
 	"github.com/bnb-chain/bfs/x/bridge/types"
@@ -18,11 +19,14 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, errors.Wrapf(types.ErrUnsupportedDenom, "denom is not supported")
 	}
 
-	relayFee := sdk.Coin{
+	relayerSynFee, relayerAckFee := k.GetTransferOutRelayerFee(ctx)
+
+	totalRelayerFee := big.NewInt(0).Add(relayerSynFee, relayerAckFee)
+	relayerFee := sdk.Coin{
 		Denom:  bondDenom,
-		Amount: sdk.NewIntFromBigInt(k.GetTransferOutRelayerFee(ctx)),
+		Amount: sdk.NewIntFromBigInt(totalRelayerFee),
 	}
-	transferAmount := sdk.Coins{*msg.Amount}.Add(relayFee)
+	transferAmount := sdk.Coins{*msg.Amount}.Add(relayerFee)
 
 	fromAddress := msg.GetSigners()[0]
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAddress, crosschaintypes.ModuleName, transferAmount)
@@ -47,7 +51,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 
 	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.DestChainId, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
-		encodedPackage, *relayFee.Amount.BigInt())
+		encodedPackage, relayerSynFee, relayerAckFee)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +61,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		From:       fromAddress.String(),
 		To:         toAddress.String(),
 		Amount:     msg.Amount,
-		RelayerFee: &relayFee,
+		RelayerFee: &relayerFee,
 		Sequence:   sendSeq,
 	}
 	err = ctx.EventManager().EmitTypedEvent(&transferOutEvent)
