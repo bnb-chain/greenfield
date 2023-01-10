@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 
 	"github.com/bnb-chain/bfs/x/payment/types"
@@ -26,15 +27,13 @@ func (k msgServer) Sponse(goCtx context.Context, msg *types.MsgSponse) (*types.M
 	if toStream.Status != types.StreamPaymentAccountStatusNormal {
 		return nil, fmt.Errorf("to stream record status is not normal")
 	}
-	err := k.Keeper.UpdateStreamRecordByRate(ctx, &fromStream, msg.Rate.Neg())
+	err := k.Keeper.UpdateStreamRecord(ctx, &fromStream, msg.Rate.Neg(), sdkmath.ZeroInt(), true)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "update stream record by rate failed, creator: %s", msg.Creator)
 	}
-	err = k.Keeper.UpdateStreamRecordByRate(ctx, &toStream, msg.Rate)
+	err = k.Keeper.UpdateStreamRecord(ctx, &toStream, msg.Rate, sdkmath.ZeroInt(), false)
 	if err != nil {
 		return nil, errorsmod.Wrapf(err, "update stream record by rate failed, to: %s", msg.To)
 	}
-	k.Keeper.SetStreamRecord(ctx, fromStream)
-	k.Keeper.SetStreamRecord(ctx, toStream)
 	return &types.MsgSponseResponse{}, nil
 }

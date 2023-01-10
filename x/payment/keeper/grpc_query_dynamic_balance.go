@@ -21,7 +21,7 @@ func (k Keeper) DynamicBalance(goCtx context.Context, req *types.QueryDynamicBal
 		req.Account,
 	)
 	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "payment account not found")
 	}
 	currentTimestamp := ctx.BlockTime().Unix()
 	flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - streamRecord.CrudTimestamp)

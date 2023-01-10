@@ -61,3 +61,11 @@ func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccou
 
 	return
 }
+
+func (k Keeper) IsPaymentAccountOwner(ctx sdk.Context, addr string, owner string) bool {
+	paymentAccount, found := k.GetPaymentAccount(ctx, addr)
+	if !found {
+		return false
+	}
+	return paymentAccount.Owner == owner
+}

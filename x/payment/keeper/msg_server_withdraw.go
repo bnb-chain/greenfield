@@ -2,7 +2,7 @@ package keeper
 
 import (
 	"context"
-
+	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -14,10 +14,6 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	streamRecord, found := k.Keeper.GetStreamRecord(ctx, msg.From)
 	if !found {
 		return nil, types.ErrStreamRecordNotFound
-	}
-	k.UpdateStreamRecord(ctx, &streamRecord)
-	if streamRecord.StaticBalance.LT(msg.Amount) {
-		return nil, types.ErrInsufficientBalance
 	}
 	// check whether creator can withdraw
 	if msg.Creator != msg.From {
@@ -32,16 +28,16 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 			return nil, types.ErrPaymentAccountNotRefundable
 		}
 	}
-	// bank transfer
-	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, msg.Amount))
-	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
+	err := k.UpdateStreamRecord(ctx, &streamRecord, sdkmath.ZeroInt(), msg.Amount.Neg(), false)
 	if err != nil {
 		return nil, err
 	}
-	// change stream record
-	streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(msg.Amount)
-	k.SetStreamRecord(ctx, streamRecord)
-
+	// bank transfer
+	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, msg.Amount))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgWithdrawResponse{}, nil
 }

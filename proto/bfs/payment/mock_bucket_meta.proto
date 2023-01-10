@@ -10,5 +10,6 @@ message MockBucketMeta {
   string storePaymentAccount = 4;
   string spAddress = 5;
   uint64 readPacket = 6;
-  uint64 priceTime = 7;
+  int64 priceTime = 7;
+  repeated string SecondarySPs = 8;
 }

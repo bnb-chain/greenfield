@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -24,12 +25,11 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		streamRecord.StaticBalance = msg.Amount
 		k.Keeper.SetStreamRecord(ctx, streamRecord)
 		return &types.MsgDepositResponse{}, nil
+	} else {
+		// TODO:
+		// 1. check if the stream should be liquidated
+		// 2. if the account is frozen, assume it
+		err := k.UpdateStreamRecord(ctx, &streamRecord, sdkmath.ZeroInt(), msg.Amount, false)
+		return &types.MsgDepositResponse{}, err
 	}
-	// TODO:
-	// 1. check if the stream should be liquidated
-	// 2. if the account is frozen, assume it
-	k.UpdateStreamRecord(ctx, &streamRecord)
-	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(msg.Amount)
-	k.SetStreamRecord(ctx, streamRecord)
-	return &types.MsgDepositResponse{}, nil
 }

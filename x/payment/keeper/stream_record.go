@@ -64,29 +64,64 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 	return
 }
 
-func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord) {
+func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, rate, staticBalance sdkmath.Int, autoTransfer bool) error {
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
-	if currentTimestamp == timestamp {
-		return
-	}
-
-	flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
-	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(flowDelta)
-	streamRecord.CrudTimestamp = currentTimestamp
-}
-
-func (k Keeper) UpdateStreamRecordByRate(ctx sdk.Context, streamRecord *types.StreamRecord, rate sdkmath.Int) error {
-	k.UpdateStreamRecord(ctx, streamRecord)
-	streamRecord.NetflowRate = streamRecord.NetflowRate.Add(rate)
-	if rate.IsNegative() {
-		reserveTime := k.GetParams(ctx).ReserveTime
-		addtionalReserveBalance := rate.Abs().Mul(sdkmath.NewIntFromUint64(reserveTime))
-		if addtionalReserveBalance.GTE(streamRecord.StaticBalance) {
-			return fmt.Errorf("static balance is not enough, have: %d, need: %d", streamRecord.StaticBalance, addtionalReserveBalance)
+	// update delta balance
+	if currentTimestamp != timestamp {
+		if !streamRecord.NetflowRate.IsZero() {
+			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
+			streamRecord.StaticBalance = streamRecord.StaticBalance.Add(flowDelta)
 		}
-		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(addtionalReserveBalance)
-		streamRecord.BufferBalance = streamRecord.StaticBalance.Add(addtionalReserveBalance)
+		streamRecord.CrudTimestamp = currentTimestamp
+	}
+	// update buffer balance
+	if !rate.IsZero() {
+		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(rate)
+		newBufferBalance := sdkmath.ZeroInt()
+		if streamRecord.NetflowRate.IsNegative() {
+			reserveTime := k.GetParams(ctx).ReserveTime
+			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(reserveTime))
+		}
+		if !newBufferBalance.Equal(streamRecord.BufferBalance) {
+			streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(newBufferBalance).Add(streamRecord.BufferBalance)
+			streamRecord.BufferBalance = newBufferBalance
+		}
+	}
+	// update static balance
+	if !staticBalance.IsZero() {
+		streamRecord.StaticBalance = streamRecord.StaticBalance.Add(staticBalance)
+	}
+	if streamRecord.StaticBalance.IsNegative() {
+		// todo: auto transfer from bank
+		if autoTransfer {
+			account := sdk.MustAccAddressFromHex(streamRecord.Account)
+			coins := sdk.NewCoins(sdk.NewCoin(types.Denom, streamRecord.StaticBalance.Abs()))
+			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
+			if err != nil {
+				return fmt.Errorf("not enough balance for user %s, err: %w", streamRecord.Account, err)
+			}
+			streamRecord.StaticBalance = sdkmath.ZeroInt()
+		} else {
+			return fmt.Errorf("static balance of %s is negative: %s", streamRecord.Account, streamRecord.StaticBalance)
+		}
 	}
 	return nil
+}
+
+func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, addr string, rate, staticBalanceDelta sdkmath.Int, autoTransfer bool) error {
+	streamRecord, found := k.GetStreamRecord(ctx, addr)
+	if !found {
+		streamRecord = types.NewStreamRecord(addr, ctx.BlockTime().Unix())
+	}
+	err := k.UpdateStreamRecord(ctx, &streamRecord, rate, staticBalanceDelta, autoTransfer)
+	if err != nil {
+		return err
+	}
+	k.SetStreamRecord(ctx, streamRecord)
+	return nil
+}
+
+func (k Keeper) SettleStreamRecord(ctx sdk.Context, addr string) error {
+	return k.UpdateStreamRecordByAddr(ctx, addr, sdkmath.ZeroInt(), sdkmath.ZeroInt(), false)
 }
