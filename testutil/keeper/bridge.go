@@ -160,9 +160,6 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
-
-		sdk.ChainID(2),
-
 		bankKeeper,
 		stakingKeeper,
 		crossChainKeeper,
@@ -190,10 +187,7 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 	}
 
 	crossChainKeeper.SetSrcChainID(sdk.ChainID(1))
-	err = crossChainKeeper.RegisterDestChain(sdk.ChainID(2))
-	if err != nil {
-		panic("register dest chain error")
-	}
+	crossChainKeeper.SetDestChainID(sdk.ChainID(2))
 
 	crossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(2), types.TransferOutChannelID, sdk.ChannelAllow)
 	crossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(2), types.TransferInChannelID, sdk.ChannelAllow)

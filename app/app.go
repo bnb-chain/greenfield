@@ -154,7 +154,7 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
-		crosschaintypes.ModuleName:     nil,
+		crosschaintypes.ModuleName:     {authtypes.Minter},
 		bridgemoduletypes.ModuleName:   nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
@@ -412,9 +412,6 @@ func New(
 		keys[bridgemoduletypes.StoreKey],
 		keys[bridgemoduletypes.MemStoreKey],
 		app.GetSubspace(bridgemoduletypes.ModuleName),
-
-		sdk.ChainID(app.appConfig.CrossChain.DestChainId),
-
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CrossChainKeeper,
@@ -446,7 +443,7 @@ func New(
 		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper),
 		upgrade.NewAppModule(app.UpgradeKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		crosschain.NewAppModule(app.CrossChainKeeper),
+		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
 		bfsModule,
 		bridgeModule,
@@ -539,7 +536,7 @@ func New(
 		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper),
 		params.NewAppModule(app.ParamsKeeper),
-		crosschain.NewAppModule(app.CrossChainKeeper),
+		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
 		bfsModule,
 		bridgeModule,
@@ -607,11 +604,7 @@ func (app *App) initModules() {
 
 func (app *App) initCrossChain() {
 	app.CrossChainKeeper.SetSrcChainID(sdk.ChainID(app.appConfig.CrossChain.SrcChainId))
-
-	err := app.CrossChainKeeper.RegisterDestChain(sdk.ChainID(app.appConfig.CrossChain.DestChainId))
-	if err != nil {
-		panic("register dest chain error")
-	}
+	app.CrossChainKeeper.SetDestChainID(sdk.ChainID(app.appConfig.CrossChain.DestChainId))
 }
 
 func (app *App) initBridge() {

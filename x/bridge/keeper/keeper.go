@@ -33,9 +33,6 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-
-	destChainId sdk.ChainID,
-
 	bankKeeper types.BankKeeper,
 	stakingKeepr types.StakingKeeper,
 	crossChainKeeper types.CrossChainKeeper,
@@ -46,13 +43,10 @@ func NewKeeper(
 	}
 
 	return &Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-
-		DestChainId: destChainId,
-
+		cdc:              cdc,
+		storeKey:         storeKey,
+		memKey:           memKey,
+		paramstore:       ps,
 		bankKeeper:       bankKeeper,
 		stakingKeeper:    stakingKeepr,
 		crossChainKeeper: crossChainKeeper,

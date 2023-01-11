@@ -12,8 +12,8 @@ import (
 )
 
 func RegisterCrossApps(keeper Keeper) {
-	transferOutRefundApp := NewTransferOutApp(keeper)
-	err := keeper.crossChainKeeper.RegisterChannel(types.TransferOutChannel, types.TransferOutChannelID, transferOutRefundApp)
+	transferOutApp := NewTransferOutApp(keeper)
+	err := keeper.crossChainKeeper.RegisterChannel(types.TransferOutChannel, types.TransferOutChannelID, transferOutApp)
 	if err != nil {
 		panic(err)
 	}

@@ -50,7 +50,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, errors.Wrapf(types.ErrInvalidPackage, "encode transfer out package error")
 	}
 
-	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.DestChainId, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
+	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
 		encodedPackage, relayerSynFee, relayerAckFee)
 	if err != nil {
 		return nil, err
