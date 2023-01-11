@@ -16,11 +16,11 @@ func TestApplyFlowChanges(t *testing.T) {
 	rate := sdkmath.NewInt(100)
 	sp := "sp"
 	userInitBalance := sdkmath.NewInt(1e10)
-	flowChanges := []types.FlowChange{
+	flowChanges := []types.StreamRecordChange{
 		{user, rate.Neg(), userInitBalance},
 		{sp, rate, sdkmath.NewInt(0)},
 	}
-	err := keeper.ApplyFlowChanges(ctx, flowChanges)
+	err := keeper.ApplyStreamRecordChanges(ctx, flowChanges)
 	require.NoError(t, err)
 	userStreamRecord, found := keeper.GetStreamRecord(ctx, user)
 	require.True(t, found)
@@ -59,4 +59,24 @@ func TestSettleStreamRecord(t *testing.T) {
 	require.Equal(t, userStreamRecord2.NetflowRate, streamRecord.NetflowRate)
 	require.Equal(t, userStreamRecord2.FrozenNetflowRate, streamRecord.FrozenNetflowRate)
 	require.Equal(t, userStreamRecord2.CrudTimestamp, streamRecord.CrudTimestamp+seconds)
+}
+
+func TestMergeStreamRecordChanges(t *testing.T) {
+	base := []types.StreamRecordChange{
+		{"user1", sdkmath.NewInt(100), sdkmath.NewInt(1e10)},
+		{"user2", sdkmath.NewInt(200), sdkmath.NewInt(2e10)},
+	}
+	changes := []types.StreamRecordChange{
+		{"user1", sdkmath.NewInt(100), sdkmath.NewInt(1e10)},
+		{"user3", sdkmath.NewInt(200), sdkmath.NewInt(2e10)},
+	}
+	k, _ := keepertest.PaymentKeeper(t)
+	k.MergeStreamRecordChanges(&base, changes)
+	t.Logf("new base: %+v", base)
+	require.Equal(t, len(base), 3)
+	require.Equal(t, base, []types.StreamRecordChange{
+		{"user1", sdkmath.NewInt(200), sdkmath.NewInt(2e10)},
+		{"user2", sdkmath.NewInt(200), sdkmath.NewInt(2e10)},
+		{"user3", sdkmath.NewInt(200), sdkmath.NewInt(2e10)},
+	})
 }

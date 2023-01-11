@@ -23,32 +23,51 @@ import (
 //	}
 //}
 
-func (k Keeper) ApplyFlowChanges(c context.Context, flowChanges []types.FlowChange) error {
-	ctx := sdk.UnwrapSDKContext(c)
-	flowChangeMap := make(map[string]types.FlowChange)
-	rateChangesSum := sdkmath.ZeroInt()
+func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newChanges []types.StreamRecordChange) {
 	// merge changes with same address
-	for _, flowChange := range flowChanges {
-		fc, found := flowChangeMap[flowChange.Addr]
-		if !found {
-			fc = types.FlowChange{
-				Addr:          flowChange.Addr,
-				Rate:          sdkmath.ZeroInt(),
-				StaticBalance: sdkmath.ZeroInt(),
+	for _, newChange := range newChanges {
+		found := false
+		for i, baseChange := range *base {
+			if baseChange.Addr == newChange.Addr {
+				(*base)[i].Rate = baseChange.Rate.Add(newChange.Rate)
+				(*base)[i].StaticBalance = baseChange.StaticBalance.Add(newChange.StaticBalance)
+				found = true
+				break
 			}
 		}
-		fc.Rate = fc.Rate.Add(flowChange.Rate)
-		fc.StaticBalance = fc.StaticBalance.Add(flowChange.StaticBalance)
-		rateChangesSum = rateChangesSum.Add(flowChange.Rate)
-		flowChangeMap[flowChange.Addr] = fc
+		if !found {
+			*base = append(*base, newChange)
+		}
 	}
-	if !rateChangesSum.IsZero() {
-		return fmt.Errorf("rate changes sum is not zero: %s", rateChangesSum.String())
-	}
+}
+
+// assume StreamRecordChange is unique by Addr
+func (k Keeper) ApplyStreamRecordChanges(c context.Context, flowChanges []types.StreamRecordChange) error {
+	ctx := sdk.UnwrapSDKContext(c)
+	//flowChangeMap := make(map[string]types.StreamRecordChange)
+	//rateChangesSum := sdkmath.ZeroInt()
+	//// merge changes with same address
+	//for _, flowChange := range flowChanges {
+	//	fc, found := flowChangeMap[flowChange.Addr]
+	//	if !found {
+	//		fc = types.StreamRecordChange{
+	//			Addr:          flowChange.Addr,
+	//			Rate:          sdkmath.ZeroInt(),
+	//			StaticBalance: sdkmath.ZeroInt(),
+	//		}
+	//	}
+	//	fc.Rate = fc.Rate.Add(flowChange.Rate)
+	//	fc.StaticBalance = fc.StaticBalance.Add(flowChange.StaticBalance)
+	//	rateChangesSum = rateChangesSum.Add(flowChange.Rate)
+	//	flowChangeMap[flowChange.Addr] = fc
+	//}
+	//if !rateChangesSum.IsZero() {
+	//	return fmt.Errorf("rate changes sum is not zero: %s", rateChangesSum.String())
+	//}
 	// charge fee
-	for addr, fc := range flowChangeMap {
-		_, isPaymentAccount := k.GetPaymentAccount(ctx, addr)
-		err := k.UpdateStreamRecordByAddr(ctx, addr, fc.Rate, fc.StaticBalance, !isPaymentAccount)
+	for _, fc := range flowChanges {
+		_, isPaymentAccount := k.GetPaymentAccount(ctx, fc.Addr)
+		err := k.UpdateStreamRecordByAddr(ctx, fc.Addr, fc.Rate, fc.StaticBalance, !isPaymentAccount)
 		if err != nil {
 			return fmt.Errorf("update stream record failed: %w", err)
 		}
@@ -63,9 +82,9 @@ func (k Keeper) ChargeInitialReadFee(c context.Context, user, primarySP string, 
 	if err != nil {
 		return fmt.Errorf("get read price failed: %w", err)
 	}
-	rateChanges := []types.FlowChange{
+	rateChanges := []types.StreamRecordChange{
 		{Addr: user, Rate: price.Neg(), StaticBalance: sdkmath.ZeroInt()},
 		{Addr: primarySP, Rate: price, StaticBalance: sdkmath.ZeroInt()},
 	}
-	return k.ApplyFlowChanges(c, rateChanges)
+	return k.ApplyStreamRecordChanges(c, rateChanges)
 }

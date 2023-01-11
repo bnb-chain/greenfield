@@ -62,6 +62,16 @@ MockBucketMetaList: []types.MockBucketMeta{
 		BucketName: "1",
 },
 },
+FlowList: []types.Flow{
+	{
+		From: "0",
+To: "0",
+},
+	{
+		From: "1",
+To: "1",
+},
+},
 // this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -131,6 +141,22 @@ MockBucketMetaList: []types.MockBucketMeta{
 },
 			{
 				BucketName: "0",
+},
+		},
+	},
+	valid:    false,
+},
+{
+	desc:     "duplicated flow",
+	genState: &types.GenesisState{
+		FlowList: []types.Flow{
+			{
+				From: "0",
+To: "0",
+},
+			{
+				From: "0",
+To: "0",
 },
 		},
 	},

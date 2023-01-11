@@ -1,0 +1,10 @@
+syntax = "proto3";
+package bnbchain.bfs.payment;
+
+option go_package = "github.com/bnb-chain/bfs/x/payment/types";
+
+message Flow {
+  string from = 1;
+  string to = 2;
+  string rate = 3;
+}

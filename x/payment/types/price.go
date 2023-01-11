@@ -10,7 +10,7 @@ const (
 	ReadPacketLevel10GB
 )
 
-type FlowChange struct {
+type StreamRecordChange struct {
 	Addr          string
 	Rate          sdkmath.Int
 	StaticBalance sdkmath.Int

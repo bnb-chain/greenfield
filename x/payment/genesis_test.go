@@ -54,6 +54,16 @@ func TestGenesis(t *testing.T) {
 			BucketName: "1",
 },
 	},
+	FlowList: []types.Flow{
+		{
+			From: "0",
+To: "0",
+},
+		{
+			From: "1",
+To: "1",
+},
+	},
 	// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -70,5 +80,6 @@ func TestGenesis(t *testing.T) {
 	require.ElementsMatch(t, genesisState.PaymentAccountList, got.PaymentAccountList)
 	require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
 require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
+require.ElementsMatch(t, genesisState.FlowList, got.FlowList)
 // this line is used by starport scaffolding # genesis/test/assert
 }

@@ -14,6 +14,7 @@ func DefaultGenesis() *GenesisState {
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		MockBucketMetaList: []MockBucketMeta{},
+FlowList: []Flow{},
 // this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -62,6 +63,16 @@ for _, elem := range gs.MockBucketMetaList {
 		return fmt.Errorf("duplicated index for mockBucketMeta")
 	}
 	mockBucketMetaIndexMap[index] = struct{}{}
+}
+// Check for duplicated index in flow
+flowIndexMap := make(map[string]struct{})
+
+for _, elem := range gs.FlowList {
+	index := string(FlowKey(elem.From,elem.To))
+	if _, ok := flowIndexMap[index]; ok {
+		return fmt.Errorf("duplicated index for flow")
+	}
+	flowIndexMap[index] = struct{}{}
 }
 // this line is used by starport scaffolding # genesis/types/validate
 
