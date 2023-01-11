@@ -1,7 +1,7 @@
 .PHONY: build build-linux build-macos build-windows
 .PHONY: tools proto-gen proto-format test
 
-VERSION=$(shell git describe --tags)
+VERSION=$(shell git describe --tags --always)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d')
 REPO=github.com/bnb-chain/inscription
