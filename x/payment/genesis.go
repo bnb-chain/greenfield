@@ -28,6 +28,10 @@ for _, elem := range genState.MockBucketMetaList {
 for _, elem := range genState.FlowList {
 	k.SetFlow(ctx, elem)
 }
+// Set if defined
+if genState.BnbPrice != nil {
+	k.SetBnbPrice(ctx, *genState.BnbPrice)
+}
 // this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -42,6 +46,11 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
 	genesis.MockBucketMetaList = k.GetAllMockBucketMeta(ctx)
 genesis.FlowList = k.GetAllFlow(ctx)
+// Get all bnbPrice
+bnbPrice, found := k.GetBnbPrice(ctx)
+if found {
+	genesis.BnbPrice = &bnbPrice
+}
 // this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

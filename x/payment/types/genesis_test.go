@@ -72,6 +72,10 @@ To: "0",
 To: "1",
 },
 },
+BnbPrice: &types.BnbPrice{
+		Time: 87,
+Price: 30,
+},
 // this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,

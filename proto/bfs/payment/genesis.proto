@@ -9,6 +9,7 @@ import "bfs/payment/payment_account.proto";
 import "bfs/payment/payment_account_count.proto";
 import "bfs/payment/stream_record.proto";
 import "gogoproto/gogo.proto";
+import "bfs/payment/bnb_price.proto";
 
 // this line is used by starport scaffolding # genesis/proto/import
 
@@ -16,12 +17,14 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 // GenesisState defines the payment module's genesis state.
 message GenesisState {
-  Params params = 1 [(gogoproto.nullable) = false];
-  repeated StreamRecord streamRecordList = 2 [(gogoproto.nullable) = false];
+           Params              params                  = 1 [(gogoproto.nullable) = false];
+  repeated StreamRecord        streamRecordList        = 2 [(gogoproto.nullable) = false];
   repeated PaymentAccountCount paymentAccountCountList = 3 [(gogoproto.nullable) = false];
-  repeated PaymentAccount paymentAccountList = 4 [(gogoproto.nullable) = false];
-
+  repeated PaymentAccount      paymentAccountList      = 4 [(gogoproto.nullable) = false];
+  
   // this line is used by starport scaffolding # genesis/proto/state
   repeated MockBucketMeta mockBucketMetaList = 5 [(gogoproto.nullable) = false];
-  repeated Flow flowList = 6 [(gogoproto.nullable) = false];
+  repeated Flow           flowList           = 6 [(gogoproto.nullable) = false];
+           BnbPrice       bnbPrice           = 7;
 }
+

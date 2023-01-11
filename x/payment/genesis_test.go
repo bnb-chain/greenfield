@@ -64,7 +64,11 @@ To: "0",
 To: "1",
 },
 	},
-	// this line is used by starport scaffolding # genesis/test/state
+	BnbPrice: &types.BnbPrice{
+		Time: 70,
+Price: 63,
+},
+		// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := keepertest.PaymentKeeper(t)
@@ -81,5 +85,6 @@ To: "1",
 	require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
 require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
 require.ElementsMatch(t, genesisState.FlowList, got.FlowList)
+require.Equal(t, genesisState.BnbPrice, got.BnbPrice)
 // this line is used by starport scaffolding # genesis/test/assert
 }

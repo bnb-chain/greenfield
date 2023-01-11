@@ -109,7 +109,7 @@ func (k Keeper) ApplyFlowChanges(ctx sdk.Context, flowChanges []types.Flow) erro
 
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, readPacket types.ReadPacket) error {
 	currentTime := ctx.BlockTime().Unix()
-	price, err := GetReadPrice(readPacket, currentTime)
+	price, err := k.GetReadPrice(ctx, readPacket, currentTime)
 	if err != nil {
 		return fmt.Errorf("get read price failed: %w", err)
 	}

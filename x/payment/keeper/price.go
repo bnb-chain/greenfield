@@ -4,21 +4,11 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func SubmitBNBPrice(priceTime int64, price sdkmath.Int) {
-
-}
-
-// GetBNBPrice return the price of BNB at priceTime
-// price = num / precision
-// e.g. num = 27740000000, precision = 100000000, price = 27740000000 / 100000000 = 277.4
-func GetBNBPrice(_priceTime int64) (num, precision sdkmath.Int) {
-	return sdkmath.NewInt(27740000000), sdkmath.NewInt(100000000)
-}
-
 // GetReadPrice priceTime is kept to retrieve the price of ReadPacket at historical time
-func GetReadPrice(readPacket types.ReadPacket, priceTime int64) (sdkmath.Int, error) {
+func (k Keeper) GetReadPrice(ctx sdk.Context, readPacket types.ReadPacket, priceTime int64) (sdkmath.Int, error) {
 	priceInUSD, err := GetReadPriceV0(readPacket)
 	if err != nil {
 		return sdkmath.ZeroInt(), fmt.Errorf("get read price failed: %w", err)
@@ -26,7 +16,10 @@ func GetReadPrice(readPacket types.ReadPacket, priceTime int64) (sdkmath.Int, er
 	if priceInUSD.IsZero() {
 		return priceInUSD, nil
 	}
-	priceNum, pricePrecision := GetBNBPrice(priceTime)
+	priceNum, pricePrecision, err := k.GetBNBPriceByTime(ctx, priceTime)
+	if err != nil {
+		return sdkmath.ZeroInt(), fmt.Errorf("get bnb price failed: %w", err)
+	}
 	priceInBNB := priceInUSD.Mul(pricePrecision).Quo(priceNum)
 	return priceInBNB, nil
 }

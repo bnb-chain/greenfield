@@ -13,9 +13,10 @@ func DefaultGenesis() *GenesisState {
 		StreamRecordList:        []StreamRecord{},
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
-		MockBucketMetaList: []MockBucketMeta{},
-FlowList: []Flow{},
-// this line is used by starport scaffolding # genesis/types/default
+		MockBucketMetaList:      []MockBucketMeta{},
+		FlowList:                []Flow{},
+		BnbPrice:                nil,
+		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -55,26 +56,26 @@ func (gs GenesisState) Validate() error {
 	}
 
 	// Check for duplicated index in mockBucketMeta
-mockBucketMetaIndexMap := make(map[string]struct{})
+	mockBucketMetaIndexMap := make(map[string]struct{})
 
-for _, elem := range gs.MockBucketMetaList {
-	index := string(MockBucketMetaKey(elem.BucketName))
-	if _, ok := mockBucketMetaIndexMap[index]; ok {
-		return fmt.Errorf("duplicated index for mockBucketMeta")
+	for _, elem := range gs.MockBucketMetaList {
+		index := string(MockBucketMetaKey(elem.BucketName))
+		if _, ok := mockBucketMetaIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for mockBucketMeta")
+		}
+		mockBucketMetaIndexMap[index] = struct{}{}
 	}
-	mockBucketMetaIndexMap[index] = struct{}{}
-}
-// Check for duplicated index in flow
-flowIndexMap := make(map[string]struct{})
+	// Check for duplicated index in flow
+	flowIndexMap := make(map[string]struct{})
 
-for _, elem := range gs.FlowList {
-	index := string(FlowKey(elem.From,elem.To))
-	if _, ok := flowIndexMap[index]; ok {
-		return fmt.Errorf("duplicated index for flow")
+	for _, elem := range gs.FlowList {
+		index := string(FlowKey(elem.From, elem.To))
+		if _, ok := flowIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for flow")
+		}
+		flowIndexMap[index] = struct{}{}
 	}
-	flowIndexMap[index] = struct{}{}
-}
-// this line is used by starport scaffolding # genesis/types/validate
+	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }
