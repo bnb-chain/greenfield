@@ -9,13 +9,17 @@ const DefaultIndex uint64 = 1
 
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
+	defaultSingleBnbPrice := SingleBnbPrice{0, 27740000000}
+	defaultBnbPrice := BnbPrice{
+		Prices: []*SingleBnbPrice{&defaultSingleBnbPrice},
+	}
 	return &GenesisState{
 		StreamRecordList:        []StreamRecord{},
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		MockBucketMetaList:      []MockBucketMeta{},
 		FlowList:                []Flow{},
-		BnbPrice:                nil,
+		BnbPrice:                &defaultBnbPrice,
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}

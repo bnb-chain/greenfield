@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -113,9 +112,8 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, re
 	if err != nil {
 		return fmt.Errorf("get read price failed: %w", err)
 	}
-	rateChanges := []types.StreamRecordChange{
-		{Addr: user, Rate: price.Neg(), StaticBalance: sdkmath.ZeroInt()},
-		{Addr: primarySP, Rate: price, StaticBalance: sdkmath.ZeroInt()},
+	flowChanges := []types.Flow{
+		{From: user, To: primarySP, Rate: price},
 	}
-	return k.ApplyStreamRecordChanges(ctx, rateChanges)
+	return k.ApplyFlowChanges(ctx, flowChanges)
 }
