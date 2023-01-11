@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"context"
 	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
@@ -42,8 +41,7 @@ func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newCh
 }
 
 // assume StreamRecordChange is unique by Addr
-func (k Keeper) ApplyStreamRecordChanges(c context.Context, flowChanges []types.StreamRecordChange) error {
-	ctx := sdk.UnwrapSDKContext(c)
+func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []types.StreamRecordChange) error {
 	//flowChangeMap := make(map[string]types.StreamRecordChange)
 	//rateChangesSum := sdkmath.ZeroInt()
 	//// merge changes with same address
@@ -65,7 +63,7 @@ func (k Keeper) ApplyStreamRecordChanges(c context.Context, flowChanges []types.
 	//	return fmt.Errorf("rate changes sum is not zero: %s", rateChangesSum.String())
 	//}
 	// charge fee
-	for _, fc := range flowChanges {
+	for _, fc := range streamRecordChanges {
 		_, isPaymentAccount := k.GetPaymentAccount(ctx, fc.Addr)
 		err := k.UpdateStreamRecordByAddr(ctx, fc.Addr, fc.Rate, fc.StaticBalance, !isPaymentAccount)
 		if err != nil {
@@ -75,8 +73,41 @@ func (k Keeper) ApplyStreamRecordChanges(c context.Context, flowChanges []types.
 	return nil
 }
 
-func (k Keeper) ChargeInitialReadFee(c context.Context, user, primarySP string, readPacket types.ReadPacket) error {
-	ctx := sdk.UnwrapSDKContext(c)
+func (k Keeper) ApplyFlowChanges(ctx sdk.Context, flowChanges []types.Flow) error {
+	streamRecordChangeMap := make(map[string]*types.StreamRecordChange)
+	// merge changes with same address
+	for _, flowChange := range flowChanges {
+		fromFc, found := streamRecordChangeMap[flowChange.From]
+		if !found {
+			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.From)
+			fromFc = &fc
+		}
+		fromFc.Rate = fromFc.Rate.Sub(flowChange.Rate)
+		toFc, found := streamRecordChangeMap[flowChange.To]
+		if !found {
+			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.To)
+			toFc = &fc
+		}
+		toFc.Rate = toFc.Rate.Add(flowChange.Rate)
+		// update flow
+		err := k.UpdateFlow(ctx, flowChange)
+		if err != nil {
+			return fmt.Errorf("update flow failed: %w, flow: %+v", err, flowChange)
+		}
+	}
+	streamRecordChanges := make([]types.StreamRecordChange, 0, len(streamRecordChangeMap))
+	for _, fc := range streamRecordChangeMap {
+		streamRecordChanges = append(streamRecordChanges, *fc)
+	}
+	// apply stream record changes
+	err := k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes failed: %w", err)
+	}
+	return nil
+}
+
+func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, readPacket types.ReadPacket) error {
 	currentTime := ctx.BlockTime().Unix()
 	price, err := GetReadPrice(readPacket, currentTime)
 	if err != nil {
@@ -86,5 +117,5 @@ func (k Keeper) ChargeInitialReadFee(c context.Context, user, primarySP string, 
 		{Addr: user, Rate: price.Neg(), StaticBalance: sdkmath.ZeroInt()},
 		{Addr: primarySP, Rate: price, StaticBalance: sdkmath.ZeroInt()},
 	}
-	return k.ApplyStreamRecordChanges(c, rateChanges)
+	return k.ApplyStreamRecordChanges(ctx, rateChanges)
 }

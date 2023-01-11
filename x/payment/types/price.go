@@ -15,3 +15,11 @@ type StreamRecordChange struct {
 	Rate          sdkmath.Int
 	StaticBalance sdkmath.Int
 }
+
+func NewDefaultStreamRecordChangeWithAddr(addr string) StreamRecordChange {
+	return StreamRecordChange{
+		Addr:          addr,
+		Rate:          sdkmath.ZeroInt(),
+		StaticBalance: sdkmath.ZeroInt(),
+	}
+}

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -80,4 +81,19 @@ func (k Keeper) GetAllFlowByFromUser(ctx sdk.Context, from string) (list []types
 	}
 
 	return
+}
+
+// merge the incoming flow with the existing flow
+func (k Keeper) UpdateFlow(ctx sdk.Context, flow types.Flow) error {
+	existingFlow, found := k.GetFlow(ctx, flow.From, flow.To)
+	if found {
+		existingFlow.Rate = flow.Rate.Add(existingFlow.Rate)
+	} else {
+		existingFlow = flow
+	}
+	if existingFlow.Rate.IsNegative() {
+		return fmt.Errorf("flow rate cannot be negative")
+	}
+	k.SetFlow(ctx, existingFlow)
+	return nil
 }
