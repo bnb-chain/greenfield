@@ -9,7 +9,8 @@ const DefaultIndex uint64 = 1
 
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
-	defaultSingleBnbPrice := SingleBnbPrice{0, 27740000000}
+	defaultSingleBnbPrice := SingleBnbPrice{0, 1e8}
+	//defaultSingleBnbPrice := SingleBnbPrice{0, 27740000000}
 	defaultBnbPrice := BnbPrice{
 		Prices: []*SingleBnbPrice{&defaultSingleBnbPrice},
 	}

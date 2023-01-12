@@ -30,10 +30,10 @@ func GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, err error) 
 		price = sdkmath.NewInt(0)
 		break
 	case types.ReadPacketLevel1GB:
-		price = sdkmath.NewInt(1e17)
+		price = sdkmath.NewInt(1)
 		break
 	case types.ReadPacketLevel10GB:
-		price = sdkmath.NewInt(1e18)
+		price = sdkmath.NewInt(10)
 		break
 	default:
 		err = fmt.Errorf("invalid read packet level: %d", readPacket)
