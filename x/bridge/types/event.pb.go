@@ -103,6 +103,7 @@ type EventCrossTransferOutRefund struct {
 	RefundAddress string      `protobuf:"bytes,1,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
 	Amount        *types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	RefundReason  uint32      `protobuf:"varint,3,opt,name=refund_reason,json=refundReason,proto3" json:"refund_reason,omitempty"`
+	Sequence      uint64      `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *EventCrossTransferOutRefund) Reset()         { *m = EventCrossTransferOutRefund{} }
@@ -159,77 +160,25 @@ func (m *EventCrossTransferOutRefund) GetRefundReason() uint32 {
 	return 0
 }
 
-type EventCrossTransferOutFailAck struct {
-	From   string      `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	To     string      `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
-	Amount *types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
-}
-
-func (m *EventCrossTransferOutFailAck) Reset()         { *m = EventCrossTransferOutFailAck{} }
-func (m *EventCrossTransferOutFailAck) String() string { return proto.CompactTextString(m) }
-func (*EventCrossTransferOutFailAck) ProtoMessage()    {}
-func (*EventCrossTransferOutFailAck) Descriptor() ([]byte, []int) {
-	return fileDescriptor_86c82d1bf9ad0466, []int{2}
-}
-func (m *EventCrossTransferOutFailAck) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *EventCrossTransferOutFailAck) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_EventCrossTransferOutFailAck.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *EventCrossTransferOutFailAck) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventCrossTransferOutFailAck.Merge(m, src)
-}
-func (m *EventCrossTransferOutFailAck) XXX_Size() int {
-	return m.Size()
-}
-func (m *EventCrossTransferOutFailAck) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventCrossTransferOutFailAck.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EventCrossTransferOutFailAck proto.InternalMessageInfo
-
-func (m *EventCrossTransferOutFailAck) GetFrom() string {
+func (m *EventCrossTransferOutRefund) GetSequence() uint64 {
 	if m != nil {
-		return m.From
+		return m.Sequence
 	}
-	return ""
-}
-
-func (m *EventCrossTransferOutFailAck) GetTo() string {
-	if m != nil {
-		return m.To
-	}
-	return ""
-}
-
-func (m *EventCrossTransferOutFailAck) GetAmount() *types.Coin {
-	if m != nil {
-		return m.Amount
-	}
-	return nil
+	return 0
 }
 
 type EventCrossTransferIn struct {
-	Amounts           []*types.Coin `protobuf:"bytes,1,rep,name=amounts,proto3" json:"amounts,omitempty"`
-	ReceiverAddresses []string      `protobuf:"bytes,2,rep,name=receiver_addresses,json=receiverAddresses,proto3" json:"receiver_addresses,omitempty"`
-	RefundAddresses   []string      `protobuf:"bytes,3,rep,name=refund_addresses,json=refundAddresses,proto3" json:"refund_addresses,omitempty"`
+	Amount          *types.Coin `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	ReceiverAddress string      `protobuf:"bytes,2,opt,name=receiver_address,json=receiverAddress,proto3" json:"receiver_address,omitempty"`
+	RefundAddress   string      `protobuf:"bytes,3,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
+	Sequence        uint64      `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *EventCrossTransferIn) Reset()         { *m = EventCrossTransferIn{} }
 func (m *EventCrossTransferIn) String() string { return proto.CompactTextString(m) }
 func (*EventCrossTransferIn) ProtoMessage()    {}
 func (*EventCrossTransferIn) Descriptor() ([]byte, []int) {
-	return fileDescriptor_86c82d1bf9ad0466, []int{3}
+	return fileDescriptor_86c82d1bf9ad0466, []int{2}
 }
 func (m *EventCrossTransferIn) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -258,65 +207,69 @@ func (m *EventCrossTransferIn) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCrossTransferIn proto.InternalMessageInfo
 
-func (m *EventCrossTransferIn) GetAmounts() []*types.Coin {
+func (m *EventCrossTransferIn) GetAmount() *types.Coin {
 	if m != nil {
-		return m.Amounts
+		return m.Amount
 	}
 	return nil
 }
 
-func (m *EventCrossTransferIn) GetReceiverAddresses() []string {
+func (m *EventCrossTransferIn) GetReceiverAddress() string {
 	if m != nil {
-		return m.ReceiverAddresses
+		return m.ReceiverAddress
 	}
-	return nil
+	return ""
 }
 
-func (m *EventCrossTransferIn) GetRefundAddresses() []string {
+func (m *EventCrossTransferIn) GetRefundAddress() string {
 	if m != nil {
-		return m.RefundAddresses
+		return m.RefundAddress
 	}
-	return nil
+	return ""
+}
+
+func (m *EventCrossTransferIn) GetSequence() uint64 {
+	if m != nil {
+		return m.Sequence
+	}
+	return 0
 }
 
 func init() {
 	proto.RegisterType((*EventCrossTransferOut)(nil), "bnbchain.bfs.bridge.EventCrossTransferOut")
 	proto.RegisterType((*EventCrossTransferOutRefund)(nil), "bnbchain.bfs.bridge.EventCrossTransferOutRefund")
-	proto.RegisterType((*EventCrossTransferOutFailAck)(nil), "bnbchain.bfs.bridge.EventCrossTransferOutFailAck")
 	proto.RegisterType((*EventCrossTransferIn)(nil), "bnbchain.bfs.bridge.EventCrossTransferIn")
 }
 
 func init() { proto.RegisterFile("bfs/bridge/event.proto", fileDescriptor_86c82d1bf9ad0466) }
 
 var fileDescriptor_86c82d1bf9ad0466 = []byte{
-	// 422 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x53, 0x3d, 0x6f, 0xd4, 0x40,
-	0x10, 0xbd, 0xf5, 0x1d, 0x81, 0x4c, 0x48, 0x80, 0xe5, 0x43, 0x26, 0x20, 0xeb, 0x74, 0x08, 0x61,
-	0x8a, 0xac, 0x75, 0xa4, 0xa3, 0x33, 0x11, 0x91, 0xa8, 0x90, 0x2c, 0x2a, 0x9a, 0xd3, 0xae, 0x3d,
-	0x4e, 0x2c, 0xe2, 0xdd, 0xb0, 0xb3, 0x3e, 0x91, 0x7f, 0xc1, 0x0f, 0xa0, 0xe5, 0xaf, 0x20, 0xca,
-	0x94, 0x94, 0xe8, 0xee, 0x8f, 0x20, 0xaf, 0x6d, 0x44, 0x44, 0x04, 0x34, 0x74, 0xeb, 0x37, 0x6f,
-	0xe6, 0xf9, 0x3d, 0xcd, 0xc0, 0x3d, 0x55, 0x52, 0xa2, 0x6c, 0x55, 0x1c, 0x61, 0x82, 0x4b, 0xd4,
-	0x4e, 0x9c, 0x5a, 0xe3, 0x0c, 0xbf, 0xad, 0xb4, 0xca, 0x8f, 0x65, 0xa5, 0x85, 0x2a, 0x49, 0x74,
-	0x84, 0xdd, 0x28, 0x37, 0x54, 0x1b, 0x4a, 0x94, 0x24, 0x4c, 0x96, 0x73, 0x85, 0x4e, 0xce, 0x93,
-	0xdc, 0x54, 0xba, 0x6b, 0x9a, 0x7d, 0x61, 0x70, 0xf7, 0x65, 0x3b, 0xe4, 0xc0, 0x1a, 0xa2, 0x37,
-	0x56, 0x6a, 0x2a, 0xd1, 0xbe, 0x6e, 0x1c, 0xe7, 0x30, 0x29, 0xad, 0xa9, 0x43, 0x36, 0x65, 0xf1,
-	0x66, 0xe6, 0xdf, 0x7c, 0x07, 0x02, 0x67, 0xc2, 0xc0, 0x23, 0x81, 0x33, 0x7c, 0x0e, 0x1b, 0xb2,
-	0x36, 0x8d, 0x76, 0xe1, 0x78, 0xca, 0xe2, 0xad, 0x67, 0xf7, 0x45, 0x27, 0x27, 0x5a, 0x39, 0xd1,
-	0xcb, 0x89, 0x03, 0x53, 0xe9, 0xac, 0x27, 0xf2, 0xe7, 0xb0, 0x65, 0xf1, 0x44, 0x9e, 0xa1, 0x5d,
-	0x94, 0x88, 0xe1, 0xe4, 0x6f, 0x7d, 0xd0, 0xb3, 0x0f, 0x11, 0xf9, 0x2e, 0x5c, 0x23, 0x7c, 0xdf,
-	0xa0, 0xce, 0x31, 0xbc, 0x32, 0x65, 0xf1, 0x24, 0xfb, 0xf9, 0x3d, 0xfb, 0xc4, 0xe0, 0xc1, 0xa5,
-	0x46, 0x32, 0x2c, 0x1b, 0x5d, 0xf0, 0xc7, 0xb0, 0x63, 0xfd, 0x6b, 0x21, 0x8b, 0xc2, 0x22, 0x51,
-	0x6f, 0x6c, 0xbb, 0x43, 0xd3, 0x0e, 0xfc, 0xc5, 0x51, 0xf0, 0xaf, 0x8e, 0x1e, 0x41, 0x3f, 0x63,
-	0x61, 0x51, 0x92, 0xd1, 0x3e, 0x8b, 0xed, 0xec, 0x7a, 0x07, 0x66, 0x1e, 0x9b, 0x35, 0xf0, 0xf0,
-	0xd2, 0xbf, 0x3b, 0x94, 0xd5, 0x49, 0x9a, 0xbf, 0xfb, 0x4f, 0x69, 0xcf, 0x3e, 0x33, 0xb8, 0xf3,
-	0xbb, 0xee, 0x2b, 0xcd, 0xf7, 0xe1, 0x6a, 0x47, 0x69, 0x73, 0x18, 0xff, 0x79, 0xd8, 0xc0, 0xe4,
-	0x7b, 0xc0, 0x2d, 0xe6, 0x58, 0x2d, 0xd1, 0x0e, 0x29, 0x22, 0x85, 0xc1, 0x74, 0x1c, 0x6f, 0x66,
-	0xb7, 0x86, 0x4a, 0x3a, 0x14, 0xf8, 0x53, 0xb8, 0x79, 0x31, 0x72, 0xa4, 0x70, 0xec, 0xc9, 0x37,
-	0x2e, 0x84, 0x8e, 0xf4, 0x22, 0xfd, 0xba, 0x8a, 0xd8, 0xf9, 0x2a, 0x62, 0xdf, 0x57, 0x11, 0xfb,
-	0xb8, 0x8e, 0x46, 0xe7, 0xeb, 0x68, 0xf4, 0x6d, 0x1d, 0x8d, 0xde, 0x3e, 0x39, 0xaa, 0xdc, 0x71,
-	0xa3, 0x44, 0x6e, 0xea, 0x44, 0x69, 0xb5, 0xe7, 0x37, 0x3c, 0x69, 0x4f, 0xe0, 0xc3, 0x70, 0x04,
-	0xee, 0xec, 0x14, 0x49, 0x6d, 0xf8, 0x85, 0xde, 0xff, 0x11, 0x00, 0x00, 0xff, 0xff, 0x1b, 0x5d,
-	0x87, 0x4c, 0x1f, 0x03, 0x00, 0x00,
+	// 391 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x52, 0xcd, 0x6e, 0xda, 0x40,
+	0x18, 0x64, 0x8d, 0x8b, 0xda, 0xa5, 0xd0, 0x6a, 0xfb, 0x23, 0x97, 0x4a, 0x16, 0xa2, 0xaa, 0x4a,
+	0x0f, 0x59, 0x8b, 0xe4, 0x96, 0x1b, 0x41, 0x89, 0x94, 0x53, 0x24, 0x2b, 0xa7, 0x5c, 0xd0, 0xae,
+	0xfd, 0x19, 0x2c, 0xc5, 0xbb, 0x64, 0x77, 0x8d, 0xc2, 0x5b, 0xe4, 0x6d, 0x92, 0x27, 0x88, 0x72,
+	0xe4, 0x98, 0x63, 0x04, 0x2f, 0x12, 0x61, 0x1b, 0x44, 0x02, 0x4a, 0xb8, 0x7d, 0x3b, 0xfa, 0x7e,
+	0x66, 0x66, 0x07, 0xff, 0xe4, 0x91, 0xf6, 0xb8, 0x8a, 0xc3, 0x01, 0x78, 0x30, 0x06, 0x61, 0xe8,
+	0x48, 0x49, 0x23, 0xc9, 0x37, 0x2e, 0x78, 0x30, 0x64, 0xb1, 0xa0, 0x3c, 0xd2, 0x34, 0x6f, 0x68,
+	0xb8, 0x81, 0xd4, 0x89, 0xd4, 0x1e, 0x67, 0x1a, 0xbc, 0x71, 0x87, 0x83, 0x61, 0x1d, 0x2f, 0x90,
+	0xb1, 0xc8, 0x87, 0x5a, 0xf7, 0x08, 0xff, 0x38, 0x5e, 0x2c, 0xe9, 0x29, 0xa9, 0xf5, 0xb9, 0x62,
+	0x42, 0x47, 0xa0, 0xce, 0x52, 0x43, 0x08, 0xb6, 0x23, 0x25, 0x13, 0x07, 0x35, 0x51, 0xfb, 0x93,
+	0x9f, 0xd5, 0xa4, 0x8e, 0x2d, 0x23, 0x1d, 0x2b, 0x43, 0x2c, 0x23, 0x49, 0x07, 0x57, 0x58, 0x22,
+	0x53, 0x61, 0x9c, 0x72, 0x13, 0xb5, 0xab, 0xfb, 0xbf, 0x68, 0x7e, 0x8e, 0x2e, 0xce, 0xd1, 0xe2,
+	0x1c, 0xed, 0xc9, 0x58, 0xf8, 0x45, 0x23, 0x39, 0xc4, 0x55, 0x05, 0x97, 0x6c, 0x02, 0xaa, 0x1f,
+	0x01, 0x38, 0xf6, 0x7b, 0x73, 0xb8, 0xe8, 0x3e, 0x01, 0x20, 0x0d, 0xfc, 0x51, 0xc3, 0x55, 0x0a,
+	0x22, 0x00, 0xe7, 0x43, 0x13, 0xb5, 0x6d, 0x7f, 0xf5, 0x6e, 0xdd, 0x21, 0xfc, 0x7b, 0xab, 0x10,
+	0x1f, 0xa2, 0x54, 0x84, 0xe4, 0x2f, 0xae, 0xab, 0xac, 0xea, 0xb3, 0x30, 0x54, 0xa0, 0x75, 0x21,
+	0xac, 0x96, 0xa3, 0xdd, 0x1c, 0x5c, 0x53, 0x64, 0xed, 0xaa, 0xe8, 0x0f, 0x2e, 0x76, 0xf4, 0x15,
+	0x30, 0x2d, 0x45, 0xe6, 0x45, 0xcd, 0xff, 0x9c, 0x83, 0x7e, 0x86, 0xbd, 0xa0, 0x6e, 0xbf, 0xa2,
+	0x7e, 0x8b, 0xf0, 0xf7, 0x4d, 0xea, 0xa7, 0x62, 0x8d, 0x0c, 0xda, 0x95, 0xcc, 0x7f, 0xfc, 0x55,
+	0x41, 0x00, 0xf1, 0x18, 0xd4, 0x4a, 0x68, 0xfe, 0x5f, 0x5f, 0x96, 0xf8, 0x52, 0xea, 0xa6, 0x23,
+	0xe5, 0x6d, 0x8e, 0xbc, 0xc1, 0xfc, 0xa8, 0xfb, 0x30, 0x73, 0xd1, 0x74, 0xe6, 0xa2, 0xa7, 0x99,
+	0x8b, 0x6e, 0xe6, 0x6e, 0x69, 0x3a, 0x77, 0x4b, 0x8f, 0x73, 0xb7, 0x74, 0xf1, 0x6f, 0x10, 0x9b,
+	0x61, 0xca, 0x69, 0x20, 0x13, 0x8f, 0x0b, 0xbe, 0x97, 0x05, 0xd3, 0x5b, 0x24, 0xf7, 0x7a, 0x99,
+	0x5d, 0x33, 0x19, 0x81, 0xe6, 0x95, 0x2c, 0x87, 0x07, 0xcf, 0x01, 0x00, 0x00, 0xff, 0xff, 0x2a,
+	0x0c, 0x42, 0xca, 0xd6, 0x02, 0x00, 0x00,
 }
 
 func (m *EventCrossTransferOut) Marshal() (dAtA []byte, err error) {
@@ -405,6 +358,11 @@ func (m *EventCrossTransferOutRefund) MarshalToSizedBuffer(dAtA []byte) (int, er
 	_ = i
 	var l int
 	_ = l
+	if m.Sequence != 0 {
+		i = encodeVarintEvent(dAtA, i, uint64(m.Sequence))
+		i--
+		dAtA[i] = 0x20
+	}
 	if m.RefundReason != 0 {
 		i = encodeVarintEvent(dAtA, i, uint64(m.RefundReason))
 		i--
@@ -432,55 +390,6 @@ func (m *EventCrossTransferOutRefund) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *EventCrossTransferOutFailAck) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *EventCrossTransferOutFailAck) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *EventCrossTransferOutFailAck) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Amount != nil {
-		{
-			size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintEvent(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.To) > 0 {
-		i -= len(m.To)
-		copy(dAtA[i:], m.To)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.To)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.From) > 0 {
-		i -= len(m.From)
-		copy(dAtA[i:], m.From)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.From)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func (m *EventCrossTransferIn) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -501,37 +410,36 @@ func (m *EventCrossTransferIn) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.RefundAddresses) > 0 {
-		for iNdEx := len(m.RefundAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.RefundAddresses[iNdEx])
-			copy(dAtA[i:], m.RefundAddresses[iNdEx])
-			i = encodeVarintEvent(dAtA, i, uint64(len(m.RefundAddresses[iNdEx])))
-			i--
-			dAtA[i] = 0x1a
-		}
+	if m.Sequence != 0 {
+		i = encodeVarintEvent(dAtA, i, uint64(m.Sequence))
+		i--
+		dAtA[i] = 0x20
 	}
-	if len(m.ReceiverAddresses) > 0 {
-		for iNdEx := len(m.ReceiverAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.ReceiverAddresses[iNdEx])
-			copy(dAtA[i:], m.ReceiverAddresses[iNdEx])
-			i = encodeVarintEvent(dAtA, i, uint64(len(m.ReceiverAddresses[iNdEx])))
-			i--
-			dAtA[i] = 0x12
-		}
+	if len(m.RefundAddress) > 0 {
+		i -= len(m.RefundAddress)
+		copy(dAtA[i:], m.RefundAddress)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.RefundAddress)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	if len(m.Amounts) > 0 {
-		for iNdEx := len(m.Amounts) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Amounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.ReceiverAddress) > 0 {
+		i -= len(m.ReceiverAddress)
+		copy(dAtA[i:], m.ReceiverAddress)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.ReceiverAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Amount != nil {
+		{
+			size, err := m.Amount.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
 			}
-			i--
-			dAtA[i] = 0xa
+			i -= size
+			i = encodeVarintEvent(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -592,26 +500,8 @@ func (m *EventCrossTransferOutRefund) Size() (n int) {
 	if m.RefundReason != 0 {
 		n += 1 + sovEvent(uint64(m.RefundReason))
 	}
-	return n
-}
-
-func (m *EventCrossTransferOutFailAck) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.From)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	l = len(m.To)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	if m.Amount != nil {
-		l = m.Amount.Size()
-		n += 1 + l + sovEvent(uint64(l))
+	if m.Sequence != 0 {
+		n += 1 + sovEvent(uint64(m.Sequence))
 	}
 	return n
 }
@@ -622,23 +512,20 @@ func (m *EventCrossTransferIn) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Amounts) > 0 {
-		for _, e := range m.Amounts {
-			l = e.Size()
-			n += 1 + l + sovEvent(uint64(l))
-		}
+	if m.Amount != nil {
+		l = m.Amount.Size()
+		n += 1 + l + sovEvent(uint64(l))
 	}
-	if len(m.ReceiverAddresses) > 0 {
-		for _, s := range m.ReceiverAddresses {
-			l = len(s)
-			n += 1 + l + sovEvent(uint64(l))
-		}
+	l = len(m.ReceiverAddress)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
 	}
-	if len(m.RefundAddresses) > 0 {
-		for _, s := range m.RefundAddresses {
-			l = len(s)
-			n += 1 + l + sovEvent(uint64(l))
-		}
+	l = len(m.RefundAddress)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	if m.Sequence != 0 {
+		n += 1 + sovEvent(uint64(m.Sequence))
 	}
 	return n
 }
@@ -970,61 +857,11 @@ func (m *EventCrossTransferOutRefund) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEvent(dAtA[iNdEx:])
-			if err != nil {
-				return err
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *EventCrossTransferOutFailAck) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEvent
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: EventCrossTransferOutFailAck: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventCrossTransferOutFailAck: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field From", wireType)
-			}
-			var stringLen uint64
+			m.Sequence = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -1034,92 +871,11 @@ func (m *EventCrossTransferOutFailAck) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.Sequence |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.From = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field To", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.To = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Amount == nil {
-				m.Amount = &types.Coin{}
-			}
-			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvent(dAtA[iNdEx:])
@@ -1172,7 +928,7 @@ func (m *EventCrossTransferIn) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Amounts", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -1199,14 +955,16 @@ func (m *EventCrossTransferIn) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amounts = append(m.Amounts, &types.Coin{})
-			if err := m.Amounts[len(m.Amounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if m.Amount == nil {
+				m.Amount = &types.Coin{}
+			}
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReceiverAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ReceiverAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1234,11 +992,11 @@ func (m *EventCrossTransferIn) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ReceiverAddresses = append(m.ReceiverAddresses, string(dAtA[iNdEx:postIndex]))
+			m.ReceiverAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RefundAddresses", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field RefundAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1266,8 +1024,27 @@ func (m *EventCrossTransferIn) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.RefundAddresses = append(m.RefundAddresses, string(dAtA[iNdEx:postIndex]))
+			m.RefundAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sequence", wireType)
+			}
+			m.Sequence = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Sequence |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvent(dAtA[iNdEx:])

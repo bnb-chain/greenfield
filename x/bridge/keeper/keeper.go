@@ -59,9 +59,9 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynPackage, refundReason types.RefundReason) ([]byte, error) {
 	refundPackage := &types.TransferInRefundPackage{
-		RefundAddresses: transferInClaim.RefundAddresses,
-		RefundAmounts:   transferInClaim.Amounts,
-		RefundReason:    refundReason,
+		RefundAddress: transferInClaim.RefundAddress,
+		RefundAmount:  transferInClaim.Amount,
+		RefundReason:  refundReason,
 	}
 
 	encodedBytes, err := rlp.EncodeToBytes(refundPackage)

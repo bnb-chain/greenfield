@@ -16,13 +16,12 @@ const (
 	TransferInChannelID  sdk.ChannelID = 2
 )
 
-var CrossTransferOutRelayFee = sdk.NewInt(1) // TODO: to be determined
-
 type RefundReason uint32
 
 const (
-	InsufficientBalance RefundReason = 1
-	Unknown             RefundReason = 2
+	RefundReasonInsufficientBalance RefundReason = 1
+	RefundReasonFailAck             RefundReason = 2
+	Unknown                         RefundReason = 3
 )
 
 type TransferOutSynPackage struct {
@@ -56,9 +55,9 @@ func DeserializeTransferOutRefundPackage(serializedPackage []byte) (*TransferOut
 }
 
 type TransferInSynPackage struct {
-	Amounts           []*big.Int
-	ReceiverAddresses []sdk.AccAddress
-	RefundAddresses   []sdk.EthAddress
+	Amount          *big.Int
+	ReceiverAddress sdk.AccAddress
+	RefundAddress   sdk.EthAddress
 }
 
 func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPackage, error) {
@@ -72,7 +71,7 @@ func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPa
 }
 
 type TransferInRefundPackage struct {
-	RefundAmounts   []*big.Int
-	RefundAddresses []sdk.EthAddress
-	RefundReason    RefundReason
+	RefundAmount  *big.Int
+	RefundAddress sdk.EthAddress
+	RefundReason  RefundReason
 }

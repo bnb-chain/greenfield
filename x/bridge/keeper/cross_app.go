@@ -48,7 +48,7 @@ func (app *TransferOutApp) CheckPackage(refundPackage *types.TransferOutRefundPa
 	return nil
 }
 
-func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sdk.ExecuteResult {
+func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	if len(payload) == 0 {
 		return sdk.ExecuteResult{}
 	}
@@ -94,6 +94,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 			Amount: sdk.NewIntFromBigInt(refundPackage.RefundAmount),
 		},
 		RefundReason: uint32(refundPackage.RefundReason),
+		Sequence:     appCtx.Sequence,
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
@@ -102,7 +103,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sd
 	return sdk.ExecuteResult{}
 }
 
-func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte) sdk.ExecuteResult {
+func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	app.bridgeKeeper.Logger(ctx).Info("received transfer out fail ack package")
 
 	transferOutPackage, err := types.DeserializeTransferOutSynPackage(payload)
@@ -129,13 +130,14 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 		}
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutFailAck{
-		From: transferOutPackage.RefundAddress.String(),
-		To:   transferOutPackage.Recipient.String(),
+	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutRefund{
+		RefundAddress: transferOutPackage.RefundAddress.String(),
 		Amount: &sdk.Coin{
 			Denom:  denom,
 			Amount: sdk.NewIntFromBigInt(transferOutPackage.Amount),
 		},
+		RefundReason: uint32(types.RefundReasonFailAck),
+		Sequence:     appCtx.Sequence,
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
@@ -144,7 +146,7 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte
 	return sdk.ExecuteResult{}
 }
 
-func (app *TransferOutApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, _ *big.Int) sdk.ExecuteResult {
+func (app *TransferOutApp) ExecuteSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	app.bridgeKeeper.Logger(ctx).Error("received transfer out syn package ")
 	return sdk.ExecuteResult{}
 }
@@ -162,47 +164,32 @@ func NewTransferInApp(bridgeKeeper Keeper) *TransferInApp {
 }
 
 func (app *TransferInApp) CheckTransferInSynPackage(transferInPackage *types.TransferInSynPackage) error {
-	if len(transferInPackage.Amounts) == 0 {
-		return errors.Wrapf(types.ErrInvalidLength, "length of Amounts should not be 0")
+	if transferInPackage.Amount.Cmp(big.NewInt(0)) < 0 {
+		return errors.Wrapf(types.ErrInvalidAmount, "amount should not be negative")
 	}
 
-	if len(transferInPackage.RefundAddresses) != len(transferInPackage.ReceiverAddresses) ||
-		len(transferInPackage.RefundAddresses) != len(transferInPackage.Amounts) {
-		return errors.Wrapf(types.ErrInvalidLength, "length of RefundAddresses, ReceiverAddresses, Amounts should be the same")
+	if transferInPackage.ReceiverAddress.Empty() {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address should not be empty")
 	}
 
-	for _, addr := range transferInPackage.RefundAddresses {
-		if addr.Empty() {
-			return errors.Wrapf(types.ErrInvalidAddress, "refund address should not be empty")
-		}
-	}
-
-	for _, addr := range transferInPackage.ReceiverAddresses {
-		if addr.Empty() {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address should not be empty")
-		}
-	}
-
-	for _, amount := range transferInPackage.Amounts {
-		if amount.Cmp(big.NewInt(0)) < 0 {
-			return errors.Wrapf(types.ErrInvalidAmount, "amount should not be negative")
-		}
+	if transferInPackage.RefundAddress.Empty() {
+		return errors.Wrapf(types.ErrInvalidAddress, "refund address should not be empty")
 	}
 
 	return nil
 }
 
-func (app *TransferInApp) ExecuteAckPackage(ctx sdk.Context, payload []byte) sdk.ExecuteResult {
+func (app *TransferInApp) ExecuteAckPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	app.bridgeKeeper.Logger(ctx).Error("received transfer in ack package", "payload", hex.EncodeToString(payload))
 	return sdk.ExecuteResult{}
 }
 
-func (app *TransferInApp) ExecuteFailAckPackage(ctx sdk.Context, payload []byte) sdk.ExecuteResult {
+func (app *TransferInApp) ExecuteFailAckPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	app.bridgeKeeper.Logger(ctx).Error("received transfer in fail ack package", "payload", hex.EncodeToString(payload))
 	return sdk.ExecuteResult{}
 }
 
-func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, relayerFee *big.Int) sdk.ExecuteResult {
+func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	transferInPackage, err := types.DeserializeTransferInSynPackage(payload)
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("unmarshal transfer in claim error", "err", err.Error(), "claim", string(payload))
@@ -216,41 +203,28 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, payload []byte, rel
 	}
 
 	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx)
+	amount := sdk.NewCoin(denom, sdk.NewIntFromBigInt(transferInPackage.Amount))
 
-	for idx, receiverAddr := range transferInPackage.ReceiverAddresses {
-		amount := sdk.NewCoin(denom, sdk.NewIntFromBigInt(transferInPackage.Amounts[idx]))
-		err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, receiverAddr, sdk.Coins{amount})
+	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, transferInPackage.ReceiverAddress, sdk.Coins{amount})
+	if err != nil {
+		app.bridgeKeeper.Logger(ctx).Error("send coins error", "err", err.Error())
+		refundPackage, err := app.bridgeKeeper.GetRefundTransferInPayload(transferInPackage, types.RefundReasonInsufficientBalance)
 		if err != nil {
-			app.bridgeKeeper.Logger(ctx).Error("send coins error", "err", err.Error())
-			refundPackage, err := app.bridgeKeeper.GetRefundTransferInPayload(transferInPackage, types.InsufficientBalance)
-			if err != nil {
-				app.bridgeKeeper.Logger(ctx).Error("get refund transfer in payload error", "err", err.Error())
-				panic(err)
-			}
-			return sdk.ExecuteResult{
-				Payload: refundPackage,
-				Err:     errors.Wrapf(types.ErrInvalidLength, "balance of cross chain module is insufficient"),
-			}
+			app.bridgeKeeper.Logger(ctx).Error("get refund transfer in payload error", "err", err.Error())
+			panic(err)
+		}
+		return sdk.ExecuteResult{
+			Payload: refundPackage,
+			Err:     errors.Wrapf(types.ErrInvalidLength, "balance of cross chain module is insufficient"),
 		}
 	}
 
 	// emit event
-	amounts := make([]*sdk.Coin, 0, len(transferInPackage.Amounts))
-	for _, amount := range transferInPackage.Amounts {
-		amounts = append(amounts, &sdk.Coin{
-			Denom:  denom,
-			Amount: sdk.NewIntFromBigInt(amount),
-		})
-	}
-	receiverAddresses, refundAddresses := make([]string, 0, len(transferInPackage.Amounts)), make([]string, 0, len(transferInPackage.Amounts))
-	for idx := range transferInPackage.ReceiverAddresses {
-		receiverAddresses = append(receiverAddresses, transferInPackage.ReceiverAddresses[idx].String())
-		refundAddresses = append(refundAddresses, transferInPackage.RefundAddresses[idx].String())
-	}
 	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferIn{
-		Amounts:           amounts,
-		ReceiverAddresses: receiverAddresses,
-		RefundAddresses:   refundAddresses,
+		Amount:          &amount,
+		ReceiverAddress: transferInPackage.ReceiverAddress.String(),
+		RefundAddress:   transferInPackage.RefundAddress.String(),
+		Sequence:        appCtx.Sequence,
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())

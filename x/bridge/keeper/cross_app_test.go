@@ -83,7 +83,7 @@ func TestTransferOutAck(t *testing.T) {
 
 	moduleBalanceBefore := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
 
-	result := transferOutApp.ExecuteAckPackage(ctx, packageBytes)
+	result := transferOutApp.ExecuteAckPackage(ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
 	require.Nil(t, result.Err, "error should be nil")
 	moduleBalanceAfter := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
 	accountBalanceAfter := suite.BankKeeper.GetBalance(ctx, refundPackage.RefundAddr, "stake")
@@ -113,7 +113,7 @@ func TestTransferOutFailAck(t *testing.T) {
 
 	moduleBalanceBefore := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
 
-	result := transferOutApp.ExecuteFailAckPackage(ctx, packageBytes)
+	result := transferOutApp.ExecuteFailAckPackage(ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
 	require.Nil(t, result.Err, "error should be nil")
 	moduleBalanceAfter := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
 	accountBalanceAfter := suite.BankKeeper.GetBalance(ctx, synPackage.RefundAddress, "stake")
@@ -130,63 +130,36 @@ func TestTransferInCheck(t *testing.T) {
 	}{
 		{
 			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{},
-				ReceiverAddresses: []sdk.AccAddress{},
-				RefundAddresses:   []sdk.EthAddress{},
-			},
-			expectedPass: false,
-			errorMsg:     "length of Amounts should not be 0",
-		},
-		{
-			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{big.NewInt(1)},
-				ReceiverAddresses: []sdk.AccAddress{},
-				RefundAddresses:   []sdk.EthAddress{},
-			},
-			expectedPass: false,
-			errorMsg:     "ength of RefundAddresses, ReceiverAddresses, Amounts should be the same",
-		},
-		{
-			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{big.NewInt(1)},
-				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{}},
-				RefundAddresses:   []sdk.EthAddress{},
-			},
-			expectedPass: false,
-			errorMsg:     "length of RefundAddresses, ReceiverAddresses, Amounts should be the same",
-		},
-		{
-			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{big.NewInt(1)},
-				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{}},
-				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{}},
-			},
-			expectedPass: false,
-			errorMsg:     "refund address should not be empty",
-		},
-		{
-			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{big.NewInt(1)},
-				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{}},
-				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
+				Amount:          big.NewInt(1),
+				ReceiverAddress: sdk.AccAddress{},
+				RefundAddress:   sdk.EthAddress{1},
 			},
 			expectedPass: false,
 			errorMsg:     "receiver address should not be empty",
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{big.NewInt(-1)},
-				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{1}},
-				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
+				Amount:          big.NewInt(1),
+				ReceiverAddress: sdk.AccAddress{1},
+				RefundAddress:   sdk.EthAddress{},
+			},
+			expectedPass: false,
+			errorMsg:     "refund address should not be empty",
+		},
+		{
+			transferInPackage: types.TransferInSynPackage{
+				Amount:          big.NewInt(-1),
+				ReceiverAddress: sdk.AccAddress{1},
+				RefundAddress:   sdk.EthAddress{1},
 			},
 			expectedPass: false,
 			errorMsg:     "amount should not be negative",
 		},
 		{
 			transferInPackage: types.TransferInSynPackage{
-				Amounts:           []*big.Int{big.NewInt(1)},
-				ReceiverAddresses: []sdk.AccAddress{sdk.AccAddress{1}},
-				RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
+				Amount:          big.NewInt(1),
+				ReceiverAddress: sdk.AccAddress{1},
+				RefundAddress:   sdk.EthAddress{1},
 			},
 			expectedPass: true,
 		},
@@ -211,9 +184,9 @@ func TestTransferInSyn(t *testing.T) {
 	require.Nil(t, err, "generate key failed")
 
 	transferInSynPackage := types.TransferInSynPackage{
-		Amounts:           []*big.Int{big.NewInt(1)},
-		ReceiverAddresses: []sdk.AccAddress{addr1},
-		RefundAddresses:   []sdk.EthAddress{sdk.EthAddress{1}},
+		Amount:          big.NewInt(1),
+		ReceiverAddress: addr1,
+		RefundAddress:   sdk.EthAddress{1},
 	}
 
 	packageBytes, err := rlp.EncodeToBytes(&transferInSynPackage)
@@ -225,13 +198,13 @@ func TestTransferInSyn(t *testing.T) {
 
 	moduleBalanceBefore := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
 
-	result := transferInApp.ExecuteSynPackage(ctx, packageBytes, big.NewInt(0))
+	result := transferInApp.ExecuteSynPackage(ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
 	require.Nil(t, result.Err, "error should be nil")
 
 	moduleBalanceAfter := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
 	accountBalanceAfter := suite.BankKeeper.GetBalance(ctx, addr1, "stake")
 
-	require.Equal(t, transferInSynPackage.Amounts[0].String(), accountBalanceAfter.Amount.BigInt().String())
+	require.Equal(t, transferInSynPackage.Amount.String(), accountBalanceAfter.Amount.BigInt().String())
 
-	require.Equal(t, big.NewInt(0).Add(moduleBalanceAfter.Amount.BigInt(), transferInSynPackage.Amounts[0]).String(), moduleBalanceBefore.Amount.BigInt().String())
+	require.Equal(t, big.NewInt(0).Add(moduleBalanceAfter.Amount.BigInt(), transferInSynPackage.Amount).String(), moduleBalanceBefore.Amount.BigInt().String())
 }

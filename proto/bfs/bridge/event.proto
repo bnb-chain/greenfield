@@ -19,18 +19,12 @@ message EventCrossTransferOutRefund {
   string refund_address = 1;
   cosmos.base.v1beta1.Coin amount = 2;
   uint32 refund_reason = 3;
-}
-
-message EventCrossTransferOutFailAck {
-  string from = 1;
-  string to = 2;
-  cosmos.base.v1beta1.Coin amount = 3;
+  uint64 sequence = 4;
 }
 
 message EventCrossTransferIn {
-  repeated cosmos.base.v1beta1.Coin amounts = 1;
-  repeated string receiver_addresses = 2;
-  repeated string refund_addresses = 3;
+  cosmos.base.v1beta1.Coin amount = 1;
+  string receiver_address = 2;
+  string refund_address = 3;
+  uint64 sequence = 4;
 }
-
-// this line is used by starport scaffolding # proto/tx/message
