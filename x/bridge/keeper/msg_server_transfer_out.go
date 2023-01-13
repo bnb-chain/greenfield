@@ -19,9 +19,9 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, errors.Wrapf(types.ErrUnsupportedDenom, "denom is not supported")
 	}
 
-	relayerSynFee, relayerAckFee := k.GetTransferOutRelayerFee(ctx)
+	relayerFeeAmount, ackRelayerFeeAmount := k.GetTransferOutRelayerFee(ctx)
 
-	totalRelayerFee := big.NewInt(0).Add(relayerSynFee, relayerAckFee)
+	totalRelayerFee := big.NewInt(0).Add(relayerFeeAmount, ackRelayerFeeAmount)
 	relayerFee := sdk.Coin{
 		Denom:  bondDenom,
 		Amount: sdk.NewIntFromBigInt(totalRelayerFee),
@@ -51,7 +51,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 
 	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
-		encodedPackage, relayerSynFee, relayerAckFee)
+		encodedPackage, relayerFeeAmount, ackRelayerFeeAmount)
 	if err != nil {
 		return nil, err
 	}

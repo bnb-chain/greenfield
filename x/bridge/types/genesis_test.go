@@ -22,8 +22,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TransferOutRelayerSynFee: "1",
-					TransferOutRelayerAckFee: "0",
+					TransferOutRelayerFee:    "1",
+					TransferOutAckRelayerFee: "0",
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
@@ -33,8 +33,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "invalid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TransferOutRelayerSynFee: "1",
-					TransferOutRelayerAckFee: "-1",
+					TransferOutRelayerFee:    "1",
+					TransferOutAckRelayerFee: "-1",
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
@@ -44,8 +44,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "invalid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TransferOutRelayerSynFee: "-1",
-					TransferOutRelayerAckFee: "1",
+					TransferOutRelayerFee:    "-1",
+					TransferOutAckRelayerFee: "1",
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},

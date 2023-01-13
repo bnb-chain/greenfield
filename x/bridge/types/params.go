@@ -8,13 +8,13 @@ import (
 )
 
 const (
-	DefaultTransferOutRelayerSynFeeParam string = "1"
-	DefaultTransferOutRelayerAckFeeParam string = "0"
+	DefaultTransferOutRelayerFeeParam    string = "1"
+	DefaultTransferOutAckRelayerFeeParam string = "0"
 )
 
 var (
-	KeyParamTransferOutRelayerSynFee = []byte("TransferOutRelayerSynFee")
-	KeyParamTransferOutRelayerAckFee = []byte("TransferOutRelayerAckFee")
+	KeyParamTransferOutRelayerFee    = []byte("TransferOutRelayerFee")
+	KeyParamTransferOutAckRelayerFee = []byte("TransferOutAckRelayerFee")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -27,35 +27,35 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return Params{
-		TransferOutRelayerSynFee: DefaultTransferOutRelayerSynFeeParam,
-		TransferOutRelayerAckFee: DefaultTransferOutRelayerAckFeeParam,
+		TransferOutRelayerFee:    DefaultTransferOutRelayerFeeParam,
+		TransferOutAckRelayerFee: DefaultTransferOutAckRelayerFeeParam,
 	}
 }
 
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerSynFee, p.TransferOutRelayerSynFee, validateTransferOutRelayerFee),
-		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerAckFee, p.TransferOutRelayerAckFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, p.TransferOutRelayerFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	relayerSynFee, valid := big.NewInt(0).SetString(p.TransferOutRelayerSynFee, 10)
+	relayerFee, valid := big.NewInt(0).SetString(p.TransferOutRelayerFee, 10)
 	if !valid {
-		return fmt.Errorf("invalid transfer out relayer syn fee, is %s", p.TransferOutRelayerSynFee)
+		return fmt.Errorf("invalid transfer out relayer fee, is %s", p.TransferOutRelayerFee)
 	}
-	if relayerSynFee.Cmp(big.NewInt(0)) < 0 {
-		return fmt.Errorf("transfer out relayer syn fee should not be negative, is %s", p.TransferOutRelayerSynFee)
+	if relayerFee.Cmp(big.NewInt(0)) < 0 {
+		return fmt.Errorf("transfer out relayer fee should not be negative, is %s", p.TransferOutRelayerFee)
 	}
 
-	relayerAckFee, valid := big.NewInt(0).SetString(p.TransferOutRelayerAckFee, 10)
+	ackRelayerFee, valid := big.NewInt(0).SetString(p.TransferOutAckRelayerFee, 10)
 	if !valid {
-		return fmt.Errorf("invalid transfer out relayer ack fee, is %s", p.TransferOutRelayerAckFee)
+		return fmt.Errorf("invalid ack transfer out relayer fee, is %s", p.TransferOutAckRelayerFee)
 	}
-	if relayerAckFee.Cmp(big.NewInt(0)) < 0 {
-		return fmt.Errorf("transfer out relayer ack fee should not be negative, is %s", p.TransferOutRelayerAckFee)
+	if ackRelayerFee.Cmp(big.NewInt(0)) < 0 {
+		return fmt.Errorf("transfer out ack relayer fee should not be negative, is %s", p.TransferOutAckRelayerFee)
 	}
 
 	return nil
