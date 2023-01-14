@@ -11,7 +11,7 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
 	KeyReserveTime            = []byte("ReserveTime")
-	DefaultReserveTime uint64 = 7 * 24 * 60 * 60 // 7 days
+	DefaultReserveTime uint64 = 180 * 24 * 60 * 60 // 180 days
 )
 
 var (

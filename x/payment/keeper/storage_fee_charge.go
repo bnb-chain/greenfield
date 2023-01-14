@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -118,4 +119,19 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, re
 		{From: user, To: primarySP, Rate: price},
 	}
 	return k.ApplyFlowChanges(ctx, flowChanges)
+}
+
+func (k Keeper) CheckAndForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
+	forcedSettleTime := k.GetParams(ctx).ForcedSettleTime
+	forcedSettleThrehold := streamRecord.NetflowRate.Neg().Mul(sdkmath.NewIntFromUint64(forcedSettleTime))
+	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
+	if totalBalance.GT(forcedSettleThrehold) {
+		return nil
+	}
+	// force settle
+	streamRecord.StaticBalance = sdkmath.ZeroInt()
+	streamRecord.BufferBalance = sdkmath.ZeroInt()
+	streamRecord.NetflowRate = sdkmath.ZeroInt()
+	k.FreezeFlowsByFromUser(ctx, streamRecord.Account)
+	return nil
 }

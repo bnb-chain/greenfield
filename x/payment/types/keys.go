@@ -1,5 +1,7 @@
 package types
 
+import "github.com/cosmos/cosmos-sdk/types/address"
+
 const (
 	// ModuleName defines the module name
 	ModuleName = "payment"
@@ -14,10 +16,14 @@ const (
 	MemStoreKey = "mem_payment"
 )
 
+var (
+	PaymentModuleGovAddress = address.Module(ModuleName, []byte("governance"))
+)
+
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
 
 const (
-	BnbPriceKey= "BnbPrice/value/"
+	BnbPriceKey = "BnbPrice/value/"
 )

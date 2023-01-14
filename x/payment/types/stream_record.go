@@ -9,11 +9,10 @@ const (
 
 func NewStreamRecord(account string, crudTimestamp int64) StreamRecord {
 	return StreamRecord{
-		Account:           account,
-		CrudTimestamp:     crudTimestamp,
-		StaticBalance:     sdkmath.ZeroInt(),
-		BufferBalance:     sdkmath.ZeroInt(),
-		NetflowRate:       sdkmath.ZeroInt(),
-		FrozenNetflowRate: sdkmath.ZeroInt(),
+		Account:       account,
+		CrudTimestamp: crudTimestamp,
+		StaticBalance: sdkmath.ZeroInt(),
+		BufferBalance: sdkmath.ZeroInt(),
+		NetflowRate:   sdkmath.ZeroInt(),
 	}
 }

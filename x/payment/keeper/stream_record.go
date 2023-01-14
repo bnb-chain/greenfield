@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,6 +67,7 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, rate, staticBalance sdkmath.Int, autoTransfer bool) error {
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
+	params := k.GetParams(ctx)
 	// update delta balance
 	if currentTimestamp != timestamp {
 		if !streamRecord.NetflowRate.IsZero() {
@@ -79,8 +81,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(rate)
 		newBufferBalance := sdkmath.ZeroInt()
 		if streamRecord.NetflowRate.IsNegative() {
-			reserveTime := k.GetParams(ctx).ReserveTime
-			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(reserveTime))
+			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(params.ReserveTime))
 		}
 		if !newBufferBalance.Equal(streamRecord.BufferBalance) {
 			streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(newBufferBalance).Add(streamRecord.BufferBalance)
@@ -102,9 +103,27 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 				streamRecord.StaticBalance = sdkmath.ZeroInt()
 			}
 		}
-		// if static balance is still negtive, check whether forced settlement is needed
-		if streamRecord.StaticBalance.IsNegative() {
+		// calculate settle time
+		var settleTimestamp int64
+		if !streamRecord.NetflowRate.IsNegative() {
+			payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
+			if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
+				err := k.CheckAndForceSettle(ctx, streamRecord)
+				if err != nil {
+					return fmt.Errorf("check and force settle failed, err: %w", err)
+				}
+			} else {
+				settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
+			}
 		}
+		//
+		//// if static balance is still negtive, check whether forced settlement is needed
+		//if streamRecord.StaticBalance.IsNegative() {
+		//	err := k.CheckAndForceSettle(ctx, streamRecord)
+		//	if err != nil {
+		//		return fmt.Errorf("check and force settle failed, err: %w", err)
+		//	}
+		//}
 	}
 	return nil
 }
