@@ -80,12 +80,14 @@ func (k Keeper) ApplyFlowChanges(ctx sdk.Context, flowChanges []types.Flow) erro
 		if !found {
 			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.From)
 			fromFc = &fc
+			streamRecordChangeMap[flowChange.From] = fromFc
 		}
 		fromFc.Rate = fromFc.Rate.Sub(flowChange.Rate)
 		toFc, found := streamRecordChangeMap[flowChange.To]
 		if !found {
 			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.To)
 			toFc = &fc
+			streamRecordChangeMap[flowChange.To] = toFc
 		}
 		toFc.Rate = toFc.Rate.Add(flowChange.Rate)
 		// update flow
