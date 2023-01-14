@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/payment/keeper"
-	"github.com/bnb-chain/bfs/x/payment/types"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
 	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/keeper"
+	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -18,9 +18,9 @@ var _ = strconv.IntSize
 func createNAutoSettleQueue(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.AutoSettleQueue {
 	items := make([]types.AutoSettleQueue, n)
 	for i := range items {
-		items[i].Timestamp = int32(i)
-        items[i].User = strconv.Itoa(i)
-        
+		items[i].Timestamp = int64(int32(i))
+		items[i].Addr = strconv.Itoa(i)
+
 		keeper.SetAutoSettleQueue(ctx, items[i])
 	}
 	return items
@@ -31,9 +31,9 @@ func TestAutoSettleQueueGet(t *testing.T) {
 	items := createNAutoSettleQueue(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetAutoSettleQueue(ctx,
-		    item.Timestamp,
-            item.User,
-            
+			item.Timestamp,
+			item.Addr,
+
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -47,14 +47,14 @@ func TestAutoSettleQueueRemove(t *testing.T) {
 	items := createNAutoSettleQueue(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveAutoSettleQueue(ctx,
-		    item.Timestamp,
-            item.User,
-            
+			item.Timestamp,
+			item.Addr,
+
 		)
 		_, found := keeper.GetAutoSettleQueue(ctx,
-		    item.Timestamp,
-            item.User,
-            
+			item.Timestamp,
+			item.Addr,
+
 		)
 		require.False(t, found)
 	}

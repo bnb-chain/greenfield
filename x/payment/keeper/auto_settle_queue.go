@@ -12,7 +12,7 @@ func (k Keeper) SetAutoSettleQueue(ctx sdk.Context, autoSettleQueue types.AutoSe
 	b := k.cdc.MustMarshal(&autoSettleQueue)
 	store.Set(types.AutoSettleQueueKey(
 		autoSettleQueue.Timestamp,
-		autoSettleQueue.User,
+		autoSettleQueue.Addr,
 	), b)
 }
 
@@ -20,14 +20,14 @@ func (k Keeper) SetAutoSettleQueue(ctx sdk.Context, autoSettleQueue types.AutoSe
 func (k Keeper) GetAutoSettleQueue(
 	ctx sdk.Context,
 	timestamp int64,
-	user string,
+	addr string,
 
 ) (val types.AutoSettleQueue, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleQueueKeyPrefix))
 
 	b := store.Get(types.AutoSettleQueueKey(
 		timestamp,
-		user,
+		addr,
 	))
 	if b == nil {
 		return val, false
@@ -67,14 +67,14 @@ func (k Keeper) GetAllAutoSettleQueue(ctx sdk.Context) (list []types.AutoSettleQ
 	return
 }
 
-func (k Keeper) UpdateAutoSettleQueue(ctx sdk.Context, user string, oldTime, newTime int64) {
+func (k Keeper) UpdateAutoSettleQueue(ctx sdk.Context, addr string, oldTime, newTime int64) {
 	if oldTime != 0 {
-		k.RemoveAutoSettleQueue(ctx, oldTime, user)
+		k.RemoveAutoSettleQueue(ctx, oldTime, addr)
 	}
 	if newTime != 0 {
 		k.SetAutoSettleQueue(ctx, types.AutoSettleQueue{
 			Timestamp: newTime,
-			User:      user,
+			Addr:      addr,
 		})
 	}
 }

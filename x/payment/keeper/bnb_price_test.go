@@ -63,7 +63,7 @@ func TestKeeper_GetBNBPriceByTime(t *testing.T) {
 	}{
 		{"test 0", args{0}, math.NewInt(1000), math.NewInt(100000000), false},
 		{"test 345", args{345}, math.NewInt(1000), math.NewInt(100000000), false},
-		{"test 1001", args{1001}, math.NewInt(1234), math.NewInt(100000000), false},
+		{"test 1001", args{1001}, math.NewInt(1000), math.NewInt(100000000), false},
 		{"test 1245", args{1245}, math.NewInt(1234), math.NewInt(100000000), false},
 		{"test 2345", args{2345}, math.NewInt(2345), math.NewInt(100000000), false},
 		{"test 2346", args{2346}, math.NewInt(2345), math.NewInt(100000000), false},

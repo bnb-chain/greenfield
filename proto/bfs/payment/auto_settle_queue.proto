@@ -5,5 +5,5 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 message AutoSettleQueue {
   int64 timestamp = 1;
-  string user = 2;
+  string addr = 2;
 }

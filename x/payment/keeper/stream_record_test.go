@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"strconv"
 	"testing"
 
@@ -19,6 +20,9 @@ func createNStreamRecord(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.
 	items := make([]types.StreamRecord, n)
 	for i := range items {
 		items[i].Account = strconv.Itoa(i)
+		items[i].NetflowRate = sdkmath.ZeroInt()
+		items[i].StaticBalance = sdkmath.ZeroInt()
+		items[i].BufferBalance = sdkmath.ZeroInt()
 
 		keeper.SetStreamRecord(ctx, items[i])
 	}

@@ -103,22 +103,22 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 				streamRecord.StaticBalance = sdkmath.ZeroInt()
 			}
 		}
-		// calculate settle time
-		var settleTimestamp int64 = 0
-		if streamRecord.NetflowRate.IsNegative() {
-			payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
-			if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
-				err := k.ForceSettle(ctx, streamRecord)
-				if err != nil {
-					return fmt.Errorf("check and force settle failed, err: %w", err)
-				}
-			} else {
-				settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
-			}
-		}
-		k.UpdateAutoSettleQueue(ctx, streamRecord.Account, streamRecord.SettleTimestamp, settleTimestamp)
-		streamRecord.SettleTimestamp = settleTimestamp
 	}
+	// calculate settle time
+	var settleTimestamp int64 = 0
+	if streamRecord.NetflowRate.IsNegative() {
+		payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
+		if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
+			err := k.ForceSettle(ctx, streamRecord)
+			if err != nil {
+				return fmt.Errorf("check and force settle failed, err: %w", err)
+			}
+		} else {
+			settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
+		}
+	}
+	k.UpdateAutoSettleQueue(ctx, streamRecord.Account, streamRecord.SettleTimestamp, settleTimestamp)
+	streamRecord.SettleTimestamp = settleTimestamp
 	return nil
 }
 
@@ -145,8 +145,18 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 	streamRecord.StaticBalance = sdkmath.ZeroInt()
 	streamRecord.BufferBalance = sdkmath.ZeroInt()
 	streamRecord.NetflowRate = sdkmath.ZeroInt()
-	k.FreezeFlowsByFromUser(ctx, streamRecord.Account)
-	// todo: update receivers' stream record of the flows
+	streamRecord.Status = types.StreamPaymentAccountStatusFrozen
+	flows := k.FreezeFlowsByFromUser(ctx, streamRecord.Account)
+	// todo: use a cache for SP stream record update to optimize
+	// the implementation itself may cause chain force settle, but in reality, it will not happen.
+	// only the SP can be the flow receiver, so in settlement, the rate of SP will reduce, but never get below zero and
+	// trigger another force settle.
+	for _, flow := range flows {
+		err := k.UpdateStreamRecordByAddr(ctx, flow.To, flow.Rate.Neg(), sdkmath.ZeroInt(), false)
+		if err != nil {
+			return fmt.Errorf("update receiver stream record failed: %w", err)
+		}
+	}
 	// emit event
 	err = ctx.EventManager().EmitTypedEvents(&types.EventForceSettle{
 		Addr:           streamRecord.Account,
@@ -156,4 +166,32 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 		return err
 	}
 	return nil
+}
+
+func (k Keeper) AutoForceSettle(ctx sdk.Context) {
+	currentTimestamp := ctx.BlockTime().Unix()
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleQueueKeyPrefix))
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var val types.AutoSettleQueue
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Timestamp < currentTimestamp {
+			streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
+			if !found {
+				ctx.Logger().Error("stream record not found", "addr", val.Addr)
+				panic("stream record not found")
+			}
+			err := k.ForceSettle(ctx, &streamRecord)
+			if err != nil {
+				ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
+				panic("force settle failed")
+			}
+		} else {
+			return
+		}
+	}
+
 }

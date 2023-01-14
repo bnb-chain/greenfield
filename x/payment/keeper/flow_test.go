@@ -21,6 +21,7 @@ func createNFlow(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Flow {
 	for i := range items {
 		items[i].From = strconv.Itoa(i)
 		items[i].To = strconv.Itoa(i)
+		items[i].Rate = sdkmath.NewInt(int64(i))
 
 		keeper.SetFlow(ctx, items[i])
 	}

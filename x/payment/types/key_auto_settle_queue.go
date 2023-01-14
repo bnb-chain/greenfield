@@ -12,7 +12,7 @@ const (
 // AutoSettleQueueKey returns the store key to retrieve a AutoSettleQueue from the index fields
 func AutoSettleQueueKey(
 	timestamp int64,
-	user string,
+	addr string,
 ) []byte {
 	var key []byte
 
@@ -21,8 +21,8 @@ func AutoSettleQueueKey(
 	key = append(key, timestampBytes...)
 	key = append(key, []byte("/")...)
 
-	userBytes := []byte(user)
-	key = append(key, userBytes...)
+	addrBytes := []byte(addr)
+	key = append(key, addrBytes...)
 	key = append(key, []byte("/")...)
 
 	return key
