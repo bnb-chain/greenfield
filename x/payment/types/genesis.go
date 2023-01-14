@@ -21,7 +21,8 @@ func DefaultGenesis() *GenesisState {
 		MockBucketMetaList:      []MockBucketMeta{},
 		FlowList:                []Flow{},
 		BnbPrice:                &defaultBnbPrice,
-		// this line is used by starport scaffolding # genesis/types/default
+		AutoSettleQueueList: []AutoSettleQueue{},
+// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -80,7 +81,17 @@ func (gs GenesisState) Validate() error {
 		}
 		flowIndexMap[index] = struct{}{}
 	}
-	// this line is used by starport scaffolding # genesis/types/validate
+	// Check for duplicated index in autoSettleQueue
+autoSettleQueueIndexMap := make(map[string]struct{})
+
+for _, elem := range gs.AutoSettleQueueList {
+	index := string(AutoSettleQueueKey(elem.Timestamp,elem.User))
+	if _, ok := autoSettleQueueIndexMap[index]; ok {
+		return fmt.Errorf("duplicated index for autoSettleQueue")
+	}
+	autoSettleQueueIndexMap[index] = struct{}{}
+}
+// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }

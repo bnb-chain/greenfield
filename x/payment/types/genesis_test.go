@@ -76,6 +76,16 @@ BnbPrice: &types.BnbPrice{
 		Time: 87,
 Price: 30,
 },
+AutoSettleQueueList: []types.AutoSettleQueue{
+	{
+		Timestamp: 0,
+User: "0",
+},
+	{
+		Timestamp: 1,
+User: "1",
+},
+},
 // this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -161,6 +171,22 @@ To: "0",
 			{
 				From: "0",
 To: "0",
+},
+		},
+	},
+	valid:    false,
+},
+{
+	desc:     "duplicated autoSettleQueue",
+	genState: &types.GenesisState{
+		AutoSettleQueueList: []types.AutoSettleQueue{
+			{
+				Timestamp: 0,
+User: "0",
+},
+			{
+				Timestamp: 0,
+User: "0",
 },
 		},
 	},

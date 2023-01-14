@@ -98,18 +98,20 @@ func (k Keeper) UpdateFlow(ctx sdk.Context, flow types.Flow) error {
 	return nil
 }
 
-func (k Keeper) FreezeFlowsByFromUser(ctx sdk.Context, from string) {
+func (k Keeper) FreezeFlowsByFromUser(ctx sdk.Context, from string) []types.Flow {
 	flows := k.GetAllFlowByFromUser(ctx, from)
 	for _, flow := range flows {
 		flow.Frozen = true
 		k.SetFlow(ctx, flow)
 	}
+	return flows
 }
 
-func (k Keeper) UnfreezeFlowsByFromUser(ctx sdk.Context, from string) {
+func (k Keeper) UnfreezeFlowsByFromUser(ctx sdk.Context, from string) []types.Flow {
 	flows := k.GetAllFlowByFromUser(ctx, from)
 	for _, flow := range flows {
 		flow.Frozen = false
 		k.SetFlow(ctx, flow)
 	}
+	return flows
 }

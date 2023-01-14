@@ -68,7 +68,17 @@ To: "1",
 		Time: 70,
 Price: 63,
 },
-		// this line is used by starport scaffolding # genesis/test/state
+		AutoSettleQueueList: []types.AutoSettleQueue{
+		{
+			Timestamp: 0,
+User: "0",
+},
+		{
+			Timestamp: 1,
+User: "1",
+},
+	},
+	// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := keepertest.PaymentKeeper(t)
@@ -86,5 +96,6 @@ Price: 63,
 require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
 require.ElementsMatch(t, genesisState.FlowList, got.FlowList)
 require.Equal(t, genesisState.BnbPrice, got.BnbPrice)
+require.ElementsMatch(t, genesisState.AutoSettleQueueList, got.AutoSettleQueueList)
 // this line is used by starport scaffolding # genesis/test/assert
 }

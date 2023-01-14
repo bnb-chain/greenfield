@@ -13,6 +13,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "bfs/payment/bnb_price.proto";
+import "bfs/payment/auto_settle_queue.proto";
 
 // this line is used by starport scaffolding # 1
 
@@ -20,87 +21,97 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  
+
   // Parameters queries the parameters of the module.
   rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/bfs/payment/params";
-  
+
   }
-  
+
   // Queries a StreamRecord by index.
   rpc StreamRecord (QueryGetStreamRecordRequest) returns (QueryGetStreamRecordResponse) {
     option (google.api.http).get = "/bfs/payment/stream_record/{account}";
-  
+
   }
-  
+
   // Queries a list of StreamRecord items.
   rpc StreamRecordAll (QueryAllStreamRecordRequest) returns (QueryAllStreamRecordResponse) {
     option (google.api.http).get = "/bfs/payment/stream_record";
-  
+
   }
-  
+
   // Queries a PaymentAccountCount by index.
   rpc PaymentAccountCount (QueryGetPaymentAccountCountRequest) returns (QueryGetPaymentAccountCountResponse) {
     option (google.api.http).get = "/bfs/payment/payment_account_count/{owner}";
-  
+
   }
-  
+
   // Queries a list of PaymentAccountCount items.
   rpc PaymentAccountCountAll (QueryAllPaymentAccountCountRequest) returns (QueryAllPaymentAccountCountResponse) {
     option (google.api.http).get = "/bfs/payment/payment_account_count";
-  
+
   }
-  
+
   // Queries a PaymentAccount by index.
   rpc PaymentAccount (QueryGetPaymentAccountRequest) returns (QueryGetPaymentAccountResponse) {
     option (google.api.http).get = "/bfs/payment/payment_account/{addr}";
-  
+
   }
-  
+
   // Queries a list of PaymentAccount items.
   rpc PaymentAccountAll (QueryAllPaymentAccountRequest) returns (QueryAllPaymentAccountResponse) {
     option (google.api.http).get = "/bfs/payment/payment_account";
-  
+
   }
-  
+
   // Queries a list of DynamicBalance items.
   rpc DynamicBalance (QueryDynamicBalanceRequest) returns (QueryDynamicBalanceResponse) {
     option (google.api.http).get = "/bfs/payment/dynamic_balance/{account}";
-  
+
   }
-  
+
   // Queries a list of GetPaymentAccountsByOwner items.
   rpc GetPaymentAccountsByOwner (QueryGetPaymentAccountsByOwnerRequest) returns (QueryGetPaymentAccountsByOwnerResponse) {
     option (google.api.http).get = "/bfs/payment/get_payment_accounts_by_owner/{owner}";
-  
+
   }
 
   // this line is used by starport scaffolding # 2
-  
+
   // Queries a list of MockBucketMeta items.
   rpc MockBucketMeta    (QueryGetMockBucketMetaRequest) returns (QueryGetMockBucketMetaResponse) {
     option (google.api.http).get = "/bnb-chain/bfs/payment/mock_bucket_meta/{bucketName}";
-  
+
   }
   rpc MockBucketMetaAll (QueryAllMockBucketMetaRequest) returns (QueryAllMockBucketMetaResponse) {
     option (google.api.http).get = "/bnb-chain/bfs/payment/mock_bucket_meta";
-  
+
   }
-  
+
   // Queries a list of Flow items.
   rpc Flow    (QueryGetFlowRequest) returns (QueryGetFlowResponse) {
     option (google.api.http).get = "/bnb-chain/bfs/payment/flow/{from}/{to}";
-  
+
   }
   rpc FlowAll (QueryAllFlowRequest) returns (QueryAllFlowResponse) {
     option (google.api.http).get = "/bnb-chain/bfs/payment/flow";
-  
+
   }
-  
+
   // Queries a BnbPrice by index.
   rpc BnbPrice (QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
     option (google.api.http).get = "/bnb-chain/bfs/payment/bnb_price";
-  
+
+  }
+
+  // Queries a list of AutoSettleQueue items.
+  rpc AutoSettleQueue    (QueryGetAutoSettleQueueRequest) returns (QueryGetAutoSettleQueueResponse) {
+    option (google.api.http).get = "/bnb-chain/bfs/payment/auto_settle_queue/{timestamp}/{user}";
+
+  }
+  rpc AutoSettleQueueAll (QueryAllAutoSettleQueueRequest) returns (QueryAllAutoSettleQueueResponse) {
+    option (google.api.http).get = "/bnb-chain/bfs/payment/auto_settle_queue";
+
   }
 }
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -108,7 +119,7 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
-  
+
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
@@ -224,3 +235,20 @@ message QueryGetBnbPriceResponse {
   BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
 }
 
+message QueryGetAutoSettleQueueRequest {
+  int64  timestamp = 1;
+  string user      = 2;
+}
+
+message QueryGetAutoSettleQueueResponse {
+  AutoSettleQueue autoSettleQueue = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryAllAutoSettleQueueRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryAllAutoSettleQueueResponse {
+  repeated AutoSettleQueue                        autoSettleQueue = 1 [(gogoproto.nullable) = false];
+           cosmos.base.query.v1beta1.PageResponse pagination      = 2;
+}

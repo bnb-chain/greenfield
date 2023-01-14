@@ -104,11 +104,11 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 			}
 		}
 		// calculate settle time
-		var settleTimestamp int64
-		if !streamRecord.NetflowRate.IsNegative() {
+		var settleTimestamp int64 = 0
+		if streamRecord.NetflowRate.IsNegative() {
 			payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
 			if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
-				err := k.CheckAndForceSettle(ctx, streamRecord)
+				err := k.ForceSettle(ctx, streamRecord)
 				if err != nil {
 					return fmt.Errorf("check and force settle failed, err: %w", err)
 				}
@@ -116,14 +116,8 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 				settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
 			}
 		}
-		//
-		//// if static balance is still negtive, check whether forced settlement is needed
-		//if streamRecord.StaticBalance.IsNegative() {
-		//	err := k.CheckAndForceSettle(ctx, streamRecord)
-		//	if err != nil {
-		//		return fmt.Errorf("check and force settle failed, err: %w", err)
-		//	}
-		//}
+		k.UpdateAutoSettleQueue(ctx, streamRecord.Account, streamRecord.SettleTimestamp, settleTimestamp)
+		streamRecord.SettleTimestamp = settleTimestamp
 	}
 	return nil
 }
@@ -141,6 +135,25 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, addr string, rate, sta
 	return nil
 }
 
-func (k Keeper) SettleStreamRecord(ctx sdk.Context, addr string) error {
-	return k.UpdateStreamRecordByAddr(ctx, addr, sdkmath.ZeroInt(), sdkmath.ZeroInt(), false)
+func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
+	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
+	err := k.UpdateStreamRecordByAddr(ctx, types.PaymentModuleGovAddress.String(), sdkmath.ZeroInt(), totalBalance, false)
+	if err != nil {
+		return fmt.Errorf("update governance stream record failed: %w", err)
+	}
+	// force settle
+	streamRecord.StaticBalance = sdkmath.ZeroInt()
+	streamRecord.BufferBalance = sdkmath.ZeroInt()
+	streamRecord.NetflowRate = sdkmath.ZeroInt()
+	k.FreezeFlowsByFromUser(ctx, streamRecord.Account)
+	// todo: update receivers' stream record of the flows
+	// emit event
+	err = ctx.EventManager().EmitTypedEvents(&types.EventForceSettle{
+		Addr:           streamRecord.Account,
+		SettledBalance: totalBalance,
+	})
+	if err != nil {
+		return err
+	}
+	return nil
 }

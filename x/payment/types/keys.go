@@ -1,6 +1,9 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/types/address"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
+)
 
 const (
 	// ModuleName defines the module name
@@ -17,7 +20,7 @@ const (
 )
 
 var (
-	PaymentModuleGovAddress = address.Module(ModuleName, []byte("governance"))
+	PaymentModuleGovAddress = sdk.AccAddress(address.Module(ModuleName, []byte("governance")))
 )
 
 func KeyPrefix(p string) []byte {

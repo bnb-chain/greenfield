@@ -32,6 +32,10 @@ for _, elem := range genState.FlowList {
 if genState.BnbPrice != nil {
 	k.SetBnbPrice(ctx, *genState.BnbPrice)
 }
+// Set all the autoSettleQueue
+for _, elem := range genState.AutoSettleQueueList {
+	k.SetAutoSettleQueue(ctx, elem)
+}
 // this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -51,6 +55,7 @@ bnbPrice, found := k.GetBnbPrice(ctx)
 if found {
 	genesis.BnbPrice = &bnbPrice
 }
+genesis.AutoSettleQueueList = k.GetAllAutoSettleQueue(ctx)
 // this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
