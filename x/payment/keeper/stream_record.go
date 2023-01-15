@@ -137,7 +137,7 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, addr string, rate, sta
 
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
 	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
-	err := k.UpdateStreamRecordByAddr(ctx, types.PaymentModuleGovAddress.String(), sdkmath.ZeroInt(), totalBalance, false)
+	err := k.UpdateStreamRecordByAddr(ctx, types.GovernanceAddress.String(), sdkmath.ZeroInt(), totalBalance, false)
 	if err != nil {
 		return fmt.Errorf("update governance stream record failed: %w", err)
 	}

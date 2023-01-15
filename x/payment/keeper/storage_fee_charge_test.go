@@ -162,7 +162,7 @@ func TestAutoForceSettle(t *testing.T) {
 	flows = keeper.GetAllFlow(ctx)
 	t.Logf("flows: %+v", flows)
 	require.True(t, flows[0].Frozen)
-	govStreamRecord, found := keeper.GetStreamRecord(ctx, types.PaymentModuleGovAddress.String())
+	govStreamRecord, found := keeper.GetStreamRecord(ctx, types.GovernanceAddress.String())
 	require.True(t, found)
 	t.Logf("gov stream record: %+v", govStreamRecord)
 	require.Equal(t, govStreamRecord.StaticBalance.Add(spStreamRecord.StaticBalance), userInitBalance.Add(userAddBalance))

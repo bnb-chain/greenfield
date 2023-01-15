@@ -83,7 +83,7 @@ func (k Keeper) GetAllFlowByFromUser(ctx sdk.Context, from string) (list []types
 	return
 }
 
-// merge the incoming flow with the existing flow
+// UpdateFlow merge the incoming flow with the existing flow
 func (k Keeper) UpdateFlow(ctx sdk.Context, flow types.Flow) error {
 	existingFlow, found := k.GetFlow(ctx, flow.From, flow.To)
 	if found {
