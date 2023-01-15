@@ -38,6 +38,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdMockCreateBucket())
 	cmd.AddCommand(CmdMockPutObject())
 cmd.AddCommand(CmdMockSealObject())
+cmd.AddCommand(CmdMockDeleteObject())
 // this line is used by starport scaffolding # 1
 
 	return cmd

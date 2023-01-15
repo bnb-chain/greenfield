@@ -68,6 +68,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgMockSealObject int = 100
 
+	opWeightMsgMockDeleteObject = "op_weight_msg_mock_delete_object"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgMockDeleteObject int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -188,6 +192,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgMockSealObject,
 		paymentsimulation.SimulateMsgMockSealObject(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgMockDeleteObject int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgMockDeleteObject, &weightMsgMockDeleteObject, nil,
+		func(_ *rand.Rand) {
+			weightMsgMockDeleteObject = defaultWeightMsgMockDeleteObject
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgMockDeleteObject,
+		paymentsimulation.SimulateMsgMockDeleteObject(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

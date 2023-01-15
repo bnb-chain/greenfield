@@ -21,6 +21,7 @@ service Msg {
   rpc MockCreateBucket (MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
   rpc MockPutObject    (MsgMockPutObject   ) returns (MsgMockPutObjectResponse   );
   rpc MockSealObject   (MsgMockSealObject  ) returns (MsgMockSealObjectResponse  );
+  rpc MockDeleteObject (MsgMockDeleteObject) returns (MsgMockDeleteObjectResponse);
 }
 message MsgCreatePaymentAccount {
   string creator = 1;
@@ -93,4 +94,12 @@ message MsgMockSealObject {
 }
 
 message MsgMockSealObjectResponse {}
+
+message MsgMockDeleteObject {
+  string operator   = 1;
+  string bucketName = 2;
+  string objectName = 3;
+}
+
+message MsgMockDeleteObjectResponse {}
 
