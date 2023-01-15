@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package bnbchain.bfs.payment;
 
+import "bfs/payment/mock_bucket_meta.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
@@ -15,7 +16,7 @@ service Msg {
   rpc Deposit              (MsgDeposit             ) returns (MsgDepositResponse             );
   rpc Withdraw             (MsgWithdraw            ) returns (MsgWithdrawResponse            );
   rpc Sponse               (MsgSponse              ) returns (MsgSponseResponse              );
-  
+
   // this line is used by starport scaffolding # proto/tx/rpc
   rpc DisableRefund    (MsgDisableRefund   ) returns (MsgDisableRefundResponse   );
   rpc MockCreateBucket (MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
@@ -71,7 +72,7 @@ message MsgMockCreateBucket {
   string readPaymentAccount  = 3;
   string storePaymentAccount = 4;
   string spAddress           = 5;
-  uint64 readPacket          = 6;
+  ReadPacket readPacket          = 6;
 }
 
 message MsgMockCreateBucketResponse {}
@@ -102,4 +103,3 @@ message MsgMockDeleteObject {
 }
 
 message MsgMockDeleteObjectResponse {}
-

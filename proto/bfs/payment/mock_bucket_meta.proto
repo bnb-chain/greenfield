@@ -1,6 +1,8 @@
 syntax = "proto3";
 package bnbchain.bfs.payment;
 
+import "gogoproto/gogo.proto";
+
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 message MockBucketMeta {
@@ -9,7 +11,17 @@ message MockBucketMeta {
   string readPaymentAccount = 3;
   string storePaymentAccount = 4;
   string spAddress = 5;
-  uint64 readPacket = 6;
+  // mock id with string instead of uint64 to avoid distribute id
+  string id = 8;
+  // for payment
+  ReadPacket readPacket = 6;
   int64 priceTime = 7;
-  repeated string SecondarySPs = 8;
+}
+
+enum ReadPacket {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  ReadPacketFree = 0;
+  ReadPacket1GB = 1;
+  ReadPacket10GB = 2;
 }

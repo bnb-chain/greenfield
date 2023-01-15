@@ -1,14 +1,14 @@
 package cli
 
 import (
-    "strconv"
-	
-	 "github.com/spf13/cast"
-	"github.com/spf13/cobra"
-    "github.com/cosmos/cosmos-sdk/client"
+	"strconv"
+
+	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
 )
 
 var _ = strconv.Itoa(0)
@@ -19,15 +19,15 @@ func CmdMockCreateBucket() *cobra.Command {
 		Short: "Broadcast message mock-create-bucket",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-      		 argBucketName := args[0]
-             argReadPaymentAccount := args[1]
-             argStorePaymentAccount := args[2]
-             argSpAddress := args[3]
-             argReadPacket, err := cast.ToUint64E(args[4])
-            		if err != nil {
-                		return err
-            		}
-            
+			argBucketName := args[0]
+			argReadPaymentAccount := args[1]
+			argStorePaymentAccount := args[2]
+			argSpAddress := args[3]
+			argReadPacket, err := cast.ToInt32E(args[4])
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -39,8 +39,7 @@ func CmdMockCreateBucket() *cobra.Command {
 				argReadPaymentAccount,
 				argStorePaymentAccount,
 				argSpAddress,
-				argReadPacket,
-				
+				types.ReadPacket(argReadPacket),
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -51,5 +50,5 @@ func CmdMockCreateBucket() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

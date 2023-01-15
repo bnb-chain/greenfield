@@ -9,7 +9,7 @@ const TypeMsgMockCreateBucket = "mock_create_bucket"
 
 var _ sdk.Msg = &MsgMockCreateBucket{}
 
-func NewMsgMockCreateBucket(operator string, bucketName string, readPaymentAccount string, storePaymentAccount string, spAddress string, readPacket uint64) *MsgMockCreateBucket {
+func NewMsgMockCreateBucket(operator string, bucketName string, readPaymentAccount string, storePaymentAccount string, spAddress string, readPacket ReadPacket) *MsgMockCreateBucket {
 	return &MsgMockCreateBucket{
 		Operator:            operator,
 		BucketName:          bucketName,

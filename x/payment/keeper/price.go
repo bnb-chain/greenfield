@@ -26,13 +26,13 @@ func (k Keeper) GetReadPrice(ctx sdk.Context, readPacket types.ReadPacket, price
 
 func GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, err error) {
 	switch readPacket {
-	case types.ReadPacketLevelFree:
+	case types.ReadPacketFree:
 		price = sdkmath.NewInt(0)
 		break
-	case types.ReadPacketLevel1GB:
+	case types.ReadPacket1GB:
 		price = sdkmath.NewInt(1)
 		break
-	case types.ReadPacketLevel10GB:
+	case types.ReadPacket10GB:
 		price = sdkmath.NewInt(10)
 		break
 	default:
