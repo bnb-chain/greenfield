@@ -16,13 +16,14 @@ service Msg {
   rpc Deposit              (MsgDeposit             ) returns (MsgDepositResponse             );
   rpc Withdraw             (MsgWithdraw            ) returns (MsgWithdrawResponse            );
   rpc Sponse               (MsgSponse              ) returns (MsgSponseResponse              );
-
+  
   // this line is used by starport scaffolding # proto/tx/rpc
-  rpc DisableRefund    (MsgDisableRefund   ) returns (MsgDisableRefundResponse   );
-  rpc MockCreateBucket (MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
-  rpc MockPutObject    (MsgMockPutObject   ) returns (MsgMockPutObjectResponse   );
-  rpc MockSealObject   (MsgMockSealObject  ) returns (MsgMockSealObjectResponse  );
-  rpc MockDeleteObject (MsgMockDeleteObject) returns (MsgMockDeleteObjectResponse);
+  rpc DisableRefund               (MsgDisableRefund              ) returns (MsgDisableRefundResponse              );
+  rpc MockCreateBucket            (MsgMockCreateBucket           ) returns (MsgMockCreateBucketResponse           );
+  rpc MockPutObject               (MsgMockPutObject              ) returns (MsgMockPutObjectResponse              );
+  rpc MockSealObject              (MsgMockSealObject             ) returns (MsgMockSealObjectResponse             );
+  rpc MockDeleteObject            (MsgMockDeleteObject           ) returns (MsgMockDeleteObjectResponse           );
+  rpc MockSetBucketPaymentAccount (MsgMockSetBucketPaymentAccount) returns (MsgMockSetBucketPaymentAccountResponse);
 }
 message MsgCreatePaymentAccount {
   string creator = 1;
@@ -67,11 +68,11 @@ message MsgDisableRefund {
 message MsgDisableRefundResponse {}
 
 message MsgMockCreateBucket {
-  string operator            = 1;
-  string bucketName          = 2;
-  string readPaymentAccount  = 3;
-  string storePaymentAccount = 4;
-  string spAddress           = 5;
+  string     operator            = 1;
+  string     bucketName          = 2;
+  string     readPaymentAccount  = 3;
+  string     storePaymentAccount = 4;
+  string     spAddress           = 5;
   ReadPacket readPacket          = 6;
 }
 
@@ -103,3 +104,13 @@ message MsgMockDeleteObject {
 }
 
 message MsgMockDeleteObjectResponse {}
+
+message MsgMockSetBucketPaymentAccount {
+  string operator            = 1;
+  string bucketName          = 2;
+  string readPaymentAccount  = 3;
+  string storePaymentAccount = 4;
+}
+
+message MsgMockSetBucketPaymentAccountResponse {}
+
