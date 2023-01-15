@@ -88,7 +88,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 				return err
 			}
 
-			return ParseAppConfigInPlace()
+			return ParseAppConfigInPlace(cmd)
 		},
 	}
 
@@ -102,25 +102,42 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 	return rootCmd, encodingConfig
 }
 
-func ParseAppConfigInPlace() error {
-	homeDir := viper.GetString(flags.FlagHome)
+func ParseAppConfigInPlace(cmd *cobra.Command) error {
+	newViper := viper.New()
 
-	tmpViper := viper.New()
-	tmpViper.SetConfigName("app")
-	tmpViper.SetConfigType("toml")
-	tmpViper.AddConfigPath(homeDir)
-	tmpViper.AddConfigPath(filepath.Join(homeDir, "config"))
+	// Configure the viper instance
+	if err := newViper.BindPFlags(cmd.Flags()); err != nil {
+		return err
+	}
+	if err := newViper.BindPFlags(cmd.PersistentFlags()); err != nil {
+		return err
+	}
+
+	homeDir := newViper.GetString(flags.FlagHome)
+
+	newViper.SetConfigName("app")
+	newViper.SetConfigType("toml")
+	newViper.AddConfigPath(homeDir)
+	newViper.AddConfigPath(filepath.Join(homeDir, "config"))
 
 	// If a config file is found, read it in.
-	if err := tmpViper.ReadInConfig(); err != nil {
+	if err := newViper.ReadInConfig(); err != nil {
 		return err
 	}
 
 	appConfig = app.NewDefaultAppConfig()
-	err := tmpViper.Unmarshal(appConfig)
+	err := newViper.Unmarshal(appConfig)
 	if err != nil {
 		return err
 	}
+
+	srvCfg := serverconfig.DefaultConfig()
+	err = newViper.Unmarshal(srvCfg)
+	if err != nil {
+		return err
+	}
+	appConfig.Config = *srvCfg
+
 	return nil
 }
 
@@ -312,7 +329,7 @@ func (a appCreator) newApp(
 	logger log.Logger,
 	db dbm.DB,
 	traceStore io.Writer,
-	appConfig serverconfig.Config,
+	serverConfig serverconfig.Config,
 	chainID string,
 	appOpts servertypes.AppOptions,
 ) servertypes.Application {
@@ -350,7 +367,7 @@ func (a appCreator) newApp(
 		cast.ToString(appOpts.Get(flags.FlagHome)),
 		cast.ToUint(appOpts.Get(server.FlagInvCheckPeriod)),
 		a.encodingConfig,
-		&app.AppConfig{Config: appConfig, CrossChain: app.CrossChainConfig{}},
+		&app.AppConfig{Config: serverConfig, CrossChain: appConfig.CrossChain},
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
@@ -363,7 +380,7 @@ func (a appCreator) newApp(
 		baseapp.SetSnapshot(snapshotStore, snapshotOptions),
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
-		baseapp.SetAppConfig(appConfig),
+		baseapp.SetAppConfig(serverConfig),
 		baseapp.SetChainID(chainID),
 	)
 }
