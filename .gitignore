@@ -9,3 +9,4 @@ Taskfile.yaml
 build/
 vendor/
 .local
+.task
