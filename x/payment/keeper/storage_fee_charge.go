@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	"fmt"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,8 +28,8 @@ func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newCh
 		found := false
 		for i, baseChange := range *base {
 			if baseChange.Addr == newChange.Addr {
-				(*base)[i].Rate = baseChange.Rate.Add(newChange.Rate)
-				(*base)[i].StaticBalance = baseChange.StaticBalance.Add(newChange.StaticBalance)
+				(*base)[i].RateChange = baseChange.RateChange.Add(newChange.RateChange)
+				(*base)[i].StaticBalanceChange = baseChange.StaticBalanceChange.Add(newChange.StaticBalanceChange)
 				found = true
 				break
 			}
@@ -49,13 +50,13 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 	//	if !found {
 	//		fc = types.StreamRecordChange{
 	//			Addr:          flowChange.Addr,
-	//			Rate:          sdkmath.ZeroInt(),
-	//			StaticBalance: sdkmath.ZeroInt(),
+	//			RateChange:          sdkmath.ZeroInt(),
+	//			StaticBalanceChange: sdkmath.ZeroInt(),
 	//		}
 	//	}
-	//	fc.Rate = fc.Rate.Add(flowChange.Rate)
-	//	fc.StaticBalance = fc.StaticBalance.Add(flowChange.StaticBalance)
-	//	rateChangesSum = rateChangesSum.Add(flowChange.Rate)
+	//	fc.RateChange = fc.RateChange.Add(flowChange.RateChange)
+	//	fc.StaticBalanceChange = fc.StaticBalanceChange.Add(flowChange.StaticBalanceChange)
+	//	rateChangesSum = rateChangesSum.Add(flowChange.RateChange)
 	//	flowChangeMap[flowChange.Addr] = fc
 	//}
 	//if !rateChangesSum.IsZero() {
@@ -63,8 +64,10 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 	//}
 	// charge fee
 	for _, fc := range streamRecordChanges {
+		// todo: check is payment account not accurate
 		_, isPaymentAccount := k.GetPaymentAccount(ctx, fc.Addr)
-		err := k.UpdateStreamRecordByAddr(ctx, fc.Addr, fc.Rate, fc.StaticBalance, !isPaymentAccount)
+		change := types.NewDefaultStreamRecordChangeWithAddr(fc.Addr).WithRateChange(fc.RateChange).WithStaticBalanceChange(fc.StaticBalanceChange).WithAutoTransfer(!isPaymentAccount)
+		_, err := k.UpdateStreamRecordByAddr(ctx, &change)
 		if err != nil {
 			return fmt.Errorf("update stream record failed: %w", err)
 		}
@@ -82,14 +85,14 @@ func (k Keeper) ApplyFlowChanges(ctx sdk.Context, flowChanges []types.Flow) erro
 			fromFc = &fc
 			streamRecordChangeMap[flowChange.From] = fromFc
 		}
-		fromFc.Rate = fromFc.Rate.Sub(flowChange.Rate)
+		fromFc.RateChange = fromFc.RateChange.Sub(flowChange.Rate)
 		toFc, found := streamRecordChangeMap[flowChange.To]
 		if !found {
 			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.To)
 			toFc = &fc
 			streamRecordChangeMap[flowChange.To] = toFc
 		}
-		toFc.Rate = toFc.Rate.Add(flowChange.Rate)
+		toFc.RateChange = toFc.RateChange.Add(flowChange.Rate)
 		// update flow
 		err := k.UpdateFlow(ctx, flowChange)
 		if err != nil {
@@ -118,4 +121,27 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, re
 		{From: user, To: primarySP, Rate: price},
 	}
 	return k.ApplyFlowChanges(ctx, flowChanges)
+}
+
+func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.Int) error {
+	reserveTime := k.GetParams(ctx).ReserveTime
+	bnbPriceNum, bnbPricePrecision, err := k.GetCurrentBNBPrice(ctx)
+	if err != nil {
+		return fmt.Errorf("get current bnb price failed: %w", err)
+	}
+	lockAmountInBNB := rate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Mul(bnbPricePrecision).Quo(bnbPriceNum)
+	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithLockBalanceChange(lockAmountInBNB.Neg()).WithAutoTransfer(true)
+	streamRecord, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	if err != nil {
+		return fmt.Errorf("update stream record failed: %w", err)
+	}
+	if streamRecord.StaticBalance.LT(streamRecord.LockBalance) {
+		return fmt.Errorf("static balance is not enough, lacks %s", streamRecord.StaticBalance.String())
+	}
+	return nil
+}
+
+func (k Keeper) LockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
+	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
+	return k.LockStoreFeeByRate(ctx, bucketMeta.StorePaymentAccount, feePrice.UserPayRate)
 }

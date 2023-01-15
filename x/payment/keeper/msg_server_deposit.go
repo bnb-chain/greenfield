@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -29,7 +28,8 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		// TODO:
 		// 1. check if the stream should be forced settled
 		// 2. if the account is frozen, assume it
-		err := k.UpdateStreamRecord(ctx, &streamRecord, sdkmath.ZeroInt(), msg.Amount, false)
+		change := types.NewDefaultStreamRecordChangeWithAddr(msg.To).WithStaticBalanceChange(msg.Amount)
+		err := k.UpdateStreamRecord(ctx, &streamRecord, &change)
 		return &types.MsgDepositResponse{}, err
 	}
 }

@@ -2,14 +2,12 @@ package keeper
 
 import (
 	"context"
-	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	// check stream record
 	streamRecord, found := k.Keeper.GetStreamRecord(ctx, msg.From)
 	if !found {
@@ -28,7 +26,8 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 			return nil, types.ErrPaymentAccountNotRefundable
 		}
 	}
-	err := k.UpdateStreamRecord(ctx, &streamRecord, sdkmath.ZeroInt(), msg.Amount.Neg(), false)
+	change := types.NewDefaultStreamRecordChangeWithAddr(msg.From).WithStaticBalanceChange(msg.Amount.Neg())
+	err := k.UpdateStreamRecord(ctx, &streamRecord, &change)
 	if err != nil {
 		return nil, err
 	}

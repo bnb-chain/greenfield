@@ -64,7 +64,7 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 	return
 }
 
-func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, rate, staticBalance sdkmath.Int, autoTransfer bool) error {
+func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
@@ -76,9 +76,14 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 		streamRecord.CrudTimestamp = currentTimestamp
 	}
+	// update lock balance
+	if !change.LockBalanceChange.IsZero() {
+		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
+		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(change.LockBalanceChange)
+	}
 	// update buffer balance
-	if !rate.IsZero() {
-		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(rate)
+	if !change.RateChange.IsZero() {
+		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(change.RateChange)
 		newBufferBalance := sdkmath.ZeroInt()
 		if streamRecord.NetflowRate.IsNegative() {
 			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(params.ReserveTime))
@@ -89,11 +94,11 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 	}
 	// update static balance
-	if !staticBalance.IsZero() {
-		streamRecord.StaticBalance = streamRecord.StaticBalance.Add(staticBalance)
+	if !change.StaticBalanceChange.IsZero() {
+		streamRecord.StaticBalance = streamRecord.StaticBalance.Add(change.StaticBalanceChange)
 	}
 	if streamRecord.StaticBalance.IsNegative() {
-		if autoTransfer {
+		if change.AutoTransfer {
 			account := sdk.MustAccAddressFromHex(streamRecord.Account)
 			coins := sdk.NewCoins(sdk.NewCoin(types.Denom, streamRecord.StaticBalance.Abs()))
 			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
@@ -122,22 +127,23 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	return nil
 }
 
-func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, addr string, rate, staticBalanceDelta sdkmath.Int, autoTransfer bool) error {
-	streamRecord, found := k.GetStreamRecord(ctx, addr)
+func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRecordChange) (ret types.StreamRecord, err error) {
+	streamRecord, found := k.GetStreamRecord(ctx, change.Addr)
 	if !found {
-		streamRecord = types.NewStreamRecord(addr, ctx.BlockTime().Unix())
+		streamRecord = types.NewStreamRecord(change.Addr, ctx.BlockTime().Unix())
 	}
-	err := k.UpdateStreamRecord(ctx, &streamRecord, rate, staticBalanceDelta, autoTransfer)
+	err = k.UpdateStreamRecord(ctx, &streamRecord, change)
 	if err != nil {
-		return err
+		return
 	}
 	k.SetStreamRecord(ctx, streamRecord)
-	return nil
+	return
 }
 
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
 	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
-	err := k.UpdateStreamRecordByAddr(ctx, types.GovernanceAddress.String(), sdkmath.ZeroInt(), totalBalance, false)
+	change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress.String()).WithStaticBalanceChange(totalBalance)
+	_, err := k.UpdateStreamRecordByAddr(ctx, &change)
 	if err != nil {
 		return fmt.Errorf("update governance stream record failed: %w", err)
 	}
@@ -152,7 +158,8 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 	// only the SP can be the flow receiver, so in settlement, the rate of SP will reduce, but never get below zero and
 	// trigger another force settle.
 	for _, flow := range flows {
-		err := k.UpdateStreamRecordByAddr(ctx, flow.To, flow.Rate.Neg(), sdkmath.ZeroInt(), false)
+		change = types.NewDefaultStreamRecordChangeWithAddr(flow.To).WithRateChange(flow.Rate.Neg())
+		_, err := k.UpdateStreamRecordByAddr(ctx, &change)
 		if err != nil {
 			return fmt.Errorf("update receiver stream record failed: %w", err)
 		}

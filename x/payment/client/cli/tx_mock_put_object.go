@@ -1,32 +1,31 @@
 package cli
 
 import (
-    "strconv"
-	
-	 "github.com/spf13/cast"
-	"github.com/spf13/cobra"
-    "github.com/cosmos/cosmos-sdk/client"
+	"strconv"
+
+	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/spf13/cast"
+	"github.com/spf13/cobra"
 )
 
 var _ = strconv.Itoa(0)
 
 func CmdMockPutObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mock-put-object [bucket-name] [object-name] [size] [sp-addr]",
+		Use:   "mock-put-object [bucket-name] [object-name] [size]",
 		Short: "Broadcast message mock-put-object",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-      		 argBucketName := args[0]
-             argObjectName := args[1]
-             argSize, err := cast.ToUint64E(args[2])
-            		if err != nil {
-                		return err
-            		}
-             argSpAddr := args[3]
-            
+			argBucketName := args[0]
+			argObjectName := args[1]
+			argSize, err := cast.ToUint64E(args[2])
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -37,8 +36,6 @@ func CmdMockPutObject() *cobra.Command {
 				argBucketName,
 				argObjectName,
 				argSize,
-				argSpAddr,
-				
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -49,5 +46,5 @@ func CmdMockPutObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

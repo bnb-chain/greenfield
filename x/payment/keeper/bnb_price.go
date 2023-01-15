@@ -64,3 +64,7 @@ func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (num, precis
 	num = sdkmath.NewIntFromUint64(prices.Prices[0].Price)
 	return
 }
+
+func (k Keeper) GetCurrentBNBPrice(ctx sdk.Context) (num, precision sdkmath.Int, err error) {
+	return k.GetBNBPriceByTime(ctx, ctx.BlockTime().Unix())
+}

@@ -16,7 +16,7 @@ service Msg {
   rpc Deposit              (MsgDeposit             ) returns (MsgDepositResponse             );
   rpc Withdraw             (MsgWithdraw            ) returns (MsgWithdrawResponse            );
   rpc Sponse               (MsgSponse              ) returns (MsgSponseResponse              );
-  
+
   // this line is used by starport scaffolding # proto/tx/rpc
   rpc DisableRefund               (MsgDisableRefund              ) returns (MsgDisableRefundResponse              );
   rpc MockCreateBucket            (MsgMockCreateBucket           ) returns (MsgMockCreateBucketResponse           );
@@ -84,7 +84,6 @@ message MsgMockPutObject {
   string bucketName = 2;
   string objectName = 3;
   uint64 size       = 4;
-  string spAddr     = 5;
 }
 
 message MsgMockPutObjectResponse {}
@@ -122,4 +121,3 @@ message MsgMockUpdateBucketReadPacket {
 }
 
 message MsgMockUpdateBucketReadPacketResponse {}
-

@@ -14,5 +14,6 @@ func NewStreamRecord(account string, crudTimestamp int64) StreamRecord {
 		StaticBalance: sdkmath.ZeroInt(),
 		BufferBalance: sdkmath.ZeroInt(),
 		NetflowRate:   sdkmath.ZeroInt(),
+		LockBalance:   sdkmath.ZeroInt(),
 	}
 }

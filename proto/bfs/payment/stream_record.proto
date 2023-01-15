@@ -24,6 +24,11 @@ message StreamRecord {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  int32 status = 6;
-  int64 settleTimestamp = 7;
+  string lockBalance = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  int32 status = 7;
+  int64 settleTimestamp = 8;
 }

@@ -9,13 +9,12 @@ const TypeMsgMockPutObject = "mock_put_object"
 
 var _ sdk.Msg = &MsgMockPutObject{}
 
-func NewMsgMockPutObject(owner string, bucketName string, objectName string, size uint64, spAddr string) *MsgMockPutObject {
+func NewMsgMockPutObject(owner string, bucketName string, objectName string, size uint64) *MsgMockPutObject {
 	return &MsgMockPutObject{
 		Owner:      owner,
 		BucketName: bucketName,
 		ObjectName: objectName,
 		Size_:      size,
-		SpAddr:     spAddr,
 	}
 }
 
