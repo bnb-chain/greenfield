@@ -44,13 +44,13 @@ func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketMeta *types.MockBucketMet
 			panic("there should be 6 secondary sps")
 		}
 		storePrice.Flows = []types.OutFlowInUSD{
-			{bucketMeta.SpAddress, sdkmath.NewInt(4)},
-			{objectInfo.SecondarySPs[0].Id, sdkmath.NewInt(1)},
-			{objectInfo.SecondarySPs[1].Id, sdkmath.NewInt(1)},
-			{objectInfo.SecondarySPs[2].Id, sdkmath.NewInt(1)},
-			{objectInfo.SecondarySPs[3].Id, sdkmath.NewInt(1)},
-			{objectInfo.SecondarySPs[4].Id, sdkmath.NewInt(1)},
-			{objectInfo.SecondarySPs[5].Id, sdkmath.NewInt(1)},
+			{SpAddress: bucketMeta.SpAddress, Rate: sdkmath.NewInt(4)},
+			{SpAddress: objectInfo.SecondarySPs[0].Id, Rate: sdkmath.NewInt(1)},
+			{SpAddress: objectInfo.SecondarySPs[1].Id, Rate: sdkmath.NewInt(1)},
+			{SpAddress: objectInfo.SecondarySPs[2].Id, Rate: sdkmath.NewInt(1)},
+			{SpAddress: objectInfo.SecondarySPs[3].Id, Rate: sdkmath.NewInt(1)},
+			{SpAddress: objectInfo.SecondarySPs[4].Id, Rate: sdkmath.NewInt(1)},
+			{SpAddress: objectInfo.SecondarySPs[5].Id, Rate: sdkmath.NewInt(1)},
 		}
 	}
 	return storePrice

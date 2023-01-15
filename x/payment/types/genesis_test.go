@@ -54,14 +54,6 @@ func TestGenesisState_Validate(t *testing.T) {
 						BucketName: "1",
 					},
 				},
-				MockBucketMetaList: []types.MockBucketMeta{
-					{
-						BucketName: "0",
-					},
-					{
-						BucketName: "1",
-					},
-				},
 				FlowList: []types.Flow{
 					{
 						From: "0",
@@ -73,17 +65,18 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 				BnbPrice: &types.BnbPrice{
-					Time:  87,
-					Price: 30,
+					Prices: []*types.SingleBnbPrice{
+						{Time: 87, Price: 30},
+					},
 				},
 				AutoSettleQueueList: []types.AutoSettleQueue{
 					{
 						Timestamp: 0,
-						User:      "0",
+						Addr:      "0",
 					},
 					{
 						Timestamp: 1,
-						User:      "1",
+						Addr:      "1",
 					},
 				},
 				MockObjectInfoList: []types.MockObjectInfo{
@@ -192,11 +185,11 @@ func TestGenesisState_Validate(t *testing.T) {
 				AutoSettleQueueList: []types.AutoSettleQueue{
 					{
 						Timestamp: 0,
-						User:      "0",
+						Addr:      "0",
 					},
 					{
 						Timestamp: 0,
-						User:      "0",
+						Addr:      "0",
 					},
 				},
 			},

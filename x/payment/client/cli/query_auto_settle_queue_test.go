@@ -29,8 +29,8 @@ func networkWithAutoSettleQueueObjects(t *testing.T, n int) (*network.Network, [
 
 	for i := 0; i < n; i++ {
 		autoSettleQueue := types.AutoSettleQueue{
-			Timestamp: int32(i),
-			User:      strconv.Itoa(i),
+			Timestamp: int64(i),
+			Addr:      strconv.Itoa(i),
 		}
 		nullify.Fill(&autoSettleQueue)
 		state.AutoSettleQueueList = append(state.AutoSettleQueueList, autoSettleQueue)
@@ -50,8 +50,8 @@ func TestShowAutoSettleQueue(t *testing.T) {
 	}
 	for _, tc := range []struct {
 		desc        string
-		idTimestamp int32
-		idUser      string
+		idTimestamp int64
+		idAddr      string
 
 		args []string
 		err  error
@@ -60,7 +60,7 @@ func TestShowAutoSettleQueue(t *testing.T) {
 		{
 			desc:        "found",
 			idTimestamp: objs[0].Timestamp,
-			idUser:      objs[0].User,
+			idAddr:      objs[0].Addr,
 
 			args: common,
 			obj:  objs[0],
@@ -68,7 +68,7 @@ func TestShowAutoSettleQueue(t *testing.T) {
 		{
 			desc:        "not found",
 			idTimestamp: 100000,
-			idUser:      strconv.Itoa(100000),
+			idAddr:      strconv.Itoa(100000),
 
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
@@ -77,7 +77,7 @@ func TestShowAutoSettleQueue(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
 				strconv.Itoa(int(tc.idTimestamp)),
-				tc.idUser,
+				tc.idAddr,
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowAutoSettleQueue(), args)

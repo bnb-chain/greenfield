@@ -70,16 +70,16 @@ func TestKeeper_GetBNBPriceByTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotNum, gotPrecision, err := k.GetBNBPriceByTime(ctx, tt.args.priceTime)
+			price, err := k.GetBNBPriceByTime(ctx, tt.args.priceTime)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetBNBPriceByTime() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !reflect.DeepEqual(gotNum, tt.wantNum) {
-				t.Errorf("GetBNBPriceByTime() gotNum = %v, want %v", gotNum, tt.wantNum)
+			if !reflect.DeepEqual(price.Num, tt.wantNum) {
+				t.Errorf("GetBNBPriceByTime() gotNum = %v, want %v", price.Num, tt.wantNum)
 			}
-			if !reflect.DeepEqual(gotPrecision, tt.wantPrecision) {
-				t.Errorf("GetBNBPriceByTime() gotPrecision = %v, want %v", gotPrecision, tt.wantPrecision)
+			if !reflect.DeepEqual(price.Precision, tt.wantPrecision) {
+				t.Errorf("GetBNBPriceByTime() gotPrecision = %v, want %v", price.Precision, tt.wantPrecision)
 			}
 		})
 	}

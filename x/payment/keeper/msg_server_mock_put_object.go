@@ -11,7 +11,7 @@ import (
 func (k msgServer) MockPutObject(goCtx context.Context, msg *types.MsgMockPutObject) (*types.MsgMockPutObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	bucketMeta, found := k.GetMockBucketMeta(ctx, msg.BucketName)
+	bucketMeta, _ := k.GetMockBucketMeta(ctx, msg.BucketName)
 	if bucketMeta.Owner != msg.Owner {
 		return nil, fmt.Errorf("bucket owner is not the same as msg owner")
 	}
