@@ -39,56 +39,49 @@ func TestGenesis(t *testing.T) {
 			},
 		},
 		MockBucketMetaList: []types.MockBucketMeta{
-		{
-			BucketName: "0",
-},
-		{
-			BucketName: "1",
-},
-	},
-	MockBucketMetaList: []types.MockBucketMeta{
-		{
-			BucketName: "0",
-},
-		{
-			BucketName: "1",
-},
-	},
-	FlowList: []types.Flow{
-		{
-			From: "0",
-To: "0",
-},
-		{
-			From: "1",
-To: "1",
-},
-	},
-	BnbPrice: &types.BnbPrice{
-		Time: 70,
-Price: 63,
-},
+			{
+				BucketName: "0",
+			},
+			{
+				BucketName: "1",
+			},
+		},
+		FlowList: []types.Flow{
+			{
+				From: "0",
+				To:   "0",
+			},
+			{
+				From: "1",
+				To:   "1",
+			},
+		},
+		BnbPrice: &types.BnbPrice{
+			Prices: []*types.SingleBnbPrice{
+				{Time: 70, Price: 63},
+			},
+		},
 		AutoSettleQueueList: []types.AutoSettleQueue{
-		{
-			Timestamp: 0,
-User: "0",
-},
-		{
-			Timestamp: 1,
-User: "1",
-},
-	},
-	MockObjectInfoList: []types.MockObjectInfo{
-		{
-			BucketName: "0",
-ObjectName: "0",
-},
-		{
-			BucketName: "1",
-ObjectName: "1",
-},
-	},
-	// this line is used by starport scaffolding # genesis/test/state
+			{
+				Timestamp: 0,
+				Addr:      "0",
+			},
+			{
+				Timestamp: 1,
+				Addr:      "1",
+			},
+		},
+		MockObjectInfoList: []types.MockObjectInfo{
+			{
+				BucketName: "0",
+				ObjectName: "0",
+			},
+			{
+				BucketName: "1",
+				ObjectName: "1",
+			},
+		},
+		// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := keepertest.PaymentKeeper(t)
@@ -103,10 +96,10 @@ ObjectName: "1",
 	require.ElementsMatch(t, genesisState.PaymentAccountCountList, got.PaymentAccountCountList)
 	require.ElementsMatch(t, genesisState.PaymentAccountList, got.PaymentAccountList)
 	require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
-require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
-require.ElementsMatch(t, genesisState.FlowList, got.FlowList)
-require.Equal(t, genesisState.BnbPrice, got.BnbPrice)
-require.ElementsMatch(t, genesisState.AutoSettleQueueList, got.AutoSettleQueueList)
-require.ElementsMatch(t, genesisState.MockObjectInfoList, got.MockObjectInfoList)
-// this line is used by starport scaffolding # genesis/test/assert
+	require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList)
+	require.ElementsMatch(t, genesisState.FlowList, got.FlowList)
+	require.Equal(t, genesisState.BnbPrice, got.BnbPrice)
+	require.ElementsMatch(t, genesisState.AutoSettleQueueList, got.AutoSettleQueueList)
+	require.ElementsMatch(t, genesisState.MockObjectInfoList, got.MockObjectInfoList)
+	// this line is used by starport scaffolding # genesis/test/assert
 }
