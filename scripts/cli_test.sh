@@ -12,9 +12,8 @@ function check_operation() {
 	fi
 }
 
-bfsd="/Users/owen/go/bin/bfsd --home $HOME/.bfs"
+bfsd="$HOME/go/bin/bfsd --home $HOME/.bfs"
 #bfsd="./build/bin/bfsd --home $HOME/.bfs"
-#$bfsd keys list
 
 #alice_addr=$($bfsd keys list --output json | jq -r '.[0].address')
 sp0_addr=$($bfsd keys list --output json | jq -r '.[2].address')
@@ -59,15 +58,18 @@ $bfsd q payment dynamic-balance "$sp0_addr"
 $bfsd q payment dynamic-balance "$sp1_addr"
 $bfsd q payment list-flow
 $bfsd q payment list-mock-bucket-meta
+# mock-update-bucket-read-packet
+# todo: 0 will raise Error: failed to pack and hash typedData primary type: invalid integer value <nil>/<nil> for type int32
+$bfsd tx payment mock-update-bucket-read-packet "$bucket_name" 2 --from user -y
+$bfsd q payment dynamic-balance "$user_addr"
+$bfsd q payment dynamic-balance "$sp0_addr"
+# mock-set-bucket-payment-account
+$bfsd tx payment mock-set-bucket-payment-account "$bucket_name" "$payment_account" "$payment_account" --from user -y
+$bfsd q payment dynamic-balance "$user_addr"
+$bfsd q payment dynamic-balance "$payment_account"
+# mock-delete-object
 $bfsd tx payment mock-delete-object "$bucket_name" "$object_name" --from user -y
 $bfsd q payment dynamic-balance "$user_addr"
 $bfsd q payment dynamic-balance "$sp0_addr"
 $bfsd q payment dynamic-balance "$sp1_addr"
 $bfsd q payment list-flow
-# todo: 0 will raise Error: failed to pack and hash typedData primary type: invalid integer value <nil>/<nil> for type int32
-$bfsd tx payment mock-update-bucket-read-packet "$bucket_name" 2 --from user -y
-$bfsd q payment dynamic-balance "$user_addr"
-$bfsd q payment dynamic-balance "$sp0_addr"
-$bfsd tx payment mock-set-bucket-payment-account "$bucket_name" "$payment_account" "$payment_account" --from user -y
-$bfsd q payment dynamic-balance "$user_addr"
-$bfsd q payment dynamic-balance "$payment_account"

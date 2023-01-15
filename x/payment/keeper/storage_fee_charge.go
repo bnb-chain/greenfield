@@ -109,6 +109,14 @@ func MergeOutFlows(flow *[]types.OutFlowInUSD, changes []types.OutFlowInUSD) []t
 	return *flow
 }
 
+func GetNegFlows(flows []types.OutFlowInUSD) (negFlows []types.OutFlowInUSD) {
+	negFlows = make([]types.OutFlowInUSD, len(flows))
+	for i, flow := range flows {
+		negFlows[i] = types.OutFlowInUSD{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
+	}
+	return negFlows
+}
+
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta) error {
 	currentTime := ctx.BlockTime().Unix()
 	price, err := k.GetReadPrice(ctx, bucketMeta.ReadPacket, currentTime)
@@ -225,10 +233,7 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketMeta *types.Mo
 	}
 	if storePaymentAccount != nil {
 		flows := bucketMeta.OutFlowsInUSD
-		negFlows := make([]types.OutFlowInUSD, len(flows))
-		for i, flow := range flows {
-			negFlows[i] = types.OutFlowInUSD{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
-		}
+		negFlows := GetNegFlows(flows)
 		err := k.ApplyUSDFlowChanges(ctx, bucketMeta.StorePaymentAccount, negFlows)
 		if err != nil {
 			return fmt.Errorf("apply prev store payment account usd flow changes failed: %w", err)
@@ -239,5 +244,16 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketMeta *types.Mo
 		}
 		bucketMeta.StorePaymentAccount = *storePaymentAccount
 	}
+	return nil
+}
+
+func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
+	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
+	negFlows := GetNegFlows(feePrice.Flows)
+	err := k.ApplyUSDFlowChanges(ctx, bucketMeta.StorePaymentAccount, negFlows)
+	if err != nil {
+		return fmt.Errorf("apply usd flow changes failed: %w", err)
+	}
+	MergeOutFlows(&bucketMeta.OutFlowsInUSD, negFlows)
 	return nil
 }
