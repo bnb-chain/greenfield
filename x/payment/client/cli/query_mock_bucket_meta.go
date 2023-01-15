@@ -1,12 +1,12 @@
 package cli
 
 import (
-    "context"
-	
-    "github.com/spf13/cobra"
+	"context"
+
+	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/spf13/cobra"
 )
 
 func CmdListMockBucketMeta() *cobra.Command {
@@ -14,32 +14,32 @@ func CmdListMockBucketMeta() *cobra.Command {
 		Use:   "list-mock-bucket-meta",
 		Short: "list all mock-bucket-meta",
 		RunE: func(cmd *cobra.Command, args []string) error {
-            clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-            pageReq, err := client.ReadPageRequest(cmd.Flags())
-            if err != nil {
-                return err
-            }
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-            queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
-            params := &types.QueryAllMockBucketMetaRequest{
-                Pagination: pageReq,
-            }
+			params := &types.QueryAllMockBucketMetaRequest{
+				Pagination: pageReq,
+			}
 
-            res, err := queryClient.MockBucketMetaAll(context.Background(), params)
-            if err != nil {
-                return err
-            }
+			res, err := queryClient.MockBucketMetaAll(context.Background(), params)
+			if err != nil {
+				return err
+			}
 
-            return clientCtx.PrintProto(res)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }
 
 func CmdShowMockBucketMeta() *cobra.Command {
@@ -48,27 +48,26 @@ func CmdShowMockBucketMeta() *cobra.Command {
 		Short: "shows a mock-bucket-meta",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-            clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-            queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
-             argBucketName := args[0]
-            
-            params := &types.QueryGetMockBucketMetaRequest{
-                BucketName: argBucketName,
-                
-            }
+			argBucketName := args[0]
 
-            res, err := queryClient.MockBucketMeta(context.Background(), params)
-            if err != nil {
-                return err
-            }
+			params := &types.QueryGetMockBucketMetaRequest{
+				BucketName: argBucketName,
+			}
 
-            return clientCtx.PrintProto(res)
+			res, err := queryClient.MockBucketMeta(context.Background(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

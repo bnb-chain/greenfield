@@ -1,13 +1,13 @@
 package cli
 
 import (
-    "strconv"
-	
-	"github.com/spf13/cobra"
-    "github.com/cosmos/cosmos-sdk/client"
+	"strconv"
+
+	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/spf13/cobra"
 )
 
 var _ = strconv.Itoa(0)
@@ -18,9 +18,9 @@ func CmdMockDeleteObject() *cobra.Command {
 		Short: "Broadcast message mock-delete-object",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-      		 argBucketName := args[0]
-             argObjectName := args[1]
-            
+			argBucketName := args[0]
+			argObjectName := args[1]
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -30,7 +30,6 @@ func CmdMockDeleteObject() *cobra.Command {
 				clientCtx.GetFromAddress().String(),
 				argBucketName,
 				argObjectName,
-				
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -41,5 +40,5 @@ func CmdMockDeleteObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

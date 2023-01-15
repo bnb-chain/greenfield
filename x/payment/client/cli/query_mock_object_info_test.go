@@ -15,7 +15,7 @@ import (
 	"github.com/bnb-chain/bfs/testutil/network"
 	"github.com/bnb-chain/bfs/testutil/nullify"
 	"github.com/bnb-chain/bfs/x/payment/client/cli"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -25,13 +25,12 @@ func networkWithMockObjectInfoObjects(t *testing.T, n int) (*network.Network, []
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
 		mockObjectInfo := types.MockObjectInfo{
 			BucketName: strconv.Itoa(i),
 			ObjectName: strconv.Itoa(i),
-			
 		}
 		nullify.Fill(&mockObjectInfo)
 		state.MockObjectInfoList = append(state.MockObjectInfoList, mockObjectInfo)
@@ -50,36 +49,35 @@ func TestShowMockObjectInfo(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
+		desc         string
 		idBucketName string
-        idObjectName string
-        
+		idObjectName string
+
 		args []string
 		err  error
 		obj  types.MockObjectInfo
 	}{
 		{
-			desc: "found",
+			desc:         "found",
 			idBucketName: objs[0].BucketName,
-            idObjectName: objs[0].ObjectName,
-            
+			idObjectName: objs[0].ObjectName,
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
+			desc:         "not found",
 			idBucketName: strconv.Itoa(100000),
-            idObjectName: strconv.Itoa(100000),
-            
+			idObjectName: strconv.Itoa(100000),
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-			    tc.idBucketName,
-                tc.idObjectName,
-                
+				tc.idBucketName,
+				tc.idObjectName,
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowMockObjectInfo(), args)
@@ -130,9 +128,9 @@ func TestListMockObjectInfo(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.MockObjectInfo), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.MockObjectInfo),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.MockObjectInfo),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -146,9 +144,9 @@ func TestListMockObjectInfo(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.MockObjectInfo), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.MockObjectInfo),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.MockObjectInfo),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

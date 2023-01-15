@@ -3,9 +3,9 @@ package types
 import (
 	"testing"
 
+	"github.com/bnb-chain/bfs/testutil/sample"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
-	"github.com/bnb-chain/bfs/testutil/sample"
 )
 
 func TestMsgMockSetBucketPaymentAccount_ValidateBasic(t *testing.T) {

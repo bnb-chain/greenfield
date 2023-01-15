@@ -33,7 +33,6 @@ func CmdMockSealObject() *cobra.Command {
 				argBucketName,
 				argObjectName,
 				argSecondarySPs,
-
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

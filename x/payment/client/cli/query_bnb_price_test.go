@@ -12,14 +12,14 @@ import (
 	"github.com/bnb-chain/bfs/testutil/network"
 	"github.com/bnb-chain/bfs/testutil/nullify"
 	"github.com/bnb-chain/bfs/x/payment/client/cli"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 func networkWithBnbPriceObjects(t *testing.T) (*network.Network, types.BnbPrice) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	bnbPrice := &types.BnbPrice{}
 	nullify.Fill(&bnbPrice)
@@ -70,4 +70,3 @@ func TestShowBnbPrice(t *testing.T) {
 		})
 	}
 }
-

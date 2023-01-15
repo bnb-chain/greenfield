@@ -15,7 +15,7 @@ import (
 	"github.com/bnb-chain/bfs/testutil/network"
 	"github.com/bnb-chain/bfs/testutil/nullify"
 	"github.com/bnb-chain/bfs/x/payment/client/cli"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -25,13 +25,12 @@ func networkWithFlowObjects(t *testing.T, n int) (*network.Network, []types.Flow
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
 		flow := types.Flow{
 			From: strconv.Itoa(i),
-			To: strconv.Itoa(i),
-			
+			To:   strconv.Itoa(i),
 		}
 		nullify.Fill(&flow)
 		state.FlowList = append(state.FlowList, flow)
@@ -50,36 +49,35 @@ func TestShowFlow(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
+		desc   string
 		idFrom string
-        idTo string
-        
+		idTo   string
+
 		args []string
 		err  error
 		obj  types.Flow
 	}{
 		{
-			desc: "found",
+			desc:   "found",
 			idFrom: objs[0].From,
-            idTo: objs[0].To,
-            
+			idTo:   objs[0].To,
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
+			desc:   "not found",
 			idFrom: strconv.Itoa(100000),
-            idTo: strconv.Itoa(100000),
-            
+			idTo:   strconv.Itoa(100000),
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-			    tc.idFrom,
-                tc.idTo,
-                
+				tc.idFrom,
+				tc.idTo,
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowFlow(), args)
@@ -130,9 +128,9 @@ func TestListFlow(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.Flow), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.Flow),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.Flow),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -146,9 +144,9 @@ func TestListFlow(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.Flow), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.Flow),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.Flow),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

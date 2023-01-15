@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/payment/keeper"
-	"github.com/bnb-chain/bfs/x/payment/types"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
 	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/keeper"
+	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -19,8 +19,8 @@ func createNMockObjectInfo(keeper *keeper.Keeper, ctx sdk.Context, n int) []type
 	items := make([]types.MockObjectInfo, n)
 	for i := range items {
 		items[i].BucketName = strconv.Itoa(i)
-        items[i].ObjectName = strconv.Itoa(i)
-        
+		items[i].ObjectName = strconv.Itoa(i)
+
 		keeper.SetMockObjectInfo(ctx, items[i])
 	}
 	return items
@@ -31,9 +31,8 @@ func TestMockObjectInfoGet(t *testing.T) {
 	items := createNMockObjectInfo(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetMockObjectInfo(ctx,
-		    item.BucketName,
-            item.ObjectName,
-            
+			item.BucketName,
+			item.ObjectName,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -47,14 +46,12 @@ func TestMockObjectInfoRemove(t *testing.T) {
 	items := createNMockObjectInfo(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveMockObjectInfo(ctx,
-		    item.BucketName,
-            item.ObjectName,
-            
+			item.BucketName,
+			item.ObjectName,
 		)
 		_, found := keeper.GetMockObjectInfo(ctx,
-		    item.BucketName,
-            item.ObjectName,
-            
+			item.BucketName,
+			item.ObjectName,
 		)
 		require.False(t, found)
 	}

@@ -33,7 +33,6 @@ func TestAutoSettleQueueGet(t *testing.T) {
 		rst, found := keeper.GetAutoSettleQueue(ctx,
 			item.Timestamp,
 			item.Addr,
-
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -49,12 +48,10 @@ func TestAutoSettleQueueRemove(t *testing.T) {
 		keeper.RemoveAutoSettleQueue(ctx,
 			item.Timestamp,
 			item.Addr,
-
 		)
 		_, found := keeper.GetAutoSettleQueue(ctx,
 			item.Timestamp,
 			item.Addr,
-
 		)
 		require.False(t, found)
 	}

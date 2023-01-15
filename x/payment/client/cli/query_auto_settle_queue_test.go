@@ -15,7 +15,7 @@ import (
 	"github.com/bnb-chain/bfs/testutil/network"
 	"github.com/bnb-chain/bfs/testutil/nullify"
 	"github.com/bnb-chain/bfs/x/payment/client/cli"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -25,13 +25,12 @@ func networkWithAutoSettleQueueObjects(t *testing.T, n int) (*network.Network, [
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
 		autoSettleQueue := types.AutoSettleQueue{
 			Timestamp: int32(i),
-			User: strconv.Itoa(i),
-			
+			User:      strconv.Itoa(i),
 		}
 		nullify.Fill(&autoSettleQueue)
 		state.AutoSettleQueueList = append(state.AutoSettleQueueList, autoSettleQueue)
@@ -50,36 +49,35 @@ func TestShowAutoSettleQueue(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
+		desc        string
 		idTimestamp int32
-        idUser string
-        
+		idUser      string
+
 		args []string
 		err  error
 		obj  types.AutoSettleQueue
 	}{
 		{
-			desc: "found",
+			desc:        "found",
 			idTimestamp: objs[0].Timestamp,
-            idUser: objs[0].User,
-            
+			idUser:      objs[0].User,
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
+			desc:        "not found",
 			idTimestamp: 100000,
-            idUser: strconv.Itoa(100000),
-            
+			idUser:      strconv.Itoa(100000),
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-			    strconv.Itoa(int(tc.idTimestamp)),
-                tc.idUser,
-                
+				strconv.Itoa(int(tc.idTimestamp)),
+				tc.idUser,
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowAutoSettleQueue(), args)
@@ -130,9 +128,9 @@ func TestListAutoSettleQueue(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.AutoSettleQueue), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.AutoSettleQueue),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.AutoSettleQueue),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -146,9 +144,9 @@ func TestListAutoSettleQueue(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.AutoSettleQueue), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.AutoSettleQueue),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.AutoSettleQueue),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

@@ -1,12 +1,12 @@
 package cli
 
 import (
-    "context"
-	
-    "github.com/spf13/cobra"
+	"context"
+
+	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/spf13/cobra"
 )
 
 func CmdListMockObjectInfo() *cobra.Command {
@@ -14,32 +14,32 @@ func CmdListMockObjectInfo() *cobra.Command {
 		Use:   "list-mock-object-info",
 		Short: "list all mock-object-info",
 		RunE: func(cmd *cobra.Command, args []string) error {
-            clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-            pageReq, err := client.ReadPageRequest(cmd.Flags())
-            if err != nil {
-                return err
-            }
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
 
-            queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
-            params := &types.QueryAllMockObjectInfoRequest{
-                Pagination: pageReq,
-            }
+			params := &types.QueryAllMockObjectInfoRequest{
+				Pagination: pageReq,
+			}
 
-            res, err := queryClient.MockObjectInfoAll(context.Background(), params)
-            if err != nil {
-                return err
-            }
+			res, err := queryClient.MockObjectInfoAll(context.Background(), params)
+			if err != nil {
+				return err
+			}
 
-            return clientCtx.PrintProto(res)
+			return clientCtx.PrintProto(res)
 		},
 	}
 
 	flags.AddPaginationFlagsToCmd(cmd, cmd.Use)
 	flags.AddQueryFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }
 
 func CmdShowMockObjectInfo() *cobra.Command {
@@ -48,29 +48,28 @@ func CmdShowMockObjectInfo() *cobra.Command {
 		Short: "shows a mock-object-info",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-            clientCtx := client.GetClientContextFromCmd(cmd)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
-            queryClient := types.NewQueryClient(clientCtx)
+			queryClient := types.NewQueryClient(clientCtx)
 
-             argBucketName := args[0]
-             argObjectName := args[1]
-            
-            params := &types.QueryGetMockObjectInfoRequest{
-                BucketName: argBucketName,
-                ObjectName: argObjectName,
-                
-            }
+			argBucketName := args[0]
+			argObjectName := args[1]
 
-            res, err := queryClient.MockObjectInfo(context.Background(), params)
-            if err != nil {
-                return err
-            }
+			params := &types.QueryGetMockObjectInfoRequest{
+				BucketName: argBucketName,
+				ObjectName: argObjectName,
+			}
 
-            return clientCtx.PrintProto(res)
+			res, err := queryClient.MockObjectInfo(context.Background(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
 		},
 	}
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

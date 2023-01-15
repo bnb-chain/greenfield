@@ -21,26 +21,26 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetPaymentAccount(ctx, elem)
 	}
 	// Set all the mockBucketMeta
-for _, elem := range genState.MockBucketMetaList {
-	k.SetMockBucketMeta(ctx, elem)
-}
-// Set all the flow
-for _, elem := range genState.FlowList {
-	k.SetFlow(ctx, elem)
-}
-// Set if defined
-if genState.BnbPrice != nil {
-	k.SetBnbPrice(ctx, *genState.BnbPrice)
-}
-// Set all the autoSettleQueue
-for _, elem := range genState.AutoSettleQueueList {
-	k.SetAutoSettleQueue(ctx, elem)
-}
-// Set all the mockObjectInfo
-for _, elem := range genState.MockObjectInfoList {
-	k.SetMockObjectInfo(ctx, elem)
-}
-// this line is used by starport scaffolding # genesis/module/init
+	for _, elem := range genState.MockBucketMetaList {
+		k.SetMockBucketMeta(ctx, elem)
+	}
+	// Set all the flow
+	for _, elem := range genState.FlowList {
+		k.SetFlow(ctx, elem)
+	}
+	// Set if defined
+	if genState.BnbPrice != nil {
+		k.SetBnbPrice(ctx, *genState.BnbPrice)
+	}
+	// Set all the autoSettleQueue
+	for _, elem := range genState.AutoSettleQueueList {
+		k.SetAutoSettleQueue(ctx, elem)
+	}
+	// Set all the mockObjectInfo
+	for _, elem := range genState.MockObjectInfoList {
+		k.SetMockObjectInfo(ctx, elem)
+	}
+	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
 
@@ -53,15 +53,15 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.PaymentAccountCountList = k.GetAllPaymentAccountCount(ctx)
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
 	genesis.MockBucketMetaList = k.GetAllMockBucketMeta(ctx)
-genesis.FlowList = k.GetAllFlow(ctx)
-// Get all bnbPrice
-bnbPrice, found := k.GetBnbPrice(ctx)
-if found {
-	genesis.BnbPrice = &bnbPrice
-}
-genesis.AutoSettleQueueList = k.GetAllAutoSettleQueue(ctx)
-genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
-// this line is used by starport scaffolding # genesis/module/export
+	genesis.FlowList = k.GetAllFlow(ctx)
+	// Get all bnbPrice
+	bnbPrice, found := k.GetBnbPrice(ctx)
+	if found {
+		genesis.BnbPrice = &bnbPrice
+	}
+	genesis.AutoSettleQueueList = k.GetAllAutoSettleQueue(ctx)
+	genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
+	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
 }

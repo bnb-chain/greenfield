@@ -47,4 +47,3 @@ func TestBnbPriceQuery(t *testing.T) {
 		})
 	}
 }
-

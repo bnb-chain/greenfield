@@ -3,8 +3,8 @@ package keeper
 import (
 	"context"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/bnb-chain/bfs/x/payment/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -17,7 +17,7 @@ func (k Keeper) BnbPrice(c context.Context, req *types.QueryGetBnbPriceRequest) 
 
 	val, found := k.GetBnbPrice(ctx)
 	if !found {
-	    return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetBnbPriceResponse{BnbPrice: val}, nil

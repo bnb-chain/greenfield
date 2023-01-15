@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-    "strconv"
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
-	"github.com/bnb-chain/bfs/testutil/nullify"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
+	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -29,31 +29,28 @@ func TestMockObjectInfoQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetMockObjectInfoRequest{
-			    BucketName: msgs[0].BucketName,
-                ObjectName: msgs[0].ObjectName,
-                
+			desc: "First",
+			request: &types.QueryGetMockObjectInfoRequest{
+				BucketName: msgs[0].BucketName,
+				ObjectName: msgs[0].ObjectName,
 			},
 			response: &types.QueryGetMockObjectInfoResponse{MockObjectInfo: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetMockObjectInfoRequest{
-			    BucketName: msgs[1].BucketName,
-                ObjectName: msgs[1].ObjectName,
-                
+			desc: "Second",
+			request: &types.QueryGetMockObjectInfoRequest{
+				BucketName: msgs[1].BucketName,
+				ObjectName: msgs[1].ObjectName,
 			},
 			response: &types.QueryGetMockObjectInfoResponse{MockObjectInfo: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
+			desc: "KeyNotFound",
 			request: &types.QueryGetMockObjectInfoRequest{
-			    BucketName:strconv.Itoa(100000),
-                ObjectName:strconv.Itoa(100000),
-                
+				BucketName: strconv.Itoa(100000),
+				ObjectName: strconv.Itoa(100000),
 			},
-			err:     status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -97,9 +94,9 @@ func TestMockObjectInfoQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.MockObjectInfo), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.MockObjectInfo),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.MockObjectInfo),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -110,9 +107,9 @@ func TestMockObjectInfoQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.MockObjectInfo), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.MockObjectInfo),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.MockObjectInfo),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

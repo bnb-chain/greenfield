@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-    "strconv"
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
-	"github.com/bnb-chain/bfs/testutil/nullify"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
+	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -29,31 +29,28 @@ func TestFlowQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetFlowRequest{
-			    From: msgs[0].From,
-                To: msgs[0].To,
-                
+			desc: "First",
+			request: &types.QueryGetFlowRequest{
+				From: msgs[0].From,
+				To:   msgs[0].To,
 			},
 			response: &types.QueryGetFlowResponse{Flow: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetFlowRequest{
-			    From: msgs[1].From,
-                To: msgs[1].To,
-                
+			desc: "Second",
+			request: &types.QueryGetFlowRequest{
+				From: msgs[1].From,
+				To:   msgs[1].To,
 			},
 			response: &types.QueryGetFlowResponse{Flow: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
+			desc: "KeyNotFound",
 			request: &types.QueryGetFlowRequest{
-			    From:strconv.Itoa(100000),
-                To:strconv.Itoa(100000),
-                
+				From: strconv.Itoa(100000),
+				To:   strconv.Itoa(100000),
 			},
-			err:     status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -97,9 +94,9 @@ func TestFlowQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Flow), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.Flow),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.Flow),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -110,9 +107,9 @@ func TestFlowQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.Flow), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.Flow),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.Flow),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

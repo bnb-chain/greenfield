@@ -3,10 +3,10 @@ package keeper
 import (
 	"context"
 
+	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/bnb-chain/bfs/x/payment/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -46,12 +46,12 @@ func (k Keeper) Flow(c context.Context, req *types.QueryGetFlowRequest) (*types.
 	ctx := sdk.UnwrapSDKContext(c)
 
 	val, found := k.GetFlow(
-	    ctx,
-	    req.From,
-        req.To,
-        )
+		ctx,
+		req.From,
+		req.To,
+	)
 	if !found {
-	    return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetFlowResponse{Flow: val}, nil

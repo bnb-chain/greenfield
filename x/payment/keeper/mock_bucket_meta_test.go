@@ -4,10 +4,10 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/payment/keeper"
-	"github.com/bnb-chain/bfs/x/payment/types"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
 	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/keeper"
+	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -19,7 +19,7 @@ func createNMockBucketMeta(keeper *keeper.Keeper, ctx sdk.Context, n int) []type
 	items := make([]types.MockBucketMeta, n)
 	for i := range items {
 		items[i].BucketName = strconv.Itoa(i)
-        
+
 		keeper.SetMockBucketMeta(ctx, items[i])
 	}
 	return items
@@ -30,8 +30,7 @@ func TestMockBucketMetaGet(t *testing.T) {
 	items := createNMockBucketMeta(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetMockBucketMeta(ctx,
-		    item.BucketName,
-            
+			item.BucketName,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -45,12 +44,10 @@ func TestMockBucketMetaRemove(t *testing.T) {
 	items := createNMockBucketMeta(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveMockBucketMeta(ctx,
-		    item.BucketName,
-            
+			item.BucketName,
 		)
 		_, found := keeper.GetMockBucketMeta(ctx,
-		    item.BucketName,
-            
+			item.BucketName,
 		)
 		require.False(t, found)
 	}

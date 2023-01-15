@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-    "strconv"
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
-	"github.com/bnb-chain/bfs/testutil/nullify"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
+	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -29,28 +29,25 @@ func TestMockBucketMetaQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetMockBucketMetaRequest{
-			    BucketName: msgs[0].BucketName,
-                
+			desc: "First",
+			request: &types.QueryGetMockBucketMetaRequest{
+				BucketName: msgs[0].BucketName,
 			},
 			response: &types.QueryGetMockBucketMetaResponse{MockBucketMeta: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetMockBucketMetaRequest{
-			    BucketName: msgs[1].BucketName,
-                
+			desc: "Second",
+			request: &types.QueryGetMockBucketMetaRequest{
+				BucketName: msgs[1].BucketName,
 			},
 			response: &types.QueryGetMockBucketMetaResponse{MockBucketMeta: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
+			desc: "KeyNotFound",
 			request: &types.QueryGetMockBucketMetaRequest{
-			    BucketName:strconv.Itoa(100000),
-                
+				BucketName: strconv.Itoa(100000),
 			},
-			err:     status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -94,9 +91,9 @@ func TestMockBucketMetaQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.MockBucketMeta), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.MockBucketMeta),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.MockBucketMeta),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -107,9 +104,9 @@ func TestMockBucketMetaQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.MockBucketMeta), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.MockBucketMeta),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.MockBucketMeta),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

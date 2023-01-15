@@ -17,11 +17,11 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDisableRefund{}, "payment/DisableRefund", nil)
 	cdc.RegisterConcrete(&MsgMockCreateBucket{}, "payment/MockCreateBucket", nil)
 	cdc.RegisterConcrete(&MsgMockPutObject{}, "payment/MockPutObject", nil)
-cdc.RegisterConcrete(&MsgMockSealObject{}, "payment/MockSealObject", nil)
-cdc.RegisterConcrete(&MsgMockDeleteObject{}, "payment/MockDeleteObject", nil)
-cdc.RegisterConcrete(&MsgMockSetBucketPaymentAccount{}, "payment/MockSetBucketPaymentAccount", nil)
-cdc.RegisterConcrete(&MsgMockUpdateBucketReadPacket{}, "payment/MockUpdateBucketReadPacket", nil)
-// this line is used by starport scaffolding # 2
+	cdc.RegisterConcrete(&MsgMockSealObject{}, "payment/MockSealObject", nil)
+	cdc.RegisterConcrete(&MsgMockDeleteObject{}, "payment/MockDeleteObject", nil)
+	cdc.RegisterConcrete(&MsgMockSetBucketPaymentAccount{}, "payment/MockSetBucketPaymentAccount", nil)
+	cdc.RegisterConcrete(&MsgMockUpdateBucketReadPacket{}, "payment/MockUpdateBucketReadPacket", nil)
+	// this line is used by starport scaffolding # 2
 }
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
@@ -44,21 +44,21 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgMockCreateBucket{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgMockPutObject{},
-)
-registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgMockSealObject{},
-)
-registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgMockDeleteObject{},
-)
-registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgMockSetBucketPaymentAccount{},
-)
-registry.RegisterImplementations((*sdk.Msg)(nil),
-	&MsgMockUpdateBucketReadPacket{},
-)
-// this line is used by starport scaffolding # 3
+		&MsgMockPutObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMockSealObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMockDeleteObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMockSetBucketPaymentAccount{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMockUpdateBucketReadPacket{},
+	)
+	// this line is used by starport scaffolding # 3
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

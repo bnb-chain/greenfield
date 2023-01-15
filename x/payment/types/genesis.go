@@ -22,8 +22,8 @@ func DefaultGenesis() *GenesisState {
 		FlowList:                []Flow{},
 		BnbPrice:                &defaultBnbPrice,
 		AutoSettleQueueList:     []AutoSettleQueue{},
-		MockObjectInfoList: []MockObjectInfo{},
-// this line is used by starport scaffolding # genesis/types/default
+		MockObjectInfoList:      []MockObjectInfo{},
+		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -93,16 +93,16 @@ func (gs GenesisState) Validate() error {
 		autoSettleQueueIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in mockObjectInfo
-mockObjectInfoIndexMap := make(map[string]struct{})
+	mockObjectInfoIndexMap := make(map[string]struct{})
 
-for _, elem := range gs.MockObjectInfoList {
-	index := string(MockObjectInfoKey(elem.BucketName,elem.ObjectName))
-	if _, ok := mockObjectInfoIndexMap[index]; ok {
-		return fmt.Errorf("duplicated index for mockObjectInfo")
+	for _, elem := range gs.MockObjectInfoList {
+		index := string(MockObjectInfoKey(elem.BucketName, elem.ObjectName))
+		if _, ok := mockObjectInfoIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for mockObjectInfo")
+		}
+		mockObjectInfoIndexMap[index] = struct{}{}
 	}
-	mockObjectInfoIndexMap[index] = struct{}{}
-}
-// this line is used by starport scaffolding # genesis/types/validate
+	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }
