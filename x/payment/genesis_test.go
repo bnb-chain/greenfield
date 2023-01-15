@@ -78,6 +78,16 @@ User: "0",
 User: "1",
 },
 	},
+	MockObjectInfoList: []types.MockObjectInfo{
+		{
+			BucketName: "0",
+ObjectName: "0",
+},
+		{
+			BucketName: "1",
+ObjectName: "1",
+},
+	},
 	// this line is used by starport scaffolding # genesis/test/state
 	}
 
@@ -97,5 +107,6 @@ require.ElementsMatch(t, genesisState.MockBucketMetaList, got.MockBucketMetaList
 require.ElementsMatch(t, genesisState.FlowList, got.FlowList)
 require.Equal(t, genesisState.BnbPrice, got.BnbPrice)
 require.ElementsMatch(t, genesisState.AutoSettleQueueList, got.AutoSettleQueueList)
+require.ElementsMatch(t, genesisState.MockObjectInfoList, got.MockObjectInfoList)
 // this line is used by starport scaffolding # genesis/test/assert
 }

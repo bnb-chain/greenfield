@@ -1,0 +1,44 @@
+syntax = "proto3";
+package bnbchain.bfs.payment;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/bfs/x/payment/types";
+
+message MockObjectInfo {
+  string bucketName = 1;
+  string objectName = 2;
+  string owner = 3;
+  uint64 objectId = 4;
+  uint64 size = 5;
+  bool isPrivate = 6;
+  string contentType = 7;
+  uint64 createAt = 8;
+  ObjectState objectState = 9;
+  RedundancyType redundancyType = 10;
+  string hash = 12;
+  string primary_sp_checksum = 13;
+  repeated StorageProviderInfo secondarySPs = 20;
+}
+
+enum RedundancyType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  REDUNDANCY_REPLICA_TYPE = 0;
+  REDUNDANCY_EC_TYPE = 1;
+  REDUNDANCY_INLINE_TYPE = 2;
+}
+
+message StorageProviderInfo {
+  string id = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  bytes checksum = 2;
+}
+
+enum ObjectState {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  OBJECT_STATE_INIT = 0;
+  OBJECT_STATE_IN_SERVICE = 1;
+  OBJECT_STATE_IN_SHIFTING = 2;
+}

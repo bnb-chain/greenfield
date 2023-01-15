@@ -86,6 +86,16 @@ User: "0",
 User: "1",
 },
 },
+MockObjectInfoList: []types.MockObjectInfo{
+	{
+		BucketName: "0",
+ObjectName: "0",
+},
+	{
+		BucketName: "1",
+ObjectName: "1",
+},
+},
 // this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
@@ -187,6 +197,22 @@ User: "0",
 			{
 				Timestamp: 0,
 User: "0",
+},
+		},
+	},
+	valid:    false,
+},
+{
+	desc:     "duplicated mockObjectInfo",
+	genState: &types.GenesisState{
+		MockObjectInfoList: []types.MockObjectInfo{
+			{
+				BucketName: "0",
+ObjectName: "0",
+},
+			{
+				BucketName: "0",
+ObjectName: "0",
 },
 		},
 	},

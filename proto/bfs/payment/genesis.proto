@@ -11,6 +11,7 @@ import "bfs/payment/stream_record.proto";
 import "gogoproto/gogo.proto";
 import "bfs/payment/bnb_price.proto";
 import "bfs/payment/auto_settle_queue.proto";
+import "bfs/payment/mock_object_info.proto";
 
 // this line is used by starport scaffolding # genesis/proto/import
 
@@ -28,5 +29,6 @@ message GenesisState {
   repeated Flow            flowList            = 6 [(gogoproto.nullable) = false];
            BnbPrice        bnbPrice            = 7;
   repeated AutoSettleQueue autoSettleQueueList = 8 [(gogoproto.nullable) = false];
+  repeated MockObjectInfo  mockObjectInfoList  = 9 [(gogoproto.nullable) = false];
 }
 

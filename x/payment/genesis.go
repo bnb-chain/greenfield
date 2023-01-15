@@ -36,6 +36,10 @@ if genState.BnbPrice != nil {
 for _, elem := range genState.AutoSettleQueueList {
 	k.SetAutoSettleQueue(ctx, elem)
 }
+// Set all the mockObjectInfo
+for _, elem := range genState.MockObjectInfoList {
+	k.SetMockObjectInfo(ctx, elem)
+}
 // this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -56,6 +60,7 @@ if found {
 	genesis.BnbPrice = &bnbPrice
 }
 genesis.AutoSettleQueueList = k.GetAllAutoSettleQueue(ctx)
+genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
 // this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
