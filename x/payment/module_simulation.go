@@ -64,6 +64,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgMockPutObject int = 100
 
+	opWeightMsgMockSealObject = "op_weight_msg_mock_seal_object"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgMockSealObject int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -173,6 +177,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgMockPutObject,
 		paymentsimulation.SimulateMsgMockPutObject(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgMockSealObject int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgMockSealObject, &weightMsgMockSealObject, nil,
+		func(_ *rand.Rand) {
+			weightMsgMockSealObject = defaultWeightMsgMockSealObject
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgMockSealObject,
+		paymentsimulation.SimulateMsgMockSealObject(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

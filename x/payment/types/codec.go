@@ -17,6 +17,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDisableRefund{}, "payment/DisableRefund", nil)
 	cdc.RegisterConcrete(&MsgMockCreateBucket{}, "payment/MockCreateBucket", nil)
 	cdc.RegisterConcrete(&MsgMockPutObject{}, "payment/MockPutObject", nil)
+cdc.RegisterConcrete(&MsgMockSealObject{}, "payment/MockSealObject", nil)
 // this line is used by starport scaffolding # 2
 }
 
@@ -41,6 +42,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 	&MsgMockPutObject{},
+)
+registry.RegisterImplementations((*sdk.Msg)(nil),
+	&MsgMockSealObject{},
 )
 // this line is used by starport scaffolding # 3
 

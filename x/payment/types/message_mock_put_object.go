@@ -28,7 +28,7 @@ func (msg *MsgMockPutObject) Type() string {
 }
 
 func (msg *MsgMockPutObject) GetSigners() []sdk.AccAddress {
-	owner, err := sdk.AccAddressFromBech32(msg.Owner)
+	owner, err := sdk.AccAddressFromHexUnsafe(msg.Owner)
 	if err != nil {
 		panic(err)
 	}
