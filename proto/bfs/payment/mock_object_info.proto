@@ -10,7 +10,7 @@ message MockObjectInfo {
   string bucketName = 1;
   string objectName = 2;
   string owner = 3;
-  uint64 id = 4;
+  string id = 4;
   uint64 size = 5;
   bool isPrivate = 6;
   string contentType = 7;

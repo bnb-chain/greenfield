@@ -11,44 +11,37 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
 // Msg defines the Msg service.
 service Msg {
-  rpc CreatePaymentAccount(MsgCreatePaymentAccount) returns (MsgCreatePaymentAccountResponse);
-  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
-  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
-  rpc Sponse(MsgSponse) returns (MsgSponseResponse);
-
+  rpc CreatePaymentAccount (MsgCreatePaymentAccount) returns (MsgCreatePaymentAccountResponse);
+  rpc Deposit              (MsgDeposit             ) returns (MsgDepositResponse             );
+  rpc Withdraw             (MsgWithdraw            ) returns (MsgWithdrawResponse            );
+  rpc Sponse               (MsgSponse              ) returns (MsgSponseResponse              );
+  
   // this line is used by starport scaffolding # proto/tx/rpc
-  rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
-  rpc MockCreateBucket(MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
+  rpc DisableRefund    (MsgDisableRefund   ) returns (MsgDisableRefundResponse   );
+  rpc MockCreateBucket (MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
+  rpc MockPutObject    (MsgMockPutObject   ) returns (MsgMockPutObjectResponse   );
 }
 message MsgCreatePaymentAccount {
   string creator = 1;
 }
 
 message MsgCreatePaymentAccountResponse {
-  string addr = 1;
+  string addr  = 1;
   uint64 count = 2;
 }
 
 message MsgDeposit {
   string creator = 1;
-  string to = 2;
-  string amount = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  string to      = 2;
+  string amount  = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 
 message MsgDepositResponse {}
 
 message MsgWithdraw {
   string creator = 1;
-  string from = 2;
-  string amount = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  string from    = 2;
+  string amount  = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 
 message MsgWithdrawResponse {}
@@ -56,12 +49,8 @@ message MsgWithdrawResponse {}
 // keep it for test temporarily
 message MsgSponse {
   string creator = 1;
-  string to = 2;
-  string rate = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
+  string to      = 2;
+  string rate    = 3 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
 }
 
 message MsgSponseResponse {}
@@ -69,18 +58,29 @@ message MsgSponseResponse {}
 // this line is used by starport scaffolding # proto/tx/message
 message MsgDisableRefund {
   string creator = 1;
-  string addr = 2;
+  string addr    = 2;
 }
 
 message MsgDisableRefundResponse {}
 
 message MsgMockCreateBucket {
-  string operator = 1;
-  string bucketName = 2;
-  string readPaymentAccount = 3;
+  string operator            = 1;
+  string bucketName          = 2;
+  string readPaymentAccount  = 3;
   string storePaymentAccount = 4;
-  string spAddress = 5;
-  uint64 readPacket = 6;
+  string spAddress           = 5;
+  uint64 readPacket          = 6;
 }
 
 message MsgMockCreateBucketResponse {}
+
+message MsgMockPutObject {
+  string owner      = 1;
+  string bucketName = 2;
+  string objectName = 3;
+  uint64 size       = 4;
+  string spAddr     = 5;
+}
+
+message MsgMockPutObjectResponse {}
+
