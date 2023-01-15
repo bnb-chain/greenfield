@@ -1,9 +1,9 @@
 syntax = "proto3";
 package bnbchain.bfs.payment;
 
+import "bfs/payment/base.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "bfs/payment/base.proto";
 
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
@@ -32,7 +32,5 @@ message StreamRecord {
   ];
   int32 status = 7;
   int64 settleTimestamp = 8;
-  repeated OutFlowInUSD outFlowsInUSD = 9 [
-    (gogoproto.nullable) = false
-  ];
+  repeated OutFlowInUSD outFlowsInUSD = 9 [(gogoproto.nullable) = false];
 }
