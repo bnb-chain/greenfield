@@ -29,9 +29,9 @@ user_addr=$($bfsd keys list --output json | jq -r '.[9].address')
 #$bfsd q bank balances "${alice_addr}"
 #$bfsd q payment params
 
-#$bfsd tx payment create-payment-account --from alice -y
-#payment_account=$($bfsd q payment get-payment-accounts-by-owner "${alice_addr}" --output json | jq -r '.paymentAccounts[0]')
-#$bfsd tx payment deposit "${alice_addr}" 10000000 --from alice -y
+$bfsd tx payment create-payment-account --from user -y
+payment_account=$($bfsd q payment get-payment-accounts-by-owner "${user_addr}" --output json | jq -r '.paymentAccounts[0]')
+$bfsd tx payment deposit "${payment_account}" 1000000000 --from user -y
 #$bfsd tx payment deposit "${payment_account}" 1 --from alice -y
 #$bfsd tx payment sponse "$payment_account" 1 --from alice -y
 #$bfsd q payment dynamic-balance "$alice_addr"
@@ -58,11 +58,16 @@ $bfsd q payment dynamic-balance "$user_addr"
 $bfsd q payment dynamic-balance "$sp0_addr"
 $bfsd q payment dynamic-balance "$sp1_addr"
 $bfsd q payment list-flow
+$bfsd q payment list-mock-bucket-meta
 $bfsd tx payment mock-delete-object "$bucket_name" "$object_name" --from user -y
 $bfsd q payment dynamic-balance "$user_addr"
 $bfsd q payment dynamic-balance "$sp0_addr"
 $bfsd q payment dynamic-balance "$sp1_addr"
 $bfsd q payment list-flow
-$bfsd tx payment mock-update-bucket-read-packet "$bucket_name" 0 --from user -y
+# todo: 0 will raise Error: failed to pack and hash typedData primary type: invalid integer value <nil>/<nil> for type int32
+$bfsd tx payment mock-update-bucket-read-packet "$bucket_name" 2 --from user -y
 $bfsd q payment dynamic-balance "$user_addr"
 $bfsd q payment dynamic-balance "$sp0_addr"
+$bfsd tx payment mock-set-bucket-payment-account "$bucket_name" "$payment_account" "$payment_account" --from user -y
+$bfsd q payment dynamic-balance "$user_addr"
+$bfsd q payment dynamic-balance "$payment_account"

@@ -7,12 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-//// PriceCalculator use interface to define multiple versions of Price Calculator
-//type PriceCalculator interface {
-//	GetReadPrice(readPacket types.ReadPacket, priceTime int64) sdkmath.Int
-//	GetStorePrice(bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo, priceTime int64) types.StorePrice
-//}
-
 // GetReadPrice priceTime is kept to retrieve the price of ReadPacket at historical time
 func (k Keeper) GetReadPrice(ctx sdk.Context, readPacket types.ReadPacket, _priceTime int64) (sdkmath.Int, error) {
 	return k.GetReadPriceV0(readPacket)
@@ -49,7 +43,7 @@ func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketMeta *types.MockBucketMet
 		if len(objectInfo.SecondarySPs) != 6 {
 			panic("there should be 6 secondary sps")
 		}
-		storePrice.Flows = []types.StorePriceFlow{
+		storePrice.Flows = []types.OutFlowInUSD{
 			{bucketMeta.SpAddress, sdkmath.NewInt(4)},
 			{objectInfo.SecondarySPs[0].Id, sdkmath.NewInt(1)},
 			{objectInfo.SecondarySPs[1].Id, sdkmath.NewInt(1)},

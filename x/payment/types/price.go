@@ -33,14 +33,9 @@ func (change StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmath
 	return change
 }
 
-type StorePriceFlow struct {
-	SpAddr string
-	Rate   sdkmath.Int
-}
-
 type StorePrice struct {
 	UserPayRate sdkmath.Int
-	Flows       []StorePriceFlow
+	Flows       []OutFlowInUSD
 }
 
 type BNBPrice struct {

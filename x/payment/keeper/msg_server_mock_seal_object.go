@@ -34,6 +34,8 @@ func (k msgServer) MockSealObject(goCtx context.Context, msg *types.MsgMockSealO
 	if err != nil {
 		return nil, fmt.Errorf("unlock and charge store fee failed: %w", err)
 	}
+	objectInfo.LockedBalance = nil
 	k.SetMockObjectInfo(ctx, objectInfo)
+	k.SetMockBucketMeta(ctx, bucketMeta)
 	return &types.MsgMockSealObjectResponse{}, nil
 }

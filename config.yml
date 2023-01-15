@@ -30,6 +30,9 @@ accounts:
   - name: user
     coins: ["200000000000000token", "200000000stake"]
     mnemonic: "faith bomb frequent inflict endless cute glass kick session fence sell firm energy sun march melody claim almost useless burden fish force gorilla immense"
+  - name: user2
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "home piano firm basket label melt shove rhythm opinion question dragon gain sister someone marble program hurdle neither absent gown end woman stadium rare"
 validators:
   - name: alice
     bonded: "100000000stake"

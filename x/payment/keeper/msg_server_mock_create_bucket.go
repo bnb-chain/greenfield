@@ -43,7 +43,7 @@ func (k msgServer) MockCreateBucket(goCtx context.Context, msg *types.MsgMockCre
 	}
 	// charge read packet fee if it's not free level
 	if readPacket != types.ReadPacketFree {
-		err := k.ChargeInitialReadFee(ctx, bucketMeta.ReadPaymentAccount, msg.SpAddress, readPacket)
+		err := k.ChargeInitialReadFee(ctx, &bucketMeta)
 		if err != nil {
 			return nil, fmt.Errorf("charge initial read fee failed: %w", err)
 		}

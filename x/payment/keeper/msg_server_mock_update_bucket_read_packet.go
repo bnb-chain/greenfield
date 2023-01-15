@@ -11,8 +11,8 @@ import (
 func (k msgServer) MockUpdateBucketReadPacket(goCtx context.Context, msg *types.MsgMockUpdateBucketReadPacket) (*types.MsgMockUpdateBucketReadPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	bucketMeta, found := k.GetMockBucketMeta(ctx, msg.BucketName)
-	if found {
-		return nil, fmt.Errorf("bucket already exists")
+	if !found {
+		return nil, fmt.Errorf("bucket not exists")
 	}
 	newReadPacket := types.ReadPacket(msg.ReadPacket)
 	if newReadPacket == bucketMeta.ReadPacket {

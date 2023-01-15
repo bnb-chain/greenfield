@@ -17,8 +17,8 @@ func TestApplyFlowChanges(t *testing.T) {
 	sp := "sp"
 	userInitBalance := sdkmath.NewInt(1e10)
 	flowChanges := []types.StreamRecordChange{
-		{user, rate.Neg(), userInitBalance},
-		{sp, rate, sdkmath.NewInt(0)},
+		{Addr: user, RateChange: rate.Neg(), StaticBalanceChange: userInitBalance},
+		{Addr: sp, RateChange: rate, StaticBalanceChange: sdkmath.NewInt(0)},
 	}
 	err := keeper.ApplyStreamRecordChanges(ctx, flowChanges)
 	require.NoError(t, err)

@@ -18,5 +18,7 @@ message MockBucketMeta {
   // for payment
   ReadPacket readPacket = 7;
   int64 priceTime = 8;
-  repeated OutFlowInUSD outFlowsInUSD = 9;
+  repeated OutFlowInUSD outFlowsInUSD = 9 [
+    (gogoproto.nullable) = false
+  ];
 }
