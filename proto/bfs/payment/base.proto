@@ -6,14 +6,19 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
-message Flow {
-  string from = 1;
-  string to = 2;
-  // this rate is in USD
-  string rate = 3 [
+message OutFlowInUSD {
+  string spAddress = 1;
+  string rate = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  bool frozen = 4;
+}
+
+enum ReadPacket {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  ReadPacketFree = 0;
+  ReadPacket1GB = 1;
+  ReadPacket10GB = 2;
 }

@@ -26,8 +26,9 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type Flow struct {
-	From   string                                 `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	To     string                                 `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	To   string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	// this rate is in USD
 	Rate   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=rate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"rate"`
 	Frozen bool                                   `protobuf:"varint,4,opt,name=frozen,proto3" json:"frozen,omitempty"`
 }
@@ -304,7 +305,7 @@ func (m *Flow) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field RateChange", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Rate", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {

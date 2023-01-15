@@ -6,6 +6,30 @@ accounts:
   - name: bob
     coins: ["10000token", "200000000stake"]
     mnemonic: "bridge zoo loyal super right wet cool nice interest bronze bring behave smoke transfer palace arctic cool thank outer runway blade diesel giraffe goat"
+  - name: sp0
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "million twice blue eternal travel number section abstract chest affair decade volcano member impose setup floor rail title female spider item nature reunion shoulder"
+  - name: sp1
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "tackle saddle wine net release bread guide reject chat cluster truly soap garden ugly search elegant hurry scrap surge item thunder liquid crop machine"
+  - name: sp2
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "genre cash give exercise dumb glove switch laugh umbrella welcome fix census record sheriff process bicycle zero apple message hunt private myself pig wealth"
+  - name: sp3
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "top ritual shaft camera type embody wedding daring direct census dad dilemma gorilla tree iron forum notable will drum bright student exhibit abuse pass"
+  - name: sp4
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "drip muffin rule hurry orphan wink light draft slush dune wisdom flag convince next this define copy pulp piano document someone found slight random"
+  - name: sp5
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "sudden float cube train okay range soap raw noise gorilla thrive clip baby december tenant help slim tumble version maximum ride buddy place loyal"
+  - name: sp6
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "among hamster prison animal grant resource crime rough affair train pelican swallow fee stove ring silk truck person loan fit play excuse athlete sauce"
+  - name: user
+    coins: ["200000000000000token", "200000000stake"]
+    mnemonic: "faith bomb frequent inflict endless cute glass kick session fence sell firm energy sun march melody claim almost useless burden fish force gorilla immense"
 validators:
   - name: alice
     bonded: "100000000stake"

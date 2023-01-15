@@ -1,28 +1,28 @@
 package cli
 
 import (
-    "strconv"
-	
-	 "strings"
-	"github.com/spf13/cobra"
-    "github.com/cosmos/cosmos-sdk/client"
+	"strconv"
+
+	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/spf13/cobra"
+	"strings"
 )
 
 var _ = strconv.Itoa(0)
 
 func CmdMockSealObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mock-seal-object [bucket-name] [object-name] [secondary-s-ps]",
+		Use:   "mock-seal-object [bucket-name] [object-name] [secondarySPs]",
 		Short: "Broadcast message mock-seal-object",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-      		 argBucketName := args[0]
-             argObjectName := args[1]
-             argSecondarySPs := strings.Split(args[2], listSeparator)
-            
+			argBucketName := args[0]
+			argObjectName := args[1]
+			argSecondarySPs := strings.Split(args[2], listSeparator)
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -33,7 +33,7 @@ func CmdMockSealObject() *cobra.Command {
 				argBucketName,
 				argObjectName,
 				argSecondarySPs,
-				
+
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -44,5 +44,5 @@ func CmdMockSealObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
-    return cmd
+	return cmd
 }

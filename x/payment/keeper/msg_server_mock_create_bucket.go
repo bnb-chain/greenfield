@@ -12,12 +12,17 @@ func (k msgServer) MockCreateBucket(goCtx context.Context, msg *types.MsgMockCre
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: msg verification
+	bucketMeta, found := k.GetMockBucketMeta(ctx, msg.BucketName)
+	if found {
+		return nil, fmt.Errorf("bucket already exists")
+	}
+	readPacket := types.ReadPacket(msg.ReadPacket)
 	// compose bucket meta
-	bucketMeta := types.MockBucketMeta{
+	bucketMeta = types.MockBucketMeta{
 		BucketName: msg.BucketName,
 		Owner:      msg.Operator,
 		SpAddress:  msg.SpAddress,
-		ReadPacket: msg.ReadPacket,
+		ReadPacket: readPacket,
 		PriceTime:  ctx.BlockTime().Unix(),
 	}
 	if msg.ReadPaymentAccount == "" || msg.ReadPaymentAccount == msg.Operator {
@@ -37,7 +42,6 @@ func (k msgServer) MockCreateBucket(goCtx context.Context, msg *types.MsgMockCre
 		bucketMeta.StorePaymentAccount = msg.StorePaymentAccount
 	}
 	// charge read packet fee if it's not free level
-	readPacket := types.ReadPacket(msg.ReadPacket)
 	if readPacket != types.ReadPacketFree {
 		err := k.ChargeInitialReadFee(ctx, bucketMeta.ReadPaymentAccount, msg.SpAddress, readPacket)
 		if err != nil {

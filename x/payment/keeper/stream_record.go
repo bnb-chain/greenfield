@@ -80,6 +80,9 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	if !change.LockBalanceChange.IsZero() {
 		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
 		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(change.LockBalanceChange)
+		if streamRecord.LockBalance.IsNegative() {
+			return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
+		}
 	}
 	// update buffer balance
 	if !change.RateChange.IsZero() {
@@ -98,8 +101,9 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		streamRecord.StaticBalance = streamRecord.StaticBalance.Add(change.StaticBalanceChange)
 	}
 	if streamRecord.StaticBalance.IsNegative() {
-		if change.AutoTransfer {
-			account := sdk.MustAccAddressFromHex(streamRecord.Account)
+		account := sdk.MustAccAddressFromHex(streamRecord.Account)
+		bankAccount := k.accountKeeper.GetAccount(ctx, account)
+		if bankAccount != nil {
 			coins := sdk.NewCoins(sdk.NewCoin(types.Denom, streamRecord.StaticBalance.Abs()))
 			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
 			if err != nil {
@@ -127,7 +131,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	return nil
 }
 
-func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRecordChange) (ret types.StreamRecord, err error) {
+func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRecordChange) (ret *types.StreamRecord, err error) {
 	streamRecord, found := k.GetStreamRecord(ctx, change.Addr)
 	if !found {
 		streamRecord = types.NewStreamRecord(change.Addr, ctx.BlockTime().Unix())
@@ -137,7 +141,7 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRe
 		return
 	}
 	k.SetStreamRecord(ctx, streamRecord)
-	return
+	return &streamRecord, nil
 }
 
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {

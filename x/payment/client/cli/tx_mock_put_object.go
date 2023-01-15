@@ -17,7 +17,7 @@ func CmdMockPutObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mock-put-object [bucket-name] [object-name] [size]",
 		Short: "Broadcast message mock-put-object",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
 			argObjectName := args[1]

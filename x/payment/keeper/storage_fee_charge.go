@@ -30,6 +30,7 @@ func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newCh
 			if baseChange.Addr == newChange.Addr {
 				(*base)[i].RateChange = baseChange.RateChange.Add(newChange.RateChange)
 				(*base)[i].StaticBalanceChange = baseChange.StaticBalanceChange.Add(newChange.StaticBalanceChange)
+				(*base)[i].LockBalanceChange = baseChange.LockBalanceChange.Add(newChange.LockBalanceChange)
 				found = true
 				break
 			}
@@ -64,10 +65,7 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 	//}
 	// charge fee
 	for _, fc := range streamRecordChanges {
-		// todo: check is payment account not accurate
-		_, isPaymentAccount := k.GetPaymentAccount(ctx, fc.Addr)
-		change := types.NewDefaultStreamRecordChangeWithAddr(fc.Addr).WithRateChange(fc.RateChange).WithStaticBalanceChange(fc.StaticBalanceChange).WithAutoTransfer(!isPaymentAccount)
-		_, err := k.UpdateStreamRecordByAddr(ctx, &change)
+		_, err := k.UpdateStreamRecordByAddr(ctx, &fc)
 		if err != nil {
 			return fmt.Errorf("update stream record failed: %w", err)
 		}
@@ -75,40 +73,75 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 	return nil
 }
 
-func (k Keeper) ApplyFlowChanges(ctx sdk.Context, flowChanges []types.Flow) error {
-	streamRecordChangeMap := make(map[string]*types.StreamRecordChange)
-	// merge changes with same address
-	for _, flowChange := range flowChanges {
-		fromFc, found := streamRecordChangeMap[flowChange.From]
-		if !found {
-			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.From)
-			fromFc = &fc
-			streamRecordChangeMap[flowChange.From] = fromFc
-		}
-		fromFc.RateChange = fromFc.RateChange.Sub(flowChange.Rate)
-		toFc, found := streamRecordChangeMap[flowChange.To]
-		if !found {
-			fc := types.NewDefaultStreamRecordChangeWithAddr(flowChange.To)
-			toFc = &fc
-			streamRecordChangeMap[flowChange.To] = toFc
-		}
-		toFc.RateChange = toFc.RateChange.Add(flowChange.Rate)
-		// update flow
-		err := k.UpdateFlow(ctx, flowChange)
+func (k Keeper) ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []types.OutFlowInUSD) (err error) {
+	currentTime := ctx.BlockTime().Unix()
+	currentBNBPrice, err := k.GetBNBPriceByTime(ctx, currentTime)
+	if err != nil {
+		return fmt.Errorf("get current bnb price failed: %w", err)
+	}
+	streamRecord, found := k.GetStreamRecord(ctx, from)
+	if !found {
+		streamRecord = types.NewStreamRecord(from, currentTime)
+	}
+	prevTime := streamRecord.CrudTimestamp
+	priceChanged := false
+	var prevBNBPrice types.BNBPrice
+	if prevTime != currentTime {
+		prevBNBPrice, err = k.GetBNBPriceByTime(ctx, prevTime)
 		if err != nil {
-			return fmt.Errorf("update flow failed: %w, flow: %+v", err, flowChange)
+			return fmt.Errorf("get bnb price by time failed: %w", err)
+		}
+		priceChanged = !prevBNBPrice.Equal(currentBNBPrice)
+	}
+	var streamRecordChanges []types.StreamRecordChange
+	// calculate rate changes in flowChanges
+	for _, flowChange := range flowChanges {
+		rateChangeInBNB := USD2BNB(flowChange.Rate, currentBNBPrice)
+		k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
+			types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
+			types.NewDefaultStreamRecordChangeWithAddr(flowChange.SpAddress).WithRateChange(rateChangeInBNB),
+		})
+	}
+	// calculate rate changes if price changes
+	if priceChanged {
+		for _, flow := range streamRecord.OutFlowsInUSD {
+			prevRateInBNB := USD2BNB(flow.Rate, prevBNBPrice)
+			currentRateInBNB := USD2BNB(flow.Rate, currentBNBPrice)
+			rateChangeInBNB := currentRateInBNB.Sub(prevRateInBNB)
+			k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
+				types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
+				types.NewDefaultStreamRecordChangeWithAddr(flow.SpAddress).WithRateChange(rateChangeInBNB),
+			})
 		}
 	}
-	streamRecordChanges := make([]types.StreamRecordChange, 0, len(streamRecordChangeMap))
-	for _, fc := range streamRecordChangeMap {
-		streamRecordChanges = append(streamRecordChanges, *fc)
-	}
-	// apply stream record changes
-	err := k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+	// update flows
+	MergeOutFlows(&streamRecord.OutFlowsInUSD, flowChanges)
+	k.SetStreamRecord(ctx, streamRecord)
+	err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
 	if err != nil {
 		return fmt.Errorf("apply stream record changes failed: %w", err)
 	}
 	return nil
+}
+
+func USD2BNB(usd sdkmath.Int, bnbPrice types.BNBPrice) (bnb sdkmath.Int) {
+	return usd.Mul(bnbPrice.Precision).Quo(bnbPrice.Num)
+}
+
+func MergeOutFlows(flow *[]types.OutFlowInUSD, changes []types.OutFlowInUSD) {
+	for _, change := range changes {
+		found := false
+		for i, f := range *flow {
+			if f.SpAddress == change.SpAddress {
+				found = true
+				(*flow)[i].Rate = (*flow)[i].Rate.Add(change.Rate)
+				break
+			}
+		}
+		if !found {
+			*flow = append(*flow, change)
+		}
+	}
 }
 
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, readPacket types.ReadPacket) error {
@@ -117,31 +150,94 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, user, primarySP string, re
 	if err != nil {
 		return fmt.Errorf("get read price failed: %w", err)
 	}
-	flowChanges := []types.Flow{
-		{From: user, To: primarySP, Rate: price},
+	flowChanges := []types.OutFlowInUSD{
+		{SpAddress: primarySP, Rate: price},
 	}
-	return k.ApplyFlowChanges(ctx, flowChanges)
+	return k.ApplyUSDFlowChanges(ctx, user, flowChanges)
 }
 
-func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.Int) error {
-	reserveTime := k.GetParams(ctx).ReserveTime
-	bnbPriceNum, bnbPricePrecision, err := k.GetCurrentBNBPrice(ctx)
+func (k Keeper) ChargeUpdateReadPacket(ctx sdk.Context, bucketMeta *types.MockBucketMeta, newReadPacket types.ReadPacket) error {
+	prevPrice, err := k.GetReadPrice(ctx, bucketMeta.ReadPacket, bucketMeta.PriceTime)
 	if err != nil {
-		return fmt.Errorf("get current bnb price failed: %w", err)
+		return fmt.Errorf("get prev read price failed: %w", err)
 	}
-	lockAmountInBNB := rate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Mul(bnbPricePrecision).Quo(bnbPriceNum)
-	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithLockBalanceChange(lockAmountInBNB.Neg()).WithAutoTransfer(true)
-	streamRecord, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	newPrice, err := k.GetReadPrice(ctx, newReadPacket, ctx.BlockTime().Unix())
 	if err != nil {
-		return fmt.Errorf("update stream record failed: %w", err)
+		return fmt.Errorf("get new read price failed: %w", err)
 	}
-	if streamRecord.StaticBalance.LT(streamRecord.LockBalance) {
-		return fmt.Errorf("static balance is not enough, lacks %s", streamRecord.StaticBalance.String())
+	flowChanges := []types.OutFlowInUSD{
+		{SpAddress: bucketMeta.SpAddress, Rate: newPrice.Sub(prevPrice)},
+	}
+	err = k.ApplyUSDFlowChanges(ctx, bucketMeta.ReadPaymentAccount, flowChanges)
+	if err != nil {
+		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
 	return nil
 }
 
+func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.Int) (sdkmath.Int, error) {
+	var lockAmountInBNB sdkmath.Int
+	reserveTime := k.GetParams(ctx).ReserveTime
+	bnbPrice, err := k.GetCurrentBNBPrice(ctx)
+	if err != nil {
+		return lockAmountInBNB, fmt.Errorf("get current bnb price failed: %w", err)
+	}
+	lockAmountInBNB = rate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Mul(bnbPrice.Precision).Quo(bnbPrice.Num)
+	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithLockBalanceChange(lockAmountInBNB)
+	streamRecord, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	if err != nil {
+		return lockAmountInBNB, fmt.Errorf("update stream record failed: %w", err)
+	}
+	if streamRecord.StaticBalance.IsNegative() {
+		return lockAmountInBNB, fmt.Errorf("static balance is not enough, lacks %s", streamRecord.StaticBalance.Neg().String())
+	}
+	return lockAmountInBNB, nil
+}
+
 func (k Keeper) LockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
 	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
-	return k.LockStoreFeeByRate(ctx, bucketMeta.StorePaymentAccount, feePrice.UserPayRate)
+	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketMeta.StorePaymentAccount, feePrice.UserPayRate)
+	if err != nil {
+		return fmt.Errorf("lock store fee by rate failed: %w", err)
+	}
+	objectInfo.LockedBalance = &lockedBalance
+	return nil
+}
+
+// UnlockStoreFee unlock store fee if the object is deleted in INIT state
+func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
+	lockedBalance := objectInfo.LockedBalance
+	change := types.NewDefaultStreamRecordChangeWithAddr(bucketMeta.StorePaymentAccount).WithLockBalanceChange(lockedBalance.Neg())
+	_, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	if err != nil {
+		return fmt.Errorf("update stream record failed: %w", err)
+	}
+	return nil
+}
+
+func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
+	// todo: what if store payment account is changed before unlock?
+	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
+	lockedBalance := objectInfo.LockedBalance
+	var streamRecordChanges []types.StreamRecordChange
+	streamRecordChanges = append(streamRecordChanges, types.NewDefaultStreamRecordChangeWithAddr(bucketMeta.StorePaymentAccount).WithRateChange(feePrice.UserPayRate.Neg()).WithLockBalanceChange(lockedBalance.Neg()))
+	for _, storePriceFlow := range feePrice.Flows {
+		flow := types.Flow{
+			From: bucketMeta.StorePaymentAccount,
+			To:   storePriceFlow.SpAddr,
+			Rate: storePriceFlow.Rate,
+		}
+		err := k.UpdateFlow(ctx, flow)
+		if err != nil {
+			return fmt.Errorf("update flow %+v failed: %w", flow, err)
+		}
+		streamRecordChanges = append(streamRecordChanges, types.NewDefaultStreamRecordChangeWithAddr(storePriceFlow.SpAddr).WithRateChange(storePriceFlow.Rate))
+	}
+	err := k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes failed: %w", err)
+	}
+	// set locked balance to nil
+	objectInfo.LockedBalance = nil
+	return nil
 }

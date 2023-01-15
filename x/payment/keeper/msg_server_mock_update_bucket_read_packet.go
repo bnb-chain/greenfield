@@ -2,17 +2,33 @@ package keeper
 
 import (
 	"context"
+	"fmt"
 
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/bfs/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-
-func (k msgServer) MockUpdateBucketReadPacket(goCtx context.Context,  msg *types.MsgMockUpdateBucketReadPacket) (*types.MsgMockUpdateBucketReadPacketResponse, error) {
+func (k msgServer) MockUpdateBucketReadPacket(goCtx context.Context, msg *types.MsgMockUpdateBucketReadPacket) (*types.MsgMockUpdateBucketReadPacketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-    // TODO: Handling the message
-    _ = ctx
-
+	bucketMeta, found := k.GetMockBucketMeta(ctx, msg.BucketName)
+	if found {
+		return nil, fmt.Errorf("bucket already exists")
+	}
+	newReadPacket := types.ReadPacket(msg.ReadPacket)
+	if newReadPacket == bucketMeta.ReadPacket {
+		return nil, fmt.Errorf("read packet is not changed")
+	}
+	if bucketMeta.Owner != msg.Operator {
+		return nil, fmt.Errorf("not bucket owner")
+	}
+	// charge read packet fee if it's changed
+	err := k.ChargeUpdateReadPacket(ctx, &bucketMeta, newReadPacket)
+	if err != nil {
+		return nil, fmt.Errorf("charge update read packet failed: %w", err)
+	}
+	// change bucket meta
+	bucketMeta.PriceTime = ctx.BlockTime().Unix()
+	bucketMeta.ReadPacket = newReadPacket
+	k.SetMockBucketMeta(ctx, bucketMeta)
 	return &types.MsgMockUpdateBucketReadPacketResponse{}, nil
 }

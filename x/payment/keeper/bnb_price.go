@@ -46,7 +46,7 @@ func (k Keeper) SubmitBNBPrice(ctx sdk.Context, time int64, price uint64) {
 // GetBNBPrice return the price of BNB at priceTime
 // price = num / precision
 // e.g. num = 27740000000, precision = 100000000, price = 27740000000 / 100000000 = 277.4
-func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (num, precision sdkmath.Int, err error) {
+func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (bnbPrice types.BNBPrice, err error) {
 	//return sdkmath.NewInt(27740000000), sdkmath.NewInt(100000000)
 	prices, _ := k.GetBnbPrice(ctx)
 	length := len(prices.Prices)
@@ -54,17 +54,19 @@ func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (num, precis
 		err = fmt.Errorf("no bnb price found")
 		return
 	}
-	precision = sdkmath.NewInt(100000000)
+	bnbPrice = types.BNBPrice{
+		Precision: sdkmath.NewInt(100000000),
+	}
 	for i := length - 1; i >= 0; i-- {
 		if prices.Prices[i].Time <= priceTime {
-			num = sdkmath.NewIntFromUint64(prices.Prices[i].Price)
+			bnbPrice.Num = sdkmath.NewIntFromUint64(prices.Prices[i].Price)
 			return
 		}
 	}
-	num = sdkmath.NewIntFromUint64(prices.Prices[0].Price)
+	bnbPrice.Num = sdkmath.NewIntFromUint64(prices.Prices[0].Price)
 	return
 }
 
-func (k Keeper) GetCurrentBNBPrice(ctx sdk.Context) (num, precision sdkmath.Int, err error) {
+func (k Keeper) GetCurrentBNBPrice(ctx sdk.Context) (bnbPrice types.BNBPrice, err error) {
 	return k.GetBNBPriceByTime(ctx, ctx.BlockTime().Unix())
 }

@@ -7,7 +7,6 @@ type StreamRecordChange struct {
 	RateChange          sdkmath.Int
 	StaticBalanceChange sdkmath.Int
 	LockBalanceChange   sdkmath.Int
-	AutoTransfer        bool
 }
 
 func NewDefaultStreamRecordChangeWithAddr(addr string) StreamRecordChange {
@@ -34,11 +33,6 @@ func (change StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmath
 	return change
 }
 
-func (change StreamRecordChange) WithAutoTransfer(autoTransfer bool) StreamRecordChange {
-	change.AutoTransfer = autoTransfer
-	return change
-}
-
 type StorePriceFlow struct {
 	SpAddr string
 	Rate   sdkmath.Int
@@ -47,4 +41,13 @@ type StorePriceFlow struct {
 type StorePrice struct {
 	UserPayRate sdkmath.Int
 	Flows       []StorePriceFlow
+}
+
+type BNBPrice struct {
+	Num       sdkmath.Int
+	Precision sdkmath.Int
+}
+
+func (price BNBPrice) Equal(other BNBPrice) bool {
+	return price.Num.Equal(other.Num) && price.Precision.Equal(other.Precision)
 }

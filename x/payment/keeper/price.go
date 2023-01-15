@@ -16,19 +16,6 @@ import (
 // GetReadPrice priceTime is kept to retrieve the price of ReadPacket at historical time
 func (k Keeper) GetReadPrice(ctx sdk.Context, readPacket types.ReadPacket, _priceTime int64) (sdkmath.Int, error) {
 	return k.GetReadPriceV0(readPacket)
-	//priceInUSD, err := GetReadPriceV0(readPacket)
-	//if err != nil {
-	//	return sdkmath.ZeroInt(), fmt.Errorf("get read price failed: %w", err)
-	//}
-	//if priceInUSD.IsZero() {
-	//	return priceInUSD, nil
-	//}
-	//priceNum, pricePrecision, err := k.GetBNBPriceByTime(ctx, priceTime)
-	//if err != nil {
-	//	return sdkmath.ZeroInt(), fmt.Errorf("get bnb price failed: %w", err)
-	//}
-	//priceInBNB := priceInUSD.Mul(pricePrecision).Quo(priceNum)
-	//return priceInBNB, nil
 }
 
 func (k Keeper) GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, err error) {
@@ -49,6 +36,7 @@ func (k Keeper) GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, 
 }
 
 func (k Keeper) GetStorePrice(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) types.StorePrice {
+	// price may change with objectInfo.CreateAt
 	return k.GetStorePriceV0(ctx, bucketMeta, objectInfo)
 }
 
@@ -69,7 +57,6 @@ func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketMeta *types.MockBucketMet
 			{objectInfo.SecondarySPs[3].Id, sdkmath.NewInt(1)},
 			{objectInfo.SecondarySPs[4].Id, sdkmath.NewInt(1)},
 			{objectInfo.SecondarySPs[5].Id, sdkmath.NewInt(1)},
-			{objectInfo.SecondarySPs[6].Id, sdkmath.NewInt(1)},
 		}
 	}
 	return storePrice

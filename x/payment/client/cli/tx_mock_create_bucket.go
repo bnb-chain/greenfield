@@ -39,7 +39,7 @@ func CmdMockCreateBucket() *cobra.Command {
 				argReadPaymentAccount,
 				argStorePaymentAccount,
 				argSpAddress,
-				types.ReadPacket(argReadPacket),
+				argReadPacket,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
