@@ -16,13 +16,10 @@ func (k Keeper) GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, 
 	switch readPacket {
 	case types.ReadPacketFree:
 		price = sdkmath.NewInt(0)
-		break
 	case types.ReadPacket1GB:
 		price = sdkmath.NewInt(1)
-		break
 	case types.ReadPacket10GB:
 		price = sdkmath.NewInt(10)
-		break
 	default:
 		err = fmt.Errorf("invalid read packet level: %d", readPacket)
 	}
