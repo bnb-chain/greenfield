@@ -76,6 +76,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgMockSetBucketPaymentAccount int = 100
 
+	opWeightMsgMockUpdateBucketReadPacket = "op_weight_msg_mock_update_bucket_read_packet"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgMockUpdateBucketReadPacket int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -218,6 +222,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgMockSetBucketPaymentAccount,
 		paymentsimulation.SimulateMsgMockSetBucketPaymentAccount(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgMockUpdateBucketReadPacket int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgMockUpdateBucketReadPacket, &weightMsgMockUpdateBucketReadPacket, nil,
+		func(_ *rand.Rand) {
+			weightMsgMockUpdateBucketReadPacket = defaultWeightMsgMockUpdateBucketReadPacket
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgMockUpdateBucketReadPacket,
+		paymentsimulation.SimulateMsgMockUpdateBucketReadPacket(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation
