@@ -26,7 +26,7 @@ const (
 
 type TransferOutSynPackage struct {
 	Amount        *big.Int
-	Recipient     sdk.EthAddress
+	Recipient     sdk.AccAddress
 	RefundAddress sdk.AccAddress
 }
 
@@ -57,7 +57,7 @@ func DeserializeTransferOutRefundPackage(serializedPackage []byte) (*TransferOut
 type TransferInSynPackage struct {
 	Amount          *big.Int
 	ReceiverAddress sdk.AccAddress
-	RefundAddress   sdk.EthAddress
+	RefundAddress   sdk.AccAddress
 }
 
 func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPackage, error) {
@@ -72,6 +72,6 @@ func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPa
 
 type TransferInRefundPackage struct {
 	RefundAmount  *big.Int
-	RefundAddress sdk.EthAddress
+	RefundAddress sdk.AccAddress
 	RefundReason  RefundReason
 }

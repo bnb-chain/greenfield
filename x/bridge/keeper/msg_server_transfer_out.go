@@ -34,7 +34,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, err
 	}
 
-	toAddress, err := sdk.ETHAddressFromHexUnsafe(msg.To)
+	toAddress, err := sdk.AccAddressFromHexUnsafe(msg.To)
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidAddress, "to address is not invalid")
 	}

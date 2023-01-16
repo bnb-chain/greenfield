@@ -44,7 +44,7 @@ func (msg *MsgTransferOut) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
 
-	_, err = sdk.ETHAddressFromHexUnsafe(msg.To)
+	_, err = sdk.AccAddressFromHexUnsafe(msg.To)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
 	}

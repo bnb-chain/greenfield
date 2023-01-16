@@ -24,7 +24,7 @@ func CmdTransferOut() *cobra.Command {
 				return err
 			}
 
-			toAddr, err := sdk.ETHAddressFromHexUnsafe(args[0])
+			toAddr, err := sdk.AccAddressFromHexUnsafe(args[0])
 			if err != nil {
 				return err
 			}
