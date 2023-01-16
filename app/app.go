@@ -89,6 +89,8 @@ const (
 	EIP155ChainID = "9000"
 	Epoch         = "1"
 
+	// CoinType is the ETH coin type as defined in SLIP44 (https://github.com/satoshilabs/slips/blob/master/slip-0044.md)
+	// In order to keep consistent with bnb smart chain
 	CoinType = 60
 )
 
@@ -263,7 +265,6 @@ func New(
 		app.GetSubspace(authtypes.ModuleName),
 		authtypes.ProtoBaseAccount,
 		maccPerms,
-		sdk.Bech32PrefixAccAddr,
 	)
 
 	app.AuthzKeeper = authzkeeper.NewKeeper(
