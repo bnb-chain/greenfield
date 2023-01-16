@@ -100,7 +100,7 @@ func TestTransferOutFailAck(t *testing.T) {
 
 	synPackage := types.TransferOutSynPackage{
 		Amount:        big.NewInt(1),
-		Recipient:     sdk.EthAddress{},
+		Recipient:     sdk.AccAddress{},
 		RefundAddress: addr1,
 	}
 
@@ -132,7 +132,7 @@ func TestTransferInCheck(t *testing.T) {
 			transferInPackage: types.TransferInSynPackage{
 				Amount:          big.NewInt(1),
 				ReceiverAddress: sdk.AccAddress{},
-				RefundAddress:   sdk.EthAddress{1},
+				RefundAddress:   sdk.AccAddress{1},
 			},
 			expectedPass: false,
 			errorMsg:     "receiver address should not be empty",
@@ -141,7 +141,7 @@ func TestTransferInCheck(t *testing.T) {
 			transferInPackage: types.TransferInSynPackage{
 				Amount:          big.NewInt(1),
 				ReceiverAddress: sdk.AccAddress{1},
-				RefundAddress:   sdk.EthAddress{},
+				RefundAddress:   sdk.AccAddress{},
 			},
 			expectedPass: false,
 			errorMsg:     "refund address should not be empty",
@@ -150,7 +150,7 @@ func TestTransferInCheck(t *testing.T) {
 			transferInPackage: types.TransferInSynPackage{
 				Amount:          big.NewInt(-1),
 				ReceiverAddress: sdk.AccAddress{1},
-				RefundAddress:   sdk.EthAddress{1},
+				RefundAddress:   sdk.AccAddress{1},
 			},
 			expectedPass: false,
 			errorMsg:     "amount should not be negative",
@@ -159,7 +159,7 @@ func TestTransferInCheck(t *testing.T) {
 			transferInPackage: types.TransferInSynPackage{
 				Amount:          big.NewInt(1),
 				ReceiverAddress: sdk.AccAddress{1},
-				RefundAddress:   sdk.EthAddress{1},
+				RefundAddress:   sdk.AccAddress{1},
 			},
 			expectedPass: true,
 		},
@@ -186,7 +186,7 @@ func TestTransferInSyn(t *testing.T) {
 	transferInSynPackage := types.TransferInSynPackage{
 		Amount:          big.NewInt(1),
 		ReceiverAddress: addr1,
-		RefundAddress:   sdk.EthAddress{1},
+		RefundAddress:   sdk.AccAddress{1},
 	}
 
 	packageBytes, err := rlp.EncodeToBytes(&transferInSynPackage)

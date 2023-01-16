@@ -122,7 +122,6 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		GetSubspace(paramKeeper, authtypes.ModuleName),
 		authtypes.ProtoBaseAccount,
 		maccPerms,
-		sdk.Bech32PrefixAccAddr,
 	)
 
 	authzKeeper := authzkeeper.NewKeeper(
