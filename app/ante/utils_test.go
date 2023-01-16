@@ -236,7 +236,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		PubKey:        acc.GetPubKey(),
 	}
 
-	msgTypes, _, err := tx.GetMsgTypes(suite.app.AppCodec(), signerData, txBuilder.GetTx(), big.NewInt(9000))
+	msgTypes, _, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
 	suite.Require().NoError(err)
 
 	msgTypesJson, _ := json.MarshalIndent(msgTypes, "", "  ")
@@ -368,7 +368,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	encCfg := app.MakeEncodingConfig()
 
 	nApp := app.New(
-		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, nil, simapp.EmptyAppOptions{}, options...)
+		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, app.NewDefaultAppConfig(), simapp.EmptyAppOptions{}, options...)
 
 	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
 	genesisState, _ = genesisStateWithValSet(nApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)

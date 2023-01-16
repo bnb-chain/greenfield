@@ -34,6 +34,5 @@ func MakeEncodingConfig() params.EncodingConfig {
 	std.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	ModuleBasics.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	ModuleBasics.RegisterInterfaces(encodingConfig.InterfaceRegistry)
-	tx.MsgCodec = codec.NewProtoCodec(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }
