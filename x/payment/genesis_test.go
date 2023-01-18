@@ -81,7 +81,17 @@ func TestGenesis(t *testing.T) {
 				ObjectName: "1",
 			},
 		},
-		// this line is used by starport scaffolding # genesis/test/state
+		AutoSettleRecordList: []types.AutoSettleRecord{
+		{
+			Timestamp: 0,
+Addr: "0",
+},
+		{
+			Timestamp: 1,
+Addr: "1",
+},
+	},
+	// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	k, ctx := keepertest.PaymentKeeper(t)
@@ -101,5 +111,6 @@ func TestGenesis(t *testing.T) {
 	require.Equal(t, genesisState.BnbPrice, got.BnbPrice)
 	require.ElementsMatch(t, genesisState.AutoSettleQueueList, got.AutoSettleQueueList)
 	require.ElementsMatch(t, genesisState.MockObjectInfoList, got.MockObjectInfoList)
-	// this line is used by starport scaffolding # genesis/test/assert
+	require.ElementsMatch(t, genesisState.AutoSettleRecordList, got.AutoSettleRecordList)
+// this line is used by starport scaffolding # genesis/test/assert
 }

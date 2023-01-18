@@ -126,7 +126,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 			settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
 		}
 	}
-	k.UpdateAutoSettleQueue(ctx, streamRecord.Account, streamRecord.SettleTimestamp, settleTimestamp)
+	k.UpdateAutoSettleRecord(ctx, streamRecord.Account, streamRecord.SettleTimestamp, settleTimestamp)
 	streamRecord.SettleTimestamp = settleTimestamp
 	return nil
 }
@@ -181,7 +181,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 
 func (k Keeper) AutoForceSettle(ctx sdk.Context) {
 	currentTimestamp := ctx.BlockTime().Unix()
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleQueueKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
@@ -192,7 +192,7 @@ func (k Keeper) AutoForceSettle(ctx sdk.Context) {
 		if num >= maxNum {
 			return
 		}
-		var val types.AutoSettleQueue
+		var val types.AutoSettleRecord
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		if val.Timestamp > currentTimestamp {
 			return

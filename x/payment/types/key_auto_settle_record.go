@@ -5,12 +5,12 @@ import "encoding/binary"
 var _ binary.ByteOrder
 
 const (
-	// AutoSettleQueueKeyPrefix is the prefix to retrieve all AutoSettleQueue
-	AutoSettleQueueKeyPrefix = "AutoSettleQueue/value/"
+	// AutoSettleRecordKeyPrefix is the prefix to retrieve all AutoSettleRecord
+	AutoSettleRecordKeyPrefix = "AutoSettleRecord/value/"
 )
 
-// AutoSettleQueueKey returns the store key to retrieve a AutoSettleQueue from the index fields
-func AutoSettleQueueKey(
+// AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
+func AutoSettleRecordKey(
 	timestamp int64,
 	addr string,
 ) []byte {

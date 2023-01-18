@@ -32,13 +32,13 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	if genState.BnbPrice != nil {
 		k.SetBnbPrice(ctx, *genState.BnbPrice)
 	}
-	// Set all the autoSettleQueue
-	for _, elem := range genState.AutoSettleQueueList {
-		k.SetAutoSettleQueue(ctx, elem)
-	}
 	// Set all the mockObjectInfo
 	for _, elem := range genState.MockObjectInfoList {
 		k.SetMockObjectInfo(ctx, elem)
+	}
+	// Set all the autoSettleRecord
+	for _, elem := range genState.AutoSettleRecordList {
+		k.SetAutoSettleRecord(ctx, elem)
 	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
@@ -59,8 +59,8 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	if found {
 		genesis.BnbPrice = &bnbPrice
 	}
-	genesis.AutoSettleQueueList = k.GetAllAutoSettleQueue(ctx)
 	genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
+	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

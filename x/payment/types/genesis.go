@@ -21,8 +21,8 @@ func DefaultGenesis() *GenesisState {
 		MockBucketMetaList:      []MockBucketMeta{},
 		FlowList:                []Flow{},
 		BnbPrice:                &defaultBnbPrice,
-		AutoSettleQueueList:     []AutoSettleQueue{},
 		MockObjectInfoList:      []MockObjectInfo{},
+		AutoSettleRecordList:    []AutoSettleRecord{},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -82,16 +82,6 @@ func (gs GenesisState) Validate() error {
 		}
 		flowIndexMap[index] = struct{}{}
 	}
-	// Check for duplicated index in autoSettleQueue
-	autoSettleQueueIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.AutoSettleQueueList {
-		index := string(AutoSettleQueueKey(elem.Timestamp, elem.Addr))
-		if _, ok := autoSettleQueueIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for autoSettleQueue")
-		}
-		autoSettleQueueIndexMap[index] = struct{}{}
-	}
 	// Check for duplicated index in mockObjectInfo
 	mockObjectInfoIndexMap := make(map[string]struct{})
 
@@ -101,6 +91,16 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for mockObjectInfo")
 		}
 		mockObjectInfoIndexMap[index] = struct{}{}
+	}
+	// Check for duplicated index in autoSettleRecord
+	autoSettleRecordIndexMap := make(map[string]struct{})
+
+	for _, elem := range gs.AutoSettleRecordList {
+		index := string(AutoSettleRecordKey(elem.Timestamp, elem.Addr))
+		if _, ok := autoSettleRecordIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for autoSettleRecord")
+		}
+		autoSettleRecordIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

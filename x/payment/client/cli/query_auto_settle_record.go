@@ -10,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdListAutoSettleQueue() *cobra.Command {
+func CmdListAutoSettleRecord() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-auto-settle-queue",
-		Short: "list all auto-settle-queue",
+		Use:   "list-auto-settle-record",
+		Short: "list all auto-settle-record",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -24,11 +24,11 @@ func CmdListAutoSettleQueue() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllAutoSettleQueueRequest{
+			params := &types.QueryAllAutoSettleRecordRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.AutoSettleQueueAll(context.Background(), params)
+			res, err := queryClient.AutoSettleRecordAll(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -43,10 +43,10 @@ func CmdListAutoSettleQueue() *cobra.Command {
 	return cmd
 }
 
-func CmdShowAutoSettleQueue() *cobra.Command {
+func CmdShowAutoSettleRecord() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-auto-settle-queue [timestamp] [user]",
-		Short: "shows a auto-settle-queue",
+		Use:   "show-auto-settle-record [timestamp] [addr]",
+		Short: "shows a auto-settle-record",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -57,14 +57,14 @@ func CmdShowAutoSettleQueue() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			argUser := args[1]
+			argAddr := args[1]
 
-			params := &types.QueryGetAutoSettleQueueRequest{
+			params := &types.QueryGetAutoSettleRecordRequest{
 				Timestamp: argTimestamp,
-				User:      argUser,
+				Addr:      argAddr,
 			}
 
-			res, err := queryClient.AutoSettleQueue(context.Background(), params)
+			res, err := queryClient.AutoSettleRecord(context.Background(), params)
 			if err != nil {
 				return err
 			}
