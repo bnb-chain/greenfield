@@ -10,6 +10,7 @@ message Params {
   option (gogoproto.goproto_stringer) = false;
 
   uint64 reserveTime = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
-  uint64 forcedSettleTime = 2 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
-  uint64 paymentAccountCountLimit = 3 [(gogoproto.moretags) = "yaml:\"payment_account_count_limit\""];
+  uint64 paymentAccountCountLimit = 2 [(gogoproto.moretags) = "yaml:\"payment_account_count_limit\""];
+  uint64 forcedSettleTime = 3 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
+  uint64 maxAutoForceSettleNum = 4 [(gogoproto.moretags) = "yaml:\"max_auto_force_settle_num\""];
 }

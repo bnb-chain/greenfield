@@ -34,18 +34,6 @@ func (k Keeper) GetPaymentAccount(
 	return val, true
 }
 
-// RemovePaymentAccount removes a paymentAccount from the store
-func (k Keeper) RemovePaymentAccount(
-	ctx sdk.Context,
-	addr string,
-
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.PaymentAccountKeyPrefix))
-	store.Delete(types.PaymentAccountKey(
-		addr,
-	))
-}
-
 // GetAllPaymentAccount returns all paymentAccount
 func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.PaymentAccountKeyPrefix))

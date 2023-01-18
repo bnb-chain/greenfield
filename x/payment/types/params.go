@@ -24,6 +24,11 @@ var (
 	DefaultPaymentAccountCountLimit uint64 = 200
 )
 
+var (
+	KeyMaxAutoForceSettleNum            = []byte("MaxAutoForceSettleNum")
+	DefaultMaxAutoForceSettleNum uint64 = 100
+)
+
 // ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
@@ -34,11 +39,13 @@ func NewParams(
 	reserveTime uint64,
 	forcedSettleTime uint64,
 	paymentAccountCountLimit uint64,
+	maxAutoForceSettleNum uint64,
 ) Params {
 	return Params{
 		ReserveTime:              reserveTime,
 		ForcedSettleTime:         forcedSettleTime,
 		PaymentAccountCountLimit: paymentAccountCountLimit,
+		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
 	}
 }
 
@@ -48,6 +55,7 @@ func DefaultParams() Params {
 		DefaultReserveTime,
 		DefaultForcedSettleTime,
 		DefaultPaymentAccountCountLimit,
+		DefaultMaxAutoForceSettleNum,
 	)
 }
 
@@ -57,6 +65,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyReserveTime, &p.ReserveTime, validateReserveTime),
 		paramtypes.NewParamSetPair(KeyForcedSettleTime, &p.ForcedSettleTime, validateForcedSettleTime),
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
+		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
 	}
 }
 
@@ -74,6 +83,9 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validatePaymentAccountCountLimit(p.MaxAutoForceSettleNum); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -118,6 +130,19 @@ func validatePaymentAccountCountLimit(v interface{}) error {
 
 	// TODO implement validation
 	_ = paymentAccountCountLimit
+
+	return nil
+}
+
+// validateMaxAutoForceSettleNum validates the MaxAutoForceSettleNum param
+func validateMaxAutoForceSettleNum(v interface{}) error {
+	maxAutoForceSettleNum, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	// TODO implement validation
+	_ = maxAutoForceSettleNum
 
 	return nil
 }

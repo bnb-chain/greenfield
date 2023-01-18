@@ -39,19 +39,6 @@ func TestPaymentAccountGet(t *testing.T) {
 		)
 	}
 }
-func TestPaymentAccountRemove(t *testing.T) {
-	keeper, ctx := keepertest.PaymentKeeper(t)
-	items := createNPaymentAccount(keeper, ctx, 10)
-	for _, item := range items {
-		keeper.RemovePaymentAccount(ctx,
-			item.Addr,
-		)
-		_, found := keeper.GetPaymentAccount(ctx,
-			item.Addr,
-		)
-		require.False(t, found)
-	}
-}
 
 func TestPaymentAccountGetAll(t *testing.T) {
 	keeper, ctx := keepertest.PaymentKeeper(t)

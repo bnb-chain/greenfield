@@ -186,23 +186,28 @@ func (k Keeper) AutoForceSettle(ctx sdk.Context) {
 
 	defer iterator.Close()
 
+	var num uint64 = 0
+	maxNum := k.GetParams(ctx).MaxAutoForceSettleNum
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.AutoSettleQueue
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.Timestamp < currentTimestamp {
-			streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
-			if !found {
-				ctx.Logger().Error("stream record not found", "addr", val.Addr)
-				panic("stream record not found")
-			}
-			err := k.ForceSettle(ctx, &streamRecord)
-			if err != nil {
-				ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
-				panic("force settle failed")
-			}
-		} else {
+		if num >= maxNum {
 			return
 		}
+		var val types.AutoSettleQueue
+		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		if val.Timestamp > currentTimestamp {
+			return
+		}
+		streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
+		if !found {
+			ctx.Logger().Error("stream record not found", "addr", val.Addr)
+			panic("stream record not found")
+		}
+		err := k.ForceSettle(ctx, &streamRecord)
+		if err != nil {
+			ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
+			panic("force settle failed")
+		}
+		num += 1
 	}
 
 }
