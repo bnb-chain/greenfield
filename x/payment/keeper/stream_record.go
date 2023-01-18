@@ -179,7 +179,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 	return nil
 }
 
-func (k Keeper) AutoForceSettle(ctx sdk.Context) {
+func (k Keeper) AutoSettle(ctx sdk.Context) {
 	currentTimestamp := ctx.BlockTime().Unix()
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -202,7 +202,8 @@ func (k Keeper) AutoForceSettle(ctx sdk.Context) {
 			ctx.Logger().Error("stream record not found", "addr", val.Addr)
 			panic("stream record not found")
 		}
-		err := k.ForceSettle(ctx, &streamRecord)
+		change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
+		err := k.UpdateStreamRecord(ctx, &streamRecord, &change)
 		if err != nil {
 			ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
 			panic("force settle failed")
