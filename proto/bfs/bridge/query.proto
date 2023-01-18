@@ -1,10 +1,10 @@
 syntax = "proto3";
 package bnbchain.bfs.bridge;
 
+import "bfs/bridge/params.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "bfs/bridge/params.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/bnb-chain/bfs/x/bridge/types";

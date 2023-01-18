@@ -9,8 +9,8 @@ option go_package = "github.com/bnb-chain/bfs/x/bridge/types";
 
 // Msg defines the Msg service.
 service Msg {
-      rpc TransferOut(MsgTransferOut) returns (MsgTransferOutResponse);
-// this line is used by starport scaffolding # proto/tx/rpc
+  rpc TransferOut(MsgTransferOut) returns (MsgTransferOutResponse);
+  // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 message MsgTransferOut {
@@ -19,7 +19,6 @@ message MsgTransferOut {
   cosmos.base.v1beta1.Coin amount = 3;
 }
 
-message MsgTransferOutResponse {
-}
+message MsgTransferOutResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message

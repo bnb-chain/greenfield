@@ -6,5 +6,4 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 message AutoSettleRecord {
   int64 timestamp = 1;
   string addr = 2;
-
 }
