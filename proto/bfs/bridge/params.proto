@@ -1,0 +1,12 @@
+syntax = "proto3";
+package bnbchain.bfs.bridge;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/bfs/x/bridge/types";
+
+// Params defines the parameters for the module.
+message Params {
+  string transfer_out_relayer_fee = 1;
+  string transfer_out_ack_relayer_fee = 2;
+}
