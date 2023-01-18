@@ -83,8 +83,8 @@ func (k Keeper) GetAllFlowByFromUser(ctx sdk.Context, from string) (list []types
 	return
 }
 
-// UpdateFlow merge the incoming flow with the existing flow
-func (k Keeper) UpdateFlow(ctx sdk.Context, flow types.Flow) error {
+// ApplyFlow merge the incoming flow with the existing flow
+func (k Keeper) ApplyFlow(ctx sdk.Context, flow types.Flow) error {
 	existingFlow, found := k.GetFlow(ctx, flow.From, flow.To)
 	if found {
 		existingFlow.Rate = flow.Rate.Add(existingFlow.Rate)

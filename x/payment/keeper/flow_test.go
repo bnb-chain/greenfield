@@ -77,7 +77,7 @@ func TestUpdateFlow(t *testing.T) {
 	}
 	_, found := keeper.GetFlow(ctx, flow.From, flow.To)
 	require.False(t, found)
-	err := keeper.UpdateFlow(ctx, flow)
+	err := keeper.ApplyFlow(ctx, flow)
 	require.NoError(t, err)
 	rst, found := keeper.GetFlow(ctx, flow.From, flow.To)
 	require.True(t, found)
@@ -89,7 +89,7 @@ func TestUpdateFlow(t *testing.T) {
 		To:   "to",
 		Rate: sdkmath.NewInt(200),
 	}
-	err = keeper.UpdateFlow(ctx, flow2)
+	err = keeper.ApplyFlow(ctx, flow2)
 	require.NoError(t, err)
 	rst, found = keeper.GetFlow(ctx, flow.From, flow.To)
 	require.True(t, found)
@@ -101,7 +101,7 @@ func TestUpdateFlow(t *testing.T) {
 		To:   "to",
 		Rate: sdkmath.NewInt(-400),
 	}
-	err = keeper.UpdateFlow(ctx, flow3)
+	err = keeper.ApplyFlow(ctx, flow3)
 	t.Logf("after update flow3: %+v", err)
 	require.Error(t, err)
 }
