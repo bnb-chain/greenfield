@@ -122,7 +122,7 @@ func TestAutoForceSettle(t *testing.T) {
 	require.Equal(t, flows[0].To, sp)
 	require.Equal(t, flows[0].Rate, rate)
 	// check auto settle queue
-	autoSettleQueue := keeper.GetAllAutoSettleQueue(ctx)
+	autoSettleQueue := keeper.GetAllAutoSettleRecord(ctx)
 	t.Logf("auto settle queue: %+v", autoSettleQueue)
 	require.Equal(t, len(autoSettleQueue), 1)
 	require.Equal(t, autoSettleQueue[0].Addr, user)
@@ -143,7 +143,7 @@ func TestAutoForceSettle(t *testing.T) {
 	require.NoError(t, err)
 	spStreamRecord, _ = keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
-	autoSettleQueue2 := keeper.GetAllAutoSettleQueue(ctx)
+	autoSettleQueue2 := keeper.GetAllAutoSettleRecord(ctx)
 	t.Logf("auto settle queue: %+v", autoSettleQueue2)
 	require.Equal(t, autoSettleQueue[0].Timestamp+100, autoSettleQueue2[0].Timestamp)
 	// reverve time - forced settle time - 1 day + 101s pass
@@ -163,7 +163,7 @@ func TestAutoForceSettle(t *testing.T) {
 	require.NoError(t, err)
 	spStreamRecord, _ = keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
-	autoSettleQueue3 := keeper.GetAllAutoSettleQueue(ctx)
+	autoSettleQueue3 := keeper.GetAllAutoSettleRecord(ctx)
 	t.Logf("auto settle queue: %+v", autoSettleQueue3)
 	require.Equal(t, len(autoSettleQueue3), 0)
 	flows = keeper.GetAllFlow(ctx)

@@ -69,16 +69,6 @@ func TestGenesisState_Validate(t *testing.T) {
 						{Time: 87, Price: 30},
 					},
 				},
-				AutoSettleQueueList: []types.AutoSettleQueue{
-					{
-						Timestamp: 0,
-						Addr:      "0",
-					},
-					{
-						Timestamp: 1,
-						Addr:      "1",
-					},
-				},
 				MockObjectInfoList: []types.MockObjectInfo{
 					{
 						BucketName: "0",
@@ -90,16 +80,16 @@ func TestGenesisState_Validate(t *testing.T) {
 					},
 				},
 				AutoSettleRecordList: []types.AutoSettleRecord{
-	{
-		Timestamp: 0,
-Addr: "0",
-},
-	{
-		Timestamp: 1,
-Addr: "1",
-},
-},
-// this line is used by starport scaffolding # types/genesis/validField
+					{
+						Timestamp: 0,
+						Addr:      "0",
+					},
+					{
+						Timestamp: 1,
+						Addr:      "1",
+					},
+				},
+				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
 		},
@@ -190,22 +180,6 @@ Addr: "1",
 			valid: false,
 		},
 		{
-			desc: "duplicated autoSettleQueue",
-			genState: &types.GenesisState{
-				AutoSettleQueueList: []types.AutoSettleQueue{
-					{
-						Timestamp: 0,
-						Addr:      "0",
-					},
-					{
-						Timestamp: 0,
-						Addr:      "0",
-					},
-				},
-			},
-			valid: false,
-		},
-		{
 			desc: "duplicated mockObjectInfo",
 			genState: &types.GenesisState{
 				MockObjectInfoList: []types.MockObjectInfo{
@@ -222,22 +196,22 @@ Addr: "1",
 			valid: false,
 		},
 		{
-	desc:     "duplicated autoSettleRecord",
-	genState: &types.GenesisState{
-		AutoSettleRecordList: []types.AutoSettleRecord{
-			{
-				Timestamp: 0,
-Addr: "0",
-},
-			{
-				Timestamp: 0,
-Addr: "0",
-},
+			desc: "duplicated autoSettleRecord",
+			genState: &types.GenesisState{
+				AutoSettleRecordList: []types.AutoSettleRecord{
+					{
+						Timestamp: 0,
+						Addr:      "0",
+					},
+					{
+						Timestamp: 0,
+						Addr:      "0",
+					},
+				},
+			},
+			valid: false,
 		},
-	},
-	valid:    false,
-},
-// this line is used by starport scaffolding # types/genesis/testcase
+		// this line is used by starport scaffolding # types/genesis/testcase
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			err := tc.genState.Validate()

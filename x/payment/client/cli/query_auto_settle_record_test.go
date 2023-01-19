@@ -15,7 +15,7 @@ import (
 	"github.com/bnb-chain/bfs/testutil/network"
 	"github.com/bnb-chain/bfs/testutil/nullify"
 	"github.com/bnb-chain/bfs/x/payment/client/cli"
-    "github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -25,13 +25,12 @@ func networkWithAutoSettleRecordObjects(t *testing.T, n int) (*network.Network, 
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
-    require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
+	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
 		autoSettleRecord := types.AutoSettleRecord{
-			Timestamp: int32(i),
-			Addr: strconv.Itoa(i),
-			
+			Timestamp: int64(i),
+			Addr:      strconv.Itoa(i),
 		}
 		nullify.Fill(&autoSettleRecord)
 		state.AutoSettleRecordList = append(state.AutoSettleRecordList, autoSettleRecord)
@@ -50,36 +49,35 @@ func TestShowAutoSettleRecord(t *testing.T) {
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
-		idTimestamp int32
-        idAddr string
-        
+		desc        string
+		idTimestamp int64
+		idAddr      string
+
 		args []string
 		err  error
 		obj  types.AutoSettleRecord
 	}{
 		{
-			desc: "found",
+			desc:        "found",
 			idTimestamp: objs[0].Timestamp,
-            idAddr: objs[0].Addr,
-            
+			idAddr:      objs[0].Addr,
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
+			desc:        "not found",
 			idTimestamp: 100000,
-            idAddr: strconv.Itoa(100000),
-            
+			idAddr:      strconv.Itoa(100000),
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			args := []string{
-			    strconv.Itoa(int(tc.idTimestamp)),
-                tc.idAddr,
-                
+				strconv.Itoa(int(tc.idTimestamp)),
+				tc.idAddr,
 			}
 			args = append(args, tc.args...)
 			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowAutoSettleRecord(), args)
@@ -130,9 +128,9 @@ func TestListAutoSettleRecord(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.AutoSettleRecord), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.AutoSettleRecord),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.AutoSettleRecord),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -146,9 +144,9 @@ func TestListAutoSettleRecord(t *testing.T) {
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 			require.LessOrEqual(t, len(resp.AutoSettleRecord), step)
 			require.Subset(t,
-            	nullify.Fill(objs),
-            	nullify.Fill(resp.AutoSettleRecord),
-            )
+				nullify.Fill(objs),
+				nullify.Fill(resp.AutoSettleRecord),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})
