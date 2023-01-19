@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evtypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -35,6 +36,7 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/tests"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -45,7 +47,6 @@ import (
 	"github.com/bnb-chain/bfs/app"
 	"github.com/bnb-chain/bfs/app/ante"
 	"github.com/bnb-chain/bfs/app/params"
-	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
 const genesisAccountPrivateKeyForTest = "02DCA3F2C6CDF541934FA043A0ADBD891968EC7B948691ABA0C3CACA59A5DAC753"
@@ -114,13 +115,20 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 	// Build MsgCreateValidator
 	valAddr := sdk.AccAddress(from.Bytes())
 	privEd := ed25519.GenPrivKey()
+	addr1 := sdk.AccAddress(from.Bytes())
+	blsSecretKey, _ := bls.RandKey()
+	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		valAddr,
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(), valAddr, valAddr, valAddr, "test",
+		sdk.OneInt(),
+		addr1,
+		addr1,
+		addr1,
+		blsPk,
 	)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgCreate)
@@ -150,13 +158,14 @@ func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, 
 
 func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	valAddr := sdk.AccAddress(from.Bytes())
+	blsSecretKey, _ := bls.RandKey()
+	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
 	msgEdit := stakingtypes.NewMsgEditValidator(
 		valAddr,
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		nil,
 		nil,
-		valAddr,
-		"test",
+		sdk.AccAddress(priv.PubKey().Address()), blsPk,
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
 }
@@ -222,7 +231,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 
 	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
 
-	// txBuilder.SetFeeAmount(gasAmount)
+	txBuilder.SetFeeAmount(gasAmount)
 	txBuilder.SetGasLimit(gas)
 
 	err = txBuilder.SetMsgs(msg)
@@ -368,7 +377,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	encCfg := app.MakeEncodingConfig()
 
 	nApp := app.New(
-		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, app.NewDefaultAppConfig(), simapp.EmptyAppOptions{}, options...)
+		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, nil, simapp.EmptyAppOptions{}, options...)
 
 	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
 	genesisState, _ = genesisStateWithValSet(nApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)

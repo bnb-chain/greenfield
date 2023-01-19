@@ -2,9 +2,8 @@ package ante_test
 
 import (
 	"encoding/hex"
-	"time"
-
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
