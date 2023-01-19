@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.3
+This release includes features and bug fixes, mainly:
+1. Implement the cross chain communication layer;
+2. Implement the cross chain token transfer;
+3. Add scripts to set up full nodes using state sync.
+
+* [\#8](https://github.com/bnb-chain/inscription/pull/8) feat: implement bridge module
+* [\#27](https://github.com/bnb-chain/inscription/pull/27) feat: remove ValAddress and update EIP712 related functions
+* [\#26](https://github.com/bnb-chain/inscription/pull/26) fix: init viper before getting configs
+* [\#25](https://github.com/bnb-chain/inscription/pull/25) deployment: add scripts to set up full nodes using state sync
+
 ## v0.0.2
 This release includes features and bug fixes, mainly:
 1. Customized upgrade module;
