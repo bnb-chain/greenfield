@@ -47,8 +47,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		reCheckTx bool
 		expPass   bool
 	}{
-		// Based on EVMBackend.SendTransaction, for cosmos tx, forcing null for some fields except ExtensionOptions, Fee, MsgEthereumTx
-		// should be part of consensus
+		// ensure all msg type could pass test
 		{
 			"success - DeliverTx EIP712 signed Cosmos Tx with MsgSend",
 			func() sdk.Tx {
@@ -60,7 +59,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, false, false, true,
 		},
 		{
-			"success - DeliverTx EIP712 signed Cosmos Tx with DelegateMsg",
+			"success - DeliverTx EIP712 signed Cosmos Tx with MsgDelegate",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(200000)
@@ -141,6 +140,28 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				amount := sdk.NewCoins(coinAmount)
 				gas := uint64(200000)
 				txBuilder := suite.CreateTestEIP712MsgEditValidator(from, privKey, "inscription_9000-1", gas, amount)
+				return txBuilder.GetTx()
+			}, false, false, true,
+		},
+		{
+			"success- DeliverTx EIP712 MsgSubmitProposalV1",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
+				amount := sdk.NewCoins(coinAmount)
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgSubmitProposalV1(from, privKey, "inscription_9000-1", gas, amount)
+				return txBuilder.GetTx()
+			}, false, false, true,
+		},
+		{
+			"success- DeliverTx EIP712 MsgGrant",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
+				amount := sdk.NewCoins(coinAmount)
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgGrant(from, privKey, "inscription_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
 		},
@@ -229,14 +250,10 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 
 			suite.ctx = suite.ctx.WithIsCheckTx(tc.checkTx).WithIsReCheckTx(tc.reCheckTx)
 
-			// expConsumed := params.TxGasContractCreation + params.TxGas
 			_, err := suite.anteHandler(suite.ctx, tc.txFn(), false)
-
-			// suite.Require().Equal(consumed, ctx.GasMeter().GasConsumed())
 
 			if tc.expPass {
 				suite.Require().NoError(err)
-				// suite.Require().Equal(int(expConsumed), int(suite.ctx.GasMeter().GasConsumed()))
 			} else {
 				suite.Require().Error(err)
 			}

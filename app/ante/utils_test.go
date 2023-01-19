@@ -9,7 +9,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/bnb-chain/bfs/app/params"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -23,17 +22,19 @@ import (
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
+	"github.com/cosmos/cosmos-sdk/x/auth/signing"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evtypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
-	types5 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	types3 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/tests"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -43,10 +44,8 @@ import (
 
 	"github.com/bnb-chain/bfs/app"
 	"github.com/bnb-chain/bfs/app/ante"
-	"github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/bnb-chain/bfs/app/params"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
 const genesisAccountPrivateKeyForTest = "02DCA3F2C6CDF541934FA043A0ADBD891968EC7B948691ABA0C3CACA59A5DAC753"
@@ -99,45 +98,38 @@ func (suite *AnteTestSuite) SetupTest() {
 func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSend(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	// Build MsgSend
 	recipient := tests.GenerateAddress().Bytes()
-	msgSend := types2.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1))))
+	msgSend := banktypes.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1))))
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgSend)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgDelegate(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	// Build MsgSend
 	valEthAddr := tests.GenerateAddress()
-	valAddr := sdk.ValAddress(valEthAddr.Bytes())
-	msgSend := types3.NewMsgDelegate(from, valAddr, sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(20)))
+	valAddr := sdk.AccAddress(valEthAddr.Bytes())
+	msgSend := stakingtypes.NewMsgDelegate(from, valAddr, sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(20)))
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgSend)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	// Build MsgCreateValidator
-	valAddr := sdk.ValAddress(from.Bytes())
+	valAddr := sdk.AccAddress(from.Bytes())
 	privEd := ed25519.GenPrivKey()
-	addr1 := sdk.AccAddress(from.Bytes())
-	blsSecretKey, _ := bls.RandKey()
-	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
-	msgCreate, err := types3.NewMsgCreateValidator(
+	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		valAddr,
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
-		types3.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
-		types3.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(),
-		addr1,
-		addr1,
-		addr1,
-		blsPk,
+		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
+		sdk.OneInt(), valAddr, valAddr, valAddr, "test",
 	)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgCreate)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712SubmitProposal(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins, deposit sdk.Coins) client.TxBuilder {
-	proposal, ok := types5.ContentFromProposalType("My proposal", "My description", types5.ProposalTypeText)
+	proposal, ok := govtypes.ContentFromProposalType("My proposal", "My description", govtypes.ProposalTypeText)
 	suite.Require().True(ok)
-	msgSubmit, err := types5.NewMsgSubmitProposal(proposal, deposit, from)
+	msgSubmit, err := govtypes.NewMsgSubmitProposal(proposal, deposit, from)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgSubmit)
 }
@@ -157,15 +149,14 @@ func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, 
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
-	valAddr := sdk.ValAddress(from.Bytes())
-	blsSecretKey, _ := bls.RandKey()
-	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
-	msgEdit := types3.NewMsgEditValidator(
+	valAddr := sdk.AccAddress(from.Bytes())
+	msgEdit := stakingtypes.NewMsgEditValidator(
 		valAddr,
-		types3.NewDescription("moniker", "identity", "website", "security_contract", "details"),
+		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		nil,
 		nil,
-		sdk.AccAddress(priv.PubKey().Address()), blsPk,
+		valAddr,
+		"test",
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
 }
@@ -183,6 +174,42 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgSubmitEvidence(from sdk.AccAddres
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEvidence)
 }
 
+func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
+	valAddr := sdk.AccAddress(tests.GenerateAddress().Bytes())
+	privEd := ed25519.GenPrivKey()
+	msgCreate, err := stakingtypes.NewMsgCreateValidator(
+		valAddr,
+		privEd.PubKey(),
+		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
+		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
+		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
+		sdk.OneInt(), valAddr, valAddr, valAddr, "test",
+	)
+	suite.Require().NoError(err)
+	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{msgCreate},
+		sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))},
+		sdk.ValAddress(from.Bytes()).String(),
+		"test",
+	)
+	suite.Require().NoError(err)
+	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgSubmitProposal)
+}
+
+func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgGrant(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
+	allowed := tests.GenerateAddress().Bytes()
+	stakeAuthorization, err := stakingtypes.NewStakeAuthorization(
+		[]sdk.AccAddress{allowed},
+		nil,
+		1,
+		nil,
+	)
+	suite.Require().NoError(err)
+	msgGrant, err := authz.NewMsgGrant(from, allowed, stakeAuthorization, nil)
+	suite.Require().NoError(err)
+	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgGrant)
+}
+
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins, msg sdk.Msg,
 ) client.TxBuilder {
@@ -195,7 +222,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 
 	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
 
-	txBuilder.SetFeeAmount(gasAmount)
+	// txBuilder.SetFeeAmount(gasAmount)
 	txBuilder.SetGasLimit(gas)
 
 	err = txBuilder.SetMsgs(msg)
@@ -209,7 +236,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		PubKey:        acc.GetPubKey(),
 	}
 
-	msgTypes, _, err := tx.GetMsgTypes(suite.app.AppCodec(), signerData, txBuilder.GetTx(), big.NewInt(9000))
+	msgTypes, _, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
 	suite.Require().NoError(err)
 
 	msgTypesJson, _ := json.MarshalIndent(msgTypes, "", "  ")

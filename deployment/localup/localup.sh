@@ -2,22 +2,10 @@
 basedir=$(cd `dirname $0`; pwd)
 workspace=${basedir}
 source ${workspace}/.env
+source ${workspace}/utils.sh
+
 bin_name=bfsd
 bin=${workspace}/../../build/bin/${bin_name}
-address_port_start=28750
-p2p_port_start=27750
-grpc_port_start=9090
-grpc_web_port_start=9190
-rpc_port_start=26750
-
-
-function joinByString() {
-  local separator="$1"
-  shift
-  local first="$1"
-  shift
-  printf "%s" "$first" "${@/#/$separator}"
-}
 
 function init() {
     size=$1
@@ -80,7 +68,7 @@ function generate_genesis() {
             --commission-rate=${COMMISSION_RATE} \
             --details="validator${i}" \
             --website="http://website" \
-            --node tcp://localhost:$((${p2p_port_start}+${i})) \
+            --node tcp://localhost:$((${VALIDATOR_P2P_PORT_START}+${i})) \
             --node-id "validator${i}" \
             --ip 127.0.0.1
         cp ${workspace}/.local/validator${i}/config/gentx/gentx-validator${i}.json ${workspace}/.local/gentx/
@@ -91,7 +79,7 @@ function generate_genesis() {
     for ((i=0;i<${size};i++));do
         cp ${workspace}/.local/gentx/* ${workspace}/.local/validator${i}/config/gentx/
         ${bin} collect-gentxs --home ${workspace}/.local/validator${i}
-        node_ids="$(${bin} tendermint show-node-id --home ${workspace}/.local/validator${i})@127.0.0.1:$((${p2p_port_start}+${i})) ${node_ids}"
+        node_ids="$(${bin} tendermint show-node-id --home ${workspace}/.local/validator${i})@127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) ${node_ids}"
     done
 
     persistent_peers=$(joinByString ',' ${node_ids})
@@ -104,6 +92,8 @@ function generate_genesis() {
         sed -i -e "s/persistent_peers = \".*\"/persistent_peers = \"${persistent_peers}\"/g" ${workspace}/.local/validator${i}/config/config.toml
         sed -i -e "s/addr_book_strict = true/addr_book_strict = false/g" ${workspace}/.local/validator${i}/config/config.toml
         sed -i -e "s/allow_duplicate_ip = false/allow_duplicate_ip = true/g" ${workspace}/.local/validator${i}/config/config.toml
+        sed -i -e "s/snapshot-interval = 0/snapshot-interval = ${SNAPSHOT_INTERVAL}/g" ${workspace}/.local/validator${i}/config/app.toml
+        sed -i -e "s/snapshot-keep-recent = 2/snapshot-keep-recent = ${SNAPSHOT_KEEP_RECENT}/g" ${workspace}/.local/validator${i}/config/app.toml
         
     done
 }
@@ -113,20 +103,19 @@ function start() {
     for ((i=0;i<${size};i++));do
         mkdir -p ${workspace}/.local/validator${i}/logs
         nohup ${bin} start --home ${workspace}/.local/validator${i} \
-            --address 0.0.0.0:$((${address_port_start}+${i})) \
-            --grpc-web.address 0.0.0.0:$((${grpc_web_port_start}+${i})) \
-            --grpc.address 0.0.0.0:$((${grpc_port_start}+${i})) \
-            --p2p.laddr tcp://0.0.0.0:$((${p2p_port_start}+${i})) \
-            --p2p.external-address 127.0.0.1:$((${p2p_port_start}+${i})) \
-            --rpc.laddr tcp://0.0.0.0:$((${rpc_port_start}+${i})) \
+            --address 0.0.0.0:$((${VALIDATOR_ADDRESS_PORT_START}+${i})) \
+            --grpc-web.address 0.0.0.0:$((${VALIDATOR_GRPC_WEB_PORT_START}+${i})) \
+            --grpc.address 0.0.0.0:$((${VALIDATOR_GRPC_PORT_START}+${i})) \
+            --p2p.laddr tcp://0.0.0.0:$((${VALIDATOR_P2P_PORT_START}+${i})) \
+            --p2p.external-address 127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) \
+            --rpc.laddr tcp://0.0.0.0:$((${VALIDATOR_RPC_PORT_START}+${i})) \
             --log_format json > ${workspace}/.local/validator${i}/logs/node.log &
     done
 }
 
 function stop() {
-    killall ${bin_name}
+    ps -ef | grep ${bin_name} | grep validator | awk '{print $2}' | xargs kill
 }
-
 
 CMD=$1
 SIZE=3
@@ -156,6 +145,8 @@ stop)
     echo "===== end ===="
     ;;
 all)
+    echo "===== stop ===="
+    stop
     echo "===== init ===="
     init $SIZE
     echo "===== generate genesis ===="
