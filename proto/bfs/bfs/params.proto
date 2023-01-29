@@ -3,7 +3,7 @@ package bfs.bfs;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bnb-chain/greenfield/x/greenfield/types";
+option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
 
 // Params defines the parameters for the module.
 message Params {

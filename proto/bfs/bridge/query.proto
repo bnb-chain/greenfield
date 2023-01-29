@@ -4,16 +4,16 @@ package bnbchain.bfs.bridge;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "greenfield/bridge/params.proto";
+import "bfs/bridge/params.proto";
 // this line is used by starport scaffolding # 1
 
-option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
+option go_package = "github.com/bnb-chain/bfs/x/bridge/types";
 
 // Query defines the gRPC querier service.
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/bridge/params";
+    option (google.api.http).get = "/bnb-chain/bfs/bridge/params";
   }
   // this line is used by starport scaffolding # 2
 }

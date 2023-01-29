@@ -4,16 +4,16 @@ package bfs.bfs;
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-import "greenfield/greenfield/params.proto";
+import "bfs/bfs/params.proto";
 // this line is used by starport scaffolding # 1
 
-option go_package = "github.com/bnb-chain/greenfield/x/greenfield/types";
+option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
 
 // Query defines the gRPC querier service.
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/greenfield/greenfield/params";
+    option (google.api.http).get = "/bfs/bfs/params";
   }
   // this line is used by starport scaffolding # 2
 }

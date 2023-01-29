@@ -1,13 +1,13 @@
 syntax = "proto3";
-package bnbchain.bfs.bridge;
+package greenfield.greenfield;
 
 import "gogoproto/gogo.proto";
-import "greenfield/bridge/params.proto";
+import "bfs/bfs/params.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
-option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
+option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
 
-// GenesisState defines the bridge module's genesis state.
+// GenesisState defines the greenfield module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
