@@ -83,21 +83,21 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	appparams "github.com/bnb-chain/bfs/app/params"
-	"github.com/bnb-chain/bfs/docs"
-	"github.com/bnb-chain/bfs/version"
-	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
-	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
-	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
+	appparams "github.com/bnb-chain/greenfield/app/params"
+	"github.com/bnb-chain/greenfield/docs"
+	"github.com/bnb-chain/greenfield/version"
+	greenfieldmodule "github.com/bnb-chain/greenfield/x/greenfield"
+	greenfieldmodulekeeper "github.com/bnb-chain/greenfield/x/greenfield/keeper"
+	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
 
-	bridgemodule "github.com/bnb-chain/bfs/x/bridge"
-	bridgemodulekeeper "github.com/bnb-chain/bfs/x/bridge/keeper"
-	bridgemoduletypes "github.com/bnb-chain/bfs/x/bridge/types"
+	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
+	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
+	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (
-	Name          = "inscription"
+	Name          = "greenfield"
 	EIP155ChainID = "9000"
 	Epoch         = "1"
 
@@ -140,7 +140,7 @@ var (
 		slashing.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		bfsmodule.AppModuleBasic{},
+		greenfieldmodule.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
 		oracle.AppModuleBasic{},
 		bridgemodule.AppModuleBasic{},
@@ -205,7 +205,7 @@ type App struct {
 	CrossChainKeeper crosschainkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 
-	BfsKeeper bfsmodulekeeper.Keeper
+	GreenfieldKeeper greenfieldmodulekeeper.Keeper
 
 	BridgeKeeper bridgemodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
@@ -256,7 +256,7 @@ func New(
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		bfsmoduletypes.StoreKey,
+		greenfieldmoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey,
 		bridgemoduletypes.StoreKey,
@@ -385,11 +385,11 @@ func New(
 		govConfig,
 	)
 
-	app.BfsKeeper = *bfsmodulekeeper.NewKeeper(
+	app.GreenfieldKeeper = *greenfieldmodulekeeper.NewKeeper(
 		appCodec,
-		keys[bfsmoduletypes.StoreKey],
-		keys[bfsmoduletypes.MemStoreKey],
-		app.GetSubspace(bfsmoduletypes.ModuleName),
+		keys[greenfieldmoduletypes.StoreKey],
+		keys[greenfieldmoduletypes.MemStoreKey],
+		app.GetSubspace(greenfieldmoduletypes.ModuleName),
 	)
 
 	// Register the upgrade keeper
@@ -405,7 +405,7 @@ func New(
 		panic(err)
 	}
 
-	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
+	greenfieldModule := greenfieldmodule.NewAppModule(appCodec, app.GreenfieldKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.BridgeKeeper = *bridgemodulekeeper.NewKeeper(
 		appCodec,
@@ -445,7 +445,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
-		bfsModule,
+		greenfieldModule,
 		bridgeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
@@ -467,7 +467,7 @@ func New(
 		authz.ModuleName,
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		greenfieldmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
@@ -486,7 +486,7 @@ func New(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		greenfieldmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
@@ -510,7 +510,7 @@ func New(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		greenfieldmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
@@ -538,7 +538,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
-		bfsModule,
+		greenfieldModule,
 		bridgeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
@@ -764,7 +764,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
-	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
+	paramsKeeper.Subspace(greenfieldmoduletypes.ModuleName)
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)

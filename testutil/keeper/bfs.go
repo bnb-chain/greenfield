@@ -3,8 +3,8 @@ package keeper
 import (
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/bfs/keeper"
-	"github.com/bnb-chain/bfs/x/bfs/types"
+	"github.com/bnb-chain/greenfield/x/greenfield/keeper"
+	"github.com/bnb-chain/greenfield/x/greenfield/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -17,7 +17,7 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 )
 
-func BfsKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
+func GreenfieldKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
@@ -34,7 +34,7 @@ func BfsKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		types.Amino,
 		storeKey,
 		memStoreKey,
-		"BfsParams",
+		"GreenfieldParams",
 	)
 	k := keeper.NewKeeper(
 		cdc,

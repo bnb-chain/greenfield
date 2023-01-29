@@ -3,9 +3,9 @@ package keeper_test
 import (
 	"testing"
 
-	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
-	"github.com/bnb-chain/bfs/x/bridge/keeper"
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"

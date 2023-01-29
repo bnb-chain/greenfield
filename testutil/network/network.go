@@ -18,8 +18,8 @@ import (
 	tmrand "github.com/tendermint/tendermint/libs/rand"
 	tmdb "github.com/tendermint/tm-db"
 
-	"github.com/bnb-chain/bfs/app"
-	"github.com/bnb-chain/bfs/crypto/keyring"
+	"github.com/bnb-chain/greenfield/app"
+	"github.com/bnb-chain/greenfield/crypto/keyring"
 )
 
 type (
