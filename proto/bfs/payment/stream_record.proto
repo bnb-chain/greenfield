@@ -7,19 +7,26 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 
+// Stream Payment Record of a stream account
 message StreamRecord {
+  // account address
   string account = 1;
+  // latest update timestamp of the stream record
   int64 crudTimestamp = 2;
+  // The per-second rate that an account's balance is changing.
+  // It is the sum of the account's inbound and outbound flow rates.
   string netflowRate = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // The balance of the stream account at the latest CRUD timestamp.
   string staticBalance = 4 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+
   string bufferBalance = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",

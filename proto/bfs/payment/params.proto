@@ -9,8 +9,13 @@ option go_package = "github.com/bnb-chain/bfs/x/payment/types";
 message Params {
   option (gogoproto.goproto_stringer) = false;
 
+  // Time duration which the buffer balance need to be reserved for NetOutFlow e.g. 6 month
   uint64 reserveTime = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
+  // The maximum number of payment accounts that can be created by one user
   uint64 paymentAccountCountLimit = 2 [(gogoproto.moretags) = "yaml:\"payment_account_count_limit\""];
+  // Time duration threshold of forced settlement.
+  // If dynamic balance is less than NetOutFlowRate * forcedSettleTime, the account can be forced settled.
   uint64 forcedSettleTime = 3 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
+  // the maximum number of accounts that will be forced settled in one block
   uint64 maxAutoForceSettleNum = 4 [(gogoproto.moretags) = "yaml:\"max_auto_force_settle_num\""];
 }

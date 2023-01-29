@@ -25,10 +25,15 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	ReserveTime              uint64 `protobuf:"varint,1,opt,name=reserveTime,proto3" json:"reserveTime,omitempty" yaml:"reserve_time"`
+	// Time duration which the buffer balance need to be reserved for NetOutFlow e.g. 6 month
+	ReserveTime uint64 `protobuf:"varint,1,opt,name=reserveTime,proto3" json:"reserveTime,omitempty" yaml:"reserve_time"`
+	// The maximum number of payment accounts that can be created by one user
 	PaymentAccountCountLimit uint64 `protobuf:"varint,2,opt,name=paymentAccountCountLimit,proto3" json:"paymentAccountCountLimit,omitempty" yaml:"payment_account_count_limit"`
-	ForcedSettleTime         uint64 `protobuf:"varint,3,opt,name=forcedSettleTime,proto3" json:"forcedSettleTime,omitempty" yaml:"forced_settle_time"`
-	MaxAutoForceSettleNum    uint64 `protobuf:"varint,4,opt,name=maxAutoForceSettleNum,proto3" json:"maxAutoForceSettleNum,omitempty" yaml:"max_auto_force_settle_num"`
+	// Time duration threshold of forced settlement.
+	// If dynamic balance is less than NetOutFlowRate * forcedSettleTime, the account can be forced settled.
+	ForcedSettleTime uint64 `protobuf:"varint,3,opt,name=forcedSettleTime,proto3" json:"forcedSettleTime,omitempty" yaml:"forced_settle_time"`
+	// the maximum number of accounts that will be forced settled in one block
+	MaxAutoForceSettleNum uint64 `protobuf:"varint,4,opt,name=maxAutoForceSettleNum,proto3" json:"maxAutoForceSettleNum,omitempty" yaml:"max_auto_force_settle_num"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }

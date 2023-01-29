@@ -25,10 +25,16 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// Stream Payment Record of a stream account
 type StreamRecord struct {
-	Account         string                                 `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
-	CrudTimestamp   int64                                  `protobuf:"varint,2,opt,name=crudTimestamp,proto3" json:"crudTimestamp,omitempty"`
-	NetflowRate     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=netflowRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"netflowRate"`
+	// account address
+	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	// latest update timestamp of the stream record
+	CrudTimestamp int64 `protobuf:"varint,2,opt,name=crudTimestamp,proto3" json:"crudTimestamp,omitempty"`
+	// The per-second rate that an account's balance is changing.
+	// It is the sum of the account's inbound and outbound flow rates.
+	NetflowRate github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=netflowRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"netflowRate"`
+	// The balance of the stream account at the latest CRUD timestamp.
 	StaticBalance   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=staticBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"staticBalance"`
 	BufferBalance   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=bufferBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"bufferBalance"`
 	LockBalance     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=lockBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"lockBalance"`
