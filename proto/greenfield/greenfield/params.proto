@@ -1,9 +1,9 @@
 syntax = "proto3";
-package bfs.bfs;
+package greenfield.greenfield;
 
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
+option go_package = "github.com/bnb-chain/greenfield/x/greenfield/types";
 
 // Params defines the parameters for the module.
 message Params {

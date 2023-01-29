@@ -1,9 +1,9 @@
 syntax = "proto3";
-package bfs.bfs;
+package greenfield.greenfield;
 
 // this line is used by starport scaffolding # proto/tx/import
 
-option go_package = "github.com/bnb-chain/bfs/x/bfs/types";
+option go_package = "github.com/bnb-chain/greenfield/x/greenfield/types";
 
 // Msg defines the Msg service.
 service Msg {
