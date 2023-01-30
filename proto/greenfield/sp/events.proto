@@ -1,9 +1,9 @@
 syntax = "proto3";
-package bnbchain.bfs.sp;
+package bnbchain.greenfield.sp;
 
 import "cosmos_proto/cosmos.proto";
 
-option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 message EventCreateStorageProvider {
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];

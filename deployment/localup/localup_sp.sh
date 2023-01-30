@@ -2,7 +2,7 @@
 basedir=$(cd `dirname $0`; pwd)
 workspace=${basedir}
 source ${workspace}/.env
-bin_name=bfsd
+bin_name=gnfd
 bin=${workspace}/../../build/bin/${bin_name}
 address_port_start=28750
 p2p_port_start=27750

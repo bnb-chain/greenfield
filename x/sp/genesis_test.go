@@ -3,10 +3,10 @@ package sp_test
 import (
 	"testing"
 
-	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
-	"github.com/bnb-chain/bfs/testutil/nullify"
-	"github.com/bnb-chain/bfs/x/sp"
-	"github.com/bnb-chain/bfs/x/sp/types"
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/testutil/nullify"
+	"github.com/bnb-chain/greenfield/x/sp"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/stretchr/testify/require"
 )
 

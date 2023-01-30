@@ -1,7 +1,7 @@
 {
   "messages":[
   {
-    "@type":"/bnbchain.bfs.sp.MsgCreateStorageProvider",
+    "@type":"/bnbchain.greenfield.sp.MsgCreateStorageProvider",
     "description":{
       "moniker": "sp0",
       "identity":"",

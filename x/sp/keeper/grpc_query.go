@@ -3,7 +3,7 @@ package keeper
 import (
 	"context"
 
-	"github.com/bnb-chain/bfs/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

@@ -1,11 +1,11 @@
 syntax = "proto3";
-package bnbchain.bfs.sp;
+package bnbchain.greenfield.sp;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
-option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Description defines a storage provider description.
 message Description {

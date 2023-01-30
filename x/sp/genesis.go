@@ -1,8 +1,8 @@
 package sp
 
 import (
-	"github.com/bnb-chain/bfs/x/sp/keeper"
-	"github.com/bnb-chain/bfs/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/sp/keeper"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

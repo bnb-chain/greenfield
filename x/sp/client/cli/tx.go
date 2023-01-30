@@ -14,7 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 
 	// "github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/bnb-chain/bfs/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 var (

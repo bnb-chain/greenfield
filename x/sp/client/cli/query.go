@@ -9,7 +9,7 @@ import (
 
 	// sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bnb-chain/bfs/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module

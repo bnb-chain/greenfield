@@ -3,8 +3,8 @@ package keeper
 import (
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/sp/keeper"
-	"github.com/bnb-chain/bfs/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/sp/keeper"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"

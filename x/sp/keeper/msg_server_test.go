@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
-	"github.com/bnb-chain/bfs/x/sp/keeper"
-	"github.com/bnb-chain/bfs/x/sp/types"
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/x/sp/keeper"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

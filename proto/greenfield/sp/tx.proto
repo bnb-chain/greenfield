@@ -1,7 +1,7 @@
 syntax = "proto3";
-package bnbchain.bfs.sp;
+package bnbchain.greenfield.sp;
 
-import "bfs/sp/types.proto";
+import "greenfield/sp/types.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
@@ -9,7 +9,7 @@ import "gogoproto/gogo.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
-option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Msg defines the Msg service for creating a new storage provider.
 service Msg {

@@ -1,9 +1,9 @@
 syntax = "proto3";
 
-package bnbchain.bfs.sp;
+package bnbchain.greenfield.sp;
 
-import "bfs/sp/params.proto";
-import "bfs/sp/types.proto";
+import "greenfield/sp/params.proto";
+import "greenfield/sp/types.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
@@ -11,20 +11,20 @@ import "google/api/annotations.proto";
 
 // this line is used by starport scaffolding # 1
 
-option go_package = "github.com/bnb-chain/bfs/x/sp/types";
+option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Query defines the gRPC querier service.
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/sp/params";
+    option (google.api.http).get = "/bnb-chain/greenfield/sp/params";
   }
 
   // this line is used by starport scaffolding # 2
 
   // Queries a list of GetStorageProviders items.
   rpc StorageProviders(QueryStorageProvidersRequest) returns (QueryStorageProvidersResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/sp/storage_providers";
+    option (google.api.http).get = "/bnb-chain/greenfield/sp/storage_providers";
   }
 }
 

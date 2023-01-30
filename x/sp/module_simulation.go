@@ -3,9 +3,9 @@ package sp
 import (
 	"math/rand"
 
-	"github.com/bnb-chain/bfs/testutil/sample"
-	spsimulation "github.com/bnb-chain/bfs/x/sp/simulation"
-	"github.com/bnb-chain/bfs/x/sp/types"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	spsimulation "github.com/bnb-chain/greenfield/x/sp/simulation"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
