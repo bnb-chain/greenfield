@@ -1,8 +1,8 @@
-# BFS
-BFS is a decentralized storage platform proposed to meet the requirements of storing non-financial information for 
+# Greenfield
+Greenfield is a decentralized storage platform proposed to meet the requirements of storing non-financial information for 
 decentralized applications integrated with BNB Smart Chain.
 
-**BFS** is a blockchain built using Cosmos SDK and Tendermint and created with [Ignite CLI](https://ignite.com/cli).
+**Greenfield** is a blockchain built using Cosmos SDK and Tendermint and created with [Ignite CLI](https://ignite.com/cli).
 
 ## Get started
 
@@ -13,14 +13,14 @@ export PATH=$GOROOT/bin:$GOPATH/bin:$PATH
 ignite chain serve
 ```
 
-`serve` command installs dependencies, builds, initializes, and starts BFS in development.
+`serve` command installs dependencies, builds, initializes, and starts Greenfield in development.
 
 ### Configure
 
-BFS in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
+Greenfield in development can be configured with `config.yml`. To learn more, see the [Ignite CLI docs](https://docs.ignite.com).
 
 ## Release
-To release a new version of BFS, create and push a new tag with `v` prefix. A new draft release with the configured targets will be created.
+To release a new version of Greenfield, create and push a new tag with `v` prefix. A new draft release with the configured targets will be created.
 
 ```
 git tag v0.1

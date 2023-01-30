@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 type msgServer struct {

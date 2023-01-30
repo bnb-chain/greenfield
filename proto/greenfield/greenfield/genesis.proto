@@ -1,0 +1,14 @@
+syntax = "proto3";
+package greenfield.greenfield;
+
+import "gogoproto/gogo.proto";
+import "greenfield/greenfield/params.proto";
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/bnb-chain/greenfield/x/greenfield/types";
+
+// GenesisState defines the greenfield module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}
