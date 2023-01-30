@@ -7,7 +7,7 @@ import (
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 
-	"github.com/bnb-chain/bfs/app/params"
+	"github.com/bnb-chain/greenfield/app/params"
 )
 
 // makeEncodingConfig creates an EncodingConfig for an amino based test configuration.

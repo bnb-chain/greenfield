@@ -5,7 +5,7 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"

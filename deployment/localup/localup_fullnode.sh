@@ -4,7 +4,7 @@ workspace=${basedir}
 source ${workspace}/.env
 source ${workspace}/utils.sh
 
-bin_name=bfsd
+bin_name=gnfd
 bin=${workspace}/../../build/bin/${bin_name}
 
 function init_fullnode() {

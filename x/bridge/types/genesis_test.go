@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/stretchr/testify/require"
 )
 

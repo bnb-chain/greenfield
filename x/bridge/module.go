@@ -11,9 +11,9 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/bnb-chain/bfs/x/bridge/client/cli"
-	"github.com/bnb-chain/bfs/x/bridge/keeper"
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/x/bridge/client/cli"
+	"github.com/bnb-chain/greenfield/x/bridge/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"

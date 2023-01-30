@@ -3,9 +3,9 @@ package bridge
 import (
 	"math/rand"
 
-	"github.com/bnb-chain/bfs/testutil/sample"
-	bridgesimulation "github.com/bnb-chain/bfs/x/bridge/simulation"
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	bridgesimulation "github.com/bnb-chain/greenfield/x/bridge/simulation"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"

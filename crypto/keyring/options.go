@@ -7,11 +7,11 @@ import (
 )
 
 var (
-	// SupportedAlgorithms defines the list of signing algorithms used on BFS:
+	// SupportedAlgorithms defines the list of signing algorithms used on Greenfield:
 	//  - eth_secp256k1 (Ethereum)
 	//  - eth_bls (Ethereum)
 	SupportedAlgorithms = keyring.SigningAlgoList{ethHd.EthSecp256k1, hd.EthBLS}
-	// SupportedAlgorithmsLedger defines the list of signing algorithms used on BFS for the Ledger device:
+	// SupportedAlgorithmsLedger defines the list of signing algorithms used on Greenfield for the Ledger device:
 	//  - eth_secp256k1 (Ethereum)
 	//  - eth_bls (Ethereum)
 	SupportedAlgorithmsLedger = keyring.SigningAlgoList{ethHd.EthSecp256k1, hd.EthBLS}
