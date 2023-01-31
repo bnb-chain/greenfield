@@ -3,7 +3,7 @@ syntax = "proto3";
 package bnbchain.bfs.payment;
 
 import "bfs/payment/auto_settle_record.proto";
-import "bfs/payment/bnb_price.proto";
+import "bfs/payment/bnb_price_price.proto";
 import "bfs/payment/flow.proto";
 import "bfs/payment/mock_bucket_meta.proto";
 import "bfs/payment/mock_object_info.proto";
@@ -15,7 +15,6 @@ import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "bfs/payment/bnb_price_price.proto";
 
 // this line is used by starport scaffolding # 1
 
@@ -97,12 +96,6 @@ service Query {
   }
   rpc FlowAll (QueryAllFlowRequest) returns (QueryAllFlowResponse) {
     option (google.api.http).get = "/bnb-chain/bfs/payment/flow";
-
-  }
-
-  // Queries a BnbPrice by index.
-  rpc BnbPrice (QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
-    option (google.api.http).get = "/bnb-chain/bfs/payment/bnb_price";
 
   }
 
@@ -249,12 +242,6 @@ message QueryAllFlowRequest {
 message QueryAllFlowResponse {
   repeated Flow                                   flow       = 1 [(gogoproto.nullable) = false];
            cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetBnbPriceRequest {}
-
-message QueryGetBnbPriceResponse {
-  BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryGetMockObjectInfoRequest {

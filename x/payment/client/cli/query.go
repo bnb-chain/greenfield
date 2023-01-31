@@ -39,14 +39,13 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowMockBucketMeta())
 	cmd.AddCommand(CmdListFlow())
 	cmd.AddCommand(CmdShowFlow())
-	cmd.AddCommand(CmdShowBnbPrice())
 	cmd.AddCommand(CmdListMockObjectInfo())
 	cmd.AddCommand(CmdShowMockObjectInfo())
 	cmd.AddCommand(CmdListAutoSettleRecord())
 	cmd.AddCommand(CmdShowAutoSettleRecord())
 	cmd.AddCommand(CmdListBnbPricePrice())
 	cmd.AddCommand(CmdShowBnbPricePrice())
-// this line is used by starport scaffolding # 1
+	// this line is used by starport scaffolding # 1
 
 	return cmd
 }

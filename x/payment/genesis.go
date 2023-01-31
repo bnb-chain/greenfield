@@ -28,10 +28,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.FlowList {
 		k.SetFlow(ctx, elem)
 	}
-	// Set if defined
-	if genState.BnbPrice != nil {
-		k.SetBnbPrice(ctx, *genState.BnbPrice)
-	}
 	// Set all the mockObjectInfo
 	for _, elem := range genState.MockObjectInfoList {
 		k.SetMockObjectInfo(ctx, elem)
@@ -41,10 +37,10 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 		k.SetAutoSettleRecord(ctx, elem)
 	}
 	// Set all the bnbPricePrice
-for _, elem := range genState.BnbPricePriceList {
-	k.SetBnbPricePrice(ctx, elem)
-}
-// this line is used by starport scaffolding # genesis/module/init
+	for _, elem := range genState.BnbPricePriceList {
+		k.SetBnbPricePrice(ctx, elem)
+	}
+	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
 
@@ -58,15 +54,10 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
 	genesis.MockBucketMetaList = k.GetAllMockBucketMeta(ctx)
 	genesis.FlowList = k.GetAllFlow(ctx)
-	// Get all bnbPrice
-	bnbPrice, found := k.GetBnbPrice(ctx)
-	if found {
-		genesis.BnbPrice = &bnbPrice
-	}
 	genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
 	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
 	genesis.BnbPricePriceList = k.GetAllBnbPricePrice(ctx)
-// this line is used by starport scaffolding # genesis/module/export
+	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
 }

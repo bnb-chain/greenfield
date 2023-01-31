@@ -87,6 +87,7 @@ func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (bnbPrice ty
 	if !iterator.Valid() {
 		return bnbPrice, fmt.Errorf("no price found")
 	}
+
 	var val types.BnbPricePrice
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	bnbPrice.Num = sdkmath.NewIntFromUint64(val.Price)

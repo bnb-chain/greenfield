@@ -9,22 +9,17 @@ const DefaultIndex uint64 = 1
 
 // DefaultGenesis returns the default genesis state
 func DefaultGenesis() *GenesisState {
-	defaultSingleBnbPrice := SingleBnbPrice{0, 1e8}
-	//defaultSingleBnbPrice := SingleBnbPrice{0, 27740000000}
-	defaultBnbPrice := BnbPrice{
-		Prices: []*SingleBnbPrice{&defaultSingleBnbPrice},
-	}
 	return &GenesisState{
 		StreamRecordList:        []StreamRecord{},
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		MockBucketMetaList:      []MockBucketMeta{},
 		FlowList:                []Flow{},
-		BnbPrice:                &defaultBnbPrice,
+		BnbPricePriceList:       []BnbPricePrice{},
 		MockObjectInfoList:      []MockObjectInfo{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
-		BnbPricePriceList: []BnbPricePrice{},
-// this line is used by starport scaffolding # genesis/types/default
+		//BnbPricePriceList:       []BnbPricePrice{{0, 1e8}},
+		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -104,16 +99,16 @@ func (gs GenesisState) Validate() error {
 		autoSettleRecordIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in bnbPricePrice
-bnbPricePriceIndexMap := make(map[string]struct{})
+	bnbPricePriceIndexMap := make(map[string]struct{})
 
-for _, elem := range gs.BnbPricePriceList {
-	index := string(BnbPricePriceKey(elem.Time))
-	if _, ok := bnbPricePriceIndexMap[index]; ok {
-		return fmt.Errorf("duplicated index for bnbPricePrice")
+	for _, elem := range gs.BnbPricePriceList {
+		index := string(BnbPricePriceKey(elem.Time))
+		if _, ok := bnbPricePriceIndexMap[index]; ok {
+			return fmt.Errorf("duplicated index for bnbPricePrice")
+		}
+		bnbPricePriceIndexMap[index] = struct{}{}
 	}
-	bnbPricePriceIndexMap[index] = struct{}{}
-}
-// this line is used by starport scaffolding # genesis/types/validate
+	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }
