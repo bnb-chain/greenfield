@@ -17,21 +17,21 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNBnbPricePrice(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BnbPricePrice {
-	items := make([]types.BnbPricePrice, n)
+func createNBnbPrice(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.BnbPrice {
+	items := make([]types.BnbPrice, n)
 	for i := range items {
 		items[i].Time = int64(i)
 
-		keeper.SetBnbPricePrice(ctx, items[i])
+		keeper.SetBnbPrice(ctx, items[i])
 	}
 	return items
 }
 
-func TestBnbPricePriceGet(t *testing.T) {
+func TestBnbPriceGet(t *testing.T) {
 	keeper, ctx := keepertest.PaymentKeeper(t)
-	items := createNBnbPricePrice(keeper, ctx, 10)
+	items := createNBnbPrice(keeper, ctx, 10)
 	for _, item := range items {
-		rst, found := keeper.GetBnbPricePrice(ctx,
+		rst, found := keeper.GetBnbPrice(ctx,
 			item.Time,
 		)
 		require.True(t, found)
@@ -41,26 +41,26 @@ func TestBnbPricePriceGet(t *testing.T) {
 		)
 	}
 }
-func TestBnbPricePriceRemove(t *testing.T) {
+func TestBnbPriceRemove(t *testing.T) {
 	keeper, ctx := keepertest.PaymentKeeper(t)
-	items := createNBnbPricePrice(keeper, ctx, 10)
+	items := createNBnbPrice(keeper, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveBnbPricePrice(ctx,
+		keeper.RemoveBnbPrice(ctx,
 			item.Time,
 		)
-		_, found := keeper.GetBnbPricePrice(ctx,
+		_, found := keeper.GetBnbPrice(ctx,
 			item.Time,
 		)
 		require.False(t, found)
 	}
 }
 
-func TestBnbPricePriceGetAll(t *testing.T) {
+func TestBnbPriceGetAll(t *testing.T) {
 	keeper, ctx := keepertest.PaymentKeeper(t)
-	items := createNBnbPricePrice(keeper, ctx, 10)
+	items := createNBnbPrice(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllBnbPricePrice(ctx)),
+		nullify.Fill(keeper.GetAllBnbPrice(ctx)),
 	)
 }
 
@@ -72,7 +72,7 @@ func TestKeeper_GetBNBPriceByTime(t *testing.T) {
 	k.SubmitBNBPrice(ctx, 1000, 1000)
 	k.SubmitBNBPrice(ctx, 1234, 1234)
 	k.SubmitBNBPrice(ctx, 2345, 2345)
-	k.GetAllBnbPricePrice(ctx)
+	k.GetAllBnbPrice(ctx)
 	type args struct {
 		priceTime int64
 	}

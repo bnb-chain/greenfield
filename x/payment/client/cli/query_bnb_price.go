@@ -10,7 +10,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdListBnbPricePrice() *cobra.Command {
+func CmdListBnbPrice() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-bnb-price-price",
 		Short: "list all bnb-price-price",
@@ -24,11 +24,11 @@ func CmdListBnbPricePrice() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllBnbPricePriceRequest{
+			params := &types.QueryAllBnbPriceRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.BnbPricePriceAll(context.Background(), params)
+			res, err := queryClient.BnbPriceAll(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -43,7 +43,7 @@ func CmdListBnbPricePrice() *cobra.Command {
 	return cmd
 }
 
-func CmdShowBnbPricePrice() *cobra.Command {
+func CmdShowBnbPrice() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "show-bnb-price-price [time]",
 		Short: "shows a bnb-price-price",
@@ -58,11 +58,11 @@ func CmdShowBnbPricePrice() *cobra.Command {
 				return err
 			}
 
-			params := &types.QueryGetBnbPricePriceRequest{
+			params := &types.QueryGetBnbPriceRequest{
 				Time: argTime,
 			}
 
-			res, err := queryClient.BnbPricePrice(context.Background(), params)
+			res, err := queryClient.BnbPrice(context.Background(), params)
 			if err != nil {
 				return err
 			}

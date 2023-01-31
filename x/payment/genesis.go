@@ -36,9 +36,9 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.AutoSettleRecordList {
 		k.SetAutoSettleRecord(ctx, elem)
 	}
-	// Set all the bnbPricePrice
-	for _, elem := range genState.BnbPricePriceList {
-		k.SetBnbPricePrice(ctx, elem)
+	// Set all the BnbPrice
+	for _, elem := range genState.BnbPriceList {
+		k.SetBnbPrice(ctx, elem)
 	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
@@ -56,7 +56,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.FlowList = k.GetAllFlow(ctx)
 	genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
 	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
-	genesis.BnbPricePriceList = k.GetAllBnbPricePrice(ctx)
+	genesis.BnbPriceList = k.GetAllBnbPrice(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

@@ -9,24 +9,24 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// SetBnbPricePrice set a specific bnbPricePrice in the store from its index
-func (k Keeper) SetBnbPricePrice(ctx sdk.Context, bnbPricePrice types.BnbPricePrice) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPricePriceKeyPrefix))
-	b := k.cdc.MustMarshal(&bnbPricePrice)
-	store.Set(types.BnbPricePriceKey(
-		bnbPricePrice.Time,
+// SetBnbPrice set a specific BnbPrice in the store from its index
+func (k Keeper) SetBnbPrice(ctx sdk.Context, BnbPrice types.BnbPrice) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPriceKeyPrefix))
+	b := k.cdc.MustMarshal(&BnbPrice)
+	store.Set(types.BnbPriceKey(
+		BnbPrice.Time,
 	), b)
 }
 
-// GetBnbPricePrice returns a bnbPricePrice from its index
-func (k Keeper) GetBnbPricePrice(
+// GetBnbPrice returns a BnbPrice from its index
+func (k Keeper) GetBnbPrice(
 	ctx sdk.Context,
 	time int64,
 
-) (val types.BnbPricePrice, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPricePriceKeyPrefix))
+) (val types.BnbPrice, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPriceKeyPrefix))
 
-	b := store.Get(types.BnbPricePriceKey(
+	b := store.Get(types.BnbPriceKey(
 		time,
 	))
 	if b == nil {
@@ -37,27 +37,27 @@ func (k Keeper) GetBnbPricePrice(
 	return val, true
 }
 
-// RemoveBnbPricePrice removes a bnbPricePrice from the store
-func (k Keeper) RemoveBnbPricePrice(
+// RemoveBnbPrice removes a BnbPrice from the store
+func (k Keeper) RemoveBnbPrice(
 	ctx sdk.Context,
 	time int64,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPricePriceKeyPrefix))
-	store.Delete(types.BnbPricePriceKey(
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPriceKeyPrefix))
+	store.Delete(types.BnbPriceKey(
 		time,
 	))
 }
 
-// GetAllBnbPricePrice returns all bnbPricePrice
-func (k Keeper) GetAllBnbPricePrice(ctx sdk.Context) (list []types.BnbPricePrice) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPricePriceKeyPrefix))
+// GetAllBnbPrice returns all BnbPrice
+func (k Keeper) GetAllBnbPrice(ctx sdk.Context) (list []types.BnbPrice) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPriceKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.BnbPricePrice
+		var val types.BnbPrice
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		fmt.Printf("key: %x, value: %+v\n", iterator.Key(), val)
 		list = append(list, val)
@@ -67,7 +67,7 @@ func (k Keeper) GetAllBnbPricePrice(ctx sdk.Context) (list []types.BnbPricePrice
 }
 
 func (k Keeper) SubmitBNBPrice(ctx sdk.Context, time int64, price uint64) {
-	k.SetBnbPricePrice(ctx, types.BnbPricePrice{Time: time, Price: price})
+	k.SetBnbPrice(ctx, types.BnbPrice{Time: time, Price: price})
 }
 
 // GetBNBPrice return the price of BNB at priceTime
@@ -78,7 +78,7 @@ func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (bnbPrice ty
 	bnbPrice = types.BNBPrice{
 		Precision: sdkmath.NewInt(100000000),
 	}
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPricePriceKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.BnbPriceKeyPrefix))
 	timeBytes := make([]byte, 8)
 	// ReverseIterator end is not included, so we need to add 1 to the priceTime
 	binary.BigEndian.PutUint64(timeBytes, uint64(priceTime+1))
@@ -88,7 +88,7 @@ func (k Keeper) GetBNBPriceByTime(ctx sdk.Context, priceTime int64) (bnbPrice ty
 		return bnbPrice, fmt.Errorf("no price found")
 	}
 
-	var val types.BnbPricePrice
+	var val types.BnbPrice
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	bnbPrice.Num = sdkmath.NewIntFromUint64(val.Price)
 	return

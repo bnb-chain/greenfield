@@ -89,15 +89,15 @@ func TestGenesisState_Validate(t *testing.T) {
 						Addr:      "1",
 					},
 				},
-				BnbPricePriceList: []types.BnbPricePrice{
-	{
-		Time: 0,
-},
-	{
-		Time: 1,
-},
-},
-// this line is used by starport scaffolding # types/genesis/validField
+				BnbPriceList: []types.BnbPrice{
+					{
+						Time: 0,
+					},
+					{
+						Time: 1,
+					},
+				},
+				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
 		},
@@ -220,20 +220,20 @@ func TestGenesisState_Validate(t *testing.T) {
 			valid: false,
 		},
 		{
-	desc:     "duplicated bnbPricePrice",
-	genState: &types.GenesisState{
-		BnbPricePriceList: []types.BnbPricePrice{
-			{
-				Time: 0,
-},
-			{
-				Time: 0,
-},
+			desc: "duplicated BnbPrice",
+			genState: &types.GenesisState{
+				BnbPriceList: []types.BnbPrice{
+					{
+						Time: 0,
+					},
+					{
+						Time: 0,
+					},
+				},
+			},
+			valid: false,
 		},
-	},
-	valid:    false,
-},
-// this line is used by starport scaffolding # types/genesis/testcase
+		// this line is used by starport scaffolding # types/genesis/testcase
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
 			err := tc.genState.Validate()

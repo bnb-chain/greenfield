@@ -27,7 +27,3 @@ var (
 func KeyPrefix(p string) []byte {
 	return []byte(p)
 }
-
-const (
-	BnbPriceKey = "BnbPrice/value/"
-)
