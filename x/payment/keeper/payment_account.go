@@ -19,7 +19,6 @@ func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount types.PaymentA
 func (k Keeper) GetPaymentAccount(
 	ctx sdk.Context,
 	addr string,
-
 ) (val types.PaymentAccount, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.PaymentAccountKeyPrefix))
 

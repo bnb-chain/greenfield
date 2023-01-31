@@ -18,7 +18,7 @@ func (k msgServer) DisableRefund(goCtx context.Context, msg *types.MsgDisableRef
 		return nil, types.ErrNotPaymentAccountOwner
 	}
 	if !paymentAccount.Refundable {
-		return nil, types.ErrPaymentAccountNotRefundable
+		return nil, types.ErrPaymentAccountAlreadyNonRefundable
 	}
 	paymentAccount.Refundable = false
 	k.Keeper.SetPaymentAccount(ctx, paymentAccount)

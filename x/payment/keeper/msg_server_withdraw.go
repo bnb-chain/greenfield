@@ -23,7 +23,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 			return nil, types.ErrNotPaymentAccountOwner
 		}
 		if !paymentAccount.Refundable {
-			return nil, types.ErrPaymentAccountNotRefundable
+			return nil, types.ErrPaymentAccountAlreadyNonRefundable
 		}
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(msg.From).WithStaticBalanceChange(msg.Amount.Neg())
