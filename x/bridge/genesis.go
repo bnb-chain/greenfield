@@ -1,8 +1,8 @@
 package bridge
 
 import (
-	"github.com/bnb-chain/bfs/x/bridge/keeper"
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/x/bridge/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

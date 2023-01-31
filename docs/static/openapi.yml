@@ -4,10 +4,10 @@ info:
   name: ''
   description: ''
 paths:
-  /bfs/bfs/params:
+  /greenfield/greenfield/params:
     get:
       summary: Parameters queries the parameters of the module.
-      operationId: BfsBfsParams
+      operationId: GreenfieldGreenfieldParams
       responses:
         '200':
           description: A successful response.
@@ -44345,10 +44345,10 @@ paths:
       tags:
         - Query
 definitions:
-  bfs.bfs.Params:
+  greenfield.greenfield.Params:
     type: object
     description: Params defines the parameters for the module.
-  bfs.bfs.QueryParamsResponse:
+  greenfield.greenfield.QueryParamsResponse:
     type: object
     properties:
       params:
