@@ -2,9 +2,8 @@ package ante_test
 
 import (
 	"encoding/hex"
-	"time"
-
 	"fmt"
+	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,30 +65,6 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas)))
 				amount := sdk.NewCoins(coinAmount)
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgDelegate(from, privKey, "greenfield_9000-1", gas, amount)
-				return txBuilder.GetTx()
-			}, false, false, true,
-		},
-		{
-			"success- DeliverTx EIP712 create validator",
-			func() sdk.Tx {
-				from := acc.GetAddress()
-				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
-				amount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
-				txBuilder := suite.CreateTestEIP712MsgCreateValidator(from, privKey, "greenfield_9000-1", gas, amount)
-				return txBuilder.GetTx()
-			}, false, false, true,
-		},
-		{
-			"success- DeliverTx EIP712 MsgSubmitProposal",
-			func() sdk.Tx {
-				from := acc.GetAddress()
-				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
-				gasAmount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
-				// reusing the gasAmount for deposit
-				deposit := sdk.NewCoins(coinAmount)
-				txBuilder := suite.CreateTestEIP712SubmitProposal(from, privKey, "greenfield_9000-1", gas, gasAmount, deposit)
 				return txBuilder.GetTx()
 			}, false, false, true,
 		},
@@ -164,6 +139,30 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgGrant(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
+		},
+		{
+			"fails- DeliverTx EIP712 create validator",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
+				amount := sdk.NewCoins(coinAmount)
+				gas := uint64(200000)
+				txBuilder := suite.CreateTestEIP712MsgCreateValidator(from, privKey, "greenfield_9000-1", gas, amount)
+				return txBuilder.GetTx()
+			}, false, false, false,
+		},
+		{
+			"fails- DeliverTx EIP712 MsgSubmitProposal",
+			func() sdk.Tx {
+				from := acc.GetAddress()
+				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
+				gasAmount := sdk.NewCoins(coinAmount)
+				gas := uint64(200000)
+				// reusing the gasAmount for deposit
+				deposit := sdk.NewCoins(coinAmount)
+				txBuilder := suite.CreateTestEIP712SubmitProposal(from, privKey, "greenfield_9000-1", gas, gasAmount, deposit)
+				return txBuilder.GetTx()
+			}, false, false, false,
 		},
 		{
 			"fails - DeliverTx EIP712 signed Cosmos Tx with wrong Chain ID",

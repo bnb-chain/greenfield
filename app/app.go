@@ -20,7 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -32,7 +31,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	"github.com/cosmos/cosmos-sdk/x/crosschain"
 	crosschainkeeper "github.com/cosmos/cosmos-sdk/x/crosschain/keeper"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
@@ -44,6 +42,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+	"github.com/cosmos/cosmos-sdk/x/gashub"
+	gashubkeeper "github.com/cosmos/cosmos-sdk/x/gashub/keeper"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -83,17 +84,16 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/bnb-chain/greenfield/app/ante"
 	appparams "github.com/bnb-chain/greenfield/app/params"
 	"github.com/bnb-chain/greenfield/docs"
 	"github.com/bnb-chain/greenfield/version"
-	greenfieldmodule "github.com/bnb-chain/greenfield/x/greenfield"
-	greenfieldmodulekeeper "github.com/bnb-chain/greenfield/x/greenfield/keeper"
-	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
-
 	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
-	// this line is used by starport scaffolding # stargate/app/moduleImport
+	greenfieldmodule "github.com/bnb-chain/greenfield/x/greenfield"
+	greenfieldmodulekeeper "github.com/bnb-chain/greenfield/x/greenfield/keeper"
+	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
 )
 
 const (
@@ -144,6 +144,7 @@ var (
 		crosschain.AppModuleBasic{},
 		oracle.AppModuleBasic{},
 		bridgemodule.AppModuleBasic{},
+		gashub.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -204,6 +205,7 @@ type App struct {
 	FeeGrantKeeper   feegrantkeeper.Keeper
 	CrossChainKeeper crosschainkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
+	GashubKeeper     gashubkeeper.Keeper
 
 	GreenfieldKeeper greenfieldmodulekeeper.Keeper
 
@@ -260,6 +262,7 @@ func New(
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey,
 		bridgemoduletypes.StoreKey,
+		gashubtypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -418,6 +421,13 @@ func New(
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.GashubKeeper = gashubkeeper.NewGashubKeeper(
+		appCodec,
+		keys[gashubtypes.StoreKey],
+		app.GetSubspace(gashubtypes.ModuleName),
+	)
+	gashubModule := gashub.NewAppModule(appCodec, app.GashubKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
@@ -447,6 +457,7 @@ func New(
 		oracle.NewAppModule(app.OracleKeeper),
 		greenfieldModule,
 		bridgeModule,
+		gashubModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -471,6 +482,7 @@ func New(
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		gashubtypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -490,6 +502,7 @@ func New(
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		gashubtypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -514,6 +527,7 @@ func New(
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		gashubtypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -540,6 +554,7 @@ func New(
 		oracle.NewAppModule(app.OracleKeeper),
 		greenfieldModule,
 		bridgeModule,
+		gashubModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -559,7 +574,7 @@ func New(
 			BankKeeper:      app.BankKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			FeegrantKeeper:  app.FeeGrantKeeper,
-			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+			GashubKeeper:    app.GashubKeeper,
 		},
 	)
 	if err != nil {
@@ -768,6 +783,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
+	paramsKeeper.Subspace(gashubtypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
