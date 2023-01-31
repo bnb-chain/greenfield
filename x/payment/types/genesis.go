@@ -23,7 +23,8 @@ func DefaultGenesis() *GenesisState {
 		BnbPrice:                &defaultBnbPrice,
 		MockObjectInfoList:      []MockObjectInfo{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
-		// this line is used by starport scaffolding # genesis/types/default
+		BnbPricePriceList: []BnbPricePrice{},
+// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
 }
@@ -102,7 +103,17 @@ func (gs GenesisState) Validate() error {
 		}
 		autoSettleRecordIndexMap[index] = struct{}{}
 	}
-	// this line is used by starport scaffolding # genesis/types/validate
+	// Check for duplicated index in bnbPricePrice
+bnbPricePriceIndexMap := make(map[string]struct{})
+
+for _, elem := range gs.BnbPricePriceList {
+	index := string(BnbPricePriceKey(elem.Time))
+	if _, ok := bnbPricePriceIndexMap[index]; ok {
+		return fmt.Errorf("duplicated index for bnbPricePrice")
+	}
+	bnbPricePriceIndexMap[index] = struct{}{}
+}
+// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }

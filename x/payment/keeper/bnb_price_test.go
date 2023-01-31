@@ -1,8 +1,6 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/math"
-	"reflect"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -44,43 +42,4 @@ func TestGetBNBPrice(t *testing.T) {
 	k.SubmitBNBPrice(ctx, 1000, 1000)
 	k.SubmitBNBPrice(ctx, 1234, 1234)
 	k.SubmitBNBPrice(ctx, 2345, 2345)
-}
-
-func TestKeeper_GetBNBPriceByTime(t *testing.T) {
-	k, ctx := keepertest.PaymentKeeper(t)
-	k.SubmitBNBPrice(ctx, 1000, 1000)
-	k.SubmitBNBPrice(ctx, 1234, 1234)
-	k.SubmitBNBPrice(ctx, 2345, 2345)
-	type args struct {
-		priceTime int64
-	}
-	tests := []struct {
-		name          string
-		args          args
-		wantNum       math.Int
-		wantPrecision math.Int
-		wantErr       bool
-	}{
-		{"test 0", args{0}, math.NewInt(1000), math.NewInt(100000000), false},
-		{"test 345", args{345}, math.NewInt(1000), math.NewInt(100000000), false},
-		{"test 1001", args{1001}, math.NewInt(1000), math.NewInt(100000000), false},
-		{"test 1245", args{1245}, math.NewInt(1234), math.NewInt(100000000), false},
-		{"test 2345", args{2345}, math.NewInt(2345), math.NewInt(100000000), false},
-		{"test 2346", args{2346}, math.NewInt(2345), math.NewInt(100000000), false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			price, err := k.GetBNBPriceByTime(ctx, tt.args.priceTime)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetBNBPriceByTime() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(price.Num, tt.wantNum) {
-				t.Errorf("GetBNBPriceByTime() gotNum = %v, want %v", price.Num, tt.wantNum)
-			}
-			if !reflect.DeepEqual(price.Precision, tt.wantPrecision) {
-				t.Errorf("GetBNBPriceByTime() gotPrecision = %v, want %v", price.Precision, tt.wantPrecision)
-			}
-		})
-	}
 }

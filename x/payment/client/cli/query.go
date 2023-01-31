@@ -44,7 +44,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowMockObjectInfo())
 	cmd.AddCommand(CmdListAutoSettleRecord())
 	cmd.AddCommand(CmdShowAutoSettleRecord())
-	// this line is used by starport scaffolding # 1
+	cmd.AddCommand(CmdListBnbPricePrice())
+	cmd.AddCommand(CmdShowBnbPricePrice())
+// this line is used by starport scaffolding # 1
 
 	return cmd
 }
