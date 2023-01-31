@@ -7,24 +7,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
-
-// HandlerOptions are the options required for constructing a default SDK AnteHandler.
-type HandlerOptions struct {
-	AccountKeeper          ante.AccountKeeper
-	BankKeeper             authtypes.BankKeeper
-	ExtensionOptionChecker ante.ExtensionOptionChecker
-	FeegrantKeeper         ante.FeegrantKeeper
-	SignModeHandler        authsigning.SignModeHandler
-	TxFeeChecker           ante.TxFeeChecker
-	GashubKeeper           ante.GashubKeeper
-}
 
 // NewAnteHandler returns an AnteHandler that checks and increments sequence
 // numbers, checks signatures & account numbers, and deducts fees from the first
 // signer.
-func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
+func NewAnteHandler(options ante.HandlerOptions) (sdk.AnteHandler, error) {
 	if options.AccountKeeper == nil {
 		return nil, errors.Wrap(sdkerrors.ErrLogic, "account keeper is required for ante builder")
 	}
@@ -45,11 +33,11 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
-		ante.NewValidateTxSizeDecorator(options.AccountKeeper, options.GashubKeeper),
-		ante.NewConsumeMsgGasDecorator(options.AccountKeeper, options.GashubKeeper),
+		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
 		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
 		ante.NewSetPubKeyDecorator(options.AccountKeeper), // SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),
+		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
 		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
 		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
 	}
