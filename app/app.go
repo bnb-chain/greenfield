@@ -20,7 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -32,7 +31,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	"github.com/cosmos/cosmos-sdk/x/crosschain"
 	crosschainkeeper "github.com/cosmos/cosmos-sdk/x/crosschain/keeper"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
@@ -44,6 +42,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+	gashubkeeper "github.com/cosmos/cosmos-sdk/x/gashub/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -83,17 +82,16 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/bnb-chain/bfs/app/ante"
 	appparams "github.com/bnb-chain/bfs/app/params"
 	"github.com/bnb-chain/bfs/docs"
 	"github.com/bnb-chain/bfs/version"
 	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
 	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
 	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
-
 	bridgemodule "github.com/bnb-chain/bfs/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/bfs/x/bridge/keeper"
 	bridgemoduletypes "github.com/bnb-chain/bfs/x/bridge/types"
-	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (
@@ -204,6 +202,7 @@ type App struct {
 	FeeGrantKeeper   feegrantkeeper.Keeper
 	CrossChainKeeper crosschainkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
+	GashubKeeper     gashubkeeper.Keeper
 
 	BfsKeeper bfsmodulekeeper.Keeper
 
@@ -559,7 +558,7 @@ func New(
 			BankKeeper:      app.BankKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			FeegrantKeeper:  app.FeeGrantKeeper,
-			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+			GashubKeeper:    app.GashubKeeper,
 		},
 	)
 	if err != nil {

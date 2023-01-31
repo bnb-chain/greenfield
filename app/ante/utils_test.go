@@ -21,7 +21,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -86,12 +85,12 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encCfg.TxConfig)
 
-	anteHandler, _ := ante.NewAnteHandler(sdkante.HandlerOptions{
+	anteHandler, _ := ante.NewAnteHandler(ante.HandlerOptions{
 		AccountKeeper:   suite.app.AccountKeeper,
 		BankKeeper:      suite.app.BankKeeper,
 		FeegrantKeeper:  suite.app.FeeGrantKeeper,
 		SignModeHandler: encCfg.TxConfig.SignModeHandler(),
-		SigGasConsumer:  sdkante.DefaultSigVerificationGasConsumer,
+		GashubKeeper:    suite.app.GashubKeeper,
 	})
 	suite.anteHandler = anteHandler
 }
@@ -245,13 +244,12 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		PubKey:        acc.GetPubKey(),
 	}
 
-	msgTypes, _, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
+	msgTypes, signDoc, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
+	typedData, err := tx.WrapTxToTypedData(9000, signDoc, msgTypes)
 	suite.Require().NoError(err)
 
-	msgTypesJson, _ := json.MarshalIndent(msgTypes, "", "  ")
-	fmt.Println("Msg Types:\n", string(msgTypesJson))
-	msgJson, _ := json.MarshalIndent(txBuilder.GetTx().GetMsgs()[0], "", "  ")
-	fmt.Println("Msg:\n", string(msgJson))
+	typedDataJson, _ := json.MarshalIndent(typedData, "", "  ")
+	fmt.Println("Typed data:\n", string(typedDataJson))
 
 	sigHash, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx())
 	suite.Require().NoError(err)
@@ -377,7 +375,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	encCfg := app.MakeEncodingConfig()
 
 	nApp := app.New(
-		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, nil, simapp.EmptyAppOptions{}, options...)
+		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, &app.AppConfig{CrossChain: app.NewDefaultAppConfig().CrossChain}, simapp.EmptyAppOptions{}, options...)
 
 	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
 	genesisState, _ = genesisStateWithValSet(nApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
