@@ -245,6 +245,8 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	}
 
 	msgTypes, signDoc, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
+	suite.Require().NoError(err)
+
 	typedData, err := tx.WrapTxToTypedData(9000, signDoc, msgTypes)
 	suite.Require().NoError(err)
 
