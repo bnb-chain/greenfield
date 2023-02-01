@@ -2,15 +2,27 @@ version: 1
 accounts:
   - name: alice
     coins: ["20000token", "200000000stake"]
+    mnemonic: "marine giant loud party thrive venture winter ill grid kind bus shaft custom bunker cable trend another mosquito banner curtain rib asthma board beach"
   - name: bob
-    coins: ["10000token", "100000000stake"]
+    coins: ["10000token", "200000000stake"]
+    mnemonic: "bridge zoo loyal super right wet cool nice interest bronze bring behave smoke transfer palace arctic cool thank outer runway blade diesel giraffe goat"
+  - name: eva
+    coins: ["10000token", "200000000stake"]
+    mnemonic: "abuse fine soul flock gasp critic recall finger gain leave onion trouble lake enjoy clinic fantasy leisure blood wage alpha fence flag story awkward"
+  - name: nancy
+    coins: ["10000token", "200000000stake"]
+    mnemonic: "chase language anger island giraffe wrap island trumpet fluid story behind victory crush real swear special measure jaguar scatter color canyon forest outdoor prepare"
 validators:
   - name: alice
     bonded: "100000000stake"
+    validator_addr: 0xcdd393723f1Af81faa3F3c87B51dAB72B6c68154
+    relayer_addr: 0xcdd393723f1Af81faa3F3c87B51dAB72B6c68154
+    relayer_blskey: ac1e598ae0ccbeeaafa31bc6faefa85c2ae3138699cac79169cd718f1a38445201454ec092a86f200e08a15266bdc6e9
+    gentx:
+      min-self-delegation: 10000
 faucet:
   name: bob
   coins: ["5token", "100000stake"]
-
 init:
   client:
     chain-id: "greenfield_9000-1"
