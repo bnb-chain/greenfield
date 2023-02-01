@@ -8,6 +8,7 @@ import (
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
+	HasAccount(ctx sdk.Context, addr sdk.AccAddress) bool
 	// Methods imported from account should be defined here
 }
 

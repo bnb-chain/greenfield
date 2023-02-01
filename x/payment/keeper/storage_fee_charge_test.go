@@ -17,8 +17,8 @@ func TestApplyFlowChanges(t *testing.T) {
 	sp := "sp"
 	userInitBalance := sdkmath.NewInt(1e10)
 	flowChanges := []types.StreamRecordChange{
-		{Addr: user, RateChange: rate.Neg(), StaticBalanceChange: userInitBalance},
-		{Addr: sp, RateChange: rate, StaticBalanceChange: sdkmath.NewInt(0)},
+		*types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userInitBalance).WithRateChange(rate.Neg()),
+		*types.NewDefaultStreamRecordChangeWithAddr(sp).WithRateChange(rate),
 	}
 	err := keeper.ApplyStreamRecordChanges(ctx, flowChanges)
 	require.NoError(t, err)
@@ -42,7 +42,7 @@ func TestSettleStreamRecord(t *testing.T) {
 	rate := sdkmath.NewInt(-100)
 	staticBalance := sdkmath.NewInt(1e10)
 	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithRateChange(rate).WithStaticBalanceChange(staticBalance)
-	_, err := keeper.UpdateStreamRecordByAddr(ctx, &change)
+	_, err := keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	// check
 	streamRecord, found := keeper.GetStreamRecord(ctx, user)
@@ -52,7 +52,7 @@ func TestSettleStreamRecord(t *testing.T) {
 	var seconds int64 = 345
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(seconds) * time.Second))
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, &change)
+	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	userStreamRecord2, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("stream record after %d seconds: %+v", seconds, userStreamRecord2)
@@ -64,36 +64,37 @@ func TestSettleStreamRecord(t *testing.T) {
 
 func TestMergeStreamRecordChanges(t *testing.T) {
 	base := []types.StreamRecordChange{
-		{Addr: "user1", RateChange: sdkmath.NewInt(100), StaticBalanceChange: sdkmath.NewInt(1e10)},
-		{Addr: "user2", RateChange: sdkmath.NewInt(200), StaticBalanceChange: sdkmath.NewInt(2e10)},
+		*types.NewDefaultStreamRecordChangeWithAddr("user1").WithRateChange(sdkmath.NewInt(100)).WithStaticBalanceChange(sdkmath.NewInt(1e10)),
+		*types.NewDefaultStreamRecordChangeWithAddr("user2").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 	}
 	changes := []types.StreamRecordChange{
-		{Addr: "user1", RateChange: sdkmath.NewInt(100), StaticBalanceChange: sdkmath.NewInt(1e10)},
-		{Addr: "user3", RateChange: sdkmath.NewInt(200), StaticBalanceChange: sdkmath.NewInt(2e10)},
+		*types.NewDefaultStreamRecordChangeWithAddr("user1").WithRateChange(sdkmath.NewInt(100)).WithStaticBalanceChange(sdkmath.NewInt(1e10)),
+		*types.NewDefaultStreamRecordChangeWithAddr("user3").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 	}
 	k, _ := keepertest.PaymentKeeper(t)
 	k.MergeStreamRecordChanges(&base, changes)
 	t.Logf("new base: %+v", base)
 	require.Equal(t, len(base), 3)
 	require.Equal(t, base, []types.StreamRecordChange{
-		{Addr: "user1", RateChange: sdkmath.NewInt(200), StaticBalanceChange: sdkmath.NewInt(2e10)},
-		{Addr: "user2", RateChange: sdkmath.NewInt(200), StaticBalanceChange: sdkmath.NewInt(2e10)},
-		{Addr: "user3", RateChange: sdkmath.NewInt(200), StaticBalanceChange: sdkmath.NewInt(2e10)},
+		*types.NewDefaultStreamRecordChangeWithAddr("user1").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
+		*types.NewDefaultStreamRecordChangeWithAddr("user2").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
+		*types.NewDefaultStreamRecordChangeWithAddr("user3").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 	})
 }
 
 func TestAutoForceSettle(t *testing.T) {
 	keeper, ctx := keepertest.PaymentKeeper(t)
+	keeper.SubmitBNBPrice(ctx, 0, 1e8)
 	params := keeper.GetParams(ctx)
 	var startTime int64 = 100
 	ctx = ctx.WithBlockTime(time.Unix(startTime, 0))
-	user := "user"
+	user := keepertest.GetRandomAddress()
 	rate := sdkmath.NewInt(100)
-	sp := "sp"
+	sp := keepertest.GetRandomAddress()
 	userInitBalance := sdkmath.NewInt(int64(100*params.ReserveTime) + 1) // just enough for reserve
 	// init balance
 	streamRecordChanges := []types.StreamRecordChange{
-		{Addr: user, RateChange: sdkmath.ZeroInt(), StaticBalanceChange: userInitBalance},
+		*types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userInitBalance),
 	}
 	err := keeper.ApplyStreamRecordChanges(ctx, streamRecordChanges)
 	require.NoError(t, err)
@@ -108,19 +109,14 @@ func TestAutoForceSettle(t *testing.T) {
 	userStreamRecord, found = keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
+	require.Equal(t, 1, len(userStreamRecord.OutFlowsInUSD))
+	require.Equal(t, userStreamRecord.OutFlowsInUSD[0].SpAddress, sp)
 	spStreamRecord, found := keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
 	require.True(t, found)
 	require.Equal(t, spStreamRecord.NetflowRate, rate)
 	require.Equal(t, spStreamRecord.StaticBalance, sdkmath.ZeroInt())
 	require.Equal(t, spStreamRecord.BufferBalance, sdkmath.ZeroInt())
-	// check flows
-	flows := keeper.GetAllFlow(ctx)
-	t.Logf("flows: %+v", flows)
-	require.Equal(t, len(flows), 1)
-	require.Equal(t, flows[0].From, user)
-	require.Equal(t, flows[0].To, sp)
-	require.Equal(t, flows[0].Rate, rate)
 	// check auto settle queue
 	autoSettleQueue := keeper.GetAllAutoSettleRecord(ctx)
 	t.Logf("auto settle queue: %+v", autoSettleQueue)
@@ -132,14 +128,14 @@ func TestAutoForceSettle(t *testing.T) {
 	// update and deposit to user for extra 100s
 	userAddBalance := rate.MulRaw(100)
 	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userAddBalance)
-	ret, err := keeper.UpdateStreamRecordByAddr(ctx, &change)
+	ret, err := keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	userStreamRecord = *ret
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
 	require.True(t, userStreamRecord.StaticBalance.IsNegative())
 	change = types.NewDefaultStreamRecordChangeWithAddr(sp)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, &change)
+	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	spStreamRecord, _ = keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
@@ -149,7 +145,7 @@ func TestAutoForceSettle(t *testing.T) {
 	// reverve time - forced settle time - 1 day + 101s pass
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, &change)
+	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	userStreamRecord, _ = keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
@@ -159,16 +155,13 @@ func TestAutoForceSettle(t *testing.T) {
 	require.Equal(t, userStreamRecord.NetflowRate, sdkmath.ZeroInt())
 	require.Equal(t, userStreamRecord.Status, int32(types.StreamPaymentAccountStatusFrozen))
 	change = types.NewDefaultStreamRecordChangeWithAddr(sp)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, &change)
+	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	spStreamRecord, _ = keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
 	autoSettleQueue3 := keeper.GetAllAutoSettleRecord(ctx)
 	t.Logf("auto settle queue: %+v", autoSettleQueue3)
 	require.Equal(t, len(autoSettleQueue3), 0)
-	flows = keeper.GetAllFlow(ctx)
-	t.Logf("flows: %+v", flows)
-	require.True(t, flows[0].Frozen)
 	govStreamRecord, found := keeper.GetStreamRecord(ctx, types.GovernanceAddress.String())
 	require.True(t, found)
 	t.Logf("gov stream record: %+v", govStreamRecord)

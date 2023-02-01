@@ -102,8 +102,8 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	}
 	if streamRecord.StaticBalance.IsNegative() {
 		account := sdk.MustAccAddressFromHex(streamRecord.Account)
-		bankAccount := k.accountKeeper.GetAccount(ctx, account)
-		if bankAccount != nil {
+		hasBankAccount := k.accountKeeper.HasAccount(ctx, account)
+		if hasBankAccount {
 			coins := sdk.NewCoins(sdk.NewCoin(types.Denom, streamRecord.StaticBalance.Abs()))
 			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
 			if err != nil {
@@ -147,7 +147,7 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRe
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
 	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
 	change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress.String()).WithStaticBalanceChange(totalBalance)
-	_, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	_, err := k.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update governance stream record failed: %w", err)
 	}
@@ -163,7 +163,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 	// trigger another force settle.
 	for _, flow := range flows {
 		change = types.NewDefaultStreamRecordChangeWithAddr(flow.To).WithRateChange(flow.Rate.Neg())
-		_, err := k.UpdateStreamRecordByAddr(ctx, &change)
+		_, err := k.UpdateStreamRecordByAddr(ctx, change)
 		if err != nil {
 			return fmt.Errorf("update receiver stream record failed: %w", err)
 		}
@@ -203,7 +203,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			panic("stream record not found")
 		}
 		change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
-		err := k.UpdateStreamRecord(ctx, &streamRecord, &change)
+		err := k.UpdateStreamRecord(ctx, &streamRecord, change)
 		if err != nil {
 			ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
 			panic("force settle failed")

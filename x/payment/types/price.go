@@ -9,8 +9,8 @@ type StreamRecordChange struct {
 	LockBalanceChange   sdkmath.Int
 }
 
-func NewDefaultStreamRecordChangeWithAddr(addr string) StreamRecordChange {
-	return StreamRecordChange{
+func NewDefaultStreamRecordChangeWithAddr(addr string) *StreamRecordChange {
+	return &StreamRecordChange{
 		Addr:                addr,
 		RateChange:          sdkmath.ZeroInt(),
 		StaticBalanceChange: sdkmath.ZeroInt(),
@@ -18,17 +18,17 @@ func NewDefaultStreamRecordChangeWithAddr(addr string) StreamRecordChange {
 	}
 }
 
-func (change StreamRecordChange) WithRateChange(rateChange sdkmath.Int) StreamRecordChange {
+func (change *StreamRecordChange) WithRateChange(rateChange sdkmath.Int) *StreamRecordChange {
 	change.RateChange = rateChange
 	return change
 }
 
-func (change StreamRecordChange) WithStaticBalanceChange(staticBalanceChange sdkmath.Int) StreamRecordChange {
+func (change *StreamRecordChange) WithStaticBalanceChange(staticBalanceChange sdkmath.Int) *StreamRecordChange {
 	change.StaticBalanceChange = staticBalanceChange
 	return change
 }
 
-func (change StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmath.Int) StreamRecordChange {
+func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmath.Int) *StreamRecordChange {
 	change.LockBalanceChange = lockBalanceChange
 	return change
 }

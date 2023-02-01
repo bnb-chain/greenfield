@@ -16,12 +16,10 @@ tools:
 	curl https://get.ignite.com/cli! | bash
 
 proto-gen:
-	#ignite generate proto-go
-	cd proto && buf generate && cp -r github.com/bnb-chain/bfs/x/* ../x && rm -rf github.com
+	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x && rm -rf github.com
 
 proto-format:
 	buf format -w
-
 
 build:
 	go build -o build/bin/gnfd -ldflags="$(ldflags)" ./cmd/gnfd/main.go

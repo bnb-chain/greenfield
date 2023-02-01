@@ -27,7 +27,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		}
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(msg.From).WithStaticBalanceChange(msg.Amount.Neg())
-	err := k.UpdateStreamRecord(ctx, &streamRecord, &change)
+	err := k.UpdateStreamRecord(ctx, &streamRecord, change)
 	if err != nil {
 		return nil, err
 	}

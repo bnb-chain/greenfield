@@ -62,8 +62,8 @@ func (k Keeper) ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []
 	for _, flowChange := range flowChanges {
 		rateChangeInBNB := USD2BNB(flowChange.Rate, currentBNBPrice)
 		k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
-			types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
-			types.NewDefaultStreamRecordChangeWithAddr(flowChange.SpAddress).WithRateChange(rateChangeInBNB),
+			*types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
+			*types.NewDefaultStreamRecordChangeWithAddr(flowChange.SpAddress).WithRateChange(rateChangeInBNB),
 		})
 	}
 	// calculate rate changes if price changes
@@ -73,8 +73,8 @@ func (k Keeper) ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []
 			currentRateInBNB := USD2BNB(flow.Rate, currentBNBPrice)
 			rateChangeInBNB := currentRateInBNB.Sub(prevRateInBNB)
 			k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
-				types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
-				types.NewDefaultStreamRecordChangeWithAddr(flow.SpAddress).WithRateChange(rateChangeInBNB),
+				*types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
+				*types.NewDefaultStreamRecordChangeWithAddr(flow.SpAddress).WithRateChange(rateChangeInBNB),
 			})
 		}
 	}
@@ -157,7 +157,7 @@ func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.In
 	}
 	lockAmountInBNB = rate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Mul(bnbPrice.Precision).Quo(bnbPrice.Num)
 	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithLockBalanceChange(lockAmountInBNB)
-	streamRecord, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	streamRecord, err := k.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return lockAmountInBNB, fmt.Errorf("update stream record failed: %w", err)
 	}
@@ -181,7 +181,7 @@ func (k Keeper) LockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, 
 func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
 	lockedBalance := objectInfo.LockedBalance
 	change := types.NewDefaultStreamRecordChangeWithAddr(bucketMeta.StorePaymentAccount).WithLockBalanceChange(lockedBalance.Neg())
-	_, err := k.UpdateStreamRecordByAddr(ctx, &change)
+	_, err := k.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
 	}
