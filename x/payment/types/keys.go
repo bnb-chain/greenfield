@@ -51,6 +51,12 @@ func AutoSettleRecordKey(
 	return key
 }
 
+func ParseAutoSettleRecordKey(key []byte) (res AutoSettleRecord) {
+	res.Timestamp = int64(binary.BigEndian.Uint64(key[0:8]))
+	res.Addr = string(key[8:])
+	return
+}
+
 // BnbPriceKey returns the store key to retrieve a BnbPrice from the index fields
 func BnbPriceKey(
 	time int64,

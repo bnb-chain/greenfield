@@ -9,7 +9,7 @@ import (
 // SetAutoSettleRecord set a specific autoSettleRecord in the store from its index
 func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord types.AutoSettleRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
-	b := k.cdc.MustMarshal(&autoSettleRecord)
+	b := []byte{0x00}
 	store.Set(types.AutoSettleRecordKey(
 		autoSettleRecord.Timestamp,
 		autoSettleRecord.Addr,
@@ -32,7 +32,8 @@ func (k Keeper) GetAutoSettleRecord(
 		return val, false
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
+	val.Timestamp = timestamp
+	val.Addr = addr
 	return val, true
 }
 
@@ -41,7 +42,6 @@ func (k Keeper) RemoveAutoSettleRecord(
 	ctx sdk.Context,
 	timestamp int64,
 	addr string,
-
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	store.Delete(types.AutoSettleRecordKey(
@@ -58,8 +58,7 @@ func (k Keeper) GetAllAutoSettleRecord(ctx sdk.Context) (list []types.AutoSettle
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.AutoSettleRecord
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		val := types.ParseAutoSettleRecordKey(iterator.Key())
 		list = append(list, val)
 	}
 
