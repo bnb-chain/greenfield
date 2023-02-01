@@ -28,10 +28,13 @@ func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types
 		}
 
 		coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), rewardInfo.GetAmount().Amount))
-		k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, rewardAcc, coins)
+		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, rewardAcc, coins); err != nil {
+			// TODO: need consider rollback
+			return err
+		}
 	}
 
-	// TODO(fynn): if the total deposit of SP is less than the MinDeposit, we will jail it.
+	// TODO: if the total deposit of SP is less than the MinDeposit, we will jail it.
 	return nil
 
 }

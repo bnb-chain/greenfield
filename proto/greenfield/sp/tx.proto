@@ -12,6 +12,7 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Msg defines the Msg service for creating a new storage provider.
+// TODO: add a transaction that the Storage Provide claim themself enter short time maintenance to avoid slash
 service Msg {
   rpc CreateStorageProvider(MsgCreateStorageProvider) returns (MsgCreateStorageProviderResponse);
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
@@ -62,6 +63,5 @@ message MsgEditStorageProvider {
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
 message MsgEditStorageProviderResponse {}
 
-// TODO: add a transaction that the Storage Provide claim themself enter short time maintenance to avoid slash
 
 // this line is used by starport scaffolding # proto/tx/message

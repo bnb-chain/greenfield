@@ -424,6 +424,7 @@ func New(
 		app.CrossChainKeeper,
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
+
 	app.SpKeeper = *spmodulekeeper.NewKeeper(
 		appCodec,
 		keys[spmoduletypes.StoreKey],

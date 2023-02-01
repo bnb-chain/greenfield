@@ -64,7 +64,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 
 	depositDenom := k.DepositDenomForSP(ctx)
 	if depositDenom != msg.Deposit.GetDenom() {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
 	}
 
 	// check the deposit authorization from the fund address to gov module account
@@ -73,7 +73,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 			ctx,
 			k.authKeeper.GetModuleAddress(gov.ModuleName),
 			fundingAcc,
-			types.NewMsgDeposit(msg.FundingAddress, msg.SpAddress, msg.Deposit))
+			types.NewMsgDeposit(fundingAcc, spAcc, msg.Deposit))
 		if err != nil {
 			return nil, err
 		}
@@ -89,7 +89,9 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// deposit coins to module account. move coins from sp address account to module account.
 	// Requires FeeGrant module authorization
 	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), msg.Deposit.Amount))
-	k.bankKeeper.SendCoinsFromAccountToModule(ctx, fundingAcc, types.ModuleName, coins)
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, fundingAcc, types.ModuleName, coins); err != nil {
+		return nil, err
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:      spAcc.String(),
@@ -155,11 +157,13 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	depositDenom := k.DepositDenomForSP(ctx)
 	if depositDenom != msg.Deposit.GetDenom() {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
+		return nil, sdkerrors.Wrapf(types.ErrInvalidDepositDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
 	}
 	// deposit the deposit token to module account.
-	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), msg.Deposit.Amount))
-	k.bankKeeper.SendCoinsFromAccountToModule(ctx, sp.GetFundingAccAddress(), types.ModuleName, coins)
+	coins := sdk.NewCoins(sdk.NewCoin(depositDenom, msg.Deposit.Amount))
+	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, sp.GetFundingAccAddress(), types.ModuleName, coins); err != nil {
+		return nil, err
+	}
 
 	// Add to storage provider's deposit tokens and update the storage provider.
 	sp.TotalDeposit = sp.TotalDeposit.Add(msg.Deposit.Amount)

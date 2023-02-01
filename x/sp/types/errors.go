@@ -15,6 +15,7 @@ var (
 	ErrStorageProviderPubKeyExists = sdkerrors.Register(ModuleName, 5, "StorageProvider already exist for this pubkey; must use new StorageProvider pubkey")
 	ErrInsufficientDepositAmount   = sdkerrors.Register(ModuleName, 6, "insufficient deposit amount")
 	ErrDepositAccountNotAllowed    = sdkerrors.Register(ModuleName, 7, "the deposit address must be the sp address or the fund address of sp.")
+	ErrInvalidDepositDenom         = sdkerrors.Register(ModuleName, 8, "the deposit address must be the sp address or the fund address of sp.")
 
 	ErrSignerNotGovModule = sdkerrors.Register(ModuleName, 40, "signer is not gov module account")
 	ErrSignerEmpty        = sdkerrors.Register(ModuleName, 41, "signer is empty")

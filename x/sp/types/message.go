@@ -21,13 +21,18 @@ var (
 // creator is the module account of gov module
 // SpAddress is the account address of storage provider
 // fundAddress is another accoutn address of storage provider which used to deposit or rewarding
-func NewMsgCreateStorageProvider(creator string, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress, description Description, deposit sdk.Coin) (*MsgCreateStorageProvider, error) {
+func NewMsgCreateStorageProvider(
+	creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress,
+	description Description, deposit sdk.Coin) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
-		Creator:        creator,
-		SpAddress:      SpAddress.String(),
-		FundingAddress: fundingAddress.String(),
-		Description:    description,
-		Deposit:        deposit,
+		Creator:         creator.String(),
+		SpAddress:       SpAddress.String(),
+		FundingAddress:  fundingAddress.String(),
+		SealAddress:     sealAddress.String(),
+		ApprovalAddress: approvalAddress.String(),
+		Description:     description,
+		Deposit:         deposit,
 	}, nil
 }
 
@@ -80,9 +85,9 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
 // TODO(fynn): add morer modifiable items if needed.
-func NewMsgEditStorageProvider(creator string, spAddress string, description Description) *MsgEditStorageProvider {
+func NewMsgEditStorageProvider(spAddress sdk.AccAddress, address sdk.AccAddress, description Description) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
-		SpAddress:   spAddress,
+		SpAddress:   spAddress.String(),
 		Description: description,
 	}
 }
@@ -99,7 +104,7 @@ func (msg *MsgEditStorageProvider) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgEditStorageProvider) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.SpAddress)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -114,7 +119,7 @@ func (msg *MsgEditStorageProvider) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgEditStorageProvider) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.SpAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -126,10 +131,10 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 }
 
 // NewMsgDeposit creates a new MsgDeposit instance
-func NewMsgDeposit(creator string, spAddress string, deposit sdk.Coin) *MsgDeposit {
+func NewMsgDeposit(creator sdk.AccAddress, spAddress sdk.AccAddress, deposit sdk.Coin) *MsgDeposit {
 	return &MsgDeposit{
-		Creator:   creator,
-		SpAddress: spAddress,
+		Creator:   creator.String(),
+		SpAddress: spAddress.String(),
 		Deposit:   deposit,
 	}
 }
@@ -146,7 +151,7 @@ func (msg *MsgDeposit) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		panic(err)
 	}

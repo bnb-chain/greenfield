@@ -61,8 +61,10 @@ func CmdCreateStorageProvider() *cobra.Command {
 			}
 			// TODO: impl later
 			msg, _ := types.NewMsgCreateStorageProvider(
-				clientCtx.GetFromAddress().String(),
-				types2.AccAddress{},
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
 				clientCtx.GetFromAddress(),
 				types.Description{},
 				types2.Coin{},
@@ -87,14 +89,19 @@ func CmdEditStorageProvider() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argSpAddress := args[0]
 
+			spAddress, err := sdk.AccAddressFromHexUnsafe(argSpAddress)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
 			msg := types.NewMsgEditStorageProvider(
-				clientCtx.GetFromAddress().String(),
-				argSpAddress,
+				clientCtx.GetFromAddress(),
+				spAddress,
 				types.Description{},
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -125,8 +132,8 @@ func CmdDeposit() *cobra.Command {
 			// TODO:impl later
 			coin := sdk.Coin{Denom: argValue}
 			msg := types.NewMsgDeposit(
-				clientCtx.GetFromAddress().String(),
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
 				coin,
 			)
 			if err := msg.ValidateBasic(); err != nil {
