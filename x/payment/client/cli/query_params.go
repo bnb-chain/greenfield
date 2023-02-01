@@ -3,7 +3,7 @@ package cli
 import (
 	"context"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"

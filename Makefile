@@ -4,9 +4,9 @@
 VERSION=$(shell git describe --tags --always)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d')
-REPO=github.com/bnb-chain/inscription
-IMAGE_NAME=ghcr.io/bnb-chain/inscription
-REPO=github.com/bnb-chain/inscription
+REPO=github.com/bnb-chain/greenfield
+IMAGE_NAME=ghcr.io/bnb-chain/greenfield
+REPO=github.com/bnb-chain/greenfield
 
 ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
@@ -24,7 +24,7 @@ proto-format:
 
 
 build:
-	go build -o build/bin/bfsd -ldflags="$(ldflags)" ./cmd/bfsd/main.go
+	go build -o build/bin/gnfd -ldflags="$(ldflags)" ./cmd/gnfd/main.go
 
 docker-image:
 	go mod vendor # temporary, should be removed after open source

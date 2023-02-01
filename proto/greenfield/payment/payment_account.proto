@@ -1,0 +1,10 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+message PaymentAccount {
+  string addr = 1;
+  string owner = 2;
+  bool refundable = 3;
+}

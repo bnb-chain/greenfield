@@ -12,10 +12,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/bfs/testutil/network"
-	"github.com/bnb-chain/bfs/testutil/nullify"
-	"github.com/bnb-chain/bfs/x/payment/client/cli"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/testutil/network"
+	"github.com/bnb-chain/greenfield/testutil/nullify"
+	"github.com/bnb-chain/greenfield/x/payment/client/cli"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 // Prevent strconv unused error

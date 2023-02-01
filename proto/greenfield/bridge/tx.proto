@@ -1,0 +1,24 @@
+syntax = "proto3";
+package bnbchain.greenfield.bridge;
+
+import "cosmos/base/v1beta1/coin.proto";
+
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc TransferOut(MsgTransferOut) returns (MsgTransferOutResponse);
+  // this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgTransferOut {
+  string from = 1;
+  string to = 2;
+  cosmos.base.v1beta1.Coin amount = 3;
+}
+
+message MsgTransferOutResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message

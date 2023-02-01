@@ -59,14 +59,14 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         with:
           name: linux
-          path: ./build/bin/bfsd
+          path: ./build/bin/gnfd
 
       - name: Upload MacOS Build
         uses: actions/upload-artifact@v3
         if: matrix.os == 'macos-latest'
         with:
           name: macos
-          path: ./build/bin/bfsd
+          path: ./build/bin/gnfd
 
   release:
     name: Release
@@ -97,8 +97,8 @@ jobs:
       
       # Rename assets
       - run: |
-          mv ./linux/bfsd ./linux/linux
-          mv ./macos/bfsd ./macos/macos
+          mv ./linux/gnfd ./linux/linux
+          mv ./macos/gnfd ./macos/macos
 
       # ==============================
       #       Create release

@@ -3,10 +3,10 @@ package keeper
 import (
 	"testing"
 
-	"github.com/bnb-chain/bfs/app"
-	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
-	"github.com/bnb-chain/bfs/x/bridge/keeper"
-	"github.com/bnb-chain/bfs/x/bridge/types"
+	"github.com/bnb-chain/greenfield/app"
+	"github.com/bnb-chain/greenfield/x/bridge/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
+	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -77,7 +77,7 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		bfsmoduletypes.StoreKey,
+		greenfieldmoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey,
 		types.StoreKey,
@@ -212,7 +212,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
-	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
+	paramsKeeper.Subspace(greenfieldmoduletypes.ModuleName)
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(types.ModuleName)

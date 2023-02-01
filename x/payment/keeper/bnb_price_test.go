@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"testing"
 
-	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
-	"github.com/bnb-chain/bfs/testutil/nullify"
-	"github.com/bnb-chain/bfs/x/payment/keeper"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/testutil/nullify"
+	"github.com/bnb-chain/greenfield/x/payment/keeper"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )

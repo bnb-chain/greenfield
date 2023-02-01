@@ -1,9 +1,0 @@
-syntax = "proto3";
-package bnbchain.bfs.payment;
-
-option go_package = "github.com/bnb-chain/bfs/x/payment/types";
-
-message PaymentAccountCount {
-  string owner = 1;
-  uint64 count = 2;
-}

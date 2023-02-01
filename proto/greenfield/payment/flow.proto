@@ -1,0 +1,19 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+message Flow {
+  string from = 1;
+  string to = 2;
+  // this rate is in USD
+  string rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  bool frozen = 4;
+}

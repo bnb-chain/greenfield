@@ -20,7 +20,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -32,7 +32,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
-
 	"github.com/cosmos/cosmos-sdk/x/crosschain"
 	crosschainkeeper "github.com/cosmos/cosmos-sdk/x/crosschain/keeper"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
@@ -44,6 +43,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+	gashubkeeper "github.com/cosmos/cosmos-sdk/x/gashub/keeper"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -83,26 +83,28 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	appparams "github.com/bnb-chain/bfs/app/params"
-	"github.com/bnb-chain/bfs/docs"
-	"github.com/bnb-chain/bfs/version"
-	bfsmodule "github.com/bnb-chain/bfs/x/bfs"
-	bfsmodulekeeper "github.com/bnb-chain/bfs/x/bfs/keeper"
-	bfsmoduletypes "github.com/bnb-chain/bfs/x/bfs/types"
-
-	bridgemodule "github.com/bnb-chain/bfs/x/bridge"
-	bridgemodulekeeper "github.com/bnb-chain/bfs/x/bridge/keeper"
-	bridgemoduletypes "github.com/bnb-chain/bfs/x/bridge/types"
+	appparams "github.com/bnb-chain/greenfield/app/params"
+	"github.com/bnb-chain/greenfield/docs"
+	"github.com/bnb-chain/greenfield/version"
+	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
+	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
+	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	greenfieldmodule "github.com/bnb-chain/greenfield/x/greenfield"
+	greenfieldmodulekeeper "github.com/bnb-chain/greenfield/x/greenfield/keeper"
+	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
+	spmodule "github.com/bnb-chain/greenfield/x/sp"
+	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 
-	paymentmodule "github.com/bnb-chain/bfs/x/payment"
-	paymentmodulekeeper "github.com/bnb-chain/bfs/x/payment/keeper"
-	paymentmoduletypes "github.com/bnb-chain/bfs/x/payment/types"
+	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
+	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (
-	Name          = "inscription"
+	Name          = "greenfield"
 	EIP155ChainID = "9000"
 	Epoch         = "1"
 
@@ -145,10 +147,11 @@ var (
 		slashing.AppModuleBasic{},
 		feegrantmodule.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
-		bfsmodule.AppModuleBasic{},
+		greenfieldmodule.AppModuleBasic{},
 		crosschain.AppModuleBasic{},
 		oracle.AppModuleBasic{},
 		bridgemodule.AppModuleBasic{},
+		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
@@ -165,6 +168,7 @@ var (
 		crosschaintypes.ModuleName:     {authtypes.Minter},
 		bridgemoduletypes.ModuleName:   nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
+		spmoduletypes.ModuleName: {authtypes.Staking},
 	}
 )
 
@@ -212,9 +216,12 @@ type App struct {
 	FeeGrantKeeper   feegrantkeeper.Keeper
 	CrossChainKeeper crosschainkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
+	GashubKeeper     gashubkeeper.Keeper
 
-	BfsKeeper     bfsmodulekeeper.Keeper
+	GreenfieldKeeper greenfieldmodulekeeper.Keeper
+
 	BridgeKeeper  bridgemodulekeeper.Keeper
+	SpKeeper      spmodulekeeper.Keeper
 	PaymentKeeper paymentmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
@@ -264,10 +271,11 @@ func New(
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		bfsmoduletypes.StoreKey,
+		greenfieldmoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey,
 		bridgemoduletypes.StoreKey,
+		spmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
@@ -394,11 +402,11 @@ func New(
 		govConfig,
 	)
 
-	app.BfsKeeper = *bfsmodulekeeper.NewKeeper(
+	app.GreenfieldKeeper = *greenfieldmodulekeeper.NewKeeper(
 		appCodec,
-		keys[bfsmoduletypes.StoreKey],
-		keys[bfsmoduletypes.MemStoreKey],
-		app.GetSubspace(bfsmoduletypes.ModuleName),
+		keys[greenfieldmoduletypes.StoreKey],
+		keys[greenfieldmoduletypes.MemStoreKey],
+		app.GetSubspace(greenfieldmoduletypes.ModuleName),
 	)
 
 	// Register the upgrade keeper
@@ -414,7 +422,7 @@ func New(
 		panic(err)
 	}
 
-	bfsModule := bfsmodule.NewAppModule(appCodec, app.BfsKeeper, app.AccountKeeper, app.BankKeeper)
+	greenfieldModule := greenfieldmodule.NewAppModule(appCodec, app.GreenfieldKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.BridgeKeeper = *bridgemodulekeeper.NewKeeper(
 		appCodec,
@@ -426,6 +434,17 @@ func New(
 		app.CrossChainKeeper,
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
+
+	app.SpKeeper = *spmodulekeeper.NewKeeper(
+		appCodec,
+		keys[spmoduletypes.StoreKey],
+		keys[spmoduletypes.MemStoreKey],
+		app.GetSubspace(spmoduletypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.AuthzKeeper,
+	)
+	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
@@ -465,8 +484,9 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
-		bfsModule,
+		greenfieldModule,
 		bridgeModule,
+		spModule,
 		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
@@ -488,10 +508,11 @@ func New(
 		authz.ModuleName,
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		greenfieldmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
@@ -508,10 +529,11 @@ func New(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		greenfieldmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
@@ -533,10 +555,11 @@ func New(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
-		bfsmoduletypes.ModuleName,
+		greenfieldmoduletypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
@@ -562,8 +585,9 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
-		bfsModule,
+		greenfieldModule,
 		bridgeModule,
+		spModule,
 		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
@@ -578,13 +602,13 @@ func New(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 
-	anteHandler, err := ante.NewAnteHandler(
-		ante.HandlerOptions{
+	anteHandler, err := sdkante.NewAnteHandler(
+		sdkante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
 			BankKeeper:      app.BankKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			FeegrantKeeper:  app.FeeGrantKeeper,
-			SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+			SigGasConsumer:  sdkante.DefaultSigVerificationGasConsumer,
 		},
 	)
 	if err != nil {
@@ -789,10 +813,11 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(distrtypes.ModuleName)
 	paramsKeeper.Subspace(slashingtypes.ModuleName)
 	paramsKeeper.Subspace(govtypes.ModuleName).WithKeyTable(govv1.ParamKeyTable())
-	paramsKeeper.Subspace(bfsmoduletypes.ModuleName)
+	paramsKeeper.Subspace(greenfieldmoduletypes.ModuleName)
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
+	paramsKeeper.Subspace(spmoduletypes.ModuleName)
 	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 

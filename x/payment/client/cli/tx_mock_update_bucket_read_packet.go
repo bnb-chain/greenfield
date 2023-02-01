@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cast"
 	"strconv"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"

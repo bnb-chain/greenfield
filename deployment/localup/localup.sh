@@ -4,7 +4,7 @@ workspace=${basedir}
 source ${workspace}/.env
 source ${workspace}/utils.sh
 
-bin_name=bfsd
+bin_name=gnfd
 bin=${workspace}/../../build/bin/${bin_name}
 
 function init() {
@@ -23,9 +23,35 @@ function init() {
         ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/relayer_info 2>&1
         ${bin} keys add relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/relayer_bls_info 2>&1
     done
+
+    # add sp account
+    sp_size=1
+    if [ $# -eq 2 ];then
+      sp_size=$2
+    fi
+    for ((i=0;i<${sp_size};i++));do
+      #create sp and sp fund account
+      mkdir -p ${workspace}/.local/sp${i}
+      ${bin} keys add sp${i} --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/info 2>&1
+      ${bin} keys add sp${i}_fund --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/fund_info 2>&1
+    done
+
 }
 
 function generate_genesis() {
+    # create sp address in genesis
+    sp_size=1
+    if [ $# -eq 2 ];then
+      sp_size=$2
+    fi
+    for ((i=0;i<${sp_size};i++));do
+      #create sp and sp fund account
+      sp_addrs=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+      spfund_addrs=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+      ${bin} add-genesis-account $sp_addrs ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spfund_addrs ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+    done
+ 
     size=$1
     declare -a validator_addrs=()
     for ((i=0;i<${size};i++));do
@@ -109,6 +135,8 @@ function start() {
             --p2p.laddr tcp://0.0.0.0:$((${VALIDATOR_P2P_PORT_START}+${i})) \
             --p2p.external-address 127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) \
             --rpc.laddr tcp://0.0.0.0:$((${VALIDATOR_RPC_PORT_START}+${i})) \
+            --json-rpc.address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i})) \
+            --json-rpc.ws-address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i}+1)) \
             --log_format json > ${workspace}/.local/validator${i}/logs/node.log &
     done
 }

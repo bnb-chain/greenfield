@@ -1,7 +1,7 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 type msgServer struct {

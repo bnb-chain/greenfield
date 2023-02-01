@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package bnbchain.greenfield.payment;
+
+import "greenfield/payment/auto_settle_record.proto";
+import "greenfield/payment/bnb_price.proto";
+import "greenfield/payment/flow.proto";
+import "greenfield/payment/mock_bucket_meta.proto";
+import "greenfield/payment/mock_object_info.proto";
+import "greenfield/payment/params.proto";
+import "greenfield/payment/payment_account.proto";
+import "greenfield/payment/payment_account_count.proto";
+import "greenfield/payment/stream_record.proto";
+import "gogoproto/gogo.proto";
+
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+// GenesisState defines the payment module's genesis state.
+message GenesisState {
+           Params              params                  = 1 [(gogoproto.nullable) = false];
+  repeated StreamRecord        streamRecordList        = 2 [(gogoproto.nullable) = false];
+  repeated PaymentAccountCount paymentAccountCountList = 3 [(gogoproto.nullable) = false];
+  repeated PaymentAccount      paymentAccountList      = 4 [(gogoproto.nullable) = false];
+
+  // this line is used by starport scaffolding # genesis/proto/state
+  repeated MockBucketMeta   mockBucketMetaList   =  5 [(gogoproto.nullable) = false];
+  repeated Flow             flowList             =  6 [(gogoproto.nullable) = false];
+  repeated AutoSettleRecord autoSettleRecordList =  8 [(gogoproto.nullable) = false];
+  repeated MockObjectInfo   mockObjectInfoList   =  9 [(gogoproto.nullable) = false];
+  repeated BnbPrice    BnbPriceList    = 10 [(gogoproto.nullable) = false];
+}

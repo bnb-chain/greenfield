@@ -4,9 +4,9 @@ package payment
 import (
 	"math/rand"
 
-	"github.com/bnb-chain/bfs/testutil/sample"
-	paymentsimulation "github.com/bnb-chain/bfs/x/payment/simulation"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	paymentsimulation "github.com/bnb-chain/greenfield/x/payment/simulation"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -2,17 +2,17 @@ FROM golang:1.18-alpine as builder
 
 RUN apk add --no-cache make git bash
 
-ADD . /bfs
+ADD . /greenfield
 
 ENV CGO_ENABLED=0
 ENV GO111MODULE=on
 
-RUN cd /bfs && make build
+RUN cd /greenfield && make build
 
-# Pull BFS into a second stage deploy alpine container
+# Pull greenfield into a second stage deploy alpine container
 FROM alpine:3.16
 
-ARG USER=bfs
+ARG USER=greenfield
 ARG USER_UID=1000
 ARG USER_GID=1000
 
@@ -30,10 +30,10 @@ RUN echo "[ ! -z \"\$TERM\" -a -r /etc/motd ] && cat /etc/motd" >> /etc/bash/bas
 
 WORKDIR ${WORKDIR}
 
-COPY --from=builder /bfs/build/bin/bfsd ${WORKDIR}/
+COPY --from=builder /greenfield/build/bin/greenfieldd ${WORKDIR}/
 RUN chown -R ${USER_UID}:${USER_GID} ${WORKDIR}
 USER ${USER_UID}:${USER_GID}
 
 EXPOSE 26656 26657 9090 1317 6060 4500
 
-ENTRYPOINT ["/server/bfsd"]
+ENTRYPOINT ["/server/greenfieldd"]

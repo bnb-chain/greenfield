@@ -4,7 +4,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"encoding/binary"
 	"fmt"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

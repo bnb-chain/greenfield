@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/address"
 
 	errorsmod "cosmossdk.io/errors"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

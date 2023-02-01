@@ -1,0 +1,9 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+message PaymentAccountCount {
+  string owner = 1;
+  uint64 count = 2;
+}

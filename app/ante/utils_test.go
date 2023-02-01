@@ -25,6 +25,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	evtypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
@@ -35,6 +36,7 @@ import (
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/tests"
 	evmtypes "github.com/evmos/ethermint/x/evm/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -42,10 +44,9 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/bnb-chain/bfs/app"
-	"github.com/bnb-chain/bfs/app/ante"
-	"github.com/bnb-chain/bfs/app/params"
-	"github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/bnb-chain/greenfield/app"
+	"github.com/bnb-chain/greenfield/app/ante"
+	"github.com/bnb-chain/greenfield/app/params"
 )
 
 const genesisAccountPrivateKeyForTest = "02DCA3F2C6CDF541934FA043A0ADBD891968EC7B948691ABA0C3CACA59A5DAC753"
@@ -73,7 +74,7 @@ func (suite *AnteTestSuite) SetupTest() {
 	var encCfg params.EncodingConfig
 	suite.app, encCfg, _ = NewApp()
 
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 2, ChainID: "inscription_9000-1", Time: time.Now().UTC()})
+	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 2, ChainID: "greenfield_9000-1", Time: time.Now().UTC()})
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, sdk.OneInt())))
 	suite.ctx = suite.ctx.WithBlockGasMeter(sdk.NewGasMeter(1000000000000000000))
 
@@ -114,13 +115,20 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 	// Build MsgCreateValidator
 	valAddr := sdk.AccAddress(from.Bytes())
 	privEd := ed25519.GenPrivKey()
+	addr1 := sdk.AccAddress(from.Bytes())
+	blsSecretKey, _ := bls.RandKey()
+	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		valAddr,
 		privEd.PubKey(),
 		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
-		sdk.OneInt(), valAddr, valAddr, valAddr, "test",
+		sdk.OneInt(),
+		addr1,
+		addr1,
+		addr1,
+		blsPk,
 	)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgCreate)
@@ -150,13 +158,14 @@ func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, 
 
 func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	valAddr := sdk.AccAddress(from.Bytes())
+	blsSecretKey, _ := bls.RandKey()
+	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
 	msgEdit := stakingtypes.NewMsgEditValidator(
 		valAddr,
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		nil,
 		nil,
-		valAddr,
-		"test",
+		sdk.AccAddress(priv.PubKey().Address()), blsPk,
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
 }
@@ -222,7 +231,7 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 
 	txBuilder := suite.clientCtx.TxConfig.NewTxBuilder()
 
-	// txBuilder.SetFeeAmount(gasAmount)
+	txBuilder.SetFeeAmount(gasAmount)
 	txBuilder.SetGasLimit(gas)
 
 	err = txBuilder.SetMsgs(msg)
@@ -236,13 +245,14 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 		PubKey:        acc.GetPubKey(),
 	}
 
-	msgTypes, _, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
+	msgTypes, signDoc, err := tx.GetMsgTypes(signerData, txBuilder.GetTx(), big.NewInt(9000))
 	suite.Require().NoError(err)
 
-	msgTypesJson, _ := json.MarshalIndent(msgTypes, "", "  ")
-	fmt.Println("Msg Types:\n", string(msgTypesJson))
-	msgJson, _ := json.MarshalIndent(txBuilder.GetTx().GetMsgs()[0], "", "  ")
-	fmt.Println("Msg:\n", string(msgJson))
+	typedData, err := tx.WrapTxToTypedData(9000, signDoc, msgTypes)
+	suite.Require().NoError(err)
+
+	typedDataJson, _ := json.MarshalIndent(typedData, "", "  ")
+	fmt.Println("Typed data:\n", string(typedDataJson))
 
 	sigHash, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx())
 	suite.Require().NoError(err)
@@ -368,7 +378,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	encCfg := app.MakeEncodingConfig()
 
 	nApp := app.New(
-		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, app.NewDefaultAppConfig(), simapp.EmptyAppOptions{}, options...)
+		logger, db, nil, true, app.DefaultNodeHome, 0, encCfg, &app.AppConfig{CrossChain: app.NewDefaultAppConfig().CrossChain}, simapp.EmptyAppOptions{}, options...)
 
 	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
 	genesisState, _ = genesisStateWithValSet(nApp, genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
@@ -378,7 +388,7 @@ func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.Encodin
 	// Initialize the chain
 	nApp.InitChain(
 		abci.RequestInitChain{
-			ChainId:       "inscription_9000-1",
+			ChainId:       "greenfield_9000-1",
 			Validators:    []abci.ValidatorUpdate{},
 			AppStateBytes: stateBytes,
 		},

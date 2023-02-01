@@ -3,7 +3,7 @@ package types_test
 import (
 	"testing"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/stretchr/testify/require"
 )
 

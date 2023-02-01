@@ -1,0 +1,22 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+import "greenfield/payment/base.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+message MockBucketMeta {
+  string bucketName = 1;
+  string owner = 2;
+  string readPaymentAccount = 3;
+  string storePaymentAccount = 4;
+  string spAddress = 5;
+  // mock id with string instead of uint64 to avoid distribute id
+  string id = 6;
+  // for payment
+  ReadPacket readPacket = 7;
+  int64 priceTime = 8;
+  repeated OutFlowInUSD outFlowsInUSD = 9 [(gogoproto.nullable) = false];
+}

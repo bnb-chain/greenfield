@@ -3,8 +3,8 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/bnb-chain/bfs/testutil/keeper"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	testkeeper "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/stretchr/testify/require"
 )
 

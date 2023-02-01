@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"github.com/cosmos/cosmos-sdk/types/address"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

@@ -1,8 +1,8 @@
 package payment
 
 import (
-	"github.com/bnb-chain/bfs/x/payment/keeper"
-	"github.com/bnb-chain/bfs/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/payment/keeper"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
