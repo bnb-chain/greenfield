@@ -2,6 +2,10 @@ syntax = "proto3";
 
 package bnbchain.greenfield.payment;
 
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
 import "greenfield/payment/auto_settle_record.proto";
 import "greenfield/payment/bnb_price.proto";
 import "greenfield/payment/flow.proto";
@@ -11,10 +15,6 @@ import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
 import "greenfield/payment/stream_record.proto";
-import "cosmos/base/query/v1beta1/pagination.proto";
-import "cosmos_proto/cosmos.proto";
-import "gogoproto/gogo.proto";
-import "google/api/annotations.proto";
 
 // this line is used by starport scaffolding # 1
 
@@ -22,119 +22,99 @@ option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // Query defines the gRPC querier service.
 service Query {
-
   // Parameters queries the parameters of the module.
-  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/greenfield/payment/params";
-
   }
 
   // Queries a StreamRecord by index.
-  rpc StreamRecord (QueryGetStreamRecordRequest) returns (QueryGetStreamRecordResponse) {
+  rpc StreamRecord(QueryGetStreamRecordRequest) returns (QueryGetStreamRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/stream_record/{account}";
-
   }
 
   // Queries a list of StreamRecord items.
-  rpc StreamRecordAll (QueryAllStreamRecordRequest) returns (QueryAllStreamRecordResponse) {
+  rpc StreamRecordAll(QueryAllStreamRecordRequest) returns (QueryAllStreamRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/stream_record";
-
   }
 
   // Queries a PaymentAccountCount by index.
-  rpc PaymentAccountCount (QueryGetPaymentAccountCountRequest) returns (QueryGetPaymentAccountCountResponse) {
+  rpc PaymentAccountCount(QueryGetPaymentAccountCountRequest) returns (QueryGetPaymentAccountCountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account_count/{owner}";
-
   }
 
   // Queries a list of PaymentAccountCount items.
-  rpc PaymentAccountCountAll (QueryAllPaymentAccountCountRequest) returns (QueryAllPaymentAccountCountResponse) {
+  rpc PaymentAccountCountAll(QueryAllPaymentAccountCountRequest) returns (QueryAllPaymentAccountCountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account_count";
-
   }
 
   // Queries a PaymentAccount by index.
-  rpc PaymentAccount (QueryGetPaymentAccountRequest) returns (QueryGetPaymentAccountResponse) {
+  rpc PaymentAccount(QueryGetPaymentAccountRequest) returns (QueryGetPaymentAccountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account/{addr}";
-
   }
 
   // Queries a list of PaymentAccount items.
-  rpc PaymentAccountAll (QueryAllPaymentAccountRequest) returns (QueryAllPaymentAccountResponse) {
+  rpc PaymentAccountAll(QueryAllPaymentAccountRequest) returns (QueryAllPaymentAccountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account";
-
   }
 
   // Queries a list of DynamicBalance items.
-  rpc DynamicBalance (QueryDynamicBalanceRequest) returns (QueryDynamicBalanceResponse) {
+  rpc DynamicBalance(QueryDynamicBalanceRequest) returns (QueryDynamicBalanceResponse) {
     option (google.api.http).get = "/greenfield/payment/dynamic_balance/{account}";
-
   }
 
   // Queries a list of GetPaymentAccountsByOwner items.
-  rpc GetPaymentAccountsByOwner (QueryGetPaymentAccountsByOwnerRequest) returns (QueryGetPaymentAccountsByOwnerResponse) {
+  rpc GetPaymentAccountsByOwner(QueryGetPaymentAccountsByOwnerRequest) returns (QueryGetPaymentAccountsByOwnerResponse) {
     option (google.api.http).get = "/greenfield/payment/get_payment_accounts_by_owner/{owner}";
-
   }
 
   // this line is used by starport scaffolding # 2
 
   // Queries a list of MockBucketMeta items.
-  rpc MockBucketMeta    (QueryGetMockBucketMetaRequest) returns (QueryGetMockBucketMetaResponse) {
+  rpc MockBucketMeta(QueryGetMockBucketMetaRequest) returns (QueryGetMockBucketMetaResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_bucket_meta/{bucketName}";
-
   }
-  rpc MockBucketMetaAll (QueryAllMockBucketMetaRequest) returns (QueryAllMockBucketMetaResponse) {
+  rpc MockBucketMetaAll(QueryAllMockBucketMetaRequest) returns (QueryAllMockBucketMetaResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_bucket_meta";
-
   }
 
   // Queries a list of Flow items.
-  rpc Flow    (QueryGetFlowRequest) returns (QueryGetFlowResponse) {
+  rpc Flow(QueryGetFlowRequest) returns (QueryGetFlowResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/flow/{from}/{to}";
-
   }
-  rpc FlowAll (QueryAllFlowRequest) returns (QueryAllFlowResponse) {
+  rpc FlowAll(QueryAllFlowRequest) returns (QueryAllFlowResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/flow";
-
   }
 
   // Queries a list of MockObjectInfo items.
-  rpc MockObjectInfo    (QueryGetMockObjectInfoRequest) returns (QueryGetMockObjectInfoResponse) {
+  rpc MockObjectInfo(QueryGetMockObjectInfoRequest) returns (QueryGetMockObjectInfoResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_object_info/{bucketName}/{objectName}";
-
   }
-  rpc MockObjectInfoAll (QueryAllMockObjectInfoRequest) returns (QueryAllMockObjectInfoResponse) {
+  rpc MockObjectInfoAll(QueryAllMockObjectInfoRequest) returns (QueryAllMockObjectInfoResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_object_info";
-
   }
 
   // Queries a list of AutoSettleRecord items.
-  rpc AutoSettleRecord    (QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
+  rpc AutoSettleRecord(QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/auto_settle_record/{timestamp}/{addr}";
-
   }
-  rpc AutoSettleRecordAll (QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
+  rpc AutoSettleRecordAll(QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/auto_settle_record";
-
   }
 
   // Queries a list of BnbPrice items.
-  rpc BnbPrice    (QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
+  rpc BnbPrice(QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/bnb_price/{time}";
-
   }
-  rpc BnbPriceAll (QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
+  rpc BnbPriceAll(QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/payment/bnb_price";
-
   }
 }
+
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
-
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
@@ -152,8 +132,8 @@ message QueryAllStreamRecordRequest {
 }
 
 message QueryAllStreamRecordResponse {
-  repeated StreamRecord                           streamRecord = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination   = 2;
+  repeated StreamRecord streamRecord = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetPaymentAccountCountRequest {
@@ -169,8 +149,8 @@ message QueryAllPaymentAccountCountRequest {
 }
 
 message QueryAllPaymentAccountCountResponse {
-  repeated PaymentAccountCount                    paymentAccountCount = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination          = 2;
+  repeated PaymentAccountCount paymentAccountCount = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetPaymentAccountRequest {
@@ -186,8 +166,8 @@ message QueryAllPaymentAccountRequest {
 }
 
 message QueryAllPaymentAccountResponse {
-  repeated PaymentAccount                         paymentAccount = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination     = 2;
+  repeated PaymentAccount paymentAccount = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryDynamicBalanceRequest {
@@ -195,9 +175,13 @@ message QueryDynamicBalanceRequest {
 }
 
 message QueryDynamicBalanceResponse {
-  string       dynamicBalance   = 1 [(cosmos_proto.scalar) = "cosmos.Int", (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
-  StreamRecord streamRecord     = 2 [(gogoproto.nullable)  = false       ] ;
-  int64        currentTimestamp = 3;
+  string dynamicBalance = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  StreamRecord streamRecord = 2 [(gogoproto.nullable) = false];
+  int64 currentTimestamp = 3;
 }
 
 message QueryGetPaymentAccountsByOwnerRequest {
@@ -222,13 +206,13 @@ message QueryAllMockBucketMetaRequest {
 }
 
 message QueryAllMockBucketMetaResponse {
-  repeated MockBucketMeta                         mockBucketMeta = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination     = 2;
+  repeated MockBucketMeta mockBucketMeta = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetFlowRequest {
   string from = 1;
-  string to   = 2;
+  string to = 2;
 }
 
 message QueryGetFlowResponse {
@@ -240,8 +224,8 @@ message QueryAllFlowRequest {
 }
 
 message QueryAllFlowResponse {
-  repeated Flow                                   flow       = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination = 2;
+  repeated Flow flow = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetMockObjectInfoRequest {
@@ -258,13 +242,13 @@ message QueryAllMockObjectInfoRequest {
 }
 
 message QueryAllMockObjectInfoResponse {
-  repeated MockObjectInfo                         mockObjectInfo = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination     = 2;
+  repeated MockObjectInfo mockObjectInfo = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetAutoSettleRecordRequest {
-  int64  timestamp = 1;
-  string addr      = 2;
+  int64 timestamp = 1;
+  string addr = 2;
 }
 
 message QueryGetAutoSettleRecordResponse {
@@ -276,8 +260,8 @@ message QueryAllAutoSettleRecordRequest {
 }
 
 message QueryAllAutoSettleRecordResponse {
-  repeated AutoSettleRecord                       autoSettleRecord = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination       = 2;
+  repeated AutoSettleRecord autoSettleRecord = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetBnbPriceRequest {
@@ -293,6 +277,6 @@ message QueryAllBnbPriceRequest {
 }
 
 message QueryAllBnbPriceResponse {
-  repeated BnbPrice                          BnbPrice = 1 [(gogoproto.nullable) = false];
-           cosmos.base.query.v1beta1.PageResponse pagination    = 2;
+  repeated BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

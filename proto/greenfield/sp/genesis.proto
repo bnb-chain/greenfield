@@ -1,9 +1,9 @@
 syntax = "proto3";
 package bnbchain.greenfield.sp;
 
+import "gogoproto/gogo.proto";
 import "greenfield/sp/params.proto";
 import "greenfield/sp/types.proto";
-import "gogoproto/gogo.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";

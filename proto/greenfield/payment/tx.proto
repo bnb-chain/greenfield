@@ -2,10 +2,10 @@ syntax = "proto3";
 
 package bnbchain.greenfield.payment;
 
-import "greenfield/payment/base.proto";
-import "greenfield/payment/mock_bucket_meta.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "greenfield/payment/base.proto";
+import "greenfield/payment/mock_bucket_meta.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
