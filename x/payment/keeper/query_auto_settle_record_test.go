@@ -1,7 +1,7 @@
 package keeper_test
 
 import (
-    "strconv"
+	"strconv"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +10,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/bfs/x/payment/types"
-	"github.com/bnb-chain/bfs/testutil/nullify"
 	keepertest "github.com/bnb-chain/bfs/testutil/keeper"
+	"github.com/bnb-chain/bfs/testutil/nullify"
+	"github.com/bnb-chain/bfs/x/payment/types"
 )
 
 // Prevent strconv unused error
@@ -29,31 +29,28 @@ func TestAutoSettleRecordQuerySingle(t *testing.T) {
 		err      error
 	}{
 		{
-			desc:     "First",
-			request:  &types.QueryGetAutoSettleRecordRequest{
-			    Timestamp: msgs[0].Timestamp,
-                Addr: msgs[0].Addr,
-                
+			desc: "First",
+			request: &types.QueryGetAutoSettleRecordRequest{
+				Timestamp: msgs[0].Timestamp,
+				Addr:      msgs[0].Addr,
 			},
 			response: &types.QueryGetAutoSettleRecordResponse{AutoSettleRecord: msgs[0]},
 		},
 		{
-			desc:     "Second",
-			request:  &types.QueryGetAutoSettleRecordRequest{
-			    Timestamp: msgs[1].Timestamp,
-                Addr: msgs[1].Addr,
-                
+			desc: "Second",
+			request: &types.QueryGetAutoSettleRecordRequest{
+				Timestamp: msgs[1].Timestamp,
+				Addr:      msgs[1].Addr,
 			},
 			response: &types.QueryGetAutoSettleRecordResponse{AutoSettleRecord: msgs[1]},
 		},
 		{
-			desc:    "KeyNotFound",
+			desc: "KeyNotFound",
 			request: &types.QueryGetAutoSettleRecordRequest{
-			    Timestamp:100000,
-                Addr:strconv.Itoa(100000),
-                
+				Timestamp: 100000,
+				Addr:      strconv.Itoa(100000),
 			},
-			err:     status.Error(codes.NotFound, "not found"),
+			err: status.Error(codes.NotFound, "not found"),
 		},
 		{
 			desc: "InvalidRequest",
@@ -97,9 +94,9 @@ func TestAutoSettleRecordQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.AutoSettleRecord), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.AutoSettleRecord),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.AutoSettleRecord),
+			)
 		}
 	})
 	t.Run("ByKey", func(t *testing.T) {
@@ -110,9 +107,9 @@ func TestAutoSettleRecordQueryPaginated(t *testing.T) {
 			require.NoError(t, err)
 			require.LessOrEqual(t, len(resp.AutoSettleRecord), step)
 			require.Subset(t,
-            	nullify.Fill(msgs),
-            	nullify.Fill(resp.AutoSettleRecord),
-            )
+				nullify.Fill(msgs),
+				nullify.Fill(resp.AutoSettleRecord),
+			)
 			next = resp.Pagination.NextKey
 		}
 	})

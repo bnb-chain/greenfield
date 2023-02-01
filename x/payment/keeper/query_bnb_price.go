@@ -20,7 +20,7 @@ func (k Keeper) BnbPriceAll(c context.Context, req *types.QueryAllBnbPriceReques
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	BnbPriceStore := prefix.NewStore(store, types.KeyPrefix(types.BnbPriceKeyPrefix))
+	BnbPriceStore := prefix.NewStore(store, types.BnbPriceKeyPrefix)
 
 	pageRes, err := query.Paginate(BnbPriceStore, req.Pagination, func(key []byte, value []byte) error {
 		var BnbPrice types.BnbPrice

@@ -3,10 +3,10 @@ package keeper
 import (
 	"context"
 
+	"github.com/bnb-chain/bfs/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
-	"github.com/bnb-chain/bfs/x/payment/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -20,7 +20,7 @@ func (k Keeper) AutoSettleRecordAll(c context.Context, req *types.QueryAllAutoSe
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	autoSettleRecordStore := prefix.NewStore(store, types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
+	autoSettleRecordStore := prefix.NewStore(store, types.AutoSettleRecordKeyPrefix)
 
 	pageRes, err := query.Paginate(autoSettleRecordStore, req.Pagination, func(key []byte, value []byte) error {
 		var autoSettleRecord types.AutoSettleRecord
@@ -46,12 +46,12 @@ func (k Keeper) AutoSettleRecord(c context.Context, req *types.QueryGetAutoSettl
 	ctx := sdk.UnwrapSDKContext(c)
 
 	val, found := k.GetAutoSettleRecord(
-	    ctx,
-	    req.Timestamp,
-        req.Addr,
-        )
+		ctx,
+		req.Timestamp,
+		req.Addr,
+	)
 	if !found {
-	    return nil, status.Error(codes.NotFound, "not found")
+		return nil, status.Error(codes.NotFound, "not found")
 	}
 
 	return &types.QueryGetAutoSettleRecordResponse{AutoSettleRecord: val}, nil

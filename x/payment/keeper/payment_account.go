@@ -8,7 +8,7 @@ import (
 
 // SetPaymentAccount set a specific paymentAccount in the store from its index
 func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount types.PaymentAccount) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.PaymentAccountKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 	b := k.cdc.MustMarshal(&paymentAccount)
 	store.Set(types.PaymentAccountKey(
 		paymentAccount.Addr,
@@ -20,7 +20,7 @@ func (k Keeper) GetPaymentAccount(
 	ctx sdk.Context,
 	addr string,
 ) (val types.PaymentAccount, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.PaymentAccountKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 
 	b := store.Get(types.PaymentAccountKey(
 		addr,
@@ -35,7 +35,7 @@ func (k Keeper) GetPaymentAccount(
 
 // GetAllPaymentAccount returns all paymentAccount
 func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccount) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.PaymentAccountKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()

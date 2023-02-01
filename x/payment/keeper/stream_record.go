@@ -10,7 +10,7 @@ import (
 
 // SetStreamRecord set a specific streamRecord in the store from its index
 func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord types.StreamRecord) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StreamRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 	b := k.cdc.MustMarshal(&streamRecord)
 	store.Set(types.StreamRecordKey(
 		streamRecord.Account,
@@ -23,7 +23,7 @@ func (k Keeper) GetStreamRecord(
 	account string,
 
 ) (val types.StreamRecord, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StreamRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 
 	b := store.Get(types.StreamRecordKey(
 		account,
@@ -42,7 +42,7 @@ func (k Keeper) RemoveStreamRecord(
 	account string,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StreamRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 	store.Delete(types.StreamRecordKey(
 		account,
 	))
@@ -50,7 +50,7 @@ func (k Keeper) RemoveStreamRecord(
 
 // GetAllStreamRecord returns all streamRecord
 func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.StreamRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
@@ -181,7 +181,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 
 func (k Keeper) AutoSettle(ctx sdk.Context) {
 	currentTimestamp := ctx.BlockTime().Unix()
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()

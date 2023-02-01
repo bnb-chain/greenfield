@@ -20,7 +20,7 @@ func (k Keeper) FlowAll(c context.Context, req *types.QueryAllFlowRequest) (*typ
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	flowStore := prefix.NewStore(store, types.KeyPrefix(types.FlowKeyPrefix))
+	flowStore := prefix.NewStore(store, types.FlowKeyPrefix)
 
 	pageRes, err := query.Paginate(flowStore, req.Pagination, func(key []byte, value []byte) error {
 		var flow types.Flow

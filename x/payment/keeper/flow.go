@@ -9,7 +9,7 @@ import (
 
 // SetFlow set a specific flow in the store from its index
 func (k Keeper) SetFlow(ctx sdk.Context, flow types.Flow) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FlowKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FlowKeyPrefix)
 	b := k.cdc.MustMarshal(&flow)
 	store.Set(types.FlowKey(
 		flow.From,
@@ -24,7 +24,7 @@ func (k Keeper) GetFlow(
 	to string,
 
 ) (val types.Flow, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FlowKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FlowKeyPrefix)
 
 	b := store.Get(types.FlowKey(
 		from,
@@ -45,7 +45,7 @@ func (k Keeper) RemoveFlow(
 	to string,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FlowKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FlowKeyPrefix)
 	store.Delete(types.FlowKey(
 		from,
 		to,
@@ -54,7 +54,7 @@ func (k Keeper) RemoveFlow(
 
 // GetAllFlow returns all flow
 func (k Keeper) GetAllFlow(ctx sdk.Context) (list []types.Flow) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FlowKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FlowKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
@@ -69,7 +69,7 @@ func (k Keeper) GetAllFlow(ctx sdk.Context) (list []types.Flow) {
 }
 
 func (k Keeper) GetAllFlowByFromUser(ctx sdk.Context, from string) (list []types.Flow) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.FlowKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.FlowKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte(from))
 
 	defer iterator.Close()

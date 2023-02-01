@@ -20,7 +20,7 @@ func (k Keeper) MockObjectInfoAll(c context.Context, req *types.QueryAllMockObje
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	mockObjectInfoStore := prefix.NewStore(store, types.KeyPrefix(types.MockObjectInfoKeyPrefix))
+	mockObjectInfoStore := prefix.NewStore(store, types.MockObjectInfoKeyPrefix)
 
 	pageRes, err := query.Paginate(mockObjectInfoStore, req.Pagination, func(key []byte, value []byte) error {
 		var mockObjectInfo types.MockObjectInfo

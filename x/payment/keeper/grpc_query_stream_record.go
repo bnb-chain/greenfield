@@ -20,7 +20,7 @@ func (k Keeper) StreamRecordAll(c context.Context, req *types.QueryAllStreamReco
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	streamRecordStore := prefix.NewStore(store, types.KeyPrefix(types.StreamRecordKeyPrefix))
+	streamRecordStore := prefix.NewStore(store, types.StreamRecordKeyPrefix)
 
 	pageRes, err := query.Paginate(streamRecordStore, req.Pagination, func(key []byte, value []byte) error {
 		var streamRecord types.StreamRecord

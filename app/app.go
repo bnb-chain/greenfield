@@ -213,8 +213,8 @@ type App struct {
 	CrossChainKeeper crosschainkeeper.Keeper
 	OracleKeeper     oraclekeeper.Keeper
 
-	BfsKeeper bfsmodulekeeper.Keeper
-	BridgeKeeper bridgemodulekeeper.Keeper
+	BfsKeeper     bfsmodulekeeper.Keeper
+	BridgeKeeper  bridgemodulekeeper.Keeper
 	PaymentKeeper paymentmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 

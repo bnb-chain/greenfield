@@ -8,7 +8,7 @@ import (
 
 // SetMockBucketMeta set a specific mockBucketMeta in the store from its index
 func (k Keeper) SetMockBucketMeta(ctx sdk.Context, mockBucketMeta types.MockBucketMeta) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockBucketMetaKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockBucketMetaKeyPrefix)
 	b := k.cdc.MustMarshal(&mockBucketMeta)
 	store.Set(types.MockBucketMetaKey(
 		mockBucketMeta.BucketName,
@@ -21,7 +21,7 @@ func (k Keeper) GetMockBucketMeta(
 	bucketName string,
 
 ) (val types.MockBucketMeta, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockBucketMetaKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockBucketMetaKeyPrefix)
 
 	b := store.Get(types.MockBucketMetaKey(
 		bucketName,
@@ -40,7 +40,7 @@ func (k Keeper) RemoveMockBucketMeta(
 	bucketName string,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockBucketMetaKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockBucketMetaKeyPrefix)
 	store.Delete(types.MockBucketMetaKey(
 		bucketName,
 	))
@@ -48,7 +48,7 @@ func (k Keeper) RemoveMockBucketMeta(
 
 // GetAllMockBucketMeta returns all mockBucketMeta
 func (k Keeper) GetAllMockBucketMeta(ctx sdk.Context) (list []types.MockBucketMeta) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockBucketMetaKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockBucketMetaKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()

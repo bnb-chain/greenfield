@@ -8,7 +8,7 @@ import (
 
 // SetAutoSettleRecord set a specific autoSettleRecord in the store from its index
 func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord types.AutoSettleRecord) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	b := k.cdc.MustMarshal(&autoSettleRecord)
 	store.Set(types.AutoSettleRecordKey(
 		autoSettleRecord.Timestamp,
@@ -22,7 +22,7 @@ func (k Keeper) GetAutoSettleRecord(
 	timestamp int64,
 	addr string,
 ) (val types.AutoSettleRecord, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 
 	b := store.Get(types.AutoSettleRecordKey(
 		timestamp,
@@ -43,7 +43,7 @@ func (k Keeper) RemoveAutoSettleRecord(
 	addr string,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	store.Delete(types.AutoSettleRecordKey(
 		timestamp,
 		addr,
@@ -52,7 +52,7 @@ func (k Keeper) RemoveAutoSettleRecord(
 
 // GetAllAutoSettleRecord returns all autoSettleRecord
 func (k Keeper) GetAllAutoSettleRecord(ctx sdk.Context) (list []types.AutoSettleRecord) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.AutoSettleRecordKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()

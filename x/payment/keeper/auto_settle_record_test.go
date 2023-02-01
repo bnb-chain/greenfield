@@ -33,7 +33,6 @@ func TestAutoSettleRecordGet(t *testing.T) {
 		rst, found := keeper.GetAutoSettleRecord(ctx,
 			item.Timestamp,
 			item.Addr,
-
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -49,12 +48,10 @@ func TestAutoSettleRecordRemove(t *testing.T) {
 		keeper.RemoveAutoSettleRecord(ctx,
 			item.Timestamp,
 			item.Addr,
-
 		)
 		_, found := keeper.GetAutoSettleRecord(ctx,
 			item.Timestamp,
 			item.Addr,
-
 		)
 		require.False(t, found)
 	}

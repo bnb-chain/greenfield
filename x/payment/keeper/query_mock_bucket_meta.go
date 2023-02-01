@@ -20,7 +20,7 @@ func (k Keeper) MockBucketMetaAll(c context.Context, req *types.QueryAllMockBuck
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
-	mockBucketMetaStore := prefix.NewStore(store, types.KeyPrefix(types.MockBucketMetaKeyPrefix))
+	mockBucketMetaStore := prefix.NewStore(store, types.MockBucketMetaKeyPrefix)
 
 	pageRes, err := query.Paginate(mockBucketMetaStore, req.Pagination, func(key []byte, value []byte) error {
 		var mockBucketMeta types.MockBucketMeta

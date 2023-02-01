@@ -8,7 +8,7 @@ import (
 
 // SetMockObjectInfo set a specific mockObjectInfo in the store from its index
 func (k Keeper) SetMockObjectInfo(ctx sdk.Context, mockObjectInfo types.MockObjectInfo) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockObjectInfoKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockObjectInfoKeyPrefix)
 	b := k.cdc.MustMarshal(&mockObjectInfo)
 	store.Set(types.MockObjectInfoKey(
 		mockObjectInfo.BucketName,
@@ -23,7 +23,7 @@ func (k Keeper) GetMockObjectInfo(
 	objectName string,
 
 ) (val types.MockObjectInfo, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockObjectInfoKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockObjectInfoKeyPrefix)
 
 	b := store.Get(types.MockObjectInfoKey(
 		bucketName,
@@ -44,7 +44,7 @@ func (k Keeper) RemoveMockObjectInfo(
 	objectName string,
 
 ) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockObjectInfoKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockObjectInfoKeyPrefix)
 	store.Delete(types.MockObjectInfoKey(
 		bucketName,
 		objectName,
@@ -53,7 +53,7 @@ func (k Keeper) RemoveMockObjectInfo(
 
 // GetAllMockObjectInfo returns all mockObjectInfo
 func (k Keeper) GetAllMockObjectInfo(ctx sdk.Context) (list []types.MockObjectInfo) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.MockObjectInfoKeyPrefix))
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MockObjectInfoKeyPrefix)
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
