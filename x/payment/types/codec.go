@@ -13,7 +13,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgCreatePaymentAccount{}, "payment/CreatePaymentAccount", nil)
 	cdc.RegisterConcrete(&MsgDeposit{}, "payment/Deposit", nil)
 	cdc.RegisterConcrete(&MsgWithdraw{}, "payment/Withdraw", nil)
-	cdc.RegisterConcrete(&MsgSponse{}, "payment/Sponse", nil)
 	cdc.RegisterConcrete(&MsgDisableRefund{}, "payment/DisableRefund", nil)
 	cdc.RegisterConcrete(&MsgMockCreateBucket{}, "payment/MockCreateBucket", nil)
 	cdc.RegisterConcrete(&MsgMockPutObject{}, "payment/MockPutObject", nil)
@@ -33,9 +32,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgWithdraw{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgSponse{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDisableRefund{},

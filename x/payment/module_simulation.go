@@ -148,17 +148,6 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 		paymentsimulation.SimulateMsgWithdraw(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
-	var weightMsgSponse int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgSponse, &weightMsgSponse, nil,
-		func(_ *rand.Rand) {
-			weightMsgSponse = defaultWeightMsgSponse
-		},
-	)
-	operations = append(operations, simulation.NewWeightedOperation(
-		weightMsgSponse,
-		paymentsimulation.SimulateMsgSponse(am.accountKeeper, am.bankKeeper, am.keeper),
-	))
-
 	var weightMsgDisableRefund int
 	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgDisableRefund, &weightMsgDisableRefund, nil,
 		func(_ *rand.Rand) {

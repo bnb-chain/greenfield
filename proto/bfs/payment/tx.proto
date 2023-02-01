@@ -16,9 +16,6 @@ service Msg {
   rpc CreatePaymentAccount(MsgCreatePaymentAccount) returns (MsgCreatePaymentAccountResponse);
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
-  rpc Sponse(MsgSponse) returns (MsgSponseResponse);
-
-  // this line is used by starport scaffolding # proto/tx/rpc
   rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
   rpc MockCreateBucket(MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
   rpc MockPutObject(MsgMockPutObject) returns (MsgMockPutObjectResponse);
@@ -26,6 +23,7 @@ service Msg {
   rpc MockDeleteObject(MsgMockDeleteObject) returns (MsgMockDeleteObjectResponse);
   rpc MockSetBucketPaymentAccount(MsgMockSetBucketPaymentAccount) returns (MsgMockSetBucketPaymentAccountResponse);
   rpc MockUpdateBucketReadPacket(MsgMockUpdateBucketReadPacket) returns (MsgMockUpdateBucketReadPacketResponse);
+  // this line is used by starport scaffolding # proto/tx/rpc
 }
 message MsgCreatePaymentAccount {
   string creator = 1;
@@ -59,19 +57,6 @@ message MsgWithdraw {
 }
 
 message MsgWithdrawResponse {}
-
-// keep it for test temporarily
-message MsgSponse {
-  string creator = 1;
-  string to = 2;
-  string rate = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
-}
-
-message MsgSponseResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
 message MsgDisableRefund {

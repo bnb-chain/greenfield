@@ -35,7 +35,6 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdCreatePaymentAccount())
 	cmd.AddCommand(CmdDeposit())
 	cmd.AddCommand(CmdWithdraw())
-	cmd.AddCommand(CmdSponse())
 	cmd.AddCommand(CmdDisableRefund())
 	cmd.AddCommand(CmdMockCreateBucket())
 	cmd.AddCommand(CmdMockPutObject())
