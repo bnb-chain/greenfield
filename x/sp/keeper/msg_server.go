@@ -5,6 +5,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
@@ -25,9 +26,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signers := msg.GetSigners()
-	if len(signers) == 0 {
-		return nil, types.ErrSignerEmpty
-	}
 	if len(signers) != 1 || !signers[0].Equals(k.authKeeper.GetModuleAddress(gov.ModuleName)) {
 		return nil, types.ErrSignerNotGovModule
 	}
@@ -38,6 +36,16 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	fundingAcc, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	sealAcc, err := sdk.AccAddressFromHexUnsafe(msg.SealAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	approvalAcc, err := sdk.AccAddressFromHexUnsafe(msg.ApprovalAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -54,6 +62,11 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, types.ErrInsufficientDepositAmount
 	}
 
+	depositDenom := k.DepositDenomForSP(ctx)
+	if depositDenom != msg.Deposit.GetDenom() {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
+	}
+
 	// check the deposit authorization from the fund address to gov module account
 	if ctx.BlockHeader().Height != 0 {
 		err = k.CheckDepositAuthorization(
@@ -66,7 +79,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		}
 	}
 
-	sp, err := types.NewStorageProvider(spAcc, fundingAcc, msg.Description)
+	sp, err := types.NewStorageProvider(spAcc, fundingAcc, sealAcc, approvalAcc, msg.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -91,11 +104,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 // EditStorageProvider defines a method for editing a existing storage provider
 func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEditStorageProvider) (*types.MsgEditStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	signer := msg.GetSigners()
-	if len(signer) == 0 {
-		return nil, types.ErrSignerEmpty
-	}
 
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
@@ -130,11 +138,6 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	signers := msg.GetSigners()
-	if len(signers) == 0 {
-		return nil, types.ErrSignerEmpty
-	}
-
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
 		return nil, err
@@ -145,25 +148,15 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, types.ErrStorageProviderNotFound
 	}
 
-	// Only operator address and fund address has permission to deposit tokens for SP
-	if msg.Creator == msg.SpAddress {
-		// check the deposit authorization from the fund address to gov module account
-		if ctx.BlockHeader().Height != 0 {
-			err = k.CheckDepositAuthorization(
-				ctx,
-				k.authKeeper.GetModuleAddress(gov.ModuleName),
-				sp.GetFundingAccAddress(),
-				types.NewMsgDeposit(sp.FundingAddress, sp.GetOperatorAddress(), msg.Deposit))
-			if err != nil {
-				return nil, err
-			}
-		}
-	} else if msg.Creator == sp.FundingAddress {
-		// nothing todo
-	} else {
+	// Only funding address has permission to deposit tokens for SP
+	if msg.Creator != sp.FundingAddress {
 		return nil, types.ErrDepositAccountNotAllowed
 	}
 
+	depositDenom := k.DepositDenomForSP(ctx)
+	if depositDenom != msg.Deposit.GetDenom() {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
+	}
 	// deposit the deposit token to module account.
 	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), msg.Deposit.Amount))
 	k.bankKeeper.SendCoinsFromAccountToModule(ctx, sp.GetFundingAccAddress(), types.ModuleName, coins)

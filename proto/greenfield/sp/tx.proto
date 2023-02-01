@@ -27,6 +27,8 @@ message MsgCreateStorageProvider {
   Description description = 2 [(gogoproto.nullable) = false];
   string sp_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string funding_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string seal_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   cosmos.base.v1beta1.Coin deposit = 7 [(gogoproto.nullable) = false];
 }
@@ -59,5 +61,7 @@ message MsgEditStorageProvider {
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
 message MsgEditStorageProviderResponse {}
+
+// TODO: add a transaction that the Storage Provide claim themself enter short time maintenance to avoid slash
 
 // this line is used by starport scaffolding # proto/tx/message
