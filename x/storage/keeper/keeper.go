@@ -54,10 +54,7 @@ func (k Keeper) GetBucket(ctx sdk.Context, bucketKey []byte) (bucketInfo types.B
 		return bucketInfo, false
 	}
 
-	err := k.cdc.Unmarshal(bz, &bucketInfo)
-	if err != nil {
-		panic(fmt.Errorf("unable to unmarshal bucketInfo value %v", err))
-	}
+	k.cdc.MustUnmarshal(bz, &bucketInfo)
 
 	return bucketInfo, true
 }
@@ -78,22 +75,19 @@ func (k Keeper) SetBucket(ctx sdk.Context, bucketKey []byte, bucketInfo types.Bu
 }
 
 func (k Keeper) DeleteBucket(ctx sdk.Context, bucketKey []byte) {
-  store := ctx.KVStore(k.storeKey)
-  bucketStore := prefix.NewStore(store, types.BucketPrefix)
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
-  bucketStore.Delete(bucketKey)
+	bucketStore.Delete(bucketKey)
 }
 
 func (k Keeper) IsEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
-  store := ctx.KVStore(k.storeKey)
-  objectStore := prefix.NewStore(store, types.ObjectPrefix)
+	store := ctx.KVStore(k.storeKey)
+	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-  iter := objectStore.Iterator(bucketKey, nil)
-  if iter.Valid() {
-    return true
-  }
-  return false
-} 
+	iter := objectStore.Iterator(bucketKey, nil)
+  return iter.Valid()
+}
 
 func (k Keeper) GetObject(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -104,10 +98,7 @@ func (k Keeper) GetObject(ctx sdk.Context, objectKey []byte) (objectInfo types.O
 		return objectInfo, false
 	}
 
-	err := k.cdc.Unmarshal(bz, &objectInfo)
-	if err != nil {
-		panic(fmt.Errorf("unable to unmarshal bucketInfo value %v", err))
-	}
+	k.cdc.MustUnmarshal(bz, &objectInfo)
 
 	return objectInfo, true
 }
@@ -131,65 +122,62 @@ func (k Keeper) DeleteObject(ctx sdk.Context, objectKey []byte) {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-  objectStore.Delete(objectKey)
+	objectStore.Delete(objectKey)
 }
 
 func (k Keeper) SetGroup(ctx sdk.Context, groupKey []byte, groupInfo types.GroupInfo) {
-  store := ctx.KVStore(k.storeKey)
-  groupStore := prefix.NewStore(store, types.GroupPrefix)
-  
-  bz := k.cdc.MustMarshal(&groupInfo)
-  groupStore.Set(groupKey, bz);
+	store := ctx.KVStore(k.storeKey)
+	groupStore := prefix.NewStore(store, types.GroupPrefix)
+
+	bz := k.cdc.MustMarshal(&groupInfo)
+	groupStore.Set(groupKey, bz)
 }
 
 func (k Keeper) GetGroup(ctx sdk.Context, groupKey []byte) (groupInfo types.GroupInfo, found bool) {
-  store := ctx.KVStore(k.storeKey)
-  groupStore := prefix.NewStore(store, types.GroupPrefix)
-  
-  bz := groupStore.Get(groupKey)
-  if bz == nil {
-    return groupInfo, false
-  }
+	store := ctx.KVStore(k.storeKey)
+	groupStore := prefix.NewStore(store, types.GroupPrefix)
 
-  err := k.cdc.Unmarshal(bz, &groupInfo)
-  if err != nil {
-		panic(fmt.Errorf("unable to unmarshal groupInfo value %v", err))
-  }
-  return groupInfo, true
+	bz := groupStore.Get(groupKey)
+	if bz == nil {
+		return groupInfo, false
+	}
+
+	k.cdc.MustUnmarshal(bz, &groupInfo)
+	return groupInfo, true
 }
 
 func (k Keeper) HasGroup(ctx sdk.Context, groupKey []byte) (found bool) {
-  store := ctx.KVStore(k.storeKey)
-  groupStore := prefix.NewStore(store, types.GroupPrefix)
-  
-  return groupStore.Has(groupKey)
+	store := ctx.KVStore(k.storeKey)
+	groupStore := prefix.NewStore(store, types.GroupPrefix)
+
+	return groupStore.Has(groupKey)
 }
 
 func (k Keeper) DeleteGroup(ctx sdk.Context, groupKey []byte) {
-  store := ctx.KVStore(k.storeKey)
-  groupStore := prefix.NewStore(store, types.GroupPrefix)
-  
-  groupStore.Delete(groupKey)
+	store := ctx.KVStore(k.storeKey)
+	groupStore := prefix.NewStore(store, types.GroupPrefix)
+
+	groupStore.Delete(groupKey)
 }
 
 func (k Keeper) SetGroupMember(ctx sdk.Context, groupMemberKey []byte, groupMemberInfo types.GroupMemberInfo) {
-  store := ctx.KVStore(k.storeKey)
-  groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
+	store := ctx.KVStore(k.storeKey)
+	groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
 
-  bz := k.cdc.MustMarshal(&groupMemberInfo)
-  groupMemberStore.Set(groupMemberKey, bz)
+	bz := k.cdc.MustMarshal(&groupMemberInfo)
+	groupMemberStore.Set(groupMemberKey, bz)
 }
 
 func (k Keeper) HasGroupMember(ctx sdk.Context, groupMemberKey []byte) bool {
-  store := ctx.KVStore(k.storeKey)
-  groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
+	store := ctx.KVStore(k.storeKey)
+	groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
 
-  return groupMemberStore.Has(groupMemberKey)
+	return groupMemberStore.Has(groupMemberKey)
 }
 
 func (k Keeper) DeleteGroupMember(ctx sdk.Context, groupMemberKey []byte) {
-  store := ctx.KVStore(k.storeKey)
-  groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
+	store := ctx.KVStore(k.storeKey)
+	groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
 
-  groupMemberStore.Delete(groupMemberKey)
+	groupMemberStore.Delete(groupMemberKey)
 }

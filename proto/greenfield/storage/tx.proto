@@ -151,26 +151,15 @@ message MsgDeleteGroup {
 
 message MsgDeleteGroupResponse {}
 
-enum MemberOption {
-  MEM_OPT_ADD = 0;
-  MEM_OPT_DELETE = 1;
-}
-
-message MemberRequest {
-  // address is the account address of the member.
-  string address = 1;
-  // memberOption
-  MemberOption option = 2;
-}
-
 message MsgUpdateGroupMember {
   option (cosmos.msg.v1.signer) = "creator";
   // creator is the account address of the grantee who has the UpdateGroupMember permission of the group.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name is the name of the group which to be updated
   string group_name = 2;
-  // member_request is a list of member which to be add or remove
-  repeated MemberRequest member_request = 3;
+
+  repeated string members_to_add = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"]; 
+  repeated string members_to_delete = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"]; 
 }
 
 message MsgUpdateGroupMemberResponse {}
@@ -178,7 +167,7 @@ message MsgUpdateGroupMemberResponse {}
 message MsgLeaveGroup {
   option (cosmos.msg.v1.signer) = "creator";
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string group_name = 3;
 }
 

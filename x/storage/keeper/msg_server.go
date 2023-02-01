@@ -193,7 +193,8 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		ownerAcc sdk.AccAddress
 		err      error
 	)
-	if ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator)
+	if err != nil {
 		return nil, err
 	}
 
@@ -343,7 +344,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 		return nil, err
 	}
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Owner)
+	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
 	if err != nil {
 		return nil, err
 	}
@@ -374,31 +375,35 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
-	for _, memberRequest := range msg.MemberRequest {
-		memberAcc, err := sdk.AccAddressFromHexUnsafe(memberRequest.Address)
+
+	for _, member := range msg.MembersToAdd {
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
 		if err != nil {
 			return nil, err
 		}
 		memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
-		if memberRequest.Option == types.MemberOption_MEM_OPT_ADD {
-			memberInfo := types.GroupMemberInfo{
-				GroupId:    groupInfo.Id,
-				ExpireTime: 0,
-			}
-			if !k.Keeper.HasGroupMember(ctx, memberKey) {
-				k.Keeper.SetGroupMember(ctx, memberKey, memberInfo)
-			} else {
-				return nil, types.ErrGroupMemberAlreadyExists
-			}
-		} else if memberRequest.Option == types.MemberOption_MEM_OPT_DELETE {
-      if k.Keeper.HasGroupMember(ctx, memberKey) {
-        k.Keeper.DeleteGroupMember(ctx, memberKey)
-      } else {
-        return nil, types.ErrNoSuchGroupMember
-      }
+		memberInfo := types.GroupMemberInfo{
+			GroupId:    groupInfo.Id,
+			ExpireTime: 0,
+		}
+		if !k.Keeper.HasGroupMember(ctx, memberKey) {
+			k.Keeper.SetGroupMember(ctx, memberKey, memberInfo)
 		} else {
-      panic("unknown member request option.")
-    }
+			return nil, types.ErrGroupMemberAlreadyExists
+		}
+	}
+
+	for _, member := range msg.MembersToDelete {
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
+		if err != nil {
+			return nil, err
+		}
+		memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
+		if !k.Keeper.HasGroupMember(ctx, memberKey) {
+			k.Keeper.DeleteGroupMember(ctx, memberKey)
+		} else {
+			return nil, types.ErrGroupMemberAlreadyExists
+		}
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil

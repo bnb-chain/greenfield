@@ -3,7 +3,6 @@ package keeper
 import (
 	"testing"
 
-	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
 	"github.com/bnb-chain/greenfield/x/sp/keeper"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -36,6 +35,7 @@ import (
 	icahosttypes "github.com/cosmos/ibc-go/v5/modules/apps/27-interchain-accounts/host/types"
 	ibctransfertypes "github.com/cosmos/ibc-go/v5/modules/apps/transfer/types"
 	ibchost "github.com/cosmos/ibc-go/v5/modules/core/24-host"
+	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -60,7 +60,7 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		greenfieldmoduletypes.StoreKey,
+		storagemoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 

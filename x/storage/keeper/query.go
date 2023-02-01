@@ -15,7 +15,6 @@ func (k Keeper) Bucket(goCtx context.Context, req *types.QueryBucketRequest) (*t
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-  // TODO(fynn): check if have permission
 
   bucketInfo, found := k.GetBucket(ctx, types.GetBucketKey(req.BucketName))
   if found {
@@ -34,7 +33,6 @@ func (k Keeper) Object(goCtx context.Context, req *types.QueryObjectRequest) (*t
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-  // TODO(fynn): check if have permission
 
   objectInfo, found := k.GetObject(ctx, types.GetObjectKey(req.BucketName, req.ObjectName))
   if found {
@@ -42,6 +40,6 @@ func (k Keeper) Object(goCtx context.Context, req *types.QueryObjectRequest) (*t
       ObjectInfo: &objectInfo,
     }, nil
   } else {
-    return nil, types.ErrNoSuchBucket
+    return nil, types.ErrNoSuchObject
   }
 }

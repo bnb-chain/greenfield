@@ -106,9 +106,9 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 }
 
 // NewMsgDeleteBucket creates a new MsgDeleteBucket instance
-func NewMsgDeleteBucket(creator string, bucketName string) *MsgDeleteBucket {
+func NewMsgDeleteBucket(creator sdk.AccAddress, bucketName string) *MsgDeleteBucket {
 	return &MsgDeleteBucket{
-		Creator:    creator,
+		Creator:    creator.String(),
 		BucketName: bucketName,
 	}
 }
@@ -236,9 +236,9 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeleteObject(creator string, bucketName string, objectName string) *MsgDeleteObject {
+func NewMsgDeleteObject(creator sdk.AccAddress, bucketName string, objectName string) *MsgDeleteObject {
 	return &MsgDeleteObject{
-		Creator:    creator,
+		Creator:    creator.String(),
 		BucketName: bucketName,
 		ObjectName: objectName,
 	}
@@ -353,14 +353,15 @@ func (msg *MsgSealObject) ValidateBasic() error {
 }
 
 func NewMsgCopyObject(
-	creator string, srcBucketName string, dstBucketName string,
-	srcObjectName string, dstObjectName string) *MsgCopyObject {
+	creator sdk.AccAddress, srcBucketName string, dstBucketName string,
+	srcObjectName string, dstObjectName string, dstPrimarySPSignature []byte) *MsgCopyObject {
 	return &MsgCopyObject{
-		Creator:       creator,
-		SrcBucketName: srcBucketName,
-		DstBucketName: dstBucketName,
-		SrcObjectName: srcObjectName,
-		DstObjectName: dstObjectName,
+		Creator:               creator.String(),
+		SrcBucketName:         srcBucketName,
+		DstBucketName:         dstBucketName,
+		SrcObjectName:         srcObjectName,
+		DstObjectName:         dstObjectName,
+		DstPrimarySpSignature: dstPrimarySPSignature,
 	}
 }
 
@@ -413,9 +414,9 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRejectUnsealedObject(creator string, bucketName string, objectName string) *MsgRejectUnsealedObject {
+func NewMsgRejectUnsealedObject(creator sdk.AccAddress, bucketName string, objectName string) *MsgRejectUnsealedObject {
 	return &MsgRejectUnsealedObject{
-		Creator:    creator,
+		Creator:    creator.String(),
 		BucketName: bucketName,
 		ObjectName: objectName,
 	}
@@ -455,10 +456,15 @@ func (msg *MsgRejectUnsealedObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgCreateGroup(creator string, groupName string) *MsgCreateGroup {
+func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sdk.AccAddress) *MsgCreateGroup {
+	var members []string
+	for _, member := range membersAcc {
+		members = append(members, member.String())
+	}
 	return &MsgCreateGroup{
-		Creator:   creator,
+		Creator:   creator.String(),
 		GroupName: groupName,
+		Members:   members,
 	}
 }
 
@@ -545,10 +551,11 @@ func (msg *MsgDeleteGroup) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgLeaveGroup(creator string, groupName string) *MsgLeaveGroup {
+func NewMsgLeaveGroup(creator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string) *MsgLeaveGroup {
 	return &MsgLeaveGroup{
-		Creator:   creator,
-		GroupName: groupName,
+		Creator:    creator.String(),
+		GroupOwner: groupOwner.String(),
+		GroupName:  groupName,
 	}
 }
 
@@ -590,10 +597,21 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateGroupMember(creator string, groupName string) *MsgUpdateGroupMember {
+func NewMsgUpdateGroupMember(
+	creator sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
+	membersToDelete []sdk.AccAddress) *MsgUpdateGroupMember {
+	var membersAddrToAdd, membersAddrToDelete []string
+	for _, member := range membersToAdd {
+		membersAddrToAdd = append(membersAddrToAdd, member.String())
+	}
+	for _, member := range membersToDelete {
+		membersAddrToDelete = append(membersAddrToDelete, member.String())
+	}
 	return &MsgUpdateGroupMember{
-		Creator:   creator,
-		GroupName: groupName,
+		Creator:         creator.String(),
+		GroupName:       groupName,
+		MembersToAdd:    membersAddrToAdd,
+		MembersToDelete: membersAddrToDelete,
 	}
 }
 
