@@ -94,6 +94,10 @@ import (
 	greenfieldmodule "github.com/bnb-chain/greenfield/x/greenfield"
 	greenfieldmodulekeeper "github.com/bnb-chain/greenfield/x/greenfield/keeper"
 	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
+	spmodule "github.com/bnb-chain/greenfield/x/sp"
+	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
+	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (
@@ -145,6 +149,7 @@ var (
 		oracle.AppModuleBasic{},
 		bridgemodule.AppModuleBasic{},
 		gashub.AppModuleBasic{},
+		spmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -158,6 +163,7 @@ var (
 		crosschaintypes.ModuleName:     {authtypes.Minter},
 		bridgemoduletypes.ModuleName:   nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
+		spmoduletypes.ModuleName: {authtypes.Staking},
 	}
 )
 
@@ -210,6 +216,7 @@ type App struct {
 	GreenfieldKeeper greenfieldmodulekeeper.Keeper
 
 	BridgeKeeper bridgemodulekeeper.Keeper
+	SpKeeper spmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -263,6 +270,7 @@ func New(
 		oracletypes.StoreKey,
 		bridgemoduletypes.StoreKey,
 		gashubtypes.StoreKey,
+		spmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -428,6 +436,17 @@ func New(
 	)
 	gashubModule := gashub.NewAppModule(appCodec, app.GashubKeeper)
 
+	app.SpKeeper = *spmodulekeeper.NewKeeper(
+		appCodec,
+		keys[spmoduletypes.StoreKey],
+		keys[spmoduletypes.MemStoreKey],
+		app.GetSubspace(spmoduletypes.ModuleName),
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.AuthzKeeper,
+	)
+	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
@@ -458,6 +477,7 @@ func New(
 		greenfieldModule,
 		bridgeModule,
 		gashubModule,
+		spModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -483,6 +503,7 @@ func New(
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
+		spmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -503,6 +524,7 @@ func New(
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
+		spmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -528,6 +550,7 @@ func New(
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		spmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -555,6 +578,7 @@ func New(
 		greenfieldModule,
 		bridgeModule,
 		gashubModule,
+		spModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -784,6 +808,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
 	paramsKeeper.Subspace(gashubtypes.ModuleName)
+	paramsKeeper.Subspace(spmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
