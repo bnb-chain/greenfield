@@ -15,10 +15,9 @@ func DefaultGenesis() *GenesisState {
 		PaymentAccountList:      []PaymentAccount{},
 		MockBucketMetaList:      []MockBucketMeta{},
 		FlowList:                []Flow{},
-		BnbPriceList:            []BnbPrice{},
 		MockObjectInfoList:      []MockObjectInfo{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
-		//BnbPriceList:       []BnbPrice{{0, 1e8}},
+		BnbPriceList:            []BnbPrice{{0, 2e8}},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}

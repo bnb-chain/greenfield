@@ -72,7 +72,7 @@ message MsgMockCreateBucket {
   string readPaymentAccount = 3;
   string storePaymentAccount = 4;
   string spAddress = 5;
-  int32 readPacket = 6;
+  string readPacket = 6;
 }
 
 message MsgMockCreateBucketResponse {}
@@ -115,7 +115,7 @@ message MsgMockSetBucketPaymentAccountResponse {}
 message MsgMockUpdateBucketReadPacket {
   string operator = 1;
   string bucketName = 2;
-  int32 readPacket = 3;
+  string readPacket = 3;
 }
 
 message MsgMockUpdateBucketReadPacketResponse {}

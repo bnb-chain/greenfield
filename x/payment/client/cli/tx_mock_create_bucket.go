@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 )
 
@@ -23,10 +22,7 @@ func CmdMockCreateBucket() *cobra.Command {
 			argReadPaymentAccount := args[1]
 			argStorePaymentAccount := args[2]
 			argSpAddress := args[3]
-			argReadPacket, err := cast.ToInt32E(args[4])
-			if err != nil {
-				return err
-			}
+			argReadPacket := args[4]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

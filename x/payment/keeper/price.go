@@ -17,9 +17,9 @@ func (k Keeper) GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, 
 	case types.ReadPacketFree:
 		price = sdkmath.NewInt(0)
 	case types.ReadPacket1GB:
-		price = sdkmath.NewInt(1)
+		price = sdkmath.NewInt(2)
 	case types.ReadPacket10GB:
-		price = sdkmath.NewInt(10)
+		price = sdkmath.NewInt(4)
 	default:
 		err = fmt.Errorf("invalid read packet level: %d", readPacket)
 	}
@@ -34,20 +34,20 @@ func (k Keeper) GetStorePrice(ctx sdk.Context, bucketMeta *types.MockBucketMeta,
 func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) types.StorePrice {
 	// A simple mock price: 4 per byte per second for primary SP and 1 per byte per second for 6 secondary SPs
 	storePrice := types.StorePrice{
-		UserPayRate: sdkmath.NewInt(10),
+		UserPayRate: sdkmath.NewInt(100),
 	}
 	if objectInfo.ObjectState != types.OBJECT_STATE_INIT {
 		if len(objectInfo.SecondarySPs) != 6 {
 			panic("there should be 6 secondary sps")
 		}
 		storePrice.Flows = []types.OutFlowInUSD{
-			{SpAddress: bucketMeta.SpAddress, Rate: sdkmath.NewInt(4)},
-			{SpAddress: objectInfo.SecondarySPs[0].Id, Rate: sdkmath.NewInt(1)},
-			{SpAddress: objectInfo.SecondarySPs[1].Id, Rate: sdkmath.NewInt(1)},
-			{SpAddress: objectInfo.SecondarySPs[2].Id, Rate: sdkmath.NewInt(1)},
-			{SpAddress: objectInfo.SecondarySPs[3].Id, Rate: sdkmath.NewInt(1)},
-			{SpAddress: objectInfo.SecondarySPs[4].Id, Rate: sdkmath.NewInt(1)},
-			{SpAddress: objectInfo.SecondarySPs[5].Id, Rate: sdkmath.NewInt(1)},
+			{SpAddress: bucketMeta.SpAddress, Rate: sdkmath.NewInt(40)},
+			{SpAddress: objectInfo.SecondarySPs[0].Id, Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySPs[1].Id, Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySPs[2].Id, Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySPs[3].Id, Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySPs[4].Id, Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySPs[5].Id, Rate: sdkmath.NewInt(10)},
 		}
 	}
 	return storePrice

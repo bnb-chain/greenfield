@@ -39,15 +39,17 @@ $gnfd keys add sp2
 $gnfd keys add sp3
 $gnfd keys add sp4
 $gnfd keys add sp5
+$gnfd keys add sp6
 sp0_addr=$($gnfd keys show sp0 --output json | jq -r ".address")
 sp1_addr=$($gnfd keys show sp1 --output json | jq -r ".address")
 sp2_addr=$($gnfd keys show sp2 --output json | jq -r ".address")
 sp3_addr=$($gnfd keys show sp3 --output json | jq -r ".address")
 sp4_addr=$($gnfd keys show sp4 --output json | jq -r ".address")
 sp5_addr=$($gnfd keys show sp5 --output json | jq -r ".address")
+sp6_addr=$($gnfd keys show sp6 --output json | jq -r ".address")
 
 # balance
-$gnfd tx bank send validator0 "$user_addr" "1000$denom" -y
+$gnfd tx bank send validator0 "$user_addr" "100000$denom" -y
 $gnfd q bank balances "$user_addr"
 
 # ----- payment account test -----
@@ -64,33 +66,35 @@ check_operation "disable refund" "$refundable" "false"
 # deposit
 $gnfd tx payment deposit "${payment_account}" 100 --from user -y
 
-## ----- mock object payment test -----
-## mock create bucket
-#bucket_name="test-bucket"
-#object_name="test-object"
-#$gnfd tx payment mock-create-bucket "$bucket_name" "" "" "$sp0_addr" 1 --from user -y
-#$gnfd q payment dynamic-balance "$user_addr"
-#$gnfd q payment dynamic-balance "$sp0_addr"
-#$gnfd tx payment mock-put-object "$bucket_name" "$object_name" 30 --from user -y
-#$gnfd q payment dynamic-balance "$user_addr"
-#$gnfd tx payment mock-seal-object "$bucket_name" "$object_name" "$sp1_addr,$sp2_addr,$sp3_addr,$sp4_addr,$sp5_addr,$sp6_addr" --from user -y
-#$gnfd q payment dynamic-balance "$user_addr"
-#$gnfd q payment dynamic-balance "$sp0_addr"
-#$gnfd q payment dynamic-balance "$sp1_addr"
-#$gnfd q payment list-flow
-#$gnfd q payment list-mock-bucket-meta
-## mock-update-bucket-read-packet
-## todo: 0 will raise Error: failed to pack and hash typedData primary type: invalid integer value <nil>/<nil> for type int32
-#$gnfd tx payment mock-update-bucket-read-packet "$bucket_name" 2 --from user -y
-#$gnfd q payment dynamic-balance "$user_addr"
-#$gnfd q payment dynamic-balance "$sp0_addr"
-## mock-set-bucket-payment-account
-#$gnfd tx payment mock-set-bucket-payment-account "$bucket_name" "$payment_account" "$payment_account" --from user -y
-#$gnfd q payment dynamic-balance "$user_addr"
-#$gnfd q payment dynamic-balance "$payment_account"
-## mock-delete-object
-#$gnfd tx payment mock-delete-object "$bucket_name" "$object_name" --from user -y
-#$gnfd q payment dynamic-balance "$user_addr"
-#$gnfd q payment dynamic-balance "$sp0_addr"
-#$gnfd q payment dynamic-balance "$sp1_addr"
-#$gnfd q payment list-flow
+# ----- mock object payment test -----
+# mock create bucket
+bucket_name="test-bucket-$user_addr"
+object_name="test-object-$user_addr"
+$gnfd tx payment mock-create-bucket "$bucket_name" "" "" "$sp0_addr" ReadPacket1GB --from user -y
+$gnfd q payment show-mock-bucket-meta "$bucket_name"
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd q payment dynamic-balance "$sp0_addr"
+sleep 6
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd q payment dynamic-balance "$sp0_addr"
+# mock create object
+$gnfd tx payment mock-put-object "$bucket_name" "$object_name" 3 --from user -y
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd tx payment mock-seal-object "$bucket_name" "$object_name" "$sp1_addr,$sp2_addr,$sp3_addr,$sp4_addr,$sp5_addr,$sp6_addr" --from user -y
+sleep 6
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd q payment dynamic-balance "$sp0_addr"
+$gnfd q payment dynamic-balance "$sp1_addr"
+# mock-update-bucket-read-packet
+$gnfd tx payment mock-update-bucket-read-packet "$bucket_name" ReadPacket10GB --from user -y
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd q payment dynamic-balance "$sp0_addr"
+# mock-set-bucket-payment-account
+$gnfd tx payment mock-set-bucket-payment-account "$bucket_name" "$payment_account" "$payment_account" --from user -y
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd q payment dynamic-balance "$payment_account"
+# mock-delete-object
+$gnfd tx payment mock-delete-object "$bucket_name" "$object_name" --from user -y
+$gnfd q payment dynamic-balance "$user_addr"
+$gnfd q payment dynamic-balance "$sp0_addr"
+$gnfd q payment dynamic-balance "$sp1_addr"

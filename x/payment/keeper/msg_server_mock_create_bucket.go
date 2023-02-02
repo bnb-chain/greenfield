@@ -16,7 +16,10 @@ func (k msgServer) MockCreateBucket(goCtx context.Context, msg *types.MsgMockCre
 	if found {
 		return nil, fmt.Errorf("bucket already exists")
 	}
-	readPacket := types.ReadPacket(msg.ReadPacket)
+	readPacket, err := types.ParseReadPacket(msg.ReadPacket)
+	if err != nil {
+		return nil, fmt.Errorf("invalid read packet: %w", err)
+	}
 	// compose bucket meta
 	bucketMeta = types.MockBucketMeta{
 		BucketName: msg.BucketName,

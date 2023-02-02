@@ -9,7 +9,7 @@ const TypeMsgMockUpdateBucketReadPacket = "mock_update_bucket_read_packet"
 
 var _ sdk.Msg = &MsgMockUpdateBucketReadPacket{}
 
-func NewMsgMockUpdateBucketReadPacket(operator string, bucketName string, readPacket int32) *MsgMockUpdateBucketReadPacket {
+func NewMsgMockUpdateBucketReadPacket(operator string, bucketName string, readPacket string) *MsgMockUpdateBucketReadPacket {
 	return &MsgMockUpdateBucketReadPacket{
 		Operator:   operator,
 		BucketName: bucketName,

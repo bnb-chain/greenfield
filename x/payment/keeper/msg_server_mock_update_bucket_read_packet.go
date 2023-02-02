@@ -14,7 +14,10 @@ func (k msgServer) MockUpdateBucketReadPacket(goCtx context.Context, msg *types.
 	if !found {
 		return nil, fmt.Errorf("bucket not exists")
 	}
-	newReadPacket := types.ReadPacket(msg.ReadPacket)
+	newReadPacket, err := types.ParseReadPacket(msg.ReadPacket)
+	if err != nil {
+		return nil, fmt.Errorf("parse read packet failed: %w", err)
+	}
 	if newReadPacket == bucketMeta.ReadPacket {
 		return nil, fmt.Errorf("read packet is not changed")
 	}
@@ -22,7 +25,7 @@ func (k msgServer) MockUpdateBucketReadPacket(goCtx context.Context, msg *types.
 		return nil, fmt.Errorf("not bucket owner")
 	}
 	// charge read packet fee if it's changed
-	err := k.ChargeUpdateReadPacket(ctx, &bucketMeta, newReadPacket)
+	err = k.ChargeUpdateReadPacket(ctx, &bucketMeta, newReadPacket)
 	if err != nil {
 		return nil, fmt.Errorf("charge update read packet failed: %w", err)
 	}

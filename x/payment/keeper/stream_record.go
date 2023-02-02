@@ -21,7 +21,6 @@ func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord types.StreamRecord
 func (k Keeper) GetStreamRecord(
 	ctx sdk.Context,
 	account string,
-
 ) (val types.StreamRecord, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 
@@ -192,8 +191,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		if num >= maxNum {
 			return
 		}
-		var val types.AutoSettleRecord
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		val := types.ParseAutoSettleRecordKey(iterator.Key())
 		if val.Timestamp > currentTimestamp {
 			return
 		}

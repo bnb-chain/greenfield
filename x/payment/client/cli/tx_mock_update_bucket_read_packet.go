@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"github.com/spf13/cast"
 	"strconv"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -20,10 +19,7 @@ func CmdMockUpdateBucketReadPacket() *cobra.Command {
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
-			argReadPacket, err := cast.ToInt32E(args[1])
-			if err != nil {
-				return err
-			}
+			argReadPacket := args[1]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
