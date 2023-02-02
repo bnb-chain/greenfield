@@ -51,4 +51,4 @@ jobs:
     - name: run local chain
       run: bash ./deployment/localup/localup.sh all 1
     - name: run cli test
-      run: bash ./scripts/cli_test.sh
+      run: bash ./e2e/cli_test.sh
