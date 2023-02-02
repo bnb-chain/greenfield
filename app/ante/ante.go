@@ -10,7 +10,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
-// HandlerOptions are the options required for constructing a default SDK AnteHandler.
+// HandlerOptions are the options required for constructing a greenfield AnteHandler.
 type HandlerOptions struct {
 	AccountKeeper          ante.AccountKeeper
 	BankKeeper             authtypes.BankKeeper
