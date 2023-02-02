@@ -105,6 +105,7 @@ import (
 
 const (
 	Name          = "greenfield"
+	ShortName     = "gnfd"
 	EIP155ChainID = "9000"
 	Epoch         = "1"
 
@@ -183,7 +184,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+ShortName)
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
