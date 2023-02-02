@@ -10,23 +10,17 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	KeyReserveTime            = []byte("ReserveTime")
-	DefaultReserveTime uint64 = 180 * 24 * 60 * 60 // 180 days
-)
+	KeyReserveTime              = []byte("ReserveTime")
+	KeyForcedSettleTime         = []byte("ForcedSettleTime")
+	KeyPaymentAccountCountLimit = []byte("PaymentAccountCountLimit")
+	KeyMaxAutoForceSettleNum    = []byte("MaxAutoForceSettleNum")
+	KeyFeeDenom                 = []byte("FeeDenom")
 
-var (
-	KeyForcedSettleTime            = []byte("ForcedSettleTime")
-	DefaultForcedSettleTime uint64 = 24 * 60 * 60 // 1 day
-)
-
-var (
-	KeyPaymentAccountCountLimit            = []byte("PaymentAccountCountLimit")
+	DefaultReserveTime              uint64 = 180 * 24 * 60 * 60 // 180 days
+	DefaultForcedSettleTime         uint64 = 24 * 60 * 60       // 1 day
 	DefaultPaymentAccountCountLimit uint64 = 200
-)
-
-var (
-	KeyMaxAutoForceSettleNum            = []byte("MaxAutoForceSettleNum")
-	DefaultMaxAutoForceSettleNum uint64 = 100
+	DefaultMaxAutoForceSettleNum    uint64 = 100
+	DefaultFeeDenom                 string = "gweibnb"
 )
 
 // ParamKeyTable the param key table for launch module
@@ -40,12 +34,14 @@ func NewParams(
 	forcedSettleTime uint64,
 	paymentAccountCountLimit uint64,
 	maxAutoForceSettleNum uint64,
+	feeDenom string,
 ) Params {
 	return Params{
 		ReserveTime:              reserveTime,
 		ForcedSettleTime:         forcedSettleTime,
 		PaymentAccountCountLimit: paymentAccountCountLimit,
 		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
+		FeeDenom:                 feeDenom,
 	}
 }
 
@@ -56,6 +52,7 @@ func DefaultParams() Params {
 		DefaultForcedSettleTime,
 		DefaultPaymentAccountCountLimit,
 		DefaultMaxAutoForceSettleNum,
+		DefaultFeeDenom,
 	)
 }
 
@@ -66,6 +63,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyForcedSettleTime, &p.ForcedSettleTime, validateForcedSettleTime),
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
 		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
+		paramtypes.NewParamSetPair(KeyFeeDenom, &p.FeeDenom, validateFeeDenom),
 	}
 }
 
@@ -84,6 +82,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validatePaymentAccountCountLimit(p.MaxAutoForceSettleNum); err != nil {
+		return err
+	}
+
+	if err := validateFeeDenom(p.FeeDenom); err != nil {
 		return err
 	}
 	return nil
@@ -143,6 +145,19 @@ func validateMaxAutoForceSettleNum(v interface{}) error {
 
 	// TODO implement validation
 	_ = maxAutoForceSettleNum
+
+	return nil
+}
+
+// validateFeeDenom validates the FeeDenom param
+func validateFeeDenom(v interface{}) error {
+	feeDenom, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	// TODO implement validation
+	_ = feeDenom
 
 	return nil
 }

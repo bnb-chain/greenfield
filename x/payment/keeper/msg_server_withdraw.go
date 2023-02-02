@@ -33,7 +33,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 	// bank transfer
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	coins := sdk.NewCoins(sdk.NewCoin(types.Denom, msg.Amount))
+	coins := sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, msg.Amount))
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
 	if err != nil {
 		return nil, err

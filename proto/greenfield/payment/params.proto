@@ -18,4 +18,6 @@ message Params {
   uint64 forcedSettleTime = 3 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
   // the maximum number of accounts that will be forced settled in one block
   uint64 maxAutoForceSettleNum = 4 [(gogoproto.moretags) = "yaml:\"max_auto_force_settle_num\""];
+  // The denom of fee charged in payment module
+  string feeDenom = 5 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
 }
