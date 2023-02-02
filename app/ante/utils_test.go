@@ -21,7 +21,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
-	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -86,12 +85,12 @@ func (suite *AnteTestSuite) SetupTest() {
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encCfg.TxConfig)
 
-	anteHandler, _ := ante.NewAnteHandler(sdkante.HandlerOptions{
+	anteHandler, _ := ante.NewAnteHandler(ante.HandlerOptions{
 		AccountKeeper:   suite.app.AccountKeeper,
 		BankKeeper:      suite.app.BankKeeper,
 		FeegrantKeeper:  suite.app.FeeGrantKeeper,
 		SignModeHandler: encCfg.TxConfig.SignModeHandler(),
-		SigGasConsumer:  sdkante.DefaultSigVerificationGasConsumer,
+		GashubKeeper:    suite.app.GashubKeeper,
 	})
 	suite.anteHandler = anteHandler
 }
