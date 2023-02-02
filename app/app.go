@@ -20,7 +20,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	sdkante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -43,7 +42,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/feegrant"
 	feegrantkeeper "github.com/cosmos/cosmos-sdk/x/feegrant/keeper"
 	feegrantmodule "github.com/cosmos/cosmos-sdk/x/feegrant/module"
+	"github.com/cosmos/cosmos-sdk/x/gashub"
 	gashubkeeper "github.com/cosmos/cosmos-sdk/x/gashub/keeper"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/cosmos/cosmos-sdk/x/gov"
@@ -83,6 +84,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	dbm "github.com/tendermint/tm-db"
 
+	"github.com/bnb-chain/greenfield/app/ante"
 	appparams "github.com/bnb-chain/greenfield/app/params"
 	"github.com/bnb-chain/greenfield/docs"
 	"github.com/bnb-chain/greenfield/version"
@@ -152,6 +154,7 @@ var (
 		crosschain.AppModuleBasic{},
 		oracle.AppModuleBasic{},
 		bridgemodule.AppModuleBasic{},
+		gashub.AppModuleBasic{},
 		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
@@ -276,6 +279,7 @@ func New(
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey,
 		bridgemoduletypes.StoreKey,
+		gashubtypes.StoreKey,
 		spmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
@@ -436,6 +440,13 @@ func New(
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.GashubKeeper = gashubkeeper.NewKeeper(
+		appCodec,
+		keys[gashubtypes.StoreKey],
+		app.GetSubspace(gashubtypes.ModuleName),
+	)
+	gashubModule := gashub.NewAppModule(appCodec, app.GashubKeeper)
+
 	app.SpKeeper = *spmodulekeeper.NewKeeper(
 		appCodec,
 		keys[spmoduletypes.StoreKey],
@@ -487,6 +498,7 @@ func New(
 		oracle.NewAppModule(app.OracleKeeper),
 		greenfieldModule,
 		bridgeModule,
+		gashubModule,
 		spModule,
 		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -513,6 +525,7 @@ func New(
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
@@ -534,6 +547,7 @@ func New(
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
+		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -551,6 +565,7 @@ func New(
 		stakingtypes.ModuleName,
 		slashingtypes.ModuleName,
 		govtypes.ModuleName,
+		gashubtypes.ModuleName,
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
@@ -588,6 +603,7 @@ func New(
 		oracle.NewAppModule(app.OracleKeeper),
 		greenfieldModule,
 		bridgeModule,
+		gashubModule,
 		spModule,
 		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
@@ -603,13 +619,13 @@ func New(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 
-	anteHandler, err := sdkante.NewAnteHandler(
-		sdkante.HandlerOptions{
+	anteHandler, err := ante.NewAnteHandler(
+		ante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
 			BankKeeper:      app.BankKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			FeegrantKeeper:  app.FeeGrantKeeper,
-			SigGasConsumer:  sdkante.DefaultSigVerificationGasConsumer,
+			GashubKeeper:    app.GashubKeeper,
 		},
 	)
 	if err != nil {
@@ -818,6 +834,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(crosschaintypes.ModuleName)
 	paramsKeeper.Subspace(oracletypes.ModuleName)
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
+	paramsKeeper.Subspace(gashubtypes.ModuleName)
 	paramsKeeper.Subspace(spmoduletypes.ModuleName)
 	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
