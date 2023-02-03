@@ -26,7 +26,7 @@ cp "$repo_root_dir/e2e/client.toml" "$e2e_test_dir/config/"
 cp "$validator_home_dir/keyring-test/validator0.info" "$e2e_test_dir/keyring-test"
 
 gnfd="$gnfd_path --home $e2e_test_dir"
-denom=gweibnb
+denom=bnb
 
 # keys
 $gnfd keys list

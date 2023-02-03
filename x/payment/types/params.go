@@ -20,7 +20,7 @@ var (
 	DefaultForcedSettleTime         uint64 = 24 * 60 * 60       // 1 day
 	DefaultPaymentAccountCountLimit uint64 = 200
 	DefaultMaxAutoForceSettleNum    uint64 = 100
-	DefaultFeeDenom                 string = "gweibnb"
+	DefaultFeeDenom                 string = "bnb"
 )
 
 // ParamKeyTable the param key table for launch module
