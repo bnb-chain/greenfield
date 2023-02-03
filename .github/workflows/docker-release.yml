@@ -7,7 +7,8 @@ on:
       - v*
 
 env:
-  IMAGE_NAME: ghcr.io/j75689/inscription
+  IMAGE_NAME: ghcr.io/bnb-chain/greenfield
+  IMAGE_SOURCE: https://github.com/bnb-chain/greenfield
 
 jobs:
   # Push image to GitHub Packages.
@@ -21,8 +22,8 @@ jobs:
       - name: Build image
         run: |
           docker build . \
-          --build-arg "GH_TOKEN=${{ secrets.GH_ACCESS_SECRET }}"
-          --label "org.opencontainers.image.source=${IMAGE_NAME}" \
+          --build-arg "GH_TOKEN=${{ secrets.GH_ACCESS_SECRET }}" \
+          --label "org.opencontainers.image.source=${IMAGE_SOURCE}" \
           --label "org.opencontainers.image.revision=$(git rev-parse HEAD)" \
           --label "org.opencontainers.image.version=$(git describe --tags --abbrev=0)" \
           --label "org.opencontainers.image.licenses=LGPL-3.0,GPL-3.0" \
