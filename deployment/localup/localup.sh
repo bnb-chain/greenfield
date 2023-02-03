@@ -122,7 +122,8 @@ function generate_genesis() {
         sed -i -e "s/snapshot-keep-recent = 2/snapshot-keep-recent = ${SNAPSHOT_KEEP_RECENT}/g" ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/\"reserveTime\": \"15552000\"/\"reserveTime\": \"600\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"forcedSettleTime\": \"86400\"/\"forcedSettleTime\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-
+        sed -i -e "s/172800s/${DEPOSIT_VOTE_PERIOD}/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"10000000\"/\"${MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
 }
 

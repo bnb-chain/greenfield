@@ -45,7 +45,7 @@ Before starting the chain, you need to populate the state with at least one acco
 ```bash
 VALIDATOR=$(./build/bin/gnfd keys show validator -a --keyring-backend test)
 RELAYER=$(./build/bin/gnfd keys show relayer -a --keyring-backend test)
-RELAYER_BLS=$(./build/bin/gnfd keys show relayer -a --keyring-backend test --output json | jq -r .pubkey_hex)"
+RELAYER_BLS=$(./build/bin/gnfd keys show relayer --keyring-backend test --output json | jq -r .pubkey_hex)
 ./build/bin/gnfd add-genesis-account $VALIDATOR 100000000000bnb
 ```
 
