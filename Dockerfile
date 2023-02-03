@@ -25,7 +25,7 @@ ENV CGO_CFLAGS="-O -D__BLST_PORTABLE__"
 ENV CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__"
 
 ENV PACKAGES ca-certificates bash curl libstdc++
-ENV WORKDIR=/server
+ENV WORKDIR=/app
 
 RUN apk add --no-cache $PACKAGES \
   && rm -rf /var/cache/apk/* \
@@ -44,4 +44,4 @@ USER ${USER_UID}:${USER_GID}
 
 EXPOSE 26656 26657 9090 1317 6060 4500
 
-ENTRYPOINT ["/server/gnfd"]
+ENTRYPOINT ["/app/gnfd"]
