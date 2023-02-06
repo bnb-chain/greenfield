@@ -1,0 +1,11 @@
+syntax = "proto3";
+package bnbchain.greenfield.challenge;
+
+option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
+
+message RecentSlash {
+  uint64 id = 1;
+  string sp_operator_address = 2;
+  uint64 object_id = 3;
+  uint64 height = 4;
+}
