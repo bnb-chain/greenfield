@@ -9,10 +9,10 @@ const TypeMsgDisableRefund = "disable_refund"
 
 var _ sdk.Msg = &MsgDisableRefund{}
 
-func NewMsgDisableRefund(creator string, addr string) *MsgDisableRefund {
+func NewMsgDisableRefund(owner string, addr string) *MsgDisableRefund {
 	return &MsgDisableRefund{
-		Creator: creator,
-		Addr:    addr,
+		Owner: owner,
+		Addr:  addr,
 	}
 }
 
@@ -25,7 +25,7 @@ func (msg *MsgDisableRefund) Type() string {
 }
 
 func (msg *MsgDisableRefund) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Owner)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func (msg *MsgDisableRefund) GetSignBytes() []byte {
 }
 
 func (msg *MsgDisableRefund) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Owner)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

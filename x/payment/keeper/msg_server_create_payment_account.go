@@ -45,5 +45,5 @@ func (k msgServer) CreatePaymentAccount(goCtx context.Context, msg *types.MsgCre
 	if err != nil {
 		return nil, err
 	}
-	return &types.MsgCreatePaymentAccountResponse{Count: newCount, Addr: paymentAccountAddr}, nil
+	return &types.MsgCreatePaymentAccountResponse{}, nil
 }

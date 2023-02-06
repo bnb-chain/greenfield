@@ -14,7 +14,7 @@ func (k msgServer) DisableRefund(goCtx context.Context, msg *types.MsgDisableRef
 	if !found {
 		return nil, types.ErrPaymentAccountNotFound
 	}
-	if paymentAccount.Owner != msg.Creator {
+	if paymentAccount.Owner != msg.Owner {
 		return nil, types.ErrNotPaymentAccountOwner
 	}
 	if !paymentAccount.Refundable {

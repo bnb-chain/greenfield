@@ -15,7 +15,7 @@ message StreamRecord {
   int64 crud_timestamp = 2;
   // The per-second rate that an account's balance is changing.
   // It is the sum of the account's inbound and outbound flow rates.
-  string netflowRate = 3 [
+  string netflow_rate = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
@@ -26,18 +26,23 @@ message StreamRecord {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-
+  // reserved balance of the stream account
+  // If the netflow rate is negative, the reserved balance is `netflow_rate * reserve_time`
   string bufferBalance = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // the locked balance of the stream account after it puts a new object and before the object is sealed
   string lockBalance = 6 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // the status of the stream account
   int32 status = 7;
+  // the unix timestamp when the stream account will be settled
   int64 settleTimestamp = 8;
+  // the accumulated outflow rates of the stream account
   repeated OutFlowInUSD outFlowsInUSD = 9 [(gogoproto.nullable) = false];
 }
