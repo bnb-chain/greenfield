@@ -14,7 +14,6 @@ func DefaultGenesis() *GenesisState {
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		MockBucketMetaList:      []MockBucketMeta{},
-		FlowList:                []Flow{},
 		MockObjectInfoList:      []MockObjectInfo{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
 		BnbPriceList:            []BnbPrice{{0, 2e8}},
@@ -66,16 +65,6 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for mockBucketMeta")
 		}
 		mockBucketMetaIndexMap[index] = struct{}{}
-	}
-	// Check for duplicated index in flow
-	flowIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.FlowList {
-		index := string(FlowKey(elem.From, elem.To))
-		if _, ok := flowIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for flow")
-		}
-		flowIndexMap[index] = struct{}{}
 	}
 	// Check for duplicated index in mockObjectInfo
 	mockObjectInfoIndexMap := make(map[string]struct{})

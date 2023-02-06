@@ -155,13 +155,12 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 	streamRecord.BufferBalance = sdkmath.ZeroInt()
 	streamRecord.NetflowRate = sdkmath.ZeroInt()
 	streamRecord.Status = types.StreamPaymentAccountStatusFrozen
-	flows := k.FreezeFlowsByFromUser(ctx, streamRecord.Account)
 	// todo: use a cache for SP stream record update to optimize
 	// the implementation itself may cause chain force settle, but in reality, it will not happen.
 	// only the SP can be the flow receiver, so in settlement, the rate of SP will reduce, but never get below zero and
 	// trigger another force settle.
-	for _, flow := range flows {
-		change = types.NewDefaultStreamRecordChangeWithAddr(flow.To).WithRateChange(flow.Rate.Neg())
+	for _, flow := range streamRecord.OutFlowsInUSD {
+		change = types.NewDefaultStreamRecordChangeWithAddr(flow.SpAddress).WithRateChange(flow.Rate.Neg())
 		_, err := k.UpdateStreamRecordByAddr(ctx, change)
 		if err != nil {
 			return fmt.Errorf("update receiver stream record failed: %w", err)

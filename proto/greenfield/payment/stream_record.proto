@@ -10,9 +10,9 @@ option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 // Stream Payment Record of a stream account
 message StreamRecord {
   // account address
-  string account = 1;
+  string account = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // latest update timestamp of the stream record
-  int64 crudTimestamp = 2;
+  int64 crud_timestamp = 2;
   // The per-second rate that an account's balance is changing.
   // It is the sum of the account's inbound and outbound flow rates.
   string netflowRate = 3 [

@@ -32,13 +32,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdListPaymentAccount())
 	cmd.AddCommand(CmdShowPaymentAccount())
 	cmd.AddCommand(CmdDynamicBalance())
-
 	cmd.AddCommand(CmdGetPaymentAccountsByOwner())
-
 	cmd.AddCommand(CmdListMockBucketMeta())
 	cmd.AddCommand(CmdShowMockBucketMeta())
-	cmd.AddCommand(CmdListFlow())
-	cmd.AddCommand(CmdShowFlow())
 	cmd.AddCommand(CmdListMockObjectInfo())
 	cmd.AddCommand(CmdShowMockObjectInfo())
 	cmd.AddCommand(CmdListAutoSettleRecord())

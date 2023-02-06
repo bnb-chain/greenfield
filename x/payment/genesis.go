@@ -24,10 +24,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.MockBucketMetaList {
 		k.SetMockBucketMeta(ctx, elem)
 	}
-	// Set all the flow
-	for _, elem := range genState.FlowList {
-		k.SetFlow(ctx, elem)
-	}
 	// Set all the mockObjectInfo
 	for _, elem := range genState.MockObjectInfoList {
 		k.SetMockObjectInfo(ctx, elem)
@@ -53,7 +49,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.PaymentAccountCountList = k.GetAllPaymentAccountCount(ctx)
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
 	genesis.MockBucketMetaList = k.GetAllMockBucketMeta(ctx)
-	genesis.FlowList = k.GetAllFlow(ctx)
 	genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
 	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
 	genesis.BnbPriceList = k.GetAllBnbPrice(ctx)
