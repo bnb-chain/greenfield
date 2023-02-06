@@ -2,7 +2,7 @@ package types
 
 import (
 	"errors"
-	fmt "fmt"
+	"fmt"
 	"strings"
 
 	"cosmossdk.io/math"

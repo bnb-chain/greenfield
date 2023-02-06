@@ -1,0 +1,43 @@
+syntax = "proto3";
+package bnbchain.greenfield.challenge;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  uint64 event_count_per_block = 1 [(gogoproto.moretags) = "yaml:\"event_count_per_block\""];
+  uint64 challenge_expire_period = 2 [(gogoproto.moretags) = "yaml:\"challenge_expire_period\""];
+  uint64 slash_cooling_off_period = 3 [(gogoproto.moretags) = "yaml:\"slash_cooling_off_period\""];
+  // deposit_denom defines the staking coin denomination.
+  string slash_denom = 4;
+  string slash_amount_per_kb = 5 [
+    (gogoproto.moretags) = "yaml:\"slash_amount_per_kb\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string slash_amount_min = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string slash_amount_max = 7 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  string reward_validator_ratio = 8 [
+    (gogoproto.moretags) = "yaml:\"reward_validator_ratio\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string reward_challenger_ratio = 9 [
+    (gogoproto.moretags) = "yaml:\"reward_challenger_ratio\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}

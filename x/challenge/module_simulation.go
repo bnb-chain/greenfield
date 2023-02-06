@@ -1,0 +1,89 @@
+package challenge
+
+import (
+	"math/rand"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	challengesimulation "github.com/bnb-chain/greenfield/x/challenge/simulation"
+	"github.com/bnb-chain/greenfield/x/challenge/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/x/simulation"
+)
+
+// avoid unused import issue
+var (
+	_ = sample.AccAddress
+	_ = challengesimulation.FindAccount
+	_ = simappparams.StakePerAccount
+	_ = simulation.MsgEntryKind
+	_ = baseapp.Paramspace
+)
+
+const (
+// this line is used by starport scaffolding # simapp/module/const
+)
+
+// GenerateGenesisState creates a randomized GenState of the module
+func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
+	accs := make([]string, len(simState.Accounts))
+	for i, acc := range simState.Accounts {
+		accs[i] = acc.Address.String()
+	}
+	challengeGenesis := types.GenesisState{
+		Params: types.DefaultParams(),
+		// this line is used by starport scaffolding # simapp/module/genesisState
+	}
+	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&challengeGenesis)
+}
+
+// ProposalContents doesn't return any content functions for governance proposals
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
+}
+
+// RandomizedParams creates randomized  param changes for the simulator
+func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
+	challengeParams := types.DefaultParams()
+	return []simtypes.ParamChange{
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyEventCountPerBlock), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.EventCountPerBlock))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyChallengeExpirePeriod), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.ChallengeExpirePeriod))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashCoolingOffPeriod), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.SlashCoolingOffPeriod))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountPerKb), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountPerKb))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountMin), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountMin))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountMax), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountMax))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardValidatorRatio), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.RewardValidatorRatio))
+		}),
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardChallengerRatio), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.RewardChallengerRatio))
+		}),
+	}
+}
+
+// RegisterStoreDecoder registers a decoder
+func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
+
+// WeightedOperations returns the all the gov module operations with their respective weights.
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	operations := make([]simtypes.WeightedOperation, 0)
+
+	// this line is used by starport scaffolding # simapp/module/operation
+
+	return operations
+}

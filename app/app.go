@@ -91,6 +91,11 @@ import (
 	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
+
+	challengemodule "github.com/bnb-chain/greenfield/x/challenge"
+	challengemodulekeeper "github.com/bnb-chain/greenfield/x/challenge/keeper"
+	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
+
 	spmodule "github.com/bnb-chain/greenfield/x/sp"
 	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -155,6 +160,7 @@ var (
 		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
 		storagemodule.AppModuleBasic{},
+		challengemodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -220,10 +226,11 @@ type App struct {
 	OracleKeeper     oraclekeeper.Keeper
 	GashubKeeper     gashubkeeper.Keeper
 
-	BridgeKeeper  bridgemodulekeeper.Keeper
-	SpKeeper      spmodulekeeper.Keeper
-	PaymentKeeper paymentmodulekeeper.Keeper
-	StorageKeeper storagemodulekeeper.Keeper
+	BridgeKeeper    bridgemodulekeeper.Keeper
+	SpKeeper        spmodulekeeper.Keeper
+	PaymentKeeper   paymentmodulekeeper.Keeper
+	StorageKeeper   storagemodulekeeper.Keeper
+	ChallengeKeeper challengemodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -279,6 +286,7 @@ func New(
 		spmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
+		challengemoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -466,6 +474,16 @@ func New(
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
+	app.ChallengeKeeper = *challengemodulekeeper.NewKeeper(
+		appCodec,
+		keys[challengemoduletypes.StoreKey],
+		keys[challengemoduletypes.MemStoreKey],
+		app.GetSubspace(challengemoduletypes.ModuleName),
+
+		app.SpKeeper,
+	)
+	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
@@ -498,6 +516,8 @@ func New(
 		spModule,
 		paymentModule,
 		storageModule,
+		challengeModule,
+
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -525,6 +545,7 @@ func New(
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -547,6 +568,8 @@ func New(
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		challengemoduletypes.ModuleName,
+
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -574,6 +597,7 @@ func New(
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -603,6 +627,7 @@ func New(
 		spModule,
 		paymentModule,
 		storageModule,
+		challengeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -834,6 +859,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(spmoduletypes.ModuleName)
 	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
+	paramsKeeper.Subspace(challengemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
