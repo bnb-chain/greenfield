@@ -22,9 +22,14 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// AutoSettleRecord is the record keeps the auto settle information.
+// The EndBlocker of payment module will scan the list of AutoSettleRecord
+// and settle the stream account if the timestamp is less than the current time.
 type AutoSettleRecord struct {
-	Timestamp int64  `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	Addr      string `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
+	// timestamp is the unix timestamp when the stream account will be settled.
+	Timestamp int64 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	// A stream account address
+	Addr string `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
 }
 
 func (m *AutoSettleRecord) Reset()         { *m = AutoSettleRecord{} }

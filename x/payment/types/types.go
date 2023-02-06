@@ -5,7 +5,7 @@ import "fmt"
 func ParseReadPacket(readPacket string) (ReadPacket, error) {
 	res, found := ReadPacket_value[readPacket]
 	if !found {
-		return ReadPacketFree, fmt.Errorf("invalid read packet: %s", readPacket)
+		return READ_PACKET_FREE, fmt.Errorf("invalid read packet: %s", readPacket)
 	}
 	return ReadPacket(res), nil
 }

@@ -3,7 +3,12 @@ package bnbchain.greenfield.payment;
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
+// AutoSettleRecord is the record keeps the auto settle information.
+// The EndBlocker of payment module will scan the list of AutoSettleRecord
+// and settle the stream account if the timestamp is less than the current time.
 message AutoSettleRecord {
+  // timestamp is the unix timestamp when the stream account will be settled.
   int64 timestamp = 1;
+  // A stream account address
   string addr = 2;
 }

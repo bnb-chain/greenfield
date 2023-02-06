@@ -117,7 +117,7 @@ func (m *MockBucketMeta) GetReadPacket() ReadPacket {
 	if m != nil {
 		return m.ReadPacket
 	}
-	return ReadPacketFree
+	return READ_PACKET_FREE
 }
 
 func (m *MockBucketMeta) GetPriceTime() int64 {

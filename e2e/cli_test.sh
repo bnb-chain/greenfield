@@ -70,7 +70,7 @@ $gnfd tx payment deposit "${payment_account}" 100 --from user -y
 # mock create bucket
 bucket_name="test-bucket-$user_addr"
 object_name="test-object-$user_addr"
-$gnfd tx payment mock-create-bucket "$bucket_name" "" "" "$sp0_addr" ReadPacket1GB --from user -y
+$gnfd tx payment mock-create-bucket "$bucket_name" "" "" "$sp0_addr" READ_PACKET_1GB --from user -y
 $gnfd q payment show-mock-bucket-meta "$bucket_name"
 $gnfd q payment dynamic-balance "$user_addr"
 $gnfd q payment dynamic-balance "$sp0_addr"
@@ -86,7 +86,7 @@ $gnfd q payment dynamic-balance "$user_addr"
 $gnfd q payment dynamic-balance "$sp0_addr"
 $gnfd q payment dynamic-balance "$sp1_addr"
 # mock-update-bucket-read-packet
-$gnfd tx payment mock-update-bucket-read-packet "$bucket_name" ReadPacket10GB --from user -y
+$gnfd tx payment mock-update-bucket-read-packet "$bucket_name" READ_PACKET_10GB --from user -y
 $gnfd q payment dynamic-balance "$user_addr"
 $gnfd q payment dynamic-balance "$sp0_addr"
 # mock-set-bucket-payment-account

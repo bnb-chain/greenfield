@@ -15,10 +15,11 @@ message OutFlowInUSD {
   ];
 }
 
+// ReadPacket defines the read packet type
 enum ReadPacket {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  ReadPacketFree = 0;
-  ReadPacket1GB = 1;
-  ReadPacket10GB = 2;
+  READ_PACKET_FREE = 0;
+  READ_PACKET_1GB = 1;
+  READ_PACKET_10GB = 2;
 }
