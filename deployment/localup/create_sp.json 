@@ -15,8 +15,8 @@
     "approval_address": "0x698F9f203748a9Af4a1663F59c2f9f8529Dd925d",
     "endpoint": "sp0.greenfield.io"
     "amount":{
-      "denom":"gweibnb",
-      "amount":"1000000"
+      "denom":"bnb",
+      "amount":"1000"
     },
     "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
   }

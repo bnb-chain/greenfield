@@ -45,14 +45,14 @@ var (
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
 	creator sdk.AccAddress, bucketName string, isPublic bool,
-	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, primarySPSignature []byte) *MsgCreateBucket {
+	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, primarySPApproval []byte) *MsgCreateBucket {
 	return &MsgCreateBucket{
-		Creator:            creator.String(),
-		BucketName:         bucketName,
-		IsPublic:           isPublic,
-		PaymentAddress:     paymentAddress.String(),
-		PrimarySpAddress:   primarySPAddress.String(),
-		PrimarySpSignature: primarySPSignature,
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		IsPublic:          isPublic,
+		PaymentAddress:    paymentAddress.String(),
+		PrimarySpAddress:  primarySPAddress.String(),
+		PrimarySpApproval: primarySPApproval,
 	}
 }
 
@@ -155,7 +155,7 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	isPublic bool, expectChecksum [][]byte, contentType string, primarySPSignature []byte,
+	isPublic bool, expectChecksums [][]byte, contentType string, primarySPApproval []byte,
 	secondarySPs []sdk.AccAddress) *MsgCreateObject {
 	var secondarySPAddresses []string
 	if secondarySPs != nil {
@@ -171,8 +171,8 @@ func NewMsgCreateObject(
 		PayloadSize:                payloadSize,
 		IsPublic:                   isPublic,
 		ContentType:                contentType,
-		PrimarySpSignature:         primarySPSignature,
-		ExpectChecksum:             expectChecksum,
+		PrimarySpApproval:          primarySPApproval,
+		ExpectChecksums:            expectChecksums,
 		ExpectSecondarySpAddresses: secondarySPAddresses,
 	}
 }
@@ -216,7 +216,7 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
-	if err := CheckValidExpectChecksums(msg.ExpectChecksum); err != nil {
+	if err := CheckValidExpectChecksums(msg.ExpectChecksums); err != nil {
 		return sdkerrors.Wrapf(ErrInvalidChcecksum, "invalid checksum (%s)", err)
 	}
 
@@ -224,7 +224,7 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidContentType, "invalid checksum (%s)", err)
 	}
 
-	if msg.PrimarySpSignature == nil {
+	if msg.PrimarySpApproval == nil {
 		return sdkerrors.Wrapf(ErrInvalidSPSignature, "empty sp signature")
 	}
 
@@ -286,12 +286,12 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgSealObject(creator sdk.AccAddress, bucketName string, objectName string, spSignatures [][]byte) *MsgSealObject {
+func NewMsgSealObject(creator sdk.AccAddress, bucketName string, objectName string, spStoreReceipts [][]byte) *MsgSealObject {
 	return &MsgSealObject{
-		Creator:      creator.String(),
-		BucketName:   bucketName,
-		ObjectName:   objectName,
-		SpSignatures: spSignatures,
+		Creator:         creator.String(),
+		BucketName:      bucketName,
+		ObjectName:      objectName,
+		SpStoreReceipts: spStoreReceipts,
 	}
 }
 
@@ -339,11 +339,11 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
-	if len(msg.SpSignatures) != 7 {
+	if len(msg.SpStoreReceipts) != 7 {
 		return sdkerrors.Wrapf(ErrInvalidSPSignature, "Missing SP signatures")
 	}
 
-	for _, sig := range msg.SpSignatures {
+	for _, sig := range msg.SpStoreReceipts {
 		if sig == nil {
 			return sdkerrors.Wrapf(ErrInvalidSPSignature, "Empty SP signatures")
 		}
@@ -354,14 +354,14 @@ func (msg *MsgSealObject) ValidateBasic() error {
 
 func NewMsgCopyObject(
 	creator sdk.AccAddress, srcBucketName string, dstBucketName string,
-	srcObjectName string, dstObjectName string, dstPrimarySPSignature []byte) *MsgCopyObject {
+	srcObjectName string, dstObjectName string, dstPrimarySPApproval []byte) *MsgCopyObject {
 	return &MsgCopyObject{
-		Creator:               creator.String(),
-		SrcBucketName:         srcBucketName,
-		DstBucketName:         dstBucketName,
-		SrcObjectName:         srcObjectName,
-		DstObjectName:         dstObjectName,
-		DstPrimarySpSignature: dstPrimarySPSignature,
+		Creator:              creator.String(),
+		SrcBucketName:        srcBucketName,
+		DstBucketName:        dstBucketName,
+		SrcObjectName:        srcObjectName,
+		DstObjectName:        dstObjectName,
+		DstPrimarySpApproval: dstPrimarySPApproval,
 	}
 }
 
@@ -506,9 +506,9 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeleteGroup(creator string, groupName string) *MsgDeleteGroup {
+func NewMsgDeleteGroup(creator sdk.AccAddress, groupName string) *MsgDeleteGroup {
 	return &MsgDeleteGroup{
-		Creator:   creator,
+		Creator:   creator.String(),
 		GroupName: groupName,
 	}
 }

@@ -46,6 +46,6 @@ func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
 	return append([]byte(owner.String()), groupKey...)
 }
 
-func GetGroupMemberKey(groupId uint64, memberAcc sdk.AccAddress) []byte {
-	return append(sdk.Uint64ToBigEndian(groupId), []byte(memberAcc.String())...)
+func GetGroupMemberKey(groupId string, memberAcc sdk.AccAddress) []byte {
+	return append([]byte(groupId), []byte(memberAcc.String())...)
 }

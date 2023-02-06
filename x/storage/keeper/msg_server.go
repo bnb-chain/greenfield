@@ -6,13 +6,14 @@ import (
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 type msgServer struct {
 	Keeper
 }
 
-// TODO(fynn): add event for all message
+// TODO: add event for all message
 
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
@@ -25,9 +26,10 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucket) (*types.MsgCreateBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO(fynn): check the validity of the primarySP from SP module
-	// TODO(fynn): check the bucket permission
-	// TODO(fynn): check primary sp's signature
+	// TODO: check the validity of the primarySP from SP module
+	// TODO: check the bucket permission
+	// TODO: check primary sp's signature
+	// TODO: check if a valid storage provider
 	var (
 		ownerAcc     sdk.AccAddress
 		paymentAcc   sdk.AccAddress
@@ -35,43 +37,48 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		err          error
 	)
 
-	if ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator)
+	if err != nil {
 		return nil, err
 	}
 
 	if msg.PaymentAddress != "" {
-		if paymentAcc, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress); err != nil {
+		// TODO: validate that the paymentAcc is ownered by ownerAcc if payment module ready
+		paymentAcc, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
+		if err != nil {
 			return nil, err
 		}
 	} else {
 		paymentAcc = ownerAcc
 	}
 
-	if primarySPAcc, err = sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress); err != nil {
+	primarySPAcc, err = sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	if err != nil {
 		return nil, err
 	}
 
-	if err := types.CheckValidBucketName(msg.BucketName); err != nil {
-		return nil, err
-	}
+	spApproval := msg.PrimarySpApproval
+	msg.PrimarySpApproval = []byte("")
+	bz, err := msg.Marshal()
+	k.CheckPrimarySPAndApproval(ctx, primarySPAcc, crypto.Sha256(bz), spApproval)
 
 	// Check Bucket exist
 	bucketKey := types.GetBucketKey(msg.BucketName)
-	if k.Keeper.HasBucket(ctx, bucketKey) {
+	if k.HasBucket(ctx, bucketKey) {
 		return nil, types.ErrBucketAlreadyExists
 	}
+
 	// Store bucket meta
 	bucketInfo := types.BucketInfo{
 		Owner:            ownerAcc.String(),
 		BucketName:       msg.BucketName,
 		IsPublic:         msg.IsPublic,
-		Id:               0, // TODO(fynn): generate a unqiue ID for bucket
 		CreateAt:         ctx.BlockHeight(),
 		PrimarySpAddress: primarySPAcc.String(),
 		ReadQuota:        types.READ_QUOTA_FREE,
 		PaymentAddress:   paymentAcc.String(),
 	}
-	k.Keeper.SetBucket(ctx, bucketKey, bucketInfo)
+	k.SetBucket(ctx, bucketKey, bucketInfo)
 
 	return &types.MsgCreateBucketResponse{}, nil
 }
@@ -79,7 +86,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucket) (*types.MsgDeleteBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO(fynn): check if have the permission to delete bucket
+	// TODO: check if have the permission to delete bucket
 
 	// check if the bucket exists
 	bucketKey := types.GetBucketKey(msg.BucketName)
@@ -98,13 +105,15 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	// TODO(fynn): check bucket and object permission
-	// TODO(fynn): check primary sp signature
-	// TODO(fynn): pay for the object. Interact with PaymentModule
+	// TODO: check bucket and object permission
+	// TODO: check primary sp signature
+	// TODO: pay for the object. Interact with PaymentModule
+	// TODO: check the permission of the bucket
 
 	var (
-		ownerAcc sdk.AccAddress
-		err      error
+		ownerAcc     sdk.AccAddress
+		primarySPAcc sdk.AccAddress
+		err          error
 	)
 	// check owner AccAddress
 	if ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
@@ -113,11 +122,10 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 
 	// check bucket
 	bucketKey := types.GetBucketKey(msg.BucketName)
-	_, found := k.GetBucket(ctx, bucketKey)
+	bucketInfo, found := k.GetBucket(ctx, bucketKey)
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
-	// TODO(fynn): check the permission of the bucket
 
 	// check object
 	objectKey := types.GetObjectKey(msg.BucketName, msg.ObjectName)
@@ -125,20 +133,30 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrObjectAlreadyExists
 	}
 
+	// check primary SP
+	primarySPAcc, err = sdk.AccAddressFromHexUnsafe(bucketInfo.PrimarySpAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	spApproval := msg.PrimarySpApproval
+	msg.PrimarySpApproval = []byte("")
+	bz, err := msg.Marshal()
+	k.CheckPrimarySPAndApproval(ctx, primarySPAcc, crypto.Sha256(bz), spApproval)
+
 	objectInfo := types.ObjectInfo{
 		Owner:          ownerAcc.String(),
 		BucketName:     msg.BucketName,
 		ObjectName:     msg.ObjectName,
-		Id:             0, // TODO(fynn): generate a unqiue id
 		PayloadSize:    msg.PayloadSize,
 		IsPublic:       msg.IsPublic,
 		ContentType:    msg.ContentType,
 		CreateAt:       ctx.BlockHeight(),
 		ObjectStatus:   types.OBJECT_STATUS_INIT,
-		RedundancyType: types.REDUNDANCY_EC_TYPE, // TODO(fynn): base on redundancy policy
+		RedundancyType: types.REDUNDANCY_EC_TYPE, // TODO: base on redundancy policy
 		SourceType:     types.SOURCE_TYPE_ORIGIN,
 
-		Checksums:            msg.ExpectChecksum,
+		Checksums:            msg.ExpectChecksums,
 		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
 	}
 	k.Keeper.SetObject(ctx, objectKey, objectInfo)
@@ -149,12 +167,12 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO(fynn): check valid sp address when sp module ready
-	// TODO(fynn): check the signature of sp
-	// TODO(fynn): check permission when permission module ready
-	// TODO(fynn): verify the checksum in sp's signature info
-	// TODO(fynn): set the secondary sp
-	// TODO(fynn): submit event/log
+	// TODO: check valid sp address when sp module ready
+	// TODO: check the signature of sp
+	// TODO: check permission when permission module ready
+	// TODO: verify the checksum in sp's signature info
+	// TODO: set the secondary sp
+	// TODO: submit event/log
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return nil, err
@@ -225,7 +243,6 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		Owner:          ownerAcc.String(),
 		BucketName:     dstBucketInfo.BucketName,
 		ObjectName:     msg.DstObjectName,
-		Id:             0, // TODO(fynn): generate a unique id
 		PayloadSize:    srcObjectInfo.PayloadSize,
 		IsPublic:       srcObjectInfo.IsPublic,
 		ContentType:    srcObjectInfo.ContentType,
@@ -275,7 +292,7 @@ func (k msgServer) RejectUnsealedObject(goCtx context.Context, msg *types.MsgRej
 		return nil, types.ErrAccessDenied
 	}
 
-	// TODO(fynn): Interact with payment. unlock the pre-pay fee.
+	// TODO: Interact with payment. unlock the pre-pay fee.
 	k.Keeper.DeleteObject(ctx, objectKey)
 	return &types.MsgRejectUnsealedObjectResponse{}, nil
 }
@@ -296,10 +313,9 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	groupInfo := types.GroupInfo{
 		Owner:     msg.Creator,
 		GroupName: msg.GroupName,
-		Id:        0, // TODO(fynn): generate a unique id for group
 	}
 
-	// TODO(fynn): add a member means insert a key-value to database.
+	// TODO: add a member means insert a key-value to database.
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
 	for _, member := range msg.Members {
 		memberAddress, err := sdk.AccAddressFromHexUnsafe(member)
@@ -307,7 +323,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 			return nil, err
 		}
 		groupMemberInfo := types.GroupMemberInfo{
-			GroupId:    groupInfo.Id,
+			Id:         groupInfo.Id,
 			ExpireTime: 0,
 		}
 		groupMemberKey := types.GetGroupMemberKey(groupInfo.Id, memberAddress)
@@ -383,7 +399,7 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		}
 		memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
 		memberInfo := types.GroupMemberInfo{
-			GroupId:    groupInfo.Id,
+			Id:         groupInfo.Id,
 			ExpireTime: 0,
 		}
 		if !k.Keeper.HasGroupMember(ctx, memberKey) {

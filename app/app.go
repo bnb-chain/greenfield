@@ -409,6 +409,7 @@ func New(
 		keys[storagemoduletypes.StoreKey],
 		keys[storagemoduletypes.MemStoreKey],
 		app.GetSubspace(storagemoduletypes.ModuleName),
+    app.SpKeeper,
 	)
 
 	// Register the upgrade keeper

@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/internal"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -18,6 +20,12 @@ type (
 		storeKey   storetypes.StoreKey
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
+		spKeeper   types.SpKeeper
+
+		// sequence
+		bucketSeq internal.Sequence
+		objectSeq internal.Sequence
+		groupSeq  internal.Sequence
 	}
 )
 
@@ -26,6 +34,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	spKeeper types.SpKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -33,12 +42,39 @@ func NewKeeper(
 		ps = ps.WithKeyTable(types.ParamKeyTable())
 	}
 
-	return &Keeper{
+	k := Keeper{
 		cdc:        cdc,
 		storeKey:   storeKey,
 		memKey:     memKey,
 		paramstore: ps,
+		spKeeper:   spKeeper,
 	}
+
+	k.bucketSeq = internal.NewSequence(types.BucketPrefix)
+	k.objectSeq = internal.NewSequence(types.ObjectPrefix)
+	k.groupSeq = internal.NewSequence(types.GroupPrefix)
+	return &k
+
+}
+
+func (k Keeper) CheckPrimarySPAndApproval(
+  ctx sdk.Context, primarySPAcc sdk.AccAddress,
+  sigHash []byte, approval []byte) error {
+	sp, found := k.spKeeper.GetStorageProvider(ctx, primarySPAcc)
+	if !found {
+		return types.ErrNoSuchStorageProvider
+	}
+	if sp.Status != sptypes.STATUS_IN_SERVICE {
+		return types.ErrStorageProviderNotInService
+	}
+
+	approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+  if err != nil {
+    return err
+  }
+
+	types.VerifyApproval(approvalAcc, sigHash, approval)
+  return nil
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -70,6 +106,9 @@ func (k Keeper) SetBucket(ctx sdk.Context, bucketKey []byte, bucketInfo types.Bu
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
+	seq := k.bucketSeq.NextVal(store)
+	bucketInfo.Id = seq.String()
+
 	bz := k.cdc.MustMarshal(&bucketInfo)
 	bucketStore.Set(bucketKey, bz)
 }
@@ -86,7 +125,7 @@ func (k Keeper) IsEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
 	iter := objectStore.Iterator(bucketKey, nil)
-  return iter.Valid()
+	return iter.Valid()
 }
 
 func (k Keeper) GetObject(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
@@ -114,6 +153,10 @@ func (k Keeper) SetObject(ctx sdk.Context, objectKey []byte, objectInfo types.Ob
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
+	// set object id
+	seq := k.objectSeq.NextVal(store)
+	objectInfo.Id = seq.String()
+
 	bz := k.cdc.MustMarshal(&objectInfo)
 	objectStore.Set(objectKey, bz)
 }
@@ -128,6 +171,10 @@ func (k Keeper) DeleteObject(ctx sdk.Context, objectKey []byte) {
 func (k Keeper) SetGroup(ctx sdk.Context, groupKey []byte, groupInfo types.GroupInfo) {
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
+
+	// set group id
+	seq := k.groupSeq.NextVal(store)
+	groupInfo.Id = seq.String()
 
 	bz := k.cdc.MustMarshal(&groupInfo)
 	groupStore.Set(groupKey, bz)

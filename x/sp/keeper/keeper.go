@@ -41,11 +41,11 @@ func NewKeeper(
 	return &Keeper{
 		cdc:         cdc,
 		storeKey:    key,
+		memKey:      memKey,
+		paramstore:  ps,
 		authKeeper:  ak,
 		bankKeeper:  bk,
 		authzKeeper: azk,
-		memKey:      memKey,
-		paramstore:  ps,
 	}
 }
 

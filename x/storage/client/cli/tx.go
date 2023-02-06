@@ -113,7 +113,7 @@ func CmdDeleteBucket() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeleteBucket(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argBucketName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -211,11 +211,12 @@ func CmdCopyObject() *cobra.Command {
 			}
 
 			msg := types.NewMsgCopyObject(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argSrcBucketName,
 				argDstBucketName,
 				argSrcObjectName,
 				argDstObjectName,
+        nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -281,7 +282,7 @@ func CmdRejectUnsealedObject() *cobra.Command {
 			}
 
 			msg := types.NewMsgRejectUnsealedObject(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argBucketName,
 				argObjectName,
 			)
@@ -312,7 +313,7 @@ func CmdDeleteObject() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeleteObject(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argBucketName,
 				argObjectName,
 			)
@@ -342,8 +343,9 @@ func CmdCreateGroup() *cobra.Command {
 			}
 
 			msg := types.NewMsgCreateGroup(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argGroupName,
+        nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -371,7 +373,7 @@ func CmdDeleteGroup() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeleteGroup(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argGroupName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -400,7 +402,8 @@ func CmdLeaveGroup() *cobra.Command {
 			}
 
 			msg := types.NewMsgLeaveGroup(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
+        sdk.AccAddress{},  // TODO: add group owner acc
 				argGroupName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -429,8 +432,10 @@ func CmdUpdateGroupMember() *cobra.Command {
 			}
 
 			msg := types.NewMsgUpdateGroupMember(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				argGroupName,
+        nil,
+        nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
