@@ -57,6 +57,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	spApproval := msg.PrimarySpApproval
 	msg.PrimarySpApproval = []byte("")
 	bz, err := msg.Marshal()
+  if err != nil {
+    return nil, err
+  }
 
   err = k.CheckSPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
   if err != nil {
@@ -134,7 +137,10 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	spApproval := msg.PrimarySpApproval
 	msg.PrimarySpApproval = []byte("")
 	bz, err := msg.Marshal()
-  k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+  if err != nil {
+    return nil, err
+  }
+  err = k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
   if err != nil {
     return nil, err
   }
