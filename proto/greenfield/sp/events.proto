@@ -5,16 +5,30 @@ import "cosmos_proto/cosmos.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
+// EventCreateStorageProvider is emitted when there is a storage provider created
 message EventCreateStorageProvider {
+  // sp_address is the operator address of the storage provider
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // funding_address is the funding account address of the storage provider
   string funding_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // total_deposit is the token coin that the storage provider deposit to the storage module
   string total_deposit = 3;
 }
 
-message EventEditStorageProvider {}
+// EventEditStorageProvider is emitted when SP's metadata is edited.
+message EventEditStorageProvider {
+  // old_endpoint is the service endpoint of the storage provider before edit
+  string old_endpoint = 1;
+  // new_endpoint is the service endpoint of the storage provider after edit
+  string new_endpoint = 2;
+}
 
+// EventDeposit is emitted when sp deposit tokens.
 message EventDeposit {
+  // sp_address is the account address of storage provider
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // deposit is the token coin deposited this message
   string deposit = 2;
+  // total_deposit is the total token coins this storage provider deposited
   string total_deposit = 3;
 }

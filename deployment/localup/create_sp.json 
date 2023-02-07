@@ -11,6 +11,9 @@
     },
     "sp_address":"0x698F9f203748a9Af4a1663F59c2f9f8529Dd925d",
     "funding_address":"0x756eD1374Fd79032E22857c227CBE58C00fA003E",
+    "seal_address": "0x698F9f203748a9Af4a1663F59c2f9f8529Dd925d",
+    "approval_address": "0x698F9f203748a9Af4a1663F59c2f9f8529Dd925d",
+    "endpoint": "sp0.greenfield.io"
     "amount":{
       "denom":"gweibnb",
       "amount":"1000000"
