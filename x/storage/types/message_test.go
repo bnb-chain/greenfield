@@ -1,7 +1,6 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
@@ -9,14 +8,10 @@ import (
 )
 
 var (
-	testAcc1                            = sample.AccAddress()
-	testAcc2                            = sample.AccAddress()
 	testBucketName                      = "testbucket"
 	testObjectName                      = "testobject"
 	testGroupName                       = "testgroup"
 	testInvalidBucketNameWithLongLength = [68]byte{}
-	testPaymentAcc                      = sdk.AccAddress("testPaymentAcc")
-	testPrimarySpAcc                    = sdk.AccAddress("testPrimarySpAcc")
 )
 
 func TestMsgCreateBucket_ValidateBasic(t *testing.T) {

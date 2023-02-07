@@ -79,6 +79,8 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	stateStore.MountStoreWithDB(storeKeys[authtypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[banktypes.StoreKey], storetypes.StoreTypeIAVL, db)
 
+	stateStore.MountStoreWithDB(tkeys[paramstypes.TStoreKey], storetypes.StoreTypeTransient, nil)
+
 	require.NoError(t, stateStore.LoadLatestVersion())
 
 	registry := codectypes.NewInterfaceRegistry()
@@ -89,6 +91,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(authtypes.ModuleName)
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
+	paramKeeper.Subspace(sptypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
@@ -153,12 +156,6 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	if err != nil {
 		panic("mint coins error")
 	}
-	err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
-		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
-	}})
-	if err != nil {
-		panic("mint coins error")
-	}
+
 	return k, ctx
 }

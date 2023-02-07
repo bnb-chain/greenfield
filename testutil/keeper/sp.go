@@ -141,13 +141,6 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	if err != nil {
 		panic("mint coins error")
 	}
-	err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
-		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
-	}})
-	if err != nil {
-		panic("mint coins error")
-	}
 
 	return k, ctx
 }
