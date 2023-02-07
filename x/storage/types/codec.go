@@ -14,7 +14,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDeleteBucket{}, "storage/DeleteBucket", nil)
 	cdc.RegisterConcrete(&MsgCreateObject{}, "storage/CreateObject", nil)
 	cdc.RegisterConcrete(&MsgSealObject{}, "storage/SealObject", nil)
-	cdc.RegisterConcrete(&MsgRejectUnsealedObject{}, "storage/RejectUnsealedObject", nil)
+	cdc.RegisterConcrete(&MsgRejectSealObject{}, "storage/RejectSealObject", nil)
 	cdc.RegisterConcrete(&MsgDeleteObject{}, "storage/DeleteObject", nil)
 	cdc.RegisterConcrete(&MsgCreateGroup{}, "storage/CreateGroup", nil)
 	cdc.RegisterConcrete(&MsgDeleteGroup{}, "storage/DeleteGroup", nil)
@@ -38,7 +38,7 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgSealObject{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgRejectUnsealedObject{},
+		&MsgRejectSealObject{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDeleteObject{},

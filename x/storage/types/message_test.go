@@ -1,11 +1,22 @@
 package types
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
+)
+
+var (
+	testAcc1                            = sample.AccAddress()
+	testAcc2                            = sample.AccAddress()
+	testBucketName                      = "testbucket"
+	testObjectName                      = "testobject"
+	testGroupName                       = "testgroup"
+	testInvalidBucketNameWithLongLength = [68]byte{}
+	testPaymentAcc                      = sdk.AccAddress("testPaymentAcc")
+	testPrimarySpAcc                    = sdk.AccAddress("testPrimarySpAcc")
 )
 
 func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
@@ -15,16 +26,59 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgCreateBucket{
-				Creator: "invalid_address",
+				Creator:           sample.AccAddress(),
+				BucketName:        testBucketName,
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: []byte(""),
 			},
-			err: sdkerrors.ErrInvalidAddress,
 		}, {
-			name: "valid address",
+			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator: sample.AccAddress(),
+				Creator:           sample.AccAddress(),
+				BucketName:        "TestBucket",
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: []byte(""),
 			},
+			err: ErrInvalidBucketName,
+		}, {
+			name: "invalid bucket name",
+			msg: MsgCreateBucket{
+				Creator:           sample.AccAddress(),
+				BucketName:        "Test-Bucket",
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: []byte(""),
+			},
+			err: ErrInvalidBucketName,
+		}, {
+			name: "invalid bucket name",
+			msg: MsgCreateBucket{
+				Creator:           sample.AccAddress(),
+				BucketName:        "ss",
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: []byte(""),
+			},
+			err: ErrInvalidBucketName,
+		}, {
+			name: "invalid bucket name",
+			msg: MsgCreateBucket{
+				Creator:           sample.AccAddress(),
+				BucketName:        string(testInvalidBucketNameWithLongLength[:]),
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: []byte(""),
+			},
+			err: ErrInvalidBucketName,
 		},
 	}
 	for _, tt := range tests {
@@ -46,16 +100,18 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgDeleteBucket{
-				Creator: "invalid_address",
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
 			},
-			err: sdkerrors.ErrInvalidAddress,
 		}, {
-			name: "valid address",
+			name: "invalid bucket name",
 			msg: MsgDeleteBucket{
-				Creator: sample.AccAddress(),
+				Operator:   sample.AccAddress(),
+				BucketName: "testBucket",
 			},
+			err: ErrInvalidBucketName,
 		},
 	}
 	for _, tt := range tests {
@@ -77,16 +133,60 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgCreateObject{
-				Creator: "invalid_address",
+				Creator:                    sample.AccAddress(),
+				BucketName:                 testBucketName,
+				ObjectName:                 testObjectName,
+				PayloadSize:                1024,
+				IsPublic:                   false,
+				ContentType:                "content-type",
+				PrimarySpApproval:          sample.Checksum(),
+				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
+				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
-			err: sdkerrors.ErrInvalidAddress,
 		}, {
-			name: "valid address",
+			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator: sample.AccAddress(),
+				Creator:                    sample.AccAddress(),
+				BucketName:                 testBucketName,
+				ObjectName:                 "",
+				PayloadSize:                1024,
+				IsPublic:                   false,
+				ContentType:                "content-type",
+				PrimarySpApproval:          sample.Checksum(),
+				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
+				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
+			err: ErrInvalidObjectName,
+		}, {
+			name: "invalid object name",
+			msg: MsgCreateObject{
+				Creator:                    sample.AccAddress(),
+				BucketName:                 testBucketName,
+				ObjectName:                 "../object",
+				PayloadSize:                1024,
+				IsPublic:                   false,
+				ContentType:                "content-type",
+				PrimarySpApproval:          sample.Checksum(),
+				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
+				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+			},
+			err: ErrInvalidObjectName,
+		}, {
+			name: "invalid object name",
+			msg: MsgCreateObject{
+				Creator:                    sample.AccAddress(),
+				BucketName:                 testBucketName,
+				ObjectName:                 "//object",
+				PayloadSize:                1024,
+				IsPublic:                   false,
+				ContentType:                "content-type",
+				PrimarySpApproval:          sample.Checksum(),
+				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
+				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+			},
+			err: ErrInvalidObjectName,
 		},
 	}
 	for _, tt := range tests {
@@ -108,15 +208,11 @@ func TestMsgDeleteObject_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgDeleteObject{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgDeleteObject{
-				Creator: sample.AccAddress(),
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
+				ObjectName: testObjectName,
 			},
 		},
 	}
@@ -139,15 +235,13 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
-			msg: MsgCopyObject{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
 			name: "valid address",
 			msg: MsgCopyObject{
-				Creator: sample.AccAddress(),
+				Operator:      sample.AccAddress(),
+				SrcBucketName: testBucketName,
+				SrcObjectName: testObjectName,
+				DstBucketName: "dst" + testBucketName,
+				DstObjectName: "dst" + testObjectName,
 			},
 		},
 	}
@@ -170,15 +264,13 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgSealObject{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgSealObject{
-				Creator: sample.AccAddress(),
+				Operator:              sample.AccAddress(),
+				BucketName:            testBucketName,
+				ObjectName:            testObjectName,
+				SecondarySpAddresses:  []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+				SecondarySpSignatures: [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 			},
 		},
 	}
@@ -194,22 +286,18 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgRejectUnsealedObject_ValidateBasic(t *testing.T) {
+func TestMsgRejectSealObject_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgRejectUnsealedObject
+		msg  MsgRejectSealObject
 		err  error
 	}{
 		{
-			name: "invalid address",
-			msg: MsgRejectUnsealedObject{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgRejectUnsealedObject{
-				Creator: sample.AccAddress(),
+			name: "normal",
+			msg: MsgRejectSealObject{
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
+				ObjectName: testObjectName,
 			},
 		},
 	}
@@ -232,15 +320,11 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgCreateGroup{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgCreateGroup{
-				Creator: sample.AccAddress(),
+				Creator:   sample.AccAddress(),
+				GroupName: testGroupName,
+				Members:   []string{sample.AccAddress(), sample.AccAddress()},
 			},
 		},
 	}
@@ -263,15 +347,10 @@ func TestMsgDeleteGroup_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgDeleteGroup{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgDeleteGroup{
-				Creator: sample.AccAddress(),
+				Operator:  sample.AccAddress(),
+				GroupName: testGroupName,
 			},
 		},
 	}
@@ -294,15 +373,11 @@ func TestMsgLeaveGroup_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgLeaveGroup{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgLeaveGroup{
-				Creator: sample.AccAddress(),
+				Member:     sample.AccAddress(),
+				GroupOwner: sample.AccAddress(),
+				GroupName:  testGroupName,
 			},
 		},
 	}
@@ -325,15 +400,12 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "normal",
 			msg: MsgUpdateGroupMember{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgUpdateGroupMember{
-				Creator: sample.AccAddress(),
+				Operator:        sample.AccAddress(),
+				GroupName:       testGroupName,
+				MembersToAdd:    []string{sample.AccAddress(), sample.AccAddress()},
+				MembersToDelete: []string{sample.AccAddress(), sample.AccAddress()},
 			},
 		},
 	}

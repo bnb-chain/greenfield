@@ -10,7 +10,6 @@ import (
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 )
 
-
 func SimulateMsgCreateBucket(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
@@ -38,7 +37,7 @@ func SimulateMsgDeleteBucket(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgDeleteBucket{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the DeleteBucket simulation
@@ -74,7 +73,7 @@ func SimulateMsgDeleteObject(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgDeleteObject{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the DeleteObject simulation
@@ -92,7 +91,7 @@ func SimulateMsgSealObject(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgSealObject{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the SealObject simulation
@@ -109,13 +108,13 @@ func SimulateMsgRejectUnsealedObject(
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
-		msg := &types.MsgRejectUnsealedObject{
-			Creator: simAccount.Address.String(),
+		msg := &types.MsgRejectSealObject{
+			Operator: simAccount.Address.String(),
 		}
 
-		// TODO: Handling the RejectUnsealedObject simulation
+		// TODO: Handling the RejectSealObject simulation
 
-		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "RejectUnsealedObject simulation not implemented"), nil, nil
+		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "RejectSealObject simulation not implemented"), nil, nil
 	}
 }
 
@@ -128,7 +127,7 @@ func SimulateMsgCopyObject(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgCopyObject{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the CopyObject simulation
@@ -136,7 +135,6 @@ func SimulateMsgCopyObject(
 		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "CopyObject simulation not implemented"), nil, nil
 	}
 }
-
 
 func SimulateMsgCreateGroup(
 	ak types.AccountKeeper,
@@ -165,7 +163,7 @@ func SimulateMsgDeleteGroup(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgDeleteGroup{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the DeleteGroup simulation
@@ -183,7 +181,7 @@ func SimulateMsgLeaveGroup(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgLeaveGroup{
-			Creator: simAccount.Address.String(),
+			Member: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the LeaveGroup simulation
@@ -201,7 +199,7 @@ func SimulateMsgUpdateGroupMember(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgUpdateGroupMember{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the UpdateGroupMember simulation

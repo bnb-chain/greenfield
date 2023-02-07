@@ -35,7 +35,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdDeleteBucket())
 	cmd.AddCommand(CmdCreateObject())
 	cmd.AddCommand(CmdSealObject())
-	cmd.AddCommand(CmdRejectUnsealedObject())
+	cmd.AddCommand(CmdRejectSealObject())
 	cmd.AddCommand(CmdDeleteObject())
 	cmd.AddCommand(CmdCreateGroup())
 	cmd.AddCommand(CmdDeleteGroup())
@@ -216,7 +216,7 @@ func CmdCopyObject() *cobra.Command {
 				argDstBucketName,
 				argSrcObjectName,
 				argDstObjectName,
-        nil,
+				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -253,7 +253,7 @@ func CmdSealObject() *cobra.Command {
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				argObjectName,
-        nil,
+				nil,
 				spSignatures,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -268,9 +268,9 @@ func CmdSealObject() *cobra.Command {
 	return cmd
 }
 
-func CmdRejectUnsealedObject() *cobra.Command {
+func CmdRejectSealObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "reject-unsealed-object [bucket-name] [object-name]",
+		Use:   "reject-seal-object [bucket-name] [object-name]",
 		Short: "Broadcast message reject-unsealed-object",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -346,7 +346,7 @@ func CmdCreateGroup() *cobra.Command {
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-        nil,
+				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -404,7 +404,7 @@ func CmdLeaveGroup() *cobra.Command {
 
 			msg := types.NewMsgLeaveGroup(
 				clientCtx.GetFromAddress(),
-        sdk.AccAddress{},  // TODO: add group owner acc
+				sdk.AccAddress{}, // TODO: add group owner acc
 				argGroupName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -435,8 +435,8 @@ func CmdUpdateGroupMember() *cobra.Command {
 			msg := types.NewMsgUpdateGroupMember(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-        nil,
-        nil,
+				nil,
+				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

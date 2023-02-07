@@ -3,6 +3,8 @@ package sample
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/tendermint/tendermint/crypto"
+	"math/rand"
 )
 
 // AccAddress returns a sample account address
@@ -10,4 +12,14 @@ func AccAddress() string {
 	pk := ed25519.GenPrivKey().PubKey()
 	addr := pk.Address()
 	return sdk.AccAddress(addr).String()
+}
+
+func Checksum() []byte {
+	return crypto.Sha256(RandStr(256))
+}
+
+func RandStr(length int) []byte {
+	randBytes := make([]byte, length/2)
+	rand.Read(randBytes)
+	return randBytes
 }

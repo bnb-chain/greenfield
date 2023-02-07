@@ -158,7 +158,7 @@ var xxx_messageInfo_MsgCreateBucketResponse proto.InternalMessageInfo
 
 type MsgDeleteBucket struct {
 	// creator is the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name is the name of the bucket to be deleted.
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 }
@@ -196,9 +196,9 @@ func (m *MsgDeleteBucket) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDeleteBucket proto.InternalMessageInfo
 
-func (m *MsgDeleteBucket) GetCreator() string {
+func (m *MsgDeleteBucket) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
@@ -403,7 +403,7 @@ var xxx_messageInfo_MsgCreateObjectResponse proto.InternalMessageInfo
 
 type MsgSealObject struct {
 	// creator is the account address of primary SP
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name is the name of the bucket where the object is stored.
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name is the name of object to be sealed.
@@ -448,9 +448,9 @@ func (m *MsgSealObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSealObject proto.InternalMessageInfo
 
-func (m *MsgSealObject) GetCreator() string {
+func (m *MsgSealObject) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
@@ -519,27 +519,27 @@ func (m *MsgSealObjectResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSealObjectResponse proto.InternalMessageInfo
 
-type MsgRejectUnsealedObject struct {
+type MsgRejectSealObject struct {
 	// creator is the account address of the object owner
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name is the name of the bucket where the object is stored.
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name is the name of unsealed object to be reject.
 	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
 }
 
-func (m *MsgRejectUnsealedObject) Reset()         { *m = MsgRejectUnsealedObject{} }
-func (m *MsgRejectUnsealedObject) String() string { return proto.CompactTextString(m) }
-func (*MsgRejectUnsealedObject) ProtoMessage()    {}
-func (*MsgRejectUnsealedObject) Descriptor() ([]byte, []int) {
+func (m *MsgRejectSealObject) Reset()         { *m = MsgRejectSealObject{} }
+func (m *MsgRejectSealObject) String() string { return proto.CompactTextString(m) }
+func (*MsgRejectSealObject) ProtoMessage()    {}
+func (*MsgRejectSealObject) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ddb71b028305a3cc, []int{8}
 }
-func (m *MsgRejectUnsealedObject) XXX_Unmarshal(b []byte) error {
+func (m *MsgRejectSealObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRejectUnsealedObject) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRejectSealObject) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRejectUnsealedObject.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRejectSealObject.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -549,54 +549,54 @@ func (m *MsgRejectUnsealedObject) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *MsgRejectUnsealedObject) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRejectUnsealedObject.Merge(m, src)
+func (m *MsgRejectSealObject) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRejectSealObject.Merge(m, src)
 }
-func (m *MsgRejectUnsealedObject) XXX_Size() int {
+func (m *MsgRejectSealObject) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRejectUnsealedObject) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRejectUnsealedObject.DiscardUnknown(m)
+func (m *MsgRejectSealObject) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRejectSealObject.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRejectUnsealedObject proto.InternalMessageInfo
+var xxx_messageInfo_MsgRejectSealObject proto.InternalMessageInfo
 
-func (m *MsgRejectUnsealedObject) GetCreator() string {
+func (m *MsgRejectSealObject) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
 
-func (m *MsgRejectUnsealedObject) GetBucketName() string {
+func (m *MsgRejectSealObject) GetBucketName() string {
 	if m != nil {
 		return m.BucketName
 	}
 	return ""
 }
 
-func (m *MsgRejectUnsealedObject) GetObjectName() string {
+func (m *MsgRejectSealObject) GetObjectName() string {
 	if m != nil {
 		return m.ObjectName
 	}
 	return ""
 }
 
-type MsgRejectUnsealedObjectResponse struct {
+type MsgRejectSealObjectResponse struct {
 }
 
-func (m *MsgRejectUnsealedObjectResponse) Reset()         { *m = MsgRejectUnsealedObjectResponse{} }
-func (m *MsgRejectUnsealedObjectResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRejectUnsealedObjectResponse) ProtoMessage()    {}
-func (*MsgRejectUnsealedObjectResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRejectSealObjectResponse) Reset()         { *m = MsgRejectSealObjectResponse{} }
+func (m *MsgRejectSealObjectResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRejectSealObjectResponse) ProtoMessage()    {}
+func (*MsgRejectSealObjectResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_ddb71b028305a3cc, []int{9}
 }
-func (m *MsgRejectUnsealedObjectResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRejectSealObjectResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRejectUnsealedObjectResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRejectSealObjectResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRejectUnsealedObjectResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRejectSealObjectResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -606,24 +606,30 @@ func (m *MsgRejectUnsealedObjectResponse) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *MsgRejectUnsealedObjectResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRejectUnsealedObjectResponse.Merge(m, src)
+func (m *MsgRejectSealObjectResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRejectSealObjectResponse.Merge(m, src)
 }
-func (m *MsgRejectUnsealedObjectResponse) XXX_Size() int {
+func (m *MsgRejectSealObjectResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRejectUnsealedObjectResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRejectUnsealedObjectResponse.DiscardUnknown(m)
+func (m *MsgRejectSealObjectResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRejectSealObjectResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRejectUnsealedObjectResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRejectSealObjectResponse proto.InternalMessageInfo
 
 type MsgCopyObject struct {
-	Creator              string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	SrcBucketName        string `protobuf:"bytes,2,opt,name=src_bucket_name,json=srcBucketName,proto3" json:"src_bucket_name,omitempty"`
-	DstBucketName        string `protobuf:"bytes,3,opt,name=dst_bucket_name,json=dstBucketName,proto3" json:"dst_bucket_name,omitempty"`
-	SrcObjectName        string `protobuf:"bytes,4,opt,name=src_object_name,json=srcObjectName,proto3" json:"src_object_name,omitempty"`
-	DstObjectName        string `protobuf:"bytes,5,opt,name=dst_object_name,json=dstObjectName,proto3" json:"dst_object_name,omitempty"`
+	// operator is the account address of the operator who has the CopyObject permission of the object to be deleted.
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// src_bucket_name is the name of the bucket where the object to be copied is located
+	SrcBucketName string `protobuf:"bytes,2,opt,name=src_bucket_name,json=srcBucketName,proto3" json:"src_bucket_name,omitempty"`
+	// dst_bucket_name is the name of the bucket where the object is copied to.
+	DstBucketName string `protobuf:"bytes,3,opt,name=dst_bucket_name,json=dstBucketName,proto3" json:"dst_bucket_name,omitempty"`
+	//
+	SrcObjectName string `protobuf:"bytes,4,opt,name=src_object_name,json=srcObjectName,proto3" json:"src_object_name,omitempty"`
+	//
+	DstObjectName string `protobuf:"bytes,5,opt,name=dst_object_name,json=dstObjectName,proto3" json:"dst_object_name,omitempty"`
+	//
 	DstPrimarySpApproval []byte `protobuf:"bytes,6,opt,name=dst_primary_sp_approval,json=dstPrimarySpApproval,proto3" json:"dst_primary_sp_approval,omitempty"`
 }
 
@@ -660,9 +666,9 @@ func (m *MsgCopyObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCopyObject proto.InternalMessageInfo
 
-func (m *MsgCopyObject) GetCreator() string {
+func (m *MsgCopyObject) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
@@ -739,8 +745,8 @@ func (m *MsgCopyObjectResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgCopyObjectResponse proto.InternalMessageInfo
 
 type MsgDeleteObject struct {
-	// creator is the account address of the grantee who has the DeleteObject permission of the object to be deleted.
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// operator is the account address of the operator who has the DeleteObject permission of the object to be deleted.
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name is the name of the bucket where the object which to be deleted is stored.
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name is the name of the object which to be deleted.
@@ -780,9 +786,9 @@ func (m *MsgDeleteObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDeleteObject proto.InternalMessageInfo
 
-func (m *MsgDeleteObject) GetCreator() string {
+func (m *MsgDeleteObject) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
@@ -838,7 +844,7 @@ func (m *MsgDeleteObjectResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgDeleteObjectResponse proto.InternalMessageInfo
 
 type MsgCreateGroup struct {
-	// creator is the account address of group owner
+	// owner is the account address of group owner who create the group
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// group_name is the name of the group. it's not globally unique.
 	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
@@ -937,8 +943,8 @@ func (m *MsgCreateGroupResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgCreateGroupResponse proto.InternalMessageInfo
 
 type MsgDeleteGroup struct {
-	// creator is the account address of the grantee who has the DeleteGroup permission of the group to be deleted.
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// operator is the account address of the operator who has the DeleteGroup permission of the group to be deleted.
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// group_name is the name of the group which to be deleted
 	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 }
@@ -976,9 +982,9 @@ func (m *MsgDeleteGroup) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgDeleteGroup proto.InternalMessageInfo
 
-func (m *MsgDeleteGroup) GetCreator() string {
+func (m *MsgDeleteGroup) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
@@ -1027,8 +1033,8 @@ func (m *MsgDeleteGroupResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgDeleteGroupResponse proto.InternalMessageInfo
 
 type MsgUpdateGroupMember struct {
-	// creator is the account address of the grantee who has the UpdateGroupMember permission of the group.
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// operator is the account address of the operator who has the UpdateGroupMember permission of the group.
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// group_name is the name of the group which to be updated
 	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// members_to_add is a list of members account address which will be add to the group
@@ -1070,9 +1076,9 @@ func (m *MsgUpdateGroupMember) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateGroupMember proto.InternalMessageInfo
 
-func (m *MsgUpdateGroupMember) GetCreator() string {
+func (m *MsgUpdateGroupMember) GetOperator() string {
 	if m != nil {
-		return m.Creator
+		return m.Operator
 	}
 	return ""
 }
@@ -1135,7 +1141,8 @@ func (m *MsgUpdateGroupMemberResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgUpdateGroupMemberResponse proto.InternalMessageInfo
 
 type MsgLeaveGroup struct {
-	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// member is the account address of the member who want to leave the group
+	Member string `protobuf:"bytes,1,opt,name=member,proto3" json:"member,omitempty"`
 	// group_owner is the owner of the group you want to leave
 	GroupOwner string `protobuf:"bytes,2,opt,name=group_owner,json=groupOwner,proto3" json:"group_owner,omitempty"`
 	// group_name is the name of the group you want to leave
@@ -1175,9 +1182,9 @@ func (m *MsgLeaveGroup) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgLeaveGroup proto.InternalMessageInfo
 
-func (m *MsgLeaveGroup) GetCreator() string {
+func (m *MsgLeaveGroup) GetMember() string {
 	if m != nil {
-		return m.Creator
+		return m.Member
 	}
 	return ""
 }
@@ -1241,8 +1248,8 @@ func init() {
 	proto.RegisterType((*MsgCreateObjectResponse)(nil), "bnbchain.greenfield.storage.MsgCreateObjectResponse")
 	proto.RegisterType((*MsgSealObject)(nil), "bnbchain.greenfield.storage.MsgSealObject")
 	proto.RegisterType((*MsgSealObjectResponse)(nil), "bnbchain.greenfield.storage.MsgSealObjectResponse")
-	proto.RegisterType((*MsgRejectUnsealedObject)(nil), "bnbchain.greenfield.storage.MsgRejectUnsealedObject")
-	proto.RegisterType((*MsgRejectUnsealedObjectResponse)(nil), "bnbchain.greenfield.storage.MsgRejectUnsealedObjectResponse")
+	proto.RegisterType((*MsgRejectSealObject)(nil), "bnbchain.greenfield.storage.MsgRejectSealObject")
+	proto.RegisterType((*MsgRejectSealObjectResponse)(nil), "bnbchain.greenfield.storage.MsgRejectSealObjectResponse")
 	proto.RegisterType((*MsgCopyObject)(nil), "bnbchain.greenfield.storage.MsgCopyObject")
 	proto.RegisterType((*MsgCopyObjectResponse)(nil), "bnbchain.greenfield.storage.MsgCopyObjectResponse")
 	proto.RegisterType((*MsgDeleteObject)(nil), "bnbchain.greenfield.storage.MsgDeleteObject")
@@ -1260,74 +1267,76 @@ func init() {
 func init() { proto.RegisterFile("greenfield/storage/tx.proto", fileDescriptor_ddb71b028305a3cc) }
 
 var fileDescriptor_ddb71b028305a3cc = []byte{
-	// 1063 bytes of a gzipped FileDescriptorProto
+	// 1100 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x58, 0xcf, 0x6f, 0x1b, 0x45,
-	0x14, 0xce, 0xc6, 0xf9, 0xf9, 0xec, 0xc4, 0xcd, 0xe2, 0xd6, 0x5b, 0x87, 0x3a, 0x4e, 0x0e, 0x55,
-	0x68, 0xa9, 0xad, 0xa6, 0x05, 0xa9, 0x08, 0x21, 0x25, 0xa9, 0x40, 0x48, 0x98, 0x54, 0xeb, 0xf6,
-	0x02, 0x07, 0x6b, 0x7f, 0x0c, 0x9b, 0xa5, 0xde, 0x9d, 0x65, 0x66, 0x1d, 0xe2, 0x9e, 0x28, 0x47,
-	0x4e, 0x08, 0x89, 0x23, 0x47, 0x4e, 0x5c, 0x7a, 0xe0, 0x8f, 0xe0, 0xc0, 0xa1, 0xe2, 0xc4, 0x11,
-	0x25, 0x07, 0xfe, 0x0a, 0x24, 0xb4, 0x33, 0xfb, 0x63, 0x76, 0xbd, 0xf5, 0x3a, 0x45, 0x56, 0x38,
-	0x59, 0x3b, 0xfb, 0x7d, 0xef, 0x7d, 0xef, 0x7b, 0x33, 0xcf, 0xa3, 0x85, 0x4d, 0x8b, 0x20, 0xe4,
-	0x7e, 0x61, 0xa3, 0x81, 0xd9, 0xa1, 0x3e, 0x26, 0x9a, 0x85, 0x3a, 0xfe, 0x69, 0xdb, 0x23, 0xd8,
-	0xc7, 0xf2, 0xa6, 0xee, 0xea, 0xc6, 0xb1, 0x66, 0xbb, 0xed, 0x04, 0xd5, 0x0e, 0x51, 0x8d, 0xad,
-	0x1c, 0xa6, 0x81, 0x1d, 0x07, 0xbb, 0x9c, 0xdd, 0xa8, 0x1b, 0x98, 0x3a, 0x98, 0x76, 0x1c, 0x6a,
-	0x75, 0x4e, 0xee, 0x06, 0x3f, 0xe1, 0x8b, 0xeb, 0xfc, 0x45, 0x9f, 0x3d, 0x75, 0xf8, 0x03, 0x7f,
-	0xb5, 0xf3, 0xfb, 0x3c, 0x54, 0xbb, 0xd4, 0x3a, 0x24, 0x48, 0xf3, 0xd1, 0xc1, 0xd0, 0x78, 0x8a,
-	0x7c, 0x79, 0x0f, 0x96, 0x8d, 0xe0, 0x19, 0x13, 0x45, 0x6a, 0x49, 0xbb, 0xab, 0x07, 0xca, 0x1f,
-	0xbf, 0xde, 0xa9, 0x85, 0xb4, 0x7d, 0xd3, 0x24, 0x88, 0xd2, 0x9e, 0x4f, 0x6c, 0xd7, 0x52, 0x23,
-	0xa0, 0xbc, 0x05, 0x65, 0x9d, 0xb1, 0xfb, 0xae, 0xe6, 0x20, 0x65, 0x3e, 0xe0, 0xa9, 0xc0, 0x97,
-	0x3e, 0xd5, 0x1c, 0x24, 0x6f, 0xc2, 0xaa, 0x4d, 0xfb, 0xde, 0x50, 0x1f, 0xd8, 0x86, 0x52, 0x6a,
-	0x49, 0xbb, 0x2b, 0xea, 0x8a, 0x4d, 0x1f, 0xb1, 0x67, 0x79, 0x1f, 0xaa, 0x9e, 0x36, 0x72, 0x90,
-	0xeb, 0xf7, 0x35, 0x1e, 0x5f, 0x59, 0x28, 0xc8, 0xbc, 0x1e, 0x12, 0xc2, 0x55, 0xf9, 0x43, 0x90,
-	0x3d, 0x62, 0x3b, 0x1a, 0x19, 0xf5, 0xa9, 0x17, 0x47, 0x59, 0x2a, 0x88, 0x72, 0x25, 0xe4, 0xf4,
-	0xbc, 0x28, 0x4e, 0x1b, 0xde, 0x10, 0xe3, 0x78, 0x1e, 0xc1, 0x27, 0xda, 0x40, 0x59, 0x6e, 0x49,
-	0xbb, 0x15, 0x75, 0x23, 0x81, 0x87, 0x2f, 0xde, 0xab, 0x7c, 0xfb, 0xf7, 0x8b, 0x5b, 0x91, 0x0d,
-	0x3b, 0xd7, 0xa1, 0x9e, 0x71, 0x53, 0x45, 0xd4, 0xc3, 0x2e, 0x45, 0x3b, 0x3e, 0x33, 0xfa, 0x21,
-	0x1a, 0xa0, 0x99, 0x1a, 0x9d, 0x2b, 0x48, 0xcc, 0x1a, 0x0b, 0x7a, 0x51, 0x12, 0x5a, 0x7f, 0xa4,
-	0x7f, 0x89, 0x8c, 0x19, 0xb5, 0x7e, 0x0b, 0xca, 0x98, 0x85, 0xe7, 0x80, 0x12, 0x07, 0xf0, 0x25,
-	0x06, 0xd8, 0x86, 0x8a, 0xa7, 0x8d, 0x06, 0x58, 0x33, 0xfb, 0xd4, 0x7e, 0x86, 0x58, 0xef, 0x17,
-	0xd4, 0x72, 0xb8, 0xd6, 0xb3, 0x9f, 0x65, 0xb6, 0xcf, 0x62, 0x66, 0xfb, 0x6c, 0x43, 0xc5, 0xc0,
-	0xae, 0x1f, 0x6c, 0x1f, 0x7f, 0xe4, 0x21, 0xde, 0x75, 0xb5, 0x1c, 0xae, 0x3d, 0x1e, 0x79, 0xe8,
-	0xa2, 0x6d, 0x95, 0xdf, 0x82, 0x2b, 0xe8, 0xd4, 0x0b, 0x34, 0x1b, 0xc7, 0xc8, 0x78, 0x4a, 0x87,
-	0x0e, 0x55, 0x56, 0x5a, 0xa5, 0xdd, 0x8a, 0x5a, 0xe5, 0xeb, 0x87, 0xd1, 0xb2, 0xfc, 0x39, 0xdc,
-	0x08, 0xa1, 0x14, 0x19, 0xd8, 0x35, 0xd3, 0x5b, 0x10, 0x51, 0x65, 0xb5, 0x55, 0x9a, 0xe8, 0x64,
-	0x83, 0xd3, 0x7b, 0x11, 0x3b, 0xde, 0x8c, 0x88, 0x4e, 0xd8, 0x5e, 0xbc, 0x63, 0x71, 0x37, 0x9f,
-	0xcf, 0xc3, 0x5a, 0x97, 0x5a, 0x3d, 0xa4, 0x0d, 0x2e, 0xb5, 0x97, 0xf7, 0xe1, 0xda, 0x2b, 0x6c,
-	0x58, 0x08, 0x6c, 0x50, 0x6b, 0x34, 0xa7, 0x4c, 0xf9, 0x5d, 0xa8, 0xa7, 0x58, 0xd4, 0xb6, 0x5c,
-	0xcd, 0x1f, 0x12, 0x44, 0x95, 0x45, 0xe6, 0xfa, 0x55, 0x81, 0xd6, 0x8b, 0x5f, 0x66, 0xec, 0xa9,
-	0xc3, 0xd5, 0x94, 0x05, 0xb1, 0x39, 0x3f, 0x49, 0xcc, 0x38, 0x15, 0x05, 0xab, 0x4f, 0x5c, 0x8a,
-	0xb4, 0x01, 0x32, 0x2f, 0xd3, 0xa6, 0x8c, 0xf0, 0x6d, 0xd8, 0x7a, 0x85, 0xbc, 0xb8, 0x84, 0x6f,
-	0x78, 0x7f, 0x0f, 0xb1, 0x37, 0x0a, 0x85, 0x2b, 0x19, 0xe1, 0x89, 0xbc, 0x9b, 0x50, 0xa5, 0xc4,
-	0xe8, 0x8f, 0x4b, 0x5c, 0xa3, 0xc4, 0x38, 0x48, 0x54, 0xde, 0x84, 0xaa, 0x49, 0xfd, 0x14, 0x8e,
-	0x2b, 0x5d, 0x33, 0xa9, 0x9f, 0xc6, 0x05, 0xf1, 0xc4, 0x8a, 0x16, 0xe2, 0x78, 0x47, 0x49, 0xef,
-	0xc3, 0x78, 0x22, 0x6e, 0x31, 0x8e, 0x27, 0xe0, 0xde, 0x81, 0x7a, 0x80, 0xcb, 0x3b, 0x90, 0x4b,
-	0xec, 0x40, 0xd6, 0x4c, 0xea, 0x3f, 0xca, 0x9e, 0xc9, 0xb0, 0xbd, 0x89, 0x03, 0xb1, 0x37, 0x3f,
-	0x4a, 0xc2, 0x6c, 0xfd, 0x1f, 0xb5, 0x55, 0x1c, 0xbe, 0x19, 0xc9, 0x3f, 0x4b, 0xb0, 0x1e, 0x1f,
-	0xe5, 0x8f, 0x08, 0x1e, 0x7a, 0xaf, 0xa5, 0xf8, 0x06, 0x80, 0x15, 0x90, 0x45, 0xc1, 0xab, 0x6c,
-	0x85, 0xe9, 0xdd, 0x83, 0x65, 0x07, 0x39, 0x3a, 0x22, 0x54, 0x29, 0x15, 0x0c, 0xa1, 0x08, 0x98,
-	0x29, 0x41, 0x81, 0x6b, 0x69, 0x99, 0x71, 0x05, 0x5f, 0xb1, 0x02, 0x78, 0x71, 0xb3, 0x2a, 0x20,
-	0x57, 0x8c, 0x90, 0x32, 0x16, 0xf3, 0x8f, 0x04, 0xb5, 0x2e, 0xb5, 0x9e, 0x78, 0x66, 0xa4, 0xb3,
-	0xcb, 0xca, 0x99, 0x85, 0xa9, 0x1f, 0xc0, 0x7a, 0xe8, 0x55, 0xdf, 0xc7, 0xc1, 0x7c, 0x2b, 0xf4,
-	0xb6, 0x12, 0xe2, 0x1f, 0xe3, 0x7d, 0xd3, 0x94, 0x1f, 0xc2, 0x86, 0xc0, 0x37, 0x59, 0x35, 0x7c,
-	0x38, 0x4e, 0x08, 0x51, 0x8d, 0x43, 0xf0, 0xf2, 0x33, 0xce, 0x34, 0xe1, 0xcd, 0xbc, 0xf2, 0x63,
-	0x7f, 0x7e, 0x91, 0xd8, 0xf4, 0xf8, 0x04, 0x69, 0x27, 0xff, 0xa1, 0x59, 0x0f, 0xa0, 0xcc, 0x8d,
-	0xc1, 0x5f, 0xbb, 0x88, 0x70, 0x67, 0x26, 0xf0, 0xb8, 0x8b, 0x47, 0x01, 0x36, 0xe3, 0x69, 0x69,
-	0x72, 0x9f, 0xf9, 0x41, 0x4f, 0xc4, 0x46, 0x65, 0xec, 0xfd, 0x00, 0x50, 0xea, 0x52, 0x4b, 0x26,
-	0x50, 0x49, 0xdd, 0x58, 0xdf, 0x6e, 0x4f, 0xb8, 0x38, 0xb7, 0x33, 0x37, 0xb2, 0xc6, 0xfd, 0x8b,
-	0xa0, 0xa3, 0xdc, 0x41, 0xce, 0xd4, 0xe5, 0xad, 0x30, 0xa7, 0x88, 0x2e, 0xce, 0x99, 0x77, 0x45,
-	0x4b, 0xea, 0x0c, 0x87, 0xda, 0x94, 0x75, 0x72, 0xf4, 0xb4, 0x75, 0xa6, 0x27, 0x93, 0x3c, 0x00,
-	0x10, 0x2e, 0x11, 0xb7, 0x8a, 0x62, 0x24, 0xd8, 0xc6, 0xde, 0xf4, 0xd8, 0x38, 0xdb, 0x77, 0x12,
-	0xd4, 0x72, 0xff, 0x96, 0x0b, 0xc5, 0xe7, 0xb1, 0x1a, 0xef, 0xbf, 0x0e, 0x6b, 0xbc, 0xc5, 0xd3,
-	0xda, 0x2d, 0xa2, 0xa7, 0x6d, 0x71, 0x26, 0x27, 0x86, 0xb2, 0xf8, 0x27, 0x70, 0x7b, 0xba, 0x9e,
-	0x31, 0x70, 0xe3, 0xde, 0x05, 0xc0, 0x62, 0x42, 0x71, 0x68, 0xdf, 0x9e, 0x4e, 0xf5, 0x94, 0x09,
-	0x73, 0x66, 0xb3, 0xfc, 0x5c, 0x82, 0x8d, 0xf1, 0xc1, 0x7c, 0xb7, 0x28, 0xd4, 0x18, 0xa5, 0xf1,
-	0xe0, 0xc2, 0x14, 0x71, 0x53, 0x0b, 0xb3, 0xaf, 0x70, 0x53, 0x27, 0xd8, 0xe2, 0x4d, 0x3d, 0x3e,
-	0xa6, 0x82, 0x6c, 0xc2, 0x3d, 0xad, 0x30, 0x5b, 0x82, 0x2d, 0xce, 0x36, 0x7e, 0xfb, 0x39, 0xf8,
-	0xf8, 0xb7, 0xb3, 0xa6, 0xf4, 0xf2, 0xac, 0x29, 0xfd, 0x75, 0xd6, 0x94, 0xbe, 0x3f, 0x6f, 0xce,
-	0xbd, 0x3c, 0x6f, 0xce, 0xfd, 0x79, 0xde, 0x9c, 0xfb, 0xac, 0x63, 0xd9, 0xfe, 0xf1, 0x50, 0x6f,
-	0x1b, 0xd8, 0xe9, 0xe8, 0xae, 0x7e, 0x87, 0x05, 0xee, 0x08, 0x9f, 0x11, 0x4e, 0x93, 0x4f, 0x10,
-	0x23, 0x0f, 0x51, 0x7d, 0x89, 0x7d, 0x14, 0xb8, 0xf7, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x11,
-	0x25, 0x76, 0x8e, 0xa5, 0x10, 0x00, 0x00,
+	0x14, 0xce, 0xc6, 0xf9, 0xf9, 0xec, 0xc4, 0xc9, 0x36, 0xad, 0xb7, 0x0e, 0x71, 0xdc, 0x1c, 0xaa,
+	0xd0, 0x52, 0xbb, 0x4d, 0x03, 0xa2, 0x3d, 0x20, 0x25, 0xa9, 0x40, 0x48, 0x98, 0x54, 0xeb, 0x72,
+	0x81, 0x83, 0xb5, 0x3f, 0x86, 0xcd, 0xb6, 0xde, 0x9d, 0xd5, 0xce, 0x3a, 0x8d, 0x7b, 0x40, 0x80,
+	0xe0, 0x0e, 0x37, 0x0e, 0x5c, 0x91, 0x38, 0xf6, 0xc0, 0x1f, 0xc1, 0x81, 0x43, 0xc5, 0x89, 0x23,
+	0x4a, 0x0e, 0xfc, 0x1b, 0x68, 0x67, 0xc6, 0xb3, 0xe3, 0xb5, 0xf1, 0xae, 0x2b, 0x45, 0xf4, 0x64,
+	0xed, 0x9b, 0xef, 0xbd, 0xf7, 0xbd, 0xef, 0xbd, 0x7d, 0x1e, 0x2d, 0x6c, 0x3a, 0x21, 0x42, 0xfe,
+	0x97, 0x2e, 0xea, 0xda, 0x4d, 0x12, 0xe1, 0xd0, 0x70, 0x50, 0x33, 0x3a, 0x6b, 0x04, 0x21, 0x8e,
+	0xb0, 0xba, 0x69, 0xfa, 0xa6, 0x75, 0x62, 0xb8, 0x7e, 0x23, 0x41, 0x35, 0x38, 0xaa, 0xba, 0x3d,
+	0xc6, 0xd3, 0xc2, 0x9e, 0x87, 0x7d, 0xe6, 0x5d, 0xad, 0x58, 0x98, 0x78, 0x98, 0x34, 0x3d, 0xe2,
+	0x34, 0x4f, 0xef, 0xc5, 0x3f, 0xfc, 0xe0, 0x3a, 0x3b, 0xe8, 0xd0, 0xa7, 0x26, 0x7b, 0x60, 0x47,
+	0x3b, 0x7f, 0xcc, 0x42, 0xb9, 0x45, 0x9c, 0xa3, 0x10, 0x19, 0x11, 0x3a, 0xec, 0x59, 0xcf, 0x50,
+	0xa4, 0xee, 0xc1, 0xa2, 0x15, 0x3f, 0xe3, 0x50, 0x53, 0xea, 0xca, 0xee, 0xf2, 0xa1, 0xf6, 0xe7,
+	0x6f, 0x77, 0x36, 0xb8, 0xdb, 0x81, 0x6d, 0x87, 0x88, 0x90, 0x76, 0x14, 0xba, 0xbe, 0xa3, 0x0f,
+	0x80, 0xea, 0x36, 0x14, 0x4d, 0xea, 0xdd, 0xf1, 0x0d, 0x0f, 0x69, 0xb3, 0xb1, 0x9f, 0x0e, 0xcc,
+	0xf4, 0xa9, 0xe1, 0x21, 0x75, 0x13, 0x96, 0x5d, 0xd2, 0x09, 0x7a, 0x66, 0xd7, 0xb5, 0xb4, 0x42,
+	0x5d, 0xd9, 0x5d, 0xd2, 0x97, 0x5c, 0xf2, 0x98, 0x3e, 0xab, 0x07, 0x50, 0x0e, 0x8c, 0xbe, 0x87,
+	0xfc, 0xa8, 0x63, 0xb0, 0xf8, 0xda, 0x5c, 0x46, 0xe6, 0x55, 0xee, 0xc0, 0xad, 0xea, 0x87, 0xa0,
+	0x06, 0xa1, 0xeb, 0x19, 0x61, 0xbf, 0x43, 0x02, 0x11, 0x65, 0x21, 0x23, 0xca, 0x1a, 0xf7, 0x69,
+	0x07, 0x83, 0x38, 0x0d, 0xb8, 0x22, 0xc7, 0x09, 0x82, 0x10, 0x9f, 0x1a, 0x5d, 0x6d, 0xb1, 0xae,
+	0xec, 0x96, 0xf4, 0xf5, 0x04, 0xce, 0x0f, 0x1e, 0x96, 0xbe, 0xfd, 0xe7, 0xe5, 0xad, 0x81, 0x0c,
+	0x3b, 0xd7, 0xa1, 0x92, 0x52, 0x53, 0x47, 0x24, 0xc0, 0x3e, 0x41, 0x3b, 0xcf, 0xa9, 0xd0, 0x8f,
+	0x50, 0x17, 0x09, 0xa1, 0xf7, 0x61, 0x09, 0x07, 0x28, 0xcc, 0xa5, 0xb4, 0x40, 0x66, 0x4a, 0xfd,
+	0x70, 0x25, 0xa6, 0x24, 0xf0, 0x9c, 0x93, 0x9c, 0x58, 0x70, 0x7a, 0x59, 0x90, 0xba, 0x7f, 0x6c,
+	0x3e, 0x45, 0xd6, 0x25, 0x75, 0x7f, 0x1b, 0x8a, 0x98, 0x86, 0x67, 0x80, 0x02, 0x03, 0x30, 0x13,
+	0x05, 0xdc, 0x80, 0x52, 0x60, 0xf4, 0xbb, 0xd8, 0xb0, 0x3b, 0xc4, 0x7d, 0x81, 0x68, 0xfb, 0xe7,
+	0xf4, 0x22, 0xb7, 0xb5, 0xdd, 0x17, 0xa9, 0x09, 0x9a, 0x4f, 0x4d, 0xd0, 0x0d, 0x28, 0x59, 0xd8,
+	0x8f, 0xe2, 0x09, 0x8a, 0xfa, 0x01, 0x62, 0x8d, 0xd7, 0x8b, 0xdc, 0xf6, 0xa4, 0x1f, 0xa0, 0x69,
+	0x3b, 0xab, 0xbe, 0x0d, 0x6b, 0xe8, 0x2c, 0x88, 0x39, 0x5b, 0x27, 0xc8, 0x7a, 0x46, 0x7a, 0x1e,
+	0xd1, 0x96, 0xea, 0x85, 0xdd, 0x92, 0x5e, 0x66, 0xf6, 0xa3, 0x81, 0x59, 0xfd, 0x02, 0xb6, 0x38,
+	0x94, 0x20, 0x0b, 0xfb, 0xf6, 0xf0, 0x14, 0x22, 0xa2, 0x2d, 0xd7, 0x0b, 0x13, 0x95, 0xac, 0x32,
+	0xf7, 0xf6, 0xc0, 0x5b, 0xcc, 0x23, 0x22, 0x13, 0x26, 0x8c, 0x75, 0x4c, 0x74, 0xf3, 0xbb, 0x59,
+	0x58, 0x69, 0x11, 0xa7, 0x8d, 0x8c, 0x2e, 0xef, 0xe5, 0xe5, 0x0c, 0x58, 0x76, 0x37, 0xf7, 0xe1,
+	0xda, 0x7f, 0x08, 0x31, 0x17, 0x0b, 0xa1, 0x6f, 0x90, 0x31, 0x85, 0xaa, 0xef, 0x41, 0x65, 0xc8,
+	0x8b, 0xb8, 0x8e, 0x6f, 0x44, 0xbd, 0x10, 0x11, 0x6d, 0x9e, 0xea, 0x7e, 0x55, 0x72, 0x6b, 0x8b,
+	0xc3, 0xf4, 0xbc, 0x57, 0xe0, 0xea, 0x90, 0x0a, 0x42, 0x9f, 0x9f, 0x15, 0xb8, 0xd2, 0x22, 0x8e,
+	0x8e, 0x9e, 0x52, 0xa9, 0xff, 0x6f, 0x95, 0xd2, 0xbc, 0xb7, 0x60, 0x73, 0x0c, 0x3b, 0xc1, 0xfe,
+	0x47, 0xd6, 0xdd, 0x23, 0x1c, 0xf4, 0x39, 0xef, 0x6a, 0x9a, 0xb7, 0xc4, 0xee, 0x26, 0x94, 0x49,
+	0x68, 0x75, 0x46, 0x19, 0xae, 0x90, 0xd0, 0x3a, 0x4c, 0x48, 0xde, 0x84, 0xb2, 0x4d, 0xa2, 0x21,
+	0x1c, 0x23, 0xba, 0x62, 0x93, 0x68, 0x18, 0x17, 0xc7, 0x93, 0x0b, 0x9a, 0x13, 0xf1, 0x8e, 0x93,
+	0xce, 0xf3, 0x78, 0x32, 0x6e, 0x5e, 0xc4, 0x93, 0x70, 0xef, 0x42, 0x25, 0xc6, 0x8d, 0x7b, 0x21,
+	0x17, 0xe8, 0x0b, 0xb9, 0x61, 0x93, 0xe8, 0xf1, 0xc8, 0xb6, 0x1d, 0xdb, 0xea, 0x44, 0x12, 0x21,
+	0xd6, 0x4f, 0x8a, 0xb4, 0x6d, 0xdf, 0xac, 0x36, 0xcb, 0xeb, 0x38, 0xc5, 0xfa, 0x17, 0x05, 0x56,
+	0xc5, 0xcb, 0xfd, 0x51, 0x88, 0x7b, 0xc1, 0x6b, 0x6d, 0xe3, 0x2d, 0x00, 0x27, 0x76, 0x96, 0x19,
+	0x2f, 0x53, 0x0b, 0x25, 0xbc, 0x07, 0x8b, 0x1e, 0xf2, 0x4c, 0x14, 0x12, 0xad, 0x90, 0xb1, 0x96,
+	0x06, 0xc0, 0xd4, 0x0e, 0xd2, 0xe0, 0xda, 0x30, 0x4d, 0x51, 0x41, 0x44, 0x0b, 0x60, 0xc5, 0xb1,
+	0x02, 0x5e, 0x4f, 0xf5, 0xc9, 0x25, 0xa4, 0x25, 0x65, 0x7c, 0xa4, 0xac, 0x82, 0xcf, 0xd7, 0xb3,
+	0xb0, 0xd1, 0x22, 0xce, 0x67, 0x81, 0x3d, 0xa0, 0xda, 0xa2, 0x15, 0x5d, 0x0a, 0x2d, 0xf5, 0x03,
+	0x58, 0xe5, 0x82, 0x75, 0x22, 0x1c, 0x2f, 0xbd, 0x4c, 0x81, 0x4b, 0x1c, 0xff, 0x04, 0x1f, 0xd8,
+	0xb6, 0xfa, 0x08, 0xd6, 0x25, 0x7f, 0x9b, 0xd6, 0xc3, 0x36, 0xe6, 0x84, 0x10, 0x65, 0x11, 0x82,
+	0x09, 0x90, 0x16, 0xa7, 0x06, 0x6f, 0x8d, 0x53, 0x40, 0x48, 0xf4, 0xab, 0x42, 0xf7, 0xca, 0x27,
+	0xc8, 0x38, 0xe5, 0x2d, 0xbb, 0x0b, 0x0b, 0x2c, 0x66, 0xa6, 0x32, 0x1c, 0xa7, 0x3e, 0x80, 0x22,
+	0xd3, 0x05, 0x3f, 0xf7, 0x51, 0xc8, 0x84, 0x99, 0xe0, 0xc6, 0x44, 0x3c, 0x8e, 0xb1, 0x29, 0x49,
+	0x0b, 0xe9, 0x4e, 0x17, 0xe3, 0x62, 0x78, 0x1a, 0xfe, 0xba, 0x27, 0x4c, 0x07, 0x35, 0xec, 0x7d,
+	0x0f, 0x50, 0x68, 0x11, 0x47, 0x0d, 0xa1, 0x34, 0x74, 0x93, 0x7d, 0xa7, 0x31, 0xe1, 0x42, 0xdd,
+	0x48, 0xdd, 0xd4, 0xaa, 0xfb, 0xd3, 0xa0, 0x07, 0xb9, 0xe3, 0x9c, 0x43, 0x97, 0xba, 0xcc, 0x9c,
+	0x32, 0x3a, 0x3b, 0xe7, 0xb8, 0x7b, 0x5b, 0x52, 0x27, 0x5f, 0x6d, 0x39, 0xeb, 0x64, 0xe8, 0xbc,
+	0x75, 0x0e, 0x2f, 0x27, 0xb5, 0x0b, 0x20, 0xfd, 0x67, 0xde, 0xca, 0x8a, 0x91, 0x60, 0xab, 0x7b,
+	0xf9, 0xb1, 0x22, 0xdb, 0x57, 0xb0, 0x36, 0xf2, 0x3f, 0x7d, 0x37, 0x2b, 0x4e, 0xda, 0xa3, 0xfa,
+	0xfe, 0xb4, 0x1e, 0xa3, 0x5d, 0xcd, 0xab, 0xb0, 0x8c, 0xce, 0xdb, 0xd5, 0x54, 0x4e, 0x0c, 0x45,
+	0x79, 0xf5, 0xdf, 0xce, 0xd7, 0x26, 0x0a, 0xae, 0xde, 0x9f, 0x02, 0x2c, 0x27, 0x94, 0x57, 0xf5,
+	0xed, 0x7c, 0xac, 0x73, 0x26, 0x1c, 0xb3, 0x8e, 0xd5, 0x6f, 0x14, 0x58, 0x1f, 0xdd, 0xc5, 0xf7,
+	0xb2, 0x42, 0x8d, 0xb8, 0x54, 0x1f, 0x4c, 0xed, 0x22, 0xcf, 0xb1, 0xb4, 0xeb, 0x32, 0xe7, 0x38,
+	0xc1, 0x66, 0xcf, 0xf1, 0xe8, 0x66, 0x8a, 0xb3, 0x49, 0x37, 0xb6, 0xcc, 0x6c, 0x09, 0x36, 0x3b,
+	0xdb, 0xe8, 0xb5, 0xe7, 0xf0, 0xe3, 0xdf, 0xcf, 0x6b, 0xca, 0xab, 0xf3, 0x9a, 0xf2, 0xf7, 0x79,
+	0x4d, 0xf9, 0xe1, 0xa2, 0x36, 0xf3, 0xea, 0xa2, 0x36, 0xf3, 0xd7, 0x45, 0x6d, 0xe6, 0xf3, 0xa6,
+	0xe3, 0x46, 0x27, 0x3d, 0xb3, 0x61, 0x61, 0xaf, 0x69, 0xfa, 0xe6, 0x1d, 0x1a, 0xb8, 0x29, 0x7d,
+	0x51, 0x38, 0x4b, 0xbe, 0x46, 0xf4, 0x03, 0x44, 0xcc, 0x05, 0xfa, 0x7d, 0xe0, 0xfe, 0xbf, 0x01,
+	0x00, 0x00, 0xff, 0xff, 0x5b, 0xb1, 0x4a, 0x5f, 0xb0, 0x10, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1346,7 +1355,7 @@ type MsgClient interface {
 	DeleteBucket(ctx context.Context, in *MsgDeleteBucket, opts ...grpc.CallOption) (*MsgDeleteBucketResponse, error)
 	CreateObject(ctx context.Context, in *MsgCreateObject, opts ...grpc.CallOption) (*MsgCreateObjectResponse, error)
 	SealObject(ctx context.Context, in *MsgSealObject, opts ...grpc.CallOption) (*MsgSealObjectResponse, error)
-	RejectUnsealedObject(ctx context.Context, in *MsgRejectUnsealedObject, opts ...grpc.CallOption) (*MsgRejectUnsealedObjectResponse, error)
+	RejectSealObject(ctx context.Context, in *MsgRejectSealObject, opts ...grpc.CallOption) (*MsgRejectSealObjectResponse, error)
 	DeleteObject(ctx context.Context, in *MsgDeleteObject, opts ...grpc.CallOption) (*MsgDeleteObjectResponse, error)
 	CreateGroup(ctx context.Context, in *MsgCreateGroup, opts ...grpc.CallOption) (*MsgCreateGroupResponse, error)
 	DeleteGroup(ctx context.Context, in *MsgDeleteGroup, opts ...grpc.CallOption) (*MsgDeleteGroupResponse, error)
@@ -1399,9 +1408,9 @@ func (c *msgClient) SealObject(ctx context.Context, in *MsgSealObject, opts ...g
 	return out, nil
 }
 
-func (c *msgClient) RejectUnsealedObject(ctx context.Context, in *MsgRejectUnsealedObject, opts ...grpc.CallOption) (*MsgRejectUnsealedObjectResponse, error) {
-	out := new(MsgRejectUnsealedObjectResponse)
-	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.storage.Msg/RejectUnsealedObject", in, out, opts...)
+func (c *msgClient) RejectSealObject(ctx context.Context, in *MsgRejectSealObject, opts ...grpc.CallOption) (*MsgRejectSealObjectResponse, error) {
+	out := new(MsgRejectSealObjectResponse)
+	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.storage.Msg/RejectSealObject", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1468,7 +1477,7 @@ type MsgServer interface {
 	DeleteBucket(context.Context, *MsgDeleteBucket) (*MsgDeleteBucketResponse, error)
 	CreateObject(context.Context, *MsgCreateObject) (*MsgCreateObjectResponse, error)
 	SealObject(context.Context, *MsgSealObject) (*MsgSealObjectResponse, error)
-	RejectUnsealedObject(context.Context, *MsgRejectUnsealedObject) (*MsgRejectUnsealedObjectResponse, error)
+	RejectSealObject(context.Context, *MsgRejectSealObject) (*MsgRejectSealObjectResponse, error)
 	DeleteObject(context.Context, *MsgDeleteObject) (*MsgDeleteObjectResponse, error)
 	CreateGroup(context.Context, *MsgCreateGroup) (*MsgCreateGroupResponse, error)
 	DeleteGroup(context.Context, *MsgDeleteGroup) (*MsgDeleteGroupResponse, error)
@@ -1493,8 +1502,8 @@ func (*UnimplementedMsgServer) CreateObject(ctx context.Context, req *MsgCreateO
 func (*UnimplementedMsgServer) SealObject(ctx context.Context, req *MsgSealObject) (*MsgSealObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SealObject not implemented")
 }
-func (*UnimplementedMsgServer) RejectUnsealedObject(ctx context.Context, req *MsgRejectUnsealedObject) (*MsgRejectUnsealedObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RejectUnsealedObject not implemented")
+func (*UnimplementedMsgServer) RejectSealObject(ctx context.Context, req *MsgRejectSealObject) (*MsgRejectSealObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RejectSealObject not implemented")
 }
 func (*UnimplementedMsgServer) DeleteObject(ctx context.Context, req *MsgDeleteObject) (*MsgDeleteObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteObject not implemented")
@@ -1591,20 +1600,20 @@ func _Msg_SealObject_Handler(srv interface{}, ctx context.Context, dec func(inte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_RejectUnsealedObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRejectUnsealedObject)
+func _Msg_RejectSealObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRejectSealObject)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).RejectUnsealedObject(ctx, in)
+		return srv.(MsgServer).RejectSealObject(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/bnbchain.greenfield.storage.Msg/RejectUnsealedObject",
+		FullMethod: "/bnbchain.greenfield.storage.Msg/RejectSealObject",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).RejectUnsealedObject(ctx, req.(*MsgRejectUnsealedObject))
+		return srv.(MsgServer).RejectSealObject(ctx, req.(*MsgRejectSealObject))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1738,8 +1747,8 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_SealObject_Handler,
 		},
 		{
-			MethodName: "RejectUnsealedObject",
-			Handler:    _Msg_RejectUnsealedObject_Handler,
+			MethodName: "RejectSealObject",
+			Handler:    _Msg_RejectSealObject_Handler,
 		},
 		{
 			MethodName: "DeleteObject",
@@ -1888,10 +1897,10 @@ func (m *MsgDeleteBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2087,10 +2096,10 @@ func (m *MsgSealObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2120,7 +2129,7 @@ func (m *MsgSealObjectResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRejectUnsealedObject) Marshal() (dAtA []byte, err error) {
+func (m *MsgRejectSealObject) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2130,12 +2139,12 @@ func (m *MsgRejectUnsealedObject) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRejectUnsealedObject) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRejectSealObject) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRejectUnsealedObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRejectSealObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2154,17 +2163,17 @@ func (m *MsgRejectUnsealedObject) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRejectUnsealedObjectResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRejectSealObjectResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2174,12 +2183,12 @@ func (m *MsgRejectUnsealedObjectResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRejectUnsealedObjectResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRejectSealObjectResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRejectUnsealedObjectResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRejectSealObjectResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2242,10 +2251,10 @@ func (m *MsgCopyObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2309,10 +2318,10 @@ func (m *MsgDeleteObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2438,10 +2447,10 @@ func (m *MsgDeleteGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2516,10 +2525,10 @@ func (m *MsgUpdateGroupMember) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2583,10 +2592,10 @@ func (m *MsgLeaveGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.Creator) > 0 {
-		i -= len(m.Creator)
-		copy(dAtA[i:], m.Creator)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.Creator)))
+	if len(m.Member) > 0 {
+		i -= len(m.Member)
+		copy(dAtA[i:], m.Member)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Member)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2674,7 +2683,7 @@ func (m *MsgDeleteBucket) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2756,7 +2765,7 @@ func (m *MsgSealObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2792,13 +2801,13 @@ func (m *MsgSealObjectResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRejectUnsealedObject) Size() (n int) {
+func (m *MsgRejectSealObject) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2813,7 +2822,7 @@ func (m *MsgRejectUnsealedObject) Size() (n int) {
 	return n
 }
 
-func (m *MsgRejectUnsealedObjectResponse) Size() (n int) {
+func (m *MsgRejectSealObjectResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2828,7 +2837,7 @@ func (m *MsgCopyObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2870,7 +2879,7 @@ func (m *MsgDeleteObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2932,7 +2941,7 @@ func (m *MsgDeleteGroup) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2958,7 +2967,7 @@ func (m *MsgUpdateGroupMember) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2996,7 +3005,7 @@ func (m *MsgLeaveGroup) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.Creator)
+	l = len(m.Member)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -3339,7 +3348,7 @@ func (m *MsgDeleteBucket) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3367,7 +3376,7 @@ func (m *MsgDeleteBucket) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3868,7 +3877,7 @@ func (m *MsgSealObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3896,7 +3905,7 @@ func (m *MsgSealObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4097,7 +4106,7 @@ func (m *MsgSealObjectResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRejectUnsealedObject) Unmarshal(dAtA []byte) error {
+func (m *MsgRejectSealObject) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4120,15 +4129,15 @@ func (m *MsgRejectUnsealedObject) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRejectUnsealedObject: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRejectSealObject: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRejectUnsealedObject: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRejectSealObject: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4156,7 +4165,7 @@ func (m *MsgRejectUnsealedObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4243,7 +4252,7 @@ func (m *MsgRejectUnsealedObject) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRejectUnsealedObjectResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRejectSealObjectResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4266,10 +4275,10 @@ func (m *MsgRejectUnsealedObjectResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRejectUnsealedObjectResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRejectSealObjectResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRejectUnsealedObjectResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRejectSealObjectResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4324,7 +4333,7 @@ func (m *MsgCopyObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4352,7 +4361,7 @@ func (m *MsgCopyObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4618,7 +4627,7 @@ func (m *MsgDeleteObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4646,7 +4655,7 @@ func (m *MsgDeleteObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5010,7 +5019,7 @@ func (m *MsgDeleteGroup) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5038,7 +5047,7 @@ func (m *MsgDeleteGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5174,7 +5183,7 @@ func (m *MsgUpdateGroupMember) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5202,7 +5211,7 @@ func (m *MsgUpdateGroupMember) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5402,7 +5411,7 @@ func (m *MsgLeaveGroup) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Member", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5430,7 +5439,7 @@ func (m *MsgLeaveGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Creator = string(dAtA[iNdEx:postIndex])
+			m.Member = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {

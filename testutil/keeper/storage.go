@@ -7,7 +7,6 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -62,7 +61,6 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		storagemoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
@@ -88,11 +86,15 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	paramKeeper := paramskeeper.NewKeeper(cdc, types.Amino, storeKeys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
+	paramKeeper.Subspace(authtypes.ModuleName)
+	paramKeeper.Subspace(banktypes.ModuleName)
+	paramKeeper.Subspace(authz.ModuleName)
+
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
 		storeKey,
 		memStoreKey,
-		"GreenfieldParams",
+		"StorageParams",
 	)
 
 	accountKeeper := authkeeper.NewAccountKeeper(
@@ -133,7 +135,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
-    spKeeper,
+		spKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
@@ -142,7 +144,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k.SetParams(ctx, types.DefaultParams())
 
 	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
-  spKeeper.SetParams(ctx, sptypes.DefaultParams())
+	spKeeper.SetParams(ctx, sptypes.DefaultParams())
 
 	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",

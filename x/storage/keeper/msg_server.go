@@ -57,14 +57,14 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	spApproval := msg.PrimarySpApproval
 	msg.PrimarySpApproval = []byte("")
 	bz, err := msg.Marshal()
-  if err != nil {
-    return nil, err
-  }
+	if err != nil {
+		return nil, err
+	}
 
-  err = k.CheckSPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
-  if err != nil {
-    return nil, err
-  }
+	err = k.CheckSPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+	if err != nil {
+		return nil, err
+	}
 
 	// Check Bucket exist
 	bucketKey := types.GetBucketKey(msg.BucketName)
@@ -113,8 +113,8 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	// TODO: pay for the object. Interact with PaymentModule
 
 	var (
-		ownerAcc     sdk.AccAddress
-		err          error
+		ownerAcc sdk.AccAddress
+		err      error
 	)
 	// check owner AccAddress
 	if ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
@@ -137,13 +137,13 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	spApproval := msg.PrimarySpApproval
 	msg.PrimarySpApproval = []byte("")
 	bz, err := msg.Marshal()
-  if err != nil {
-    return nil, err
-  }
-  err = k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
-  if err != nil {
-    return nil, err
-  }
+	if err != nil {
+		return nil, err
+	}
+	err = k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+	if err != nil {
+		return nil, err
+	}
 
 	objectInfo := types.ObjectInfo{
 		Owner:          ownerAcc.String(),
@@ -170,7 +170,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	// TODO: check permission when permission module ready
 	// TODO: submit event/log
-	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
@@ -195,11 +195,11 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	} else {
 		objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
 	}
-  
-  err = k.CheckSPAndSignature(ctx, msg.SecondarySpAddresses, objectInfo.Checksums[1:], msg.SecondarySpSignatures)
-  if err != nil {
-    return nil, err
-  }
+
+	err = k.CheckSPAndSignature(ctx, msg.SecondarySpAddresses, objectInfo.Checksums[1:], msg.SecondarySpSignatures)
+	if err != nil {
+		return nil, err
+	}
 
 	k.Keeper.SetObject(ctx, objectKey, objectInfo)
 
@@ -213,7 +213,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		ownerAcc sdk.AccAddress
 		err      error
 	)
-	ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator)
+	ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 
 	// check if have permission for copy object from this bucket
 	// Currently only allowed object owner to CopyObject
-	if srcObjectInfo.Owner != msg.Creator {
+	if srcObjectInfo.Owner != msg.Operator {
 		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "access denied (%s)", srcObjectInfo.String())
 	}
 	objectInfo := types.ObjectInfo{
@@ -272,7 +272,7 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 	}
 
 	// Currently, only the owner is allowed to delete object
-	if objectInfo.Owner != msg.Creator {
+	if objectInfo.Owner != msg.Operator {
 		return nil, types.ErrAccessDenied
 	}
 
@@ -280,7 +280,7 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 	return &types.MsgDeleteObjectResponse{}, nil
 }
 
-func (k msgServer) RejectUnsealedObject(goCtx context.Context, msg *types.MsgRejectUnsealedObject) (*types.MsgRejectUnsealedObjectResponse, error) {
+func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectSealObject) (*types.MsgRejectSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	objectKey := types.GetObjectKey(msg.BucketName, msg.ObjectName)
@@ -290,13 +290,13 @@ func (k msgServer) RejectUnsealedObject(goCtx context.Context, msg *types.MsgRej
 	}
 
 	// Currently, only the owner is allowed to reject object
-	if objectInfo.Owner != msg.Creator {
+	if objectInfo.Owner != msg.Operator {
 		return nil, types.ErrAccessDenied
 	}
 
 	// TODO: Interact with payment. unlock the pre-pay fee.
 	k.Keeper.DeleteObject(ctx, objectKey)
-	return &types.MsgRejectUnsealedObjectResponse{}, nil
+	return &types.MsgRejectSealObjectResponse{}, nil
 }
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
@@ -339,7 +339,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup) (*types.MsgDeleteGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
@@ -357,7 +357,7 @@ func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup)
 func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (*types.MsgLeaveGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	memberAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	memberAcc, err := sdk.AccAddressFromHexUnsafe(msg.Member)
 	if err != nil {
 		return nil, err
 	}
@@ -383,7 +383,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdateGroupMember) (*types.MsgUpdateGroupMemberResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}

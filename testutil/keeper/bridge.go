@@ -80,7 +80,6 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 		storagemoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey,
-		types.StoreKey,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 

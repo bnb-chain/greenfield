@@ -14,7 +14,7 @@ service Msg {
   rpc DeleteBucket(MsgDeleteBucket) returns (MsgDeleteBucketResponse);
   rpc CreateObject(MsgCreateObject) returns (MsgCreateObjectResponse);
   rpc SealObject(MsgSealObject) returns (MsgSealObjectResponse);
-  rpc RejectUnsealedObject(MsgRejectUnsealedObject) returns (MsgRejectUnsealedObjectResponse);
+  rpc RejectSealObject(MsgRejectSealObject) returns (MsgRejectSealObjectResponse);
   rpc DeleteObject(MsgDeleteObject) returns (MsgDeleteObjectResponse);
   rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
   rpc DeleteGroup(MsgDeleteGroup) returns (MsgDeleteGroupResponse);
@@ -44,9 +44,9 @@ message MsgCreateBucket {
 message MsgCreateBucketResponse {}
 
 message MsgDeleteBucket {
-  option (cosmos.msg.v1.signer) = "creator";
+  option (cosmos.msg.v1.signer) = "operator";
   // creator is the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket to be deleted.
   string bucket_name = 2;
 }
@@ -80,9 +80,9 @@ message MsgCreateObject {
 message MsgCreateObjectResponse {}
 
 message MsgSealObject {
-  option (cosmos.msg.v1.signer) = "creator";
+  option (cosmos.msg.v1.signer) = "operator";
   // creator is the account address of primary SP
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
   // object_name is the name of object to be sealed.
@@ -96,33 +96,40 @@ message MsgSealObject {
 
 message MsgSealObjectResponse {}
 
-message MsgRejectUnsealedObject {
-  option (cosmos.msg.v1.signer) = "creator";
+message MsgRejectSealObject {
+  option (cosmos.msg.v1.signer) = "operator";
   // creator is the account address of the object owner
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
   // object_name is the name of unsealed object to be reject.
   string object_name = 3;
 }
 
-message MsgRejectUnsealedObjectResponse {}
+message MsgRejectSealObjectResponse {}
 
 message MsgCopyObject {
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator is the account address of the operator who has the CopyObject permission of the object to be deleted.
+  string operator = 1;
+  // src_bucket_name is the name of the bucket where the object to be copied is located
   string src_bucket_name = 2;
+  // dst_bucket_name is the name of the bucket where the object is copied to.
   string dst_bucket_name = 3;
+  //
   string src_object_name = 4;
+  //
   string dst_object_name = 5;
+  //
   bytes dst_primary_sp_approval = 6;
 }
 
 message MsgCopyObjectResponse {}
 
 message MsgDeleteObject {
-  option (cosmos.msg.v1.signer) = "creator";
-  // creator is the account address of the grantee who has the DeleteObject permission of the object to be deleted.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator is the account address of the operator who has the DeleteObject permission of the object to be deleted.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket where the object which to be deleted is stored.
   string bucket_name = 2;
   // object_name is the name of the object which to be deleted.
@@ -133,7 +140,7 @@ message MsgDeleteObjectResponse {}
 
 message MsgCreateGroup {
   option (cosmos.msg.v1.signer) = "creator";
-  // creator is the account address of group owner
+  // owner is the account address of group owner who create the group
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name is the name of the group. it's not globally unique.
   string group_name = 2;
@@ -144,9 +151,9 @@ message MsgCreateGroup {
 message MsgCreateGroupResponse {}
 
 message MsgDeleteGroup {
-  option (cosmos.msg.v1.signer) = "creator";
-  // creator is the account address of the grantee who has the DeleteGroup permission of the group to be deleted.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator is the account address of the operator who has the DeleteGroup permission of the group to be deleted.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name is the name of the group which to be deleted
   string group_name = 2;
 }
@@ -154,9 +161,9 @@ message MsgDeleteGroup {
 message MsgDeleteGroupResponse {}
 
 message MsgUpdateGroupMember {
-  option (cosmos.msg.v1.signer) = "creator";
-  // creator is the account address of the grantee who has the UpdateGroupMember permission of the group.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator is the account address of the operator who has the UpdateGroupMember permission of the group.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name is the name of the group which to be updated
   string group_name = 2;
   // members_to_add is a list of members account address which will be add to the group
@@ -168,8 +175,9 @@ message MsgUpdateGroupMember {
 message MsgUpdateGroupMemberResponse {}
 
 message MsgLeaveGroup {
-  option (cosmos.msg.v1.signer) = "creator";
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  option (cosmos.msg.v1.signer) = "member";
+  // member is the account address of the member who want to leave the group
+  string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_owner is the owner of the group you want to leave
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name is the name of the group you want to leave

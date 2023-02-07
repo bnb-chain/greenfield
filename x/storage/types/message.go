@@ -12,11 +12,11 @@ const (
 	TypeMsgDeleteBucket = "delete_bucket"
 
 	// For object
-	TypeMsgCopyObject           = "copy_object"
-	TypeMsgCreateObject         = "create_object"
-	TypeMsgDeleteObject         = "delete_object"
-	TypeMsgSealObject           = "seal_object"
-	TypeMsgRejectUnsealedObject = "reject_unsealed_object"
+	TypeMsgCopyObject       = "copy_object"
+	TypeMsgCreateObject     = "create_object"
+	TypeMsgDeleteObject     = "delete_object"
+	TypeMsgSealObject       = "seal_object"
+	TypeMsgRejectSealObject = "reject_seal_object"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -34,7 +34,7 @@ var (
 	_ sdk.Msg = &MsgDeleteObject{}
 	_ sdk.Msg = &MsgSealObject{}
 	_ sdk.Msg = &MsgCopyObject{}
-	_ sdk.Msg = &MsgRejectUnsealedObject{}
+	_ sdk.Msg = &MsgRejectSealObject{}
 
 	// For group
 	_ sdk.Msg = &MsgCreateGroup{}
@@ -107,9 +107,9 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 }
 
 // NewMsgDeleteBucket creates a new MsgDeleteBucket instance
-func NewMsgDeleteBucket(creator sdk.AccAddress, bucketName string) *MsgDeleteBucket {
+func NewMsgDeleteBucket(operator sdk.AccAddress, bucketName string) *MsgDeleteBucket {
 	return &MsgDeleteBucket{
-		Creator:    creator.String(),
+		Operator:   operator.String(),
 		BucketName: bucketName,
 	}
 }
@@ -126,7 +126,7 @@ func (msg *MsgDeleteBucket) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgDeleteBucket) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -141,7 +141,7 @@ func (msg *MsgDeleteBucket) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgDeleteBucket) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -236,9 +236,9 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeleteObject(creator sdk.AccAddress, bucketName string, objectName string) *MsgDeleteObject {
+func NewMsgDeleteObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgDeleteObject {
 	return &MsgDeleteObject{
-		Creator:    creator.String(),
+		Operator:   operator.String(),
 		BucketName: bucketName,
 		ObjectName: objectName,
 	}
@@ -256,7 +256,7 @@ func (msg *MsgDeleteObject) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgDeleteObject) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -271,7 +271,7 @@ func (msg *MsgDeleteObject) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgDeleteObject) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -287,7 +287,7 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 }
 
 func NewMsgSealObject(
-	creator sdk.AccAddress, bucketName string, objectName string,
+	operator sdk.AccAddress, bucketName string, objectName string,
 	secondarySPAccs []sdk.AccAddress, secondarySpSignatures [][]byte) *MsgSealObject {
 
 	var secondarySPAddresses []string
@@ -296,7 +296,7 @@ func NewMsgSealObject(
 	}
 
 	return &MsgSealObject{
-		Creator:               creator.String(),
+		Operator:              operator.String(),
 		BucketName:            bucketName,
 		ObjectName:            objectName,
 		SecondarySpAddresses:  secondarySPAddresses,
@@ -316,7 +316,7 @@ func (msg *MsgSealObject) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgSealObject) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -331,12 +331,12 @@ func (msg *MsgSealObject) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgSealObject) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.Operator); err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
@@ -373,10 +373,10 @@ func (msg *MsgSealObject) ValidateBasic() error {
 }
 
 func NewMsgCopyObject(
-	creator sdk.AccAddress, srcBucketName string, dstBucketName string,
+	operator sdk.AccAddress, srcBucketName string, dstBucketName string,
 	srcObjectName string, dstObjectName string, dstPrimarySPApproval []byte) *MsgCopyObject {
 	return &MsgCopyObject{
-		Creator:              creator.String(),
+		Operator:             operator.String(),
 		SrcBucketName:        srcBucketName,
 		DstBucketName:        dstBucketName,
 		SrcObjectName:        srcObjectName,
@@ -397,7 +397,7 @@ func (msg *MsgCopyObject) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgCopyObject) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -411,7 +411,7 @@ func (msg *MsgCopyObject) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCopyObject) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -434,27 +434,27 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRejectUnsealedObject(creator sdk.AccAddress, bucketName string, objectName string) *MsgRejectUnsealedObject {
-	return &MsgRejectUnsealedObject{
-		Creator:    creator.String(),
+func NewMsgRejectUnsealedObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgRejectSealObject {
+	return &MsgRejectSealObject{
+		Operator:   operator.String(),
 		BucketName: bucketName,
 		ObjectName: objectName,
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg *MsgRejectUnsealedObject) Route() string {
+func (msg *MsgRejectSealObject) Route() string {
 	return RouterKey
 }
 
 // Type implements the sdk.Msg interface.
-func (msg *MsgRejectUnsealedObject) Type() string {
-	return TypeMsgRejectUnsealedObject
+func (msg *MsgRejectSealObject) Type() string {
+	return TypeMsgRejectSealObject
 }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg *MsgRejectUnsealedObject) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+func (msg *MsgRejectSealObject) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -462,14 +462,14 @@ func (msg *MsgRejectUnsealedObject) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes returns the message bytes to sign over.
-func (msg *MsgRejectUnsealedObject) GetSignBytes() []byte {
+func (msg *MsgRejectSealObject) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg *MsgRejectUnsealedObject) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+func (msg *MsgRejectSealObject) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -526,9 +526,9 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeleteGroup(creator sdk.AccAddress, groupName string) *MsgDeleteGroup {
+func NewMsgDeleteGroup(operator sdk.AccAddress, groupName string) *MsgDeleteGroup {
 	return &MsgDeleteGroup{
-		Creator:   creator.String(),
+		Operator:  operator.String(),
 		GroupName: groupName,
 	}
 }
@@ -545,7 +545,7 @@ func (msg *MsgDeleteGroup) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgDeleteGroup) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -560,7 +560,7 @@ func (msg *MsgDeleteGroup) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgDeleteGroup) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -571,9 +571,9 @@ func (msg *MsgDeleteGroup) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgLeaveGroup(creator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string) *MsgLeaveGroup {
+func NewMsgLeaveGroup(member sdk.AccAddress, groupOwner sdk.AccAddress, groupName string) *MsgLeaveGroup {
 	return &MsgLeaveGroup{
-		Creator:    creator.String(),
+		Member:     member.String(),
 		GroupOwner: groupOwner.String(),
 		GroupName:  groupName,
 	}
@@ -591,7 +591,7 @@ func (msg *MsgLeaveGroup) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgLeaveGroup) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Member)
 	if err != nil {
 		panic(err)
 	}
@@ -606,7 +606,7 @@ func (msg *MsgLeaveGroup) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgLeaveGroup) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Member)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
@@ -618,7 +618,7 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 }
 
 func NewMsgUpdateGroupMember(
-	creator sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
+	operator sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
 	membersToDelete []sdk.AccAddress) *MsgUpdateGroupMember {
 	var membersAddrToAdd, membersAddrToDelete []string
 	for _, member := range membersToAdd {
@@ -628,7 +628,7 @@ func NewMsgUpdateGroupMember(
 		membersAddrToDelete = append(membersAddrToDelete, member.String())
 	}
 	return &MsgUpdateGroupMember{
-		Creator:         creator.String(),
+		Operator:        operator.String(),
 		GroupName:       groupName,
 		MembersToAdd:    membersAddrToAdd,
 		MembersToDelete: membersAddrToDelete,
@@ -647,7 +647,7 @@ func (msg *MsgUpdateGroupMember) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgUpdateGroupMember) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -662,7 +662,7 @@ func (msg *MsgUpdateGroupMember) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgUpdateGroupMember) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
