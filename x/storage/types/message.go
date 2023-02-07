@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 )
 
 const (
@@ -156,12 +157,11 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
 	isPublic bool, expectChecksums [][]byte, contentType string, primarySPApproval []byte,
-	secondarySPs []sdk.AccAddress) *MsgCreateObject {
-	var secondarySPAddresses []string
-	if secondarySPs != nil {
-		for _, secondarySP := range secondarySPs {
-			secondarySPAddresses = append(secondarySPAddresses, secondarySP.String())
-		}
+	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
+
+	var secSPAddrs []string
+	for _, secondarySP := range secondarySPAccs {
+		secSPAddrs = append(secSPAddrs, secondarySP.String())
 	}
 
 	return &MsgCreateObject{
@@ -173,7 +173,7 @@ func NewMsgCreateObject(
 		ContentType:                contentType,
 		PrimarySpApproval:          primarySPApproval,
 		ExpectChecksums:            expectChecksums,
-		ExpectSecondarySpAddresses: secondarySPAddresses,
+		ExpectSecondarySpAddresses: secSPAddrs,
 	}
 }
 
@@ -286,12 +286,21 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgSealObject(creator sdk.AccAddress, bucketName string, objectName string, spStoreReceipts [][]byte) *MsgSealObject {
+func NewMsgSealObject(
+	creator sdk.AccAddress, bucketName string, objectName string,
+	secondarySPAccs []sdk.AccAddress, secondarySpSignatures [][]byte) *MsgSealObject {
+
+	var secondarySPAddresses []string
+	for _, secondarySP := range secondarySPAccs {
+		secondarySPAddresses = append(secondarySPAddresses, secondarySP.String())
+	}
+
 	return &MsgSealObject{
-		Creator:         creator.String(),
-		BucketName:      bucketName,
-		ObjectName:      objectName,
-		SpStoreReceipts: spStoreReceipts,
+		Creator:               creator.String(),
+		BucketName:            bucketName,
+		ObjectName:            objectName,
+		SecondarySpAddresses:  secondarySPAddresses,
+		SecondarySpSignatures: secondarySpSignatures,
 	}
 }
 
@@ -339,13 +348,24 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
-	if len(msg.SpStoreReceipts) != 7 {
+	if len(msg.SecondarySpAddresses) != 6 {
+		return sdkerrors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (d%), but (d%)", 6, len(msg.SecondarySpAddresses))
+	}
+
+	for _, addr := range msg.SecondarySpAddresses {
+		_, err := sdk.AccAddressFromHexUnsafe(addr)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid secondary sp address (%s)", err)
+		}
+	}
+
+	if len(msg.SecondarySpSignatures) != 6 {
 		return sdkerrors.Wrapf(ErrInvalidSPSignature, "Missing SP signatures")
 	}
 
-	for _, sig := range msg.SpStoreReceipts {
-		if sig == nil {
-			return sdkerrors.Wrapf(ErrInvalidSPSignature, "Empty SP signatures")
+	for _, sig := range msg.SecondarySpSignatures {
+		if sig == nil && len(sig) != ethcrypto.SignatureLength {
+			return sdkerrors.Wrapf(ErrInvalidSPSignature, "invalid SP signatures")
 		}
 	}
 

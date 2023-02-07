@@ -26,10 +26,7 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucket) (*types.MsgCreateBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: check the validity of the primarySP from SP module
 	// TODO: check the bucket permission
-	// TODO: check primary sp's signature
-	// TODO: check if a valid storage provider
 	var (
 		ownerAcc     sdk.AccAddress
 		paymentAcc   sdk.AccAddress
@@ -60,7 +57,11 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	spApproval := msg.PrimarySpApproval
 	msg.PrimarySpApproval = []byte("")
 	bz, err := msg.Marshal()
-	k.CheckPrimarySPAndApproval(ctx, primarySPAcc, crypto.Sha256(bz), spApproval)
+
+  err = k.CheckSPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+  if err != nil {
+    return nil, err
+  }
 
 	// Check Bucket exist
 	bucketKey := types.GetBucketKey(msg.BucketName)
@@ -106,13 +107,10 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	// TODO: check bucket and object permission
-	// TODO: check primary sp signature
 	// TODO: pay for the object. Interact with PaymentModule
-	// TODO: check the permission of the bucket
 
 	var (
 		ownerAcc     sdk.AccAddress
-		primarySPAcc sdk.AccAddress
 		err          error
 	)
 	// check owner AccAddress
@@ -133,16 +131,13 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrObjectAlreadyExists
 	}
 
-	// check primary SP
-	primarySPAcc, err = sdk.AccAddressFromHexUnsafe(bucketInfo.PrimarySpAddress)
-	if err != nil {
-		return nil, err
-	}
-
 	spApproval := msg.PrimarySpApproval
 	msg.PrimarySpApproval = []byte("")
 	bz, err := msg.Marshal()
-	k.CheckPrimarySPAndApproval(ctx, primarySPAcc, crypto.Sha256(bz), spApproval)
+  k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+  if err != nil {
+    return nil, err
+  }
 
 	objectInfo := types.ObjectInfo{
 		Owner:          ownerAcc.String(),
@@ -167,11 +162,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: check valid sp address when sp module ready
-	// TODO: check the signature of sp
 	// TODO: check permission when permission module ready
-	// TODO: verify the checksum in sp's signature info
-	// TODO: set the secondary sp
 	// TODO: submit event/log
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
@@ -198,6 +189,11 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	} else {
 		objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
 	}
+  
+  err = k.CheckSPAndSignature(ctx, msg.SecondarySpAddresses, objectInfo.Checksums[1:], msg.SecondarySpSignatures)
+  if err != nil {
+    return nil, err
+  }
 
 	k.Keeper.SetObject(ctx, objectKey, objectInfo)
 

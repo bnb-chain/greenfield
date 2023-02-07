@@ -68,7 +68,7 @@ func CmdCreateBucket() *cobra.Command {
 			var paymentAccount sdk.AccAddress
 			isPublic, _ := cmd.Flags().GetBool(FlagIsPublic)
 			paymentAccStr, _ := cmd.Flags().GetString(FlagPaymentAccount)
-			primarySPSignature, _ := cmd.Flags().GetBytesHex(FlagPrimarySPSignature)
+			primarySPApproval, _ := cmd.Flags().GetBytesHex(FlagPrimarySPApproval)
 
 			if paymentAccStr != "" {
 				if paymentAccount, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
@@ -82,7 +82,7 @@ func CmdCreateBucket() *cobra.Command {
 				isPublic,
 				primarySP,
 				paymentAccount,
-				primarySPSignature,
+				primarySPApproval,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -93,7 +93,7 @@ func CmdCreateBucket() *cobra.Command {
 
 	cmd.Flags().Bool(FlagIsPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
-	cmd.Flags().BytesHex(FlagPrimarySPSignature, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
+	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -190,7 +190,7 @@ func CmdCreateObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(FlagIsPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
-	cmd.Flags().BytesHex(FlagPrimarySPSignature, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
+	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	return cmd
 }
 
@@ -253,6 +253,7 @@ func CmdSealObject() *cobra.Command {
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				argObjectName,
+        nil,
 				spSignatures,
 			)
 			if err := msg.ValidateBasic(); err != nil {

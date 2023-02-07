@@ -30,4 +30,5 @@ var (
 	ErrInvalidChcecksum   = sdkerrors.Register(ModuleName, 2003, "invalid checksum")
 	ErrInvalidContentType = sdkerrors.Register(ModuleName, 2004, "invalid content type")
 	ErrInvalidSPSignature = sdkerrors.Register(ModuleName, 2005, "invalid sp signature")
+	ErrInvalidSPAddress   = sdkerrors.Register(ModuleName, 2006, "invalid sp address")
 )

@@ -54,27 +54,33 @@ func NewKeeper(
 	k.objectSeq = internal.NewSequence(types.ObjectPrefix)
 	k.groupSeq = internal.NewSequence(types.GroupPrefix)
 	return &k
-
 }
 
-func (k Keeper) CheckPrimarySPAndApproval(
-  ctx sdk.Context, primarySPAcc sdk.AccAddress,
-  sigHash []byte, approval []byte) error {
-	sp, found := k.spKeeper.GetStorageProvider(ctx, primarySPAcc)
-	if !found {
-		return types.ErrNoSuchStorageProvider
-	}
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
-		return types.ErrStorageProviderNotInService
-	}
+func (k Keeper) CheckSPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
+	for i, spAddr := range spAddrs {
+		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
+		if err != nil {
+			return err
+		}
+		sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+		if !found {
+			return types.ErrNoSuchStorageProvider
+		}
+		if sp.Status != sptypes.STATUS_IN_SERVICE {
+			return types.ErrStorageProviderNotInService
+		}
 
-	approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
-  if err != nil {
-    return err
-  }
+		approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+		if err != nil {
+			return err
+		}
 
-	types.VerifyApproval(approvalAcc, sigHash, approval)
-  return nil
+		err = types.VerifySignature(approvalAcc, sigData[i], signature[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

@@ -87,9 +87,11 @@ message MsgSealObject {
   string bucket_name = 2;
   // object_name is the name of object to be sealed.
   string object_name = 3;
+  // secondary_sp_addresses is a list of storage provider which store the redundant data.
+  repeated string secondary_sp_addresses = 4;
   // sp_store_receipts is the receipt info of sp with its signature which can
   // ackknowleage that the payload data has stored.
-  repeated bytes sp_store_receipts = 4;
+  repeated bytes secondary_sp_signatures = 5;
 }
 
 message MsgSealObjectResponse {}

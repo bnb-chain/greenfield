@@ -115,14 +115,14 @@ func CheckValidContentType(contentType string) error {
 	return nil
 }
 
-func VerifyApproval(approvalAcc sdk.AccAddress, approvalHash []byte, approvalSignature []byte) error {
-	if len(approvalSignature) != ethcrypto.SignatureLength {
+func VerifySignature(sigAcc sdk.AccAddress, sigData []byte, sig []byte) error {
+	if len(sig) != ethcrypto.SignatureLength {
 		return errors.Wrap(sdkerrors.ErrorInvalidSigner, "signature length doesn't match typical [R||S||V] signature 65 bytes")
 	}
 
 	// VerifySignature of ethsecp256k1 accepts 64 byte signature [R||S]
 	// WARNING! Under NO CIRCUMSTANCES try to use pubKey.VerifySignature there
-	if !secp256k1.VerifySignature(approvalAcc.Bytes(), approvalHash, approvalSignature[:len(approvalSignature)-1]) {
+	if !secp256k1.VerifySignature(sigAcc.Bytes(), sigData, sig[:len(sig)-1]) {
 		return errors.Wrap(sdkerrors.ErrorInvalidSigner, "unable to verify signer signature of EIP712 typed data")
 	}
 
