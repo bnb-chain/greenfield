@@ -23,12 +23,18 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// EventCrossTransferOut is emitted when a cross chain transfer out tx created
 type EventCrossTransferOut struct {
-	From       string      `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
-	To         string      `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
-	Amount     *types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	// From addres of the cross chain transfer tx
+	From string `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
+	// To addres of the cross chain transfer tx
+	To string `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
+	// Amount of the cross chain transfer tx
+	Amount *types.Coin `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	// Relayer fee of the cross chain transfer tx
 	RelayerFee *types.Coin `protobuf:"bytes,4,opt,name=relayer_fee,json=relayerFee,proto3" json:"relayer_fee,omitempty"`
-	Sequence   uint64      `protobuf:"varint,5,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	// Sequence of the corresponding cross chain package
+	Sequence uint64 `protobuf:"varint,5,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *EventCrossTransferOut) Reset()         { *m = EventCrossTransferOut{} }
@@ -99,11 +105,16 @@ func (m *EventCrossTransferOut) GetSequence() uint64 {
 	return 0
 }
 
+// EventCrossTransferOutRefund is emitted when a cross chain transfer out tx failed
 type EventCrossTransferOutRefund struct {
-	RefundAddress string      `protobuf:"bytes,1,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
-	Amount        *types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
-	RefundReason  uint32      `protobuf:"varint,3,opt,name=refund_reason,json=refundReason,proto3" json:"refund_reason,omitempty"`
-	Sequence      uint64      `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	// Refund address of the failed cross chain transfer tx
+	RefundAddress string `protobuf:"bytes,1,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
+	// Amount of the failed cross chain transfer tx
+	Amount *types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	// Refund reason of the failed cross chain transfer tx
+	RefundReason uint32 `protobuf:"varint,3,opt,name=refund_reason,json=refundReason,proto3" json:"refund_reason,omitempty"`
+	// Sequence of the corresponding cross chain package
+	Sequence uint64 `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *EventCrossTransferOutRefund) Reset()         { *m = EventCrossTransferOutRefund{} }
@@ -167,11 +178,16 @@ func (m *EventCrossTransferOutRefund) GetSequence() uint64 {
 	return 0
 }
 
+// EventCrossTransferIn is emitted when a cross chain transfer in tx happened
 type EventCrossTransferIn struct {
-	Amount          *types.Coin `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	ReceiverAddress string      `protobuf:"bytes,2,opt,name=receiver_address,json=receiverAddress,proto3" json:"receiver_address,omitempty"`
-	RefundAddress   string      `protobuf:"bytes,3,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
-	Sequence        uint64      `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
+	// Amount of the cross chain transfer tx
+	Amount *types.Coin `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	// Receiver of the cross chain transfer tx
+	ReceiverAddress string `protobuf:"bytes,2,opt,name=receiver_address,json=receiverAddress,proto3" json:"receiver_address,omitempty"`
+	// Refund of the cross chain transfer tx in BSC
+	RefundAddress string `protobuf:"bytes,3,opt,name=refund_address,json=refundAddress,proto3" json:"refund_address,omitempty"`
+	// Sequence of the corresponding cross chain package
+	Sequence uint64 `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`
 }
 
 func (m *EventCrossTransferIn) Reset()         { *m = EventCrossTransferIn{} }

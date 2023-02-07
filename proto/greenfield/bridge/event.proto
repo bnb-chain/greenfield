@@ -7,24 +7,40 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
 
+// EventCrossTransferOut is emitted when a cross chain transfer out tx created
 message EventCrossTransferOut {
+  // From addres of the cross chain transfer tx
   string from = 1;
+  // To addres of the cross chain transfer tx
   string to = 2;
+  // Amount of the cross chain transfer tx
   cosmos.base.v1beta1.Coin amount = 3;
+  // Relayer fee of the cross chain transfer tx
   cosmos.base.v1beta1.Coin relayer_fee = 4;
+  // Sequence of the corresponding cross chain package
   uint64 sequence = 5;
 }
 
+// EventCrossTransferOutRefund is emitted when a cross chain transfer out tx failed
 message EventCrossTransferOutRefund {
+  // Refund address of the failed cross chain transfer tx
   string refund_address = 1;
+  // Amount of the failed cross chain transfer tx
   cosmos.base.v1beta1.Coin amount = 2;
+  // Refund reason of the failed cross chain transfer tx
   uint32 refund_reason = 3;
+  // Sequence of the corresponding cross chain package
   uint64 sequence = 4;
 }
 
+// EventCrossTransferIn is emitted when a cross chain transfer in tx happened
 message EventCrossTransferIn {
+  // Amount of the cross chain transfer tx
   cosmos.base.v1beta1.Coin amount = 1;
+  // Receiver of the cross chain transfer tx
   string receiver_address = 2;
+  // Refund of the cross chain transfer tx in BSC
   string refund_address = 3;
+  // Sequence of the corresponding cross chain package
   uint64 sequence = 4;
 }
