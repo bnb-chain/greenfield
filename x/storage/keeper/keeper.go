@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/storage/internal"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -23,9 +22,9 @@ type (
 		spKeeper   types.SpKeeper
 
 		// sequence
-		bucketSeq internal.Sequence
-		objectSeq internal.Sequence
-		groupSeq  internal.Sequence
+		bucketSeq Sequence
+		objectSeq Sequence
+		groupSeq  Sequence
 	}
 )
 
@@ -50,9 +49,9 @@ func NewKeeper(
 		spKeeper:   spKeeper,
 	}
 
-	k.bucketSeq = internal.NewSequence(types.BucketPrefix)
-	k.objectSeq = internal.NewSequence(types.ObjectPrefix)
-	k.groupSeq = internal.NewSequence(types.GroupPrefix)
+	k.bucketSeq = NewSequence(types.BucketPrefix)
+	k.objectSeq = NewSequence(types.ObjectPrefix)
+	k.groupSeq = NewSequence(types.GroupPrefix)
 	return &k
 }
 
@@ -101,6 +100,27 @@ func (k Keeper) GetBucket(ctx sdk.Context, bucketKey []byte) (bucketInfo types.B
 	return bucketInfo, true
 }
 
+func (k Keeper) GetBucketId(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.bucketSeq.NextVal(store)
+	return seq.String()
+}
+
+func (k Keeper) GetObjectID(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.objectSeq.NextVal(store)
+	return seq.String()
+}
+
+func (k Keeper) GetGroupId(ctx sdk.Context) string {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.groupSeq.NextVal(store)
+	return seq.String()
+}
+
 func (k Keeper) HasBucket(ctx sdk.Context, bucketKey []byte) (found bool) {
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
@@ -111,9 +131,6 @@ func (k Keeper) HasBucket(ctx sdk.Context, bucketKey []byte) (found bool) {
 func (k Keeper) SetBucket(ctx sdk.Context, bucketKey []byte, bucketInfo types.BucketInfo) {
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
-
-	seq := k.bucketSeq.NextVal(store)
-	bucketInfo.Id = seq.String()
 
 	bz := k.cdc.MustMarshal(&bucketInfo)
 	bucketStore.Set(bucketKey, bz)
@@ -159,10 +176,6 @@ func (k Keeper) SetObject(ctx sdk.Context, objectKey []byte, objectInfo types.Ob
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	// set object id
-	seq := k.objectSeq.NextVal(store)
-	objectInfo.Id = seq.String()
-
 	bz := k.cdc.MustMarshal(&objectInfo)
 	objectStore.Set(objectKey, bz)
 }
@@ -177,10 +190,6 @@ func (k Keeper) DeleteObject(ctx sdk.Context, objectKey []byte) {
 func (k Keeper) SetGroup(ctx sdk.Context, groupKey []byte, groupInfo types.GroupInfo) {
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
-
-	// set group id
-	seq := k.groupSeq.NextVal(store)
-	groupInfo.Id = seq.String()
 
 	bz := k.cdc.MustMarshal(&groupInfo)
 	groupStore.Set(groupKey, bz)

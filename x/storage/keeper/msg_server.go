@@ -78,6 +78,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		BucketName:       msg.BucketName,
 		IsPublic:         msg.IsPublic,
 		CreateAt:         ctx.BlockHeight(),
+		Id:               k.GetBucketId(ctx),
 		PrimarySpAddress: primarySPAcc.String(),
 		ReadQuota:        types.READ_QUOTA_FREE,
 		PaymentAddress:   paymentAcc.String(),
@@ -152,6 +153,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		PayloadSize:    msg.PayloadSize,
 		IsPublic:       msg.IsPublic,
 		ContentType:    msg.ContentType,
+		Id:             k.GetObjectID(ctx),
 		CreateAt:       ctx.BlockHeight(),
 		ObjectStatus:   types.OBJECT_STATUS_INIT,
 		RedundancyType: types.REDUNDANCY_EC_TYPE, // TODO: base on redundancy policy
@@ -314,6 +316,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	groupInfo := types.GroupInfo{
 		Owner:     msg.Creator,
+		Id:        k.GetGroupId(ctx),
 		GroupName: msg.GroupName,
 	}
 

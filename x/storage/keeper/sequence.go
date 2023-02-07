@@ -1,6 +1,7 @@
-package internal
+package keeper
 
 import (
+	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,42 +22,44 @@ func NewSequence(prefix []byte) Sequence {
 }
 
 // NextVal increments and persists the counter by one and returns the value.
-func (s Sequence) NextVal(store sdk.KVStore) sdk.Uint {
+func (s Sequence) NextVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
 	v := pStore.Get(sequenceIDPrefix)
-	var seq sdk.Uint
+	seq := math.ZeroUint()
 	var err error
-	if err = seq.Unmarshal(v); err != nil {
-    panic(err)
+	err = seq.Unmarshal(v)
+	if err != nil {
+		panic(err)
 	}
-	seq = seq.AddUint64(1)
+	seq = seq.Incr()
 
 	var bz []byte
 	if bz, err = seq.Marshal(); err != nil {
-    panic(err)
+		panic(err)
 	}
 	pStore.Set(sequenceIDPrefix, bz)
-  return seq
+	return seq
 }
 
 // CurVal returns the last value used. 0 if none.
-func (s Sequence) CurVal(store sdk.KVStore) sdk.Uint {
+func (s Sequence) CurVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
 	v := pStore.Get(sequenceIDPrefix)
-	var seq sdk.Uint
+	var seq math.Uint
 	_ = seq.Unmarshal(v)
 	return seq
 }
 
 // PeekNextVal returns the CurVal + increment step. Not persistent.
-func (s Sequence) PeekNextVal(store sdk.KVStore) sdk.Uint {
+func (s Sequence) PeekNextVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
 	v := pStore.Get(sequenceIDPrefix)
-	var seq sdk.Uint
+	var seq math.Uint
 	err := seq.Unmarshal(v)
-  if err != nil {
-    panic(err)
-  }
+	if err != nil {
+		panic(err)
+	}
+	seq = seq.Incr()
 	return seq
 }
 
@@ -66,7 +69,7 @@ func (s Sequence) PeekNextVal(store sdk.KVStore) sdk.Uint {
 //
 // It is recommended to call this method only for a sequence start value other than `1` as the
 // method consumes unnecessary gas otherwise. A scenario would be an import from genesis.
-func (s Sequence) InitVal(store sdk.KVStore, seq sdk.Uint) error {
+func (s Sequence) InitVal(store sdk.KVStore, seq math.Uint) error {
 	pStore := prefix.NewStore(store, s.prefix)
 	if pStore.Has(sequenceIDPrefix) {
 		return types.ErrSequenceUniqueConstraint
