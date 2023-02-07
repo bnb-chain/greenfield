@@ -625,11 +625,11 @@ type MsgCopyObject struct {
 	SrcBucketName string `protobuf:"bytes,2,opt,name=src_bucket_name,json=srcBucketName,proto3" json:"src_bucket_name,omitempty"`
 	// dst_bucket_name is the name of the bucket where the object is copied to.
 	DstBucketName string `protobuf:"bytes,3,opt,name=dst_bucket_name,json=dstBucketName,proto3" json:"dst_bucket_name,omitempty"`
-	//
+	// src_object_name is the name of the object which to be copied
 	SrcObjectName string `protobuf:"bytes,4,opt,name=src_object_name,json=srcObjectName,proto3" json:"src_object_name,omitempty"`
-	//
+	// dst_object_name is the name of the object which is copied to
 	DstObjectName string `protobuf:"bytes,5,opt,name=dst_object_name,json=dstObjectName,proto3" json:"dst_object_name,omitempty"`
-	//
+	// dst_primary_sp_approval is a approval signature of primary sp
 	DstPrimarySpApproval []byte `protobuf:"bytes,6,opt,name=dst_primary_sp_approval,json=dstPrimarySpApproval,proto3" json:"dst_primary_sp_approval,omitempty"`
 }
 

@@ -127,5 +127,4 @@ func VerifySignature(sigAcc sdk.AccAddress, sigData []byte, sig []byte) error {
 	}
 
 	return nil
-
 }

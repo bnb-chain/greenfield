@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	"fmt"
 
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -100,25 +101,25 @@ func (k Keeper) GetBucket(ctx sdk.Context, bucketKey []byte) (bucketInfo types.B
 	return bucketInfo, true
 }
 
-func (k Keeper) GetBucketId(ctx sdk.Context) string {
+func (k Keeper) GetBucketId(ctx sdk.Context) math.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.bucketSeq.NextVal(store)
-	return seq.String()
+	return seq
 }
 
-func (k Keeper) GetObjectID(ctx sdk.Context) string {
+func (k Keeper) GetObjectID(ctx sdk.Context) math.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.objectSeq.NextVal(store)
-	return seq.String()
+	return seq
 }
 
-func (k Keeper) GetGroupId(ctx sdk.Context) string {
+func (k Keeper) GetGroupId(ctx sdk.Context) math.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.groupSeq.NextVal(store)
-	return seq.String()
+	return seq
 }
 
 func (k Keeper) HasBucket(ctx sdk.Context, bucketKey []byte) (found bool) {

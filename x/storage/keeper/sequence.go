@@ -25,19 +25,10 @@ func NewSequence(prefix []byte) Sequence {
 func (s Sequence) NextVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
 	v := pStore.Get(sequenceIDPrefix)
-	seq := math.ZeroUint()
-	var err error
-	err = seq.Unmarshal(v)
-	if err != nil {
-		panic(err)
-	}
+	seq := types.MustUnmarshalUint(v)
 	seq = seq.Incr()
 
-	var bz []byte
-	if bz, err = seq.Marshal(); err != nil {
-		panic(err)
-	}
-	pStore.Set(sequenceIDPrefix, bz)
+	pStore.Set(sequenceIDPrefix, types.MustMarshalUint(seq))
 	return seq
 }
 
@@ -45,20 +36,14 @@ func (s Sequence) NextVal(store sdk.KVStore) math.Uint {
 func (s Sequence) CurVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
 	v := pStore.Get(sequenceIDPrefix)
-	var seq math.Uint
-	_ = seq.Unmarshal(v)
-	return seq
+	return types.MustUnmarshalUint(v)
 }
 
 // PeekNextVal returns the CurVal + increment step. Not persistent.
 func (s Sequence) PeekNextVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
 	v := pStore.Get(sequenceIDPrefix)
-	var seq math.Uint
-	err := seq.Unmarshal(v)
-	if err != nil {
-		panic(err)
-	}
+	seq := types.MustUnmarshalUint(v)
 	seq = seq.Incr()
 	return seq
 }
@@ -74,11 +59,7 @@ func (s Sequence) InitVal(store sdk.KVStore, seq math.Uint) error {
 	if pStore.Has(sequenceIDPrefix) {
 		return types.ErrSequenceUniqueConstraint
 	}
-	var bz []byte
-	var err error
-	if bz, err = seq.Marshal(); err != nil {
-		return err
-	}
-	pStore.Set(sequenceIDPrefix, bz)
+
+	pStore.Set(sequenceIDPrefix, types.MustMarshalUint(seq))
 	return nil
 }

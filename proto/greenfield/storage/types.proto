@@ -21,7 +21,7 @@ message BucketInfo {
   // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
   bool is_public = 3;
   // id is the unique identification for bucket. 
-  string id = 4;
+  string id = 4 [(cosmos_proto.scalar) = "cosmos.Uint", (gogoproto.customtype) = "Uint", (gogoproto.nullable) = false];
   // create_at define the block number when the bucket created.
   int64 create_at = 5;
   // payment_address is the address of the payment account
@@ -55,7 +55,7 @@ message ObjectInfo {
   // object_name is the name of object
   string object_name = 3;
   // id is the unique identifier of object
-  string id = 4;
+  string id = 4 [(cosmos_proto.scalar) = "cosmos.Uint", (gogoproto.customtype) = "Uint", (gogoproto.nullable) = false];
   // payloadSize is the total size of the object payload
   uint64 payload_size = 5;
   // is_public define the highest permissions for object. When the object is public, everyone can access it.
@@ -82,10 +82,10 @@ message GroupInfo {
   // group_name is the name of group which is unique under an account.
   string group_name = 2;
   // id is the unique identifier of group
-  string id = 3;
+  string id = 3 [(cosmos_proto.scalar) = "cosmos.Uint", (gogoproto.customtype) = "Uint", (gogoproto.nullable) = false];
 }
 
 message GroupMemberInfo {
-  string id = 1;
+  string id = 1 [(cosmos_proto.scalar) = "cosmos.Uint", (gogoproto.customtype) = "Uint", (gogoproto.nullable) = false];
   uint64 expire_time = 2;
 }

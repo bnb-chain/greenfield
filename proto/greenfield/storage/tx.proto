@@ -116,11 +116,11 @@ message MsgCopyObject {
   string src_bucket_name = 2;
   // dst_bucket_name is the name of the bucket where the object is copied to.
   string dst_bucket_name = 3;
-  //
+  // src_object_name is the name of the object which to be copied
   string src_object_name = 4;
-  //
+  // dst_object_name is the name of the object which is copied to
   string dst_object_name = 5;
-  //
+  // dst_primary_sp_approval is a approval signature of primary sp
   bytes dst_primary_sp_approval = 6;
 }
 

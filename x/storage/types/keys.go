@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/math"
 	"regexp"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -46,6 +47,6 @@ func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
 	return append([]byte(owner.String()), groupKey...)
 }
 
-func GetGroupMemberKey(groupId string, memberAcc sdk.AccAddress) []byte {
-	return append([]byte(groupId), []byte(memberAcc.String())...)
+func GetGroupMemberKey(groupId math.Uint, memberAcc sdk.AccAddress) []byte {
+	return append(MustMarshalUint(groupId), []byte(memberAcc.String())...)
 }
