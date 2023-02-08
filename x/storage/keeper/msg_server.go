@@ -6,7 +6,6 @@ import (
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 type msgServer struct {
@@ -55,7 +54,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
-	err = k.CheckSPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+	err = k.CheckSPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +131,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	if err != nil {
 		return nil, err
 	}
-	err = k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{crypto.Sha256(bz)}, [][]byte{spApproval})
+	err = k.CheckSPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
 	if err != nil {
 		return nil, err
 	}

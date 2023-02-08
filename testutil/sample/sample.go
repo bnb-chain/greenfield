@@ -3,7 +3,6 @@ package sample
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
 	"math/rand"
 )
 
@@ -15,7 +14,7 @@ func AccAddress() string {
 }
 
 func Checksum() []byte {
-	return crypto.Sha256(RandStr(256))
+	return sdk.Keccak256(RandStr(256))
 }
 
 func RandStr(length int) []byte {

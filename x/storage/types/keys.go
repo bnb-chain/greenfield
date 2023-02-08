@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -33,17 +32,18 @@ var (
 )
 
 func GetBucketKey(bucketName string) []byte {
-	return crypto.Sha256([]byte(bucketName))
+	return sdk.Keccak256([]byte(bucketName))
 }
 
 func GetObjectKey(bucketName string, objectName string) []byte {
-	bucketKey := crypto.Sha256([]byte(bucketName))
-	objectKey := crypto.Sha256([]byte(objectName))
+	sdk.Keccak256()
+	bucketKey := sdk.Keccak256([]byte(bucketName))
+	objectKey := sdk.Keccak256([]byte(objectName))
 	return append(bucketKey, objectKey...)
 }
 
 func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
-	groupKey := crypto.Sha256([]byte(groupName))
+	groupKey := sdk.Keccak256([]byte(groupName))
 	return append([]byte(owner.String()), groupKey...)
 }
 
