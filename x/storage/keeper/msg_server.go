@@ -3,9 +3,10 @@ package keeper
 import (
 	"context"
 
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type msgServer struct {
@@ -47,6 +48,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
+	// TODO: this is a very tricky implement. Will be refactor later.
 	spApproval := msg.PrimarySpApprovalSignature
 	msg.PrimarySpApprovalSignature = []byte("")
 	bz, err := msg.Marshal()
@@ -125,6 +127,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrObjectAlreadyExists
 	}
 
+	// TODO: this is a very tricky implement. Will be refactor later.
 	spApproval := msg.PrimarySpApprovalSignature
 	msg.PrimarySpApprovalSignature = []byte("")
 	bz, err := msg.Marshal()
@@ -222,6 +225,18 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 	srcObjectInfo, found := k.Keeper.GetObject(ctx, srcObjectKey)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", msg.SrcObjectName)
+	}
+
+	// TODO: this is a very tricky implement. Will be refactor later.
+	spApproval := msg.DstPrimarySpApprovalSignature
+	msg.DstPrimarySpApprovalSignature = []byte("")
+	bz, err := msg.Marshal()
+	if err != nil {
+		return nil, err
+	}
+	err = k.CheckSPAndSignature(ctx, []string{dstBucketInfo.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	if err != nil {
+		return nil, err
 	}
 
 	// check if have permission for copy object from this bucket

@@ -3,14 +3,15 @@ package keeper_test
 import (
 	"testing"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
-	"github.com/bnb-chain/greenfield/x/bridge/keeper"
-	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stretchr/testify/require"
+
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/keeper"
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 func TestCrossTransferOut(t *testing.T) {

@@ -3,8 +3,9 @@ package types_test
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func TestGenesisState_Validate(t *testing.T) {

@@ -3,8 +3,9 @@ package types
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
 var (

@@ -3,15 +3,16 @@ package storage
 import (
 	"math/rand"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	storagesimulation "github.com/bnb-chain/greenfield/x/storage/simulation"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	storagesimulation "github.com/bnb-chain/greenfield/x/storage/simulation"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 // avoid unused import issue

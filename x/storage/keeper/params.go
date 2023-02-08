@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func (k Keeper) MaxSegmentSize(ctx sdk.Context) (res uint64) {

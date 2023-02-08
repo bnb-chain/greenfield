@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // nolint: unused

@@ -1,9 +1,10 @@
 package sample
 
 import (
+	"math/rand"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"math/rand"
 )
 
 // AccAddress returns a sample account address

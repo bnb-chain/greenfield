@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 // sequenceIDPrefix a fix key to read/ write data on the storage layer

@@ -88,10 +88,6 @@ import (
 	appparams "github.com/bnb-chain/greenfield/app/params"
 	"github.com/bnb-chain/greenfield/docs"
 	"github.com/bnb-chain/greenfield/version"
-	storagemodule "github.com/bnb-chain/greenfield/x/storage"
-	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
-	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
-
 	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
@@ -102,6 +98,9 @@ import (
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	storagemodule "github.com/bnb-chain/greenfield/x/storage"
+	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
+	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
@@ -409,7 +408,7 @@ func New(
 		keys[storagemoduletypes.StoreKey],
 		keys[storagemoduletypes.MemStoreKey],
 		app.GetSubspace(storagemoduletypes.ModuleName),
-    app.SpKeeper,
+		app.SpKeeper,
 	)
 
 	// Register the upgrade keeper

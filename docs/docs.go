@@ -1,6 +1,8 @@
 package docs
 
-import "embed"
+import (
+	"embed"
+)
 
 //go:embed static
 var Docs embed.FS

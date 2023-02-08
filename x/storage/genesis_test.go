@@ -3,11 +3,12 @@ package storage_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/nullify"
 	"github.com/bnb-chain/greenfield/x/storage"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGenesis(t *testing.T) {

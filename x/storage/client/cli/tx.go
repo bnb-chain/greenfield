@@ -8,13 +8,13 @@ import (
 	"os"
 	"time"
 
-	"github.com/spf13/cobra"
-
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
+
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 var (
@@ -82,7 +82,7 @@ func CmdCreateBucket() *cobra.Command {
 				isPublic,
 				primarySP,
 				paymentAccount,
-				primarySPApproval,
+				primarySPApproval, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -216,7 +216,7 @@ func CmdCopyObject() *cobra.Command {
 				argDstBucketName,
 				argSrcObjectName,
 				argDstObjectName,
-				nil,
+				nil, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -346,7 +346,7 @@ func CmdCreateGroup() *cobra.Command {
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-				nil,
+				nil, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -435,8 +435,8 @@ func CmdUpdateGroupMember() *cobra.Command {
 			msg := types.NewMsgUpdateGroupMember(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-				nil,
-				nil,
+				nil, // TODO: Refine the cli parameters
+				nil, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
