@@ -16,15 +16,15 @@ func (k Keeper) Bucket(goCtx context.Context, req *types.QueryBucketRequest) (*t
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-  bucketInfo, found := k.GetBucket(ctx, types.GetBucketKey(req.BucketName))
-  if found {
-    return &types.QueryBucketResponse {
-      BucketInfo: &bucketInfo,
-    }, nil
+	bucketInfo, found := k.GetBucket(ctx, types.GetBucketKey(req.BucketName))
+	if found {
+		return &types.QueryBucketResponse{
+			BucketInfo: &bucketInfo,
+		}, nil
 
-  } else {
-    return nil, types.ErrNoSuchBucket
-  }
+	} else {
+		return nil, types.ErrNoSuchBucket
+	}
 }
 
 func (k Keeper) Object(goCtx context.Context, req *types.QueryObjectRequest) (*types.QueryObjectResponse, error) {
@@ -34,12 +34,12 @@ func (k Keeper) Object(goCtx context.Context, req *types.QueryObjectRequest) (*t
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-  objectInfo, found := k.GetObject(ctx, types.GetObjectKey(req.BucketName, req.ObjectName))
-  if found {
-    return &types.QueryObjectResponse{
-      ObjectInfo: &objectInfo,
-    }, nil
-  } else {
-    return nil, types.ErrNoSuchObject
-  }
+	objectInfo, found := k.GetObject(ctx, types.GetObjectKey(req.BucketName, req.ObjectName))
+	if found {
+		return &types.QueryObjectResponse{
+			ObjectInfo: &objectInfo,
+		}, nil
+	} else {
+		return nil, types.ErrNoSuchObject
+	}
 }

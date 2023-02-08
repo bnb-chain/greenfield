@@ -406,10 +406,10 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 			return nil, err
 		}
 		memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
-		if !k.Keeper.HasGroupMember(ctx, memberKey) {
+		if k.Keeper.HasGroupMember(ctx, memberKey) {
 			k.Keeper.DeleteGroupMember(ctx, memberKey)
 		} else {
-			return nil, types.ErrGroupMemberAlreadyExists
+			return nil, types.ErrGroupMemberNotExists
 		}
 	}
 

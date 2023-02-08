@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -48,16 +49,27 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyMaxSegmentSize, &p.MaxSegmentSize, nil),
-		paramtypes.NewParamSetPair(KeyRedundantDataChunkNum, &p.RedundantDataChunkNum, nil),
-		paramtypes.NewParamSetPair(KeyRedundantParityChunkNum, &p.RedundantParityChunkNum, nil),
-		paramtypes.NewParamSetPair(KeyMaxPayloadSize, &p.MaxPayloadSize, nil),
+		paramtypes.NewParamSetPair(KeyMaxSegmentSize, &p.MaxSegmentSize, validateMaxSegmentSize),
+		paramtypes.NewParamSetPair(KeyRedundantDataChunkNum, &p.RedundantDataChunkNum, validateRedundantDataChunkNum),
+		paramtypes.NewParamSetPair(KeyRedundantParityChunkNum, &p.RedundantParityChunkNum, validateRedundantParityChunkNum),
+		paramtypes.NewParamSetPair(KeyMaxPayloadSize, &p.MaxPayloadSize, validateMaxPayloadSize),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	// TODO: should validate the params
+	if err := validateMaxSegmentSize(p.MaxSegmentSize); err != nil {
+		return err
+	}
+	if err := validateRedundantDataChunkNum(p.RedundantDataChunkNum); err != nil {
+		return err
+	}
+	if err := validateRedundantParityChunkNum(p.RedundantParityChunkNum); err != nil {
+		return err
+	}
+	if err := validateMaxPayloadSize(p.MaxPayloadSize); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -65,4 +77,54 @@ func (p Params) Validate() error {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
+}
+
+func validateMaxSegmentSize(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("max segment size must be positive: %d", v)
+	}
+
+	return nil
+}
+func validateMaxPayloadSize(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("max payload size must be positive: %d", v)
+	}
+
+	return nil
+}
+
+func validateRedundantDataChunkNum(i interface{}) error {
+	v, ok := i.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("redundant data chunk num must be positive: %d", v)
+	}
+
+	return nil
+}
+func validateRedundantParityChunkNum(i interface{}) error {
+	v, ok := i.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("redundant parity size chunk num must be positive: %d", v)
+	}
+
+	return nil
 }

@@ -15,19 +15,19 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 service Query {
   // Parameters queries the parameters of the module.
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-    option (google.api.http).get = "/storage/storage/params";
+    option (google.api.http).get = "/greenfield/storage/params";
   }
 
   // this line is used by starport scaffolding # 2
 
   // Queries a list of Bucket items.
   rpc Bucket(QueryBucketRequest) returns (QueryBucketResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/storage/bucket/{bucket_name}";
+    option (google.api.http).get = "/greenfield/storage/bucket/{bucket_name}";
   }
 
   // Queries a list of Object items.
   rpc Object(QueryObjectRequest) returns (QueryObjectResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/storage/object/{bucket_name}/{object_name}";
+    option (google.api.http).get = "/greenfield/storage/object/{bucket_name}/{object_name}";
   }
 }
 
