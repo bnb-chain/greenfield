@@ -141,6 +141,7 @@ func (m *Description) GetDetails() string {
 
 // StorageProvider defines the meta info of storage provider
 // TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
+// TODO: add more account address for different role.
 type StorageProvider struct {
 	// operator_address defines the address of the sp's operator; It also is the unqiue index key of sp.
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`

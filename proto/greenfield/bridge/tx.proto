@@ -13,12 +13,14 @@ service Msg {
 // this line is used by starport scaffolding # proto/tx/rpc
 }
 
+// MsgTransferOut is the Msg/TransferOut request type.
 message MsgTransferOut {
   string from = 1;
   string to = 2;
   cosmos.base.v1beta1.Coin amount = 3;
 }
 
+// MsgTransferOutResponse is the Msg/TransferOut response type.
 message MsgTransferOutResponse {
 }
 

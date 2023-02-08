@@ -9,6 +9,7 @@ option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
 
 // GenesisState defines the bridge module's genesis state.
 message GenesisState {
+  // Params defines all the paramaters of the module.
   Params params = 1 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }
