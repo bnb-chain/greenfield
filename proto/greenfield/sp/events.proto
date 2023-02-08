@@ -11,8 +11,14 @@ message EventCreateStorageProvider {
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // funding_address is the funding account address of the storage provider
   string funding_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // seal_address is the account address for SealObject Tx
+  string seal_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // approval_address is the account address for approve create bucket/object signature
+  string approval_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // endpoint is the domain name address used by SP to provide storage services
+  string endpoint = 5;
   // total_deposit is the token coin that the storage provider deposit to the storage module
-  string total_deposit = 3;
+  string total_deposit = 6;
 }
 
 // EventEditStorageProvider is emitted when SP's metadata is edited.
