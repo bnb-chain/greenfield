@@ -19,6 +19,7 @@ import (
 
 var (
 	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
+	DefaultEndpoint                       = "sp0.greenfield.io"
 )
 
 const (
@@ -67,6 +68,7 @@ func CmdCreateStorageProvider() *cobra.Command {
 				clientCtx.GetFromAddress(),
 				clientCtx.GetFromAddress(),
 				types.Description{},
+				"",
 				types2.Coin{},
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -100,8 +102,8 @@ func CmdEditStorageProvider() *cobra.Command {
 			}
 
 			msg := types.NewMsgEditStorageProvider(
-				clientCtx.GetFromAddress(),
 				spAddress,
+				DefaultEndpoint,
 				types.Description{},
 			)
 			if err := msg.ValidateBasic(); err != nil {

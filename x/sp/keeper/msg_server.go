@@ -23,6 +23,7 @@ var _ types.MsgServer = msgServer{}
 
 // CreateStorageProvider defines a method for creating a new storage provider
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
+	// TODO: check if a valid endpoint
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signers := msg.GetSigners()
@@ -94,9 +95,12 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
-		SpAddress:      spAcc.String(),
-		FundingAddress: fundingAcc.String(),
-		TotalDeposit:   msg.Deposit.String(),
+		SpAddress:       spAcc.String(),
+		FundingAddress:  fundingAcc.String(),
+		SealAddress:     sealAcc.String(),
+		ApprovalAddress: approvalAcc.String(),
+		Endpoint:        msg.Endpoint,
+		TotalDeposit:    msg.Deposit.String(),
 	}); err != nil {
 		return nil, err
 	}
@@ -112,25 +116,29 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		return nil, err
 	}
 
-	storageProvider, found := k.GetStorageProvider(ctx, spAcc)
+	sp, found := k.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}
 
+	oldEndpoint := sp.Endpoint
 	if _, err := msg.Description.EnsureLength(); err != nil {
 		return nil, err
 	}
 
-	description, err := storageProvider.Description.UpdateDescription(msg.Description)
+	description, err := sp.Description.UpdateDescription(msg.Description)
 	if err != nil {
 		return nil, err
 	}
 
-	storageProvider.Description = description
+	sp.Description = description
 
-	k.SetStorageProvider(ctx, storageProvider)
+	k.SetStorageProvider(ctx, sp)
 
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{}); err != nil {
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
+		OldEndpoint: oldEndpoint,
+		NewEndpoint: sp.Endpoint,
+	}); err != nil {
 		return nil, err
 	}
 	return &types.MsgEditStorageProviderResponse{}, nil

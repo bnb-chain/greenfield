@@ -57,8 +57,10 @@ message StorageProvider {
   ];
   // status is the status of sp, which can be (in_service/read_only_service/graceful_exiting/out_of_service)
   Status status = 6;
+  // endpoint is the service address of the storage provider
+  string endpoint = 7;
   // description defines the description terms for the validator.
-  Description description = 7 [(gogoproto.nullable) = false];
+  Description description = 8 [(gogoproto.nullable) = false];
 }
 
 message RewardInfo {

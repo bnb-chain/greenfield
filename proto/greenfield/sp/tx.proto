@@ -30,8 +30,8 @@ message MsgCreateStorageProvider {
   string funding_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string seal_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  cosmos.base.v1beta1.Coin deposit = 7 [(gogoproto.nullable) = false];
+  string endpoint = 7;
+  cosmos.base.v1beta1.Coin deposit = 8 [(gogoproto.nullable) = false];
 }
 
 // MsgCreateStorageProviderResponse defines the Msg/CreateStorageProvider response type.
@@ -57,7 +57,8 @@ message MsgEditStorageProvider {
   option (cosmos.msg.v1.signer) = "sp_address";
 
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  Description description = 2 [(gogoproto.nullable) = false];
+  string endpoint = 2;
+  Description description = 3 [(gogoproto.nullable) = false];
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
