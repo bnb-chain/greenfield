@@ -81,14 +81,14 @@ message MsgCreateObjectResponse {}
 
 message MsgSealObject {
   option (cosmos.msg.v1.signer) = "operator";
-  // creator is the account address of primary SP
+  // operator is the account address of primary SP
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
   // object_name is the name of object to be sealed.
   string object_name = 3;
   // secondary_sp_addresses is a list of storage provider which store the redundant data.
-  repeated string secondary_sp_addresses = 4;
+  repeated string secondary_sp_addresses = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // secondary_sp_signatures is the signature of the secondary sp that can
   // acknowledge that the payload data has received and stored.
   repeated bytes secondary_sp_signatures = 5;
@@ -98,7 +98,7 @@ message MsgSealObjectResponse {}
 
 message MsgRejectSealObject {
   option (cosmos.msg.v1.signer) = "operator";
-  // creator is the account address of the object owner
+  // operator is the account address of the object owner
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
