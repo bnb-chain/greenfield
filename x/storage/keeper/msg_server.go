@@ -54,8 +54,8 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
-	spApproval := msg.PrimarySpApproval
-	msg.PrimarySpApproval = []byte("")
+	spApproval := msg.PrimarySpApprovalSignature
+	msg.PrimarySpApprovalSignature = []byte("")
 	bz, err := msg.Marshal()
 	if err != nil {
 		return nil, err
@@ -135,8 +135,8 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrObjectAlreadyExists
 	}
 
-	spApproval := msg.PrimarySpApproval
-	msg.PrimarySpApproval = []byte("")
+	spApproval := msg.PrimarySpApprovalSignature
+	msg.PrimarySpApprovalSignature = []byte("")
 	bz, err := msg.Marshal()
 	if err != nil {
 		return nil, err

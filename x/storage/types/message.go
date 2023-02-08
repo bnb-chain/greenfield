@@ -48,12 +48,12 @@ func NewMsgCreateBucket(
 	creator sdk.AccAddress, bucketName string, isPublic bool,
 	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, primarySPApproval []byte) *MsgCreateBucket {
 	return &MsgCreateBucket{
-		Creator:           creator.String(),
-		BucketName:        bucketName,
-		IsPublic:          isPublic,
-		PaymentAddress:    paymentAddress.String(),
-		PrimarySpAddress:  primarySPAddress.String(),
-		PrimarySpApproval: primarySPApproval,
+		Creator:                    creator.String(),
+		BucketName:                 bucketName,
+		IsPublic:                   isPublic,
+		PaymentAddress:             paymentAddress.String(),
+		PrimarySpAddress:           primarySPAddress.String(),
+		PrimarySpApprovalSignature: primarySPApproval,
 	}
 }
 
@@ -171,7 +171,7 @@ func NewMsgCreateObject(
 		PayloadSize:                payloadSize,
 		IsPublic:                   isPublic,
 		ContentType:                contentType,
-		PrimarySpApproval:          primarySPApproval,
+		PrimarySpApprovalSignature: primarySPApproval,
 		ExpectChecksums:            expectChecksums,
 		ExpectSecondarySpAddresses: secSPAddrs,
 	}
@@ -224,7 +224,7 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidContentType, "invalid checksum (%s)", err)
 	}
 
-	if msg.PrimarySpApproval == nil {
+	if msg.PrimarySpApprovalSignature == nil {
 		return sdkerrors.Wrapf(ErrInvalidSPSignature, "empty sp signature")
 	}
 
@@ -376,12 +376,12 @@ func NewMsgCopyObject(
 	operator sdk.AccAddress, srcBucketName string, dstBucketName string,
 	srcObjectName string, dstObjectName string, dstPrimarySPApproval []byte) *MsgCopyObject {
 	return &MsgCopyObject{
-		Operator:             operator.String(),
-		SrcBucketName:        srcBucketName,
-		DstBucketName:        dstBucketName,
-		SrcObjectName:        srcObjectName,
-		DstObjectName:        dstObjectName,
-		DstPrimarySpApproval: dstPrimarySPApproval,
+		Operator:                      operator.String(),
+		SrcBucketName:                 srcBucketName,
+		DstBucketName:                 dstBucketName,
+		SrcObjectName:                 srcObjectName,
+		DstObjectName:                 dstObjectName,
+		DstPrimarySpApprovalSignature: dstPrimarySPApproval,
 	}
 }
 
