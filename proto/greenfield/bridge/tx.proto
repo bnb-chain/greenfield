@@ -21,7 +21,6 @@ message MsgTransferOut {
 }
 
 // MsgTransferOutResponse is the Msg/TransferOut response type.
-message MsgTransferOutResponse {
-}
+message MsgTransferOutResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
