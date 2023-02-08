@@ -1,10 +1,10 @@
 syntax = "proto3";
 package bnbchain.greenfield.storage;
 
-import "greenfield/storage/common.proto";
 import "cosmos/msg/v1/msg.proto";
 // this line is used by starport scaffolding # proto/tx/import
 import "cosmos_proto/cosmos.proto";
+import "greenfield/storage/common.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
@@ -167,9 +167,9 @@ message MsgUpdateGroupMember {
   // group_name is the name of the group which to be updated
   string group_name = 2;
   // members_to_add is a list of members account address which will be add to the group
-  repeated string members_to_add = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"]; 
+  repeated string members_to_add = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // members_to_delete is a list of members account address which will be remove from the group
-  repeated string members_to_delete = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"]; 
+  repeated string members_to_delete = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message MsgUpdateGroupMemberResponse {}

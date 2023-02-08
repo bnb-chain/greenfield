@@ -7,10 +7,15 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // Params defines the parameters for the module.
 message Params {
+  // TODO: We should think more about the version-control of the storage params.
   option (gogoproto.goproto_stringer) = false;
 
-  uint64 MaxSegmentSize = 1;
-  uint32 RedundantDataChunkNum = 2;
-  uint32 RedundantParityChunkNum = 3;
-  uint64 MaxPayloadSize = 4;
+  // max_segment_size is the maximum size of a segment. default: 16M
+  uint64 max_segment_size = 1;
+  // redundant_data_check_num is the num of data chunks of EC redundancy algorithm
+  uint32 redundant_data_chunk_num = 2;
+  // redundant_data_check_num is the num of parity chunks of EC redundancy algorithm
+  uint32 redundant_parity_chunk_num = 3;
+  // max_payload_size is the maximum size of the payload, default: 2G
+  uint64 max_payload_size = 4;
 }

@@ -27,18 +27,12 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check the bucket permission
-	var (
-		ownerAcc     sdk.AccAddress
-		paymentAcc   sdk.AccAddress
-		primarySPAcc sdk.AccAddress
-		err          error
-	)
-
-	ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator)
+	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return nil, err
 	}
 
+	var paymentAcc sdk.AccAddress
 	if msg.PaymentAddress != "" {
 		// TODO: validate that the paymentAcc is ownered by ownerAcc if payment module ready
 		paymentAcc, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
@@ -49,7 +43,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		paymentAcc = ownerAcc
 	}
 
-	primarySPAcc, err = sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	primarySPAcc, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -113,12 +107,9 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	// TODO: check bucket and object permission
 	// TODO: pay for the object. Interact with PaymentModule
 
-	var (
-		ownerAcc sdk.AccAddress
-		err      error
-	)
 	// check owner AccAddress
-	if ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	if err != nil {
 		return nil, err
 	}
 
@@ -211,11 +202,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (*types.MsgCopyObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var (
-		ownerAcc sdk.AccAddress
-		err      error
-	)
-	ownerAcc, err = sdk.AccAddressFromHexUnsafe(msg.Operator)
+	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
