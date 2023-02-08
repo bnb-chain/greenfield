@@ -23,10 +23,20 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// EventCreateStorageProvider is emitted when there is a storage provider created
 type EventCreateStorageProvider struct {
-	SpAddress      string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// sp_address is the operator address of the storage provider
+	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// funding_address is the funding account address of the storage provider
 	FundingAddress string `protobuf:"bytes,2,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
-	TotalDeposit   string `protobuf:"bytes,3,opt,name=total_deposit,json=totalDeposit,proto3" json:"total_deposit,omitempty"`
+	// seal_address is the account address for SealObject Tx
+	SealAddress string `protobuf:"bytes,3,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
+	// approval_address is the account address for approve create bucket/object signature
+	ApprovalAddress string `protobuf:"bytes,4,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
+	// endpoint is the domain name address used by SP to provide storage services
+	Endpoint string `protobuf:"bytes,5,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	// total_deposit is the token coin that the storage provider deposit to the storage module
+	TotalDeposit string `protobuf:"bytes,6,opt,name=total_deposit,json=totalDeposit,proto3" json:"total_deposit,omitempty"`
 }
 
 func (m *EventCreateStorageProvider) Reset()         { *m = EventCreateStorageProvider{} }
@@ -76,6 +86,27 @@ func (m *EventCreateStorageProvider) GetFundingAddress() string {
 	return ""
 }
 
+func (m *EventCreateStorageProvider) GetSealAddress() string {
+	if m != nil {
+		return m.SealAddress
+	}
+	return ""
+}
+
+func (m *EventCreateStorageProvider) GetApprovalAddress() string {
+	if m != nil {
+		return m.ApprovalAddress
+	}
+	return ""
+}
+
+func (m *EventCreateStorageProvider) GetEndpoint() string {
+	if m != nil {
+		return m.Endpoint
+	}
+	return ""
+}
+
 func (m *EventCreateStorageProvider) GetTotalDeposit() string {
 	if m != nil {
 		return m.TotalDeposit
@@ -83,7 +114,12 @@ func (m *EventCreateStorageProvider) GetTotalDeposit() string {
 	return ""
 }
 
+// EventEditStorageProvider is emitted when SP's metadata is edited.
 type EventEditStorageProvider struct {
+	// old_endpoint is the service endpoint of the storage provider before edit
+	OldEndpoint string `protobuf:"bytes,1,opt,name=old_endpoint,json=oldEndpoint,proto3" json:"old_endpoint,omitempty"`
+	// new_endpoint is the service endpoint of the storage provider after edit
+	NewEndpoint string `protobuf:"bytes,2,opt,name=new_endpoint,json=newEndpoint,proto3" json:"new_endpoint,omitempty"`
 }
 
 func (m *EventEditStorageProvider) Reset()         { *m = EventEditStorageProvider{} }
@@ -119,9 +155,27 @@ func (m *EventEditStorageProvider) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventEditStorageProvider proto.InternalMessageInfo
 
+func (m *EventEditStorageProvider) GetOldEndpoint() string {
+	if m != nil {
+		return m.OldEndpoint
+	}
+	return ""
+}
+
+func (m *EventEditStorageProvider) GetNewEndpoint() string {
+	if m != nil {
+		return m.NewEndpoint
+	}
+	return ""
+}
+
+// EventDeposit is emitted when sp deposit tokens.
 type EventDeposit struct {
-	SpAddress    string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
-	Deposit      string `protobuf:"bytes,2,opt,name=deposit,proto3" json:"deposit,omitempty"`
+	// sp_address is the account address of storage provider
+	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// deposit is the token coin deposited this message
+	Deposit string `protobuf:"bytes,2,opt,name=deposit,proto3" json:"deposit,omitempty"`
+	// total_deposit is the total token coins this storage provider deposited
 	TotalDeposit string `protobuf:"bytes,3,opt,name=total_deposit,json=totalDeposit,proto3" json:"total_deposit,omitempty"`
 }
 
@@ -188,26 +242,32 @@ func init() {
 func init() { proto.RegisterFile("greenfield/sp/events.proto", fileDescriptor_685cbfa50fdf0841) }
 
 var fileDescriptor_685cbfa50fdf0841 = []byte{
-	// 303 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x51, 0xb1, 0x4e, 0xf3, 0x30,
-	0x18, 0xac, 0xff, 0x5f, 0x02, 0xd5, 0x2a, 0x20, 0x45, 0x08, 0x85, 0x0c, 0x16, 0x0a, 0x0b, 0x42,
-	0x6a, 0x32, 0x30, 0x30, 0xb7, 0xb4, 0x3b, 0x4a, 0x37, 0x96, 0x28, 0x8e, 0xbf, 0xa6, 0x96, 0x5a,
-	0xdb, 0xb2, 0xdd, 0x0a, 0x5e, 0x80, 0x99, 0x87, 0x61, 0x65, 0x67, 0xac, 0x98, 0x18, 0x51, 0xf2,
-	0x22, 0x28, 0x4e, 0x02, 0x88, 0x05, 0xc4, 0xf8, 0xdd, 0x77, 0x77, 0xba, 0xd3, 0xe1, 0xa0, 0xd0,
-	0x00, 0x62, 0xce, 0x61, 0xc9, 0x62, 0xa3, 0x62, 0xd8, 0x80, 0xb0, 0x26, 0x52, 0x5a, 0x5a, 0xe9,
-	0x1d, 0x51, 0x41, 0xf3, 0x45, 0xc6, 0x45, 0xf4, 0x49, 0x8a, 0x8c, 0x0a, 0x8e, 0x73, 0x69, 0x56,
-	0xd2, 0xa4, 0x8e, 0x15, 0x37, 0x47, 0x23, 0x09, 0x9f, 0x10, 0x0e, 0xa6, 0xb5, 0xc7, 0x95, 0x86,
-	0xcc, 0xc2, 0xcc, 0x4a, 0x9d, 0x15, 0x70, 0xad, 0xe5, 0x86, 0x33, 0xd0, 0xde, 0x25, 0xc6, 0x46,
-	0xa5, 0x19, 0x63, 0x1a, 0x8c, 0xf1, 0xd1, 0x09, 0x3a, 0xeb, 0x8f, 0xfd, 0x97, 0xc7, 0xe1, 0x61,
-	0x6b, 0x32, 0x6a, 0x3e, 0x33, 0xab, 0xb9, 0x28, 0x92, 0xbe, 0x51, 0x2d, 0xe0, 0x8d, 0xf0, 0xc1,
-	0x7c, 0x2d, 0x18, 0x17, 0xc5, 0x87, 0xfa, 0xdf, 0x0f, 0xea, 0xfd, 0x56, 0xd0, 0x59, 0x9c, 0xe2,
-	0x3d, 0x2b, 0x6d, 0xb6, 0x4c, 0x19, 0x28, 0x69, 0xb8, 0xf5, 0xff, 0xd7, 0x06, 0xc9, 0xc0, 0x81,
-	0x93, 0x06, 0x0b, 0x03, 0xec, 0xbb, 0xf8, 0x53, 0xc6, 0xed, 0xb7, 0xf0, 0xe1, 0x3d, 0xc2, 0x03,
-	0xf7, 0x6c, 0xc9, 0x7f, 0x6f, 0xe3, 0xe3, 0xdd, 0x2e, 0x84, 0x6b, 0x91, 0x74, 0xe7, 0xaf, 0x42,
-	0x8e, 0x27, 0xcf, 0x25, 0x41, 0xdb, 0x92, 0xa0, 0xb7, 0x92, 0xa0, 0x87, 0x8a, 0xf4, 0xb6, 0x15,
-	0xe9, 0xbd, 0x56, 0xa4, 0x77, 0x73, 0x5e, 0x70, 0xbb, 0x58, 0xd3, 0x28, 0x97, 0xab, 0x98, 0x0a,
-	0x3a, 0x74, 0xeb, 0xc5, 0x5f, 0x26, 0xbe, 0xad, 0x47, 0xb6, 0x77, 0x0a, 0x0c, 0xdd, 0x71, 0x8b,
-	0x5d, 0xbc, 0x07, 0x00, 0x00, 0xff, 0xff, 0x90, 0xeb, 0x1d, 0x84, 0x02, 0x02, 0x00, 0x00,
+	// 387 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xbf, 0x8e, 0xda, 0x40,
+	0x10, 0xc6, 0x31, 0x24, 0x24, 0x2c, 0x4e, 0x88, 0xac, 0x28, 0x72, 0x5c, 0x58, 0x81, 0x34, 0x51,
+	0x24, 0xec, 0x22, 0x45, 0x8a, 0x54, 0xfc, 0xeb, 0x23, 0xe8, 0xd2, 0x38, 0x36, 0x3b, 0x98, 0x95,
+	0xcc, 0xee, 0x6a, 0x77, 0x81, 0xe4, 0x05, 0xae, 0xbe, 0x87, 0xb9, 0x87, 0xb8, 0x12, 0x5d, 0x75,
+	0xd2, 0x35, 0x27, 0x78, 0x91, 0x93, 0xd7, 0x5e, 0x83, 0x8e, 0x02, 0xe9, 0xca, 0x99, 0xfd, 0x7e,
+	0xdf, 0xa7, 0x99, 0x1d, 0xe4, 0xa5, 0x02, 0x80, 0x2e, 0x08, 0x64, 0x38, 0x94, 0x3c, 0x84, 0x0d,
+	0x50, 0x25, 0x03, 0x2e, 0x98, 0x62, 0xce, 0xa7, 0x84, 0x26, 0xf3, 0x65, 0x4c, 0x68, 0x70, 0x14,
+	0x05, 0x92, 0x7b, 0x9f, 0xe7, 0x4c, 0xae, 0x98, 0x8c, 0xb4, 0x2a, 0x2c, 0x8a, 0x02, 0xe9, 0x3d,
+	0xd4, 0x91, 0x37, 0xc9, 0x3d, 0x46, 0x02, 0x62, 0x05, 0x33, 0xc5, 0x44, 0x9c, 0xc2, 0x6f, 0xc1,
+	0x36, 0x04, 0x83, 0x70, 0x7e, 0x22, 0x24, 0x79, 0x14, 0x63, 0x2c, 0x40, 0x4a, 0xd7, 0xfa, 0x62,
+	0x7d, 0x6b, 0x0d, 0xdd, 0xbb, 0x9b, 0xfe, 0xc7, 0xd2, 0x64, 0x50, 0xbc, 0xcc, 0x94, 0x20, 0x34,
+	0x9d, 0xb6, 0x24, 0x2f, 0x1b, 0xce, 0x00, 0x75, 0x16, 0x6b, 0x8a, 0x09, 0x4d, 0x2b, 0xba, 0x7e,
+	0x81, 0x7e, 0x5f, 0x02, 0xc6, 0xe2, 0x17, 0xb2, 0x25, 0xc4, 0x59, 0xc5, 0x37, 0x2e, 0xf0, 0xed,
+	0x5c, 0x6d, 0xe0, 0x11, 0xfa, 0x10, 0x73, 0x2e, 0xd8, 0xe6, 0xc4, 0xe0, 0xd5, 0x05, 0x83, 0x8e,
+	0x21, 0x8c, 0x89, 0x87, 0xde, 0x02, 0xc5, 0x9c, 0x11, 0xaa, 0xdc, 0xd7, 0x39, 0x3c, 0xad, 0x6a,
+	0xe7, 0x2b, 0x7a, 0xa7, 0x98, 0x8a, 0xb3, 0x08, 0x03, 0x67, 0x92, 0x28, 0xb7, 0xa9, 0x05, 0xb6,
+	0x6e, 0x8e, 0x8b, 0x5e, 0xef, 0x2f, 0x72, 0xf5, 0x72, 0x27, 0x98, 0xa8, 0xe7, 0xab, 0xed, 0x22,
+	0x9b, 0x65, 0x38, 0xaa, 0x02, 0xf4, 0x72, 0xa7, 0x6d, 0x96, 0xe1, 0x89, 0xc9, 0xe8, 0x22, 0x9b,
+	0xc2, 0xf6, 0x28, 0xa9, 0x17, 0x12, 0x0a, 0x5b, 0x23, 0xe9, 0x5d, 0x59, 0xc8, 0xd6, 0x11, 0x65,
+	0xe4, 0xcb, 0x7f, 0xcc, 0x45, 0x6f, 0xcc, 0x28, 0x45, 0x8e, 0x29, 0xcf, 0x47, 0x6d, 0x9c, 0x8f,
+	0x3a, 0x1c, 0xdf, 0xee, 0x7d, 0x6b, 0xb7, 0xf7, 0xad, 0xc7, 0xbd, 0x6f, 0x5d, 0x1f, 0xfc, 0xda,
+	0xee, 0xe0, 0xd7, 0xee, 0x0f, 0x7e, 0xed, 0xcf, 0xf7, 0x94, 0xa8, 0xe5, 0x3a, 0x09, 0xe6, 0x6c,
+	0x15, 0x26, 0x34, 0xe9, 0xeb, 0x0b, 0x0d, 0x4f, 0xce, 0xf8, 0x5f, 0x7e, 0xc8, 0xea, 0x3f, 0x07,
+	0x99, 0x34, 0xf5, 0x55, 0xfe, 0x78, 0x0a, 0x00, 0x00, 0xff, 0xff, 0x3d, 0x8f, 0xc2, 0xf1, 0xe6,
+	0x02, 0x00, 0x00,
 }
 
 func (m *EventCreateStorageProvider) Marshal() (dAtA []byte, err error) {
@@ -234,6 +294,27 @@ func (m *EventCreateStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i -= len(m.TotalDeposit)
 		copy(dAtA[i:], m.TotalDeposit)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.TotalDeposit)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if len(m.Endpoint) > 0 {
+		i -= len(m.Endpoint)
+		copy(dAtA[i:], m.Endpoint)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Endpoint)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if len(m.ApprovalAddress) > 0 {
+		i -= len(m.ApprovalAddress)
+		copy(dAtA[i:], m.ApprovalAddress)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.ApprovalAddress)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.SealAddress) > 0 {
+		i -= len(m.SealAddress)
+		copy(dAtA[i:], m.SealAddress)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.SealAddress)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -274,6 +355,20 @@ func (m *EventEditStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, error
 	_ = i
 	var l int
 	_ = l
+	if len(m.NewEndpoint) > 0 {
+		i -= len(m.NewEndpoint)
+		copy(dAtA[i:], m.NewEndpoint)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.NewEndpoint)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.OldEndpoint) > 0 {
+		i -= len(m.OldEndpoint)
+		copy(dAtA[i:], m.OldEndpoint)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.OldEndpoint)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
 
@@ -346,6 +441,18 @@ func (m *EventCreateStorageProvider) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
+	l = len(m.SealAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.ApprovalAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.Endpoint)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
 	l = len(m.TotalDeposit)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -359,6 +466,14 @@ func (m *EventEditStorageProvider) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.OldEndpoint)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.NewEndpoint)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
 	return n
 }
 
@@ -484,6 +599,102 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SealAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SealAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ApprovalAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ApprovalAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Endpoint", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Endpoint = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalDeposit", wireType)
 			}
 			var stringLen uint64
@@ -564,6 +775,70 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 			return fmt.Errorf("proto: EventEditStorageProvider: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OldEndpoint", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OldEndpoint = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NewEndpoint", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NewEndpoint = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])

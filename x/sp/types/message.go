@@ -24,7 +24,7 @@ var (
 func NewMsgCreateStorageProvider(
 	creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress,
-	description Description, deposit sdk.Coin) (*MsgCreateStorageProvider, error) {
+	description Description, endpoint string, deposit sdk.Coin) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
 		Creator:         creator.String(),
 		SpAddress:       SpAddress.String(),
@@ -32,6 +32,7 @@ func NewMsgCreateStorageProvider(
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
 		Description:     description,
+		Endpoint:        endpoint,
 		Deposit:         deposit,
 	}, nil
 }
@@ -85,9 +86,10 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
 // TODO(fynn): add morer modifiable items if needed.
-func NewMsgEditStorageProvider(spAddress sdk.AccAddress, address sdk.AccAddress, description Description) *MsgEditStorageProvider {
+func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description Description) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
 		SpAddress:   spAddress.String(),
+		Endpoint:    endpoint,
 		Description: description,
 	}
 }
