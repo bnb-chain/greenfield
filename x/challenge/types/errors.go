@@ -8,5 +8,12 @@ import (
 
 // x/challenge module sentinel errors
 var (
-	ErrSample = sdkerrors.Register(ModuleName, 1100, "sample error")
+	ErrUnknownSp           = sdkerrors.Register(ModuleName, 1, "unknown storage provider")
+	ErrInvalidSpStatus     = sdkerrors.Register(ModuleName, 2, "invalid storage provider status")
+	ErrUnknownChallenge    = sdkerrors.Register(ModuleName, 3, "unknown challenge")
+	ErrInvalidValSet       = sdkerrors.Register(ModuleName, 4, "invalid validator set")
+	ErrInvalidBlsPubKey    = sdkerrors.Register(ModuleName, 5, "invalid bls public key")
+	ErrVotesNotEnough      = sdkerrors.Register(ModuleName, 6, "attest votes are not enough")
+	ErrInvalidBlsSignature = sdkerrors.Register(ModuleName, 7, "invalid bls signature")
+	ErrInvalidGenesis      = sdkerrors.Register(ModuleName, 8, "invalid genesis state")
 )

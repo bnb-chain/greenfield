@@ -18,13 +18,13 @@ message EventCompleteChallenge {
   uint64 challenge_id = 1;
   uint32 result = 2;
   string sp_operator_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string slash_amount = 4 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string slash_amount = 4;
   string challenger_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string challenger_reward_amount = 6 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string challenger_reward_amount = 6;
   string submitter_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string submitter_reward_amount = 8 [(cosmos_proto.scalar) = "cosmos.Int"];
-  repeated string validator_address = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string validator_reward_amount = 10 [(cosmos_proto.scalar) = "cosmos.Int"];
+  string submitter_reward_amount = 8;
+  repeated string validator_addresses = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string validator_reward_amount = 10;
 }
 
 message EventExpireChallenge {

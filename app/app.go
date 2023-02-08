@@ -479,8 +479,8 @@ func New(
 		keys[challengemoduletypes.StoreKey],
 		keys[challengemoduletypes.MemStoreKey],
 		app.GetSubspace(challengemoduletypes.ModuleName),
-
 		app.SpKeeper,
+		app.StakingKeeper,
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 

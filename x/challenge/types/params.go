@@ -14,19 +14,19 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 var (
 	KeyEventCountPerBlock = []byte("EventCountPerBlock")
 	// TODO: Determine the default value
-	DefaultEventCountPerBlock uint64 = 0
+	DefaultEventCountPerBlock uint64 = 3
 )
 
 var (
 	KeyChallengeExpirePeriod = []byte("ChallengeExpirePeriod")
 	// TODO: Determine the default value
-	DefaultChallengeExpirePeriod uint64 = 0
+	DefaultChallengeExpirePeriod uint64 = 100
 )
 
 var (
 	KeySlashCoolingOffPeriod = []byte("SlashCoolingOffPeriod")
 	// TODO: Determine the default value
-	DefaultSlashCoolingOffPeriod uint64 = 0
+	DefaultSlashCoolingOffPeriod uint64 = 100
 )
 
 var (
@@ -49,19 +49,19 @@ var (
 var (
 	KeySlashAmountMax = []byte("SlashAmountMax")
 	// TODO: Determine the default value
-	DefaultSlashAmountMax = math.NewInt(1000)
+	DefaultSlashAmountMax = math.NewInt(100)
 )
 
 var (
 	KeyRewardValidatorRatio = []byte("RewardValidatorRatio")
 	// TODO: Determine the default value
-	DefaultRewardValidatorRatio = sdk.ZeroDec()
+	DefaultRewardValidatorRatio = sdk.NewDecWithPrec(5, 1)
 )
 
 var (
 	KeyRewardChallengerRatio = []byte("RewardChallengerRatio")
 	// TODO: Determine the default value
-	DefaultRewardChallengerRatio = sdk.ZeroDec()
+	DefaultRewardChallengerRatio = sdk.NewDecWithPrec(3, 1)
 )
 
 // ParamKeyTable the param key table for launch module
@@ -115,6 +115,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyEventCountPerBlock, &p.EventCountPerBlock, validateEventCountPerBlock),
 		paramtypes.NewParamSetPair(KeyChallengeExpirePeriod, &p.ChallengeExpirePeriod, validateChallengeExpirePeriod),
 		paramtypes.NewParamSetPair(KeySlashCoolingOffPeriod, &p.SlashCoolingOffPeriod, validateSlashCoolingOffPeriod),
+		paramtypes.NewParamSetPair(KeySlashDenom, &p.SlashDenom, validateSlashDemon),
 		paramtypes.NewParamSetPair(KeySlashAmountPerKb, &p.SlashAmountPerKb, validateSlashAmountPerKb),
 		paramtypes.NewParamSetPair(KeySlashAmountMin, &p.SlashAmountMin, validateSlashAmountMin),
 		paramtypes.NewParamSetPair(KeySlashAmountMax, &p.SlashAmountMax, validateSlashAmountMax),
@@ -205,9 +206,22 @@ func validateSlashCoolingOffPeriod(v interface{}) error {
 	return nil
 }
 
+// validateSlashDemon validates the SlashDemon param
+func validateSlashDemon(v interface{}) error {
+	slashDemon, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	// TODO implement validation
+	_ = slashDemon
+
+	return nil
+}
+
 // validateSlashAmountPerKb validates the SlashAmountPerKb param
 func validateSlashAmountPerKb(v interface{}) error {
-	slashAmountPerKb, ok := v.(string)
+	slashAmountPerKb, ok := v.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
@@ -220,7 +234,7 @@ func validateSlashAmountPerKb(v interface{}) error {
 
 // validateSlashAmountMin validates the SlashAmountMin param
 func validateSlashAmountMin(v interface{}) error {
-	slashAmountMin, ok := v.(string)
+	slashAmountMin, ok := v.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
@@ -233,7 +247,7 @@ func validateSlashAmountMin(v interface{}) error {
 
 // validateSlashAmountMax validates the SlashAmountMax param
 func validateSlashAmountMax(v interface{}) error {
-	slashAmountMax, ok := v.(string)
+	slashAmountMax, ok := v.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
@@ -246,7 +260,7 @@ func validateSlashAmountMax(v interface{}) error {
 
 // validateRewardValidatorRatio validates the RewardValidatorRatio param
 func validateRewardValidatorRatio(v interface{}) error {
-	rewardValidatorRatio, ok := v.(string)
+	rewardValidatorRatio, ok := v.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
@@ -259,7 +273,7 @@ func validateRewardValidatorRatio(v interface{}) error {
 
 // validateRewardChallengerRatio validates the RewardChallengerRatio param
 func validateRewardChallengerRatio(v interface{}) error {
-	rewardChallengerRatio, ok := v.(string)
+	rewardChallengerRatio, ok := v.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}

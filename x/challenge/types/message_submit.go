@@ -9,11 +9,12 @@ const TypeMsgSubmit = "submit"
 
 var _ sdk.Msg = &MsgSubmit{}
 
-func NewMsgSubmit(creator sdk.AccAddress, spOperatorAddress sdk.AccAddress, objectId uint64, randomIndex bool, index uint32) *MsgSubmit {
+func NewMsgSubmit(creator sdk.AccAddress, spOperatorAddress sdk.AccAddress, bucketName, objectName string, randomIndex bool, index uint32) *MsgSubmit {
 	return &MsgSubmit{
 		Creator:           creator.String(),
 		SpOperatorAddress: spOperatorAddress.String(),
-		ObjectId:          objectId,
+		BucketName:        bucketName,
+		ObjectName:        objectName,
 		RandomIndex:       randomIndex,
 		Index:             index,
 	}
@@ -41,7 +42,7 @@ func (msg *MsgSubmit) GetSignBytes() []byte {
 }
 
 func (msg *MsgSubmit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

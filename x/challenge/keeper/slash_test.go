@@ -11,8 +11,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func createNRecentSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.RecentSlash {
-	items := make([]types.RecentSlash, n)
+func createSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Slash {
+	items := make([]types.Slash, n)
 	for i := range items {
 		items[i].Id = keeper.AppendRecentSlash(ctx, items[i])
 	}
@@ -21,7 +21,7 @@ func createNRecentSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.R
 
 func TestRecentSlashGet(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNRecentSlash(keeper, ctx, 10)
+	items := createSlash(keeper, ctx, 10)
 	for _, item := range items {
 		got, found := keeper.GetRecentSlash(ctx, item.Id)
 		require.True(t, found)
@@ -34,7 +34,7 @@ func TestRecentSlashGet(t *testing.T) {
 
 func TestRecentSlashRemove(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNRecentSlash(keeper, ctx, 10)
+	items := createSlash(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveRecentSlash(ctx, item.Id)
 		_, found := keeper.GetRecentSlash(ctx, item.Id)
@@ -44,7 +44,7 @@ func TestRecentSlashRemove(t *testing.T) {
 
 func TestRecentSlashGetAll(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNRecentSlash(keeper, ctx, 10)
+	items := createSlash(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllRecentSlash(ctx)),
@@ -53,7 +53,7 @@ func TestRecentSlashGetAll(t *testing.T) {
 
 func TestRecentSlashCount(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNRecentSlash(keeper, ctx, 10)
+	items := createSlash(keeper, ctx, 10)
 	count := uint64(len(items))
 	require.Equal(t, count, keeper.GetRecentSlashCount(ctx))
 }

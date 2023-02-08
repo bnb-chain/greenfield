@@ -12,19 +12,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) RecentSlashAll(c context.Context, req *types.QueryAllRecentSlashRequest) (*types.QueryAllRecentSlashResponse, error) {
+func (k Keeper) SlashAll(c context.Context, req *types.QueryAllSlashRequest) (*types.QueryAllSlashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var recentSlashs []types.RecentSlash
+	var recentSlashs []types.Slash
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
 	recentSlashStore := prefix.NewStore(store, types.KeyPrefix(types.RecentSlashKey))
 
 	pageRes, err := query.Paginate(recentSlashStore, req.Pagination, func(key []byte, value []byte) error {
-		var recentSlash types.RecentSlash
+		var recentSlash types.Slash
 		if err := k.cdc.Unmarshal(value, &recentSlash); err != nil {
 			return err
 		}
@@ -37,10 +37,10 @@ func (k Keeper) RecentSlashAll(c context.Context, req *types.QueryAllRecentSlash
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllRecentSlashResponse{RecentSlash: recentSlashs, Pagination: pageRes}, nil
+	return &types.QueryAllSlashResponse{Slash: recentSlashs, Pagination: pageRes}, nil
 }
 
-func (k Keeper) RecentSlash(c context.Context, req *types.QueryGetRecentSlashRequest) (*types.QueryGetRecentSlashResponse, error) {
+func (k Keeper) Slash(c context.Context, req *types.QueryGetSlashRequest) (*types.QueryGetSlashResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -51,5 +51,5 @@ func (k Keeper) RecentSlash(c context.Context, req *types.QueryGetRecentSlashReq
 		return nil, sdkerrors.ErrKeyNotFound
 	}
 
-	return &types.QueryGetRecentSlashResponse{RecentSlash: recentSlash}, nil
+	return &types.QueryGetSlashResponse{Slash: recentSlash}, nil
 }

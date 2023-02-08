@@ -2,9 +2,9 @@ syntax = "proto3";
 package bnbchain.greenfield.challenge;
 
 import "gogoproto/gogo.proto";
-import "greenfield/challenge/ongoing_challenge.proto";
+import "greenfield/challenge/challenge.proto";
 import "greenfield/challenge/params.proto";
-import "greenfield/challenge/recent_slash.proto";
+import "greenfield/challenge/slash.proto";
 // this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
@@ -12,8 +12,9 @@ option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 // GenesisState defines the challenge module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
-  repeated OngoingChallenge ongoingChallenges = 2 [(gogoproto.nullable) = false];
-  repeated RecentSlash recentSlashes = 3 [(gogoproto.nullable) = false];
+  repeated Challenge ongoingChallenges = 2 [(gogoproto.nullable) = false];
+  repeated Slash recentSlashes = 3 [(gogoproto.nullable) = false];
   uint64 recentSlashCount = 4;
+  uint64 startingChallengeId = 5;
   // this line is used by starport scaffolding # genesis/proto/state
 }

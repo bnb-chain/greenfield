@@ -35,7 +35,7 @@ func (k Keeper) SetRecentSlashCount(ctx sdk.Context, count uint64) {
 // AppendRecentSlash appends a recentSlash in the store with a new id and update the count
 func (k Keeper) AppendRecentSlash(
 	ctx sdk.Context,
-	recentSlash types.RecentSlash,
+	recentSlash types.Slash,
 ) uint64 {
 	// Create the recentSlash
 	count := k.GetRecentSlashCount(ctx)
@@ -54,14 +54,14 @@ func (k Keeper) AppendRecentSlash(
 }
 
 // SetRecentSlash set a specific recentSlash in the store
-func (k Keeper) SetRecentSlash(ctx sdk.Context, recentSlash types.RecentSlash) {
+func (k Keeper) SetRecentSlash(ctx sdk.Context, recentSlash types.Slash) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RecentSlashKey))
 	b := k.cdc.MustMarshal(&recentSlash)
 	store.Set(GetRecentSlashIDBytes(recentSlash.Id), b)
 }
 
 // GetRecentSlash returns a recentSlash from its id
-func (k Keeper) GetRecentSlash(ctx sdk.Context, id uint64) (val types.RecentSlash, found bool) {
+func (k Keeper) GetRecentSlash(ctx sdk.Context, id uint64) (val types.Slash, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RecentSlashKey))
 	b := store.Get(GetRecentSlashIDBytes(id))
 	if b == nil {
@@ -78,14 +78,14 @@ func (k Keeper) RemoveRecentSlash(ctx sdk.Context, id uint64) {
 }
 
 // GetAllRecentSlash returns all recentSlash
-func (k Keeper) GetAllRecentSlash(ctx sdk.Context) (list []types.RecentSlash) {
+func (k Keeper) GetAllRecentSlash(ctx sdk.Context) (list []types.Slash) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RecentSlashKey))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.RecentSlash
+		var val types.Slash
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		list = append(list, val)
 	}

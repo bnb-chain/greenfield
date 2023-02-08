@@ -20,9 +20,10 @@ message MsgSubmit {
 
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string sp_operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 object_id = 3;
-  bool random_index = 4;
-  uint32 index = 5;
+  string bucket_name = 3;
+  string object_name = 4;
+  bool random_index = 5;
+  uint32 index = 6;
 }
 
 message MsgSubmitResponse {}

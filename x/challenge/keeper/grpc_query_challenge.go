@@ -11,19 +11,19 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func (k Keeper) OngoingChallengeAll(c context.Context, req *types.QueryAllOngoingChallengeRequest) (*types.QueryAllOngoingChallengeResponse, error) {
+func (k Keeper) ChallengeAll(c context.Context, req *types.QueryAllChallengeRequest) (*types.QueryAllChallengeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var ongoingChallenges []types.OngoingChallenge
+	var ongoingChallenges []types.Challenge
 	ctx := sdk.UnwrapSDKContext(c)
 
 	store := ctx.KVStore(k.storeKey)
 	ongoingChallengeStore := prefix.NewStore(store, types.KeyPrefix(types.OngoingChallengeKeyPrefix))
 
 	pageRes, err := query.Paginate(ongoingChallengeStore, req.Pagination, func(key []byte, value []byte) error {
-		var ongoingChallenge types.OngoingChallenge
+		var ongoingChallenge types.Challenge
 		if err := k.cdc.Unmarshal(value, &ongoingChallenge); err != nil {
 			return err
 		}
@@ -36,10 +36,10 @@ func (k Keeper) OngoingChallengeAll(c context.Context, req *types.QueryAllOngoin
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllOngoingChallengeResponse{OngoingChallenge: ongoingChallenges, Pagination: pageRes}, nil
+	return &types.QueryAllChallengeResponse{Challenge: ongoingChallenges, Pagination: pageRes}, nil
 }
 
-func (k Keeper) OngoingChallenge(c context.Context, req *types.QueryGetOngoingChallengeRequest) (*types.QueryGetOngoingChallengeResponse, error) {
+func (k Keeper) Challenge(c context.Context, req *types.QueryGetChallengeRequest) (*types.QueryGetChallengeResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -53,5 +53,5 @@ func (k Keeper) OngoingChallenge(c context.Context, req *types.QueryGetOngoingCh
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetOngoingChallengeResponse{OngoingChallenge: val}, nil
+	return &types.QueryGetChallengeResponse{Challenge: val}, nil
 }

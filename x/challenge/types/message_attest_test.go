@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMsgAttestb_ValidateBasic(t *testing.T) {
+func TestMsgAttest_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
 		msg  MsgAttest

@@ -30,6 +30,7 @@ require golang.org/x/text v0.6.0 // indirect
 
 require (
 	github.com/cosmos/gogoproto v1.4.3
+	github.com/bits-and-blooms/bitset v1.2.0
 	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
 	github.com/spf13/viper v1.13.0
 )

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/binary"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -41,9 +43,22 @@ func (msg *MsgAttest) GetSignBytes() []byte {
 }
 
 func (msg *MsgAttest) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
+}
+
+func (msg *MsgAttest) GetBlsSignBytes() [32]byte {
+	idBz := make([]byte, 8)
+	binary.BigEndian.PutUint64(idBz, msg.ChallengeId)
+	resultBz := make([]byte, 8)
+	binary.BigEndian.PutUint64(resultBz, uint64(msg.VoteResult))
+
+	bs := make([]byte, 0)
+	bs = append(bs, idBz...)
+	bs = append(bs, resultBz...)
+	hash := sdk.Keccak256Hash(bs)
+	return hash
 }

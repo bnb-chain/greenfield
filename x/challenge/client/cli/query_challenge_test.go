@@ -2,6 +2,7 @@ package cli_test
 
 import (
 	"fmt"
+	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -17,77 +18,84 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
-func networkWithRecentSlashObjects(t *testing.T, n int) (*network.Network, []types.RecentSlash) {
+// Prevent strconv unused error
+var _ = strconv.IntSize
+
+func networkWithOngoingChallengeObjects(t *testing.T, n int) (*network.Network, []types.Challenge) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
-		recentSlash := types.RecentSlash{
+		ongoingChallenge := types.Challenge{
 			Id: uint64(i),
 		}
-		nullify.Fill(&recentSlash)
-		state.RecentSlashList = append(state.RecentSlashList, recentSlash)
+		nullify.Fill(&ongoingChallenge)
+		state.OngoingChallenges = append(state.OngoingChallenges, ongoingChallenge)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.RecentSlashList
+	return network.New(t, cfg), state.OngoingChallenges
 }
 
-func TestShowRecentSlash(t *testing.T) {
-	net, objs := networkWithRecentSlashObjects(t, 2)
+func TestShowOngoingChallenge(t *testing.T) {
+	net, objs := networkWithOngoingChallengeObjects(t, 2)
 
 	ctx := net.Validators[0].ClientCtx
 	common := []string{
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc string
-		id   string
+		desc          string
+		idChallengeId uint64
+
 		args []string
 		err  error
-		obj  types.RecentSlash
+		obj  types.Challenge
 	}{
 		{
-			desc: "found",
-			id:   fmt.Sprintf("%d", objs[0].Id),
+			desc:          "found",
+			idChallengeId: objs[0].Id,
+
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc: "not found",
-			id:   "not_found",
+			desc:          "not found",
+			idChallengeId: uint64(100000),
+
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
-		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			args := []string{tc.id}
+			args := []string{
+				fmt.Sprint(tc.idChallengeId),
+			}
 			args = append(args, tc.args...)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowRecentSlash(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowOngoingChallenge(), args)
 			if tc.err != nil {
 				stat, ok := status.FromError(tc.err)
 				require.True(t, ok)
 				require.ErrorIs(t, stat.Err(), tc.err)
 			} else {
 				require.NoError(t, err)
-				var resp types.QueryGetRecentSlashResponse
+				var resp types.QueryGetChallengeResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.RecentSlash)
+				require.NotNil(t, resp.Challenge)
 				require.Equal(t,
 					nullify.Fill(&tc.obj),
-					nullify.Fill(&resp.RecentSlash),
+					nullify.Fill(&resp.Challenge),
 				)
 			}
 		})
 	}
 }
 
-func TestListRecentSlash(t *testing.T) {
-	net, objs := networkWithRecentSlashObjects(t, 5)
+func TestListOngoingChallenge(t *testing.T) {
+	net, objs := networkWithOngoingChallengeObjects(t, 5)
 
 	ctx := net.Validators[0].ClientCtx
 	request := func(next []byte, offset, limit uint64, total bool) []string {
@@ -109,14 +117,14 @@ func TestListRecentSlash(t *testing.T) {
 		step := 2
 		for i := 0; i < len(objs); i += step {
 			args := request(nil, uint64(i), uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRecentSlash(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListOngoingChallenge(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllRecentSlashResponse
+			var resp types.QueryAllChallengeResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.RecentSlash), step)
+			require.LessOrEqual(t, len(resp.Challenge), step)
 			require.Subset(t,
 				nullify.Fill(objs),
-				nullify.Fill(resp.RecentSlash),
+				nullify.Fill(resp.Challenge),
 			)
 		}
 	})
@@ -125,29 +133,29 @@ func TestListRecentSlash(t *testing.T) {
 		var next []byte
 		for i := 0; i < len(objs); i += step {
 			args := request(next, 0, uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRecentSlash(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListOngoingChallenge(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllRecentSlashResponse
+			var resp types.QueryAllChallengeResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.RecentSlash), step)
+			require.LessOrEqual(t, len(resp.Challenge), step)
 			require.Subset(t,
 				nullify.Fill(objs),
-				nullify.Fill(resp.RecentSlash),
+				nullify.Fill(resp.Challenge),
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
 		args := request(nil, 0, uint64(len(objs)), true)
-		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRecentSlash(), args)
+		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListOngoingChallenge(), args)
 		require.NoError(t, err)
-		var resp types.QueryAllRecentSlashResponse
+		var resp types.QueryAllChallengeResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			nullify.Fill(objs),
-			nullify.Fill(resp.RecentSlash),
+			nullify.Fill(resp.Challenge),
 		)
 	})
 }

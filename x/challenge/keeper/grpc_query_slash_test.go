@@ -15,29 +15,29 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
-func TestRecentSlashQuerySingle(t *testing.T) {
+func TestSlashQuerySingle(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRecentSlash(keeper, ctx, 2)
+	msgs := createSlash(keeper, ctx, 2)
 	for _, tc := range []struct {
 		desc     string
-		request  *types.QueryGetRecentSlashRequest
-		response *types.QueryGetRecentSlashResponse
+		request  *types.QueryGetSlashRequest
+		response *types.QueryGetSlashResponse
 		err      error
 	}{
 		{
 			desc:     "First",
-			request:  &types.QueryGetRecentSlashRequest{Id: msgs[0].Id},
-			response: &types.QueryGetRecentSlashResponse{RecentSlash: msgs[0]},
+			request:  &types.QueryGetSlashRequest{Id: msgs[0].Id},
+			response: &types.QueryGetSlashResponse{Slash: msgs[0]},
 		},
 		{
 			desc:     "Second",
-			request:  &types.QueryGetRecentSlashRequest{Id: msgs[1].Id},
-			response: &types.QueryGetRecentSlashResponse{RecentSlash: msgs[1]},
+			request:  &types.QueryGetSlashRequest{Id: msgs[1].Id},
+			response: &types.QueryGetSlashResponse{Slash: msgs[1]},
 		},
 		{
 			desc:    "KeyNotFound",
-			request: &types.QueryGetRecentSlashRequest{Id: uint64(len(msgs))},
+			request: &types.QueryGetSlashRequest{Id: uint64(len(msgs))},
 			err:     sdkerrors.ErrKeyNotFound,
 		},
 		{
@@ -46,7 +46,7 @@ func TestRecentSlashQuerySingle(t *testing.T) {
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {
-			response, err := keeper.RecentSlash(wctx, tc.request)
+			response, err := keeper.Slash(wctx, tc.request)
 			if tc.err != nil {
 				require.ErrorIs(t, err, tc.err)
 			} else {
@@ -60,13 +60,13 @@ func TestRecentSlashQuerySingle(t *testing.T) {
 	}
 }
 
-func TestRecentSlashQueryPaginated(t *testing.T) {
+func TestSlashQueryPaginated(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
 	wctx := sdk.WrapSDKContext(ctx)
-	msgs := createNRecentSlash(keeper, ctx, 5)
+	msgs := createSlash(keeper, ctx, 5)
 
-	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllRecentSlashRequest {
-		return &types.QueryAllRecentSlashRequest{
+	request := func(next []byte, offset, limit uint64, total bool) *types.QueryAllSlashRequest {
+		return &types.QueryAllSlashRequest{
 			Pagination: &query.PageRequest{
 				Key:        next,
 				Offset:     offset,
@@ -78,12 +78,12 @@ func TestRecentSlashQueryPaginated(t *testing.T) {
 	t.Run("ByOffset", func(t *testing.T) {
 		step := 2
 		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.RecentSlashAll(wctx, request(nil, uint64(i), uint64(step), false))
+			resp, err := keeper.SlashAll(wctx, request(nil, uint64(i), uint64(step), false))
 			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.RecentSlash), step)
+			require.LessOrEqual(t, len(resp.Slash), step)
 			require.Subset(t,
 				nullify.Fill(msgs),
-				nullify.Fill(resp.RecentSlash),
+				nullify.Fill(resp.Slash),
 			)
 		}
 	})
@@ -91,27 +91,27 @@ func TestRecentSlashQueryPaginated(t *testing.T) {
 		step := 2
 		var next []byte
 		for i := 0; i < len(msgs); i += step {
-			resp, err := keeper.RecentSlashAll(wctx, request(next, 0, uint64(step), false))
+			resp, err := keeper.SlashAll(wctx, request(next, 0, uint64(step), false))
 			require.NoError(t, err)
-			require.LessOrEqual(t, len(resp.RecentSlash), step)
+			require.LessOrEqual(t, len(resp.Slash), step)
 			require.Subset(t,
 				nullify.Fill(msgs),
-				nullify.Fill(resp.RecentSlash),
+				nullify.Fill(resp.Slash),
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
-		resp, err := keeper.RecentSlashAll(wctx, request(nil, 0, 0, true))
+		resp, err := keeper.SlashAll(wctx, request(nil, 0, 0, true))
 		require.NoError(t, err)
 		require.Equal(t, len(msgs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			nullify.Fill(msgs),
-			nullify.Fill(resp.RecentSlash),
+			nullify.Fill(resp.Slash),
 		)
 	})
 	t.Run("InvalidRequest", func(t *testing.T) {
-		_, err := keeper.RecentSlashAll(wctx, nil)
+		_, err := keeper.SlashAll(wctx, nil)
 		require.ErrorIs(t, err, status.Error(codes.InvalidArgument, "invalid request"))
 	})
 }

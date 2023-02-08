@@ -23,22 +23,28 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	// OngoingChallengeKeyPrefix is the prefix to retrieve all OngoingChallenge
-	OngoingChallengeKeyPrefix = "OngoingChallenge/value/"
+	// OngoingChallengeKeyPrefix is the prefix to retrieve all Challenge
+	OngoingChallengeKeyPrefix = "Challenge/ongoing/"
 
-	RecentSlashKey      = "RecentSlash/value/"
-	RecentSlashCountKey = "RecentSlash/count/"
+	// ChallengeIdKey is the key to retrieve the max id of challenge
+	ChallengeIdKey = "Challenge/id/"
+
+	// ChallengeCountKey is the count of challenges in the current block
+	ChallengeCountKey = "Challenge/count/"
+
+	RecentSlashKey      = "Slash/value/"
+	RecentSlashCountKey = "Slash/count/"
 )
 
-// OngoingChallengeKey returns the store key to retrieve a OngoingChallenge from the index fields
+// OngoingChallengeKey returns the store key to retrieve a Challenge from the index fields
 func OngoingChallengeKey(
 	id uint64,
 ) []byte {
 	var key []byte
 
-	challengeIdBytes := make([]byte, 8)
-	binary.LittleEndian.PutUint64(challengeIdBytes, uint64(id))
-	key = append(key, challengeIdBytes...)
+	idBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(idBytes, uint64(id))
+	key = append(key, idBytes...)
 	key = append(key, []byte("/")...)
 
 	return key

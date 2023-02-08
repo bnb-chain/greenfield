@@ -16,19 +16,17 @@ var _ = strconv.Itoa(0)
 
 func CmdSubmit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "submit [sp-operator-address] [object-id] [random-index] [index]",
+		Use:   "submit [sp-operator-address] [bucket-name] [object-name] [random-index] [index]",
 		Short: "Broadcast message submit",
-		Args:  cobra.ExactArgs(4),
+		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argSpOperatorAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
 			if err != nil {
 				return err
 			}
-			// validate that the object id is an uint
-			argObjectId, err := strconv.ParseUint(args[1], 10, 64)
-			if err != nil {
-				return fmt.Errorf("object-id %s not a valid uint, please input a valid object-id", args[1])
-			}
+
+			argBucketName := args[1]
+			argObjectName := args[2]
 
 			//TODO: parse args
 			argRandomIndex := true
@@ -46,7 +44,8 @@ func CmdSubmit() *cobra.Command {
 			msg := types.NewMsgSubmit(
 				clientCtx.GetFromAddress(),
 				argSpOperatorAddress,
-				argObjectId,
+				argBucketName,
+				argObjectName,
 				argRandomIndex,
 				uint32(argIndex),
 			)

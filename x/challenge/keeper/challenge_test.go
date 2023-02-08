@@ -15,10 +15,10 @@ import (
 // Prevent strconv unused error
 var _ = strconv.IntSize
 
-func createNOngoingChallenge(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.OngoingChallenge {
-	items := make([]types.OngoingChallenge, n)
+func createChallenge(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Challenge {
+	items := make([]types.Challenge, n)
 	for i := range items {
-		items[i].ChallengeId = strconv.Itoa(i)
+		items[i].Id = uint64(i)
 
 		keeper.SetOngoingChallenge(ctx, items[i])
 	}
@@ -27,10 +27,10 @@ func createNOngoingChallenge(keeper *keeper.Keeper, ctx sdk.Context, n int) []ty
 
 func TestOngoingChallengeGet(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNOngoingChallenge(keeper, ctx, 10)
+	items := createChallenge(keeper, ctx, 10)
 	for _, item := range items {
 		rst, found := keeper.GetOngoingChallenge(ctx,
-			item.ChallengeId,
+			item.Id,
 		)
 		require.True(t, found)
 		require.Equal(t,
@@ -41,13 +41,13 @@ func TestOngoingChallengeGet(t *testing.T) {
 }
 func TestOngoingChallengeRemove(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNOngoingChallenge(keeper, ctx, 10)
+	items := createChallenge(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveOngoingChallenge(ctx,
-			item.ChallengeId,
+			item.Id,
 		)
 		_, found := keeper.GetOngoingChallenge(ctx,
-			item.ChallengeId,
+			item.Id,
 		)
 		require.False(t, found)
 	}
@@ -55,7 +55,7 @@ func TestOngoingChallengeRemove(t *testing.T) {
 
 func TestOngoingChallengeGetAll(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createNOngoingChallenge(keeper, ctx, 10)
+	items := createChallenge(keeper, ctx, 10)
 	require.ElementsMatch(t,
 		nullify.Fill(items),
 		nullify.Fill(keeper.GetAllOngoingChallenge(ctx)),

@@ -22,15 +22,15 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 
-				OngoingChallengeList: []types.OngoingChallenge{
+				OngoingChallenges: []types.Challenge{
 					{
-						ChallengeId: "0",
+						Id: uint64(0),
 					},
 					{
-						ChallengeId: "1",
+						Id: uint64(1),
 					},
 				},
-				RecentSlashList: []types.RecentSlash{
+				RecentSlashes: []types.Slash{
 					{
 						Id: 0,
 					},
@@ -46,12 +46,12 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated ongoingChallenge",
 			genState: &types.GenesisState{
-				OngoingChallengeList: []types.OngoingChallenge{
+				OngoingChallenges: []types.Challenge{
 					{
-						ChallengeId: "0",
+						Id: uint64(0),
 					},
 					{
-						ChallengeId: "0",
+						Id: uint64(0),
 					},
 				},
 			},
@@ -60,7 +60,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "duplicated recentSlash",
 			genState: &types.GenesisState{
-				RecentSlashList: []types.RecentSlash{
+				RecentSlashes: []types.Slash{
 					{
 						Id: 0,
 					},
@@ -74,7 +74,7 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "invalid recentSlash count",
 			genState: &types.GenesisState{
-				RecentSlashList: []types.RecentSlash{
+				RecentSlashes: []types.Slash{
 					{
 						Id: 1,
 					},

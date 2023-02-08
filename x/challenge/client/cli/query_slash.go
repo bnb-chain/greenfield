@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -11,10 +10,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdListOngoingChallenge() *cobra.Command {
+func CmdListRecentSlash() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-ongoing-challenge",
-		Short: "list all ongoing-challenge",
+		Use:   "list-recent-slash",
+		Short: "list all recent-slash",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -25,11 +24,11 @@ func CmdListOngoingChallenge() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllOngoingChallengeRequest{
+			params := &types.QueryAllSlashRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.OngoingChallengeAll(context.Background(), params)
+			res, err := queryClient.SlashAll(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -44,27 +43,26 @@ func CmdListOngoingChallenge() *cobra.Command {
 	return cmd
 }
 
-func CmdShowOngoingChallenge() *cobra.Command {
+func CmdShowRecentSlash() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-ongoing-challenge [challenge-id]",
-		Short: "shows a ongoing-challenge",
+		Use:   "show-recent-slash [id]",
+		Short: "shows a recent-slash",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			// validate that the challenge id is an uint
-			argChallengeId, err := strconv.ParseUint(args[0], 10, 64)
+			id, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return fmt.Errorf("challenge-id %s not a valid uint, please input a valid challenge-id", args[0])
+				return err
 			}
 
-			params := &types.QueryGetOngoingChallengeRequest{
-				ChallengeId: argChallengeId,
+			params := &types.QueryGetSlashRequest{
+				Id: id,
 			}
 
-			res, err := queryClient.OngoingChallenge(context.Background(), params)
+			res, err := queryClient.Slash(context.Background(), params)
 			if err != nil {
 				return err
 			}

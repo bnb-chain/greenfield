@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -10,10 +11,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func CmdListRecentSlash() *cobra.Command {
+func CmdListOngoingChallenge() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-recent-slash",
-		Short: "list all recent-slash",
+		Use:   "list-ongoing-challenge",
+		Short: "list all ongoing-challenge",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
@@ -24,11 +25,11 @@ func CmdListRecentSlash() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllRecentSlashRequest{
+			params := &types.QueryAllChallengeRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.RecentSlashAll(context.Background(), params)
+			res, err := queryClient.ChallengeAll(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -43,26 +44,27 @@ func CmdListRecentSlash() *cobra.Command {
 	return cmd
 }
 
-func CmdShowRecentSlash() *cobra.Command {
+func CmdShowOngoingChallenge() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "show-recent-slash [id]",
-		Short: "shows a recent-slash",
+		Use:   "show-ongoing-challenge [challenge-id]",
+		Short: "shows a ongoing-challenge",
 		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) error {
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			id, err := strconv.ParseUint(args[0], 10, 64)
+			// validate that the challenge id is an uint
+			argChallengeId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
-				return err
+				return fmt.Errorf("challenge-id %s not a valid uint, please input a valid challenge-id", args[0])
 			}
 
-			params := &types.QueryGetRecentSlashRequest{
-				Id: id,
+			params := &types.QueryGetChallengeRequest{
+				ChallengeId: argChallengeId,
 			}
 
-			res, err := queryClient.RecentSlash(context.Background(), params)
+			res, err := queryClient.Challenge(context.Background(), params)
 			if err != nil {
 				return err
 			}

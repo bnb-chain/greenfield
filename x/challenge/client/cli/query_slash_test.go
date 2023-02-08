@@ -2,7 +2,6 @@ package cli_test
 
 import (
 	"fmt"
-	"strconv"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -18,84 +17,77 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
-// Prevent strconv unused error
-var _ = strconv.IntSize
-
-func networkWithOngoingChallengeObjects(t *testing.T, n int) (*network.Network, []types.OngoingChallenge) {
+func networkWithSlashObjects(t *testing.T, n int) (*network.Network, []types.Slash) {
 	t.Helper()
 	cfg := network.DefaultConfig()
 	state := types.GenesisState{}
 	require.NoError(t, cfg.Codec.UnmarshalJSON(cfg.GenesisState[types.ModuleName], &state))
 
 	for i := 0; i < n; i++ {
-		ongoingChallenge := types.OngoingChallenge{
-			ChallengeId: strconv.Itoa(i),
+		recentSlash := types.Slash{
+			Id: uint64(i),
 		}
-		nullify.Fill(&ongoingChallenge)
-		state.OngoingChallengeList = append(state.OngoingChallengeList, ongoingChallenge)
+		nullify.Fill(&recentSlash)
+		state.RecentSlashes = append(state.RecentSlashes, recentSlash)
 	}
 	buf, err := cfg.Codec.MarshalJSON(&state)
 	require.NoError(t, err)
 	cfg.GenesisState[types.ModuleName] = buf
-	return network.New(t, cfg), state.OngoingChallengeList
+	return network.New(t, cfg), state.RecentSlashes
 }
 
-func TestShowOngoingChallenge(t *testing.T) {
-	net, objs := networkWithOngoingChallengeObjects(t, 2)
+func TestShowSlash(t *testing.T) {
+	net, objs := networkWithSlashObjects(t, 2)
 
 	ctx := net.Validators[0].ClientCtx
 	common := []string{
 		fmt.Sprintf("--%s=json", tmcli.OutputFlag),
 	}
 	for _, tc := range []struct {
-		desc          string
-		idChallengeId string
-
+		desc string
+		id   string
 		args []string
 		err  error
-		obj  types.OngoingChallenge
+		obj  types.Slash
 	}{
 		{
-			desc:          "found",
-			idChallengeId: objs[0].ChallengeId,
-
+			desc: "found",
+			id:   fmt.Sprintf("%d", objs[0].Id),
 			args: common,
 			obj:  objs[0],
 		},
 		{
-			desc:          "not found",
-			idChallengeId: strconv.Itoa(100000),
-
+			desc: "not found",
+			id:   "not_found",
 			args: common,
 			err:  status.Error(codes.NotFound, "not found"),
 		},
 	} {
+		tc := tc
 		t.Run(tc.desc, func(t *testing.T) {
-			args := []string{
-				tc.idChallengeId,
-			}
+			args := []string{tc.id}
 			args = append(args, tc.args...)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowOngoingChallenge(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdShowRecentSlash(), args)
 			if tc.err != nil {
 				stat, ok := status.FromError(tc.err)
 				require.True(t, ok)
 				require.ErrorIs(t, stat.Err(), tc.err)
 			} else {
 				require.NoError(t, err)
-				var resp types.QueryGetOngoingChallengeResponse
+				var resp types.QueryGetSlashResponse
 				require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-				require.NotNil(t, resp.OngoingChallenge)
+				require.NotNil(t, resp.Slash)
 				require.Equal(t,
 					nullify.Fill(&tc.obj),
-					nullify.Fill(&resp.OngoingChallenge),
+					nullify.Fill(&resp.Slash),
 				)
 			}
 		})
 	}
 }
 
-func TestListOngoingChallenge(t *testing.T) {
-	net, objs := networkWithOngoingChallengeObjects(t, 5)
+func TestListSlash(t *testing.T) {
+	net, objs := networkWithSlashObjects(t, 5)
 
 	ctx := net.Validators[0].ClientCtx
 	request := func(next []byte, offset, limit uint64, total bool) []string {
@@ -117,14 +109,14 @@ func TestListOngoingChallenge(t *testing.T) {
 		step := 2
 		for i := 0; i < len(objs); i += step {
 			args := request(nil, uint64(i), uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListOngoingChallenge(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRecentSlash(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllOngoingChallengeResponse
+			var resp types.QueryAllSlashResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.OngoingChallenge), step)
+			require.LessOrEqual(t, len(resp.Slash), step)
 			require.Subset(t,
 				nullify.Fill(objs),
-				nullify.Fill(resp.OngoingChallenge),
+				nullify.Fill(resp.Slash),
 			)
 		}
 	})
@@ -133,29 +125,29 @@ func TestListOngoingChallenge(t *testing.T) {
 		var next []byte
 		for i := 0; i < len(objs); i += step {
 			args := request(next, 0, uint64(step), false)
-			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListOngoingChallenge(), args)
+			out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRecentSlash(), args)
 			require.NoError(t, err)
-			var resp types.QueryAllOngoingChallengeResponse
+			var resp types.QueryAllSlashResponse
 			require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
-			require.LessOrEqual(t, len(resp.OngoingChallenge), step)
+			require.LessOrEqual(t, len(resp.Slash), step)
 			require.Subset(t,
 				nullify.Fill(objs),
-				nullify.Fill(resp.OngoingChallenge),
+				nullify.Fill(resp.Slash),
 			)
 			next = resp.Pagination.NextKey
 		}
 	})
 	t.Run("Total", func(t *testing.T) {
 		args := request(nil, 0, uint64(len(objs)), true)
-		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListOngoingChallenge(), args)
+		out, err := clitestutil.ExecTestCLICmd(ctx, cli.CmdListRecentSlash(), args)
 		require.NoError(t, err)
-		var resp types.QueryAllOngoingChallengeResponse
+		var resp types.QueryAllSlashResponse
 		require.NoError(t, net.Config.Codec.UnmarshalJSON(out.Bytes(), &resp))
 		require.NoError(t, err)
 		require.Equal(t, len(objs), int(resp.Pagination.Total))
 		require.ElementsMatch(t,
 			nullify.Fill(objs),
-			nullify.Fill(resp.OngoingChallenge),
+			nullify.Fill(resp.Slash),
 		)
 	})
 }

@@ -14,7 +14,7 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
-		OngoingChallengeList: []types.OngoingChallenge{
+		OngoingChallengeList: []types.Challenge{
 			{
 				ChallengeId: "0",
 			},
@@ -22,7 +22,7 @@ func TestGenesis(t *testing.T) {
 				ChallengeId: "1",
 			},
 		},
-		RecentSlashList: []types.RecentSlash{
+		RecentSlashList: []types.Slash{
 			{
 				Id: 0,
 			},
