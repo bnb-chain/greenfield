@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -34,7 +35,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 
 	var paymentAcc sdk.AccAddress
 	if msg.PaymentAddress != "" {
-		// TODO: validate that the paymentAcc is ownered by ownerAcc if payment module ready
+		// TODO: validate that the paymentAcc is ownered by ownerAcc if payment module is ready
 		paymentAcc, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
 		if err != nil {
 			return nil, err
@@ -62,6 +63,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	}
 
 	// Check Bucket exist
+	// TODO:
 	bucketKey := types.GetBucketKey(msg.BucketName)
 	if k.HasBucket(ctx, bucketKey) {
 		return nil, types.ErrBucketAlreadyExists
@@ -74,9 +76,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		IsPublic:         msg.IsPublic,
 		CreateAt:         ctx.BlockHeight(),
 		Id:               k.GetBucketId(ctx),
-		PrimarySpAddress: primarySPAcc.String(),
 		ReadQuota:        types.READ_QUOTA_FREE,
 		PaymentAddress:   paymentAcc.String(),
+		PrimarySpAddress: primarySPAcc.String(),
 	}
 	k.SetBucket(ctx, bucketKey, bucketInfo)
 
@@ -292,9 +294,22 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 		return nil, types.ErrNoSuchObject
 	}
 
-	// Currently, only the owner is allowed to reject object
-	if objectInfo.Owner != msg.Operator {
-		return nil, types.ErrAccessDenied
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+		return nil, types.ErrObjectStatusNotInit
+	}
+
+	// Currently, only the primary sp is allowed to reject seal object
+	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+	// TODO: operator address or other address (for reject seal object)
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+	if !found {
+		return nil, types.ErrNoSuchStorageProvider
+	}
+	if sp.Status != sptypes.STATUS_IN_SERVICE {
+		return nil, types.ErrStorageProviderNotInService
 	}
 
 	// TODO: Interact with payment. unlock the pre-pay fee.

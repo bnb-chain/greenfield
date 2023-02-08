@@ -66,9 +66,19 @@ func CmdCreateBucket() *cobra.Command {
 			}
 
 			var paymentAccount sdk.AccAddress
-			isPublic, _ := cmd.Flags().GetBool(FlagIsPublic)
-			paymentAccStr, _ := cmd.Flags().GetString(FlagPaymentAccount)
-			primarySPApproval, _ := cmd.Flags().GetBytesHex(FlagPrimarySPApproval)
+			isPublic, err := cmd.Flags().GetBool(FlagPublic)
+			if err != nil {
+				return err
+			}
+			paymentAccStr, err := cmd.Flags().GetString(FlagPaymentAccount)
+			if err != nil {
+				return err
+			}
+			// TODO: verify the signature in advance.
+			primarySPApproval, err := cmd.Flags().GetBytesHex(FlagPrimarySPApproval)
+			if err != nil {
+				return err
+			}
 
 			if paymentAccStr != "" {
 				if paymentAccount, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
@@ -91,7 +101,7 @@ func CmdCreateBucket() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool(FlagIsPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
+	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
 	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	flags.AddTxFlagsToCmd(cmd)
@@ -168,7 +178,7 @@ func CmdCreateObject() *cobra.Command {
 
 			contentType := http.DetectContentType(buf)
 
-			isPublic, _ := cmd.Flags().GetBool(FlagIsPublic)
+			isPublic, _ := cmd.Flags().GetBool(FlagPublic)
 
 			msg := types.NewMsgCreateObject(
 				clientCtx.GetFromAddress(),
@@ -189,7 +199,7 @@ func CmdCreateObject() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().Bool(FlagIsPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
+	cmd.Flags().Bool(FlagPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	return cmd
 }

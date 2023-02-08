@@ -101,7 +101,6 @@ import (
 	storagemodule "github.com/bnb-chain/greenfield/x/storage"
 	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
-	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (

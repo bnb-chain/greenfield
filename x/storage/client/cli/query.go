@@ -10,6 +10,9 @@ import (
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
+// TODO: Support List bucket/object/group with pagination.
+// TODO: Support GetGroup
+
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group storage queries under a subcommand

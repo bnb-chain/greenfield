@@ -1,6 +1,6 @@
 #!/bin/bash
 
-go get -u github.com/AanZee/goimportssort
+go install github.com/AanZee/goimportssort
 
 for entry in `find . -name "*.go"`; do
     echo $entry

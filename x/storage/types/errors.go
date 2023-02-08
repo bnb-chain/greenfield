@@ -21,7 +21,8 @@ var (
 	ErrGroupMemberNotExists        = sdkerrors.Register(ModuleName, 1112, "group member already exists")
 	ErrNoSuchStorageProvider       = sdkerrors.Register(ModuleName, 1113, "no such storage provider")
 	ErrSequenceUniqueConstraint    = sdkerrors.Register(ModuleName, 1114, "sequence already initialized")
-	ErrStorageProviderNotInService = sdkerrors.Register(ModuleName, 1115, "storage provider not in serive")
+	ErrStorageProviderNotInService = sdkerrors.Register(ModuleName, 1115, "storage provider not in service")
+	ErrObjectStatusNotInit         = sdkerrors.Register(ModuleName, 1116, "not a INIT object")
 
 	ErrInvalidBucketName  = sdkerrors.Register(ModuleName, 2000, "invalid bucket name")
 	ErrInvalidObjectName  = sdkerrors.Register(ModuleName, 2001, "invalid object name")
