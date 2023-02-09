@@ -17,27 +17,7 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/challenge/params";
   }
-  // Queries a Challenge by index.
-  rpc Challenge(QueryGetChallengeRequest) returns (QueryGetChallengeResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/challenge/challenge/{challengeId}";
-  }
-
-  // Queries a list of Challenge items.
-  rpc ChallengeAll(QueryAllChallengeRequest) returns (QueryAllChallengeResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/challenge/challenge";
-  }
-
-  // Queries a Slash by id.
-	rpc Slash(QueryGetSlashRequest) returns (QueryGetSlashResponse) {
-		option (google.api.http).get = "/bnb-chain/greenfield/challenge/slash/{id}";
-	}
-
-	// Queries a list of Slash items.
-	rpc SlashAll(QueryAllSlashRequest) returns (QueryAllSlashResponse) {
-		option (google.api.http).get = "/bnb-chain/greenfield/challenge/slash";
-	}
-
-// this line is used by starport scaffolding # 2
+  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -47,40 +27,6 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryGetChallengeRequest {
-  uint64 challengeId = 1;
-}
-
-message QueryGetChallengeResponse {
-  Challenge Challenge = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllChallengeRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllChallengeResponse {
-  repeated Challenge Challenge = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetSlashRequest {
-	uint64 id = 1;
-}
-
-message QueryGetSlashResponse {
-	Slash Slash = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllSlashRequest {
-	cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllSlashResponse {
-	repeated Slash Slash = 1 [(gogoproto.nullable) = false];
-	cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // this line is used by starport scaffolding # 3

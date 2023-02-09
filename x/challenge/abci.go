@@ -19,7 +19,11 @@ func BeginBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	// delete expired challenges at this height
 	events := make([]proto.Message, 0)
 	height := uint64(ctx.BlockHeight())
-	minHeight := height - keeper.ChallengeExpirePeriod(ctx)
+	expirePeriod := keeper.ChallengeExpirePeriod(ctx)
+	minHeight := height
+	if height > expirePeriod {
+		minHeight = height - expirePeriod
+	}
 	challenges := keeper.GetAllOngoingChallenge(ctx)
 	for _, elem := range challenges {
 		if elem.Height < minHeight {
@@ -49,7 +53,25 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	needed := keeper.EventCountPerBlock(ctx)
 	events := make([]proto.Message, 0)
 	for count < needed {
+		challengeId, _ := keeper.GetChallengeID(ctx)
 		// TODO: random object to challenge
+		challenge := types.Challenge{
+			Id:                challengeId,
+			SpOperatorAddress: "",
+			BucketHash:        "",
+			ObjectHash:        "",
+			Index:             1,
+			Height:            uint64(ctx.BlockHeight()),
+			ChallengerAddress: "",
+		}
+		keeper.SetOngoingChallenge(ctx, challenge)
+		keeper.SetChallengeID(ctx, challengeId+1)
+		events = append(events, &types.EventStartChallenge{
+			ChallengeId:       challenge.Id,
+			SpOperatorAddress: "",
+			ObjectId:          1,
+			Index:             challenge.Index,
+		})
 		count++
 	}
 	_ = ctx.EventManager().EmitTypedEvents(events...)
