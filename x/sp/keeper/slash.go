@@ -2,8 +2,9 @@ package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types.RewardInfo) error {

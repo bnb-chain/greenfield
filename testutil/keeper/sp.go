@@ -3,9 +3,6 @@ package keeper
 import (
 	"testing"
 
-	greenfieldmoduletypes "github.com/bnb-chain/greenfield/x/greenfield/types"
-	"github.com/bnb-chain/greenfield/x/sp/keeper"
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -40,16 +37,18 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+
+	"github.com/bnb-chain/greenfield/x/sp/keeper"
+	"github.com/bnb-chain/greenfield/x/sp/types"
+	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 var (
 	spMaccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     {authtypes.Minter, authtypes.Staking},
-		distrtypes.ModuleName:          nil,
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
-		crosschaintypes.ModuleName:     {authtypes.Minter},
 		types.ModuleName:               {authtypes.Staking},
 	}
 )
@@ -60,7 +59,7 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		greenfieldmoduletypes.StoreKey,
+		storagemoduletypes.StoreKey,
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
@@ -137,13 +136,6 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
 
 	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
-		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
-	}})
-	if err != nil {
-		panic("mint coins error")
-	}
-	err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
 		Amount: sdk.NewInt(1000000000),
 	}})

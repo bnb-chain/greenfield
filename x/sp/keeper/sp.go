@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func (k Keeper) GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp types.StorageProvider, found bool) {

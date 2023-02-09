@@ -5,10 +5,11 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
-	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
+
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut) (*types.MsgTransferOutResponse, error) {

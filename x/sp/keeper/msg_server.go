@@ -3,10 +3,11 @@ package keeper
 import (
 	"context"
 
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 type msgServer struct {
