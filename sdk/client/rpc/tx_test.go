@@ -1,0 +1,57 @@
+package client
+
+import (
+	"github.com/bnb-chain/greenfield/sdk/client/testutil"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/assert"
+	"testing"
+)
+
+func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {
+	km, err := keys.NewPrivateKeyManager(testutil.TEST_PRIVATE_KEY)
+	assert.NoError(t, err)
+	gnfdCli := NewGreenfieldClientWithKeyManager(testutil.TEST_GRPC_ADDR, testutil.TEST_CHAIN_ID, km)
+	to, err := sdk.AccAddressFromHexUnsafe(testutil.TEST_ADDR)
+	assert.NoError(t, err)
+	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 12)))
+	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, uint32(0), response.TxResponse.Code)
+	t.Log(response.TxResponse.String())
+}
+
+func TestSendTokenWithTxOptionSucceed(t *testing.T) {
+	km, err := keys.NewPrivateKeyManager(testutil.TEST_PRIVATE_KEY)
+	assert.NoError(t, err)
+	gnfdCli := NewGreenfieldClientWithKeyManager(testutil.TEST_GRPC_ADDR, testutil.TEST_CHAIN_ID, km)
+	to, err := sdk.AccAddressFromHexUnsafe(testutil.TEST_ADDR)
+	assert.NoError(t, err)
+	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 100)))
+	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
+	txOpt := &types.TxOption{
+		Async:     false,
+		GasLimit:  123456,
+		Memo:      "test",
+		FeeAmount: sdk.Coins{{"bnb", sdk.NewInt(1)}},
+		FeePayer:  payerAddr,
+	}
+	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
+	assert.NoError(t, err)
+	assert.Equal(t, uint32(0), response.TxResponse.Code)
+	t.Log(response.TxResponse.String())
+}
+
+func TestSimulateTx(t *testing.T) {
+	km, err := keys.NewPrivateKeyManager(testutil.TEST_PRIVATE_KEY)
+	assert.NoError(t, err)
+	gnfdCli := NewGreenfieldClientWithKeyManager(testutil.TEST_GRPC_ADDR, testutil.TEST_CHAIN_ID, km)
+	to, err := sdk.AccAddressFromHexUnsafe(testutil.TEST_ADDR)
+	assert.NoError(t, err)
+	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 100)))
+	simulateRes, err := gnfdCli.SimulateTx([]sdk.Msg{transfer}, nil)
+	assert.NoError(t, err)
+	t.Log(simulateRes.GasInfo.String())
+}
