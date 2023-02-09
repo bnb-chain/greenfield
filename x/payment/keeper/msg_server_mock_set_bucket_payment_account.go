@@ -3,8 +3,10 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k msgServer) MockSetBucketPaymentAccount(goCtx context.Context, msg *types.MsgMockSetBucketPaymentAccount) (*types.MsgMockSetBucketPaymentAccountResponse, error) {

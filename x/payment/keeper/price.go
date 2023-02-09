@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 // GetReadPrice priceTime is kept to retrieve the price of ReadPacket at historical time

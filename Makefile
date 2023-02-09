@@ -31,5 +31,8 @@ docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}
 
+format:
+	bash scripts/format.sh
+
 test:
 	go test ./...

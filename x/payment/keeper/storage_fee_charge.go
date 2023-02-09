@@ -1,10 +1,12 @@
 package keeper
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newChanges []types.StreamRecordChange) {

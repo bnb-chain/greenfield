@@ -2,11 +2,11 @@ package keeper
 
 import (
 	"context"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 

@@ -3,10 +3,11 @@ package keeper
 import (
 	"context"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k Keeper) DynamicBalance(goCtx context.Context, req *types.QueryDynamicBalanceRequest) (*types.QueryDynamicBalanceResponse, error) {

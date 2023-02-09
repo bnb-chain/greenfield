@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 // GetParams get all parameters as types.Params

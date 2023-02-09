@@ -1,6 +1,8 @@
 package types
 
-import sdkmath "cosmossdk.io/math"
+import (
+	sdkmath "cosmossdk.io/math"
+)
 
 type StreamRecordChange struct {
 	Addr                string

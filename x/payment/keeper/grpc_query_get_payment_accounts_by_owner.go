@@ -3,12 +3,13 @@ package keeper
 import (
 	"context"
 	"encoding/binary"
-	"github.com/cosmos/cosmos-sdk/types/address"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k Keeper) GetPaymentAccountsByOwner(goCtx context.Context, req *types.QueryGetPaymentAccountsByOwnerRequest) (*types.QueryGetPaymentAccountsByOwnerResponse, error) {
