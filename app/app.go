@@ -98,10 +98,16 @@ import (
 	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
 	// this line is used by starport scaffolding # stargate/app/moduleImport
+
+	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
+	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	// this line is used by starport scaffolding # stargate/app/moduleImport
 )
 
 const (
 	Name          = "greenfield"
+	ShortName     = "gnfd"
 	EIP155ChainID = "9000"
 	Epoch         = "1"
 
@@ -150,6 +156,7 @@ var (
 		bridgemodule.AppModuleBasic{},
 		gashub.AppModuleBasic{},
 		spmodule.AppModuleBasic{},
+		paymentmodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -160,6 +167,8 @@ var (
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
+		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
+		paymentmoduletypes.ModuleName:  {authtypes.Minter, authtypes.Burner, authtypes.Staking},
 		crosschaintypes.ModuleName:     {authtypes.Minter},
 		bridgemoduletypes.ModuleName:   nil,
 		// this line is used by starport scaffolding # stargate/app/maccPerms
@@ -178,7 +187,7 @@ func init() {
 		panic(err)
 	}
 
-	DefaultNodeHome = filepath.Join(userHomeDir, "."+Name)
+	DefaultNodeHome = filepath.Join(userHomeDir, "."+ShortName)
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -215,8 +224,9 @@ type App struct {
 
 	GreenfieldKeeper greenfieldmodulekeeper.Keeper
 
-	BridgeKeeper bridgemodulekeeper.Keeper
-	SpKeeper spmodulekeeper.Keeper
+	BridgeKeeper  bridgemodulekeeper.Keeper
+	SpKeeper      spmodulekeeper.Keeper
+	PaymentKeeper paymentmodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -271,6 +281,7 @@ func New(
 		bridgemoduletypes.StoreKey,
 		gashubtypes.StoreKey,
 		spmoduletypes.StoreKey,
+		paymentmoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -447,6 +458,17 @@ func New(
 	)
 	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
+		appCodec,
+		keys[paymentmoduletypes.StoreKey],
+		keys[paymentmoduletypes.MemStoreKey],
+		app.GetSubspace(paymentmoduletypes.ModuleName),
+
+		app.BankKeeper,
+		app.AccountKeeper,
+	)
+	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
@@ -478,6 +500,7 @@ func New(
 		bridgeModule,
 		gashubModule,
 		spModule,
+		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -504,6 +527,7 @@ func New(
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
+		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -525,6 +549,7 @@ func New(
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
+		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -551,6 +576,7 @@ func New(
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		spmoduletypes.ModuleName,
+		paymentmoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -579,6 +605,7 @@ func New(
 		bridgeModule,
 		gashubModule,
 		spModule,
+		paymentModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -809,6 +836,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
 	paramsKeeper.Subspace(gashubtypes.ModuleName)
 	paramsKeeper.Subspace(spmoduletypes.ModuleName)
+	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper

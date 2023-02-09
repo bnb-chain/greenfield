@@ -1,0 +1,16 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+// PaymentAccount defines a payment account
+message PaymentAccount {
+  // the address of the payment account
+  string addr = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // the owner address of the payment account
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // whether the payment account is refundable
+  bool refundable = 3;
+}

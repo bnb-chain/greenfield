@@ -1,11 +1,11 @@
 syntax = "proto3";
 package bnbchain.greenfield.sp;
 
-import "greenfield/sp/types.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "greenfield/sp/types.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -63,6 +63,5 @@ message MsgEditStorageProvider {
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
 message MsgEditStorageProviderResponse {}
-
 
 // this line is used by starport scaffolding # proto/tx/message

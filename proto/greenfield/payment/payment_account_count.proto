@@ -1,0 +1,14 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+// PaymentAccountCount defines the state struct which stores the number of payment accounts for an account
+message PaymentAccountCount {
+  // owner is the account address
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // count is the number of payment accounts for the account
+  uint64 count = 2;
+}
