@@ -47,7 +47,7 @@ const (
 	SlashSeparator = "/"
 )
 
-/// CheckValidObjectName - checks if we have a valid input object name.
+// / CheckValidObjectName - checks if we have a valid input object name.
 //   - http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
 func CheckValidObjectName(objectName string) error {
 	// check the length of objectname
