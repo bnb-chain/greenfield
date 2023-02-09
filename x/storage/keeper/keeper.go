@@ -194,6 +194,33 @@ func (k Keeper) DeleteObject(ctx sdk.Context, bucketName string, objectName stri
 	objectStore.Delete(objectKey)
 }
 
+func (k Keeper) GetObjectWithKey(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+
+	bz := objectStore.Get(objectKey)
+	if bz == nil {
+		return objectInfo, false
+	}
+
+	k.cdc.MustUnmarshal(bz, &objectInfo)
+	return objectInfo, true
+}
+
+//TODO: implement to find the first object info after the key
+func (k Keeper) GetObjectAfterKey(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+
+	bz := objectStore.Get(objectKey)
+	if bz == nil {
+		return objectInfo, false
+	}
+
+	k.cdc.MustUnmarshal(bz, &objectInfo)
+	return objectInfo, true
+}
+
 func (k Keeper) CreateGroup(ctx sdk.Context, groupInfo types.GroupInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)

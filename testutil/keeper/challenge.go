@@ -7,6 +7,8 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -44,13 +46,14 @@ import (
 	tmdb "github.com/tendermint/tm-db"
 )
 
+//TODO: fix
 func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKeys := sdk.NewKVStoreKeys(authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey, govtypes.StoreKey,
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
-		crosschaintypes.StoreKey,
+		crosschaintypes.StoreKey, storagetypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -79,6 +82,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(authtypes.ModuleName)
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
+	paramKeeper.Subspace(storagetypes.ModuleName)
 	paramKeeper.Subspace(sptypes.ModuleName)
 	paramKeeper.Subspace(stakingtypes.ModuleName)
 
@@ -120,6 +124,14 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		accountKeeper, bankKeeper, authzKeeper,
 	)
 
+	storageKeeper := storagekeeper.NewKeeper(
+		cdc,
+		storeKeys[storagetypes.StoreKey],
+		memStoreKey,
+		GetSubspace(paramKeeper, storagetypes.ModuleName),
+		spKeeper,
+	)
+
 	stakingKeeper := stakingkeeper.NewKeeper(
 		cdc,
 		storeKeys[stakingtypes.StoreKey],
@@ -131,7 +143,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
-		spKeeper, stakingKeeper,
+		storageKeeper, spKeeper, stakingKeeper,
 	)
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
 

@@ -18,7 +18,8 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
-		spKeeper      types.SpKeeper
+		StorageKeeper types.StorageKeeper
+		SpKeeper      types.SpKeeper
 		stakingKeeper types.StakingKeeper
 	}
 )
@@ -29,6 +30,7 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 
+	storageKeeper types.StorageKeeper,
 	spKeeper types.SpKeeper,
 	stakingKeeper types.StakingKeeper,
 ) *Keeper {
@@ -42,7 +44,8 @@ func NewKeeper(
 		storeKey:      storeKey,
 		memKey:        memKey,
 		paramstore:    ps,
-		spKeeper:      spKeeper,
+		StorageKeeper: storageKeeper,
+		SpKeeper:      spKeeper,
 		stakingKeeper: stakingKeeper,
 	}
 }

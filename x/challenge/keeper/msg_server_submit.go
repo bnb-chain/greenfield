@@ -5,6 +5,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -17,7 +18,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// check sp status
-	sp, found := k.spKeeper.GetStorageProvider(ctx, spOperatorAddress)
+	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperatorAddress)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}
@@ -27,14 +28,22 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 
 	// check sp recent slash
 
-	// TODO: check object & read needed data
-	bucketHash := msg.BucketName
-	objectHash := msg.ObjectName
-	objectId := uint64(1)
+	// check object & read needed data
+	objectInfo, found := k.StorageKeeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
+	if !found {
+		return nil, types.ErrUnknownObject
+	}
+	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
+		return nil, types.ErrInvalidObjectStatus
+	}
+
+	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
+	objectId := objectInfo.Id
 
 	index := msg.Index
 	if msg.RandomIndex {
 		//TODO: random index
+
 	}
 
 	challengeId, err := k.GetChallengeID(ctx)
@@ -44,8 +53,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	challenge := types.Challenge{
 		Id:                challengeId,
 		SpOperatorAddress: msg.SpOperatorAddress,
-		BucketHash:        bucketHash,
-		ObjectHash:        objectHash,
+		ObjectKey:         objectKey,
 		Index:             msg.Index,
 		Height:            uint64(ctx.BlockHeight()),
 		ChallengerAddress: msg.Creator,
@@ -58,7 +66,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,
 		SpOperatorAddress: msg.SpOperatorAddress,
-		ObjectId:          objectId,
+		ObjectId:          objectId.Uint64(),
 		Index:             index,
 	}); err != nil {
 		return nil, err

@@ -479,6 +479,7 @@ func New(
 		keys[challengemoduletypes.StoreKey],
 		keys[challengemoduletypes.MemStoreKey],
 		app.GetSubspace(challengemoduletypes.ModuleName),
+		app.StorageKeeper,
 		app.SpKeeper,
 		app.StakingKeeper,
 	)

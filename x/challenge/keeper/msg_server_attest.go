@@ -9,6 +9,7 @@ import (
 	"github.com/bits-and-blooms/bitset"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
@@ -23,11 +24,16 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		return nil, types.ErrUnknownChallenge
 	}
 
-	//TODO: check object, and get object info by bucket name hash and object name hash
-	//bucketHash := challenge.BucketHash
-	//objectHash := challenge.ObjectHash
-
-	objectSize := uint64(10240)
+	//check object, and get object info
+	objectKey := challenge.ObjectKey
+	objectInfo, found := k.StorageKeeper.GetObjectWithKey(ctx, objectKey)
+	if !found {
+		return nil, types.ErrUnknownObject
+	}
+	objectSize := objectInfo.Size()
+	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
+		return nil, types.ErrInvalidObjectStatus
+	}
 
 	// check attest validators and signatures
 	validators, err := k.verifySignature(ctx, msg)
@@ -39,12 +45,12 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	// recentSlashes := k.GetAllRecentSlash(ctx)
 
 	// calculate slash & reward amounts
-	k.doSlashAndRewards(ctx, objectSize, challenge, msg.Creator, validators)
+	k.doSlashAndRewards(ctx, uint64(objectSize), challenge, msg.Creator, validators)
 
 	k.RemoveOngoingChallenge(ctx, msg.ChallengeId)
 	slash := types.Slash{
 		SpOperatorAddress: challenge.SpOperatorAddress,
-		ObjectHash:        challenge.ObjectHash,
+		ObjectKey:         challenge.ObjectKey,
 		Height:            uint64(ctx.BlockHeight()),
 	}
 	k.AppendRecentSlash(ctx, slash)
@@ -170,7 +176,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64,
 	if err != nil {
 		panic(err)
 	}
-	k.spKeeper.Slash(ctx, spOperatorAddress, rewards)
+	k.SpKeeper.Slash(ctx, spOperatorAddress, rewards)
 
 	event := types.EventCompleteChallenge{
 		ChallengeId:            challenge.Id,

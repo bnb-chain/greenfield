@@ -4,9 +4,8 @@ package bnbchain.greenfield.challenge;
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-import "greenfield/challenge/challenge.proto";
 import "greenfield/challenge/params.proto";
-import "greenfield/challenge/slash.proto";
+import "greenfield/challenge/types.proto";
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";

@@ -1,8 +1,6 @@
 package challenge
 
 import (
-	"fmt"
-
 	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,11 +15,6 @@ const coolingOffMultiplier = 3
 func BeginBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	// reset count of challenge in current block to zero
 	keeper.ResetChallengeCount(ctx)
-
-	fmt.Println("BlockHeight: ", ctx.BlockHeight())
-	fmt.Println("BlockTime: ", ctx.BlockTime().String())
-	fmt.Println("BlockTime: ", ctx.BlockTime().UnixNano())
-	fmt.Println("HeaderHash: ", ctx.HeaderHash().String())
 
 	// delete expired challenges at this height
 	events := make([]proto.Message, 0)
@@ -60,14 +53,21 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	needed := keeper.EventCountPerBlock(ctx)
 	events := make([]proto.Message, 0)
 	for count < needed {
+		count++
 		challengeId, _ := keeper.GetChallengeID(ctx)
 		// TODO: random object to challenge
+		randomObjectKey := []byte{}
+		randomIndex := uint32(1)
+		randomSpOperatorAddress := ""
+		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, randomObjectKey)
+		if !found { // there is no object info yet
+			continue
+		}
+
 		challenge := types.Challenge{
 			Id:                challengeId,
-			SpOperatorAddress: "",
-			BucketHash:        "",
-			ObjectHash:        "",
-			Index:             1,
+			SpOperatorAddress: randomSpOperatorAddress,
+			Index:             randomIndex,
 			Height:            uint64(ctx.BlockHeight()),
 			ChallengerAddress: "",
 		}
@@ -75,11 +75,10 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 		keeper.SetChallengeID(ctx, challengeId+1)
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challenge.Id,
-			SpOperatorAddress: "",
-			ObjectId:          1,
-			Index:             challenge.Index,
+			SpOperatorAddress: randomSpOperatorAddress,
+			ObjectId:          objectInfo.Id.Uint64(),
+			Index:             randomIndex,
 		})
-		count++
 	}
 	_ = ctx.EventManager().EmitTypedEvents(events...)
 }
