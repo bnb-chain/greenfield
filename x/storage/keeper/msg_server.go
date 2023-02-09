@@ -73,17 +73,15 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		PaymentAddress:   paymentAcc.String(),
 		PrimarySpAddress: primarySPAcc.String(),
 	}
-	k.Keeper.CreateBucket(ctx, bucketInfo)
 
-	return &types.MsgCreateBucketResponse{}, nil
+	return &types.MsgCreateBucketResponse{}, k.Keeper.CreateBucket(ctx, bucketInfo)
 }
 
 func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucket) (*types.MsgDeleteBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check if have the permission to delete bucket
-	k.Keeper.DeleteBucket(ctx, msg.BucketName)
-	return &types.MsgDeleteBucketResponse{}, nil
+	return &types.MsgDeleteBucketResponse{}, k.Keeper.DeleteBucket(ctx, msg.BucketName)
 }
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
@@ -131,9 +129,8 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		Checksums:            msg.ExpectChecksums,
 		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
 	}
-	k.Keeper.CreateObject(ctx, objectInfo)
 
-	return &types.MsgCreateObjectResponse{}, nil
+	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, objectInfo)
 }
 
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
@@ -290,7 +287,10 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 		Id:        k.GetGroupId(ctx),
 		GroupName: msg.GroupName,
 	}
-	k.Keeper.CreateGroup(ctx, groupInfo)
+	err := k.Keeper.CreateGroup(ctx, groupInfo)
+	if err != nil {
+		return nil, err
+	}
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
 	for _, member := range msg.Members {
@@ -348,7 +348,10 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 			ExpireTime: 0,
 		}
 
-		k.Keeper.AddGroupMember(ctx, memberInfo)
+		err = k.Keeper.AddGroupMember(ctx, memberInfo)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	for _, member := range msg.MembersToDelete {
@@ -356,7 +359,10 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		if err != nil {
 			return nil, err
 		}
-		k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc.String())
+		err = k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc.String())
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil

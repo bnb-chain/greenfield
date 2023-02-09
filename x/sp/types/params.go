@@ -16,7 +16,7 @@ const (
 	// Default maximum number of SP
 	DefaultMaxStorageProviders uint32 = 100
 	// Dafault deposit denom
-	DefaultDepositDenom = "deposit"
+	DefaultDepositDenom = "bnb"
 )
 
 // DefaultMinDeposit defines the minimum deposit amount for all storage provider
