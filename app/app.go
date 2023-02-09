@@ -154,6 +154,7 @@ var (
 		gashub.AppModuleBasic{},
 		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
+		storagemodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -277,6 +278,7 @@ func New(
 		gashubtypes.StoreKey,
 		spmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
+		storagemoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
