@@ -51,7 +51,7 @@ func GetTxCmd() *cobra.Command {
 func CmdCreateBucket() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-bucket [bucket-name] [primarySP]",
-		Short: "Broadcast message create-bucket",
+		Short: "create a new bucket which associate to a primary sp",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -112,7 +112,7 @@ func CmdCreateBucket() *cobra.Command {
 func CmdDeleteBucket() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-bucket [bucket-name]",
-		Short: "Broadcast message delete-bucket",
+		Short: "delete an existing bucket",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -140,8 +140,8 @@ func CmdDeleteBucket() *cobra.Command {
 
 func CmdCreateObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-object [bucket-name] [object-name] [file-path]",
-		Short: "Broadcast message create-object",
+		Use:   "create-object [bucket-name] [object-name]",
+		Short: "create a new object in the bucket",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -207,7 +207,7 @@ func CmdCreateObject() *cobra.Command {
 func CmdCopyObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "copy-object [src-bucket-name] [dst-bucket-name] [src-object-name] [dst-object-name]",
-		Short: "Broadcast message copy-object",
+		Short: "Copy an existing object in a bucket to another bucket",
 		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argSrcBucketName := args[0]
@@ -243,7 +243,7 @@ func CmdCopyObject() *cobra.Command {
 func CmdSealObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "seal-object [bucket-name] [object-name]",
-		Short: "Broadcast message seal-object",
+		Short: "Seal the object",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -281,7 +281,7 @@ func CmdSealObject() *cobra.Command {
 func CmdRejectSealObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reject-seal-object [bucket-name] [object-name]",
-		Short: "Broadcast message reject-unsealed-object",
+		Short: "Reject to seal the object",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -312,7 +312,7 @@ func CmdRejectSealObject() *cobra.Command {
 func CmdDeleteObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-object [bucket-name] [object-name]",
-		Short: "Broadcast message delete-object",
+		Short: "Delete an existing object",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -343,7 +343,7 @@ func CmdDeleteObject() *cobra.Command {
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-group [group-name]",
-		Short: "Broadcast message create-group",
+		Short: "Create a new group",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
@@ -373,7 +373,7 @@ func CmdCreateGroup() *cobra.Command {
 func CmdDeleteGroup() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "delete-group [group-name]",
-		Short: "Broadcast message delete-group",
+		Short: "Delete an existing group",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
@@ -402,7 +402,7 @@ func CmdDeleteGroup() *cobra.Command {
 func CmdLeaveGroup() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "leave-group [group-name]",
-		Short: "Broadcast message leave-group",
+		Short: "Leave the group you're a member of",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
@@ -432,7 +432,7 @@ func CmdLeaveGroup() *cobra.Command {
 func CmdUpdateGroupMember() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-group-member [group-name]",
-		Short: "Broadcast message update-group-member",
+		Short: "Update the member of the group you own",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
