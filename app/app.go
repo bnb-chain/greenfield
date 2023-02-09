@@ -402,14 +402,6 @@ func New(
 		govConfig,
 	)
 
-	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
-		appCodec,
-		keys[storagemoduletypes.StoreKey],
-		keys[storagemoduletypes.MemStoreKey],
-		app.GetSubspace(storagemoduletypes.ModuleName),
-		app.SpKeeper,
-	)
-
 	// Register the upgrade keeper
 	upgradeInitlizier, upgradeHandler := UpgradeInitializerAndHandler(app.AccountKeeper)
 	var err error
@@ -433,7 +425,6 @@ func New(
 		app.CrossChainKeeper,
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
-	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.GashubKeeper = gashubkeeper.NewKeeper(
 		appCodec,
@@ -463,6 +454,15 @@ func New(
 		app.AccountKeeper,
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
+
+	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
+		appCodec,
+		keys[storagemoduletypes.StoreKey],
+		keys[storagemoduletypes.MemStoreKey],
+		app.GetSubspace(storagemoduletypes.ModuleName),
+		app.SpKeeper,
+	)
+	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 

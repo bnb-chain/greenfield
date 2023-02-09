@@ -60,12 +60,12 @@ func CmdCreateBucket() *cobra.Command {
 			}
 
 			argBucketName := args[0]
-			primarySP, err := sdk.AccAddressFromHexUnsafe(args[1])
+			primarySPAddress, err := sdk.AccAddressFromHexUnsafe(args[1])
 			if err != nil {
 				return err
 			}
 
-			var paymentAccount sdk.AccAddress
+			var paymentAddress sdk.AccAddress
 			isPublic, err := cmd.Flags().GetBool(FlagPublic)
 			if err != nil {
 				return err
@@ -81,7 +81,7 @@ func CmdCreateBucket() *cobra.Command {
 			}
 
 			if paymentAccStr != "" {
-				if paymentAccount, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
+				if paymentAddress, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
 					return err
 				}
 			}
@@ -90,8 +90,8 @@ func CmdCreateBucket() *cobra.Command {
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				isPublic,
-				primarySP,
-				paymentAccount,
+				primarySPAddress,
+				paymentAddress,
 				primarySPApproval, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
