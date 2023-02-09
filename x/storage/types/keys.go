@@ -42,11 +42,11 @@ func GetObjectKey(bucketName string, objectName string) []byte {
 	return append(bucketKey, objectKey...)
 }
 
-func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
+func GetGroupKey(owner string, groupName string) []byte {
 	groupKey := sdk.Keccak256([]byte(groupName))
-	return append([]byte(owner.String()), groupKey...)
+	return append([]byte(owner), groupKey...)
 }
 
-func GetGroupMemberKey(groupId math.Uint, memberAcc sdk.AccAddress) []byte {
-	return append(MustMarshalUint(groupId), []byte(memberAcc.String())...)
+func GetGroupMemberKey(groupId math.Uint, memberAcc string) []byte {
+	return append(MustMarshalUint(groupId), []byte(memberAcc)...)
 }

@@ -62,13 +62,6 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
-	// Check Bucket exist
-	// TODO:
-	bucketKey := types.GetBucketKey(msg.BucketName)
-	if k.HasBucket(ctx, bucketKey) {
-		return nil, types.ErrBucketAlreadyExists
-	}
-
 	// Store bucket meta
 	bucketInfo := types.BucketInfo{
 		Owner:            ownerAcc.String(),
@@ -80,7 +73,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		PaymentAddress:   paymentAcc.String(),
 		PrimarySpAddress: primarySPAcc.String(),
 	}
-	k.SetBucket(ctx, bucketKey, bucketInfo)
+	k.Keeper.CreateBucket(ctx, bucketInfo)
 
 	return &types.MsgCreateBucketResponse{}, nil
 }
@@ -89,19 +82,7 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check if have the permission to delete bucket
-
-	// check if the bucket exists
-	bucketKey := types.GetBucketKey(msg.BucketName)
-	if k.Keeper.HasBucket(ctx, bucketKey) {
-		return nil, types.ErrBucketAlreadyExists
-	}
-
-	// check if the bucket empty
-	if k.Keeper.IsEmptyBucket(ctx, bucketKey) {
-		return nil, types.ErrBucketNotEmpty
-	}
-
-	k.Keeper.DeleteBucket(ctx, bucketKey)
+	k.Keeper.DeleteBucket(ctx, msg.BucketName)
 	return &types.MsgDeleteBucketResponse{}, nil
 }
 
@@ -117,16 +98,9 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	}
 
 	// check bucket
-	bucketKey := types.GetBucketKey(msg.BucketName)
-	bucketInfo, found := k.GetBucket(ctx, bucketKey)
+	bucketInfo, found := k.GetBucket(ctx, msg.BucketName)
 	if !found {
 		return nil, types.ErrNoSuchBucket
-	}
-
-	// check object
-	objectKey := types.GetObjectKey(msg.BucketName, msg.ObjectName)
-	if k.HasObject(ctx, objectKey) {
-		return nil, types.ErrObjectAlreadyExists
 	}
 
 	// TODO: this is a very tricky implement. Will be refactor later.
@@ -157,7 +131,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		Checksums:            msg.ExpectChecksums,
 		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
 	}
-	k.Keeper.SetObject(ctx, objectKey, objectInfo)
+	k.Keeper.CreateObject(ctx, objectInfo)
 
 	return &types.MsgCreateObjectResponse{}, nil
 }
@@ -171,10 +145,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	if err != nil {
 		return nil, err
 	}
-	bucketKey := types.GetBucketKey(msg.BucketName)
-	objectKey := types.GetObjectKey(msg.BucketName, msg.ObjectName)
-
-	bucketInfo, found := k.Keeper.GetBucket(ctx, bucketKey)
+	bucketInfo, found := k.Keeper.GetBucket(ctx, msg.BucketName)
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
@@ -183,7 +154,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		return nil, types.ErrSPAddressMismatch
 	}
 
-	objectInfo, found := k.Keeper.GetObject(ctx, objectKey)
+	objectInfo, found := k.Keeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
@@ -198,7 +169,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		return nil, err
 	}
 
-	k.Keeper.SetObject(ctx, objectKey, objectInfo)
+	k.Keeper.SetObject(ctx, objectInfo)
 
 	return &types.MsgSealObjectResponse{}, nil
 }
@@ -211,20 +182,17 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, err
 	}
 
-	srcBucketKey := types.GetBucketKey(msg.SrcBucketName)
-	_, found := k.Keeper.GetBucket(ctx, srcBucketKey)
+	_, found := k.Keeper.GetBucket(ctx, msg.SrcBucketName)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrNoSuchBucket, "src bucket name (%s)", msg.SrcBucketName)
 	}
 
-	dstBucketKey := types.GetBucketKey(msg.DstBucketName)
-	dstBucketInfo, found := k.Keeper.GetBucket(ctx, dstBucketKey)
+	dstBucketInfo, found := k.Keeper.GetBucket(ctx, msg.DstBucketName)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrNoSuchBucket, "dst bucket name (%s)", msg.DstBucketName)
 	}
 
-	srcObjectKey := types.GetObjectKey(msg.SrcBucketName, msg.SrcObjectName)
-	srcObjectInfo, found := k.Keeper.GetObject(ctx, srcObjectKey)
+	srcObjectInfo, found := k.Keeper.GetObject(ctx, msg.SrcBucketName, msg.SrcObjectName)
 	if !found {
 		return nil, sdkerrors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", msg.SrcObjectName)
 	}
@@ -261,8 +229,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		Checksums: srcObjectInfo.Checksums,
 	}
 
-	objectKey := types.GetObjectKey(msg.DstBucketName, msg.DstObjectName)
-	k.Keeper.SetObject(ctx, objectKey, objectInfo)
+	k.Keeper.SetObject(ctx, objectInfo)
 
 	return &types.MsgCopyObjectResponse{}, nil
 }
@@ -270,8 +237,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObject) (*types.MsgDeleteObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	objectKey := types.GetObjectKey(msg.BucketName, msg.ObjectName)
-	objectInfo, found := k.Keeper.GetObject(ctx, objectKey)
+	objectInfo, found := k.Keeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
@@ -281,15 +247,14 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 		return nil, types.ErrAccessDenied
 	}
 
-	k.Keeper.DeleteObject(ctx, objectKey)
+	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
 	return &types.MsgDeleteObjectResponse{}, nil
 }
 
 func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectSealObject) (*types.MsgRejectSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	objectKey := types.GetObjectKey(msg.BucketName, msg.ObjectName)
-	objectInfo, found := k.Keeper.GetObject(ctx, objectKey)
+	objectInfo, found := k.Keeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
@@ -313,30 +278,20 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 	}
 
 	// TODO: Interact with payment. unlock the pre-pay fee.
-	k.Keeper.DeleteObject(ctx, objectKey)
+	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
 	return &types.MsgRejectSealObjectResponse{}, nil
 }
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
-
-	groupKey := types.GetGroupKey(ownerAcc, msg.GroupName)
-	if k.Keeper.HasGroup(ctx, groupKey) {
-		return nil, types.ErrObjectAlreadyExists
-	}
-
 	groupInfo := types.GroupInfo{
 		Owner:     msg.Creator,
 		Id:        k.GetGroupId(ctx),
 		GroupName: msg.GroupName,
 	}
+	k.Keeper.CreateGroup(ctx, groupInfo)
 
-	// TODO: add a member means insert a key-value to database.
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
 	for _, member := range msg.Members {
 		memberAddress, err := sdk.AccAddressFromHexUnsafe(member)
@@ -344,71 +299,40 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 			return nil, err
 		}
 		groupMemberInfo := types.GroupMemberInfo{
+			Member:     memberAddress.String(),
 			Id:         groupInfo.Id,
 			ExpireTime: 0,
 		}
-		groupMemberKey := types.GetGroupMemberKey(groupInfo.Id, memberAddress)
-		k.Keeper.SetGroupMember(ctx, groupMemberKey, groupMemberInfo)
+		err = k.Keeper.AddGroupMember(ctx, groupMemberInfo)
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	k.Keeper.SetGroup(ctx, groupKey, groupInfo)
 	return &types.MsgCreateGroupResponse{}, nil
 }
 
 func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup) (*types.MsgDeleteGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
-
-	groupKey := types.GetGroupKey(ownerAcc, msg.GroupName)
-	if !k.Keeper.HasGroup(ctx, groupKey) {
-		return nil, types.ErrNoSuchGroup
-	}
-
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	k.Keeper.DeleteGroup(ctx, groupKey)
-	return &types.MsgDeleteGroupResponse{}, nil
+	return &types.MsgDeleteGroupResponse{}, k.Keeper.DeleteGroup(ctx, msg.Operator, msg.GroupName)
 }
 
 func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (*types.MsgLeaveGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	memberAcc, err := sdk.AccAddressFromHexUnsafe(msg.Member)
-	if err != nil {
-		return nil, err
-	}
-
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
-	if err != nil {
-		return nil, err
-	}
-	groupKey := types.GetGroupKey(ownerAcc, msg.GroupName)
-	groupInfo, found := k.Keeper.GetGroup(ctx, groupKey)
+	groupInfo, found := k.Keeper.GetGroup(ctx, msg.GroupOwner, msg.GroupName)
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
-	memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
-	if !k.Keeper.HasGroupMember(ctx, memberKey) {
-		return nil, types.ErrNoSuchGroupMember
-	}
-	k.Keeper.DeleteGroupMember(ctx, memberKey)
-
-	return &types.MsgLeaveGroupResponse{}, nil
+	return &types.MsgLeaveGroupResponse{}, k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, msg.Member)
 }
 
 func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdateGroupMember) (*types.MsgUpdateGroupMemberResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
 	// Now only allowed group owner to update member
-	groupKey := types.GetGroupKey(ownerAcc, msg.GroupName)
-	groupInfo, found := k.Keeper.GetGroup(ctx, groupKey)
+	groupInfo, found := k.Keeper.GetGroup(ctx, msg.Operator, msg.GroupName)
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
@@ -418,16 +342,13 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		if err != nil {
 			return nil, err
 		}
-		memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
 		memberInfo := types.GroupMemberInfo{
+			Member:     memberAcc.String(),
 			Id:         groupInfo.Id,
 			ExpireTime: 0,
 		}
-		if !k.Keeper.HasGroupMember(ctx, memberKey) {
-			k.Keeper.SetGroupMember(ctx, memberKey, memberInfo)
-		} else {
-			return nil, types.ErrGroupMemberAlreadyExists
-		}
+
+		k.Keeper.AddGroupMember(ctx, memberInfo)
 	}
 
 	for _, member := range msg.MembersToDelete {
@@ -435,12 +356,7 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		if err != nil {
 			return nil, err
 		}
-		memberKey := types.GetGroupMemberKey(groupInfo.Id, memberAcc)
-		if k.Keeper.HasGroupMember(ctx, memberKey) {
-			k.Keeper.DeleteGroupMember(ctx, memberKey)
-		} else {
-			return nil, types.ErrGroupMemberNotExists
-		}
+		k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc.String())
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil

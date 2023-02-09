@@ -57,41 +57,58 @@ func NewKeeper(
 	return &k
 }
 
-func (k Keeper) CheckSPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
-	for i, spAddr := range spAddrs {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
-		if err != nil {
-			return err
-		}
-		sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
-		if !found {
-			return types.ErrNoSuchStorageProvider
-		}
-		if sp.Status != sptypes.STATUS_IN_SERVICE {
-			return types.ErrStorageProviderNotInService
-		}
-
-		approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
-		if err != nil {
-			return err
-		}
-
-		err = types.VerifySignature(approvalAcc, sigData[i], signature[i])
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetBucket(ctx sdk.Context, bucketKey []byte) (bucketInfo types.BucketInfo, found bool) {
+func (k Keeper) CreateBucket(ctx sdk.Context, bucketInfo types.BucketInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
+	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
+	if bucketStore.Has(bucketKey) {
+		return types.ErrBucketAlreadyExists
+	}
+
+	bz := k.cdc.MustMarshal(&bucketInfo)
+	bucketStore.Set(bucketKey, bz)
+	return nil
+}
+
+func (k Keeper) DeleteBucket(ctx sdk.Context, bucketName string) error {
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketPrefix)
+
+	bucketKey := types.GetBucketKey(bucketName)
+	if !bucketStore.Has(bucketKey) {
+		return types.ErrNoSuchBucket
+	}
+	// check if the bucket empty
+	if k.isEmptyBucket(ctx, bucketKey) {
+		return types.ErrBucketNotEmpty
+	}
+	bucketStore.Delete(bucketKey)
+	return nil
+}
+
+func (k Keeper) MustGetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketPrefix)
+
+	bz := bucketStore.Get(types.GetBucketKey(bucketName))
+	if bz == nil {
+		panic(fmt.Sprintf("bucket not found for address: %X\n", bucketName))
+	}
+
+	k.cdc.MustUnmarshal(bz, &bucketInfo)
+	return bucketInfo, true
+}
+
+func (k Keeper) GetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketPrefix)
+
+	bucketKey := types.GetBucketKey(bucketName)
 	bz := bucketStore.Get(bucketKey)
 	if bz == nil {
 		return bucketInfo, false
@@ -123,29 +140,7 @@ func (k Keeper) GetGroupId(ctx sdk.Context) math.Uint {
 	return seq
 }
 
-func (k Keeper) HasBucket(ctx sdk.Context, bucketKey []byte) (found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bucketStore := prefix.NewStore(store, types.BucketPrefix)
-
-	return bucketStore.Has(bucketKey)
-}
-
-func (k Keeper) SetBucket(ctx sdk.Context, bucketKey []byte, bucketInfo types.BucketInfo) {
-	store := ctx.KVStore(k.storeKey)
-	bucketStore := prefix.NewStore(store, types.BucketPrefix)
-
-	bz := k.cdc.MustMarshal(&bucketInfo)
-	bucketStore.Set(bucketKey, bz)
-}
-
-func (k Keeper) DeleteBucket(ctx sdk.Context, bucketKey []byte) {
-	store := ctx.KVStore(k.storeKey)
-	bucketStore := prefix.NewStore(store, types.BucketPrefix)
-
-	bucketStore.Delete(bucketKey)
-}
-
-func (k Keeper) IsEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
+func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
@@ -153,10 +148,25 @@ func (k Keeper) IsEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
 	return iter.Valid()
 }
 
-func (k Keeper) GetObject(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
+func (k Keeper) CreateObject(ctx sdk.Context, objectInfo types.ObjectInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
+	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
+	if objectStore.Has(objectKey) {
+		return types.ErrObjectAlreadyExists
+	}
+
+	bz := k.cdc.MustMarshal(&objectInfo)
+	objectStore.Set(objectKey, bz)
+	return nil
+}
+
+func (k Keeper) GetObject(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+
+	objectKey := types.GetObjectKey(bucketName, objectName)
 	bz := objectStore.Get(objectKey)
 	if bz == nil {
 		return objectInfo, false
@@ -167,40 +177,41 @@ func (k Keeper) GetObject(ctx sdk.Context, objectKey []byte) (objectInfo types.O
 	return objectInfo, true
 }
 
-func (k Keeper) HasObject(ctx sdk.Context, objectKey []byte) (found bool) {
+func (k Keeper) SetObject(ctx sdk.Context, objectInfo types.ObjectInfo) {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	return objectStore.Has(objectKey)
-}
-
-func (k Keeper) SetObject(ctx sdk.Context, objectKey []byte, objectInfo types.ObjectInfo) {
-	store := ctx.KVStore(k.storeKey)
-	objectStore := prefix.NewStore(store, types.ObjectPrefix)
-
+	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
 	bz := k.cdc.MustMarshal(&objectInfo)
 	objectStore.Set(objectKey, bz)
 }
 
-func (k Keeper) DeleteObject(ctx sdk.Context, objectKey []byte) {
+func (k Keeper) DeleteObject(ctx sdk.Context, bucketName string, objectName string) {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+	objectKey := types.GetObjectKey(bucketName, objectName)
 
 	objectStore.Delete(objectKey)
 }
 
-func (k Keeper) SetGroup(ctx sdk.Context, groupKey []byte, groupInfo types.GroupInfo) {
+func (k Keeper) CreateGroup(ctx sdk.Context, groupInfo types.GroupInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
 
+	groupKey := types.GetGroupKey(groupInfo.Owner, groupInfo.GroupName)
+	if groupStore.Has(groupKey) {
+		return types.ErrGroupAlreadyExists
+	}
 	bz := k.cdc.MustMarshal(&groupInfo)
 	groupStore.Set(groupKey, bz)
+	return nil
 }
 
-func (k Keeper) GetGroup(ctx sdk.Context, groupKey []byte) (groupInfo types.GroupInfo, found bool) {
+func (k Keeper) GetGroup(ctx sdk.Context, ownerAddr string, groupName string) (groupInfo types.GroupInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
 
+	groupKey := types.GetGroupKey(ownerAddr, groupName)
 	bz := groupStore.Get(groupKey)
 	if bz == nil {
 		return groupInfo, false
@@ -210,26 +221,41 @@ func (k Keeper) GetGroup(ctx sdk.Context, groupKey []byte) (groupInfo types.Grou
 	return groupInfo, true
 }
 
-func (k Keeper) HasGroup(ctx sdk.Context, groupKey []byte) (found bool) {
+func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr string, groupName string) error {
 	store := ctx.KVStore(k.storeKey)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
 
-	return groupStore.Has(groupKey)
-}
-
-func (k Keeper) DeleteGroup(ctx sdk.Context, groupKey []byte) {
-	store := ctx.KVStore(k.storeKey)
-	groupStore := prefix.NewStore(store, types.GroupPrefix)
+	groupKey := types.GetGroupKey(ownerAddr, groupName)
+	if !groupStore.Has(groupKey) {
+		return types.ErrNoSuchGroup
+	}
 
 	groupStore.Delete(groupKey)
+	return nil
 }
 
-func (k Keeper) SetGroupMember(ctx sdk.Context, groupMemberKey []byte, groupMemberInfo types.GroupMemberInfo) {
+func (k Keeper) AddGroupMember(ctx sdk.Context, groupMemberInfo types.GroupMemberInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
 
+	groupMemberKey := types.GetGroupMemberKey(groupMemberInfo.Id, groupMemberInfo.Member)
+	if groupMemberStore.Has(groupMemberKey) {
+		return types.ErrGroupMemberAlreadyExists
+	}
 	bz := k.cdc.MustMarshal(&groupMemberInfo)
 	groupMemberStore.Set(groupMemberKey, bz)
+	return nil
+}
+
+func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupId math.Uint, member string) error {
+	store := ctx.KVStore(k.storeKey)
+	groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
+	memberKey := types.GetGroupMemberKey(groupId, member)
+	if groupMemberStore.Has(memberKey) {
+		return types.ErrNoSuchGroupMember
+	}
+	groupMemberStore.Delete(memberKey)
+	return nil
 }
 
 func (k Keeper) HasGroupMember(ctx sdk.Context, groupMemberKey []byte) bool {
@@ -239,9 +265,29 @@ func (k Keeper) HasGroupMember(ctx sdk.Context, groupMemberKey []byte) bool {
 	return groupMemberStore.Has(groupMemberKey)
 }
 
-func (k Keeper) DeleteGroupMember(ctx sdk.Context, groupMemberKey []byte) {
-	store := ctx.KVStore(k.storeKey)
-	groupMemberStore := prefix.NewStore(store, types.GroupMemberPrefix)
+func (k Keeper) CheckSPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
+	for i, spAddr := range spAddrs {
+		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
+		if err != nil {
+			return err
+		}
+		sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+		if !found {
+			return types.ErrNoSuchStorageProvider
+		}
+		if sp.Status != sptypes.STATUS_IN_SERVICE {
+			return types.ErrStorageProviderNotInService
+		}
 
-	groupMemberStore.Delete(groupMemberKey)
+		approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+		if err != nil {
+			return err
+		}
+
+		err = types.VerifySignature(approvalAcc, sigData[i], signature[i])
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
