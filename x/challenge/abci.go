@@ -1,6 +1,8 @@
 package challenge
 
 import (
+	"fmt"
+
 	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,6 +17,11 @@ const coolingOffMultiplier = 3
 func BeginBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	// reset count of challenge in current block to zero
 	keeper.ResetChallengeCount(ctx)
+
+	fmt.Println("BlockHeight: ", ctx.BlockHeight())
+	fmt.Println("BlockTime: ", ctx.BlockTime().String())
+	fmt.Println("BlockTime: ", ctx.BlockTime().UnixNano())
+	fmt.Println("HeaderHash: ", ctx.HeaderHash().String())
 
 	// delete expired challenges at this height
 	events := make([]proto.Message, 0)

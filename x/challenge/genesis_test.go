@@ -14,15 +14,15 @@ func TestGenesis(t *testing.T) {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
 
-		OngoingChallengeList: []types.Challenge{
+		OngoingChallenges: []types.Challenge{
 			{
-				ChallengeId: "0",
+				Id: 0,
 			},
 			{
-				ChallengeId: "1",
+				Id: 1,
 			},
 		},
-		RecentSlashList: []types.Slash{
+		RecentSlashes: []types.Slash{
 			{
 				Id: 0,
 			},
@@ -42,8 +42,8 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
 
-	require.ElementsMatch(t, genesisState.OngoingChallengeList, got.OngoingChallengeList)
-	require.ElementsMatch(t, genesisState.RecentSlashList, got.RecentSlashList)
+	require.ElementsMatch(t, genesisState.OngoingChallenges, got.OngoingChallenges)
+	require.ElementsMatch(t, genesisState.RecentSlashes, got.RecentSlashes)
 	require.Equal(t, genesisState.RecentSlashCount, got.RecentSlashCount)
 	// this line is used by starport scaffolding # genesis/test/assert
 }
