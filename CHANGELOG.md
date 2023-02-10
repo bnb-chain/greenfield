@@ -1,5 +1,25 @@
 # Changelog
 
+## v0.0.5
+This release includes features, mainly:
+1. Implement payment module;
+2. Implement storage provider module;
+3. Implement storage management module.
+
+* [\#42](https://github.com/bnb-chain/greenfield/pull/42) chore: run goimportssort over the repo
+* [\#18](https://github.com/bnb-chain/greenfield/pull/18) feat: add storage module
+* [\#5](https://github.com/bnb-chain/greenfield/pull/5) feats: init payment module
+* [\#39](https://github.com/bnb-chain/greenfield/pull/39) doc: add events doc for the whole project
+* [\#41](https://github.com/bnb-chain/greenfield/pull/41) feat: add more field of storage event
+* [\#40](https://github.com/bnb-chain/greenfield/pull/40) feat: add comments for the events of bridge module
+* [\#38](https://github.com/bnb-chain/greenfield/pull/38) ci: fix Dockerfile and add docker image release job
+* [\#35](https://github.com/bnb-chain/greenfield/pull/35) deploy: update deployment scripts
+* [\#46](https://github.com/bnb-chain/greenfield/pull/36) deployment: add bls env to setup script
+* [\#34](https://github.com/bnb-chain/greenfield/pull/34) feat: add gashub module
+* [\#6](https://github.com/bnb-chain/greenfield/pull/6) feat: add sp module
+* [\#32](https://github.com/bnb-chain/greenfield/pull/32) feat: add support for EVM jsonrpc
+* [\#33](https://github.com/bnb-chain/greenfield/pull/33) fix: revert gashub module and fix build error
+
 ## v0.0.4
 This release is for rebranding from `inscription` to `greenfield`, renaming is applied to all packages, files.
 
