@@ -1,8 +1,9 @@
 package types
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"testing"
+
+	sdkmath "cosmossdk.io/math"
 )
 
 func TestStreamRecordChange(t *testing.T) {

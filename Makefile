@@ -13,7 +13,7 @@ ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
 
 format:
-	bash format.sh
+	bash scripts/format.sh
 
 tools:
 	curl https://get.ignite.com/cli! | bash

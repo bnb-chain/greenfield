@@ -1,17 +1,18 @@
 package keeper_test
 
 import (
-	"cosmossdk.io/math"
 	"reflect"
 	"strconv"
 	"testing"
+
+	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/nullify"
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/require"
 )
 
 // Prevent strconv unused error

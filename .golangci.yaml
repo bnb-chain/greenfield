@@ -1,0 +1,19 @@
+linters:
+  enable:
+    - gofmt
+    - goimports
+    - errcheck
+    - govet
+    - staticcheck
+
+linters-settings:
+  gofmt:
+    # Simplify code: gofmt with `-s` option.
+    # Default: true
+    simplify: true
+    # Apply the rewrite rules to the source before reformatting.
+    # https://pkg.go.dev/cmd/gofmt
+    # Default: []
+    rewrite-rules:
+      - pattern: 'a[b:len(a)]'
+        replacement: 'a[b:]'

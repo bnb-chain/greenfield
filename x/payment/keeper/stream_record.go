@@ -1,11 +1,13 @@
 package keeper
 
 import (
-	sdkmath "cosmossdk.io/math"
 	"fmt"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 // SetStreamRecord set a specific streamRecord in the store from its index
