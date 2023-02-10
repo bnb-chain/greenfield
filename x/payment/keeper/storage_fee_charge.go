@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newChanges []types.StreamRecordChange) {
@@ -39,7 +39,7 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 	return nil
 }
 
-func (k Keeper) ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []types.OutFlowInUSD) (err error) {
+func (k Keeper) ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []storagetypes.OutFlowInUSD) (err error) {
 	currentTime := ctx.BlockTime().Unix()
 	currentBNBPrice, err := k.GetBNBPriceByTime(ctx, currentTime)
 	if err != nil {
@@ -94,7 +94,7 @@ func USD2BNB(usd sdkmath.Int, bnbPrice types.BNBPrice) (bnb sdkmath.Int) {
 	return usd.Mul(bnbPrice.Precision).Quo(bnbPrice.Num)
 }
 
-func MergeOutFlows(flow *[]types.OutFlowInUSD, changes []types.OutFlowInUSD) []types.OutFlowInUSD {
+func MergeOutFlows(flow *[]storagetypes.OutFlowInUSD, changes []storagetypes.OutFlowInUSD) []storagetypes.OutFlowInUSD {
 	for _, change := range changes {
 		found := false
 		for i, f := range *flow {
@@ -111,28 +111,28 @@ func MergeOutFlows(flow *[]types.OutFlowInUSD, changes []types.OutFlowInUSD) []t
 	return *flow
 }
 
-func GetNegFlows(flows []types.OutFlowInUSD) (negFlows []types.OutFlowInUSD) {
-	negFlows = make([]types.OutFlowInUSD, len(flows))
+func GetNegFlows(flows []storagetypes.OutFlowInUSD) (negFlows []storagetypes.OutFlowInUSD) {
+	negFlows = make([]storagetypes.OutFlowInUSD, len(flows))
 	for i, flow := range flows {
-		negFlows[i] = types.OutFlowInUSD{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
+		negFlows[i] = storagetypes.OutFlowInUSD{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
 	}
 	return negFlows
 }
 
-func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta) error {
+func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
 	currentTime := ctx.BlockTime().Unix()
-	price, err := k.GetReadPrice(ctx, bucketMeta.ReadPacket, currentTime)
+	price, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, currentTime)
 	if err != nil {
 		return fmt.Errorf("get read price failed: %w", err)
 	}
-	flowChanges := []types.OutFlowInUSD{
-		{SpAddress: bucketMeta.SpAddress, Rate: price},
+	flowChanges := []storagetypes.OutFlowInUSD{
+		{SpAddress: bucketInfo.PrimarySpAddress, Rate: price},
 	}
-	return k.ApplyUSDFlowChanges(ctx, bucketMeta.ReadPaymentAccount, flowChanges)
+	return k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 }
 
-func (k Keeper) ChargeUpdateReadPacket(ctx sdk.Context, bucketMeta *types.MockBucketMeta, newReadPacket types.ReadPacket) error {
-	prevPrice, err := k.GetReadPrice(ctx, bucketMeta.ReadPacket, bucketMeta.PriceTime)
+func (k Keeper) ChargeUpdateReadPacket(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newReadPacket storagetypes.ReadQuota) error {
+	prevPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("get prev read price failed: %w", err)
 	}
@@ -140,10 +140,10 @@ func (k Keeper) ChargeUpdateReadPacket(ctx sdk.Context, bucketMeta *types.MockBu
 	if err != nil {
 		return fmt.Errorf("get new read price failed: %w", err)
 	}
-	flowChanges := []types.OutFlowInUSD{
-		{SpAddress: bucketMeta.SpAddress, Rate: newPrice.Sub(prevPrice)},
+	flowChanges := []storagetypes.OutFlowInUSD{
+		{SpAddress: bucketInfo.PrimarySpAddress, Rate: newPrice.Sub(prevPrice)},
 	}
-	err = k.ApplyUSDFlowChanges(ctx, bucketMeta.ReadPaymentAccount, flowChanges)
+	err = k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
@@ -169,9 +169,9 @@ func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.In
 	return lockAmountInBNB, nil
 }
 
-func (k Keeper) LockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
-	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
-	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketMeta.StorePaymentAccount, feePrice.UserPayRate)
+func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	feePrice := k.GetStorePrice(ctx, bucketInfo, objectInfo)
+	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketInfo.PaymentAddress, feePrice.UserPayRate)
 	if err != nil {
 		return fmt.Errorf("lock store fee by rate failed: %w", err)
 	}
@@ -180,9 +180,9 @@ func (k Keeper) LockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, 
 }
 
 // UnlockStoreFee unlock store fee if the object is deleted in INIT state
-func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
+func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	lockedBalance := objectInfo.LockedBalance
-	change := types.NewDefaultStreamRecordChangeWithAddr(bucketMeta.StorePaymentAccount).WithLockBalanceChange(lockedBalance.Neg())
+	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(lockedBalance.Neg())
 	_, err := k.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
@@ -190,72 +190,72 @@ func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta
 	return nil
 }
 
-func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
+func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	// todo: what if store payment account is changed before unlock?
-	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
-	err := k.UnlockStoreFee(ctx, bucketMeta, objectInfo)
+	feePrice := k.GetStorePrice(ctx, bucketInfo, objectInfo)
+	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
-	err = k.ApplyUSDFlowChanges(ctx, bucketMeta.StorePaymentAccount, feePrice.Flows)
+	err = k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, feePrice.Flows)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
-	MergeOutFlows(&bucketMeta.OutFlowsInUSD, feePrice.Flows)
+	MergeOutFlows(&bucketInfo.OutFlowsInUSD, feePrice.Flows)
 	return nil
 }
 
-func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketMeta *types.MockBucketMeta, readPaymentAccount, storePaymentAccount *string) error {
-	if readPaymentAccount != nil {
+func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, paymentAddress *string) error {
+	if paymentAddress != nil {
 		// update old read payment account
-		prevReadPrice, err := k.GetReadPrice(ctx, bucketMeta.ReadPacket, bucketMeta.PriceTime)
+		prevReadPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PriceTime)
 		if err != nil {
 			return fmt.Errorf("get prev read price failed: %w", err)
 		}
-		err = k.ApplyUSDFlowChanges(ctx, bucketMeta.ReadPaymentAccount, []types.OutFlowInUSD{
-			{SpAddress: bucketMeta.SpAddress, Rate: prevReadPrice.Neg()},
+		err = k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, []storagetypes.OutFlowInUSD{
+			{SpAddress: bucketInfo.PrimarySpAddress, Rate: prevReadPrice.Neg()},
 		})
 		if err != nil {
 			return fmt.Errorf("apply prev read payment account usd flow changes failed: %w", err)
 		}
 		// update new read payment account
-		currentReadPrice, err := k.GetReadPrice(ctx, bucketMeta.ReadPacket, ctx.BlockTime().Unix())
+		currentReadPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, ctx.BlockTime().Unix())
 		if err != nil {
 			return fmt.Errorf("get current read price failed: %w", err)
 		}
-		err = k.ApplyUSDFlowChanges(ctx, *readPaymentAccount, []types.OutFlowInUSD{
-			{SpAddress: bucketMeta.SpAddress, Rate: currentReadPrice},
+		err = k.ApplyUSDFlowChanges(ctx, *paymentAddress, []storagetypes.OutFlowInUSD{
+			{SpAddress: bucketInfo.PrimarySpAddress, Rate: currentReadPrice},
 		})
 		if err != nil {
 			return fmt.Errorf("apply current read payment account usd flow changes failed: %w", err)
 		}
 		// update bucket meta
-		bucketMeta.ReadPaymentAccount = *readPaymentAccount
-		bucketMeta.PriceTime = ctx.BlockTime().Unix()
-	}
-	if storePaymentAccount != nil {
-		flows := bucketMeta.OutFlowsInUSD
+		bucketInfo.PaymentAddress = *paymentAddress
+		bucketInfo.PriceTime = ctx.BlockTime().Unix()
+
+		// update old store
+		flows := bucketInfo.OutFlowsInUSD
 		negFlows := GetNegFlows(flows)
-		err := k.ApplyUSDFlowChanges(ctx, bucketMeta.StorePaymentAccount, negFlows)
+		err = k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
 		if err != nil {
 			return fmt.Errorf("apply prev store payment account usd flow changes failed: %w", err)
 		}
-		err = k.ApplyUSDFlowChanges(ctx, *storePaymentAccount, flows)
+		err = k.ApplyUSDFlowChanges(ctx, *paymentAddress, flows)
 		if err != nil {
 			return fmt.Errorf("apply current store payment account usd flow changes failed: %w", err)
 		}
-		bucketMeta.StorePaymentAccount = *storePaymentAccount
+		bucketInfo.PaymentAddress = *paymentAddress
 	}
 	return nil
 }
 
-func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) error {
-	feePrice := k.GetStorePrice(ctx, bucketMeta, objectInfo)
+func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	feePrice := k.GetStorePrice(ctx, bucketInfo, objectInfo)
 	negFlows := GetNegFlows(feePrice.Flows)
-	err := k.ApplyUSDFlowChanges(ctx, bucketMeta.StorePaymentAccount, negFlows)
+	err := k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
-	MergeOutFlows(&bucketMeta.OutFlowsInUSD, negFlows)
+	MergeOutFlows(&bucketInfo.OutFlowsInUSD, negFlows)
 	return nil
 }

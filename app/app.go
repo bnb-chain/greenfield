@@ -462,6 +462,7 @@ func New(
 		keys[storagemoduletypes.MemStoreKey],
 		app.GetSubspace(storagemoduletypes.ModuleName),
 		app.SpKeeper,
+		app.PaymentKeeper,
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 

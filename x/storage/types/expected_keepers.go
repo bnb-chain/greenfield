@@ -22,3 +22,11 @@ type BankKeeper interface {
 type SpKeeper interface {
 	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp sptypes.StorageProvider, found bool)
 }
+
+type PaymentKeeper interface {
+	IsPaymentAccountOwner(ctx sdk.Context, addr string, owner string) bool
+	ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *BucketInfo, paymentAddress *string) error
+	LockStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
+	ChargeDeleteObject(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
+	UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
+}

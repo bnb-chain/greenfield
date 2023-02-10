@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -108,6 +109,37 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 				BucketName: "testBucket",
 			},
 			err: ErrInvalidBucketName,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgUpdateBucketReadQuota_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgUpdateBucketInfo
+		err  error
+	}{
+		{
+			name: "invalid address",
+			msg: MsgUpdateBucketInfo{
+				Creator: "invalid_address",
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		}, {
+			name: "valid address",
+			msg: MsgUpdateBucketInfo{
+				Creator: sample.AccAddress(),
+			},
 		},
 	}
 	for _, tt := range tests {

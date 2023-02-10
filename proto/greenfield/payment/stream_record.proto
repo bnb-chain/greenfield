@@ -3,7 +3,7 @@ package bnbchain.greenfield.payment;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
+import "greenfield/storage/common.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
@@ -44,5 +44,5 @@ message StreamRecord {
   // the unix timestamp when the stream account will be settled
   int64 settleTimestamp = 8;
   // the accumulated outflow rates of the stream account
-  repeated OutFlowInUSD outFlowsInUSD = 9 [(gogoproto.nullable) = false];
+  repeated storage.OutFlowInUSD outFlowsInUSD = 9 [(gogoproto.nullable) = false];
 }

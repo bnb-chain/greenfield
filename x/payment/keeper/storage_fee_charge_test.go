@@ -1,14 +1,13 @@
 package keeper_test
 
 import (
-	"testing"
-	"time"
-
 	sdkmath "cosmossdk.io/math"
-	"github.com/stretchr/testify/require"
-
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/stretchr/testify/require"
+	"testing"
+	"time"
 )
 
 func TestApplyFlowChanges(t *testing.T) {
@@ -103,7 +102,7 @@ func TestAutoForceSettle(t *testing.T) {
 	userStreamRecord, found := keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
-	flowChanges := []types.OutFlowInUSD{
+	flowChanges := []storagetypes.OutFlowInUSD{
 		{SpAddress: sp, Rate: rate},
 	}
 	err = keeper.ApplyUSDFlowChanges(ctx, user, flowChanges)

@@ -5,8 +5,7 @@ package bnbchain.greenfield.payment;
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
-import "greenfield/payment/mock_bucket_meta.proto";
+import "greenfield/storage/common.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -18,12 +17,6 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
-  rpc MockCreateBucket(MsgMockCreateBucket) returns (MsgMockCreateBucketResponse);
-  rpc MockPutObject(MsgMockPutObject) returns (MsgMockPutObjectResponse);
-  rpc MockSealObject(MsgMockSealObject) returns (MsgMockSealObjectResponse);
-  rpc MockDeleteObject(MsgMockDeleteObject) returns (MsgMockDeleteObjectResponse);
-  rpc MockSetBucketPaymentAccount(MsgMockSetBucketPaymentAccount) returns (MsgMockSetBucketPaymentAccountResponse);
-  rpc MockUpdateBucketReadPacket(MsgMockUpdateBucketReadPacket) returns (MsgMockUpdateBucketReadPacketResponse);
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 

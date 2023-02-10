@@ -17,11 +17,12 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		paramstore paramtypes.Subspace
-		spKeeper   types.SpKeeper
+		cdc           codec.BinaryCodec
+		storeKey      storetypes.StoreKey
+		memKey        storetypes.StoreKey
+		paramStore    paramtypes.Subspace
+		spKeeper      types.SpKeeper
+		paymentKeeper types.PaymentKeeper
 
 		// sequence
 		bucketSeq Sequence
@@ -36,6 +37,7 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	spKeeper types.SpKeeper,
+	paymentKeeper types.PaymentKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -44,11 +46,12 @@ func NewKeeper(
 	}
 
 	k := Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		spKeeper:   spKeeper,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramStore:    ps,
+		spKeeper:      spKeeper,
+		paymentKeeper: paymentKeeper,
 	}
 
 	k.bucketSeq = NewSequence(types.BucketPrefix)
@@ -80,15 +83,22 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, bucketName string) error {
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
 	bucketKey := types.GetBucketKey(bucketName)
-	if !bucketStore.Has(bucketKey) {
-		return types.ErrNoSuchBucket
-	}
+
 	// check if the bucket empty
 	if k.isEmptyBucket(ctx, bucketKey) {
 		return types.ErrBucketNotEmpty
 	}
 	bucketStore.Delete(bucketKey)
 	return nil
+}
+
+func (k Keeper) SetBucket(ctx sdk.Context, bucketInfo types.BucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketPrefix)
+
+	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
+	bz := k.cdc.MustMarshal(&bucketInfo)
+	bucketStore.Set(bucketKey, bz)
 }
 
 func (k Keeper) MustGetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
@@ -148,9 +158,11 @@ func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
 	return iter.Valid()
 }
 
-func (k Keeper) CreateObject(ctx sdk.Context, objectInfo types.ObjectInfo) error {
+func (k Keeper) CreateObject(ctx sdk.Context, bucketInfo types.BucketInfo, objectInfo types.ObjectInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+
+	k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
 
 	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
 	if objectStore.Has(objectKey) {
@@ -175,6 +187,41 @@ func (k Keeper) GetObject(ctx sdk.Context, bucketName string, objectName string)
 	k.cdc.MustUnmarshal(bz, &objectInfo)
 
 	return objectInfo, true
+}
+
+func (k Keeper) SealObject(
+	ctx sdk.Context, primarySPAddress string, bucketName string,
+	objectName string, secondarySpAddresses []string, secondarySpSignatures [][]byte) error {
+
+	spAcc, err := sdk.AccAddressFromHexUnsafe(primarySPAddress)
+	if err != nil {
+		return err
+	}
+	bucketInfo, found := k.GetBucket(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+
+	if bucketInfo.PrimarySpAddress != spAcc.String() {
+		return types.ErrSPAddressMismatch
+	}
+	objectInfo, found := k.GetObject(ctx, bucketName, objectName)
+	if !found {
+		return types.ErrNoSuchObject
+	}
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+		return types.ErrObjectAlreadyExists
+	} else {
+		objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
+	}
+
+	err = k.VerifySPAndSignature(ctx, secondarySpAddresses, objectInfo.Checksums[1:], secondarySpSignatures)
+	if err != nil {
+		return err
+	}
+
+	k.SetObject(ctx, objectInfo)
+	return nil
 }
 
 func (k Keeper) SetObject(ctx sdk.Context, objectInfo types.ObjectInfo) {
@@ -226,10 +273,6 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr string, groupName string)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
 
 	groupKey := types.GetGroupKey(ownerAddr, groupName)
-	if !groupStore.Has(groupKey) {
-		return types.ErrNoSuchGroup
-	}
-
 	groupStore.Delete(groupKey)
 	return nil
 }
@@ -265,7 +308,7 @@ func (k Keeper) HasGroupMember(ctx sdk.Context, groupMemberKey []byte) bool {
 	return groupMemberStore.Has(groupMemberKey)
 }
 
-func (k Keeper) CheckSPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
+func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
 	for i, spAddr := range spAddrs {
 		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
 		if err != nil {

@@ -13,8 +13,6 @@ func DefaultGenesis() *GenesisState {
 		StreamRecordList:        []StreamRecord{},
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
-		MockBucketMetaList:      []MockBucketMeta{},
-		MockObjectInfoList:      []MockObjectInfo{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
 		BnbPriceList:            []BnbPrice{{0, 2e8}},
 		// this line is used by starport scaffolding # genesis/types/default
@@ -56,26 +54,6 @@ func (gs GenesisState) Validate() error {
 		paymentAccountIndexMap[index] = struct{}{}
 	}
 
-	// Check for duplicated index in mockBucketMeta
-	mockBucketMetaIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.MockBucketMetaList {
-		index := string(MockBucketMetaKey(elem.BucketName))
-		if _, ok := mockBucketMetaIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for mockBucketMeta")
-		}
-		mockBucketMetaIndexMap[index] = struct{}{}
-	}
-	// Check for duplicated index in mockObjectInfo
-	mockObjectInfoIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.MockObjectInfoList {
-		index := string(MockObjectInfoKey(elem.BucketName, elem.ObjectName))
-		if _, ok := mockObjectInfoIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for mockObjectInfo")
-		}
-		mockObjectInfoIndexMap[index] = struct{}{}
-	}
 	// Check for duplicated index in autoSettleRecord
 	autoSettleRecordIndexMap := make(map[string]struct{})
 

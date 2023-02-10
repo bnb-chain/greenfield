@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package bnbchain.greenfield.storage;
 
 import "cosmos/msg/v1/msg.proto";
@@ -21,32 +22,44 @@ service Msg {
   rpc UpdateGroupMember(MsgUpdateGroupMember) returns (MsgUpdateGroupMemberResponse);
   rpc LeaveGroup(MsgLeaveGroup) returns (MsgLeaveGroupResponse);
   rpc CopyObject(MsgCopyObject) returns (MsgCopyObjectResponse);
-  // this line is used by starport scaffolding # proto/tx/rpc
-}
 
+  // this line is used by starport scaffolding # proto/tx/rpc
+  rpc UpdateBucketInfo(MsgUpdateBucketInfo) returns (MsgUpdateBucketInfoResponse);
+}
 message MsgCreateBucket {
   option (cosmos.msg.v1.signer) = "creator";
+
   // creator is the account address of bucket creator, it is also the bucket owner.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is a globally unique name of bucket
   string bucket_name = 2;
+
   // is_public means the bucket is private or public. if private, only bucket owner or grantee can read it,
   // otherwise every greenfield user can read it.
   bool is_public = 3;
+
   // payment_address is an account address specified by bucket owner to pay the read fee. Default: creator
   string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // primary_sp_address is the address of primary sp.
   string primary_sp_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // primary_sp_approval_signature is the signature of the primary SP which indicates that primary sp confirm the user's request.
   bytes primary_sp_approval_signature = 7;
+
+  // read_quota
+  ReadQuota read_quota = 8;
 }
 
 message MsgCreateBucketResponse {}
 
 message MsgDeleteBucket {
   option (cosmos.msg.v1.signer) = "operator";
+
   // creator is the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is the name of the bucket to be deleted.
   string bucket_name = 2;
 }
@@ -55,24 +68,33 @@ message MsgDeleteBucketResponse {}
 
 message MsgCreateObject {
   option (cosmos.msg.v1.signer) = "creator";
+
   // creator is the account address of object uploader
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
+
   // object_name is the name of object
   string object_name = 3;
+
   // payload_size is size of the object's payload
   uint64 payload_size = 4;
+
   // is_public means the bucket is private or public. if private, only bucket owner or grantee can access it,
   // otherwise every greenfield user can access it.
   bool is_public = 5;
+
   // content_type is a standard MIME type describing the format of the object.
   string content_type = 6;
+
   // primary_sp_approval_signature is the signature of the primary SP with its signature
   // which indicates that primary sp confirm the user's creation request.
   bytes primary_sp_approval_signature = 7;
+
   // expect_checksums is a list of hashes which was generate by redundancy algorithm.
   repeated bytes expect_checksums = 8;
+
   // expect_secondarySPs is a list of StorageProvider address, which is optional
   repeated string expect_secondary_sp_addresses = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
@@ -81,14 +103,19 @@ message MsgCreateObjectResponse {}
 
 message MsgSealObject {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator is the account address of primary SP
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
+
   // object_name is the name of object to be sealed.
   string object_name = 3;
+
   // secondary_sp_addresses is a list of storage provider which store the redundant data.
   repeated string secondary_sp_addresses = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // secondary_sp_signatures is the signature of the secondary sp that can
   // acknowledge that the payload data has received and stored.
   repeated bytes secondary_sp_signatures = 5;
@@ -98,10 +125,13 @@ message MsgSealObjectResponse {}
 
 message MsgRejectSealObject {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator is the account address of the object owner
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is the name of the bucket where the object is stored.
   string bucket_name = 2;
+
   // object_name is the name of unsealed object to be reject.
   string object_name = 3;
 }
@@ -110,16 +140,22 @@ message MsgRejectSealObjectResponse {}
 
 message MsgCopyObject {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator is the account address of the operator who has the CopyObject permission of the object to be deleted.
   string operator = 1;
+
   // src_bucket_name is the name of the bucket where the object to be copied is located
   string src_bucket_name = 2;
+
   // dst_bucket_name is the name of the bucket where the object is copied to.
   string dst_bucket_name = 3;
+
   // src_object_name is the name of the object which to be copied
   string src_object_name = 4;
+
   // dst_object_name is the name of the object which is copied to
   string dst_object_name = 5;
+
   // dst_primary_sp_approval_signature is a approval signature of primary sp
   bytes dst_primary_sp_approval_signature = 6;
 }
@@ -128,10 +164,13 @@ message MsgCopyObjectResponse {}
 
 message MsgDeleteObject {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator is the account address of the operator who has the DeleteObject permission of the object to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is the name of the bucket where the object which to be deleted is stored.
   string bucket_name = 2;
+
   // object_name is the name of the object which to be deleted.
   string object_name = 3;
 }
@@ -140,10 +179,13 @@ message MsgDeleteObjectResponse {}
 
 message MsgCreateGroup {
   option (cosmos.msg.v1.signer) = "creator";
+
   // owner is the account address of group owner who create the group
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name is the name of the group. it's not globally unique.
   string group_name = 2;
+
   // member_request is a list of member which to be add or remove
   repeated string members = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
@@ -152,8 +194,10 @@ message MsgCreateGroupResponse {}
 
 message MsgDeleteGroup {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator is the account address of the operator who has the DeleteGroup permission of the group to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name is the name of the group which to be deleted
   string group_name = 2;
 }
@@ -162,12 +206,16 @@ message MsgDeleteGroupResponse {}
 
 message MsgUpdateGroupMember {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator is the account address of the operator who has the UpdateGroupMember permission of the group.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name is the name of the group which to be updated
   string group_name = 2;
+
   // members_to_add is a list of members account address which will be add to the group
   repeated string members_to_add = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // members_to_delete is a list of members account address which will be remove from the group
   repeated string members_to_delete = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
@@ -176,10 +224,13 @@ message MsgUpdateGroupMemberResponse {}
 
 message MsgLeaveGroup {
   option (cosmos.msg.v1.signer) = "member";
+
   // member is the account address of the member who want to leave the group
   string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_owner is the owner of the group you want to leave
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name is the name of the group you want to leave
   string group_name = 3;
 }
@@ -187,3 +238,11 @@ message MsgLeaveGroup {
 message MsgLeaveGroupResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
+message MsgUpdateBucketInfo {
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  ReadQuota read_quota = 3;
+  string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgUpdateBucketInfoResponse {}

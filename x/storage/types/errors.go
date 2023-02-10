@@ -22,7 +22,9 @@ var (
 	ErrNoSuchStorageProvider       = sdkerrors.Register(ModuleName, 1113, "no such storage provider")
 	ErrSequenceUniqueConstraint    = sdkerrors.Register(ModuleName, 1114, "sequence already initialized")
 	ErrStorageProviderNotInService = sdkerrors.Register(ModuleName, 1115, "storage provider not in service")
-	ErrObjectStatusNotInit         = sdkerrors.Register(ModuleName, 1116, "not a INIT object")
+	ErrObjectNotInit               = sdkerrors.Register(ModuleName, 1116, "not a INIT object")
+	ErrObjectNotInService          = sdkerrors.Register(ModuleName, 1117, "object not in service")
+	ErrSourceTypeMismatch          = sdkerrors.Register(ModuleName, 1118, "object source type mismatch")
 
 	ErrInvalidBucketName  = sdkerrors.Register(ModuleName, 2000, "invalid bucket name")
 	ErrInvalidObjectName  = sdkerrors.Register(ModuleName, 2001, "invalid object name")

@@ -21,14 +21,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.PaymentAccountList {
 		k.SetPaymentAccount(ctx, elem)
 	}
-	// Set all the mockBucketMeta
-	for _, elem := range genState.MockBucketMetaList {
-		k.SetMockBucketMeta(ctx, elem)
-	}
-	// Set all the mockObjectInfo
-	for _, elem := range genState.MockObjectInfoList {
-		k.SetMockObjectInfo(ctx, elem)
-	}
 	// Set all the autoSettleRecord
 	for _, elem := range genState.AutoSettleRecordList {
 		k.SetAutoSettleRecord(ctx, elem)
@@ -49,8 +41,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.StreamRecordList = k.GetAllStreamRecord(ctx)
 	genesis.PaymentAccountCountList = k.GetAllPaymentAccountCount(ctx)
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
-	genesis.MockBucketMetaList = k.GetAllMockBucketMeta(ctx)
-	genesis.MockObjectInfoList = k.GetAllMockObjectInfo(ctx)
 	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
 	genesis.BnbPriceList = k.GetAllBnbPrice(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
