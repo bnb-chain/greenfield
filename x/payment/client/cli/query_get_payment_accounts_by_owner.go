@@ -3,10 +3,11 @@ package cli
 import (
 	"strconv"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 var _ = strconv.Itoa(0)

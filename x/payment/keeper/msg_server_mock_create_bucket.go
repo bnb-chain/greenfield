@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k msgServer) MockCreateBucket(goCtx context.Context, msg *types.MsgMockCreateBucket) (*types.MsgMockCreateBucketResponse, error) {

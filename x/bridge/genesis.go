@@ -1,9 +1,10 @@
 package bridge
 
 import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/bnb-chain/greenfield/x/bridge/keeper"
 	"github.com/bnb-chain/greenfield/x/bridge/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.

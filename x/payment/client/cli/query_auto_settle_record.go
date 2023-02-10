@@ -3,11 +3,12 @@ package cli
 import (
 	"context"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func CmdListAutoSettleRecord() *cobra.Command {

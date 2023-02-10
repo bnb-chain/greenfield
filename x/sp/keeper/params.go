@@ -2,8 +2,9 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func (k Keeper) MaxStorageProviders(ctx sdk.Context) (res uint32) {

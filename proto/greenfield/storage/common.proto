@@ -1,0 +1,13 @@
+syntax = "proto3";
+package bnbchain.greenfield.storage;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
+
+enum SourceType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  SOURCE_TYPE_ORIGIN = 0;
+  SOURCE_TYPE_BSC_CROSS_CHAIN = 1;
+}

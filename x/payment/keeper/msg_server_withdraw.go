@@ -2,8 +2,10 @@ package keeper
 
 import (
 	"context"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {

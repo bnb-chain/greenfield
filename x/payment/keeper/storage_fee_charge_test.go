@@ -1,12 +1,14 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
-	"github.com/bnb-chain/greenfield/x/payment/types"
-	"github.com/stretchr/testify/require"
 	"testing"
 	"time"
+
+	sdkmath "cosmossdk.io/math"
+	"github.com/stretchr/testify/require"
+
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func TestApplyFlowChanges(t *testing.T) {

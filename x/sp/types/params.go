@@ -15,8 +15,8 @@ import (
 const (
 	// Default maximum number of SP
 	DefaultMaxStorageProviders uint32 = 100
-	// Dafault
-	DefaultDepositDenom = "deposit"
+	// Dafault deposit denom
+	DefaultDepositDenom = "bnb"
 )
 
 // DefaultMinDeposit defines the minimum deposit amount for all storage provider
@@ -24,8 +24,8 @@ var DefaulMinDeposit math.Int = math.NewInt(10000)
 
 var (
 	KeyMaxStorageProviders = []byte("MaxStorageProviders")
-	KeyDepostDenom          = []byte("DepositDenom")
-	KeyMinDeposit      = []byte("MinDeposit")
+	KeyDepostDenom         = []byte("DepositDenom")
+	KeyMinDeposit          = []byte("MinDeposit")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -39,8 +39,8 @@ func ParamKeyTable() paramtypes.KeyTable {
 func NewParams(maxStorageProviders uint32, depositDenom string, minDeposit math.Int) Params {
 	return Params{
 		MaxStorageProviders: maxStorageProviders,
-		DepositDenom:          depositDenom,
-		MinDeposit:      minDeposit,
+		DepositDenom:        depositDenom,
+		MinDeposit:          minDeposit,
 	}
 }
 
