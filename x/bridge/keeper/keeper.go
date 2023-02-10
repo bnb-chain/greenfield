@@ -4,13 +4,14 @@ import (
 	"fmt"
 
 	"cosmossdk.io/errors"
-	"github.com/bnb-chain/greenfield/x/bridge/types"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 type (

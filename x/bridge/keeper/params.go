@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/bnb-chain/greenfield/x/bridge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 // GetParams get all parameters as types.Params

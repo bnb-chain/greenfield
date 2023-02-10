@@ -4,6 +4,9 @@ release/
 .idea/
 .vscode/
 .DS_Store
+spec/
+Taskfile.yaml
 build/
 vendor/
 .local
+.task

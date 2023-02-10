@@ -1,6 +1,8 @@
 package app
 
-import serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+import (
+	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
+)
 
 type AppConfig struct {
 	serverconfig.Config

@@ -1,0 +1,16 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+// BNBPrice is the price of BNB in USD at a given time
+message BnbPrice {
+  // time is the submit time of the price
+  int64 time = 1;
+  // price is the price of BNB in USD.
+  // It is multiplied by 10^8.
+  // For example, if the price is 278.34 USD, the price is 27834000000.
+  uint64 price = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}

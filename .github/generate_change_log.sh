@@ -21,7 +21,6 @@ while read line; do
 done < ${change_log_file}
 LINUX_BIN_SUM="$(checksum ./linux/linux)"
 MAC_BIN_SUM="$(checksum ./macos/macos)"
-WINDOWS_BIN_SUM="$(checksum ./windows/windows.exe)"
 OUTPUT=$(cat <<-END
 ${CHANGE_LOG}\n
 ## Assets\n
@@ -29,7 +28,6 @@ ${CHANGE_LOG}\n
 | :-----------: |------------|\n
 | linux | ${LINUX_BIN_SUM} |\n
 | mac  | ${MAC_BIN_SUM} |\n
-| windows  | ${WINDOWS_BIN_SUM} |\n
 END
 )
 

@@ -1,0 +1,32 @@
+syntax = "proto3";
+package bnbchain.greenfield.payment;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+// EventCreatePaymentAccount is emitted on MsgCreatePaymentAccount
+message EventCreatePaymentAccount {
+  // address of the payment account
+  string addr = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner address of the payment account
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // index of the payment account of the owner
+  uint64 index = 3;
+}
+
+// EventForceSettle may be emitted on all Msgs and EndBlocker when a payment account's
+// balance or net outflow rate is changed
+message EventForceSettle {
+  // address of the payment account
+  string addr = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // left balance of the payment account after force settlement
+  // if the balance is positive, it will go to the governance stream account
+  // if the balance is negative, it's the debt of the system, which will be paid by the governance stream account
+  string settled_balance = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}

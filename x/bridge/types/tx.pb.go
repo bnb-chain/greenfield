@@ -28,6 +28,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgTransferOut is the Msg/TransferOut request type.
 type MsgTransferOut struct {
 	From   string      `protobuf:"bytes,1,opt,name=from,proto3" json:"from,omitempty"`
 	To     string      `protobuf:"bytes,2,opt,name=to,proto3" json:"to,omitempty"`
@@ -88,6 +89,7 @@ func (m *MsgTransferOut) GetAmount() *types.Coin {
 	return nil
 }
 
+// MsgTransferOutResponse is the Msg/TransferOut response type.
 type MsgTransferOutResponse struct {
 }
 

@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package bnbchain.greenfield.sp;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "greenfield/sp/params.proto";
+import "greenfield/sp/types.proto";
+
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/sp/params";
+  }
+
+  // this line is used by starport scaffolding # 2
+
+  // Queries a list of GetStorageProviders items.
+  rpc StorageProviders(QueryStorageProvidersRequest) returns (QueryStorageProvidersResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/sp/storage_providers";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// this line is used by starport scaffolding # 3
+message QueryStorageProvidersRequest {
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryStorageProvidersResponse {
+  repeated StorageProvider sps = 1 [(gogoproto.nullable) = false];
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

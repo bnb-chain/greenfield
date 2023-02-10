@@ -5,7 +5,7 @@ package types
 
 import (
 	fmt "fmt"
-	_ "github.com/gogo/protobuf/gogoproto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
@@ -25,7 +25,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	TransferOutRelayerFee    string `protobuf:"bytes,1,opt,name=transfer_out_relayer_fee,json=transferOutRelayerFee,proto3" json:"transfer_out_relayer_fee,omitempty"`
+	// Relayer fee for the cross chain transfer out tx
+	TransferOutRelayerFee string `protobuf:"bytes,1,opt,name=transfer_out_relayer_fee,json=transferOutRelayerFee,proto3" json:"transfer_out_relayer_fee,omitempty"`
+	// Relayer fee for the ACK or FAIL_ACK package of the cross chain transfer out tx
 	TransferOutAckRelayerFee string `protobuf:"bytes,2,opt,name=transfer_out_ack_relayer_fee,json=transferOutAckRelayerFee,proto3" json:"transfer_out_ack_relayer_fee,omitempty"`
 }
 

@@ -5,10 +5,11 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
-	"github.com/bnb-chain/greenfield/x/bridge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
+
+	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 func RegisterCrossApps(keeper Keeper) {
