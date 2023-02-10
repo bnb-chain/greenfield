@@ -13,7 +13,7 @@ ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
 
 format:
-	bash format.sh
+	bash scripts/format.sh
 
 tools:
 	curl https://get.ignite.com/cli! | bash
@@ -30,9 +30,6 @@ build:
 docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}
-
-format:
-	bash scripts/format.sh
 
 test:
 	go test ./...
