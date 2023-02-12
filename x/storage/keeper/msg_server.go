@@ -3,12 +3,13 @@ package keeper
 import (
 	"context"
 	"fmt"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type msgServer struct {
