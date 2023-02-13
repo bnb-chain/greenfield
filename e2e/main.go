@@ -52,6 +52,8 @@ func main() {
 		FeeAmount: sdk.Coins{{"bnb", amount}},
 	}
 	txRes, err := SendTxAndWaitForCommit(&c, transfer, txOpt)
+	// todo: fix the format problem
+	// tx: %!v(PANIC=String method: reflect.Value.Interface: cannot return value obtained from unexported field or method)
 	log.Printf("tx: %v, err: %v", txRes, err)
 	AssertNoError(err)
 	balanceAfterTransfer, err := c.BankQueryClient.AllBalances(context.Background(), &banktypes.QueryAllBalancesRequest{Address: to.String()})

@@ -33,3 +33,6 @@ docker-image:
 
 test:
 	go test ./...
+
+e2e_test:
+	go run ./e2e/main.go
