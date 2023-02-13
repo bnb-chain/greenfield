@@ -37,21 +37,6 @@ message BucketInfo {
   repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
 }
 
-enum RedundancyType {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  REDUNDANCY_REPLICA_TYPE = 0;
-  REDUNDANCY_EC_TYPE = 1;
-  REDUNDANCY_INLINE_TYPE = 2;
-}
-
-enum ObjectStatus {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  OBJECT_STATUS_INIT = 0;
-  OBJECT_STATUS_IN_SERVICE = 1;
-}
-
 message ObjectInfo {
   string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket

@@ -1,0 +1,190 @@
+syntax = "proto3";
+package bnbchain.greenfield.storage;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "greenfield/storage/common.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
+
+// EventCreateBucket is emitted on MsgCreateBucket
+message EventCreateBucket {
+  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  bool is_public = 3;
+  int64 create_at = 4;
+  string id = 5 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  SourceType source_type = 6;
+  ReadQuota read_quota = 7;
+  string payment_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string primary_sp_address = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// EventDeleteBucket is emitted on MsgDeleteBucket
+message EventDeleteBucket {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 3;
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  int64 create_at = 6;
+  int64 delete_at = 7;
+  SourceType source_type = 8;
+}
+
+// EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
+message EventUpdateBucketInfo {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  string id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  ReadQuota read_quota_before = 4;
+  ReadQuota read_quota_after = 5;
+  string payment_address_before = 6;
+  string payment_address_after = 7;
+}
+
+// EventCreateObject is emitted on MsgCreateObject
+message EventCreateObject {
+  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  string object_name = 3;
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  uint64 payload_size = 5;
+  bool is_public = 6;
+  string content_type = 7;
+  int64 create_at = 8;
+  ObjectStatus status = 9;
+  RedundancyType redundancy_type = 10;
+  SourceType source_type = 11;
+  repeated bytes checksums = 12;
+}
+
+// EventSealObject is emitted on MsgSealObject
+message EventSealObject {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  string object_name = 3;
+  string bucket_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  string object_id = 5 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  ObjectStatus status = 6;
+  repeated string secondary_sp_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// EventCopyObject is emitted on MsgCopyObject
+message EventCopyObject {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string src_bucket_name = 2;
+  string src_object_name = 3;
+  string dst_bucket_name = 4;
+  string dst_object_name = 5;
+  string src_object_id = 6 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  string dst_object_id = 7 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventDeleteObject is emitted on MsgDeleteObject
+message EventDeleteObject {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  string object_name = 3;
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string secondary_sp_addresses = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// EventRejectSealObject is emitted on MsgRejectSealObject
+message EventRejectSealObject {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  string object_name = 3;
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventCreateGroup is emitted on MsgCreateGroup
+message EventCreateGroup {
+  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 2;
+  string id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  SourceType source_type = 4;
+  repeated string members = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// EventDeleteGroup is emitted on MsgDeleteGroup
+message EventDeleteGroup {
+  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 3;
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventLeaveGroup is emitted on MsgLeaveGroup
+message EventLeaveGroup {
+  string member_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 3;
+  string group_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventUpdateGroupMember is emitted on MsgUpdateGroupMember
+message EventUpdateGroupMember {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 3;
+  string group_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  repeated string members_to_add = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string members_to_delete = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
