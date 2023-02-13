@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -82,7 +80,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	if msg.ReadQuota != types.READ_QUOTA_FREE {
 		err := k.paymentKeeper.ChargeInitialReadFee(ctx, &bucketInfo)
 		if err != nil {
-			return nil, fmt.Errorf("charge update payment account failed: %w", err)
+			return nil, err
 		}
 	}
 
@@ -116,7 +114,7 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 
 	if msg.PaymentAddress != "" && msg.PaymentAddress != bucketInfo.PaymentAddress {
 		if !k.paymentKeeper.IsPaymentAccountOwner(ctx, bucketInfo.Owner, msg.PaymentAddress) {
-			return nil, fmt.Errorf("no permission to use store payment account")
+			return nil, paymenttypes.ErrNotPaymentAccountOwner
 		}
 		err := k.paymentKeeper.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
 		if err != nil {
@@ -186,7 +184,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
-	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, bucketInfo, objectInfo)
+	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, objectInfo)
 }
 
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
@@ -223,7 +221,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	err = k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
-		return nil, fmt.Errorf("unlock and charge store fee failed: %w", err)
+		return nil, err
 	}
 	objectInfo.LockedBalance = nil
 

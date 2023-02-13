@@ -14,6 +14,7 @@ enum SourceType {
 }
 
 // TODO: Need to confirm the read quota enum which determined by payment module
+// TODO: Make this field be configured through governance
 enum ReadQuota {
   option (gogoproto.goproto_enum_prefix) = false;
 

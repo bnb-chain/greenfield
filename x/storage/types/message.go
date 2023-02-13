@@ -399,6 +399,7 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
+	// TODO: 6 hard code here.
 	if len(msg.SecondarySpAddresses) != 6 {
 		return sdkerrors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (d%), but (d%)", 6, len(msg.SecondarySpAddresses))
 	}

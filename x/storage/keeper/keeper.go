@@ -158,7 +158,7 @@ func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
 	return iter.Valid()
 }
 
-func (k Keeper) CreateObject(ctx sdk.Context, bucketInfo types.BucketInfo, objectInfo types.ObjectInfo) error {
+func (k Keeper) CreateObject(ctx sdk.Context, objectInfo types.ObjectInfo) error {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 

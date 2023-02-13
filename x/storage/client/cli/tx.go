@@ -142,7 +142,7 @@ func CmdDeleteBucket() *cobra.Command {
 func CmdUpdateBucketInfo() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-read-quota [bucket-name]",
-		Short: "Broadcast message update-bucket-read-quota",
+		Short: "Update the meta of bucket, E.g ReadQuota, PaymentAccount",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
