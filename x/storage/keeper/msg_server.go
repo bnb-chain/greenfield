@@ -299,6 +299,46 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	return &types.MsgSealObjectResponse{}, nil
 }
 
+func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCancelCreateObject) (*types.MsgCancelCreateObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	bucketInfo, found := k.Keeper.GetBucket(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	objectInfo, found := k.Keeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
+	if !found {
+		return nil, types.ErrNoSuchObject
+	}
+
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+		return nil, types.ErrObjectNotInit
+	}
+
+	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+	if operatorAcc.String() != objectInfo.Owner {
+		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
+	}
+	err = k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return nil, err
+	}
+	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
+		OperatorAddress: msg.Operator,
+		BucketName:      bucketInfo.BucketName,
+		ObjectName:      objectInfo.ObjectName,
+		Id:              objectInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCancelCreateObjectResponse{}, nil
+}
+
 func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (*types.MsgCopyObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -437,12 +477,14 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 		return nil, types.ErrObjectNotInit
 	}
 
-	// Currently, only the primary sp is allowed to reject seal object
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: operator address or other address (for reject seal object)
+	if spAcc.String() != bucketInfo.PrimarySpAddress {
+		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
+	}
+
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return nil, types.ErrNoSuchStorageProvider

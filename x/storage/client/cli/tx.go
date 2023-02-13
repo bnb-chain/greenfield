@@ -43,6 +43,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdLeaveGroup())
 	cmd.AddCommand(CmdCopyObject())
 	cmd.AddCommand(CmdUpdateBucketInfo())
+	cmd.AddCommand(CmdCancelCreateObject())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -157,6 +158,37 @@ func CmdUpdateBucketInfo() *cobra.Command {
 				argBucketName,
 				types.READ_QUOTA_FREE,
 				nil,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdCancelCreateObject() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cancel-create-object [bucket-name] [object-name]",
+		Short: "Broadcast message cancel_create_object",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+			argObjectName := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCancelCreateObject(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				argObjectName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

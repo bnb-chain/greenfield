@@ -75,6 +75,18 @@ message EventCreateObject {
 }
 
 // EventSealObject is emitted on MsgSealObject
+message EventCancelCreateObject {
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string bucket_name = 2;
+  string object_name = 3;
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventSealObject is emitted on MsgSealObject
 message EventSealObject {
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string bucket_name = 2;
