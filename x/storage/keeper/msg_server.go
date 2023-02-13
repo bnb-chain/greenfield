@@ -275,7 +275,10 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 		return nil, types.ErrAccessDenied
 	}
 
-	k.paymentKeeper.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
+	err := k.paymentKeeper.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return nil, err
+	}
 	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
 	return &types.MsgDeleteObjectResponse{}, nil
 }

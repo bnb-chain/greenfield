@@ -65,6 +65,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
 		crosschaintypes.StoreKey,
+		paymentmoduletypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
@@ -95,6 +96,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
 	paramKeeper.Subspace(sptypes.ModuleName)
+	paramKeeper.Subspace(paymentmoduletypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,

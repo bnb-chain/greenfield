@@ -3,7 +3,6 @@ package types
 import (
 	"testing"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
@@ -123,22 +122,19 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 	}
 }
 
-func TestMsgUpdateBucketReadQuota_ValidateBasic(t *testing.T) {
+func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
 		msg  MsgUpdateBucketInfo
 		err  error
 	}{
 		{
-			name: "invalid address",
+			name: "basic",
 			msg: MsgUpdateBucketInfo{
-				Creator: "invalid_address",
-			},
-			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgUpdateBucketInfo{
-				Creator: sample.AccAddress(),
+				Creator:        sample.AccAddress(),
+				BucketName:     testBucketName,
+				PaymentAddress: sample.AccAddress(),
+				ReadQuota:      READ_QUOTA_FREE,
 			},
 		},
 	}

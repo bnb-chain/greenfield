@@ -162,7 +162,10 @@ func (k Keeper) CreateObject(ctx sdk.Context, bucketInfo types.BucketInfo, objec
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err := k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return err
+	}
 
 	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
 	if objectStore.Has(objectKey) {
