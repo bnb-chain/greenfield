@@ -1,3 +1,8 @@
+//go:build with_local_net
+
+// This test can only run with a local net. Ignore it by default.
+// It can be triggered by `go test ./... -tags with_local_net`
+
 package client
 
 import (
