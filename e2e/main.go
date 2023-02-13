@@ -4,25 +4,23 @@ import (
 	"bufio"
 	"context"
 	"fmt"
-	client "github.com/bnb-chain/greenfield/sdk/client/rpc"
-	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/bnb-chain/greenfield/sdk/types"
-	sdkCli "github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/tendermint/tendermint/crypto"
 	"log"
 	"math/rand"
 	"os"
 	"strings"
 	"time"
+
+	client "github.com/bnb-chain/greenfield/sdk/client/rpc"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 func main() {
 	log.Println("---- e2e test start ----")
-	ctx := sdkCli.Context{}
-	ctx = ctx.WithCodec(types.Cdc())
 	// Parse validator0 mnemonic and init key manager
 	val0Mnemonic := ParseValidatorMnemonic(0)
 	log.Printf("validator0 mnemonic: %s\n", val0Mnemonic)
@@ -49,7 +47,7 @@ func main() {
 		Async:     false,
 		GasLimit:  1000000,
 		Memo:      "",
-		FeeAmount: sdk.Coins{{"bnb", amount}},
+		FeeAmount: sdk.Coins{{Denom: "bnb", Amount: amount}},
 	}
 	txRes, err := SendTxAndWaitForCommit(&c, transfer, txOpt)
 	// todo: fix the format problem

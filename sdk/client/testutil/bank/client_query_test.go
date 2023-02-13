@@ -2,11 +2,12 @@ package bank
 
 import (
 	"context"
-	gnfdclient "github.com/bnb-chain/gnfd-go-sdk/client/rpc"
-	"github.com/bnb-chain/gnfd-go-sdk/client/testutil"
+	"testing"
+
+	gnfdclient "github.com/bnb-chain/greenfield/sdk/client/rpc"
+	"github.com/bnb-chain/greenfield/sdk/client/testutil"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestBankBalance(t *testing.T) {

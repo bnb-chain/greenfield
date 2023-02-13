@@ -2,6 +2,7 @@ package client
 
 import (
 	_ "encoding/json"
+
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/cosmos/cosmos-sdk/codec"
