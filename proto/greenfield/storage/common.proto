@@ -13,6 +13,7 @@ enum SourceType {
   SOURCE_TYPE_BSC_CROSS_CHAIN = 1;
 }
 
+// TODO: Need to confirm the read quota enum which determined by payment module
 enum ReadQuota {
   option (gogoproto.goproto_enum_prefix) = false;
 
