@@ -31,9 +31,9 @@ message BucketInfo {
   // read_quota defines the traffic quota for read
   ReadQuota read_quota = 9;
   // priceTime TODO(Owen): refine the comments
-  int64 price_time = 10;
+  int64 payment_price_time = 10;
   // outFlowsInUSD s
-  repeated OutFlowInUSD outFlowsInUSD = 11 [(gogoproto.nullable) = false];
+  repeated OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
 }
 
 enum RedundancyType {

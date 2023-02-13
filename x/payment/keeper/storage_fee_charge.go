@@ -133,7 +133,7 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 }
 
 func (k Keeper) ChargeUpdateReadPacket(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newReadPacket storagetypes.ReadQuota) error {
-	prevPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PriceTime)
+	prevPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PaymentPriceTime)
 	if err != nil {
 		return fmt.Errorf("get prev read price failed: %w", err)
 	}
@@ -202,14 +202,14 @@ func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetype
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
-	MergeOutFlows(&bucketInfo.OutFlowsInUSD, feePrice.Flows)
+	MergeOutFlows(&bucketInfo.PaymentOutFlows, feePrice.Flows)
 	return nil
 }
 
 func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, paymentAddress *string) error {
 	if paymentAddress != nil {
 		// update old read payment account
-		prevReadPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PriceTime)
+		prevReadPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PaymentPriceTime)
 		if err != nil {
 			return fmt.Errorf("get prev read price failed: %w", err)
 		}
@@ -232,10 +232,10 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 		}
 		// update bucket meta
 		bucketInfo.PaymentAddress = *paymentAddress
-		bucketInfo.PriceTime = ctx.BlockTime().Unix()
+		bucketInfo.PaymentPriceTime = ctx.BlockTime().Unix()
 
 		// update old store
-		flows := bucketInfo.OutFlowsInUSD
+		flows := bucketInfo.PaymentOutFlows
 		negFlows := GetNegFlows(flows)
 		err = k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
 		if err != nil {
@@ -257,6 +257,6 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
-	MergeOutFlows(&bucketInfo.OutFlowsInUSD, negFlows)
+	MergeOutFlows(&bucketInfo.PaymentOutFlows, negFlows)
 	return nil
 }
