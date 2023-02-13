@@ -4,7 +4,6 @@ import (
 	_ "encoding/json"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
-	gnfdtypes "github.com/bnb-chain/greenfield/x/greenfield/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -38,8 +37,6 @@ type AuthzMsgClient = authztypes.MsgClient
 type FeegrantQueryClient = feegranttypes.QueryClient
 type FeegrantMsgClient = feegranttypes.MsgClient
 type ParamsQueryClient = paramstypes.QueryClient
-type GnfdQueryClient = gnfdtypes.QueryClient
-type GnfdMsgClient = gnfdtypes.MsgClient
 type TxClient = tx.ServiceClient
 
 type GreenfieldClient struct {
@@ -61,8 +58,6 @@ type GreenfieldClient struct {
 	FeegrantQueryClient
 	FeegrantMsgClient
 	ParamsQueryClient
-	GnfdQueryClient
-	GnfdMsgClient
 	keyManager keys.KeyManager
 	chainId    string
 	codec      *codec.ProtoCodec
@@ -101,8 +96,6 @@ func NewGreenfieldClient(grpcAddr, chainId string) GreenfieldClient {
 		feegranttypes.NewQueryClient(conn),
 		feegranttypes.NewMsgClient(conn),
 		paramstypes.NewQueryClient(conn),
-		gnfdtypes.NewQueryClient(conn),
-		gnfdtypes.NewMsgClient(conn),
 		nil,
 		chainId,
 		cdc,
@@ -120,6 +113,10 @@ func (c *GreenfieldClient) GetKeyManager() (keys.KeyManager, error) {
 		return nil, types.KeyManagerNotInitError
 	}
 	return c.keyManager, nil
+}
+
+func (c *GreenfieldClient) SetKeyManager(km keys.KeyManager) {
+	c.keyManager = km
 }
 
 func (c *GreenfieldClient) SetChainId(id string) {

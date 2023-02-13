@@ -1,7 +1,6 @@
 package types
 
 import (
-	gnfdtypes "github.com/bnb-chain/greenfield/x/greenfield/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -18,7 +17,6 @@ import (
 func Cdc() *codec.ProtoCodec {
 	interfaceRegistry := types.NewInterfaceRegistry()
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
-	gnfdtypes.RegisterInterfaces(interfaceRegistry)
 	authtypes.RegisterInterfaces(interfaceRegistry)
 	authztypes.RegisterInterfaces(interfaceRegistry)
 	banktypes.RegisterInterfaces(interfaceRegistry)
