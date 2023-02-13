@@ -1,3 +1,5 @@
+//go:build with_local_net
+
 package client
 
 import (
