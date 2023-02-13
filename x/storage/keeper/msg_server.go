@@ -119,7 +119,6 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 		Id:               bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 		CreateAt:         bucketInfo.CreateAt,
-		DeleteAt:         ctx.BlockHeight(),
 	}); err != nil {
 		return nil, err
 	}

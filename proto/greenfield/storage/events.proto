@@ -36,7 +36,6 @@ message EventDeleteBucket {
   ];
   string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   int64 create_at = 6;
-  int64 delete_at = 7;
   SourceType source_type = 8;
 }
 
