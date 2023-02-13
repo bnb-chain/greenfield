@@ -101,17 +101,17 @@ func (k Keeper) SetBucket(ctx sdk.Context, bucketInfo types.BucketInfo) {
 	bucketStore.Set(bucketKey, bz)
 }
 
-func (k Keeper) MustGetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
+func (k Keeper) MustGetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo) {
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
 	bz := bucketStore.Get(types.GetBucketKey(bucketName))
 	if bz == nil {
-		panic(fmt.Sprintf("bucket not found for address: %X\n", bucketName))
+		panic(fmt.Sprintf("bucket not found for bucketName: %X\n", bucketName))
 	}
 
 	k.cdc.MustUnmarshal(bz, &bucketInfo)
-	return bucketInfo, true
+	return bucketInfo
 }
 
 func (k Keeper) GetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
@@ -162,11 +162,6 @@ func (k Keeper) CreateObject(ctx sdk.Context, bucketInfo types.BucketInfo, objec
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	err := k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
-	if err != nil {
-		return err
-	}
-
 	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
 	if objectStore.Has(objectKey) {
 		return types.ErrObjectAlreadyExists
@@ -192,39 +187,19 @@ func (k Keeper) GetObject(ctx sdk.Context, bucketName string, objectName string)
 	return objectInfo, true
 }
 
-func (k Keeper) SealObject(
-	ctx sdk.Context, primarySPAddress string, bucketName string,
-	objectName string, secondarySpAddresses []string, secondarySpSignatures [][]byte) error {
+func (k Keeper) MustGetObject(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	spAcc, err := sdk.AccAddressFromHexUnsafe(primarySPAddress)
-	if err != nil {
-		return err
-	}
-	bucketInfo, found := k.GetBucket(ctx, bucketName)
-	if !found {
-		return types.ErrNoSuchBucket
+	objectKey := types.GetObjectKey(bucketName, objectName)
+	bz := objectStore.Get(objectKey)
+	if bz == nil {
+		panic(fmt.Sprintf("object not found for bucketName: %X\n", objectName))
 	}
 
-	if bucketInfo.PrimarySpAddress != spAcc.String() {
-		return types.ErrSPAddressMismatch
-	}
-	objectInfo, found := k.GetObject(ctx, bucketName, objectName)
-	if !found {
-		return types.ErrNoSuchObject
-	}
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
-		return types.ErrObjectAlreadyExists
-	} else {
-		objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
-	}
+	k.cdc.MustUnmarshal(bz, &objectInfo)
 
-	err = k.VerifySPAndSignature(ctx, secondarySpAddresses, objectInfo.Checksums[1:], secondarySpSignatures)
-	if err != nil {
-		return err
-	}
-
-	k.SetObject(ctx, objectInfo)
-	return nil
+	return objectInfo
 }
 
 func (k Keeper) SetObject(ctx sdk.Context, objectInfo types.ObjectInfo) {

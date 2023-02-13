@@ -132,7 +132,7 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	return k.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 }
 
-func (k Keeper) ChargeUpdateReadPacket(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newReadPacket storagetypes.ReadQuota) error {
+func (k Keeper) ChargeUpdateReadQuota(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newReadPacket storagetypes.ReadQuota) error {
 	prevPrice, err := k.GetReadPrice(ctx, bucketInfo.ReadQuota, bucketInfo.PaymentPriceTime)
 	if err != nil {
 		return fmt.Errorf("get prev read price failed: %w", err)

@@ -8,9 +8,9 @@ import (
 
 const (
 	// For bucket
-	TypeMsgCreateBucket    = "create_bucket"
-	TypeMsgDeleteBucket    = "delete_bucket"
-	TypeMsgUpdateReadQuota = "update_read_quota"
+	TypeMsgCreateBucket     = "create_bucket"
+	TypeMsgDeleteBucket     = "delete_bucket"
+	TypeMsgUpdateBucketInfo = "update_bucket_info"
 
 	// For object
 	TypeMsgCopyObject       = "copy_object"
@@ -156,9 +156,9 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 }
 
 // NewMsgBucketReadQuota creates a new MsgBucketReadQuota instance.
-func NewMsgUpdateBucketInfo(creator sdk.AccAddress, bucketName string, readQuota ReadQuota, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota ReadQuota, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
 	return &MsgUpdateBucketInfo{
-		Creator:        creator.String(),
+		Operator:       operator.String(),
 		BucketName:     bucketName,
 		ReadQuota:      readQuota,
 		PaymentAddress: paymentAcc.String(),
@@ -170,11 +170,11 @@ func (msg *MsgUpdateBucketInfo) Route() string {
 }
 
 func (msg *MsgUpdateBucketInfo) Type() string {
-	return TypeMsgUpdateReadQuota
+	return TypeMsgUpdateBucketInfo
 }
 
 func (msg *MsgUpdateBucketInfo) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -187,7 +187,7 @@ func (msg *MsgUpdateBucketInfo) GetSignBytes() []byte {
 }
 
 func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

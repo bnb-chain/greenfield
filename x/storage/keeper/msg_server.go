@@ -80,7 +80,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	}
 
 	if msg.ReadQuota != types.READ_QUOTA_FREE {
-		err := k.paymentKeeper.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &bucketInfo.PaymentAddress)
+		err := k.paymentKeeper.ChargeInitialReadFee(ctx, &bucketInfo)
 		if err != nil {
 			return nil, fmt.Errorf("charge update payment account failed: %w", err)
 		}
@@ -114,14 +114,22 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 		return nil, types.ErrSourceTypeMismatch
 	}
 
-	if msg.PaymentAddress != "" {
+	if msg.PaymentAddress != "" && msg.PaymentAddress != bucketInfo.PaymentAddress {
 		if !k.paymentKeeper.IsPaymentAccountOwner(ctx, bucketInfo.Owner, msg.PaymentAddress) {
 			return nil, fmt.Errorf("no permission to use store payment account")
+		}
+		err := k.paymentKeeper.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
+		if err != nil {
+			return nil, err
 		}
 		bucketInfo.PaymentAddress = msg.PaymentAddress
 	}
 
 	if msg.ReadQuota != bucketInfo.ReadQuota {
+		err := k.paymentKeeper.ChargeUpdateReadQuota(ctx, &bucketInfo, msg.ReadQuota)
+		if err != nil {
+			return nil, err
+		}
 		bucketInfo.ReadQuota = msg.ReadQuota
 	}
 
@@ -173,6 +181,10 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		Checksums:            msg.ExpectChecksums,
 		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
 	}
+	err = k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return nil, err
+	}
 
 	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, bucketInfo, objectInfo)
 }
@@ -182,8 +194,43 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	// TODO: check permission when permission module ready
 	// TODO: submit event/log
+	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+	bucketInfo, found := k.GetBucket(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
 
-	return &types.MsgSealObjectResponse{}, k.Keeper.SealObject(ctx, msg.Operator, msg.BucketName, msg.ObjectName, msg.SecondarySpAddresses, msg.SecondarySpSignatures)
+	if bucketInfo.PrimarySpAddress != spAcc.String() {
+		return nil, types.ErrSPAddressMismatch
+	}
+	objectInfo, found := k.GetObject(ctx, msg.BucketName, msg.ObjectName)
+	if !found {
+		return nil, types.ErrNoSuchObject
+	}
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+		return nil, types.ErrObjectAlreadyExists
+	} else {
+		objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
+	}
+
+	err = k.VerifySPAndSignature(ctx, msg.SecondarySpAddresses, objectInfo.Checksums[1:], msg.SecondarySpSignatures)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return nil, fmt.Errorf("unlock and charge store fee failed: %w", err)
+	}
+	objectInfo.LockedBalance = nil
+
+	k.SetBucket(ctx, bucketInfo)
+	k.SetObject(ctx, objectInfo)
+
+	return &types.MsgSealObjectResponse{}, nil
 }
 
 func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (*types.MsgCopyObjectResponse, error) {
@@ -244,6 +291,10 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
+	err = k.paymentKeeper.LockStoreFee(ctx, &dstBucketInfo, &objectInfo)
+	if err != nil {
+		return nil, err
+	}
 	k.Keeper.SetObject(ctx, objectInfo)
 
 	return &types.MsgCopyObjectResponse{}, nil
@@ -286,6 +337,10 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectSealObject) (*types.MsgRejectSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	bucketInfo, found := k.Keeper.GetBucket(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
 	objectInfo, found := k.Keeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
 		return nil, types.ErrNoSuchObject
@@ -308,8 +363,11 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return nil, types.ErrStorageProviderNotInService
 	}
+	err = k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return nil, err
+	}
 
-	// TODO: Interact with payment. unlock the pre-pay fee.
 	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
 	return &types.MsgRejectSealObjectResponse{}, nil
 }

@@ -131,7 +131,7 @@ func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "basic",
 			msg: MsgUpdateBucketInfo{
-				Creator:        sample.AccAddress(),
+				Operator:       sample.AccAddress(),
 				BucketName:     testBucketName,
 				PaymentAddress: sample.AccAddress(),
 				ReadQuota:      READ_QUOTA_FREE,

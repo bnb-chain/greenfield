@@ -97,9 +97,9 @@ type BucketInfo struct {
 	PrimarySpAddress string `protobuf:"bytes,8,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
 	// read_quota defines the traffic quota for read
 	ReadQuota ReadQuota `protobuf:"varint,9,opt,name=read_quota,json=readQuota,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota,omitempty"`
-	// priceTime TODO(Owen): refine the comments
+	// payment_price_time TODO(Owen): refine the comments
 	PaymentPriceTime int64 `protobuf:"varint,10,opt,name=payment_price_time,json=paymentPriceTime,proto3" json:"payment_price_time,omitempty"`
-	// outFlowsInUSD s
+	// payment_out_flows
 	PaymentOutFlows []OutFlowInUSD `protobuf:"bytes,11,rep,name=payment_out_flows,json=paymentOutFlows,proto3" json:"payment_out_flows"`
 }
 

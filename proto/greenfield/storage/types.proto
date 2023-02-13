@@ -30,9 +30,9 @@ message BucketInfo {
   string primary_sp_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // read_quota defines the traffic quota for read
   ReadQuota read_quota = 9;
-  // priceTime TODO(Owen): refine the comments
+  // payment_price_time TODO(Owen): refine the comments
   int64 payment_price_time = 10;
-  // outFlowsInUSD s
+  // payment_out_flows
   repeated OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
 }
 

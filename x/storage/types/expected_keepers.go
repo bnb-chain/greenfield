@@ -29,4 +29,7 @@ type PaymentKeeper interface {
 	LockStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
 	ChargeDeleteObject(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
 	UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
+	ChargeUpdateReadQuota(ctx sdk.Context, bucketInfo *BucketInfo, newReadPacket ReadQuota) error
+	UnlockStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
+	ChargeInitialReadFee(ctx sdk.Context, bucketInfo *BucketInfo) error
 }
