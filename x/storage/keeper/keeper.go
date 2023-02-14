@@ -17,11 +17,12 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		paramstore paramtypes.Subspace
-		spKeeper   types.SpKeeper
+		cdc           codec.BinaryCodec
+		storeKey      storetypes.StoreKey
+		memKey        storetypes.StoreKey
+		paramStore    paramtypes.Subspace
+		spKeeper      types.SpKeeper
+		paymentKeeper types.PaymentKeeper
 
 		// sequence
 		bucketSeq Sequence
@@ -36,6 +37,7 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 	spKeeper types.SpKeeper,
+	paymentKeeper types.PaymentKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -44,11 +46,12 @@ func NewKeeper(
 	}
 
 	k := Keeper{
-		cdc:        cdc,
-		storeKey:   storeKey,
-		memKey:     memKey,
-		paramstore: ps,
-		spKeeper:   spKeeper,
+		cdc:           cdc,
+		storeKey:      storeKey,
+		memKey:        memKey,
+		paramStore:    ps,
+		spKeeper:      spKeeper,
+		paymentKeeper: paymentKeeper,
 	}
 
 	k.bucketSeq = NewSequence(types.BucketPrefix)
@@ -80,9 +83,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, bucketName string) error {
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
 	bucketKey := types.GetBucketKey(bucketName)
-	if !bucketStore.Has(bucketKey) {
-		return types.ErrNoSuchBucket
-	}
+
 	// check if the bucket empty
 	if k.isEmptyBucket(ctx, bucketKey) {
 		return types.ErrBucketNotEmpty
@@ -91,17 +92,26 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, bucketName string) error {
 	return nil
 }
 
-func (k Keeper) MustGetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
+func (k Keeper) SetBucket(ctx sdk.Context, bucketInfo types.BucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+	bucketStore := prefix.NewStore(store, types.BucketPrefix)
+
+	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
+	bz := k.cdc.MustMarshal(&bucketInfo)
+	bucketStore.Set(bucketKey, bz)
+}
+
+func (k Keeper) MustGetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo) {
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketPrefix)
 
 	bz := bucketStore.Get(types.GetBucketKey(bucketName))
 	if bz == nil {
-		panic(fmt.Sprintf("bucket not found for address: %X\n", bucketName))
+		panic(fmt.Sprintf("bucket not found for bucketName: %X\n", bucketName))
 	}
 
 	k.cdc.MustUnmarshal(bz, &bucketInfo)
-	return bucketInfo, true
+	return bucketInfo
 }
 
 func (k Keeper) GetBucket(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
@@ -177,6 +187,21 @@ func (k Keeper) GetObject(ctx sdk.Context, bucketName string, objectName string)
 	return objectInfo, true
 }
 
+func (k Keeper) MustGetObject(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+
+	objectKey := types.GetObjectKey(bucketName, objectName)
+	bz := objectStore.Get(objectKey)
+	if bz == nil {
+		panic(fmt.Sprintf("object not found for bucketName: %X\n", objectName))
+	}
+
+	k.cdc.MustUnmarshal(bz, &objectInfo)
+
+	return objectInfo
+}
+
 func (k Keeper) SetObject(ctx sdk.Context, objectInfo types.ObjectInfo) {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
@@ -226,10 +251,6 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr string, groupName string)
 	groupStore := prefix.NewStore(store, types.GroupPrefix)
 
 	groupKey := types.GetGroupKey(ownerAddr, groupName)
-	if !groupStore.Has(groupKey) {
-		return types.ErrNoSuchGroup
-	}
-
 	groupStore.Delete(groupKey)
 	return nil
 }
@@ -265,7 +286,7 @@ func (k Keeper) HasGroupMember(ctx sdk.Context, groupMemberKey []byte) bool {
 	return groupMemberStore.Has(groupMemberKey)
 }
 
-func (k Keeper) CheckSPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
+func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
 	for i, spAddr := range spAddrs {
 		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
 		if err != nil {

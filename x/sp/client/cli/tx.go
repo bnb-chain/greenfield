@@ -22,7 +22,6 @@ var (
 
 const (
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
-	listSeparator              = ","
 	FlagSpendLimit             = "spend-limit"
 	FlagSpAddress              = "SPAddress"
 	FlagExpiration             = "expiration"

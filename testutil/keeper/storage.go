@@ -39,6 +39,8 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
@@ -63,6 +65,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
 		crosschaintypes.StoreKey,
+		paymentmoduletypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
@@ -93,6 +96,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
 	paramKeeper.Subspace(sptypes.ModuleName)
+	paramKeeper.Subspace(paymentmoduletypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
@@ -123,6 +127,15 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
 	)
+	paymentKeeper := *paymentmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[paymentmoduletypes.StoreKey],
+		storeKeys[paymentmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
+
+		bankKeeper,
+		accountKeeper,
+	)
 
 	spKeeper := spkeeper.NewKeeper(
 		cdc,
@@ -140,6 +153,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		memStoreKey,
 		paramsSubspace,
 		spKeeper,
+		paymentKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())

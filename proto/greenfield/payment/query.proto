@@ -8,8 +8,6 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/payment/auto_settle_record.proto";
 import "greenfield/payment/bnb_price.proto";
-import "greenfield/payment/mock_bucket_meta.proto";
-import "greenfield/payment/mock_object_info.proto";
 import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
@@ -67,22 +65,6 @@ service Query {
   }
 
   // this line is used by starport scaffolding # 2
-
-  // Queries a list of MockBucketMeta items.
-  rpc MockBucketMeta(QueryGetMockBucketMetaRequest) returns (QueryGetMockBucketMetaResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_bucket_meta/{bucketName}";
-  }
-  rpc MockBucketMetaAll(QueryAllMockBucketMetaRequest) returns (QueryAllMockBucketMetaResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_bucket_meta";
-  }
-
-  // Queries a list of MockObjectInfo items.
-  rpc MockObjectInfo(QueryGetMockObjectInfoRequest) returns (QueryGetMockObjectInfoResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_object_info/{bucketName}/{objectName}";
-  }
-  rpc MockObjectInfoAll(QueryAllMockObjectInfoRequest) returns (QueryAllMockObjectInfoResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/mock_object_info";
-  }
 
   // Queries a list of AutoSettleRecord items.
   rpc AutoSettleRecord(QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
@@ -181,42 +163,6 @@ message QueryGetPaymentAccountsByOwnerRequest {
 
 message QueryGetPaymentAccountsByOwnerResponse {
   repeated string paymentAccounts = 1;
-}
-
-// this line is used by starport scaffolding # 3
-message QueryGetMockBucketMetaRequest {
-  string bucketName = 1;
-}
-
-message QueryGetMockBucketMetaResponse {
-  MockBucketMeta mockBucketMeta = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllMockBucketMetaRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllMockBucketMetaResponse {
-  repeated MockBucketMeta mockBucketMeta = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetMockObjectInfoRequest {
-  string bucketName = 1;
-  string objectName = 2;
-}
-
-message QueryGetMockObjectInfoResponse {
-  MockObjectInfo mockObjectInfo = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllMockObjectInfoRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllMockObjectInfoResponse {
-  repeated MockObjectInfo mockObjectInfo = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 message QueryGetAutoSettleRecordRequest {

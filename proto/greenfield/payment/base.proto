@@ -18,12 +18,3 @@ message OutFlowInUSD {
     (gogoproto.nullable) = false
   ];
 }
-
-// ReadPacket defines the read packet type
-enum ReadPacket {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  READ_PACKET_FREE = 0;
-  READ_PACKET_1GB = 1;
-  READ_PACKET_10GB = 2;
-}
