@@ -637,6 +637,9 @@ func New(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
+
+	ms := app.CommitMultiStore()
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
@@ -645,27 +648,24 @@ func New(
 		// Execute the upgraded register, such as the newly added Msg type
 		// ex.
 		// app.GovKeeper.Router().RegisterService(...)
-		ms := app.CommitMultiStore()
-		ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
-		if loadLatest {
-			err = app.UpgradeKeeper.InitUpgraded(ctx)
-			if err != nil {
-				panic(err)
-			}
+		err = app.UpgradeKeeper.InitUpgraded(ctx)
+		if err != nil {
+			panic(err)
 		}
 	}
 
 	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
-	app.initModules()
+	app.initModules(ctx)
 
 	return app
 }
 
-func (app *App) initModules() {
+func (app *App) initModules(ctx sdk.Context) {
 	app.initBridge()
-
 	app.initCrossChain()
+
+	app.initGashub(ctx)
 }
 
 func (app *App) initCrossChain() {
@@ -675,6 +675,10 @@ func (app *App) initCrossChain() {
 
 func (app *App) initBridge() {
 	bridgemodulekeeper.RegisterCrossApps(app.BridgeKeeper)
+}
+
+func (app *App) initGashub(ctx sdk.Context) {
+	app.GashubKeeper.RegisterGasCalculators(ctx)
 }
 
 // Name returns the name of the App
