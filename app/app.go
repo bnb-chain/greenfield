@@ -622,6 +622,7 @@ func New(
 			BankKeeper:      app.BankKeeper,
 			SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 			FeegrantKeeper:  app.FeeGrantKeeper,
+			TxFeeChecker:    ante.CheckTxFeeWithGashubMinGasPrices,
 			GashubKeeper:    app.GashubKeeper,
 		},
 	)

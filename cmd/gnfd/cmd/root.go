@@ -97,6 +97,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 		flags.FlagChainID:        app.Name + "_" + app.EIP155ChainID + "-" + app.Epoch,
 		flags.FlagKeyringBackend: "test",
 		flags.FlagSignMode:       flags.SignModeEIP712,
+		flags.FlagGas:            "auto",
 	})
 
 	return rootCmd, encodingConfig
