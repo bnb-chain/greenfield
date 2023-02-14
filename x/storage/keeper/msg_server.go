@@ -221,18 +221,19 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		OwnerAddress:   bucketInfo.Owner,
-		BucketName:     bucketInfo.BucketName,
-		ObjectName:     objectInfo.ObjectName,
-		Id:             objectInfo.Id,
-		CreateAt:       bucketInfo.CreateAt,
-		PayloadSize:    objectInfo.PayloadSize,
-		IsPublic:       objectInfo.IsPublic,
-		ContentType:    objectInfo.ContentType,
-		Status:         objectInfo.ObjectStatus,
-		RedundancyType: objectInfo.RedundancyType,
-		SourceType:     objectInfo.SourceType,
-		Checksums:      objectInfo.Checksums,
+		OwnerAddress:     bucketInfo.Owner,
+		BucketName:       bucketInfo.BucketName,
+		ObjectName:       objectInfo.ObjectName,
+		Id:               objectInfo.Id,
+		CreateAt:         bucketInfo.CreateAt,
+		PayloadSize:      objectInfo.PayloadSize,
+		IsPublic:         objectInfo.IsPublic,
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+		ContentType:      objectInfo.ContentType,
+		Status:           objectInfo.ObjectStatus,
+		RedundancyType:   objectInfo.RedundancyType,
+		SourceType:       objectInfo.SourceType,
+		Checksums:        objectInfo.Checksums,
 	}); err != nil {
 		return nil, err
 	}
@@ -326,10 +327,11 @@ func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCance
 	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
-		OperatorAddress: msg.Operator,
-		BucketName:      bucketInfo.BucketName,
-		ObjectName:      objectInfo.ObjectName,
-		Id:              objectInfo.Id,
+		OperatorAddress:  msg.Operator,
+		BucketName:       bucketInfo.BucketName,
+		ObjectName:       objectInfo.ObjectName,
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+		Id:               objectInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
