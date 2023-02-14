@@ -236,14 +236,13 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, bucketInfo, objectInfo)
+	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, objectInfo)
 }
 
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check permission when permission module ready
-	// TODO: submit event/log
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
@@ -276,13 +275,11 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	}
 	objectInfo.LockedBalance = nil
 
-<<<<<<< HEAD
 	// TODO(fynn): SetBucket/Object will cost a lot every time we set it. So maybe need to split the info to two types
 	// key-value, one is immutable attributes, another is mutable attributes, to reduce performance overhead
-=======
 	objectInfo.SecondarySpAddresses = msg.SecondarySpAddresses
->>>>>>> 5a38c97 (add events)
-	k.SetBucket(ctx, bucketInfo)
+
+	k.Keeper.SetBucket(ctx, bucketInfo)
 	k.Keeper.SetObject(ctx, objectInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
