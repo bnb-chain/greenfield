@@ -226,6 +226,8 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	}
 	objectInfo.LockedBalance = nil
 
+	// TODO(fynn): SetBucket/Object will cost a lot every time we set it. So maybe need to split the info to two types
+	// key-value, one is immutable attributes, another is mutable attributes, to reduce performance overhead
 	k.SetBucket(ctx, bucketInfo)
 	k.SetObject(ctx, objectInfo)
 
