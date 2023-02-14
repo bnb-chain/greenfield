@@ -50,15 +50,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	if err != nil {
 		return nil, err
 	}
-	// TODO: this is a very tricky implement. Will be refactor later.
-	spApproval := msg.PrimarySpApprovalSignature
-	msg.PrimarySpApprovalSignature = []byte("")
-	bz, err := msg.Marshal()
-	if err != nil {
-		return nil, err
-	}
 
-	err = k.VerifySPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	err = k.VerifySPAndSignature(ctx, msg.PrimarySpAddress,
+		sdk.Keccak256(msg.GetApprovalBytes()), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -188,14 +182,8 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrNoSuchBucket
 	}
 
-	// TODO: this is a very tricky implement. Will be refactor later.
-	spApproval := msg.PrimarySpApprovalSignature
-	msg.PrimarySpApprovalSignature = []byte("")
-	bz, err := msg.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	err = k.VerifySPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	err = k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpAddress,
+		sdk.Keccak256(msg.GetApprovalBytes()), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -265,9 +253,12 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	}
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
 
-	err = k.VerifySPAndSignature(ctx, msg.SecondarySpAddresses, objectInfo.Checksums[1:], msg.SecondarySpSignatures)
-	if err != nil {
-		return nil, err
+	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
+	for i, spAddr := range msg.SecondarySpAddresses {
+		err = k.VerifySPAndSignature(ctx, spAddr, objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
@@ -365,19 +356,13 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, types.ErrSourceTypeMismatch
 	}
 
-	// TODO: this is a very tricky implement. Will be refactor later.
-	spApproval := msg.DstPrimarySpApprovalSignature
-	msg.DstPrimarySpApprovalSignature = []byte("")
-	bz, err := msg.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	err = k.VerifySPAndSignature(ctx, []string{dstBucketInfo.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	err = k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpAddress,
+		sdk.Keccak256(msg.GetApprovalBytes()), msg.DstPrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
 
-	// check if have permission for copy object from this bucket
+	// check permission for copy object from this bucket
 	// Currently only allowed object owner to CopyObject
 	if srcObjectInfo.Owner != msg.Operator {
 		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "access denied (%s)", srcObjectInfo.String())
@@ -447,6 +432,7 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 		return nil, err
 	}
 	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
+
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
 		OperatorAddress:      msg.Operator,
 		BucketName:           bucketInfo.BucketName,

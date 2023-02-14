@@ -87,6 +87,13 @@ func (msg *MsgCreateBucket) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
+// GetApprovalBytes returns the message bytes of approval info.
+func (msg *MsgCreateBucket) GetApprovalBytes() []byte {
+	newMsg := msg
+	newMsg.PrimarySpApprovalSignature = []byte{}
+	return newMsg.GetSignBytes()
+}
+
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCreateBucket) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
@@ -287,6 +294,13 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		}
 	}
 	return nil
+}
+
+// GetApprovalBytes returns the message bytes of approval info.
+func (msg *MsgCreateObject) GetApprovalBytes() []byte {
+	newMsg := msg
+	newMsg.PrimarySpApprovalSignature = []byte{}
+	return newMsg.GetSignBytes()
 }
 
 func NewMsgCancelCreateObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgCancelCreateObject {
@@ -506,6 +520,13 @@ func (msg *MsgCopyObject) GetSigners() []sdk.AccAddress {
 func (msg *MsgCopyObject) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
+}
+
+// GetApprovalBytes returns the message bytes of approval info.
+func (msg *MsgCopyObject) GetApprovalBytes() []byte {
+	newMsg := msg
+	newMsg.DstPrimarySpApprovalSignature = []byte{}
+	return newMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.

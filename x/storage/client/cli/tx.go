@@ -76,11 +76,6 @@ func CmdCreateBucket() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// TODO: verify the signature in advance.
-			primarySPApproval, err := cmd.Flags().GetBytesHex(FlagPrimarySPApproval)
-			if err != nil {
-				return err
-			}
 
 			if paymentAccStr != "" {
 				if paymentAddress, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
@@ -94,7 +89,7 @@ func CmdCreateBucket() *cobra.Command {
 				isPublic,
 				primarySPAddress,
 				paymentAddress,
-				primarySPApproval, // TODO: Refine the cli parameters
+				nil, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -105,7 +100,6 @@ func CmdCreateBucket() *cobra.Command {
 
 	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
-	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -264,7 +258,6 @@ func CmdCreateObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(FlagPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
-	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	return cmd
 }
 
