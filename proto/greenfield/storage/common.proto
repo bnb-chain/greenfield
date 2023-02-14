@@ -1,6 +1,7 @@
 syntax = "proto3";
 package bnbchain.greenfield.storage;
 
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
@@ -10,4 +11,14 @@ enum SourceType {
 
   SOURCE_TYPE_ORIGIN = 0;
   SOURCE_TYPE_BSC_CROSS_CHAIN = 1;
+}
+
+// TODO: Need to confirm the read quota enum which determined by payment module
+// TODO: Make this field be configured through governance
+enum ReadQuota {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  READ_QUOTA_FREE = 0;
+  READ_QUOTA_1G = 1;
+  READ_QUOTA_10G = 2;
 }

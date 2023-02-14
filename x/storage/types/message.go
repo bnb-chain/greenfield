@@ -8,8 +8,9 @@ import (
 
 const (
 	// For bucket
-	TypeMsgCreateBucket = "create_bucket"
-	TypeMsgDeleteBucket = "delete_bucket"
+	TypeMsgCreateBucket     = "create_bucket"
+	TypeMsgDeleteBucket     = "delete_bucket"
+	TypeMsgUpdateBucketInfo = "update_bucket_info"
 
 	// For object
 	TypeMsgCopyObject       = "copy_object"
@@ -29,6 +30,7 @@ var (
 	// For bucket
 	_ sdk.Msg = &MsgCreateBucket{}
 	_ sdk.Msg = &MsgDeleteBucket{}
+	_ sdk.Msg = &MsgUpdateBucketInfo{}
 	// For object
 	_ sdk.Msg = &MsgCreateObject{}
 	_ sdk.Msg = &MsgDeleteObject{}
@@ -148,6 +150,55 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
 		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	}
+
+	return nil
+}
+
+// NewMsgBucketReadQuota creates a new MsgBucketReadQuota instance.
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota ReadQuota, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
+	return &MsgUpdateBucketInfo{
+		Operator:       operator.String(),
+		BucketName:     bucketName,
+		ReadQuota:      readQuota,
+		PaymentAddress: paymentAcc.String(),
+	}
+}
+
+func (msg *MsgUpdateBucketInfo) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgUpdateBucketInfo) Type() string {
+	return TypeMsgUpdateBucketInfo
+}
+
+func (msg *MsgUpdateBucketInfo) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgUpdateBucketInfo) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if err := CheckValidBucketName(msg.BucketName); err != nil {
+		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
 	}
 
 	return nil
@@ -348,6 +399,7 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
+	// TODO: 6 hard code here.
 	if len(msg.SecondarySpAddresses) != 6 {
 		return sdkerrors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (d%), but (d%)", 6, len(msg.SecondarySpAddresses))
 	}

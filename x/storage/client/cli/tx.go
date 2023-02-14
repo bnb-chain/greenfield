@@ -42,6 +42,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdUpdateGroupMember())
 	cmd.AddCommand(CmdLeaveGroup())
 	cmd.AddCommand(CmdCopyObject())
+	cmd.AddCommand(CmdUpdateBucketInfo())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -125,6 +126,37 @@ func CmdDeleteBucket() *cobra.Command {
 			msg := types.NewMsgDeleteBucket(
 				clientCtx.GetFromAddress(),
 				argBucketName,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateBucketInfo() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-read-quota [bucket-name]",
+		Short: "Update the meta of bucket, E.g ReadQuota, PaymentAccount",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateBucketInfo(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				types.READ_QUOTA_FREE,
+				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
