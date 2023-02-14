@@ -21,6 +21,9 @@ tools:
 proto-gen:
 	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x && rm -rf github.com
 
+proto-swagger-gen:
+	sh ./scripts/protoc-swagger-gen.sh
+
 proto-format:
 	buf format -w
 
