@@ -2,8 +2,6 @@ package types
 
 import (
 	sdkmath "cosmossdk.io/math"
-
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type StreamRecordChange struct {
@@ -39,7 +37,7 @@ func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmat
 
 type StorePrice struct {
 	UserPayRate sdkmath.Int
-	Flows       []storagetypes.OutFlowInUSD
+	Flows       []OutFlowInUSD
 }
 
 type BNBPrice struct {

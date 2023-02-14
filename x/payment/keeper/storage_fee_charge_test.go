@@ -9,7 +9,6 @@ import (
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func TestApplyFlowChanges(t *testing.T) {
@@ -104,7 +103,7 @@ func TestAutoForceSettle(t *testing.T) {
 	userStreamRecord, found := keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
-	flowChanges := []storagetypes.OutFlowInUSD{
+	flowChanges := []types.OutFlowInUSD{
 		{SpAddress: sp, Rate: rate},
 	}
 	err = keeper.ApplyUSDFlowChanges(ctx, user, flowChanges)

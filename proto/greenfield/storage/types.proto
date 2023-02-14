@@ -3,6 +3,7 @@ package bnbchain.greenfield.storage;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "greenfield/payment/base.proto";
 import "greenfield/storage/common.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
@@ -33,7 +34,7 @@ message BucketInfo {
   // payment_price_time TODO(Owen): refine the comments
   int64 payment_price_time = 10;
   // payment_out_flows
-  repeated OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
+  repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
 }
 
 enum RedundancyType {

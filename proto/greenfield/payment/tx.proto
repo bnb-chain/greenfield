@@ -5,7 +5,6 @@ package bnbchain.greenfield.payment;
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/storage/common.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 

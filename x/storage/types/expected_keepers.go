@@ -25,6 +25,7 @@ type SpKeeper interface {
 
 type PaymentKeeper interface {
 	IsPaymentAccountOwner(ctx sdk.Context, addr string, owner string) bool
+	// TODO(owen): add a thin wrapper to storage module and only provide basic interface here.
 	ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *BucketInfo, paymentAddress *string) error
 	LockStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
 	ChargeDeleteObject(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error

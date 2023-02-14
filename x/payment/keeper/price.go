@@ -44,7 +44,7 @@ func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketInfo *storagetypes.Bucket
 		if len(objectInfo.SecondarySpAddresses) != 6 {
 			panic("there should be 6 secondary sps")
 		}
-		storePrice.Flows = []storagetypes.OutFlowInUSD{
+		storePrice.Flows = []types.OutFlowInUSD{
 			{SpAddress: bucketInfo.PrimarySpAddress, Rate: sdkmath.NewInt(40)},
 			{SpAddress: objectInfo.SecondarySpAddresses[0], Rate: sdkmath.NewInt(10)},
 			{SpAddress: objectInfo.SecondarySpAddresses[1], Rate: sdkmath.NewInt(10)},

@@ -9,7 +9,6 @@ import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
 import "greenfield/payment/stream_record.proto";
-import "greenfield/storage/types.proto";
 
 // this line is used by starport scaffolding # genesis/proto/import
 
