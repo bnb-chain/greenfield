@@ -68,18 +68,18 @@ service Query {
 
   // Queries a list of AutoSettleRecord items.
   rpc AutoSettleRecord(QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/auto_settle_record/{timestamp}/{addr}";
+    option (google.api.http).get = "/greenfield/payment/auto_settle_record/{timestamp}/{addr}";
   }
   rpc AutoSettleRecordAll(QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/auto_settle_record";
+    option (google.api.http).get = "/greenfield/payment/auto_settle_record";
   }
 
   // Queries a list of BnbPrice items.
   rpc BnbPrice(QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/bnb_price/{time}";
+    option (google.api.http).get = "/greenfield/payment/bnb_price/{time}";
   }
   rpc BnbPriceAll(QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/payment/bnb_price";
+    option (google.api.http).get = "/greenfield/payment/bnb_price";
   }
 }
 

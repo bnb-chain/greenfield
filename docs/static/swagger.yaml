@@ -4,7 +4,7 @@ info:
   description: A REST interface for state queries
   version: 1.0.0
 paths:
-  /bnb-chain/greenfield/bridge/params:
+  /greenfield/bridge/params:
     get:
       summary: Parameters queries the parameters of the module.
       operationId: BridgeParams
@@ -53,7 +53,7 @@ paths:
                       format: byte
       tags:
         - Query
-  /bnb-chain/greenfield/payment/auto_settle_record:
+  /greenfield/payment/auto_settle_record:
     get:
       operationId: AutoSettleRecordAll
       responses:
@@ -194,7 +194,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /bnb-chain/greenfield/payment/auto_settle_record/{timestamp}/{addr}:
+  /greenfield/payment/auto_settle_record/{timestamp}/{addr}:
     get:
       summary: Queries a list of AutoSettleRecord items.
       operationId: AutoSettleRecord
@@ -259,7 +259,7 @@ paths:
           type: string
       tags:
         - Query
-  /bnb-chain/greenfield/payment/bnb_price:
+  /greenfield/payment/bnb_price:
     get:
       operationId: BnbPriceAll
       responses:
@@ -397,7 +397,7 @@ paths:
           type: boolean
       tags:
         - Query
-  /bnb-chain/greenfield/payment/bnb_price/{time}:
+  /greenfield/payment/bnb_price/{time}:
     get:
       summary: Queries a list of BnbPrice items.
       operationId: BnbPrice
@@ -453,522 +453,6 @@ paths:
           required: true
           type: string
           format: int64
-      tags:
-        - Query
-  /bnb-chain/greenfield/payment/mock_bucket_meta:
-    get:
-      operationId: MockBucketMetaAll
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              mockBucketMeta:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    bucketName:
-                      type: string
-                    owner:
-                      type: string
-                    readPaymentAccount:
-                      type: string
-                    storePaymentAccount:
-                      type: string
-                    spAddress:
-                      type: string
-                    id:
-                      type: string
-                      title: >-
-                        mock id with string instead of uint64 to avoid
-                        distribute id
-                    readPacket:
-                      title: for payment
-                      type: string
-                      enum:
-                        - READ_PACKET_FREE
-                        - READ_PACKET_1GB
-                        - READ_PACKET_10GB
-                      default: READ_PACKET_FREE
-                    priceTime:
-                      type: string
-                      format: int64
-                    outFlowsInUSD:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          sp_address:
-                            type: string
-                            title: SP(service provider) stream account address
-                          rate:
-                            type: string
-                            title: flow rate in USD
-                        title: >-
-                          OutFlowInUSD defines the accumulative outflow stream
-                          rate in USD
-
-                          from a stream account or a bucket to a SP
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /bnb-chain/greenfield/payment/mock_bucket_meta/{bucketName}:
-    get:
-      summary: Queries a list of MockBucketMeta items.
-      operationId: MockBucketMeta
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              mockBucketMeta:
-                type: object
-                properties:
-                  bucketName:
-                    type: string
-                  owner:
-                    type: string
-                  readPaymentAccount:
-                    type: string
-                  storePaymentAccount:
-                    type: string
-                  spAddress:
-                    type: string
-                  id:
-                    type: string
-                    title: >-
-                      mock id with string instead of uint64 to avoid distribute
-                      id
-                  readPacket:
-                    title: for payment
-                    type: string
-                    enum:
-                      - READ_PACKET_FREE
-                      - READ_PACKET_1GB
-                      - READ_PACKET_10GB
-                    default: READ_PACKET_FREE
-                  priceTime:
-                    type: string
-                    format: int64
-                  outFlowsInUSD:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        sp_address:
-                          type: string
-                          title: SP(service provider) stream account address
-                        rate:
-                          type: string
-                          title: flow rate in USD
-                      title: >-
-                        OutFlowInUSD defines the accumulative outflow stream
-                        rate in USD
-
-                        from a stream account or a bucket to a SP
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: bucketName
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
-  /bnb-chain/greenfield/payment/mock_object_info:
-    get:
-      operationId: MockObjectInfoAll
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              mockObjectInfo:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    bucketName:
-                      type: string
-                    objectName:
-                      type: string
-                    owner:
-                      type: string
-                    id:
-                      type: string
-                    size:
-                      type: string
-                      format: uint64
-                    isPrivate:
-                      type: boolean
-                    contentType:
-                      type: string
-                    createAt:
-                      type: string
-                      format: uint64
-                    objectState:
-                      type: string
-                      enum:
-                        - OBJECT_STATE_INIT
-                        - OBJECT_STATE_IN_SERVICE
-                        - OBJECT_STATE_IN_SHIFTING
-                      default: OBJECT_STATE_INIT
-                    redundancyType:
-                      type: string
-                      enum:
-                        - REDUNDANCY_REPLICA_TYPE
-                        - REDUNDANCY_EC_TYPE
-                        - REDUNDANCY_INLINE_TYPE
-                      default: REDUNDANCY_REPLICA_TYPE
-                    hash:
-                      type: string
-                    primary_sp_checksum:
-                      type: string
-                    secondarySPs:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          id:
-                            type: string
-                          checksum:
-                            type: string
-                            format: byte
-                    lockedBalance:
-                      type: string
-                      title: payment
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /bnb-chain/greenfield/payment/mock_object_info/{bucketName}/{objectName}:
-    get:
-      summary: Queries a list of MockObjectInfo items.
-      operationId: MockObjectInfo
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              mockObjectInfo:
-                type: object
-                properties:
-                  bucketName:
-                    type: string
-                  objectName:
-                    type: string
-                  owner:
-                    type: string
-                  id:
-                    type: string
-                  size:
-                    type: string
-                    format: uint64
-                  isPrivate:
-                    type: boolean
-                  contentType:
-                    type: string
-                  createAt:
-                    type: string
-                    format: uint64
-                  objectState:
-                    type: string
-                    enum:
-                      - OBJECT_STATE_INIT
-                      - OBJECT_STATE_IN_SERVICE
-                      - OBJECT_STATE_IN_SHIFTING
-                    default: OBJECT_STATE_INIT
-                  redundancyType:
-                    type: string
-                    enum:
-                      - REDUNDANCY_REPLICA_TYPE
-                      - REDUNDANCY_EC_TYPE
-                      - REDUNDANCY_INLINE_TYPE
-                    default: REDUNDANCY_REPLICA_TYPE
-                  hash:
-                    type: string
-                  primary_sp_checksum:
-                    type: string
-                  secondarySPs:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                        checksum:
-                          type: string
-                          format: byte
-                  lockedBalance:
-                    type: string
-                    title: payment
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: bucketName
-          in: path
-          required: true
-          type: string
-        - name: objectName
-          in: path
-          required: true
-          type: string
       tags:
         - Query
   /greenfield/payment/dynamic_balance/{account}:
@@ -1843,7 +1327,7 @@ paths:
           type: string
       tags:
         - Query
-  /bnb-chain/greenfield/sp/params:
+  /greenfield/sp/params:
     get:
       summary: Parameters queries the parameters of the module.
       operationId: SpParams
@@ -1896,7 +1380,7 @@ paths:
                       format: byte
       tags:
         - Query
-  /bnb-chain/greenfield/sp/storage_providers:
+  /greenfield/sp/storage_providers:
     get:
       summary: Queries a list of GetStorageProviders items.
       operationId: StorageProviders
@@ -2109,6 +1593,12 @@ paths:
                   id:
                     type: string
                     description: id is the unique identification for bucket.
+                  source_type:
+                    type: string
+                    enum:
+                      - SOURCE_TYPE_ORIGIN
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                    default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
                     format: int64
@@ -2129,7 +1619,30 @@ paths:
                     type: string
                     enum:
                       - READ_QUOTA_FREE
+                      - READ_QUOTA_1G
+                      - READ_QUOTA_10G
                     default: READ_QUOTA_FREE
+                  payment_price_time:
+                    type: string
+                    format: int64
+                    title: 'payment_price_time TODO(Owen): refine the comments'
+                  payment_out_flows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sp_address:
+                          type: string
+                          title: SP(service provider) stream account address
+                        rate:
+                          type: string
+                          title: flow rate in USD
+                      title: >-
+                        OutFlowInUSD defines the accumulative outflow stream
+                        rate in USD
+
+                        from a stream account or a bucket to a SP
+                    title: payment_out_flows
         default:
           description: An unexpected error response.
           schema:
@@ -2219,12 +1732,12 @@ paths:
                       - REDUNDANCY_INLINE_TYPE
                     default: REDUNDANCY_REPLICA_TYPE
                   source_type:
-                    description: source_type define the source of the object.
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
                       - SOURCE_TYPE_BSC_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
+                    description: source_type define the source of the object.
                   checksums:
                     type: array
                     items:
@@ -2240,6 +1753,9 @@ paths:
                     title: >-
                       secondary_sp_addresses define the addresses of
                       secondary_sps
+                  lockedBalance:
+                    type: string
+                    title: lockedBalance
         default:
           description: An unexpected error response.
           schema:
@@ -26021,106 +25537,6 @@ definitions:
           It is multiplied by 10^8.
           For example, if the price is 278.34 USD, the price is 27834000000.
     title: BNBPrice is the price of BNB in USD at a given time
-  bnbchain.greenfield.payment.MockBucketMeta:
-    type: object
-    properties:
-      bucketName:
-        type: string
-      owner:
-        type: string
-      readPaymentAccount:
-        type: string
-      storePaymentAccount:
-        type: string
-      spAddress:
-        type: string
-      id:
-        type: string
-        title: mock id with string instead of uint64 to avoid distribute id
-      readPacket:
-        title: for payment
-        type: string
-        enum:
-          - READ_PACKET_FREE
-          - READ_PACKET_1GB
-          - READ_PACKET_10GB
-        default: READ_PACKET_FREE
-      priceTime:
-        type: string
-        format: int64
-      outFlowsInUSD:
-        type: array
-        items:
-          type: object
-          properties:
-            sp_address:
-              type: string
-              title: SP(service provider) stream account address
-            rate:
-              type: string
-              title: flow rate in USD
-          title: |-
-            OutFlowInUSD defines the accumulative outflow stream rate in USD
-            from a stream account or a bucket to a SP
-  bnbchain.greenfield.payment.MockObjectInfo:
-    type: object
-    properties:
-      bucketName:
-        type: string
-      objectName:
-        type: string
-      owner:
-        type: string
-      id:
-        type: string
-      size:
-        type: string
-        format: uint64
-      isPrivate:
-        type: boolean
-      contentType:
-        type: string
-      createAt:
-        type: string
-        format: uint64
-      objectState:
-        type: string
-        enum:
-          - OBJECT_STATE_INIT
-          - OBJECT_STATE_IN_SERVICE
-          - OBJECT_STATE_IN_SHIFTING
-        default: OBJECT_STATE_INIT
-      redundancyType:
-        type: string
-        enum:
-          - REDUNDANCY_REPLICA_TYPE
-          - REDUNDANCY_EC_TYPE
-          - REDUNDANCY_INLINE_TYPE
-        default: REDUNDANCY_REPLICA_TYPE
-      hash:
-        type: string
-      primary_sp_checksum:
-        type: string
-      secondarySPs:
-        type: array
-        items:
-          type: object
-          properties:
-            id:
-              type: string
-            checksum:
-              type: string
-              format: byte
-      lockedBalance:
-        type: string
-        title: payment
-  bnbchain.greenfield.payment.ObjectState:
-    type: string
-    enum:
-      - OBJECT_STATE_INIT
-      - OBJECT_STATE_IN_SERVICE
-      - OBJECT_STATE_IN_SHIFTING
-    default: OBJECT_STATE_INIT
   bnbchain.greenfield.payment.OutFlowInUSD:
     type: object
     properties:
@@ -26264,163 +25680,6 @@ definitions:
                 For example, if the price is 278.34 USD, the price is
                 27834000000.
           title: BNBPrice is the price of BNB in USD at a given time
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  bnbchain.greenfield.payment.QueryAllMockBucketMetaResponse:
-    type: object
-    properties:
-      mockBucketMeta:
-        type: array
-        items:
-          type: object
-          properties:
-            bucketName:
-              type: string
-            owner:
-              type: string
-            readPaymentAccount:
-              type: string
-            storePaymentAccount:
-              type: string
-            spAddress:
-              type: string
-            id:
-              type: string
-              title: mock id with string instead of uint64 to avoid distribute id
-            readPacket:
-              title: for payment
-              type: string
-              enum:
-                - READ_PACKET_FREE
-                - READ_PACKET_1GB
-                - READ_PACKET_10GB
-              default: READ_PACKET_FREE
-            priceTime:
-              type: string
-              format: int64
-            outFlowsInUSD:
-              type: array
-              items:
-                type: object
-                properties:
-                  sp_address:
-                    type: string
-                    title: SP(service provider) stream account address
-                  rate:
-                    type: string
-                    title: flow rate in USD
-                title: >-
-                  OutFlowInUSD defines the accumulative outflow stream rate in
-                  USD
-
-                  from a stream account or a bucket to a SP
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  bnbchain.greenfield.payment.QueryAllMockObjectInfoResponse:
-    type: object
-    properties:
-      mockObjectInfo:
-        type: array
-        items:
-          type: object
-          properties:
-            bucketName:
-              type: string
-            objectName:
-              type: string
-            owner:
-              type: string
-            id:
-              type: string
-            size:
-              type: string
-              format: uint64
-            isPrivate:
-              type: boolean
-            contentType:
-              type: string
-            createAt:
-              type: string
-              format: uint64
-            objectState:
-              type: string
-              enum:
-                - OBJECT_STATE_INIT
-                - OBJECT_STATE_IN_SERVICE
-                - OBJECT_STATE_IN_SHIFTING
-              default: OBJECT_STATE_INIT
-            redundancyType:
-              type: string
-              enum:
-                - REDUNDANCY_REPLICA_TYPE
-                - REDUNDANCY_EC_TYPE
-                - REDUNDANCY_INLINE_TYPE
-              default: REDUNDANCY_REPLICA_TYPE
-            hash:
-              type: string
-            primary_sp_checksum:
-              type: string
-            secondarySPs:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  checksum:
-                    type: string
-                    format: byte
-            lockedBalance:
-              type: string
-              title: payment
       pagination:
         type: object
         properties:
@@ -26725,105 +25984,6 @@ definitions:
               It is multiplied by 10^8.
               For example, if the price is 278.34 USD, the price is 27834000000.
         title: BNBPrice is the price of BNB in USD at a given time
-  bnbchain.greenfield.payment.QueryGetMockBucketMetaResponse:
-    type: object
-    properties:
-      mockBucketMeta:
-        type: object
-        properties:
-          bucketName:
-            type: string
-          owner:
-            type: string
-          readPaymentAccount:
-            type: string
-          storePaymentAccount:
-            type: string
-          spAddress:
-            type: string
-          id:
-            type: string
-            title: mock id with string instead of uint64 to avoid distribute id
-          readPacket:
-            title: for payment
-            type: string
-            enum:
-              - READ_PACKET_FREE
-              - READ_PACKET_1GB
-              - READ_PACKET_10GB
-            default: READ_PACKET_FREE
-          priceTime:
-            type: string
-            format: int64
-          outFlowsInUSD:
-            type: array
-            items:
-              type: object
-              properties:
-                sp_address:
-                  type: string
-                  title: SP(service provider) stream account address
-                rate:
-                  type: string
-                  title: flow rate in USD
-              title: |-
-                OutFlowInUSD defines the accumulative outflow stream rate in USD
-                from a stream account or a bucket to a SP
-  bnbchain.greenfield.payment.QueryGetMockObjectInfoResponse:
-    type: object
-    properties:
-      mockObjectInfo:
-        type: object
-        properties:
-          bucketName:
-            type: string
-          objectName:
-            type: string
-          owner:
-            type: string
-          id:
-            type: string
-          size:
-            type: string
-            format: uint64
-          isPrivate:
-            type: boolean
-          contentType:
-            type: string
-          createAt:
-            type: string
-            format: uint64
-          objectState:
-            type: string
-            enum:
-              - OBJECT_STATE_INIT
-              - OBJECT_STATE_IN_SERVICE
-              - OBJECT_STATE_IN_SHIFTING
-            default: OBJECT_STATE_INIT
-          redundancyType:
-            type: string
-            enum:
-              - REDUNDANCY_REPLICA_TYPE
-              - REDUNDANCY_EC_TYPE
-              - REDUNDANCY_INLINE_TYPE
-            default: REDUNDANCY_REPLICA_TYPE
-          hash:
-            type: string
-          primary_sp_checksum:
-            type: string
-          secondarySPs:
-            type: array
-            items:
-              type: object
-              properties:
-                id:
-                  type: string
-                checksum:
-                  type: string
-                  format: byte
-          lockedBalance:
-            type: string
-            title: payment
   bnbchain.greenfield.payment.QueryGetPaymentAccountCountResponse:
     type: object
     properties:
@@ -26957,29 +26117,6 @@ definitions:
             type: string
             title: The denom of fee charged in payment module
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  bnbchain.greenfield.payment.ReadPacket:
-    type: string
-    enum:
-      - READ_PACKET_FREE
-      - READ_PACKET_1GB
-      - READ_PACKET_10GB
-    default: READ_PACKET_FREE
-    title: ReadPacket defines the read packet type
-  bnbchain.greenfield.payment.RedundancyType:
-    type: string
-    enum:
-      - REDUNDANCY_REPLICA_TYPE
-      - REDUNDANCY_EC_TYPE
-      - REDUNDANCY_INLINE_TYPE
-    default: REDUNDANCY_REPLICA_TYPE
-  bnbchain.greenfield.payment.StorageProviderInfo:
-    type: object
-    properties:
-      id:
-        type: string
-      checksum:
-        type: string
-        format: byte
   bnbchain.greenfield.payment.StreamRecord:
     type: object
     properties:
@@ -27356,6 +26493,12 @@ definitions:
       id:
         type: string
         description: id is the unique identification for bucket.
+      source_type:
+        type: string
+        enum:
+          - SOURCE_TYPE_ORIGIN
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+        default: SOURCE_TYPE_ORIGIN
       create_at:
         type: string
         format: int64
@@ -27375,7 +26518,28 @@ definitions:
         type: string
         enum:
           - READ_QUOTA_FREE
+          - READ_QUOTA_1G
+          - READ_QUOTA_10G
         default: READ_QUOTA_FREE
+      payment_price_time:
+        type: string
+        format: int64
+        title: 'payment_price_time TODO(Owen): refine the comments'
+      payment_out_flows:
+        type: array
+        items:
+          type: object
+          properties:
+            sp_address:
+              type: string
+              title: SP(service provider) stream account address
+            rate:
+              type: string
+              title: flow rate in USD
+          title: |-
+            OutFlowInUSD defines the accumulative outflow stream rate in USD
+            from a stream account or a bucket to a SP
+        title: payment_out_flows
   bnbchain.greenfield.storage.ObjectInfo:
     type: object
     properties:
@@ -27426,12 +26590,12 @@ definitions:
           - REDUNDANCY_INLINE_TYPE
         default: REDUNDANCY_REPLICA_TYPE
       source_type:
-        description: source_type define the source of the object.
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
           - SOURCE_TYPE_BSC_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
+        description: source_type define the source of the object.
       checksums:
         type: array
         items:
@@ -27443,6 +26607,9 @@ definitions:
         items:
           type: string
         title: secondary_sp_addresses define the addresses of secondary_sps
+      lockedBalance:
+        type: string
+        title: lockedBalance
   bnbchain.greenfield.storage.ObjectStatus:
     type: string
     enum:
@@ -27495,6 +26662,12 @@ definitions:
           id:
             type: string
             description: id is the unique identification for bucket.
+          source_type:
+            type: string
+            enum:
+              - SOURCE_TYPE_ORIGIN
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+            default: SOURCE_TYPE_ORIGIN
           create_at:
             type: string
             format: int64
@@ -27514,7 +26687,28 @@ definitions:
             type: string
             enum:
               - READ_QUOTA_FREE
+              - READ_QUOTA_1G
+              - READ_QUOTA_10G
             default: READ_QUOTA_FREE
+          payment_price_time:
+            type: string
+            format: int64
+            title: 'payment_price_time TODO(Owen): refine the comments'
+          payment_out_flows:
+            type: array
+            items:
+              type: object
+              properties:
+                sp_address:
+                  type: string
+                  title: SP(service provider) stream account address
+                rate:
+                  type: string
+                  title: flow rate in USD
+              title: |-
+                OutFlowInUSD defines the accumulative outflow stream rate in USD
+                from a stream account or a bucket to a SP
+            title: payment_out_flows
   bnbchain.greenfield.storage.QueryObjectResponse:
     type: object
     properties:
@@ -27568,12 +26762,12 @@ definitions:
               - REDUNDANCY_INLINE_TYPE
             default: REDUNDANCY_REPLICA_TYPE
           source_type:
-            description: source_type define the source of the object.
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
               - SOURCE_TYPE_BSC_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
+            description: source_type define the source of the object.
           checksums:
             type: array
             items:
@@ -27585,6 +26779,9 @@ definitions:
             items:
               type: string
             title: secondary_sp_addresses define the addresses of secondary_sps
+          lockedBalance:
+            type: string
+            title: lockedBalance
   bnbchain.greenfield.storage.QueryParamsResponse:
     type: object
     properties:
@@ -27617,7 +26814,14 @@ definitions:
     type: string
     enum:
       - READ_QUOTA_FREE
+      - READ_QUOTA_1G
+      - READ_QUOTA_10G
     default: READ_QUOTA_FREE
+    title: >-
+      TODO: Need to confirm the read quota enum which determined by payment
+      module
+
+      TODO: Make this field be configured through governance
   bnbchain.greenfield.storage.RedundancyType:
     type: string
     enum:
