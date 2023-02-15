@@ -34,7 +34,8 @@ type BucketInfo struct {
 	// is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
 	IsPublic bool `protobuf:"varint,3,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
 	// id is the unique identification for bucket.
-	Id         Uint       `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// source_type define the source of the bucket
 	SourceType SourceType `protobuf:"varint,5,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
 	// create_at define the block number when the bucket created.
 	CreateAt int64 `protobuf:"varint,6,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`

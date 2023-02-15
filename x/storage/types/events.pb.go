@@ -26,15 +26,24 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // EventCreateBucket is emitted on MsgCreateBucket
 type EventCreateBucket struct {
-	OwnerAddress     string     `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	BucketName       string     `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	IsPublic         bool       `protobuf:"varint,3,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
-	CreateAt         int64      `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	Id               Uint       `protobuf:"bytes,5,opt,name=id,proto3,customtype=Uint" json:"id"`
-	SourceType       SourceType `protobuf:"varint,6,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
-	ReadQuota        ReadQuota  `protobuf:"varint,7,opt,name=read_quota,json=readQuota,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota,omitempty"`
-	PaymentAddress   string     `protobuf:"bytes,8,opt,name=payment_address,json=paymentAddress,proto3" json:"payment_address,omitempty"`
-	PrimarySpAddress string     `protobuf:"bytes,9,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// owner_address define the account address of bucket owner
+	OwnerAddress string `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// bucket_name is a globally unique name of bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
+	IsPublic bool `protobuf:"varint,3,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
+	// create_at define the block number when the bucket has been created
+	CreateAt int64 `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	// id is the unique u256 for bucket. Not global, only unique in buckets.
+	Id Uint `protobuf:"bytes,5,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// source_type define the source of the bucket. CrossChain or Greenfield origin
+	SourceType SourceType `protobuf:"varint,6,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
+	// read_quota defines the traffic quota for read
+	ReadQuota ReadQuota `protobuf:"varint,7,opt,name=read_quota,json=readQuota,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota,omitempty"`
+	// payment_address is the address of the payment account
+	PaymentAddress string `protobuf:"bytes,8,opt,name=payment_address,json=paymentAddress,proto3" json:"payment_address,omitempty"`
+	// primary_sp_address is the operator address of the primary sp.
+	PrimarySpAddress string `protobuf:"bytes,9,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
 }
 
 func (m *EventCreateBucket) Reset()         { *m = EventCreateBucket{} }
@@ -128,13 +137,16 @@ func (m *EventCreateBucket) GetPrimarySpAddress() string {
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
 type EventDeleteBucket struct {
-	OperatorAddress  string     `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	OwnerAddress     string     `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	BucketName       string     `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	Id               Uint       `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
-	PrimarySpAddress string     `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
-	CreateAt         int64      `protobuf:"varint,6,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	SourceType       SourceType `protobuf:"varint,8,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
+	// operator_address define the account address of operator who delete the bucket
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// owner_address define the account address of the bucket owner
+	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// bucket_name define the name of the deleted bucket
+	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// id define an u256 id for bucket
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// primary_sp_address define the account address of primary sp
+	PrimarySpAddress string `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
 }
 
 func (m *EventDeleteBucket) Reset()         { *m = EventDeleteBucket{} }
@@ -198,29 +210,22 @@ func (m *EventDeleteBucket) GetPrimarySpAddress() string {
 	return ""
 }
 
-func (m *EventDeleteBucket) GetCreateAt() int64 {
-	if m != nil {
-		return m.CreateAt
-	}
-	return 0
-}
-
-func (m *EventDeleteBucket) GetSourceType() SourceType {
-	if m != nil {
-		return m.SourceType
-	}
-	return SOURCE_TYPE_ORIGIN
-}
-
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
 type EventUpdateBucketInfo struct {
-	OperatorAddress      string    `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	BucketName           string    `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	Id                   Uint      `protobuf:"bytes,3,opt,name=id,proto3,customtype=Uint" json:"id"`
-	ReadQuotaBefore      ReadQuota `protobuf:"varint,4,opt,name=read_quota_before,json=readQuotaBefore,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota_before,omitempty"`
-	ReadQuotaAfter       ReadQuota `protobuf:"varint,5,opt,name=read_quota_after,json=readQuotaAfter,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota_after,omitempty"`
-	PaymentAddressBefore string    `protobuf:"bytes,6,opt,name=payment_address_before,json=paymentAddressBefore,proto3" json:"payment_address_before,omitempty"`
-	PaymentAddressAfter  string    `protobuf:"bytes,7,opt,name=payment_address_after,json=paymentAddressAfter,proto3" json:"payment_address_after,omitempty"`
+	// operator_address define the account address of operator who update the bucket
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// id define an u256 id for bucket
+	Id Uint `protobuf:"bytes,3,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// read_quota_before define the read quota before updated
+	ReadQuotaBefore ReadQuota `protobuf:"varint,4,opt,name=read_quota_before,json=readQuotaBefore,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota_before,omitempty"`
+	// read_quota_after define the read quota after updated
+	ReadQuotaAfter ReadQuota `protobuf:"varint,5,opt,name=read_quota_after,json=readQuotaAfter,proto3,enum=bnbchain.greenfield.storage.ReadQuota" json:"read_quota_after,omitempty"`
+	// payment_address_before define the payment address before updated
+	PaymentAddressBefore string `protobuf:"bytes,6,opt,name=payment_address_before,json=paymentAddressBefore,proto3" json:"payment_address_before,omitempty"`
+	// payment_address_after define the payment address after updated
+	PaymentAddressAfter string `protobuf:"bytes,7,opt,name=payment_address_after,json=paymentAddressAfter,proto3" json:"payment_address_after,omitempty"`
 }
 
 func (m *EventUpdateBucketInfo) Reset()         { *m = EventUpdateBucketInfo{} }
@@ -300,19 +305,34 @@ func (m *EventUpdateBucketInfo) GetPaymentAddressAfter() string {
 
 // EventCreateObject is emitted on MsgCreateObject
 type EventCreateObject struct {
-	OwnerAddress     string         `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	BucketName       string         `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	ObjectName       string         `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	Id               Uint           `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
-	PrimarySpAddress string         `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
-	PayloadSize      uint64         `protobuf:"varint,6,opt,name=payload_size,json=payloadSize,proto3" json:"payload_size,omitempty"`
-	IsPublic         bool           `protobuf:"varint,7,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
-	ContentType      string         `protobuf:"bytes,8,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	CreateAt         int64          `protobuf:"varint,9,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
-	Status           ObjectStatus   `protobuf:"varint,10,opt,name=status,proto3,enum=bnbchain.greenfield.storage.ObjectStatus" json:"status,omitempty"`
-	RedundancyType   RedundancyType `protobuf:"varint,11,opt,name=redundancy_type,json=redundancyType,proto3,enum=bnbchain.greenfield.storage.RedundancyType" json:"redundancy_type,omitempty"`
-	SourceType       SourceType     `protobuf:"varint,12,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
-	Checksums        [][]byte       `protobuf:"bytes,13,rep,name=checksums,proto3" json:"checksums,omitempty"`
+	// creator_address define the account address of msg creator
+	CreatorAddress string `protobuf:"bytes,1,opt,name=creator_address,json=creatorAddress,proto3" json:"creator_address,omitempty"`
+	// owner_address define the account address of object owner
+	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// bucket_name define the name of bucket
+	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_name define the name of object
+	ObjectName string `protobuf:"bytes,4,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// id define an u256 id for object
+	Id Uint `protobuf:"bytes,6,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// primary_sp_address define the account address of primary sp
+	PrimarySpAddress string `protobuf:"bytes,7,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// payload_size define the size of payload data which you want upload
+	PayloadSize uint64 `protobuf:"varint,8,opt,name=payload_size,json=payloadSize,proto3" json:"payload_size,omitempty"`
+	// is_public define the highest permission of object.
+	IsPublic bool `protobuf:"varint,9,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
+	// content_type define the content type of the payload data
+	ContentType string `protobuf:"bytes,10,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
+	// create_at define the block number when the object created
+	CreateAt int64 `protobuf:"varint,11,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
+	// status define the status of the object. INIT or IN_SERVICE or others
+	Status ObjectStatus `protobuf:"varint,12,opt,name=status,proto3,enum=bnbchain.greenfield.storage.ObjectStatus" json:"status,omitempty"`
+	// redundancy_type define the type of redundancy. Replication or EC
+	RedundancyType RedundancyType `protobuf:"varint,13,opt,name=redundancy_type,json=redundancyType,proto3,enum=bnbchain.greenfield.storage.RedundancyType" json:"redundancy_type,omitempty"`
+	// source_type define the source of the object.  CrossChain or Greenfield origin
+	SourceType SourceType `protobuf:"varint,14,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
+	// checksums define the total checksums of the object which generated by redundancy
+	Checksums [][]byte `protobuf:"bytes,15,rep,name=checksums,proto3" json:"checksums,omitempty"`
 }
 
 func (m *EventCreateObject) Reset()         { *m = EventCreateObject{} }
@@ -347,6 +367,13 @@ func (m *EventCreateObject) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_EventCreateObject proto.InternalMessageInfo
+
+func (m *EventCreateObject) GetCreatorAddress() string {
+	if m != nil {
+		return m.CreatorAddress
+	}
+	return ""
+}
 
 func (m *EventCreateObject) GetOwnerAddress() string {
 	if m != nil {
@@ -434,11 +461,16 @@ func (m *EventCreateObject) GetChecksums() [][]byte {
 
 // EventSealObject is emitted on MsgSealObject
 type EventCancelCreateObject struct {
-	OperatorAddress  string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	BucketName       string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	ObjectName       string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// operator_address define the account address of operator who cancel create object
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_name define the name of the object
+	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// primary_sp_address define the operator account address of the sp
 	PrimarySpAddress string `protobuf:"bytes,4,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
-	Id               Uint   `protobuf:"bytes,5,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// id define an u256 id for object
+	Id Uint `protobuf:"bytes,6,opt,name=id,proto3,customtype=Uint" json:"id"`
 }
 
 func (m *EventCancelCreateObject) Reset()         { *m = EventCancelCreateObject{} }
@@ -504,13 +536,18 @@ func (m *EventCancelCreateObject) GetPrimarySpAddress() string {
 
 // EventSealObject is emitted on MsgSealObject
 type EventSealObject struct {
-	OperatorAddress    string       `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	BucketName         string       `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	ObjectName         string       `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	BucketId           Uint         `protobuf:"bytes,4,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
-	ObjectId           Uint         `protobuf:"bytes,5,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
-	Status             ObjectStatus `protobuf:"varint,6,opt,name=status,proto3,enum=bnbchain.greenfield.storage.ObjectStatus" json:"status,omitempty"`
-	SecondarySpAddress []string     `protobuf:"bytes,7,rep,name=secondary_sp_address,json=secondarySpAddress,proto3" json:"secondary_sp_address,omitempty"`
+	// operator_address define the account address of operator who seal object
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_name define the name of the object
+	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// id define an u256 id for object
+	Id Uint `protobuf:"bytes,5,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// status define the status of the object. INIT or IN_SERVICE or others
+	Status ObjectStatus `protobuf:"varint,6,opt,name=status,proto3,enum=bnbchain.greenfield.storage.ObjectStatus" json:"status,omitempty"`
+	// secondary_sp_address define all the operator address of the secondary sps
+	SecondarySpAddress []string `protobuf:"bytes,7,rep,name=secondary_sp_address,json=secondarySpAddress,proto3" json:"secondary_sp_address,omitempty"`
 }
 
 func (m *EventSealObject) Reset()         { *m = EventSealObject{} }
@@ -583,13 +620,20 @@ func (m *EventSealObject) GetSecondarySpAddress() []string {
 
 // EventCopyObject is emitted on MsgCopyObject
 type EventCopyObject struct {
+	// operator_address define the account address of operator who copy the object
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	SrcBucketName   string `protobuf:"bytes,2,opt,name=src_bucket_name,json=srcBucketName,proto3" json:"src_bucket_name,omitempty"`
-	SrcObjectName   string `protobuf:"bytes,3,opt,name=src_object_name,json=srcObjectName,proto3" json:"src_object_name,omitempty"`
-	DstBucketName   string `protobuf:"bytes,4,opt,name=dst_bucket_name,json=dstBucketName,proto3" json:"dst_bucket_name,omitempty"`
-	DstObjectName   string `protobuf:"bytes,5,opt,name=dst_object_name,json=dstObjectName,proto3" json:"dst_object_name,omitempty"`
-	SrcObjectId     Uint   `protobuf:"bytes,6,opt,name=src_object_id,json=srcObjectId,proto3,customtype=Uint" json:"src_object_id"`
-	DstObjectId     Uint   `protobuf:"bytes,7,opt,name=dst_object_id,json=dstObjectId,proto3,customtype=Uint" json:"dst_object_id"`
+	// src_bucket_name define the name of the src bucket
+	SrcBucketName string `protobuf:"bytes,2,opt,name=src_bucket_name,json=srcBucketName,proto3" json:"src_bucket_name,omitempty"`
+	// src_object_name define the name of the src object
+	SrcObjectName string `protobuf:"bytes,3,opt,name=src_object_name,json=srcObjectName,proto3" json:"src_object_name,omitempty"`
+	// dst_bucket_name define the name of the dst bucket
+	DstBucketName string `protobuf:"bytes,4,opt,name=dst_bucket_name,json=dstBucketName,proto3" json:"dst_bucket_name,omitempty"`
+	// dst_object_name define the name of the dst object
+	DstObjectName string `protobuf:"bytes,5,opt,name=dst_object_name,json=dstObjectName,proto3" json:"dst_object_name,omitempty"`
+	// src_object_id define the u256 id for src object
+	SrcObjectId Uint `protobuf:"bytes,6,opt,name=src_object_id,json=srcObjectId,proto3,customtype=Uint" json:"src_object_id"`
+	// dst_object_id define the u256 id for dst object
+	DstObjectId Uint `protobuf:"bytes,7,opt,name=dst_object_id,json=dstObjectId,proto3,customtype=Uint" json:"dst_object_id"`
 }
 
 func (m *EventCopyObject) Reset()         { *m = EventCopyObject{} }
@@ -662,11 +706,17 @@ func (m *EventCopyObject) GetDstObjectName() string {
 
 // EventDeleteObject is emitted on MsgDeleteObject
 type EventDeleteObject struct {
-	OperatorAddress      string   `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	BucketName           string   `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	ObjectName           string   `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	Id                   Uint     `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
-	PrimarySpAddress     string   `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// operator_address define the account address of operator who delete the object
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_name define the name of the object
+	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// id define an u256 id for object
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// primary_sp_address define the operator account address of the sp
+	PrimarySpAddress string `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// secondary_sp_address define all the operator address of the secondary sps
 	SecondarySpAddresses []string `protobuf:"bytes,6,rep,name=secondary_sp_addresses,json=secondarySpAddresses,proto3" json:"secondary_sp_addresses,omitempty"`
 }
 
@@ -740,10 +790,14 @@ func (m *EventDeleteObject) GetSecondarySpAddresses() []string {
 
 // EventRejectSealObject is emitted on MsgRejectSealObject
 type EventRejectSealObject struct {
+	// operator_address define the account address of operator who reject seal object
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	BucketName      string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	ObjectName      string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	Id              Uint   `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_name define the name of the object
+	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// id define an u256 id for object
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
 }
 
 func (m *EventRejectSealObject) Reset()         { *m = EventRejectSealObject{} }
@@ -802,11 +856,16 @@ func (m *EventRejectSealObject) GetObjectName() string {
 
 // EventCreateGroup is emitted on MsgCreateGroup
 type EventCreateGroup struct {
-	OwnerAddress string     `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	GroupName    string     `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	Id           Uint       `protobuf:"bytes,3,opt,name=id,proto3,customtype=Uint" json:"id"`
-	SourceType   SourceType `protobuf:"varint,4,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
-	Members      []string   `protobuf:"bytes,5,rep,name=members,proto3" json:"members,omitempty"`
+	// owner_address define the account address of group owner
+	OwnerAddress string `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// group_name define the name of the group
+	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	// id define an u256 id for group
+	Id Uint `protobuf:"bytes,3,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// source_type define the source of the group. CrossChain or Greenfield origin
+	SourceType SourceType `protobuf:"varint,4,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
+	// members define the all the address of the members.
+	Members []string `protobuf:"bytes,5,rep,name=members,proto3" json:"members,omitempty"`
 }
 
 func (m *EventCreateGroup) Reset()         { *m = EventCreateGroup{} }
@@ -872,9 +931,12 @@ func (m *EventCreateGroup) GetMembers() []string {
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
 type EventDeleteGroup struct {
+	// owner_address define the account address of group owner
 	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	GroupName    string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	Id           Uint   `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// group_name define the name of the group
+	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	// id define an u256 id for group
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
 }
 
 func (m *EventDeleteGroup) Reset()         { *m = EventDeleteGroup{} }
@@ -926,10 +988,14 @@ func (m *EventDeleteGroup) GetGroupName() string {
 
 // EventLeaveGroup is emitted on MsgLeaveGroup
 type EventLeaveGroup struct {
+	// member_address define the address of the member who leave the group
 	MemberAddress string `protobuf:"bytes,1,opt,name=member_address,json=memberAddress,proto3" json:"member_address,omitempty"`
-	OwnerAddress  string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	GroupName     string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	GroupId       Uint   `protobuf:"bytes,4,opt,name=group_id,json=groupId,proto3,customtype=Uint" json:"group_id"`
+	// owner_address define the account address of group owner
+	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// group_name define the name of the group
+	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	// id define an u256 id for group
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
 }
 
 func (m *EventLeaveGroup) Reset()         { *m = EventLeaveGroup{} }
@@ -988,11 +1054,17 @@ func (m *EventLeaveGroup) GetGroupName() string {
 
 // EventUpdateGroupMember is emitted on MsgUpdateGroupMember
 type EventUpdateGroupMember struct {
-	OperatorAddress string   `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	OwnerAddress    string   `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	GroupName       string   `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
-	GroupId         Uint     `protobuf:"bytes,4,opt,name=group_id,json=groupId,proto3,customtype=Uint" json:"group_id"`
-	MembersToAdd    []string `protobuf:"bytes,5,rep,name=members_to_add,json=membersToAdd,proto3" json:"members_to_add,omitempty"`
+	// operator_address define the account address of operator who update the group member
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// owner_address define the account address of group owner
+	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// group_name define the name of the group
+	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	// id define an u256 id for group
+	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// members_to_add defines all the members to be added to the group
+	MembersToAdd []string `protobuf:"bytes,5,rep,name=members_to_add,json=membersToAdd,proto3" json:"members_to_add,omitempty"`
+	// members_to_add defines all the members to be deleted from the group
 	MembersToDelete []string `protobuf:"bytes,6,rep,name=members_to_delete,json=membersToDelete,proto3" json:"members_to_delete,omitempty"`
 }
 
@@ -1083,79 +1155,78 @@ func init() {
 func init() { proto.RegisterFile("greenfield/storage/events.proto", fileDescriptor_946dcba4f763ddc4) }
 
 var fileDescriptor_946dcba4f763ddc4 = []byte{
-	// 1148 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x58, 0x4f, 0x73, 0xdb, 0x44,
-	0x14, 0x8f, 0xff, 0xc4, 0x7f, 0x9e, 0x9d, 0x38, 0x11, 0x69, 0x30, 0x0d, 0x38, 0xae, 0x0e, 0x21,
-	0x4c, 0x27, 0xf6, 0x4c, 0x60, 0x18, 0x2e, 0xd0, 0x71, 0xd2, 0x02, 0x66, 0xa0, 0x2d, 0x72, 0x7a,
-	0xe1, 0xa2, 0x91, 0xb4, 0x1b, 0x47, 0xd4, 0xd2, 0x8a, 0xdd, 0x75, 0xc1, 0xfd, 0x08, 0x9c, 0x38,
-	0xc0, 0xa9, 0xc3, 0xb7, 0xe8, 0x89, 0x4f, 0xd0, 0x19, 0x2e, 0x9d, 0x9e, 0x18, 0x0e, 0x85, 0x49,
-	0x2e, 0x7c, 0x02, 0x06, 0x6e, 0x8c, 0x76, 0xd7, 0xb2, 0xe4, 0x04, 0xdb, 0xf9, 0xd3, 0x36, 0x37,
-	0xe9, 0xe9, 0xbd, 0xb7, 0x6f, 0xdf, 0xef, 0xf7, 0xdb, 0x5d, 0x2d, 0xac, 0x77, 0x29, 0xc6, 0xfe,
-	0xbe, 0x8b, 0x7b, 0xa8, 0xc9, 0x38, 0xa1, 0x56, 0x17, 0x37, 0xf1, 0x03, 0xec, 0x73, 0xd6, 0x08,
-	0x28, 0xe1, 0x44, 0x5b, 0xb3, 0x7d, 0xdb, 0x39, 0xb0, 0x5c, 0xbf, 0x31, 0xf2, 0x6c, 0x28, 0xcf,
-	0xab, 0x6f, 0x38, 0x84, 0x79, 0x84, 0x99, 0xc2, 0xb5, 0x29, 0x5f, 0x64, 0xdc, 0xd5, 0x95, 0x2e,
-	0xe9, 0x12, 0x69, 0x0f, 0x9f, 0x94, 0xf5, 0xa4, 0xe1, 0x1c, 0xe2, 0x79, 0xc4, 0x97, 0x0e, 0xfa,
-	0xdf, 0x19, 0x58, 0xbe, 0x15, 0x8e, 0xbf, 0x4b, 0xb1, 0xc5, 0xf1, 0x4e, 0xdf, 0xb9, 0x8f, 0xb9,
-	0xf6, 0x21, 0x2c, 0x90, 0x6f, 0x7d, 0x4c, 0x4d, 0x0b, 0x21, 0x8a, 0x19, 0xab, 0xa6, 0xea, 0xa9,
-	0xcd, 0xe2, 0x4e, 0xf5, 0xd9, 0xe3, 0xad, 0x15, 0x35, 0x6a, 0x4b, 0x7e, 0xe9, 0x70, 0xea, 0xfa,
-	0x5d, 0xa3, 0x2c, 0xdc, 0x95, 0x4d, 0x5b, 0x87, 0x92, 0x2d, 0x12, 0x99, 0xbe, 0xe5, 0xe1, 0x6a,
-	0x3a, 0x0c, 0x36, 0x40, 0x9a, 0x6e, 0x5b, 0x1e, 0xd6, 0xd6, 0xa0, 0xe8, 0x32, 0x33, 0xe8, 0xdb,
-	0x3d, 0xd7, 0xa9, 0x66, 0xea, 0xa9, 0xcd, 0x82, 0x51, 0x70, 0xd9, 0x5d, 0xf1, 0x1e, 0x7e, 0x74,
-	0x44, 0x31, 0xa6, 0xc5, 0xab, 0xd9, 0x7a, 0x6a, 0x33, 0x63, 0x14, 0xa4, 0xa1, 0xc5, 0xb5, 0xeb,
-	0x90, 0x76, 0x51, 0x75, 0x5e, 0x94, 0xb3, 0xf6, 0xe4, 0xf9, 0xfa, 0xdc, 0xef, 0xcf, 0xd7, 0xb3,
-	0xf7, 0x5c, 0x9f, 0x3f, 0x7b, 0xbc, 0x55, 0x52, 0xa5, 0x85, 0xaf, 0x46, 0xda, 0x45, 0xda, 0xa7,
-	0x50, 0x62, 0xa4, 0x4f, 0x1d, 0x6c, 0xf2, 0x41, 0x80, 0xab, 0xb9, 0x7a, 0x6a, 0x73, 0x71, 0xfb,
-	0xed, 0xc6, 0x84, 0x0e, 0x37, 0x3a, 0xc2, 0x7f, 0x6f, 0x10, 0x60, 0x03, 0x58, 0xf4, 0xac, 0xdd,
-	0x02, 0xa0, 0xd8, 0x42, 0xe6, 0x37, 0x7d, 0xc2, 0xad, 0x6a, 0x5e, 0x24, 0xda, 0x98, 0x98, 0xc8,
-	0xc0, 0x16, 0xfa, 0x32, 0xf4, 0x36, 0x8a, 0x74, 0xf8, 0xa8, 0xb5, 0xa0, 0x12, 0x58, 0x03, 0x0f,
-	0xfb, 0x3c, 0xea, 0x6c, 0x61, 0x4a, 0x67, 0x17, 0x55, 0xc0, 0xb0, 0xb7, 0x1f, 0x83, 0x16, 0x50,
-	0xd7, 0xb3, 0xe8, 0xc0, 0x64, 0x41, 0x94, 0xa5, 0x38, 0x25, 0xcb, 0x92, 0x8a, 0xe9, 0x04, 0xca,
-	0xae, 0xff, 0x38, 0x04, 0xfe, 0x26, 0xee, 0xe1, 0x08, 0xf8, 0x5d, 0x58, 0x22, 0x01, 0xa6, 0x16,
-	0x27, 0xb3, 0x63, 0x5f, 0x19, 0x46, 0x0c, 0x4b, 0x3c, 0xc6, 0x9e, 0xf4, 0x79, 0xd8, 0x93, 0x39,
-	0xc6, 0x1e, 0xc9, 0x81, 0xec, 0x6c, 0x1c, 0x38, 0xb9, 0x5f, 0xf3, 0xa7, 0xed, 0x57, 0x92, 0x95,
-	0xb9, 0x31, 0x56, 0x8e, 0x11, 0xad, 0x70, 0x66, 0xa2, 0xe9, 0xbf, 0x64, 0xe0, 0x8a, 0x80, 0xe5,
-	0x5e, 0x80, 0x22, 0x3d, 0xb6, 0xfd, 0x7d, 0x72, 0x31, 0xd0, 0x4c, 0x55, 0xa6, 0xec, 0x6d, 0x66,
-	0xb6, 0xde, 0x1a, 0xb0, 0x3c, 0x52, 0x85, 0x69, 0xe3, 0x7d, 0x42, 0xb1, 0xc0, 0x65, 0x76, 0x71,
-	0x54, 0x22, 0x71, 0xec, 0x88, 0x70, 0xed, 0x2e, 0x2c, 0xc5, 0x72, 0x5a, 0xfb, 0x1c, 0x53, 0x81,
-	0xd6, 0xec, 0x29, 0x17, 0xa3, 0x94, 0xad, 0x30, 0x5a, 0x7b, 0x0f, 0x56, 0xc7, 0x44, 0x37, 0x2c,
-	0x35, 0x27, 0xa6, 0xbf, 0x92, 0x54, 0x98, 0xaa, 0x63, 0x1b, 0xae, 0x8c, 0x47, 0xc9, 0x62, 0xf2,
-	0x22, 0xe8, 0xb5, 0x64, 0x90, 0x18, 0x49, 0xff, 0x7e, 0x3e, 0xb1, 0x98, 0xde, 0xb1, 0xbf, 0xc6,
-	0xce, 0x8b, 0x5f, 0x4c, 0xd7, 0xa1, 0x44, 0xc4, 0x48, 0x09, 0xbd, 0x48, 0xd3, 0xab, 0xd3, 0xcb,
-	0x35, 0x28, 0x07, 0xd6, 0xa0, 0x47, 0x2c, 0x64, 0x32, 0xf7, 0xa1, 0xec, 0x75, 0xd6, 0x28, 0x29,
-	0x5b, 0xc7, 0x7d, 0x38, 0xb6, 0x0b, 0xe4, 0xc7, 0x76, 0x81, 0x6b, 0x50, 0x76, 0x88, 0xcf, 0xc3,
-	0xfe, 0x47, 0x9a, 0x2a, 0x1a, 0x25, 0x65, 0x13, 0x8b, 0x72, 0x42, 0x92, 0xc5, 0x31, 0x49, 0xb6,
-	0x20, 0xc7, 0xb8, 0xc5, 0xfb, 0xac, 0x0a, 0x82, 0x3d, 0xef, 0x4c, 0x64, 0x8f, 0x84, 0xaa, 0x23,
-	0x02, 0x0c, 0x15, 0xa8, 0xed, 0x41, 0x85, 0x62, 0xd4, 0xf7, 0x91, 0xe5, 0x3b, 0x03, 0x59, 0x45,
-	0x49, 0xe4, 0xba, 0x3e, 0x85, 0x89, 0xc3, 0x18, 0xa1, 0xee, 0x45, 0x9a, 0x78, 0x1f, 0x5f, 0x2b,
-	0xca, 0x67, 0xdf, 0x94, 0xde, 0x84, 0xa2, 0x73, 0x80, 0x9d, 0xfb, 0xac, 0xef, 0xb1, 0xea, 0x42,
-	0x3d, 0xb3, 0x59, 0x36, 0x46, 0x06, 0xfd, 0xa7, 0x34, 0xbc, 0x2e, 0xc9, 0x68, 0xf9, 0x0e, 0xee,
-	0x25, 0x28, 0xf9, 0x72, 0xd6, 0x92, 0xa9, 0xc4, 0x3c, 0x99, 0x6b, 0xd9, 0x53, 0x73, 0xed, 0x34,
-	0x87, 0x02, 0xfd, 0x51, 0x06, 0x2a, 0xa2, 0x2f, 0x1d, 0x6c, 0xf5, 0x2e, 0x57, 0x3f, 0x3e, 0x80,
-	0xa2, 0xca, 0x30, 0x9b, 0x5e, 0x0b, 0xd2, 0xbb, 0x8d, 0xc2, 0x48, 0x95, 0x7a, 0xb6, 0x46, 0x14,
-	0xa4, 0x77, 0x1b, 0xc5, 0x74, 0x92, 0x3b, 0xab, 0x4e, 0x3e, 0x83, 0x15, 0x86, 0x1d, 0xe2, 0xa3,
-	0x31, 0x20, 0xf3, 0xf5, 0xcc, 0xc4, 0x0e, 0x6a, 0x51, 0xd4, 0xe8, 0x58, 0xf2, 0x4f, 0x5a, 0xa1,
-	0xb3, 0x4b, 0x82, 0xc1, 0x45, 0xa2, 0xb3, 0x01, 0x15, 0x46, 0x1d, 0xf3, 0x38, 0x42, 0x0b, 0x8c,
-	0x3a, 0x3b, 0x23, 0x90, 0x94, 0xdf, 0x71, 0xa0, 0x42, 0xbf, 0x3b, 0x23, 0xac, 0x36, 0xa0, 0x82,
-	0x18, 0x4f, 0xe4, 0xcb, 0x4a, 0x3f, 0xc4, 0x78, 0x32, 0x5f, 0xe8, 0x17, 0xcf, 0x37, 0x1f, 0xf9,
-	0xc5, 0xf2, 0xdd, 0x80, 0x85, 0xd8, 0xb8, 0x2e, 0x92, 0x9b, 0xd3, 0x64, 0x14, 0x4b, 0x51, 0x49,
-	0x6d, 0x14, 0x26, 0x88, 0x0d, 0xe4, 0x22, 0xb9, 0x51, 0x4d, 0x49, 0x10, 0xd5, 0xd0, 0x46, 0xfa,
-	0x1f, 0xe9, 0xc4, 0x89, 0xf0, 0x72, 0x49, 0xe3, 0x95, 0xec, 0x61, 0xb7, 0x61, 0xf5, 0x24, 0x62,
-	0xe3, 0x50, 0x2b, 0x93, 0xa9, 0xbd, 0x72, 0x9c, 0xda, 0x98, 0xe9, 0xbf, 0xa6, 0xd4, 0xe1, 0xce,
-	0xc0, 0x42, 0x46, 0x97, 0x6e, 0x01, 0x3a, 0x4d, 0x97, 0xf5, 0x47, 0x69, 0x58, 0x8a, 0x9d, 0x76,
-	0x3e, 0xa1, 0xa4, 0x1f, 0x9c, 0xf7, 0xb0, 0xf3, 0x16, 0x40, 0x37, 0xcc, 0x13, 0x9f, 0x41, 0x51,
-	0x58, 0x4e, 0x7f, 0x3a, 0x1d, 0xdb, 0x68, 0xb3, 0x67, 0xdf, 0x68, 0xb7, 0x21, 0xef, 0x61, 0xcf,
-	0xc6, 0x34, 0x24, 0xd1, 0x64, 0xe0, 0x87, 0x8e, 0xfa, 0xcf, 0x29, 0xd5, 0x1d, 0xa9, 0xa6, 0xff,
-	0xe9, 0x4e, 0xfa, 0x1c, 0xdd, 0xc9, 0x9c, 0xdc, 0x9d, 0x19, 0xd1, 0xfb, 0x2b, 0xa5, 0x16, 0xda,
-	0xcf, 0xb1, 0xf5, 0x40, 0x95, 0x77, 0x03, 0x16, 0x65, 0xf9, 0x33, 0xa3, 0xb7, 0x20, 0xfd, 0x2f,
-	0xe8, 0xcf, 0x6f, 0xca, 0xfc, 0xde, 0x87, 0x82, 0xfc, 0x3c, 0xdb, 0x2c, 0xf3, 0xc2, 0xb9, 0x8d,
-	0xf4, 0x7f, 0xd3, 0xb0, 0x1a, 0xfb, 0xa7, 0x12, 0x73, 0xfd, 0x42, 0xd4, 0x7d, 0x29, 0xfe, 0x77,
-	0x5f, 0xcc, 0xac, 0xb5, 0x8f, 0x86, 0x60, 0x32, 0x93, 0x93, 0xb0, 0xb4, 0xa9, 0xdc, 0x2d, 0x2b,
-	0xff, 0x3d, 0xd2, 0x42, 0x48, 0xbb, 0x09, 0xcb, 0xb1, 0x78, 0x24, 0x58, 0x3c, 0x75, 0xdd, 0xab,
-	0x44, 0x29, 0xd4, 0xb5, 0x42, 0xfb, 0xc9, 0x61, 0x2d, 0xf5, 0xf4, 0xb0, 0x96, 0xfa, 0xf3, 0xb0,
-	0x96, 0xfa, 0xe1, 0xa8, 0x36, 0xf7, 0xf4, 0xa8, 0x36, 0xf7, 0xdb, 0x51, 0x6d, 0xee, 0xab, 0x66,
-	0xd7, 0xe5, 0x07, 0x7d, 0xbb, 0xe1, 0x10, 0xaf, 0x69, 0xfb, 0xf6, 0x96, 0x10, 0x65, 0x33, 0x76,
-	0x5f, 0xf5, 0x5d, 0x74, 0x63, 0x15, 0xea, 0x97, 0xd9, 0x39, 0x71, 0x63, 0xf5, 0xee, 0x7f, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0x6e, 0xb2, 0x8f, 0xd3, 0x43, 0x13, 0x00, 0x00,
+	// 1122 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xcc, 0x58, 0x4f, 0x6f, 0x1b, 0x45,
+	0x14, 0xcf, 0xda, 0x8e, 0x13, 0x3f, 0xff, 0x4b, 0x96, 0x34, 0x2c, 0x0d, 0x38, 0xa9, 0x0f, 0x21,
+	0xa8, 0x8a, 0x2d, 0x05, 0xae, 0x50, 0x39, 0x69, 0x81, 0x20, 0x68, 0xcb, 0x3a, 0xbd, 0x70, 0x59,
+	0xcd, 0xee, 0x4e, 0x9c, 0xa5, 0xde, 0x9d, 0x65, 0x66, 0x5c, 0x70, 0x3f, 0x05, 0x17, 0x4e, 0x88,
+	0x8f, 0xc0, 0xad, 0x27, 0x3e, 0x41, 0x25, 0x84, 0x54, 0x55, 0x1c, 0x10, 0x12, 0x05, 0x25, 0x77,
+	0x8e, 0x88, 0x23, 0xda, 0x99, 0xf1, 0x7a, 0x6d, 0x07, 0xff, 0x49, 0xac, 0x28, 0xb7, 0xdd, 0xb7,
+	0xef, 0xbd, 0x79, 0xef, 0xf7, 0x7e, 0xef, 0xcd, 0xcc, 0xc2, 0x66, 0x8b, 0x62, 0x1c, 0x1c, 0x7b,
+	0xb8, 0xed, 0xd6, 0x19, 0x27, 0x14, 0xb5, 0x70, 0x1d, 0x3f, 0xc1, 0x01, 0x67, 0xb5, 0x90, 0x12,
+	0x4e, 0xf4, 0x0d, 0x3b, 0xb0, 0x9d, 0x13, 0xe4, 0x05, 0xb5, 0xbe, 0x66, 0x4d, 0x69, 0xde, 0x7c,
+	0xc3, 0x21, 0xcc, 0x27, 0xcc, 0x12, 0xaa, 0x75, 0xf9, 0x22, 0xed, 0x6e, 0xae, 0xb5, 0x48, 0x8b,
+	0x48, 0x79, 0xf4, 0xa4, 0xa4, 0xe7, 0x2d, 0xe7, 0x10, 0xdf, 0x27, 0x81, 0x54, 0xa8, 0xfe, 0x93,
+	0x86, 0xd5, 0x7b, 0xd1, 0xfa, 0x07, 0x14, 0x23, 0x8e, 0xf7, 0x3b, 0xce, 0x63, 0xcc, 0xf5, 0xf7,
+	0xa1, 0x48, 0xbe, 0x0e, 0x30, 0xb5, 0x90, 0xeb, 0x52, 0xcc, 0x98, 0xa1, 0x6d, 0x69, 0x3b, 0xb9,
+	0x7d, 0xe3, 0xe5, 0xb3, 0xdd, 0x35, 0xb5, 0x6a, 0x43, 0x7e, 0x69, 0x72, 0xea, 0x05, 0x2d, 0xb3,
+	0x20, 0xd4, 0x95, 0x4c, 0xdf, 0x84, 0xbc, 0x2d, 0x1c, 0x59, 0x01, 0xf2, 0xb1, 0x91, 0x8a, 0x8c,
+	0x4d, 0x90, 0xa2, 0xfb, 0xc8, 0xc7, 0xfa, 0x06, 0xe4, 0x3c, 0x66, 0x85, 0x1d, 0xbb, 0xed, 0x39,
+	0x46, 0x7a, 0x4b, 0xdb, 0x59, 0x36, 0x97, 0x3d, 0xf6, 0x50, 0xbc, 0x47, 0x1f, 0x1d, 0x11, 0x8c,
+	0x85, 0xb8, 0x91, 0xd9, 0xd2, 0x76, 0xd2, 0xe6, 0xb2, 0x14, 0x34, 0xb8, 0x7e, 0x1b, 0x52, 0x9e,
+	0x6b, 0x2c, 0x8a, 0x70, 0x36, 0x9e, 0xbf, 0xda, 0x5c, 0xf8, 0xfd, 0xd5, 0x66, 0xe6, 0x91, 0x17,
+	0xf0, 0x97, 0xcf, 0x76, 0xf3, 0x2a, 0xb4, 0xe8, 0xd5, 0x4c, 0x79, 0xae, 0xfe, 0x31, 0xe4, 0x19,
+	0xe9, 0x50, 0x07, 0x5b, 0xbc, 0x1b, 0x62, 0x23, 0xbb, 0xa5, 0xed, 0x94, 0xf6, 0xde, 0xae, 0x8d,
+	0x41, 0xb8, 0xd6, 0x14, 0xfa, 0x47, 0xdd, 0x10, 0x9b, 0xc0, 0xe2, 0x67, 0xfd, 0x1e, 0x00, 0xc5,
+	0xc8, 0xb5, 0xbe, 0xea, 0x10, 0x8e, 0x8c, 0x25, 0xe1, 0x68, 0x7b, 0xac, 0x23, 0x13, 0x23, 0xf7,
+	0xf3, 0x48, 0xdb, 0xcc, 0xd1, 0xde, 0xa3, 0xde, 0x80, 0x72, 0x88, 0xba, 0x3e, 0x0e, 0x78, 0x8c,
+	0xec, 0xf2, 0x04, 0x64, 0x4b, 0xca, 0xa0, 0x87, 0xed, 0x87, 0xa0, 0x87, 0xd4, 0xf3, 0x11, 0xed,
+	0x5a, 0x2c, 0x8c, 0xbd, 0xe4, 0x26, 0x78, 0x59, 0x51, 0x36, 0xcd, 0x50, 0xc9, 0xab, 0x3f, 0xa6,
+	0x54, 0xe1, 0xef, 0xe2, 0x36, 0x8e, 0x0b, 0x7f, 0x00, 0x2b, 0x24, 0xc4, 0x14, 0x71, 0x32, 0x7d,
+	0xed, 0xcb, 0x3d, 0x8b, 0x5e, 0x88, 0x23, 0xec, 0x49, 0x5d, 0x86, 0x3d, 0xe9, 0x11, 0xf6, 0x48,
+	0x0e, 0x64, 0xa6, 0xe3, 0xc0, 0xf9, 0x78, 0x2d, 0xce, 0x8c, 0xd7, 0x4f, 0x69, 0xb8, 0x21, 0xf0,
+	0x7a, 0x14, 0xba, 0x71, 0xa3, 0x1c, 0x06, 0xc7, 0x64, 0x3e, 0x98, 0x4d, 0x6c, 0x19, 0x99, 0x74,
+	0x7a, 0xba, 0xa4, 0x4d, 0x58, 0xed, 0xd3, 0xd5, 0xb2, 0xf1, 0x31, 0xa1, 0x58, 0x00, 0x36, 0x3d,
+	0x6b, 0xcb, 0x31, 0x6b, 0xf7, 0x85, 0xb9, 0xfe, 0x10, 0x56, 0x12, 0x3e, 0xd1, 0x31, 0xc7, 0x54,
+	0xc0, 0x38, 0xbd, 0xcb, 0x52, 0xec, 0xb2, 0x11, 0x59, 0xeb, 0xef, 0xc1, 0xfa, 0x50, 0x37, 0xf4,
+	0x42, 0xcd, 0x8a, 0xf4, 0xd7, 0x06, 0xa9, 0xaf, 0xe2, 0xd8, 0x83, 0x1b, 0xc3, 0x56, 0x32, 0x98,
+	0x25, 0x61, 0xf4, 0xda, 0xa0, 0x91, 0x58, 0xa9, 0xfa, 0xcb, 0xe2, 0xc0, 0x94, 0x7b, 0x60, 0x7f,
+	0x89, 0x1d, 0x1e, 0x75, 0xa3, 0x98, 0x2b, 0x33, 0xd4, 0xad, 0xa4, 0x0c, 0xae, 0x8a, 0xea, 0x9b,
+	0x90, 0x27, 0x22, 0x58, 0xa9, 0x90, 0x91, 0x0a, 0x52, 0x94, 0xa0, 0x45, 0xf6, 0x32, 0xbd, 0xb0,
+	0x34, 0x6b, 0x2f, 0xe8, 0xb7, 0xa0, 0x10, 0xa2, 0x6e, 0x9b, 0x20, 0xd7, 0x62, 0xde, 0x53, 0x2c,
+	0x66, 0x58, 0xc6, 0xcc, 0x2b, 0x59, 0xd3, 0x7b, 0x3a, 0x34, 0xe1, 0x73, 0x43, 0x13, 0xfe, 0x16,
+	0x14, 0x1c, 0x12, 0xf0, 0xa8, 0x84, 0x62, 0x30, 0x83, 0x48, 0x2b, 0xaf, 0x64, 0x62, 0xe0, 0x0e,
+	0x6c, 0x02, 0xf9, 0xa1, 0x4d, 0xa0, 0x01, 0x59, 0xc6, 0x11, 0xef, 0x30, 0xa3, 0x20, 0x08, 0xf8,
+	0xce, 0x58, 0x02, 0xca, 0x6a, 0x37, 0x85, 0x81, 0xa9, 0x0c, 0xf5, 0x23, 0x28, 0x53, 0xec, 0x76,
+	0x02, 0x17, 0x05, 0x4e, 0x57, 0x46, 0x51, 0x14, 0xbe, 0x6e, 0x4f, 0x20, 0x73, 0xcf, 0x46, 0x6c,
+	0x11, 0x25, 0x3a, 0xf0, 0x3e, 0xbc, 0xe1, 0x94, 0x2e, 0xbe, 0xe1, 0xbc, 0x09, 0x39, 0xe7, 0x04,
+	0x3b, 0x8f, 0x59, 0xc7, 0x67, 0x46, 0x79, 0x2b, 0xbd, 0x53, 0x30, 0xfb, 0x82, 0xea, 0x77, 0x29,
+	0x78, 0x5d, 0xf2, 0x19, 0x05, 0x0e, 0x6e, 0x0f, 0xb0, 0xfa, 0x6a, 0xc6, 0xd1, 0x10, 0x31, 0xd3,
+	0x23, 0xc4, 0x3c, 0x9f, 0x6b, 0x99, 0x99, 0xb9, 0x36, 0x0b, 0xc1, 0xab, 0xbf, 0xa6, 0xa0, 0x2c,
+	0x70, 0x69, 0x62, 0xd4, 0xbe, 0x5e, 0x78, 0xcc, 0x74, 0x70, 0xe9, 0x13, 0x3c, 0x7b, 0x51, 0x82,
+	0x7f, 0x02, 0x6b, 0x0c, 0x3b, 0x24, 0x70, 0x47, 0xba, 0x3d, 0x3d, 0x36, 0x75, 0x3d, 0xb6, 0xea,
+	0xef, 0x7d, 0xff, 0xf6, 0x60, 0x3d, 0x20, 0x61, 0x77, 0x9e, 0xb0, 0x6e, 0x43, 0x99, 0x51, 0xc7,
+	0x1a, 0x85, 0xb6, 0xc8, 0xa8, 0xb3, 0xdf, 0x47, 0x57, 0xe9, 0x8d, 0x22, 0x1c, 0xe9, 0x3d, 0xe8,
+	0x83, 0xbc, 0x0d, 0x65, 0x97, 0xf1, 0x01, 0x7f, 0x72, 0x64, 0x16, 0x5d, 0xc6, 0x07, 0xfd, 0x45,
+	0x7a, 0x49, 0x7f, 0x8b, 0xb1, 0x5e, 0xc2, 0xdf, 0x1d, 0x28, 0x26, 0xd6, 0x9d, 0x8e, 0x87, 0xf9,
+	0x38, 0xa4, 0x43, 0x37, 0x72, 0x90, 0x58, 0xc8, 0x73, 0xd5, 0xb0, 0x1d, 0xef, 0x20, 0x8e, 0xe1,
+	0xd0, 0xad, 0xfe, 0x39, 0x78, 0x4c, 0xbb, 0x8e, 0x9c, 0xbe, 0xda, 0x83, 0x98, 0x7e, 0x1f, 0xd6,
+	0xcf, 0x23, 0x36, 0x8e, 0x7a, 0x65, 0x3c, 0xb5, 0xd7, 0x46, 0xa9, 0x8d, 0x59, 0xf5, 0x67, 0x4d,
+	0x1d, 0xec, 0x4c, 0x2c, 0xda, 0xe8, 0x9a, 0x4e, 0x8e, 0xe9, 0x50, 0xae, 0x7e, 0x9f, 0x82, 0x95,
+	0xc4, 0x49, 0xe7, 0x23, 0x4a, 0x3a, 0xe1, 0x65, 0xaf, 0x73, 0x6f, 0x01, 0xb4, 0x22, 0x3f, 0xc9,
+	0x0c, 0x72, 0x42, 0x32, 0xfb, 0xc9, 0x74, 0x68, 0x87, 0xcc, 0x5c, 0x7c, 0x87, 0xdc, 0x83, 0x25,
+	0x1f, 0xfb, 0x36, 0xa6, 0x11, 0x89, 0xc6, 0x17, 0xbe, 0xa7, 0x58, 0xfd, 0x41, 0x53, 0xe8, 0xc8,
+	0x6e, 0xfa, 0x1f, 0x74, 0x52, 0x97, 0x40, 0x27, 0x7d, 0x3e, 0x3a, 0x53, 0x56, 0xef, 0x0f, 0x4d,
+	0x0d, 0xda, 0x4f, 0x31, 0x7a, 0xa2, 0xc2, 0xbb, 0x03, 0x25, 0x19, 0xfe, 0xd4, 0xd5, 0x2b, 0x4a,
+	0xfd, 0x39, 0x9d, 0x51, 0xe7, 0x99, 0xdf, 0xdf, 0x29, 0x58, 0x4f, 0x5c, 0xa2, 0x44, 0x82, 0x9f,
+	0x89, 0x60, 0xaf, 0xc5, 0xcd, 0x73, 0x8e, 0xa9, 0xea, 0x1f, 0xf4, 0xca, 0xc6, 0x2c, 0x4e, 0xa2,
+	0x78, 0x26, 0xb2, 0xb4, 0xa0, 0xf4, 0x8f, 0x48, 0xc3, 0x75, 0xf5, 0xbb, 0xb0, 0x9a, 0xb0, 0x77,
+	0x05, 0x5f, 0x27, 0x4e, 0xb8, 0x72, 0xec, 0x42, 0xdd, 0xea, 0x0f, 0x9f, 0x9f, 0x56, 0xb4, 0x17,
+	0xa7, 0x15, 0xed, 0xaf, 0xd3, 0x8a, 0xf6, 0xed, 0x59, 0x65, 0xe1, 0xc5, 0x59, 0x65, 0xe1, 0xb7,
+	0xb3, 0xca, 0xc2, 0x17, 0xf5, 0x96, 0xc7, 0x4f, 0x3a, 0x76, 0xcd, 0x21, 0x7e, 0xdd, 0x0e, 0xec,
+	0x5d, 0xd1, 0x7e, 0xf5, 0xc4, 0xef, 0xa2, 0x6f, 0xe2, 0x1f, 0x46, 0x51, 0xa7, 0x32, 0x3b, 0x2b,
+	0x7e, 0x18, 0xbd, 0xfb, 0x5f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xfb, 0xf2, 0x89, 0x7b, 0xc2, 0x12,
+	0x00, 0x00,
 }
 
 func (m *EventCreateBucket) Marshal() (dAtA []byte, err error) {
@@ -1264,16 +1335,6 @@ func (m *EventDeleteBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.SourceType != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.SourceType))
-		i--
-		dAtA[i] = 0x40
-	}
-	if m.CreateAt != 0 {
-		i = encodeVarintEvents(dAtA, i, uint64(m.CreateAt))
-		i--
-		dAtA[i] = 0x30
-	}
 	if len(m.PrimarySpAddress) > 0 {
 		i -= len(m.PrimarySpAddress)
 		copy(dAtA[i:], m.PrimarySpAddress)
@@ -1412,35 +1473,35 @@ func (m *EventCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			copy(dAtA[i:], m.Checksums[iNdEx])
 			i = encodeVarintEvents(dAtA, i, uint64(len(m.Checksums[iNdEx])))
 			i--
-			dAtA[i] = 0x6a
+			dAtA[i] = 0x7a
 		}
 	}
 	if m.SourceType != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.SourceType))
 		i--
-		dAtA[i] = 0x60
+		dAtA[i] = 0x70
 	}
 	if m.RedundancyType != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.RedundancyType))
 		i--
-		dAtA[i] = 0x58
+		dAtA[i] = 0x68
 	}
 	if m.Status != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.Status))
 		i--
-		dAtA[i] = 0x50
+		dAtA[i] = 0x60
 	}
 	if m.CreateAt != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.CreateAt))
 		i--
-		dAtA[i] = 0x48
+		dAtA[i] = 0x58
 	}
 	if len(m.ContentType) > 0 {
 		i -= len(m.ContentType)
 		copy(dAtA[i:], m.ContentType)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.ContentType)))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x52
 	}
 	if m.IsPublic {
 		i--
@@ -1450,19 +1511,19 @@ func (m *EventCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0
 		}
 		i--
-		dAtA[i] = 0x38
+		dAtA[i] = 0x48
 	}
 	if m.PayloadSize != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.PayloadSize))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x40
 	}
 	if len(m.PrimarySpAddress) > 0 {
 		i -= len(m.PrimarySpAddress)
 		copy(dAtA[i:], m.PrimarySpAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.PrimarySpAddress)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x3a
 	}
 	{
 		size := m.Id.Size()
@@ -1473,25 +1534,32 @@ func (m *EventCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x22
+	dAtA[i] = 0x32
 	if len(m.ObjectName) > 0 {
 		i -= len(m.ObjectName)
 		copy(dAtA[i:], m.ObjectName)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.ObjectName)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.BucketName) > 0 {
 		i -= len(m.BucketName)
 		copy(dAtA[i:], m.BucketName)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 	}
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.CreatorAddress) > 0 {
+		i -= len(m.CreatorAddress)
+		copy(dAtA[i:], m.CreatorAddress)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.CreatorAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1527,7 +1595,7 @@ func (m *EventCancelCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x2a
+	dAtA[i] = 0x32
 	if len(m.PrimarySpAddress) > 0 {
 		i -= len(m.PrimarySpAddress)
 		copy(dAtA[i:], m.PrimarySpAddress)
@@ -1594,25 +1662,15 @@ func (m *EventSealObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x30
 	}
 	{
-		size := m.ObjectId.Size()
+		size := m.Id.Size()
 		i -= size
-		if _, err := m.ObjectId.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.Id.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
 	dAtA[i] = 0x2a
-	{
-		size := m.BucketId.Size()
-		i -= size
-		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvents(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x22
 	if len(m.ObjectName) > 0 {
 		i -= len(m.ObjectName)
 		copy(dAtA[i:], m.ObjectName)
@@ -1968,9 +2026,9 @@ func (m *EventLeaveGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	{
-		size := m.GroupId.Size()
+		size := m.Id.Size()
 		i -= size
-		if _, err := m.GroupId.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.Id.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintEvents(dAtA, i, uint64(size))
@@ -2040,9 +2098,9 @@ func (m *EventUpdateGroupMember) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		}
 	}
 	{
-		size := m.GroupId.Size()
+		size := m.Id.Size()
 		i -= size
-		if _, err := m.GroupId.MarshalTo(dAtA[i:]); err != nil {
+		if _, err := m.Id.MarshalTo(dAtA[i:]); err != nil {
 			return 0, err
 		}
 		i = encodeVarintEvents(dAtA, i, uint64(size))
@@ -2147,12 +2205,6 @@ func (m *EventDeleteBucket) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	if m.CreateAt != 0 {
-		n += 1 + sovEvents(uint64(m.CreateAt))
-	}
-	if m.SourceType != 0 {
-		n += 1 + sovEvents(uint64(m.SourceType))
-	}
 	return n
 }
 
@@ -2195,6 +2247,10 @@ func (m *EventCreateObject) Size() (n int) {
 	}
 	var l int
 	_ = l
+	l = len(m.CreatorAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
 	l = len(m.OwnerAddress)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -2289,9 +2345,7 @@ func (m *EventSealObject) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = m.BucketId.Size()
-	n += 1 + l + sovEvents(uint64(l))
-	l = m.ObjectId.Size()
+	l = m.Id.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	if m.Status != 0 {
 		n += 1 + sovEvents(uint64(m.Status))
@@ -2459,7 +2513,7 @@ func (m *EventLeaveGroup) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = m.GroupId.Size()
+	l = m.Id.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
@@ -2482,7 +2536,7 @@ func (m *EventUpdateGroupMember) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = m.GroupId.Size()
+	l = m.Id.Size()
 	n += 1 + l + sovEvents(uint64(l))
 	if len(m.MembersToAdd) > 0 {
 		for _, s := range m.MembersToAdd {
@@ -2985,44 +3039,6 @@ func (m *EventDeleteBucket) Unmarshal(dAtA []byte) error {
 			}
 			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
-			}
-			m.CreateAt = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.CreateAt |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 8:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SourceType", wireType)
-			}
-			m.SourceType = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.SourceType |= SourceType(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -3325,6 +3341,38 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreatorAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CreatorAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
 			}
 			var stringLen uint64
@@ -3355,7 +3403,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
 			}
@@ -3387,7 +3435,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			m.BucketName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ObjectName", wireType)
 			}
@@ -3419,7 +3467,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			m.ObjectName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
@@ -3453,7 +3501,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 5:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
 			}
@@ -3485,7 +3533,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 8:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PayloadSize", wireType)
 			}
@@ -3504,7 +3552,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 7:
+		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field IsPublic", wireType)
 			}
@@ -3524,7 +3572,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 				}
 			}
 			m.IsPublic = bool(v != 0)
-		case 8:
+		case 10:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ContentType", wireType)
 			}
@@ -3556,7 +3604,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			m.ContentType = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 9:
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CreateAt", wireType)
 			}
@@ -3575,7 +3623,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 10:
+		case 12:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -3594,7 +3642,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 11:
+		case 13:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field RedundancyType", wireType)
 			}
@@ -3613,7 +3661,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 12:
+		case 14:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SourceType", wireType)
 			}
@@ -3632,7 +3680,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 13:
+		case 15:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Checksums", wireType)
 			}
@@ -3842,7 +3890,7 @@ func (m *EventCancelCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
@@ -4022,43 +4070,9 @@ func (m *EventSealObject) Unmarshal(dAtA []byte) error {
 			}
 			m.ObjectName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4086,7 +4100,7 @@ func (m *EventSealObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.ObjectId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Id.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -5338,7 +5352,7 @@ func (m *EventLeaveGroup) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5366,7 +5380,7 @@ func (m *EventLeaveGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.GroupId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Id.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -5518,7 +5532,7 @@ func (m *EventUpdateGroupMember) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupId", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5546,7 +5560,7 @@ func (m *EventUpdateGroupMember) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.GroupId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.Id.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

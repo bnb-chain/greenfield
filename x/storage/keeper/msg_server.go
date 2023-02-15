@@ -112,7 +112,6 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 		BucketName:       bucketInfo.BucketName,
 		Id:               bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
-		CreateAt:         bucketInfo.CreateAt,
 	}); err != nil {
 		return nil, err
 	}
@@ -209,7 +208,8 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		OwnerAddress:     bucketInfo.Owner,
+		CreatorAddress:   msg.Creator,
+		OwnerAddress:     objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		Id:               objectInfo.Id,
@@ -278,8 +278,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		OperatorAddress:    msg.Operator,
 		BucketName:         bucketInfo.BucketName,
 		ObjectName:         objectInfo.ObjectName,
-		BucketId:           bucketInfo.Id,
-		ObjectId:           objectInfo.Id,
+		Id:                 objectInfo.Id,
 		Status:             objectInfo.ObjectStatus,
 		SecondarySpAddress: objectInfo.SecondarySpAddresses,
 	}); err != nil {
@@ -529,6 +528,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 		OwnerAddress: groupInfo.Owner,
 		GroupName:    groupInfo.GroupName,
 		Id:           groupInfo.Id,
+		SourceType:   groupInfo.SourceType,
 		Members:      msg.Members,
 	}); err != nil {
 		return nil, err
@@ -571,7 +571,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 		MemberAddress: msg.Member,
 		OwnerAddress:  groupInfo.Owner,
 		GroupName:     groupInfo.GroupName,
-		GroupId:       groupInfo.Id,
+		Id:            groupInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -622,7 +622,7 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		OperatorAddress: msg.Operator,
 		OwnerAddress:    groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
-		GroupId:         groupInfo.Id,
+		Id:              groupInfo.Id,
 		MembersToAdd:    msg.MembersToAdd,
 		MembersToDelete: msg.MembersToDelete,
 	}); err != nil {

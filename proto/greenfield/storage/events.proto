@@ -9,79 +9,118 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // EventCreateBucket is emitted on MsgCreateBucket
 message EventCreateBucket {
+  // owner_address define the account address of bucket owner
   string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is a globally unique name of bucket
   string bucket_name = 2;
+  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
   bool is_public = 3;
+  // create_at define the block number when the bucket has been created
   int64 create_at = 4;
+  // id is the unique u256 for bucket. Not global, only unique in buckets.
   string id = 5 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // source_type define the source of the bucket. CrossChain or Greenfield origin
   SourceType source_type = 6;
+  // read_quota defines the traffic quota for read
   ReadQuota read_quota = 7;
+  // payment_address is the address of the payment account
   string payment_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_address is the operator address of the primary sp.
   string primary_sp_address = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
 message EventDeleteBucket {
+  // operator_address define the account address of operator who delete the bucket
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner_address define the account address of the bucket owner
   string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the deleted bucket
   string bucket_name = 3;
+  // id define an u256 id for bucket
   string id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // primary_sp_address define the account address of primary sp
   string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  int64 create_at = 6;
-  SourceType source_type = 8;
 }
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
 message EventUpdateBucketInfo {
+  // operator_address define the account address of operator who update the bucket
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
   string bucket_name = 2;
+  // id define an u256 id for bucket
   string id = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // read_quota_before define the read quota before updated
   ReadQuota read_quota_before = 4;
+  // read_quota_after define the read quota after updated
   ReadQuota read_quota_after = 5;
+  // payment_address_before define the payment address before updated
   string payment_address_before = 6;
+  // payment_address_after define the payment address after updated
   string payment_address_after = 7;
 }
 
 // EventCreateObject is emitted on MsgCreateObject
 message EventCreateObject {
-  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string bucket_name = 2;
-  string object_name = 3;
-  string id = 4 [
+  // creator_address define the account address of msg creator
+  string creator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner_address define the account address of object owner
+  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of bucket
+  string bucket_name = 3;
+  // object_name define the name of object
+  string object_name = 4;
+  // id define an u256 id for object
+  string id = 6 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  uint64 payload_size = 6;
-  bool is_public = 7;
-  string content_type = 8;
-  int64 create_at = 9;
-  ObjectStatus status = 10;
-  RedundancyType redundancy_type = 11;
-  SourceType source_type = 12;
-  repeated bytes checksums = 13;
+  // primary_sp_address define the account address of primary sp
+  string primary_sp_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // payload_size define the size of payload data which you want upload
+  uint64 payload_size = 8;
+  // is_public define the highest permission of object.
+  bool is_public = 9;
+  // content_type define the content type of the payload data
+  string content_type = 10;
+  // create_at define the block number when the object created
+  int64 create_at = 11;
+  // status define the status of the object. INIT or IN_SERVICE or others
+  ObjectStatus status = 12;
+  // redundancy_type define the type of redundancy. Replication or EC
+  RedundancyType redundancy_type = 13;
+  // source_type define the source of the object.  CrossChain or Greenfield origin
+  SourceType source_type = 14;
+  // checksums define the total checksums of the object which generated by redundancy
+  repeated bytes checksums = 15;
 }
 
 // EventSealObject is emitted on MsgSealObject
 message EventCancelCreateObject {
+  // operator_address define the account address of operator who cancel create object
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
   string bucket_name = 2;
+  // object_name define the name of the object
   string object_name = 3;
+  // primary_sp_address define the operator account address of the sp
   string primary_sp_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string id = 5 [
+  // id define an u256 id for object
+  string id = 6 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
@@ -90,35 +129,43 @@ message EventCancelCreateObject {
 
 // EventSealObject is emitted on MsgSealObject
 message EventSealObject {
+  // operator_address define the account address of operator who seal object
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
   string bucket_name = 2;
+  // object_name define the name of the object
   string object_name = 3;
-  string bucket_id = 4 [
+  // id define an u256 id for object
+  string id = 5 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  string object_id = 5 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
+  // status define the status of the object. INIT or IN_SERVICE or others
   ObjectStatus status = 6;
+  // secondary_sp_address define all the operator address of the secondary sps
   repeated string secondary_sp_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // EventCopyObject is emitted on MsgCopyObject
 message EventCopyObject {
+  // operator_address define the account address of operator who copy the object
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // src_bucket_name define the name of the src bucket
   string src_bucket_name = 2;
+  // src_object_name define the name of the src object
   string src_object_name = 3;
+  // dst_bucket_name define the name of the dst bucket
   string dst_bucket_name = 4;
+  // dst_object_name define the name of the dst object
   string dst_object_name = 5;
+  // src_object_id define the u256 id for src object
   string src_object_id = 6 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // dst_object_id define the u256 id for dst object
   string dst_object_id = 7 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
@@ -128,23 +175,33 @@ message EventCopyObject {
 
 // EventDeleteObject is emitted on MsgDeleteObject
 message EventDeleteObject {
+  // operator_address define the account address of operator who delete the object
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
   string bucket_name = 2;
+  // object_name define the name of the object
   string object_name = 3;
+  // id define an u256 id for object
   string id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // primary_sp_address define the operator account address of the sp
   string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // secondary_sp_address define all the operator address of the secondary sps
   repeated string secondary_sp_addresses = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // EventRejectSealObject is emitted on MsgRejectSealObject
 message EventRejectSealObject {
+  // operator_address define the account address of operator who reject seal object
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
   string bucket_name = 2;
+  // object_name define the name of the object
   string object_name = 3;
+  // id define an u256 id for object
   string id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
@@ -154,21 +211,29 @@ message EventRejectSealObject {
 
 // EventCreateGroup is emitted on MsgCreateGroup
 message EventCreateGroup {
+  // owner_address define the account address of group owner
   string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
   string group_name = 2;
+  // id define an u256 id for group
   string id = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // source_type define the source of the group. CrossChain or Greenfield origin
   SourceType source_type = 4;
+  // members define the all the address of the members.
   repeated string members = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
 message EventDeleteGroup {
+  // owner_address define the account address of group owner
   string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
   string group_name = 3;
+  // id define an u256 id for group
   string id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
@@ -178,10 +243,14 @@ message EventDeleteGroup {
 
 // EventLeaveGroup is emitted on MsgLeaveGroup
 message EventLeaveGroup {
+  // member_address define the address of the member who leave the group
   string member_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner_address define the account address of group owner
   string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
   string group_name = 3;
-  string group_id = 4 [
+  // id define an u256 id for group
+  string id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
@@ -190,14 +259,20 @@ message EventLeaveGroup {
 
 // EventUpdateGroupMember is emitted on MsgUpdateGroupMember
 message EventUpdateGroupMember {
+  // operator_address define the account address of operator who update the group member
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner_address define the account address of group owner
   string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
   string group_name = 3;
-  string group_id = 4 [
+  // id define an u256 id for group
+  string id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // members_to_add defines all the members to be added to the group
   repeated string members_to_add = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // members_to_add defines all the members to be deleted from the group
   repeated string members_to_delete = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }

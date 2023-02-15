@@ -21,6 +21,7 @@ message BucketInfo {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // source_type define the source of the bucket
   SourceType source_type = 5;
   // create_at define the block number when the bucket created.
   int64 create_at = 6;
