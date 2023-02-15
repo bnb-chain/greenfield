@@ -2,9 +2,8 @@ package keys
 
 import (
 	"encoding/hex"
-	"testing"
-
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestCreateKeyManagerFromPrivateKeyHex(t *testing.T) {

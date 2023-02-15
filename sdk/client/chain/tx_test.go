@@ -1,26 +1,21 @@
-//go:build with_local_net
-
-// This test can only run with a local net. Ignore it by default.
-// It can be triggered by `go test ./... -tags with_local_net`
-
-package client
+package chain
 
 import (
-	"testing"
-
-	"github.com/bnb-chain/greenfield/sdk/client/testutil"
+	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {
-	km, err := keys.NewPrivateKeyManager(testutil.TEST_PRIVATE_KEY)
+	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
-	gnfdCli := NewGreenfieldClientWithKeyManager(testutil.TEST_GRPC_ADDR, testutil.TEST_CHAIN_ID, km)
-	to, err := sdk.AccAddressFromHexUnsafe(testutil.TEST_ADDR)
+	gnfdCli := NewGreenfieldClientWithKeyManager(test.TEST_GRPC_ADDR, test.TEST_CHAIN_ID, km)
+	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 12)))
 	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, nil)
@@ -30,19 +25,19 @@ func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {
 }
 
 func TestSendTokenWithTxOptionSucceed(t *testing.T) {
-	km, err := keys.NewPrivateKeyManager(testutil.TEST_PRIVATE_KEY)
+	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
-	gnfdCli := NewGreenfieldClientWithKeyManager(testutil.TEST_GRPC_ADDR, testutil.TEST_CHAIN_ID, km)
-	to, err := sdk.AccAddressFromHexUnsafe(testutil.TEST_ADDR)
+	gnfdCli := NewGreenfieldClientWithKeyManager(test.TEST_GRPC_ADDR, test.TEST_CHAIN_ID, km)
+	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
-	assert.NoError(t, err)
+	mode := tx.BroadcastMode_BROADCAST_MODE_ASYNC
 	txOpt := &types.TxOption{
-		Async:     false,
+		Mode:      &mode,
 		GasLimit:  123456,
 		Memo:      "test",
-		FeeAmount: sdk.Coins{{Denom: "bnb", Amount: sdk.NewInt(1)}},
+		FeeAmount: sdk.Coins{{"bnb", sdk.NewInt(1)}},
 		FeePayer:  payerAddr,
 	}
 	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
@@ -52,10 +47,10 @@ func TestSendTokenWithTxOptionSucceed(t *testing.T) {
 }
 
 func TestSimulateTx(t *testing.T) {
-	km, err := keys.NewPrivateKeyManager(testutil.TEST_PRIVATE_KEY)
+	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
-	gnfdCli := NewGreenfieldClientWithKeyManager(testutil.TEST_GRPC_ADDR, testutil.TEST_CHAIN_ID, km)
-	to, err := sdk.AccAddressFromHexUnsafe(testutil.TEST_ADDR)
+	gnfdCli := NewGreenfieldClientWithKeyManager(test.TEST_GRPC_ADDR, test.TEST_CHAIN_ID, km)
+	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 100)))
 	simulateRes, err := gnfdCli.SimulateTx([]sdk.Msg{transfer}, nil)

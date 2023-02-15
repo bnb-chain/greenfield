@@ -1,8 +1,7 @@
-package client
+package chain
 
 import (
 	"context"
-
 	"github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
@@ -41,8 +40,8 @@ func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, op
 	}
 
 	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
-	if txOpt != nil && txOpt.Async {
-		mode = tx.BroadcastMode_BROADCAST_MODE_ASYNC
+	if txOpt != nil && txOpt.Mode != nil {
+		mode = *txOpt.Mode
 	}
 	txRes, err := c.TxClient.BroadcastTx(
 		context.Background(),
@@ -110,12 +109,13 @@ func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxB
 	if err != nil {
 		return nil, err
 	}
+	sig := signing.SignatureV2{}
 	signerData := xauthsigning.SignerData{
 		ChainID:       c.chainId,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      account.GetSequence(),
 	}
-	sig, err := clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
+	sig, err = clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
 		km.GetPrivKey(),

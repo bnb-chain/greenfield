@@ -3,7 +3,6 @@ package keys
 import (
 	"encoding/hex"
 	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	ctypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"

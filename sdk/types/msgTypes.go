@@ -2,6 +2,9 @@ package types
 
 import (
 	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -33,7 +36,7 @@ type (
 	MsgSubmitProposal    = govv1.MsgSubmitProposal
 	MsgExecLegacyContent = govv1.MsgExecLegacyContent
 	MsgVote              = govv1.MsgVote
-	MsgDeposit           = govv1.MsgDeposit
+	MsgGovDeposit        = govv1.MsgDeposit
 	MsgVoteWeighted      = govv1.MsgVoteWeighted
 
 	MsgUnjail  = slashingtypes.MsgUnjail
@@ -45,4 +48,31 @@ type (
 	MsgClaim = oracletypes.MsgClaim
 
 	MsgTransferOut = bridgetypes.MsgTransferOut
+
+	MsgCreatePaymentAccount        = paymenttypes.MsgCreatePaymentAccount
+	MsgPaymentDeposit              = paymenttypes.MsgDeposit
+	MsgWithdraw                    = paymenttypes.MsgWithdraw
+	MsgDisableRefund               = paymenttypes.MsgDisableRefund
+	MsgMockCreateBucket            = paymenttypes.MsgMockCreateBucket
+	MsgMockPutObject               = paymenttypes.MsgMockPutObject
+	MsgMockSealObject              = paymenttypes.MsgMockSealObject
+	MsgMockDeleteObject            = paymenttypes.MsgMockDeleteObject
+	MsgMockSetBucketPaymentAccount = paymenttypes.MsgMockSetBucketPaymentAccount
+	MsgMockUpdateBucketReadPacket  = paymenttypes.MsgMockUpdateBucketReadPacket
+
+	MsgCreateStorageProvider = sptypes.MsgCreateStorageProvider
+	MsgSpDeposit             = sptypes.MsgDeposit
+	MsgEditStorageProvider   = sptypes.MsgEditStorageProvider
+
+	MsgCreateBucket      = storagetypes.MsgCreateBucket
+	MsgDeleteBucket      = storagetypes.MsgDeleteBucket
+	MsgCreateObject      = storagetypes.MsgCreateObject
+	MsgSealObject        = storagetypes.MsgSealObject
+	MsgRejectSealObject  = storagetypes.MsgRejectSealObject
+	MsgCopyObject        = storagetypes.MsgCopyObject
+	MsgDeleteObject      = storagetypes.MsgDeleteObject
+	MsgCreateGroup       = storagetypes.MsgCreateGroup
+	MsgDeleteGroup       = storagetypes.MsgDeleteGroup
+	MsgUpdateGroupMember = storagetypes.MsgUpdateGroupMember
+	MsgLeaveGroup        = storagetypes.MsgLeaveGroup
 )

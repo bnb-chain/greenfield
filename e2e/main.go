@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	client "github.com/bnb-chain/greenfield/sdk/client/rpc"
+	client "github.com/bnb-chain/greenfield/sdk/client/chain"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,8 +43,9 @@ func main() {
 	AssertEqual(len(balanceBeforeTransfer.Balances), 0)
 	transfer := banktypes.NewMsgSend(val0Addr, to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 1)))
 	amount := sdk.NewInt(1)
+	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{
-		Async:     false,
+		Mode:      &mode,
 		GasLimit:  1000000,
 		Memo:      "",
 		FeeAmount: sdk.Coins{{Denom: "bnb", Amount: amount}},

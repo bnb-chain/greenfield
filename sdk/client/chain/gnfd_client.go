@@ -1,19 +1,24 @@
-package client
+package chain
 
 import (
 	_ "encoding/json"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
+	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
-	"github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
+	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -22,48 +27,44 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type UpgradeQueryClient = upgradetypes.QueryClient
-type DistrQueryClient = distrtypes.QueryClient
-type DistrMsgClient = distrtypes.MsgClient
-type SlashingQueryClient = slashingtypes.QueryClient
-type SlashingMsgClient = slashingtypes.MsgClient
-type StakingQueryClient = stakingtypes.QueryClient
-type StakingMsgClient = stakingtypes.MsgClient
 type AuthQueryClient = authtypes.QueryClient
-type BankQueryClient = banktypes.QueryClient
-type BankMsgClient = banktypes.MsgClient
-type GovQueryClient = v1beta1.QueryClient
-type GovMsgClient = v1beta1.MsgClient
 type AuthzQueryClient = authztypes.QueryClient
-type AuthzMsgClient = authztypes.MsgClient
+type BankQueryClient = banktypes.QueryClient
+type CrosschainQueryClient = crosschaintypes.QueryClient
+type DistrQueryClient = distrtypes.QueryClient
 type FeegrantQueryClient = feegranttypes.QueryClient
-type FeegrantMsgClient = feegranttypes.MsgClient
-type ParamsQueryClient = paramstypes.QueryClient
+type GashubQueryClient = gashubtypes.QueryClient
 type PaymentQueryClient = paymenttypes.QueryClient
-type PaymentMsgClient = paymenttypes.MsgClient
+type SpQueryClient = sptypes.QueryClient
+type BridgeQueryClient = bridgetypes.QueryClient
+type StorageQueryClient = storagetypes.QueryClient
+type GovQueryClientV1 = govv1.QueryClient
+type OracleQueryClient = oracletypes.QueryClient
+type ParamsQueryClient = paramstypes.QueryClient
+type SlashingQueryClient = slashingtypes.QueryClient
+type StakingQueryClient = stakingtypes.QueryClient
 type TxClient = tx.ServiceClient
+type UpgradeQueryClient = upgradetypes.QueryClient
 
 type GreenfieldClient struct {
+	AuthQueryClient
+	AuthzQueryClient
+	BankQueryClient
+	CrosschainQueryClient
+	DistrQueryClient
+	FeegrantQueryClient
+	GashubQueryClient
+	PaymentQueryClient
+	SpQueryClient
+	BridgeQueryClient
+	StorageQueryClient
+	GovQueryClientV1
+	OracleQueryClient
+	ParamsQueryClient
+	SlashingQueryClient
+	StakingQueryClient
 	TxClient
 	UpgradeQueryClient
-	DistrQueryClient
-	DistrMsgClient
-	SlashingQueryClient
-	SlashingMsgClient
-	StakingQueryClient
-	StakingMsgClient
-	AuthQueryClient
-	BankQueryClient
-	BankMsgClient
-	GovQueryClient
-	GovMsgClient
-	AuthzQueryClient
-	AuthzMsgClient
-	FeegrantQueryClient
-	FeegrantMsgClient
-	ParamsQueryClient
-	PaymentQueryClient
-	PaymentMsgClient
 	keyManager keys.KeyManager
 	chainId    string
 	codec      *codec.ProtoCodec
@@ -84,26 +85,24 @@ func NewGreenfieldClient(grpcAddr, chainId string) GreenfieldClient {
 	conn := grpcConn(grpcAddr)
 	cdc := types.Cdc()
 	return GreenfieldClient{
+		authtypes.NewQueryClient(conn),
+		authztypes.NewQueryClient(conn),
+		banktypes.NewQueryClient(conn),
+		crosschaintypes.NewQueryClient(conn),
+		distrtypes.NewQueryClient(conn),
+		feegranttypes.NewQueryClient(conn),
+		gashubtypes.NewQueryClient(conn),
+		paymenttypes.NewQueryClient(conn),
+		sptypes.NewQueryClient(conn),
+		bridgetypes.NewQueryClient(conn),
+		storagetypes.NewQueryClient(conn),
+		govv1.NewQueryClient(conn),
+		oracletypes.NewQueryClient(conn),
+		paramstypes.NewQueryClient(conn),
+		slashingtypes.NewQueryClient(conn),
+		stakingtypes.NewQueryClient(conn),
 		tx.NewServiceClient(conn),
 		upgradetypes.NewQueryClient(conn),
-		distrtypes.NewQueryClient(conn),
-		distrtypes.NewMsgClient(conn),
-		slashingtypes.NewQueryClient(conn),
-		slashingtypes.NewMsgClient(conn),
-		stakingtypes.NewQueryClient(conn),
-		stakingtypes.NewMsgClient(conn),
-		authtypes.NewQueryClient(conn),
-		banktypes.NewQueryClient(conn),
-		banktypes.NewMsgClient(conn),
-		v1beta1.NewQueryClient(conn),
-		v1beta1.NewMsgClient(conn),
-		authztypes.NewQueryClient(conn),
-		authztypes.NewMsgClient(conn),
-		feegranttypes.NewQueryClient(conn),
-		feegranttypes.NewMsgClient(conn),
-		paramstypes.NewQueryClient(conn),
-		paymenttypes.NewQueryClient(conn),
-		paymenttypes.NewMsgClient(conn),
 		nil,
 		chainId,
 		cdc,
@@ -123,8 +122,8 @@ func (c *GreenfieldClient) GetKeyManager() (keys.KeyManager, error) {
 	return c.keyManager, nil
 }
 
-func (c *GreenfieldClient) SetKeyManager(km keys.KeyManager) {
-	c.keyManager = km
+func (c *GreenfieldClient) SetKeyManager(keyManager keys.KeyManager) {
+	c.keyManager = keyManager
 }
 
 func (c *GreenfieldClient) SetChainId(id string) {

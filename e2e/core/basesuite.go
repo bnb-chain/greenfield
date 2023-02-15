@@ -2,7 +2,7 @@ package core
 
 import (
 	"context"
-	client "github.com/bnb-chain/greenfield/sdk/client/rpc"
+	client "github.com/bnb-chain/greenfield/sdk/client/chain"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,8 +28,9 @@ func (s *BaseSuite) SetupSuite() {
 }
 
 func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *tx.GetTxResponse) {
+	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{
-		Async:     false,
+		Mode:      &mode,
 		GasLimit:  1000000,
 		Memo:      "",
 		FeeAmount: sdk.Coins{{Denom: s.config.Denom, Amount: sdk.NewInt(1)}},
@@ -37,7 +38,8 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *tx.Ge
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
-	s.T().Logf("response: %s", response)
+	s.T().Logf("tx_hash: %s", response.TxResponse.TxHash)
+	//s.T().Log(response)
 	s.Require().Equal(response.TxResponse.Code, uint32(0))
 	retry := 10
 	for {
