@@ -197,6 +197,7 @@ function sp_join() {
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
             --node http://localhost:26750 \
+            --broadcast-mode  block \
             --yes
 
         sleep 6
@@ -206,6 +207,7 @@ function sp_join() {
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
             --node http://localhost:26750 \
+            --broadcast-mode  block \
             --yes
 
         sleep 6
@@ -215,6 +217,7 @@ function sp_join() {
             --keyring-backend test \
             --home ${workspace}/.local/validator0 \
             --node http://localhost:26750 \
+            --broadcast-mode  block \
             --yes
         sleep 1
     done
@@ -222,10 +225,10 @@ function sp_join() {
     # wait 360s , and then check the sp if ready
     n=0
     while [ $n -le 360 ]; do
-        approval_cnt=("$(${bin} query sp storage-providers --node http://localhost:26750 | grep approval_address | wc -l)")
+        cnt=("$(${bin} query sp storage-providers --node http://localhost:26750 | grep approval_address | wc -l)")
         ((n++))
         sleep 1
-        if [ "$approval_cnt" -eq "$sp_size" ]; then
+        if [ "$cnt" -eq "$sp_size" ]; then
             echo "sp join done"
             return
         fi
