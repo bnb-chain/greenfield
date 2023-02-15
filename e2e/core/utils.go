@@ -23,8 +23,6 @@ func GenRandomHexString(len int) string {
 }
 
 func GenRandomKeyManager() keys.KeyManager {
-	//privKey := crypto.AddressHash([]byte(fmt.Sprintf("%d", rand.Int()))).String()
-	//fmt.Printf("privKey: %s", privKey)
 	keyManager, err := keys.NewPrivateKeyManager(GenRandomHexString(32))
 	if err != nil {
 		panic(err)
