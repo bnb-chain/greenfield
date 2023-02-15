@@ -616,9 +616,6 @@ func New(
 	app.MountMemoryStores(memKeys)
 
 	// initialize BaseApp
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
-
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
@@ -678,7 +675,9 @@ func (app *App) initBridge() {
 }
 
 func (app *App) initGashub(ctx sdk.Context) {
-	app.GashubKeeper.RegisterGasCalculators(ctx)
+	if app.LastBlockHeight() > 0 {
+		app.GashubKeeper.RegisterGasCalculators(ctx)
+	}
 }
 
 // Name returns the name of the App
