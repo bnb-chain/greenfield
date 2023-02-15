@@ -33,12 +33,13 @@ func TestSendTokenWithTxOptionSucceed(t *testing.T) {
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin("bnb", 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
+	assert.NoError(t, err)
 	mode := tx.BroadcastMode_BROADCAST_MODE_ASYNC
 	txOpt := &types.TxOption{
 		Mode:      &mode,
 		GasLimit:  123456,
 		Memo:      "test",
-		FeeAmount: sdk.Coins{{"bnb", sdk.NewInt(1)}},
+		FeeAmount: sdk.Coins{{Denom: "bnb", Amount: sdk.NewInt(1)}},
 		FeePayer:  payerAddr,
 	}
 	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)

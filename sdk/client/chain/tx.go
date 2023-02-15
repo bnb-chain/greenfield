@@ -110,13 +110,12 @@ func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxB
 	if err != nil {
 		return nil, err
 	}
-	sig := signing.SignatureV2{}
 	signerData := xauthsigning.SignerData{
 		ChainID:       c.chainId,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      account.GetSequence(),
 	}
-	sig, err = clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
+	sig, err := clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
 		km.GetPrivKey(),

@@ -27,6 +27,9 @@ proto-swagger-gen:
 proto-format:
 	buf format -w
 
+proto-format-check:
+	buf format --diff --exit-code
+
 build:
 	CGO_CFLAGS="-O -D__BLST_PORTABLE__" CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__" go build -o build/bin/gnfd -ldflags="$(ldflags)" ./cmd/gnfd/main.go
 
@@ -43,5 +46,5 @@ e2e_test:
 lint:
 	golangci-lint run --fix
 
-ci: build test e2e_test lint
+ci: proto-format-check build test e2e_test lint
 	echo "ci passed"

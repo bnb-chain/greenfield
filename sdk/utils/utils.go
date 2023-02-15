@@ -128,7 +128,10 @@ func AddQueryValues(s string, qs url.Values) (string, error) {
 // CloseResponse close the response body
 func CloseResponse(resp *http.Response) {
 	if resp != nil && resp.Body != nil {
-		io.Copy(io.Discard, resp.Body)
+		_, err := io.Copy(io.Discard, resp.Body)
+		if err != nil {
+			panic(err)
+		}
 		resp.Body.Close()
 	}
 }
