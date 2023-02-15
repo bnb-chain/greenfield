@@ -50,7 +50,6 @@ jobs:
         make build
     - name: run local chain
       run: bash ./deployment/localup/localup.sh all 1
-    - name: run cli test
+    - name: run e2e test
       run: |
-        bash ./e2e/cli_test.sh
         make e2e_test
