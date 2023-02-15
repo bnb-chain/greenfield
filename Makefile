@@ -38,7 +38,7 @@ docker-image:
 	docker build . -t ${IMAGE_NAME}
 
 test:
-	go test $$(go list ./... | grep -v e2e | grep -v sdk)
+	CGO_CFLAGS="-O -D__BLST_PORTABLE__" CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__" go test $$(go list ./... | grep -v e2e | grep -v sdk)
 
 e2e_test:
 	go test ./e2e/...
