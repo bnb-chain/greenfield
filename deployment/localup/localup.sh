@@ -110,7 +110,9 @@ function generate_genesis() {
 
     persistent_peers=$(joinByString ',' ${node_ids})
     for ((i=0;i<${size};i++));do
-        cp ${workspace}/.local/validator0/config/genesis.json ${workspace}/.local/validator${i}/config/
+        if [ "$i" -gt 0 ]; then
+            cp ${workspace}/.local/validator0/config/genesis.json ${workspace}/.local/validator${i}/config/
+        fi
         sed -i -e "s/minimum-gas-prices = \"0stake\"/minimum-gas-prices = \"0${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/denom-to-suggest = \"uatom\"/denom-to-suggest = \"${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/\"stake\"/\"${BASIC_DENOM}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
@@ -180,19 +182,19 @@ function sp_join() {
 
     # submit proposal for each sp
     for ((i = 0; i < ${sp_size}; i++)); do
-        cp ${workspace}/create_sp.json ${workspace}/create_sp${i}.json
+        cp ${workspace}/create_sp.json ${workspace}/.local/create_sp${i}.json
         # export sp and sp fund address
         sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
         spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
 
-        sed -i -e "s/\"moniker\": \".*\"/\"moniker\":\"sp${i}\"/g" ${workspace}/create_sp${i}.json
-        sed -i -e "s/\"sp_address\":\".*\"/\"sp_address\":\"${sp_addr}\"/g" ${workspace}/create_sp${i}.json
-        sed -i -e "s/\"funding_address\":\".*\"/\"funding_address\":\"${spfund_addr}\"/g" ${workspace}/create_sp${i}.json
-        sed -i -e "s/\"endpoint\": \".*\"/\"endpoint\":\"sp${i}.greenfield.io\"/g" ${workspace}/create_sp${i}.json
+        sed -i -e "s/\"moniker\": \".*\"/\"moniker\":\"sp${i}\"/g" ${workspace}/.local/create_sp${i}.json
+        sed -i -e "s/\"sp_address\":\".*\"/\"sp_address\":\"${sp_addr}\"/g" ${workspace}/.local/create_sp${i}.json
+        sed -i -e "s/\"funding_address\":\".*\"/\"funding_address\":\"${spfund_addr}\"/g" ${workspace}/.local/create_sp${i}.json
+        sed -i -e "s/\"endpoint\": \".*\"/\"endpoint\":\"sp${i}.greenfield.io\"/g" ${workspace}/.local/create_sp${i}.json
 
         sleep 6
         # submit-proposal
-        ${bin} tx gov submit-proposal ${workspace}/create_sp${i}.json \
+        ${bin} tx gov submit-proposal ${workspace}/.local/create_sp${i}.json \
             --from sp${i} \
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
@@ -221,7 +223,13 @@ function sp_join() {
             --yes
         sleep 1
     done
+}
 
+function sp_check() {
+    sp_size=1
+    if [ $# -eq 1 ]; then
+        sp_size=$1
+    fi
     # wait 360s , and then check the sp if ready
     n=0
     while [ $n -le 360 ]; do
@@ -232,7 +240,7 @@ function sp_join() {
             echo "sp join done"
             return
         fi
-        echo "sp join check $n times"
+        echo "sp join check $n times, approval cnt: $cnt"
 
     done
     echo "sp join may failed, please check"
@@ -274,6 +282,11 @@ sp_join)
     sp_join $SP_SIZE
     echo "===== end ===="
     ;;
+sp_check)
+    echo "===== sp_check ===="
+    sp_check $SP_SIZE
+    echo "===== end ===="
+    ;;
 all)
     echo "===== stop ===="
     stop
@@ -289,6 +302,6 @@ all)
     echo "===== end ===="
     ;;
 *)
-    echo "Usage: localup.sh all | init | generate | start | sp_join | stop"
+    echo "Usage: localup.sh all | init | generate | start | sp_join | sp_check | stop"
     ;;
 esac
