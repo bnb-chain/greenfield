@@ -76,6 +76,10 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 			return nil, err
 		}
 	}
+	err = k.Keeper.CreateBucket(ctx, bucketInfo)
+	if err != nil {
+		return nil, err
+	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
@@ -89,7 +93,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgCreateBucketResponse{}, k.Keeper.CreateBucket(ctx, bucketInfo)
+	return &types.MsgCreateBucketResponse{}, nil
 }
 
 func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucket) (*types.MsgDeleteBucketResponse, error) {
@@ -106,6 +110,10 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 		return nil, types.ErrAccessDenied
 	}
 
+	err := k.Keeper.DeleteBucket(ctx, msg.BucketName)
+	if err != nil {
+		return nil, err
+	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
 		OperatorAddress:  msg.Operator,
 		OwnerAddress:     bucketInfo.Owner,
@@ -115,7 +123,7 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgDeleteBucketResponse{}, k.Keeper.DeleteBucket(ctx, msg.BucketName)
+	return &types.MsgDeleteBucketResponse{}, nil
 }
 
 func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateBucketInfo) (*types.MsgUpdateBucketInfoResponse, error) {
@@ -207,6 +215,10 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
+	err = k.Keeper.CreateObject(ctx, objectInfo)
+	if err != nil {
+		return nil, err
+	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
 		CreatorAddress:   msg.Creator,
 		OwnerAddress:     objectInfo.Owner,
@@ -225,7 +237,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, objectInfo)
+	return &types.MsgCreateObjectResponse{}, nil
 }
 
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
@@ -547,6 +559,11 @@ func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup)
 		return nil, types.ErrSourceTypeMismatch
 	}
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
+	err := k.Keeper.DeleteGroup(ctx, msg.Operator, msg.GroupName)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
 		GroupName:    groupInfo.GroupName,
@@ -554,7 +571,7 @@ func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup)
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgDeleteGroupResponse{}, k.Keeper.DeleteGroup(ctx, msg.Operator, msg.GroupName)
+	return &types.MsgDeleteGroupResponse{}, nil
 }
 
 func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (*types.MsgLeaveGroupResponse, error) {
@@ -567,6 +584,11 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
 		return nil, types.ErrSourceTypeMismatch
 	}
+
+	err := k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, msg.Member)
+	if err != nil {
+		return nil, err
+	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventLeaveGroup{
 		MemberAddress: msg.Member,
 		OwnerAddress:  groupInfo.Owner,
@@ -575,7 +597,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgLeaveGroupResponse{}, k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, msg.Member)
+	return &types.MsgLeaveGroupResponse{}, nil
 }
 
 func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdateGroupMember) (*types.MsgUpdateGroupMemberResponse, error) {
