@@ -12,6 +12,8 @@ ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
 
+include .env
+
 format:
 	bash scripts/format.sh
 
@@ -31,14 +33,14 @@ proto-format-check:
 	buf format --diff --exit-code
 
 build:
-	CGO_CFLAGS="-O -D__BLST_PORTABLE__" CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__" go build -o build/bin/gnfd -ldflags="$(ldflags)" ./cmd/gnfd/main.go
+	go build -o build/bin/gnfd -ldflags="$(ldflags)" ./cmd/gnfd/main.go
 
 docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}
 
 test:
-	CGO_CFLAGS="-O -D__BLST_PORTABLE__" CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__" go test $$(go list ./... | grep -v e2e | grep -v sdk)
+	go test $$(go list ./... | grep -v e2e | grep -v sdk)
 
 e2e_test:
 	go test ./e2e/...
