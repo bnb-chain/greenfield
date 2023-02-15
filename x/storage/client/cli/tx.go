@@ -52,9 +52,9 @@ func GetTxCmd() *cobra.Command {
 // CmdCreateBucket returns a CLI command handler for creating a MsgCreateBucket transaction.
 func CmdCreateBucket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-bucket [bucket-name] [primarySP]",
+		Use:   "create-bucket [bucket-name]",
 		Short: "create a new bucket which associate to a primary sp",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -62,44 +62,42 @@ func CmdCreateBucket() *cobra.Command {
 			}
 
 			argBucketName := args[0]
-			primarySPAddress, err := sdk.AccAddressFromHexUnsafe(args[1])
-			if err != nil {
-				return err
-			}
 
-			var paymentAddress sdk.AccAddress
 			isPublic, err := cmd.Flags().GetBool(FlagPublic)
 			if err != nil {
 				return err
 			}
-			paymentAccStr, err := cmd.Flags().GetString(FlagPaymentAccount)
-			if err != nil {
-				return err
-			}
 
-			if paymentAccStr != "" {
-				if paymentAddress, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
-					return err
-				}
-			}
+			payment, _ := cmd.Flags().GetString(FlagPaymentAccount)
+			paymentAcc, _, _, err := GetPaymentAccountField(clientCtx.Keyring, payment)
+
+			primarySP, _ := cmd.Flags().GetString(FlagPrimarySP)
+			primarySPAcc, spKeyName, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
 
 			msg := types.NewMsgCreateBucket(
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				isPublic,
-				primarySPAddress,
-				paymentAddress,
-				nil, // TODO: Refine the cli parameters
+				primarySPAcc,
+				paymentAcc,
+				nil,
 			)
+			approval, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
+			if err != nil {
+				return err
+			}
+			msg.PrimarySpApprovalSignature = approval
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
+
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
 	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
+	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -249,6 +247,17 @@ func CmdCreateObject() *cobra.Command {
 				[]byte("for-test"),
 				nil, // NOTE(fynn): Not specified here.
 			)
+			primarySP, err := cmd.Flags().GetString(FlagPrimarySP)
+			if err != nil {
+				return err
+			}
+			_, spKeyName, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
+			approval, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
+			if err != nil {
+				return err
+			}
+			msg.PrimarySpApprovalSignature = approval
+
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -258,6 +267,7 @@ func CmdCreateObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(FlagPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
+	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
 	return cmd
 }
 
