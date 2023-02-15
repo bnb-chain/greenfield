@@ -2,11 +2,12 @@ package bank
 
 import (
 	"context"
+	"testing"
+
 	gnfdclient "github.com/bnb-chain/greenfield/sdk/client/chain"
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestOracleParams(t *testing.T) {

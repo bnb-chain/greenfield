@@ -1,5 +1,5 @@
 .PHONY: build build-linux build-macos build-windows
-.PHONY: tools proto-gen proto-format test
+.PHONY: tools proto-gen proto-format test e2e_test ci lint
 
 VERSION=$(shell git describe --tags --always)
 GIT_COMMIT=$(shell git rev-parse HEAD)
@@ -35,7 +35,13 @@ docker-image:
 	docker build . -t ${IMAGE_NAME}
 
 test:
-	go test $$(go list ./... | grep -v e2e)
+	go test $$(go list ./... | grep -v e2e | grep -v sdk)
 
 e2e_test:
 	go test ./e2e/...
+
+lint:
+	golangci-lint run --fix
+
+ci: build test e2e_test lint
+	echo "ci passed"

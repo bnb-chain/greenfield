@@ -3,10 +3,11 @@ package tests
 // Basic imports
 import (
 	"context"
+	"testing"
+
 	"github.com/bnb-chain/greenfield/e2e/core"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/stretchr/testify/suite"
-	"testing"
 )
 
 type PaymentTestSuite struct {

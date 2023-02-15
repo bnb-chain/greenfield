@@ -2,10 +2,11 @@ package core
 
 import (
 	"fmt"
+	"math/rand"
+
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
-	"math/rand"
 )
 
 func GenRandomAddr() sdk.AccAddress {
