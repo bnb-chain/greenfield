@@ -73,6 +73,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgUpdateBucketReadQuota int = 100
 
+	opWeightMsgCancelCreateObject = "op_weight_msg_cancel_create_object"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCancelCreateObject int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -137,7 +141,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	)
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgPutObject,
-		storagesimulation.SimulateMsgPutObject(am.accountKeeper, am.bankKeeper, am.keeper),
+		storagesimulation.SimulateMsgCreateObject(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	var weightMsgSealObject int
@@ -236,7 +240,18 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	)
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgUpdateBucketReadQuota,
-		storagesimulation.SimulateMsgUpdateReadQuota(am.accountKeeper, am.bankKeeper, am.keeper),
+		storagesimulation.SimulateMsgUpdateBucketInfo(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgCancelCreateObject int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCancelCreateObject, &weightMsgCancelCreateObject, nil,
+		func(_ *rand.Rand) {
+			weightMsgCancelCreateObject = defaultWeightMsgCancelCreateObject
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgCancelCreateObject,
+		storagesimulation.SimulateMsgCancelCreateObject(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

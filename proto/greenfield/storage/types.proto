@@ -21,6 +21,7 @@ message BucketInfo {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // source_type define the source of the bucket
   SourceType source_type = 5;
   // create_at define the block number when the bucket created.
   int64 create_at = 6;
@@ -35,21 +36,6 @@ message BucketInfo {
   int64 payment_price_time = 10;
   // payment_out_flows
   repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
-}
-
-enum RedundancyType {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  REDUNDANCY_REPLICA_TYPE = 0;
-  REDUNDANCY_EC_TYPE = 1;
-  REDUNDANCY_INLINE_TYPE = 2;
-}
-
-enum ObjectStatus {
-  option (gogoproto.goproto_enum_prefix) = false;
-
-  OBJECT_STATUS_INIT = 0;
-  OBJECT_STATUS_IN_SERVICE = 1;
 }
 
 message ObjectInfo {

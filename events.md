@@ -27,5 +27,7 @@ Following are the events that the Greenfield blockchain emits, grouped by module
 
 * [SP](https://github.com/bnb-chain/greenfield/blob/develop/proto/greenfield/sp/events.proto)
 
+* [Storage](./proto/greenfield/storage/events.proto)
+
 * [Staking](https://github.com/bnb-chain/gnfd-cosmos-sdk/blob/master/x/staking/spec/07_events.md)
 

@@ -286,29 +286,27 @@ func (k Keeper) HasGroupMember(ctx sdk.Context, groupMemberKey []byte) bool {
 	return groupMemberStore.Has(groupMemberKey)
 }
 
-func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddrs []string, sigData [][]byte, signature [][]byte) error {
-	for i, spAddr := range spAddrs {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
-		if err != nil {
-			return err
-		}
-		sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
-		if !found {
-			return types.ErrNoSuchStorageProvider
-		}
-		if sp.Status != sptypes.STATUS_IN_SERVICE {
-			return types.ErrStorageProviderNotInService
-		}
+func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []byte, signature []byte) error {
+	spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
+	if err != nil {
+		return err
+	}
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+	if !found {
+		return types.ErrNoSuchStorageProvider
+	}
+	if sp.Status != sptypes.STATUS_IN_SERVICE {
+		return types.ErrStorageProviderNotInService
+	}
 
-		approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
-		if err != nil {
-			return err
-		}
+	approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+	if err != nil {
+		return err
+	}
 
-		err = types.VerifySignature(approvalAcc, sigData[i], signature[i])
-		if err != nil {
-			return err
-		}
+	err = types.VerifySignature(approvalAcc, sigData, signature)
+	if err != nil {
+		return err
 	}
 	return nil
 }

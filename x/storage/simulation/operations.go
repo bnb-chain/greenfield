@@ -47,7 +47,25 @@ func SimulateMsgDeleteBucket(
 	}
 }
 
-func SimulateMsgPutObject(
+func SimulateMsgUpdateBucketInfo(
+	ak types.AccountKeeper,
+	bk types.BankKeeper,
+	k keeper.Keeper,
+) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		simAccount, _ := simtypes.RandomAcc(r, accs)
+		msg := &types.MsgUpdateBucketInfo{
+			Operator: simAccount.Address.String(),
+		}
+
+		// TODO: Handling the UpdateBucketInfo simulation
+
+		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "UpdateBucketInfo simulation not implemented"), nil, nil
+	}
+}
+
+func SimulateMsgCreateObject(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	k keeper.Keeper,
@@ -62,6 +80,24 @@ func SimulateMsgPutObject(
 		// TODO: Handling the CreateObject simulation
 
 		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "CreateObject simulation not implemented"), nil, nil
+	}
+}
+
+func SimulateMsgCancelCreateObject(
+	ak types.AccountKeeper,
+	bk types.BankKeeper,
+	k keeper.Keeper,
+) simtypes.Operation {
+	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
+	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
+		simAccount, _ := simtypes.RandomAcc(r, accs)
+		msg := &types.MsgCancelCreateObject{
+			Operator: simAccount.Address.String(),
+		}
+
+		// TODO: Handling the CancelCreateObject simulation
+
+		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "CancelCreateObject simulation not implemented"), nil, nil
 	}
 }
 
