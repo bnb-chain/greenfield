@@ -1,6 +1,7 @@
 package types
 
 import (
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -25,5 +26,6 @@ func Cdc() *codec.ProtoCodec {
 	proposaltypes.RegisterInterfaces(interfaceRegistry)
 	slashingtypes.RegisterInterfaces(interfaceRegistry)
 	stakingtypes.RegisterInterfaces(interfaceRegistry)
+	paymenttypes.RegisterInterfaces(interfaceRegistry)
 	return codec.NewProtoCodec(interfaceRegistry)
 }

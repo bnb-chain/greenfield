@@ -2,6 +2,7 @@ package client
 
 import (
 	_ "encoding/json"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
@@ -38,6 +39,8 @@ type AuthzMsgClient = authztypes.MsgClient
 type FeegrantQueryClient = feegranttypes.QueryClient
 type FeegrantMsgClient = feegranttypes.MsgClient
 type ParamsQueryClient = paramstypes.QueryClient
+type PaymentQueryClient = paymenttypes.QueryClient
+type PaymentMsgClient = paymenttypes.MsgClient
 type TxClient = tx.ServiceClient
 
 type GreenfieldClient struct {
@@ -59,6 +62,8 @@ type GreenfieldClient struct {
 	FeegrantQueryClient
 	FeegrantMsgClient
 	ParamsQueryClient
+	PaymentQueryClient
+	PaymentMsgClient
 	keyManager keys.KeyManager
 	chainId    string
 	codec      *codec.ProtoCodec
@@ -97,6 +102,8 @@ func NewGreenfieldClient(grpcAddr, chainId string) GreenfieldClient {
 		feegranttypes.NewQueryClient(conn),
 		feegranttypes.NewMsgClient(conn),
 		paramstypes.NewQueryClient(conn),
+		paymenttypes.NewQueryClient(conn),
+		paymenttypes.NewMsgClient(conn),
 		nil,
 		chainId,
 		cdc,

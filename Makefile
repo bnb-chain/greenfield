@@ -35,7 +35,7 @@ docker-image:
 	docker build . -t ${IMAGE_NAME}
 
 test:
-	go test ./...
+	go test $$(go list ./... | grep -v e2e)
 
 e2e_test:
-	go run ./e2e/main.go
+	go test ./e2e/...
