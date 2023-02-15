@@ -127,6 +127,10 @@ function generate_genesis() {
         sed -i -e "s/172800s/${DEPOSIT_VOTE_PERIOD}/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"10000000\"/\"${MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
+
+    # enable swagger API for validator0
+    sed -i -e "/Enable defines if the API server should be enabled/{N;s/enable = false/enable = true/;}" ${workspace}/.local/validator0/config/app.toml
+    sed -i -e 's/swagger = false/swagger = true/' ${workspace}/.local/validator0/config/app.toml
 }
 
 function start() {
