@@ -1,9 +1,6 @@
 package core
 
 import (
-	"context"
-	"time"
-
 	client "github.com/bnb-chain/greenfield/sdk/client/chain"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
@@ -28,7 +25,7 @@ func (s *BaseSuite) SetupSuite() {
 	s.Require().NoError(err)
 }
 
-func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *tx.GetTxResponse) {
+func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.TxResponse) {
 	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{
 		Mode:      &mode,
@@ -40,24 +37,8 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *tx.Ge
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
 	s.T().Logf("tx_hash: %s", response.TxResponse.TxHash)
-	//s.T().Log(response)
 	s.Require().Equal(response.TxResponse.Code, uint32(0))
-	retry := 10
-	for {
-		getTxRequest := &tx.GetTxRequest{
-			Hash: response.TxResponse.TxHash,
-		}
-		txRes, err = s.Client.GetTx(context.Background(), getTxRequest)
-		if err == nil {
-			return
-		}
-		s.Require().ErrorContains(err, "tx not found")
-		retry--
-		if retry < 0 {
-			s.Require().Fail("reach max retry")
-		}
-		time.Sleep(time.Second)
-	}
+	return response.TxResponse
 }
 
 func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.KeyManager) {
