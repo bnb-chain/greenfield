@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,6 +24,7 @@ type (
 		paramStore    paramtypes.Subspace
 		spKeeper      types.SpKeeper
 		paymentKeeper types.PaymentKeeper
+		accountKeeper types.AccountKeeper
 
 		// sequence
 		bucketSeq Sequence
@@ -36,6 +38,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	accountKeeper types.AccountKeeper,
 	spKeeper types.SpKeeper,
 	paymentKeeper types.PaymentKeeper,
 
@@ -50,6 +53,7 @@ func NewKeeper(
 		storeKey:      storeKey,
 		memKey:        memKey,
 		paramStore:    ps,
+		accountKeeper: accountKeeper,
 		spKeeper:      spKeeper,
 		paymentKeeper: paymentKeeper,
 	}
@@ -299,12 +303,16 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []b
 		return types.ErrStorageProviderNotInService
 	}
 
-	approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+	approvalAccAddress, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
 	if err != nil {
 		return err
 	}
 
-	err = types.VerifySignature(approvalAcc, sigData, signature)
+	approvalAccount := k.accountKeeper.GetAccount(ctx, approvalAccAddress)
+	if approvalAccount == nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", approvalAccount)
+	}
+	err = types.VerifySignature(approvalAccount.GetPubKey(), approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
 		return err
 	}

@@ -72,7 +72,10 @@ func CmdCreateBucket() *cobra.Command {
 			paymentAcc, _, _, err := GetPaymentAccountField(clientCtx.Keyring, payment)
 
 			primarySP, _ := cmd.Flags().GetString(FlagPrimarySP)
-			primarySPAcc, spKeyName, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
+			primarySPAcc, _, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
+
+			approver, _ := cmd.Flags().GetString(FlagApprover)
+			_, approverName, _, err := GetApproverField(clientCtx.Keyring, approver)
 
 			msg := types.NewMsgCreateBucket(
 				clientCtx.GetFromAddress(),
@@ -82,10 +85,11 @@ func CmdCreateBucket() *cobra.Command {
 				paymentAcc,
 				nil,
 			)
-			approval, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
+			approval, _, err := clientCtx.Keyring.Sign(approverName, msg.GetApprovalBytes())
 			if err != nil {
 				return err
 			}
+
 			msg.PrimarySpApprovalSignature = approval
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -98,6 +102,7 @@ func CmdCreateBucket() *cobra.Command {
 	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
+	cmd.Flags().String(FlagApprover, "", "The approval account address of primarySp")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

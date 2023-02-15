@@ -2,6 +2,8 @@ package types
 
 import (
 	"crypto/sha256"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"strings"
 	"unicode/utf8"
 
@@ -115,14 +117,40 @@ func CheckValidContentType(contentType string) error {
 	return nil
 }
 
-func VerifySignature(sigAcc sdk.AccAddress, sigData []byte, sig []byte) error {
+func VerifySignature(pubKey cryptotypes.PubKey, accAddress sdk.AccAddress, sigHash []byte, sig []byte) error {
 	if len(sig) != ethcrypto.SignatureLength {
 		return errors.Wrap(sdkerrors.ErrorInvalidSigner, "signature length doesn't match typical [R||S||V] signature 65 bytes")
+	}
+	if sig[ethcrypto.RecoveryIDOffset] == 27 || sig[ethcrypto.RecoveryIDOffset] == 28 {
+		sig[ethcrypto.RecoveryIDOffset] -= 27
+	}
+	signerPubKey, err := secp256k1.RecoverPubkey(sigHash, sig)
+	if err != nil {
+		return errors.Wrap(err, "failed to recover delegated fee payer from sig")
+	}
+
+	ecPubKey, err := ethcrypto.UnmarshalPubkey(signerPubKey)
+	if err != nil {
+		return errors.Wrap(err, "failed to unmarshal recovered fee payer pubkey")
+	}
+
+	pk := &ethsecp256k1.PubKey{
+		Key: ethcrypto.CompressPubkey(ecPubKey),
+	}
+
+	if !pubKey.Equals(pk) {
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "feePayer pubkey %s is different from transaction pubkey %s", pubKey, pk)
+	}
+
+	recoveredSignerAcc := sdk.AccAddress(pk.Address().Bytes())
+
+	if !recoveredSignerAcc.Equals(accAddress) {
+		return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "failed to verify delegated fee payer %s signature", recoveredSignerAcc)
 	}
 
 	// VerifySignature of ethsecp256k1 accepts 64 byte signature [R||S]
 	// WARNING! Under NO CIRCUMSTANCES try to use pubKey.VerifySignature there
-	if !secp256k1.VerifySignature(sigAcc.Bytes(), sigData, sig[:len(sig)-1]) {
+	if !secp256k1.VerifySignature(accAddress.Bytes(), sigHash, sig[:len(sig)-1]) {
 		return errors.Wrap(sdkerrors.ErrorInvalidSigner, "unable to verify signer signature of EIP712 typed data")
 	}
 

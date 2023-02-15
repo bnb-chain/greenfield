@@ -152,6 +152,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
+		accountKeeper,
 		spKeeper,
 		paymentKeeper,
 	)

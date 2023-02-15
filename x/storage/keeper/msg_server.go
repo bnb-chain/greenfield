@@ -2,13 +2,11 @@ package keeper
 
 import (
 	"context"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type msgServer struct {
@@ -50,9 +48,13 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	if err != nil {
 		return nil, err
 	}
+	sp, found := k.spKeeper.GetStorageProvider(ctx, primarySPAcc)
+	if !found {
+		return nil, types.ErrNoSuchStorageProvider
+	}
 
-	err = k.VerifySPAndSignature(ctx, msg.PrimarySpAddress,
-		sdk.Keccak256(msg.GetApprovalBytes()), msg.PrimarySpApprovalSignature)
+	err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress,
+		msg.GetApprovalBytes(), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -189,8 +191,15 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrNoSuchBucket
 	}
 
-	err = k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpAddress,
-		sdk.Keccak256(msg.GetApprovalBytes()), msg.PrimarySpApprovalSignature)
+	// check sp
+	spAcc := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+	if !found {
+		return nil, types.ErrNoSuchStorageProvider
+	}
+
+	err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress,
+		msg.GetApprovalBytes(), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +253,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check permission when permission module ready
-	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	primarySpAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +262,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		return nil, types.ErrNoSuchBucket
 	}
 
-	if bucketInfo.PrimarySpAddress != spAcc.String() {
+	if bucketInfo.PrimarySpAddress != primarySpAcc.String() {
 		return nil, types.ErrSPAddressMismatch
 	}
 	objectInfo, found := k.GetObject(ctx, msg.BucketName, msg.ObjectName)
@@ -267,7 +276,12 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
 	for i, spAddr := range msg.SecondarySpAddresses {
-		err = k.VerifySPAndSignature(ctx, spAddr, objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
+		spAcc := sdk.MustAccAddressFromHex(spAddr)
+		sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+		if !found {
+			return nil, types.ErrNoSuchStorageProvider
+		}
+		err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress, objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
 		if err != nil {
 			return nil, err
 		}
@@ -367,8 +381,12 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, types.ErrSourceTypeMismatch
 	}
 
-	err = k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpAddress,
-		sdk.Keccak256(msg.GetApprovalBytes()), msg.DstPrimarySpApprovalSignature)
+	primarySpAcc := sdk.MustAccAddressFromHex(dstBucketInfo.PrimarySpAddress)
+	sp, found := k.spKeeper.GetStorageProvider(ctx, primarySpAcc)
+	if !found {
+		return nil, types.ErrNoSuchStorageProvider
+	}
+	err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress, msg.GetApprovalBytes(), msg.DstPrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}

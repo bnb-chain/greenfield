@@ -9,7 +9,37 @@ const (
 	FlagPublic         = "public"
 	FlagPaymentAccount = "payment-account"
 	FlagPrimarySP      = "primary-sp"
+	FlagApprover       = "approver"
 )
+
+// GetApproverField returns a from account address, account name and keyring type, given either an address or key name.
+func GetApproverField(kr keyring.Keyring, approver string) (sdk.AccAddress, string, keyring.KeyType, error) {
+	if approver == "" {
+		return nil, "", 0, nil
+	}
+
+	addr, err := sdk.AccAddressFromHexUnsafe(approver)
+
+	var k *keyring.Record
+	if err == nil {
+		k, err = kr.KeyByAddress(addr)
+		if err != nil {
+			return nil, "", 0, err
+		}
+	} else {
+		k, err = kr.Key(approver)
+		if err != nil {
+			return nil, "", 0, err
+		}
+	}
+
+	addr, err = k.GetAddress()
+	if err != nil {
+		return nil, "", 0, err
+	}
+
+	return addr, k.Name, k.GetType(), nil
+}
 
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
 func GetPrimarySPField(kr keyring.Keyring, primarySP string) (sdk.AccAddress, string, keyring.KeyType, error) {
