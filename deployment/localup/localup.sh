@@ -34,6 +34,8 @@ function init() {
       mkdir -p ${workspace}/.local/sp${i}
       ${bin} keys add sp${i} --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/info 2>&1
       ${bin} keys add sp${i}_fund --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/fund_info 2>&1
+      ${bin} keys add sp${i}_seal --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/seal_info 2>&1
+      ${bin} keys add sp${i}_approval --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/approval_info 2>&1
     done
 
 }
@@ -46,10 +48,14 @@ function generate_genesis() {
     fi
     for ((i=0;i<${sp_size};i++));do
       #create sp and sp fund account
-      sp_addrs=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
-      spfund_addrs=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
-      ${bin} add-genesis-account $sp_addrs ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
-      ${bin} add-genesis-account $spfund_addrs ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+      spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+      spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+      spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+      ${bin} add-genesis-account $sp_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     done
 
     size=$1
@@ -128,6 +134,7 @@ function generate_genesis() {
         sed -i -e "s/\"forced_settle_time\": \"86400\"/\"forced_settle_time\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/172800s/${DEPOSIT_VOTE_PERIOD}/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"10000000\"/\"${MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+
     done
 }
 
@@ -182,19 +189,23 @@ function sp_join() {
 
     # submit proposal for each sp
     for ((i = 0; i < ${sp_size}; i++)); do
-        cp ${workspace}/create_sp.json ${workspace}/.local/create_sp${i}.json
+        cp ${workspace}/create_sp.json ${workspace}/.local/sp${i}/create_sp${i}.json
         # export sp and sp fund address
         sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
         spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+        spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+        spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
 
-        sed -i -e "s/\"moniker\": \".*\"/\"moniker\":\"sp${i}\"/g" ${workspace}/.local/create_sp${i}.json
-        sed -i -e "s/\"sp_address\":\".*\"/\"sp_address\":\"${sp_addr}\"/g" ${workspace}/.local/create_sp${i}.json
-        sed -i -e "s/\"funding_address\":\".*\"/\"funding_address\":\"${spfund_addr}\"/g" ${workspace}/.local/create_sp${i}.json
-        sed -i -e "s/\"endpoint\": \".*\"/\"endpoint\":\"sp${i}.greenfield.io\"/g" ${workspace}/.local/create_sp${i}.json
+        sed -i -e "s/\"moniker\": \".*\"/\"moniker\":\"sp${i}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
+        sed -i -e "s/\"sp_address\":\".*\"/\"sp_address\":\"${sp_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
+        sed -i -e "s/\"funding_address\":\".*\"/\"funding_address\":\"${spfund_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
+        sed -i -e "s/\"seal_address\":\".*\"/\"seal_address\":\"${spseal_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
+        sed -i -e "s/\"approval_address\":\".*\"/\"approval_address\":\"${spapproval_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
+        sed -i -e "s/\"endpoint\": \".*\"/\"endpoint\":\"sp${i}.greenfield.io\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
 
         sleep 6
         # submit-proposal
-        ${bin} tx gov submit-proposal ${workspace}/.local/create_sp${i}.json \
+        ${bin} tx gov submit-proposal ${workspace}/.local/sp${i}/create_sp${i}.json \
             --from sp${i} \
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
@@ -302,6 +313,7 @@ all)
     echo "===== end ===="
     ;;
 *)
+    # TODO: implement create sp in genesis use genesis transaction like validator.
     echo "Usage: localup.sh all | init | generate | start | sp_join | sp_check | stop"
     ;;
 esac
