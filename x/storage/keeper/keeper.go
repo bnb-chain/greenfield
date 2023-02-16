@@ -2,13 +2,14 @@ package keeper
 
 import (
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -310,7 +311,7 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []b
 
 	approvalAccount := k.accountKeeper.GetAccount(ctx, approvalAccAddress)
 	if approvalAccount == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", sp.ApprovalAddress)
+		return errors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", sp.ApprovalAddress)
 	}
 	err = types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {

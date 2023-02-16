@@ -3,13 +3,13 @@ package keeper_test
 import (
 	"context"
 	"fmt"
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/require"
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/sp/keeper"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )

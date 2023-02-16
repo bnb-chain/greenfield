@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -41,24 +42,24 @@ func (msg *MsgTransferOut) GetSignBytes() []byte {
 func (msg *MsgTransferOut) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.From)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.To)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
 	}
 
 	if msg.Amount == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount should not be nil")
+		return errors.Wrapf(sdkerrors.ErrInvalidCoins, "amount should not be nil")
 	}
 
 	if !msg.Amount.IsValid() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, msg.Amount.String())
+		return errors.Wrapf(sdkerrors.ErrInvalidCoins, msg.Amount.String())
 	}
 
 	if !msg.Amount.IsPositive() {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "amount should be positive")
+		return errors.Wrapf(sdkerrors.ErrInvalidCoins, "amount should be positive")
 	}
 
 	return nil

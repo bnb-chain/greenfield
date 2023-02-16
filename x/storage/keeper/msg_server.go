@@ -2,12 +2,13 @@ package keeper
 
 import (
 	"context"
+
 	"cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type msgServer struct {
@@ -379,17 +380,17 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 
 	_, found := k.Keeper.GetBucket(ctx, msg.SrcBucketName)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrNoSuchBucket, "src bucket name (%s)", msg.SrcBucketName)
+		return nil, errors.Wrapf(types.ErrNoSuchBucket, "src bucket name (%s)", msg.SrcBucketName)
 	}
 
 	dstBucketInfo, found := k.Keeper.GetBucket(ctx, msg.DstBucketName)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrNoSuchBucket, "dst bucket name (%s)", msg.DstBucketName)
+		return nil, errors.Wrapf(types.ErrNoSuchBucket, "dst bucket name (%s)", msg.DstBucketName)
 	}
 
 	srcObjectInfo, found := k.Keeper.GetObject(ctx, msg.SrcBucketName, msg.SrcObjectName)
 	if !found {
-		return nil, sdkerrors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", msg.SrcObjectName)
+		return nil, errors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", msg.SrcObjectName)
 	}
 
 	if srcObjectInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
@@ -404,7 +405,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 	// check permission for copy object from this bucket
 	// Currently only allowed object owner to CopyObject
 	if srcObjectInfo.Owner != msg.Operator {
-		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "access denied (%s)", srcObjectInfo.String())
+		return nil, errors.Wrapf(types.ErrAccessDenied, "access denied (%s)", srcObjectInfo.String())
 	}
 	objectInfo := types.ObjectInfo{
 		Owner:          ownerAcc.String(),
@@ -512,7 +513,7 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 	}
 
 	if spAcc.String() != bucketInfo.PrimarySpAddress {
-		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
+		return nil, errors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
 	}
 
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)

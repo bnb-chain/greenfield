@@ -70,12 +70,21 @@ func CmdCreateBucket() *cobra.Command {
 
 			payment, _ := cmd.Flags().GetString(FlagPaymentAccount)
 			paymentAcc, _, _, err := GetPaymentAccountField(clientCtx.Keyring, payment)
+			if err != nil {
+				return err
+			}
 
 			primarySP, _ := cmd.Flags().GetString(FlagPrimarySP)
 			primarySPAcc, _, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
+			if err != nil {
+				return err
+			}
 
 			approver, _ := cmd.Flags().GetString(FlagApprover)
 			_, approverName, _, err := GetApproverField(clientCtx.Keyring, approver)
+			if err != nil {
+				return err
+			}
 
 			msg := types.NewMsgCreateBucket(
 				clientCtx.GetFromAddress(),
@@ -257,6 +266,9 @@ func CmdCreateObject() *cobra.Command {
 				return err
 			}
 			_, spKeyName, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
+			if err != nil {
+				return err
+			}
 			approval, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
 			if err != nil {
 				return err

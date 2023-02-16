@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -65,21 +66,21 @@ func (msg *MsgCreateStorageProvider) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
 	}
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid fund address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid fund address (%s)", err)
 	}
 
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
 
 	if msg.Description == (Description{}) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 	return nil
 }
@@ -123,11 +124,11 @@ func (msg *MsgEditStorageProvider) GetSignBytes() []byte {
 func (msg *MsgEditStorageProvider) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if msg.Description == (Description{}) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 	return nil
 }
@@ -169,11 +170,11 @@ func (msg *MsgDeposit) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgDeposit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
 
 	return nil
