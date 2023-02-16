@@ -1,7 +1,9 @@
 package types
 
 import (
+	"errors"
 	"fmt"
+	"strings"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,20 +14,17 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	KeyEventCountPerBlock = []byte("EventCountPerBlock")
-	// TODO: Determine the default value
+	KeyEventCountPerBlock            = []byte("EventCountPerBlock")
 	DefaultEventCountPerBlock uint64 = 3
 )
 
 var (
-	KeyChallengeExpirePeriod = []byte("ChallengeExpirePeriod")
-	// TODO: Determine the default value
+	KeyChallengeExpirePeriod            = []byte("ChallengeExpirePeriod")
 	DefaultChallengeExpirePeriod uint64 = 100
 )
 
 var (
-	KeySlashCoolingOffPeriod = []byte("SlashCoolingOffPeriod")
-	// TODO: Determine the default value
+	KeySlashCoolingOffPeriod            = []byte("SlashCoolingOffPeriod")
 	DefaultSlashCoolingOffPeriod uint64 = 100
 )
 
@@ -35,32 +34,27 @@ var (
 )
 
 var (
-	KeySlashAmountPerKb = []byte("SlashAmountPerKb")
-	// TODO: Determine the default value
+	KeySlashAmountPerKb     = []byte("SlashAmountPerKb")
 	DefaultSlashAmountPerKb = sdk.ZeroDec()
 )
 
 var (
-	KeySlashAmountMin = []byte("SlashAmountMin")
-	// TODO: Determine the default value
+	KeySlashAmountMin     = []byte("SlashAmountMin")
 	DefaultSlashAmountMin = math.NewInt(10)
 )
 
 var (
-	KeySlashAmountMax = []byte("SlashAmountMax")
-	// TODO: Determine the default value
+	KeySlashAmountMax     = []byte("SlashAmountMax")
 	DefaultSlashAmountMax = math.NewInt(100)
 )
 
 var (
-	KeyRewardValidatorRatio = []byte("RewardValidatorRatio")
-	// TODO: Determine the default value
+	KeyRewardValidatorRatio     = []byte("RewardValidatorRatio")
 	DefaultRewardValidatorRatio = sdk.NewDecWithPrec(5, 1)
 )
 
 var (
-	KeyRewardChallengerRatio = []byte("RewardChallengerRatio")
-	// TODO: Determine the default value
+	KeyRewardChallengerRatio     = []byte("RewardChallengerRatio")
 	DefaultRewardChallengerRatio = sdk.NewDecWithPrec(3, 1)
 )
 
@@ -115,7 +109,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyEventCountPerBlock, &p.EventCountPerBlock, validateEventCountPerBlock),
 		paramtypes.NewParamSetPair(KeyChallengeExpirePeriod, &p.ChallengeExpirePeriod, validateChallengeExpirePeriod),
 		paramtypes.NewParamSetPair(KeySlashCoolingOffPeriod, &p.SlashCoolingOffPeriod, validateSlashCoolingOffPeriod),
-		paramtypes.NewParamSetPair(KeySlashDenom, &p.SlashDenom, validateSlashDemon),
+		paramtypes.NewParamSetPair(KeySlashDenom, &p.SlashDenom, validateSlashDenom),
 		paramtypes.NewParamSetPair(KeySlashAmountPerKb, &p.SlashAmountPerKb, validateSlashAmountPerKb),
 		paramtypes.NewParamSetPair(KeySlashAmountMin, &p.SlashAmountMin, validateSlashAmountMin),
 		paramtypes.NewParamSetPair(KeySlashAmountMax, &p.SlashAmountMax, validateSlashAmountMax),
@@ -135,6 +129,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateSlashCoolingOffPeriod(p.SlashCoolingOffPeriod); err != nil {
+		return err
+	}
+
+	if err := validateSlashDenom(p.SlashDenom); err != nil {
 		return err
 	}
 
@@ -158,6 +156,14 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if p.SlashAmountMax.LTE(p.SlashAmountMin) {
+		return errors.New("max slash amount should be bigger than min slash amount")
+	}
+
+	if p.RewardValidatorRatio.Add(p.RewardChallengerRatio).GT(sdk.NewDec(1)) {
+		return errors.New("the sum of validator and challenger reward ratio should be equal to or less than one")
+	}
+
 	return nil
 }
 
@@ -169,52 +175,48 @@ func (p Params) String() string {
 
 // validateEventCountPerBlock validates the EventCountPerBlock param
 func validateEventCountPerBlock(v interface{}) error {
-	eventCountPerBlock, ok := v.(uint64)
+	_, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
-
-	// TODO implement validation
-	_ = eventCountPerBlock
 
 	return nil
 }
 
 // validateChallengeExpirePeriod validates the ChallengeExpirePeriod param
 func validateChallengeExpirePeriod(v interface{}) error {
-	challengeExpirePeriod, ok := v.(uint64)
+	_, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
-
-	// TODO implement validation
-	_ = challengeExpirePeriod
 
 	return nil
 }
 
 // validateSlashCoolingOffPeriod validates the SlashCoolingOffPeriod param
 func validateSlashCoolingOffPeriod(v interface{}) error {
-	slashCoolingOffPeriod, ok := v.(uint64)
+	_, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = slashCoolingOffPeriod
-
 	return nil
 }
 
-// validateSlashDemon validates the SlashDemon param
-func validateSlashDemon(v interface{}) error {
+// validateSlashDenom validates the SlashDenom param
+func validateSlashDenom(v interface{}) error {
 	slashDemon, ok := v.(string)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = slashDemon
+	if strings.TrimSpace(slashDemon) == "" {
+		return errors.New("deposit denom cannot be blank")
+	}
+
+	if err := sdk.ValidateDenom(slashDemon); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -226,8 +228,9 @@ func validateSlashAmountPerKb(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = slashAmountPerKb
+	if slashAmountPerKb.LT(sdk.ZeroDec()) {
+		return errors.New("slash amount per kilo bytes cannot be lower than zero")
+	}
 
 	return nil
 }
@@ -239,8 +242,9 @@ func validateSlashAmountMin(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = slashAmountMin
+	if slashAmountMin.LT(sdk.ZeroInt()) {
+		return errors.New("min slash amount per kilo bytes cannot be lower than zero")
+	}
 
 	return nil
 }
@@ -252,8 +256,9 @@ func validateSlashAmountMax(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = slashAmountMax
+	if slashAmountMax.LT(sdk.ZeroInt()) {
+		return errors.New("max slash amount per kilo bytes cannot be lower than zero")
+	}
 
 	return nil
 }
@@ -265,8 +270,9 @@ func validateRewardValidatorRatio(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = rewardValidatorRatio
+	if rewardValidatorRatio.LT(sdk.ZeroDec()) {
+		return errors.New("validator reward ratio cannot be lower than zero")
+	}
 
 	return nil
 }
@@ -278,8 +284,9 @@ func validateRewardChallengerRatio(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = rewardChallengerRatio
+	if rewardChallengerRatio.LT(sdk.ZeroDec()) {
+		return errors.New("challenger reward ratio cannot be lower than zero")
+	}
 
 	return nil
 }

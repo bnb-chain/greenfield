@@ -47,6 +47,19 @@ func (msg *MsgAttest) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+
+	if msg.VoteResult != ChallengeResultSucceed {
+		return sdkerrors.Wrap(ErrInvalidVoteResult, "Only succeed challenge can submit attest")
+	}
+
+	if len(msg.VoteValidatorSet) == 0 {
+		return sdkerrors.Wrap(ErrInvalidVoteValidatorSet, "Vote validator set cannot be empty")
+	}
+
+	if len(msg.VoteAggSignature) != 96 {
+		return sdkerrors.Wrap(ErrInvalidVoteAggSignature, "Length of aggregated signature is invalid")
+	}
+
 	return nil
 }
 

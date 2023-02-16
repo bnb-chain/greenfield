@@ -1,6 +1,7 @@
 package types
 
 import (
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -46,5 +47,18 @@ func (msg *MsgSubmit) ValidateBasic() error {
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+
+	if err := storagetypes.CheckValidBucketName(msg.BucketName); err != nil {
+		return err
+	}
+
+	if err := storagetypes.CheckValidObjectName(msg.ObjectName); err != nil {
+		return err
+	}
+
+	if msg.RandomIndex == false && (msg.Index < 0 || msg.Index > 5) {
+		return sdkerrors.Wrapf(ErrInvalidIndex, "Index should be correctly provided when random index is disabled")
+	}
+
 	return nil
 }

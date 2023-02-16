@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"fmt"
-	"math"
+	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
@@ -30,7 +31,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	if !found {
 		return nil, types.ErrUnknownObject
 	}
-	objectSize := objectInfo.Size()
+	objectSize := objectInfo.PayloadSize
 	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
 		return nil, types.ErrInvalidObjectStatus
 	}
@@ -42,9 +43,15 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	// check slash
-	// recentSlashes := k.GetAllRecentSlash(ctx)
+	recentSlashes := k.GetAllRecentSlash(ctx)
+	for _, slash := range recentSlashes {
+		if slash.SpOperatorAddress == challenge.SpOperatorAddress &&
+			bytes.Equal(slash.ObjectKey, challenge.GetObjectKey()) {
+			return nil, types.ErrDuplicatedSlash
+		}
+	}
 
-	// calculate slash & reward amounts
+	// do slash & reward
 	k.doSlashAndRewards(ctx, uint64(objectSize), challenge, msg.Creator, validators)
 
 	k.RemoveOngoingChallenge(ctx, msg.ChallengeId)
@@ -61,13 +68,13 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 func (k Keeper) verifySignature(ctx sdk.Context, attest *types.MsgAttest) ([]string, error) {
 	historicalInfo, ok := k.stakingKeeper.GetHistoricalInfo(ctx, ctx.BlockHeight())
 	if !ok {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidValSet, "fail to get validators")
+		return nil, sdkerrors.Wrapf(types.ErrInvalidVoteValidatorSet, "fail to get validators")
 	}
 	validators := historicalInfo.Valset
 
 	validatorsBitSet := bitset.From(attest.VoteValidatorSet)
 	if validatorsBitSet.Count() > uint(len(validators)) {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidValSet, "number of validator set is larger than validators")
+		return nil, sdkerrors.Wrapf(types.ErrInvalidVoteValidatorSet, "number of validator set is larger than validators")
 	}
 
 	signedRelayers := make([]string, 0, validatorsBitSet.Count())
@@ -86,16 +93,16 @@ func (k Keeper) verifySignature(ctx sdk.Context, attest *types.MsgAttest) ([]str
 	}
 
 	if len(votedPubKeys) <= len(validators)*2/3 {
-		return nil, sdkerrors.Wrapf(types.ErrVotesNotEnough, fmt.Sprintf("not enough validators voted, need: %d, voted: %d", len(validators)*2/3, len(votedPubKeys)))
+		return nil, sdkerrors.Wrapf(types.ErrNotEnoughVotes, fmt.Sprintf("Not enough validators voted, need: %d, voted: %d", len(validators)*2/3, len(votedPubKeys)))
 	}
 
 	aggSig, err := bls.SignatureFromBytes(attest.VoteAggSignature)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidBlsSignature, fmt.Sprintf("BLS signature converts failed: %v", err))
+		return nil, sdkerrors.Wrapf(types.ErrInvalidVoteAggSignature, fmt.Sprintf("BLS signature converts failed: %v", err))
 	}
 
 	if !aggSig.FastAggregateVerify(votedPubKeys, attest.GetBlsSignBytes()) {
-		return nil, sdkerrors.Wrapf(types.ErrInvalidBlsSignature, "signature verify failed")
+		return nil, sdkerrors.Wrapf(types.ErrInvalidVoteAggSignature, "Signature verify failed")
 	}
 
 	return signedRelayers, nil
@@ -103,18 +110,22 @@ func (k Keeper) verifySignature(ctx sdk.Context, attest *types.MsgAttest) ([]str
 
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
 	perKb := k.SlashAmountPerKb(ctx)
-	//TODO: implement log and other calculations
-	slashAmount := uint64(math.Floor(math.Log(float64(objectSize)) * perKb.MustFloat64()))
+	decSize := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize))
+	decRoot, err := decSize.ApproxSqrt()
+	if err != nil {
+		panic(err)
+	}
+	slashAmount := decRoot.MulMut(perKb).TruncateInt()
 
 	min := k.SlashAmountMin(ctx)
-	if slashAmount < min.Uint64() {
+	if slashAmount.LT(min) {
 		return min
 	}
 	max := k.SlashAmountMax(ctx)
-	if slashAmount > max.Uint64() {
+	if slashAmount.GT(max) {
 		return max
 	}
-	return sdk.NewIntFromUint64(slashAmount)
+	return slashAmount
 }
 
 func (k msgServer) calculateRewardAmounts(ctx sdk.Context, total sdkmath.Int, challenger, submitter string, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {

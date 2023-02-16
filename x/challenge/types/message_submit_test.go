@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 )
@@ -21,9 +22,47 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
-			name: "valid address",
+			name: "invalid bucket name",
 			msg: MsgSubmit{
-				Creator: sample.AccAddress(),
+				Creator:    sample.AccAddress(),
+				BucketName: "1",
+			},
+			err: storagetypes.ErrInvalidBucketName,
+		}, {
+			name: "invalid object name",
+			msg: MsgSubmit{
+				Creator:    sample.AccAddress(),
+				BucketName: "bucket",
+				ObjectName: "",
+			},
+			err: storagetypes.ErrInvalidObjectName,
+		}, {
+			name: "invalid segment/piece index",
+			msg: MsgSubmit{
+				Creator:     sample.AccAddress(),
+				BucketName:  "bucket",
+				ObjectName:  "object",
+				RandomIndex: false,
+				Index:       10,
+			},
+			err: ErrInvalidIndex,
+		}, {
+			name: "valid message with random index",
+			msg: MsgSubmit{
+				Creator:     sample.AccAddress(),
+				BucketName:  "bucket",
+				ObjectName:  "object",
+				RandomIndex: true,
+				Index:       10,
+			},
+		}, {
+			name: "valid message with specific index",
+			msg: MsgSubmit{
+				Creator:     sample.AccAddress(),
+				BucketName:  "bucket",
+				ObjectName:  "object",
+				RandomIndex: false,
+				Index:       2,
 			},
 		},
 	}

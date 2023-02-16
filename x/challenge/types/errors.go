@@ -8,14 +8,21 @@ import (
 
 // x/challenge module sentinel errors
 var (
-	ErrUnknownSp           = sdkerrors.Register(ModuleName, 1, "unknown storage provider")
-	ErrUnknownObject       = sdkerrors.Register(ModuleName, 2, "unknown object info")
-	ErrInvalidObjectStatus = sdkerrors.Register(ModuleName, 3, "invalid object status to challenge")
-	ErrInvalidSpStatus     = sdkerrors.Register(ModuleName, 4, "invalid storage provider status")
-	ErrUnknownChallenge    = sdkerrors.Register(ModuleName, 5, "unknown challenge")
-	ErrInvalidValSet       = sdkerrors.Register(ModuleName, 6, "invalid validator set")
-	ErrInvalidBlsPubKey    = sdkerrors.Register(ModuleName, 7, "invalid bls public key")
-	ErrVotesNotEnough      = sdkerrors.Register(ModuleName, 8, "attest votes are not enough")
-	ErrInvalidBlsSignature = sdkerrors.Register(ModuleName, 9, "invalid bls signature")
-	ErrInvalidGenesis      = sdkerrors.Register(ModuleName, 10, "invalid genesis state")
+	ErrInvalidGenesis = sdkerrors.Register(ModuleName, 1, "invalid genesis state")
+
+	ErrInvalidBucketName   = sdkerrors.Register(ModuleName, 2, "invalid bucket name")
+	ErrInvalidObjectName   = sdkerrors.Register(ModuleName, 3, "invalid object name")
+	ErrInvalidIndex        = sdkerrors.Register(ModuleName, 4, "invalid segment/piece index")
+	ErrUnknownSp           = sdkerrors.Register(ModuleName, 5, "unknown storage provider")
+	ErrUnknownObject       = sdkerrors.Register(ModuleName, 6, "unknown object info")
+	ErrInvalidSpStatus     = sdkerrors.Register(ModuleName, 7, "invalid storage provider status")
+	ErrInvalidObjectStatus = sdkerrors.Register(ModuleName, 8, "invalid object status to challenge")
+
+	ErrInvalidVoteResult       = sdkerrors.Register(ModuleName, 9, "invalid vote result")
+	ErrInvalidVoteValidatorSet = sdkerrors.Register(ModuleName, 10, "invalid validator set")
+	ErrInvalidVoteAggSignature = sdkerrors.Register(ModuleName, 11, "invalid bls signature")
+	ErrUnknownChallenge        = sdkerrors.Register(ModuleName, 12, "unknown challenge")
+	ErrDuplicatedSlash         = sdkerrors.Register(ModuleName, 13, "duplicated slash in cooling-off period")
+	ErrInvalidBlsPubKey        = sdkerrors.Register(ModuleName, 14, "invalid bls public key")
+	ErrNotEnoughVotes          = sdkerrors.Register(ModuleName, 15, "attest votes are not enough")
 )
