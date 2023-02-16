@@ -45,7 +45,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		paymentAcc = ownerAcc
 	}
 
-	if msg.PrimarySpApproval.TimeoutHeight > uint64(ctx.BlockHeight()) {
+	if msg.PrimarySpApproval.TimeoutHeight < uint64(ctx.BlockHeight()) {
 		return nil, errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 	err = k.VerifySPAndSignature(ctx, msg.PrimarySpAddress, msg.GetApprovalBytes(), msg.PrimarySpApproval.Sig)
@@ -214,7 +214,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		secondarySPs = append(secondarySPs, spAcc.String())
 	}
 
-	if msg.PrimarySpApproval.TimeoutHeight > uint64(ctx.BlockHeight()) {
+	if msg.PrimarySpApproval.TimeoutHeight < uint64(ctx.BlockHeight()) {
 		return nil, errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
@@ -403,7 +403,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, types.ErrSourceTypeMismatch
 	}
 
-	if msg.DstPrimarySpApproval.TimeoutHeight > uint64(ctx.BlockHeight()) {
+	if msg.DstPrimarySpApproval.TimeoutHeight < uint64(ctx.BlockHeight()) {
 		return nil, errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
