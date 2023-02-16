@@ -32,7 +32,6 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 
 	var paymentAcc sdk.AccAddress
 	if msg.PaymentAddress != "" {
-		// TODO: validate that the paymentAcc is ownered by ownerAcc if payment module is ready
 		paymentAcc, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
 		if err != nil {
 			return nil, err
@@ -44,17 +43,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		paymentAcc = ownerAcc
 	}
 
-	primarySPAcc, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
-	if err != nil {
-		return nil, err
-	}
-	sp, found := k.spKeeper.GetStorageProvider(ctx, primarySPAcc)
-	if !found {
-		return nil, types.ErrNoSuchStorageProvider
-	}
-
-	err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress,
-		msg.GetApprovalBytes(), msg.PrimarySpApprovalSignature)
+	err = k.VerifySPAndSignature(ctx, msg.PrimarySpAddress, msg.GetApprovalBytes(), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -69,7 +58,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		SourceType:       types.SOURCE_TYPE_ORIGIN,
 		ReadQuota:        types.READ_QUOTA_FREE,
 		PaymentAddress:   paymentAcc.String(),
-		PrimarySpAddress: primarySPAcc.String(),
+		PrimarySpAddress: msg.PrimarySpAddress,
 	}
 
 	if msg.ReadQuota != types.READ_QUOTA_FREE {
@@ -191,14 +180,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrNoSuchBucket
 	}
 
-	// check sp
-	spAcc := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
-	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
-	if !found {
-		return nil, types.ErrNoSuchStorageProvider
-	}
-
-	err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress,
+	err = k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpAddress,
 		msg.GetApprovalBytes(), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
@@ -276,12 +258,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
 	for i, spAddr := range msg.SecondarySpAddresses {
-		spAcc := sdk.MustAccAddressFromHex(spAddr)
-		sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
-		if !found {
-			return nil, types.ErrNoSuchStorageProvider
-		}
-		err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress, objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
+		err = k.VerifySPAndSignature(ctx, spAddr, objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
 		if err != nil {
 			return nil, err
 		}
@@ -381,12 +358,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, types.ErrSourceTypeMismatch
 	}
 
-	primarySpAcc := sdk.MustAccAddressFromHex(dstBucketInfo.PrimarySpAddress)
-	sp, found := k.spKeeper.GetStorageProvider(ctx, primarySpAcc)
-	if !found {
-		return nil, types.ErrNoSuchStorageProvider
-	}
-	err = k.VerifySPAndSignature(ctx, sp.ApprovalAddress, msg.GetApprovalBytes(), msg.DstPrimarySpApprovalSignature)
+	err = k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpAddress, msg.GetApprovalBytes(), msg.DstPrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}

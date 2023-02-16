@@ -310,9 +310,9 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []b
 
 	approvalAccount := k.accountKeeper.GetAccount(ctx, approvalAccAddress)
 	if approvalAccount == nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", approvalAccount)
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "account %s does not exist", sp.ApprovalAddress)
 	}
-	err = types.VerifySignature(approvalAccount.GetPubKey(), approvalAccAddress, sdk.Keccak256(sigData), signature)
+	err = types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
 		return err
 	}

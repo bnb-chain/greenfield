@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/gogo/protobuf/proto"
 )
 
 const (
@@ -89,9 +90,9 @@ func (msg *MsgCreateBucket) GetSignBytes() []byte {
 
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateBucket) GetApprovalBytes() []byte {
-	newMsg := msg
-	newMsg.PrimarySpApprovalSignature = []byte{}
-	return newMsg.GetSignBytes()
+	fakeMsg := proto.Clone(msg).(*MsgCreateBucket)
+	fakeMsg.PrimarySpApprovalSignature = []byte{}
+	return fakeMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -298,9 +299,9 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateObject) GetApprovalBytes() []byte {
-	newMsg := msg
-	newMsg.PrimarySpApprovalSignature = []byte{}
-	return newMsg.GetSignBytes()
+	fakeMsg := proto.Clone(msg).(*MsgCreateObject)
+	fakeMsg.PrimarySpApprovalSignature = []byte{}
+	return fakeMsg.GetSignBytes()
 }
 
 func NewMsgCancelCreateObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgCancelCreateObject {
@@ -524,9 +525,9 @@ func (msg *MsgCopyObject) GetSignBytes() []byte {
 
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCopyObject) GetApprovalBytes() []byte {
-	newMsg := msg
-	newMsg.DstPrimarySpApprovalSignature = []byte{}
-	return newMsg.GetSignBytes()
+	fakeMsg := proto.Clone(msg).(*MsgCopyObject)
+	fakeMsg.DstPrimarySpApprovalSignature = []byte{}
+	return fakeMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.
