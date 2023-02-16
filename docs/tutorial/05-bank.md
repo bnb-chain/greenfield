@@ -1,8 +1,8 @@
 # Using gnfd command to interact with bank module
 
 ## Abstract
-The bank module is responsible for handling BNB transfer between
-accounts and module account. 
+The bank module is responsible for handling BNB transfers between
+accounts and module accounts.
 
 In addition, the bank module tracks and provides query support for the total
 supply of BNB in the application.

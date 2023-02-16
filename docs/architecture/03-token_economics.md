@@ -10,10 +10,10 @@ BNB can be transferred from BSC to Greenfield blockchain, and vice versa. It is 
   Greenfield validators, and potentially Greenfield Storage Providers for some transactions. Fee distribution is done in-protocol and 
   a protocol specification is [described here](https://github.com/bnb-chain/greenfield-cosmos-sdk/blob/master/docs/spec/fee_distribution/f1_fee_distr.pdf).
 - Storage service fee token. It can be used to pay fees for the object storage and download bandwidth data package. This is charged 
-  as time goes and dispatched to Greenfield Storage Providers.
+  as time goes on and dispatched to Greenfield Storage Providers.
 - Governance token. BNB holders may govern the Greenfield by voting on proposals with their staked BNB (not day 1).
 
-No initial donors, foundation, company will get funds in the genesis setup.
+No initial donors, foundation, or company will get funds in the genesis setup.
 
 ## Genesis Setup
 BNB is transferred from BSC to Greenfield as the first cross-chain action. The initial validator set and storage provider
@@ -29,8 +29,8 @@ enable BNB flow between Greenfield and Smart Chain bi-directionally. The total c
 
 Greenfield use Lock/Unlock mechanism to ensure the total circulation of BNB on both chain is always less than the initial
 total supply:
-1. The transfer-out blockchain will lock the amount from source owner addresses into a system controlled address/contracts.
-2. The transfer-in blockchain will unlock the amount from the system controlled address/contracts and send it to target addresses.
+1. The transfer-out blockchain will lock the amount from source owner addresses into a module account or smart contract.
+2. The transfer-in blockchain will unlock the amount from module account or contract and send it to target addresses.
 3. Both networks will never mint BNB.
 
 Refer to [cross chain model](./07-cross-chain.md) to get more details about the mechanism.
