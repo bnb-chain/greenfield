@@ -192,6 +192,9 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
+	if msg.PayloadSize > k.MaxPayloadSize(ctx) {
+		return nil, types.ErrTooLargeObject
+	}
 	// check bucket
 	bucketInfo, found := k.GetBucket(ctx, msg.BucketName)
 	if !found {
@@ -284,6 +287,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
 		return nil, types.ErrObjectAlreadyExists
 	}
+
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
 
 	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
