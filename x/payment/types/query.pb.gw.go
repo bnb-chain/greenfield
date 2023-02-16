@@ -1259,13 +1259,13 @@ var (
 
 	pattern_Query_GetPaymentAccountsByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "get_payment_accounts_by_owner", "owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_AutoSettleRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"bnb-chain", "greenfield", "payment", "auto_settle_record", "timestamp", "addr"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_AutoSettleRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "payment", "auto_settle_record", "timestamp", "addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_AutoSettleRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "greenfield", "payment", "auto_settle_record"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_AutoSettleRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "auto_settle_record"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BnbPrice_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "greenfield", "payment", "bnb_price", "time"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BnbPrice_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "bnb_price", "time"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BnbPriceAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "greenfield", "payment", "bnb_price"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BnbPriceAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "bnb_price"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (
