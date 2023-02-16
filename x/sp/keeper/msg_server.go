@@ -37,6 +37,14 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
+	// create the account if it is not in account state
+	acc := k.authKeeper.GetAccount(ctx, spAcc)
+	if acc == nil {
+		return nil, err
+		// granteeAcc = k.authKeeper.NewAccountWithAddress(ctx, spAcc)
+		// k.authKeeper.SetAccount(ctx, granteeAcc)
+	}
+
 	fundingAcc, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
 	if err != nil {
 		return nil, err
