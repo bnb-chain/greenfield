@@ -24,14 +24,14 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 
 	depositCoins := sdk.NewCoins(sdk.NewCoin(genState.Params.DepositDenom, depositAmount))
 
-	spDepositPool := k.authKeeper.GetModuleAccount(ctx, types.ModuleName)
+	spDepositPool := k.accountKeeper.GetModuleAccount(ctx, types.ModuleName)
 	if spDepositPool == nil {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
 	depositBalance := k.bankKeeper.GetAllBalances(ctx, spDepositPool.GetAddress())
 	if depositBalance.IsZero() {
-		k.authKeeper.SetModuleAccount(ctx, spDepositPool)
+		k.accountKeeper.SetModuleAccount(ctx, spDepositPool)
 	}
 
 	if !depositBalance.IsEqual(depositCoins) {

@@ -28,12 +28,17 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signers := msg.GetSigners()
-	if len(signers) != 1 || !signers[0].Equals(k.authKeeper.GetModuleAddress(gov.ModuleName)) {
+	if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
 		return nil, types.ErrSignerNotGovModule
 	}
 
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
+		return nil, err
+	}
+
+	acc := k.accountKeeper.GetAccount(ctx, spAcc)
+	if acc == nil {
 		return nil, err
 	}
 
@@ -73,7 +78,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	if ctx.BlockHeader().Height != 0 {
 		err = k.CheckDepositAuthorization(
 			ctx,
-			k.authKeeper.GetModuleAddress(gov.ModuleName),
+			k.accountKeeper.GetModuleAddress(gov.ModuleName),
 			fundingAcc,
 			types.NewMsgDeposit(fundingAcc, spAcc, msg.Deposit))
 		if err != nil {
