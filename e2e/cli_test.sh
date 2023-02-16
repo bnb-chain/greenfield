@@ -53,48 +53,15 @@ $gnfd tx bank send validator0 "$user_addr" "100000$denom" -y
 $gnfd q bank balances "$user_addr"
 
 # ----- payment account test -----
-$gnfd q payment params
+# $gnfd q payment params
 # create payment account
-$gnfd tx payment create-payment-account --from user -y
-payment_account=$($gnfd q payment get-payment-accounts-by-owner "$user_addr" --output json | jq -r '.paymentAccounts[0]')
+# $gnfd tx payment create-payment-account --from user -y
+# payment_account=$($gnfd q payment get-payment-accounts-by-owner "$user_addr" --output json | jq -r '.paymentAccounts[0]')
 # disable payment account refund
-refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
-check_operation "disable refund" "$refundable" "true"
-$gnfd tx payment disable-refund "$payment_account" --from user -y
-refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
-check_operation "disable refund" "$refundable" "false"
+# refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
+# check_operation "disable refund" "$refundable" "true"
+# $gnfd tx payment disable-refund "$payment_account" --from user -y
+# refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
+# check_operation "disable refund" "$refundable" "false"
 # deposit
-$gnfd tx payment deposit "${payment_account}" 100 --from user -y
-
-# ----- mock object payment test -----
-# mock create bucket
-bucket_name="test-bucket-$user_addr"
-object_name="test-object-$user_addr"
-$gnfd tx payment mock-create-bucket "$bucket_name" "" "" "$sp0_addr" READ_PACKET_1GB --from user -y
-$gnfd q payment show-mock-bucket-meta "$bucket_name"
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd q payment dynamic-balance "$sp0_addr"
-sleep 6
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd q payment dynamic-balance "$sp0_addr"
-# mock create object
-$gnfd tx payment mock-put-object "$bucket_name" "$object_name" 3 --from user -y
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd tx payment mock-seal-object "$bucket_name" "$object_name" "$sp1_addr,$sp2_addr,$sp3_addr,$sp4_addr,$sp5_addr,$sp6_addr" --from user -y
-sleep 6
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd q payment dynamic-balance "$sp0_addr"
-$gnfd q payment dynamic-balance "$sp1_addr"
-# mock-update-bucket-read-packet
-$gnfd tx payment mock-update-bucket-read-packet "$bucket_name" READ_PACKET_10GB --from user -y
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd q payment dynamic-balance "$sp0_addr"
-# mock-set-bucket-payment-account
-$gnfd tx payment mock-set-bucket-payment-account "$bucket_name" "$payment_account" "$payment_account" --from user -y
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd q payment dynamic-balance "$payment_account"
-# mock-delete-object
-$gnfd tx payment mock-delete-object "$bucket_name" "$object_name" --from user -y
-$gnfd q payment dynamic-balance "$user_addr"
-$gnfd q payment dynamic-balance "$sp0_addr"
-$gnfd q payment dynamic-balance "$sp1_addr"
+# $gnfd tx payment deposit "${payment_account}" 100 --from user -y

@@ -95,14 +95,12 @@ import (
 	challengemodule "github.com/bnb-chain/greenfield/x/challenge"
 	challengemodulekeeper "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
-
-	spmodule "github.com/bnb-chain/greenfield/x/sp"
-	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
-	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
-
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	spmodule "github.com/bnb-chain/greenfield/x/sp"
+	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagemodule "github.com/bnb-chain/greenfield/x/storage"
 	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -471,6 +469,7 @@ func New(
 		keys[storagemoduletypes.MemStoreKey],
 		app.GetSubspace(storagemoduletypes.ModuleName),
 		app.SpKeeper,
+		app.PaymentKeeper,
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
@@ -815,8 +814,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register app's OpenAPI routes.
-	apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Docs)))
-	apiSvr.Router.HandleFunc("/", openapiconsole.Handler(Name, "/static/openapi.yml"))
+	apiSvr.Router.Handle("/static/swagger.yaml", http.FileServer(http.FS(docs.Docs)))
+	apiSvr.Router.HandleFunc("/", openapiconsole.Handler(Name, "/static/swagger.yaml"))
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.

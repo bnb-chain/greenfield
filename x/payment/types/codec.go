@@ -14,12 +14,6 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgDeposit{}, "payment/Deposit", nil)
 	cdc.RegisterConcrete(&MsgWithdraw{}, "payment/Withdraw", nil)
 	cdc.RegisterConcrete(&MsgDisableRefund{}, "payment/DisableRefund", nil)
-	cdc.RegisterConcrete(&MsgMockCreateBucket{}, "payment/MockCreateBucket", nil)
-	cdc.RegisterConcrete(&MsgMockPutObject{}, "payment/MockPutObject", nil)
-	cdc.RegisterConcrete(&MsgMockSealObject{}, "payment/MockSealObject", nil)
-	cdc.RegisterConcrete(&MsgMockDeleteObject{}, "payment/MockDeleteObject", nil)
-	cdc.RegisterConcrete(&MsgMockSetBucketPaymentAccount{}, "payment/MockSetBucketPaymentAccount", nil)
-	cdc.RegisterConcrete(&MsgMockUpdateBucketReadPacket{}, "payment/MockUpdateBucketReadPacket", nil)
 	// this line is used by starport scaffolding # 2
 }
 
@@ -35,24 +29,6 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDisableRefund{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgMockCreateBucket{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgMockPutObject{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgMockSealObject{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgMockDeleteObject{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgMockSetBucketPaymentAccount{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgMockUpdateBucketReadPacket{},
 	)
 	// this line is used by starport scaffolding # 3
 

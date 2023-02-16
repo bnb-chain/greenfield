@@ -7,22 +7,22 @@ import (
 )
 
 func (k Keeper) MaxSegmentSize(ctx sdk.Context) (res uint64) {
-	k.paramstore.Get(ctx, types.KeyMaxSegmentSize, &res)
+	k.paramStore.Get(ctx, types.KeyMaxSegmentSize, &res)
 	return
 }
 
 func (k Keeper) RedundantDataChunkNum(ctx sdk.Context) (res uint32) {
-	k.paramstore.Get(ctx, types.KeyRedundantDataChunkNum, &res)
+	k.paramStore.Get(ctx, types.KeyRedundantDataChunkNum, &res)
 	return
 }
 
 func (k Keeper) RedundantParityChunkNum(ctx sdk.Context) (res uint32) {
-	k.paramstore.Get(ctx, types.KeyRedundantParityChunkNum, &res)
+	k.paramStore.Get(ctx, types.KeyRedundantParityChunkNum, &res)
 	return
 }
 
 func (k Keeper) MaxPayloadSize(ctx sdk.Context) (res uint64) {
-	k.paramstore.Get(ctx, types.KeyMaxPayloadSize, &res)
+	k.paramStore.Get(ctx, types.KeyMaxPayloadSize, &res)
 	return
 }
 
@@ -37,5 +37,5 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 
 // SetParams set the params
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramstore.SetParamSet(ctx, &params)
+	k.paramStore.SetParamSet(ctx, &params)
 }

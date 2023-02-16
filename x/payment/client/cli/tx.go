@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
@@ -19,7 +18,6 @@ var (
 const (
 	// nolint
 	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
-	listSeparator              = ","
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -36,12 +34,6 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdDeposit())
 	cmd.AddCommand(CmdWithdraw())
 	cmd.AddCommand(CmdDisableRefund())
-	cmd.AddCommand(CmdMockCreateBucket())
-	cmd.AddCommand(CmdMockPutObject())
-	cmd.AddCommand(CmdMockSealObject())
-	cmd.AddCommand(CmdMockDeleteObject())
-	cmd.AddCommand(CmdMockSetBucketPaymentAccount())
-	cmd.AddCommand(CmdMockUpdateBucketReadPacket())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 )
@@ -30,8 +31,6 @@ var (
 	BnbPriceKeyPrefix            = []byte{0x04}
 	FlowKeyPrefix                = []byte{0x05}
 	PaymentAccountKeyPrefix      = []byte{0x06}
-	MockBucketMetaKeyPrefix      = []byte{0x07}
-	MockObjectInfoKeyPrefix      = []byte{0x08}
 )
 
 // AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
@@ -78,35 +77,6 @@ func FlowKey(
 
 	toBytes := []byte(to)
 	key = append(key, toBytes...)
-
-	return key
-}
-
-// MockBucketMetaKey returns the store key to retrieve a MockBucketMeta from the index fields
-func MockBucketMetaKey(
-	bucketName string,
-) []byte {
-	var key []byte
-
-	bucketNameBytes := []byte(bucketName)
-	key = append(key, bucketNameBytes...)
-
-	return key
-}
-
-// MockObjectInfoKey returns the store key to retrieve a MockObjectInfo from the index fields
-func MockObjectInfoKey(
-	bucketName string,
-	objectName string,
-) []byte {
-	var key []byte
-
-	bucketNameBytes := []byte(bucketName)
-	key = append(key, bucketNameBytes...)
-	key = append(key, []byte("/")...)
-
-	objectNameBytes := []byte(objectName)
-	key = append(key, objectNameBytes...)
 
 	return key
 }

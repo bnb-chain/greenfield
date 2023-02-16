@@ -122,6 +122,34 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgUpdateBucketInfo
+		err  error
+	}{
+		{
+			name: "basic",
+			msg: MsgUpdateBucketInfo{
+				Operator:       sample.AccAddress(),
+				BucketName:     testBucketName,
+				PaymentAddress: sample.AccAddress(),
+				ReadQuota:      READ_QUOTA_FREE,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
@@ -183,6 +211,33 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
 			err: ErrInvalidObjectName,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgCancelCreateObject_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgCancelCreateObject
+		err  error
+	}{
+		{
+			name: "basic",
+			msg: MsgCancelCreateObject{
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
+				ObjectName: testObjectName,
+			},
 		},
 	}
 	for _, tt := range tests {

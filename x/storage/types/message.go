@@ -8,15 +8,17 @@ import (
 
 const (
 	// For bucket
-	TypeMsgCreateBucket = "create_bucket"
-	TypeMsgDeleteBucket = "delete_bucket"
+	TypeMsgCreateBucket     = "create_bucket"
+	TypeMsgDeleteBucket     = "delete_bucket"
+	TypeMsgUpdateBucketInfo = "update_bucket_info"
 
 	// For object
-	TypeMsgCopyObject       = "copy_object"
-	TypeMsgCreateObject     = "create_object"
-	TypeMsgDeleteObject     = "delete_object"
-	TypeMsgSealObject       = "seal_object"
-	TypeMsgRejectSealObject = "reject_seal_object"
+	TypeMsgCopyObject         = "copy_object"
+	TypeMsgCreateObject       = "create_object"
+	TypeMsgDeleteObject       = "delete_object"
+	TypeMsgSealObject         = "seal_object"
+	TypeMsgRejectSealObject   = "reject_seal_object"
+	TypeMsgCancelCreateObject = "cancel_create_object"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -29,12 +31,14 @@ var (
 	// For bucket
 	_ sdk.Msg = &MsgCreateBucket{}
 	_ sdk.Msg = &MsgDeleteBucket{}
+	_ sdk.Msg = &MsgUpdateBucketInfo{}
 	// For object
 	_ sdk.Msg = &MsgCreateObject{}
 	_ sdk.Msg = &MsgDeleteObject{}
 	_ sdk.Msg = &MsgSealObject{}
 	_ sdk.Msg = &MsgCopyObject{}
 	_ sdk.Msg = &MsgRejectSealObject{}
+	_ sdk.Msg = &MsgCancelCreateObject{}
 
 	// For group
 	_ sdk.Msg = &MsgCreateGroup{}
@@ -81,6 +85,13 @@ func (msg *MsgCreateBucket) GetSigners() []sdk.AccAddress {
 func (msg *MsgCreateBucket) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
+}
+
+// GetApprovalBytes returns the message bytes of approval info.
+func (msg *MsgCreateBucket) GetApprovalBytes() []byte {
+	newMsg := msg
+	newMsg.PrimarySpApprovalSignature = []byte{}
+	return newMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.
@@ -148,6 +159,55 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
 		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	}
+
+	return nil
+}
+
+// NewMsgBucketReadQuota creates a new MsgBucketReadQuota instance.
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota ReadQuota, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
+	return &MsgUpdateBucketInfo{
+		Operator:       operator.String(),
+		BucketName:     bucketName,
+		ReadQuota:      readQuota,
+		PaymentAddress: paymentAcc.String(),
+	}
+}
+
+func (msg *MsgUpdateBucketInfo) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgUpdateBucketInfo) Type() string {
+	return TypeMsgUpdateBucketInfo
+}
+
+func (msg *MsgUpdateBucketInfo) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgUpdateBucketInfo) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if err := CheckValidBucketName(msg.BucketName); err != nil {
+		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
 	}
 
 	return nil
@@ -233,6 +293,58 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
 		}
 	}
+	return nil
+}
+
+// GetApprovalBytes returns the message bytes of approval info.
+func (msg *MsgCreateObject) GetApprovalBytes() []byte {
+	newMsg := msg
+	newMsg.PrimarySpApprovalSignature = []byte{}
+	return newMsg.GetSignBytes()
+}
+
+func NewMsgCancelCreateObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgCancelCreateObject {
+	return &MsgCancelCreateObject{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+}
+
+func (msg *MsgCancelCreateObject) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgCancelCreateObject) Type() string {
+	return TypeMsgCancelCreateObject
+}
+
+func (msg *MsgCancelCreateObject) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgCancelCreateObject) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgCancelCreateObject) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+	if err := CheckValidBucketName(msg.BucketName); err != nil {
+		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	}
+
+	if err := CheckValidObjectName(msg.ObjectName); err != nil {
+		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+	}
+
 	return nil
 }
 
@@ -348,6 +460,7 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
+	// TODO: 6 hard code here.
 	if len(msg.SecondarySpAddresses) != 6 {
 		return sdkerrors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (d%), but (d%)", 6, len(msg.SecondarySpAddresses))
 	}
@@ -407,6 +520,13 @@ func (msg *MsgCopyObject) GetSigners() []sdk.AccAddress {
 func (msg *MsgCopyObject) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
+}
+
+// GetApprovalBytes returns the message bytes of approval info.
+func (msg *MsgCopyObject) GetApprovalBytes() []byte {
+	newMsg := msg
+	newMsg.DstPrimarySpApprovalSignature = []byte{}
+	return newMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.

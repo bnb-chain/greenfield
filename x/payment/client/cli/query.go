@@ -2,13 +2,9 @@ package cli
 
 import (
 	"fmt"
-	// "strings"
-
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
@@ -33,10 +29,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdShowPaymentAccount())
 	cmd.AddCommand(CmdDynamicBalance())
 	cmd.AddCommand(CmdGetPaymentAccountsByOwner())
-	cmd.AddCommand(CmdListMockBucketMeta())
-	cmd.AddCommand(CmdShowMockBucketMeta())
-	cmd.AddCommand(CmdListMockObjectInfo())
-	cmd.AddCommand(CmdShowMockObjectInfo())
 	cmd.AddCommand(CmdListAutoSettleRecord())
 	cmd.AddCommand(CmdShowAutoSettleRecord())
 	cmd.AddCommand(CmdListBnbPrice())

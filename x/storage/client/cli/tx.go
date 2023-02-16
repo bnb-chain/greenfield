@@ -42,6 +42,8 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdUpdateGroupMember())
 	cmd.AddCommand(CmdLeaveGroup())
 	cmd.AddCommand(CmdCopyObject())
+	cmd.AddCommand(CmdUpdateBucketInfo())
+	cmd.AddCommand(CmdCancelCreateObject())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -74,11 +76,6 @@ func CmdCreateBucket() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			// TODO: verify the signature in advance.
-			primarySPApproval, err := cmd.Flags().GetBytesHex(FlagPrimarySPApproval)
-			if err != nil {
-				return err
-			}
 
 			if paymentAccStr != "" {
 				if paymentAddress, err = sdk.AccAddressFromHexUnsafe(paymentAccStr); err != nil {
@@ -92,7 +89,7 @@ func CmdCreateBucket() *cobra.Command {
 				isPublic,
 				primarySPAddress,
 				paymentAddress,
-				primarySPApproval, // TODO: Refine the cli parameters
+				nil, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -103,7 +100,6 @@ func CmdCreateBucket() *cobra.Command {
 
 	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
-	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -125,6 +121,68 @@ func CmdDeleteBucket() *cobra.Command {
 			msg := types.NewMsgDeleteBucket(
 				clientCtx.GetFromAddress(),
 				argBucketName,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateBucketInfo() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-read-quota [bucket-name]",
+		Short: "Update the meta of bucket, E.g ReadQuota, PaymentAccount",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateBucketInfo(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				types.READ_QUOTA_FREE,
+				nil,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdCancelCreateObject() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "cancel-create-object [bucket-name] [object-name]",
+		Short: "Broadcast message cancel_create_object",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+			argObjectName := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCancelCreateObject(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				argObjectName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -200,7 +258,6 @@ func CmdCreateObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(FlagPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
-	cmd.Flags().BytesHex(FlagPrimarySPApproval, []byte(""), "The signature of the primary SP which means the SP has confirm this transaction.")
 	return cmd
 }
 
