@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"os"
 	"time"
@@ -92,14 +93,15 @@ func CmdCreateBucket() *cobra.Command {
 				isPublic,
 				primarySPAcc,
 				paymentAcc,
+				math.MaxUint,
 				nil,
 			)
-			approval, _, err := clientCtx.Keyring.Sign(approverName, msg.GetApprovalBytes())
+			sig, _, err := clientCtx.Keyring.Sign(approverName, msg.GetApprovalBytes())
 			if err != nil {
 				return err
 			}
 
-			msg.PrimarySpApprovalSignature = approval
+			msg.PrimarySpApproval.Sig = sig
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -258,7 +260,8 @@ func CmdCreateObject() *cobra.Command {
 				isPublic,
 				expectChecksum,
 				contentType,
-				[]byte("for-test"),
+				math.MaxUint,
+				nil,
 				nil, // NOTE(fynn): Not specified here.
 			)
 			primarySP, err := cmd.Flags().GetString(FlagPrimarySP)
@@ -269,11 +272,11 @@ func CmdCreateObject() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			approval, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
+			sig, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
 			if err != nil {
 				return err
 			}
-			msg.PrimarySpApprovalSignature = approval
+			msg.PrimarySpApproval.Sig = sig
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -310,6 +313,7 @@ func CmdCopyObject() *cobra.Command {
 				argDstBucketName,
 				argSrcObjectName,
 				argDstObjectName,
+				math.MaxUint,
 				nil, // TODO: Refine the cli parameters
 			)
 			if err := msg.ValidateBasic(); err != nil {

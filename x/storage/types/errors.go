@@ -26,6 +26,7 @@ var (
 	ErrObjectNotInService          = errors.Register(ModuleName, 1117, "object not in service")
 	ErrSourceTypeMismatch          = errors.Register(ModuleName, 1118, "object source type mismatch")
 	ErrTooLargeObject              = errors.Register(ModuleName, 1119, "object payload size is too large")
+	ErrInvalidApproval             = errors.Register(ModuleName, 1120, "Invalid approval of sp")
 
 	ErrInvalidBucketName  = errors.Register(ModuleName, 2000, "invalid bucket name")
 	ErrInvalidObjectName  = errors.Register(ModuleName, 2001, "invalid object name")

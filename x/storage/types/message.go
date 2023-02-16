@@ -52,14 +52,14 @@ var (
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
 	creator sdk.AccAddress, bucketName string, isPublic bool,
-	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, primarySPApproval []byte) *MsgCreateBucket {
+	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte) *MsgCreateBucket {
 	return &MsgCreateBucket{
-		Creator:                    creator.String(),
-		BucketName:                 bucketName,
-		IsPublic:                   isPublic,
-		PaymentAddress:             paymentAddress.String(),
-		PrimarySpAddress:           primarySPAddress.String(),
-		PrimarySpApprovalSignature: primarySPApproval,
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		IsPublic:          isPublic,
+		PaymentAddress:    paymentAddress.String(),
+		PrimarySpAddress:  primarySPAddress.String(),
+		PrimarySpApproval: &Approval{timeoutHeight, sig},
 	}
 }
 
@@ -92,7 +92,7 @@ func (msg *MsgCreateBucket) GetSignBytes() []byte {
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateBucket) GetApprovalBytes() []byte {
 	fakeMsg := proto.Clone(msg).(*MsgCreateBucket)
-	fakeMsg.PrimarySpApprovalSignature = []byte{}
+	fakeMsg.PrimarySpApproval.Sig = []byte{}
 	return fakeMsg.GetSignBytes()
 }
 
@@ -218,7 +218,7 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	isPublic bool, expectChecksums [][]byte, contentType string, primarySPApproval []byte,
+	isPublic bool, expectChecksums [][]byte, contentType string, timeoutHeight uint64, sig []byte,
 	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
 
 	var secSPAddrs []string
@@ -233,7 +233,7 @@ func NewMsgCreateObject(
 		PayloadSize:                payloadSize,
 		IsPublic:                   isPublic,
 		ContentType:                contentType,
-		PrimarySpApprovalSignature: primarySPApproval,
+		PrimarySpApproval:          &Approval{timeoutHeight, sig},
 		ExpectChecksums:            expectChecksums,
 		ExpectSecondarySpAddresses: secSPAddrs,
 	}
@@ -286,10 +286,6 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return errors.Wrapf(ErrInvalidContentType, "invalid checksum (%s)", err)
 	}
 
-	if msg.PrimarySpApprovalSignature == nil {
-		return errors.Wrapf(ErrInvalidSPSignature, "empty sp signature")
-	}
-
 	for _, spAddress := range msg.ExpectSecondarySpAddresses {
 		if _, err := sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
@@ -301,7 +297,7 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateObject) GetApprovalBytes() []byte {
 	fakeMsg := proto.Clone(msg).(*MsgCreateObject)
-	fakeMsg.PrimarySpApprovalSignature = []byte{}
+	fakeMsg.PrimarySpApproval.Sig = []byte{}
 	return fakeMsg.GetSignBytes()
 }
 
@@ -489,14 +485,14 @@ func (msg *MsgSealObject) ValidateBasic() error {
 
 func NewMsgCopyObject(
 	operator sdk.AccAddress, srcBucketName string, dstBucketName string,
-	srcObjectName string, dstObjectName string, dstPrimarySPApproval []byte) *MsgCopyObject {
+	srcObjectName string, dstObjectName string, timeoutHeight uint64, sig []byte) *MsgCopyObject {
 	return &MsgCopyObject{
-		Operator:                      operator.String(),
-		SrcBucketName:                 srcBucketName,
-		DstBucketName:                 dstBucketName,
-		SrcObjectName:                 srcObjectName,
-		DstObjectName:                 dstObjectName,
-		DstPrimarySpApprovalSignature: dstPrimarySPApproval,
+		Operator:             operator.String(),
+		SrcBucketName:        srcBucketName,
+		DstBucketName:        dstBucketName,
+		SrcObjectName:        srcObjectName,
+		DstObjectName:        dstObjectName,
+		DstPrimarySpApproval: &Approval{timeoutHeight, sig},
 	}
 }
 
@@ -527,7 +523,7 @@ func (msg *MsgCopyObject) GetSignBytes() []byte {
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCopyObject) GetApprovalBytes() []byte {
 	fakeMsg := proto.Clone(msg).(*MsgCopyObject)
-	fakeMsg.DstPrimarySpApprovalSignature = []byte{}
+	fakeMsg.DstPrimarySpApproval.Sig = []byte{}
 	return fakeMsg.GetSignBytes()
 }
 

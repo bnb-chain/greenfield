@@ -37,3 +37,8 @@ enum ObjectStatus {
   OBJECT_STATUS_INIT = 0;
   OBJECT_STATUS_IN_SERVICE = 1;
 }
+
+message Approval {
+  uint64 timeout_height = 1;
+  bytes sig = 2;
+}
