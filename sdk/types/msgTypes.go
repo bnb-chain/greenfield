@@ -49,16 +49,10 @@ type (
 
 	MsgTransferOut = bridgetypes.MsgTransferOut
 
-	MsgCreatePaymentAccount        = paymenttypes.MsgCreatePaymentAccount
-	MsgPaymentDeposit              = paymenttypes.MsgDeposit
-	MsgWithdraw                    = paymenttypes.MsgWithdraw
-	MsgDisableRefund               = paymenttypes.MsgDisableRefund
-	MsgMockCreateBucket            = paymenttypes.MsgMockCreateBucket
-	MsgMockPutObject               = paymenttypes.MsgMockPutObject
-	MsgMockSealObject              = paymenttypes.MsgMockSealObject
-	MsgMockDeleteObject            = paymenttypes.MsgMockDeleteObject
-	MsgMockSetBucketPaymentAccount = paymenttypes.MsgMockSetBucketPaymentAccount
-	MsgMockUpdateBucketReadPacket  = paymenttypes.MsgMockUpdateBucketReadPacket
+	MsgCreatePaymentAccount = paymenttypes.MsgCreatePaymentAccount
+	MsgPaymentDeposit       = paymenttypes.MsgDeposit
+	MsgWithdraw             = paymenttypes.MsgWithdraw
+	MsgDisableRefund        = paymenttypes.MsgDisableRefund
 
 	MsgCreateStorageProvider = sptypes.MsgCreateStorageProvider
 	MsgSpDeposit             = sptypes.MsgDeposit

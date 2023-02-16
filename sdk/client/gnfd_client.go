@@ -1,4 +1,4 @@
-package chain
+package client
 
 import (
 	_ "encoding/json"

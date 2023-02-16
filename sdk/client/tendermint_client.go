@@ -1,4 +1,4 @@
-package chain
+package client
 
 import (
 	"github.com/tendermint/tendermint/rpc/client"
