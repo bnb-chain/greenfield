@@ -1,7 +1,7 @@
 package core
 
 import (
-	client "github.com/bnb-chain/greenfield/sdk/client/chain"
+	"github.com/bnb-chain/greenfield/sdk/client"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
