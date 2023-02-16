@@ -2,7 +2,7 @@ package utils
 
 import (
 	"encoding/hex"
-	"fmt"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 	"regexp"
 	"strings"
 	"unicode/utf8"
@@ -45,42 +45,10 @@ func EncodePath(pathName string) string {
 // IsValidBucketName judge if the bucketname is invalid
 // The rule is based on https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html
 func IsValidBucketName(bucketName string) error {
-	nameLen := len(bucketName)
-	if nameLen < 3 || nameLen > 63 {
-		return fmt.Errorf("bucket name %s len is between [3-63],now is %d", bucketName, nameLen)
-	}
-
-	ipAddress := regexp.MustCompile(`^(\d+\.){3}\d+$`)
-
-	if ipAddress.MatchString(bucketName) {
-		return fmt.Errorf("The bucket name %s cannot be formatted as an IP address", bucketName)
-	}
-
-	if strings.Contains(bucketName, "..") || strings.Contains(bucketName, ".-") || strings.Contains(bucketName, "-.") {
-		return fmt.Errorf("Bucket name %s  contains invalid characters", bucketName)
-	}
-	for _, v := range bucketName {
-		if !(('a' <= v && v <= 'z') || ('0' <= v && v <= '9') || v == '-' || v == '.') {
-			return fmt.Errorf("bucket name %s can only include lowercase letters, numbers, - and .", bucketName)
-		}
-	}
-	if bucketName[0] == '-' || bucketName[nameLen-1] == '-' || bucketName[0] == '.' || bucketName[nameLen-1] == '.' {
-		return fmt.Errorf("bucket name %s must start and end with a lowercase letter or number", bucketName)
-	}
-	return nil
+	return types.CheckValidBucketName(bucketName)
 }
 
 // IsValidObjectName judge if the objectname is invalid
 func IsValidObjectName(objectName string) error {
-	if len(objectName) == 0 {
-		return fmt.Errorf("object name is empty")
-	}
-	if len(objectName) > 1024 {
-		return fmt.Errorf("object length can not be longer than 1024")
-	}
-
-	if !utf8.ValidString(objectName) {
-		return fmt.Errorf("object name invalid, with non UTF-8 strings")
-	}
-	return nil
+	return types.CheckValidObjectName(objectName)
 }
