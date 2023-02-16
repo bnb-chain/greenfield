@@ -2,10 +2,11 @@ package utils
 
 import (
 	"encoding/hex"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 // EncodePath encode the strings from UTF-8 byte representations to HTML hex escape sequences
