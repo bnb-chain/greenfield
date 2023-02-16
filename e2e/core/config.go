@@ -22,7 +22,7 @@ func InitE2eConfig() *Config {
 	return &Config{
 		GrpcAddr: "localhost:9090",
 		ChainId:  "greenfield_9000-121",
-		Denom:    "bnb",
+		Denom:    "BNB",
 		Mnemonic: ParseValidatorMnemonic(0),
 	}
 }

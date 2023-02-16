@@ -133,8 +133,7 @@ function generate_genesis() {
         sed -i -e "s/\"reserve_time\": \"15552000\"/\"reserve_time\": \"600\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"forced_settle_time\": \"86400\"/\"forced_settle_time\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/172800s/${DEPOSIT_VOTE_PERIOD}/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"10000000\"/\"${MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-
+        sed -i -e "s/\"10000000\"/\"${GOV_MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
 
     # enable swagger API for validator0
