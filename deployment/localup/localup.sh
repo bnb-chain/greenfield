@@ -181,7 +181,7 @@ function sp_join() {
         sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
         sleep 6
         ${bin} tx sp grant 0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2 \
-            --spend-limit 1000000bnb \
+            --spend-limit 10000000000000000000000BNB \
             --SPAddress "${sp_addr}" \
             --from sp${i}_fund \
             --home "${workspace}/.local/sp${i}" \
@@ -218,7 +218,7 @@ function sp_join() {
 
         sleep 6
         # deposit the proposal
-        ${bin} tx gov deposit $((${PROPOSAL_ID_START} + ${i})) 10000bnb \
+        ${bin} tx gov deposit $((${PROPOSAL_ID_START} + ${i})) 1000000000000000000BNB \
             --from sp${i} \
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
