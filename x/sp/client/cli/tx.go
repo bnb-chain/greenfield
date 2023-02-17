@@ -14,16 +14,11 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
-	DefaultEndpoint                       = "sp0.greenfield.io"
-)
-
 const (
-	flagPacketTimeoutTimestamp = "packet-timeout-timestamp"
-	FlagSpendLimit             = "spend-limit"
-	FlagSpAddress              = "SPAddress"
-	FlagExpiration             = "expiration"
+	FlagSpendLimit  = "spend-limit"
+	FlagSpAddress   = "SPAddress"
+	FlagExpiration  = "expiration"
+	DefaultEndpoint = "sp0.greenfield.io"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -36,7 +31,6 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	// cmd.AddCommand(CmdCreateStorageProvider())
 	cmd.AddCommand(CmdDeposit())
 	cmd.AddCommand(CmdEditStorageProvider())
 	cmd.AddCommand(CmdGrantDepositAuthorization())
@@ -44,40 +38,6 @@ func GetTxCmd() *cobra.Command {
 
 	return cmd
 }
-
-//func CmdCreateStorageProvider() *cobra.Command {
-//	cmd := &cobra.Command{
-//		Use:   "create-storage-provider",
-//		Short: "Broadcast message createStorageProvider",
-//		Args:  cobra.ExactArgs(0),
-//		RunE: func(cmd *cobra.Command, args []string) (err error) {
-//
-//			clientCtx, err := client.GetClientTxContext(cmd)
-//			if err != nil {
-//				return err
-//			}
-//			// TODO: impl later
-//			msg, _ := types.NewMsgCreateStorageProvider(
-//				clientCtx.GetFromAddress(),
-//				clientCtx.GetFromAddress(),
-//				clientCtx.GetFromAddress(),
-//				clientCtx.GetFromAddress(),
-//				clientCtx.GetFromAddress(),
-//				types.Description{},
-//				"",
-//				types2.Coin{},
-//			)
-//			if err := msg.ValidateBasic(); err != nil {
-//				return err
-//			}
-//			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-//		},
-//	}
-//
-//	flags.AddTxFlagsToCmd(cmd)
-//
-//	return cmd
-//}
 
 func CmdEditStorageProvider() *cobra.Command {
 	cmd := &cobra.Command{
