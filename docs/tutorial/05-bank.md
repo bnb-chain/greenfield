@@ -54,7 +54,7 @@ gnfd query bank balances [address] [flags]
 Example:
 
 ```sh
-gnfd query bank balances 0xabcd..
+gnfd query bank balances 0x73a4Cf67b46D7E4efbb95Fc6F59D64129299c2E3
 ```
 
 Example Output:
