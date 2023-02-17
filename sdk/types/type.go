@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 )
 
-const Denom = "bnb"
+const Denom = "gweibnb"
 
 type TxOption struct {
 	Mode      *tx.BroadcastMode

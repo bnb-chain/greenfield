@@ -28,7 +28,7 @@ func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, op
 	txBuilder := txConfig.NewTxBuilder()
 
 	// txBuilder holds tx info
-	if err := c.constructTxWithGas(msgs, txOpt, txConfig, txBuilder); err != nil {
+	if err := c.constructTxWithGasInfo(msgs, txOpt, txConfig, txBuilder); err != nil {
 		return nil, err
 	}
 
@@ -93,7 +93,7 @@ func (c *GreenfieldClient) simulateTx(txBytes []byte, opts ...grpc.CallOption) (
 func (c *GreenfieldClient) SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
-	if err := c.constructTxWithGas(msgs, txOpt, txConfig, txBuilder); err != nil {
+	if err := c.constructTxWithGasInfo(msgs, txOpt, txConfig, txBuilder); err != nil {
 		return nil, err
 	}
 	return c.signTx(txConfig, txBuilder)
@@ -179,7 +179,7 @@ func (c *GreenfieldClient) constructTx(msgs []sdk.Msg, txOpt *types.TxOption, tx
 	return c.setSingerInfo(txBuilder)
 }
 
-func (c *GreenfieldClient) constructTxWithGas(msgs []sdk.Msg, txOpt *types.TxOption, txConfig client.TxConfig, txBuilder client.TxBuilder) error {
+func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.TxOption, txConfig client.TxConfig, txBuilder client.TxBuilder) error {
 	// construct a tx with txOpt excluding GasLimit and
 	if err := c.constructTx(msgs, txOpt, txBuilder); err != nil {
 		return err
@@ -202,9 +202,9 @@ func (c *GreenfieldClient) constructTxWithGas(msgs []sdk.Msg, txOpt *types.TxOpt
 		return err
 	}
 	if gasPrice.IsZero() {
-		return errors.Wrap(types.SimulatedGasPriceError, "gas price is 0 ")
+		return errors.Wrap(types.SimulatedGasPriceError, "gas price is 0. ")
 	}
-	feeAmount := sdk.NewCoins(sdk.NewInt64Coin("gweibnb",
+	feeAmount := sdk.NewCoins(sdk.NewInt64Coin(types.Denom,
 		sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()),
 	)
 	if txOpt != nil && !txOpt.FeeAmount.IsZero() {
