@@ -39,6 +39,6 @@ enum ObjectStatus {
 }
 
 message Approval {
-  uint64 timeout_height = 1;
+  uint64 expired_height = 1;
   bytes sig = 2;
 }

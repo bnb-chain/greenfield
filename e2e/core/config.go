@@ -7,16 +7,16 @@ import (
 )
 
 type SPMnemonics struct {
-	OperatorMnemonic string `yaml:"Mnemonic"` // test account mnemonic with enough balance
-	SealMnemonic     string `yaml:"Mnemonic"` // test account mnemonic with enough balance
-	FundingMnemonic  string `yaml:"Mnemonic"` // test account mnemonic with enough balance
-	ApprovalMnemonic string `yaml:"Mnemonic"` // test account mnemonic with enough balance
+	OperatorMnemonic string `yaml:"Mnemonic"` // operator account mnemonic with enough balance
+	SealMnemonic     string `yaml:"Mnemonic"` // seal account mnemonic with enough balance
+	FundingMnemonic  string `yaml:"Mnemonic"` // funding account mnemonic with enough balance
+	ApprovalMnemonic string `yaml:"Mnemonic"` // approval account mnemonic with enough balance
 }
 
 type Config struct {
 	GrpcAddr          string      `yaml:"GrpcAddr"`
 	ChainId           string      `yaml:"ChainId"`
-	ValidatorMnemonic string      `yaml:"Mnemonic"` // test account mnemonic with enough balance
+	ValidatorMnemonic string      `yaml:"Mnemonic"` // validator operator account mnemonic with enough balance
 	SPMnemonics       SPMnemonics `yaml:"SPMnemonics"`
 	Denom             string      `yaml:"Denom"`
 }
