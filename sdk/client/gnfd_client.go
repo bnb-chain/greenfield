@@ -114,6 +114,10 @@ func NewGreenfieldClient(grpcAddr, chainId string, opts ...GreenfieldClientOptio
 	return client
 }
 
+func (c *GreenfieldClient) SetKeyManager(keyManager keys.KeyManager) {
+	c.keyManager = keyManager
+}
+
 func (c *GreenfieldClient) GetKeyManager() (keys.KeyManager, error) {
 	if c.keyManager == nil {
 		return nil, types.KeyManagerNotInitError

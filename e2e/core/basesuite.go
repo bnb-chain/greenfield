@@ -8,18 +8,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 type BaseSuite struct {
 	suite.Suite
 	config      *Config
-	Client      client.GreenfieldClient
+	Client      *client.GreenfieldClient
 	TestAccount keys.KeyManager
 }
 
 func (s *BaseSuite) SetupSuite() {
 	s.config = InitConfig()
-	s.Client = client.NewGreenfieldClient(s.config.GrpcAddr, s.config.ChainId)
+	s.Client = client.NewGreenfieldClient(s.config.GrpcAddr, s.config.ChainId,
+		client.WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	var err error
 	s.TestAccount, err = keys.NewMnemonicKeyManager(s.config.Mnemonic)
 	s.Require().NoError(err)
