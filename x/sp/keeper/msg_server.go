@@ -28,7 +28,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signers := msg.GetSigners()
-	if len(signers) != 1 || !signers[0].Equals(k.authKeeper.GetModuleAddress(gov.ModuleName)) {
+	if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
 		return nil, types.ErrSignerNotGovModule
 	}
 
@@ -37,12 +37,9 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	// create the account if it is not in account state
-	acc := k.authKeeper.GetAccount(ctx, spAcc)
+	acc := k.accountKeeper.GetAccount(ctx, spAcc)
 	if acc == nil {
 		return nil, err
-		// granteeAcc = k.authKeeper.NewAccountWithAddress(ctx, spAcc)
-		// k.authKeeper.SetAccount(ctx, granteeAcc)
 	}
 
 	fundingAcc, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
@@ -81,7 +78,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	if ctx.BlockHeader().Height != 0 {
 		err = k.CheckDepositAuthorization(
 			ctx,
-			k.authKeeper.GetModuleAddress(gov.ModuleName),
+			k.accountKeeper.GetModuleAddress(gov.ModuleName),
 			fundingAcc,
 			types.NewMsgDeposit(fundingAcc, spAcc, msg.Deposit))
 		if err != nil {
