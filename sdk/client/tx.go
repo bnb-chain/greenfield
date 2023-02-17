@@ -2,12 +2,11 @@ package client
 
 import (
 	"context"
-	"fmt"
-
 	"github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -194,29 +193,25 @@ func (c *GreenfieldClient) constructTxWithGas(msgs []sdk.Msg, txOpt *types.TxOpt
 		return err
 	}
 
-	fmt.Printf("gs info %s", simulateRes.GasInfo.String())
-
 	gasLimit := simulateRes.GasInfo.GetGasUsed()
+	if txOpt != nil && txOpt.GasLimit != 0 {
+		gasLimit = txOpt.GasLimit
+	}
 	gasPrice, err := sdk.ParseCoinsNormalized(simulateRes.GasInfo.GetMinGasPrices())
 	if err != nil {
 		return err
 	}
-
-	fmt.Printf("gaslimit %d", gasLimit)
-	fmt.Printf("gasPrice %s", gasPrice.String())
-
-	txBuilder.SetGasLimit(gasLimit)
-	feeAmount := sdk.NewCoins(sdk.NewInt64Coin(types.Denom, sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()))
-	fmt.Printf("feeAmount %s", feeAmount.String())
-	txBuilder.SetFeeAmount(feeAmount)
-	if txOpt != nil {
-		if txOpt.GasLimit != 0 {
-			txBuilder.SetGasLimit(txOpt.GasLimit)
-		}
-		if !txOpt.FeeAmount.IsZero() {
-			txBuilder.SetFeeAmount(txOpt.FeeAmount)
-		}
+	if gasPrice.IsZero() {
+		return errors.Wrap(types.SimulatedGasPriceError, "gas price is 0 ")
 	}
+	feeAmount := sdk.NewCoins(sdk.NewInt64Coin("gweibnb",
+		sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()),
+	)
+	if txOpt != nil && !txOpt.FeeAmount.IsZero() {
+		feeAmount = txOpt.FeeAmount
+	}
+	txBuilder.SetGasLimit(gasLimit)
+	txBuilder.SetFeeAmount(feeAmount)
 	return nil
 }
 
