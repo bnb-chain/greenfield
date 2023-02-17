@@ -52,10 +52,10 @@ function generate_genesis() {
       spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
       spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
       spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
-      ${bin} add-genesis-account $sp_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM},${GENESIS_ACCOUNT_BALANCE}${GAS_DENOM}  --home ${workspace}/.local/validator0
-      ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM},${GENESIS_ACCOUNT_BALANCE}${GAS_DENOM} --home ${workspace}/.local/validator0
-      ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM},${GENESIS_ACCOUNT_BALANCE}${GAS_DENOM}  --home ${workspace}/.local/validator0
-      ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM},${GENESIS_ACCOUNT_BALANCE}${GAS_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $sp_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     done
 
     size=$1
@@ -75,12 +75,12 @@ function generate_genesis() {
     for ((i=0;i<${size};i++));do
         for validator_addr in "${validator_addrs[@]}";do
             # init genesis account in genesis state
-            ${bin} add-genesis-account $validator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM},${GENESIS_ACCOUNT_BALANCE}${GAS_DENOM} --home ${workspace}/.local/validator${i}
+            ${bin} add-genesis-account $validator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
         for relayer_addr in "${relayer_addrs[@]}";do
             # init genesis account in genesis state
-            ${bin} add-genesis-account $relayer_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM},${GENESIS_ACCOUNT_BALANCE}${GAS_DENOM} --home ${workspace}/.local/validator${i}
+            ${bin} add-genesis-account $relayer_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
