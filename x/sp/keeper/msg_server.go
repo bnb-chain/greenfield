@@ -80,20 +80,19 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 			return nil, err
 		}
 	}
-
-	sp, err := types.NewStorageProvider(spAcc, fundingAcc, sealAcc, approvalAcc, msg.Description)
-	if err != nil {
-		return nil, err
-	}
-
-	k.SetStorageProvider(ctx, sp)
-
 	// deposit coins to module account. move coins from sp address account to module account.
 	// Requires FeeGrant module authorization
 	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), msg.Deposit.Amount))
 	if err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, fundingAcc, types.ModuleName, coins); err != nil {
 		return nil, err
 	}
+
+	sp, err := types.NewStorageProvider(spAcc, fundingAcc, sealAcc, approvalAcc, msg.Deposit.Amount, msg.Endpoint, msg.Description)
+	if err != nil {
+		return nil, err
+	}
+
+	k.SetStorageProvider(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),

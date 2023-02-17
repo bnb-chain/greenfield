@@ -24,13 +24,15 @@ const (
 func NewStorageProvider(
 	operator sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress,
+	totalDeposit math.Int, endpoint string,
 	description Description) (StorageProvider, error) {
 	return StorageProvider{
 		OperatorAddress: operator.String(),
 		FundingAddress:  fundingAddress.String(),
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
-		TotalDeposit:    sdk.ZeroInt(),
+		TotalDeposit:    totalDeposit,
+		Endpoint:        endpoint,
 		Description:     description,
 	}, nil
 }
