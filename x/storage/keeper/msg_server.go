@@ -429,6 +429,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		IsPublic:       srcObjectInfo.IsPublic,
 		ContentType:    srcObjectInfo.ContentType,
 		CreateAt:       ctx.BlockHeight(),
+		Id:             k.GetObjectID(ctx),
 		ObjectStatus:   types.OBJECT_STATUS_INIT,
 		RedundancyType: types.REDUNDANCY_EC_TYPE,
 		SourceType:     types.SOURCE_TYPE_ORIGIN,

@@ -2,12 +2,13 @@ package tests
 
 import (
 	"context"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-	"github.com/stretchr/testify/suite"
 	"math"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/bnb-chain/greenfield/e2e/core"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 var (
