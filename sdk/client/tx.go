@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -193,14 +194,20 @@ func (c *GreenfieldClient) constructTxWithGas(msgs []sdk.Msg, txOpt *types.TxOpt
 		return err
 	}
 
+	fmt.Printf("gs info %s", simulateRes.GasInfo.String())
+
 	gasLimit := simulateRes.GasInfo.GetGasUsed()
 	gasPrice, err := sdk.ParseCoinsNormalized(simulateRes.GasInfo.GetMinGasPrices())
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("gaslimit %d", gasLimit)
+	fmt.Printf("gasPrice %s", gasPrice.String())
+
 	txBuilder.SetGasLimit(gasLimit)
-	price := gasPrice.AmountOf(types.Denom)
-	feeAmount := sdk.NewCoins(sdk.NewInt64Coin(types.Denom, sdk.NewInt(int64(gasLimit)).Mul(price).Int64()))
+	feeAmount := sdk.NewCoins(sdk.NewInt64Coin(types.Denom, sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()))
+	fmt.Printf("feeAmount %s", feeAmount.String())
 	txBuilder.SetFeeAmount(feeAmount)
 	if txOpt != nil {
 		if txOpt.GasLimit != 0 {
