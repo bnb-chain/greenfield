@@ -5,6 +5,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 )
 
+const Denom = "bnb"
+
 type TxOption struct {
 	Mode      *tx.BroadcastMode
 	GasLimit  uint64
