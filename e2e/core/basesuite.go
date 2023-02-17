@@ -13,11 +13,19 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
+type SPKeyManagers struct {
+	OperatorKey keys.KeyManager
+	SealKey     keys.KeyManager
+	FundingKey  keys.KeyManager
+	ApprovalKey keys.KeyManager
+}
+
 type BaseSuite struct {
 	suite.Suite
-	config      *Config
-	Client      *client.GreenfieldClient
-	TestAccount keys.KeyManager
+	config          *Config
+	Client          client.GreenfieldClient
+	Validator       keys.KeyManager
+	StorageProvider SPKeyManagers
 }
 
 func (s *BaseSuite) SetupSuite() {
@@ -25,7 +33,15 @@ func (s *BaseSuite) SetupSuite() {
 	s.Client = client.NewGreenfieldClient(s.config.GrpcAddr, s.config.ChainId,
 		client.WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
 	var err error
-	s.TestAccount, err = keys.NewMnemonicKeyManager(s.config.Mnemonic)
+	s.Validator, err = keys.NewMnemonicKeyManager(s.config.ValidatorMnemonic)
+	s.Require().NoError(err)
+	s.StorageProvider.OperatorKey, err = keys.NewMnemonicKeyManager(s.config.SPMnemonics.OperatorMnemonic)
+	s.Require().NoError(err)
+	s.StorageProvider.SealKey, err = keys.NewMnemonicKeyManager(s.config.SPMnemonics.SealMnemonic)
+	s.Require().NoError(err)
+	s.StorageProvider.FundingKey, err = keys.NewMnemonicKeyManager(s.config.SPMnemonics.FundingMnemonic)
+	s.Require().NoError(err)
+	s.StorageProvider.ApprovalKey, err = keys.NewMnemonicKeyManager(s.config.SPMnemonics.ApprovalMnemonic)
 	s.Require().NoError(err)
 }
 
@@ -60,13 +76,13 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 		return
 	}
 	in := banktypes.Input{
-		Address: s.TestAccount.GetAddr().String(),
+		Address: s.Validator.GetAddr().String(),
 		Coins:   []sdk.Coin{{Denom: denom, Amount: sdk.NewInt(balance * 1e18 * int64(n))}},
 	}
 	msg := banktypes.MsgMultiSend{
 		Inputs:  []banktypes.Input{in},
 		Outputs: outputs,
 	}
-	_ = s.SendTxBlock(&msg, s.TestAccount)
+	_ = s.SendTxBlock(&msg, s.Validator)
 	return accounts
 }
