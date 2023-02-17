@@ -78,7 +78,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
 
-	// 去重 ?
+	// TODO:Duplicate Elimination
 
 	if msg.Description == (Description{}) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
