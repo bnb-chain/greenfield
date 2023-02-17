@@ -10,13 +10,11 @@ import (
 const (
 	DefaultTransferOutRelayerFeeParam    string = "1"
 	DefaultTransferOutAckRelayerFeeParam string = "0"
-	DefaultSyncParamsRelayerFeeParam     string = "1"
 )
 
 var (
 	KeyParamTransferOutRelayerFee    = []byte("TransferOutRelayerFee")
 	KeyParamTransferOutAckRelayerFee = []byte("TransferOutAckRelayerFee")
-	KeySyncParamsRelayerFee          = []byte("SyncParamsRelayerFee")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
