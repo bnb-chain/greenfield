@@ -849,7 +849,7 @@ func (app *App) SimulationManager() *module.SimulationManager {
 }
 
 func (app *App) RegisterCrossChainSyncParamsApp() error {
-	if err := app.CrossChainKeeper.RegisterChannel(paramproposal.SyncParamsChannel, paramproposal.SyncParamsChannelID, app.ParamsKeeper); err != nil {
+	if err := app.CrossChainKeeper.RegisterChannel(bridgemoduletypes.SyncParamsChannel, bridgemoduletypes.SyncParamsChannelID, app.ParamsKeeper); err != nil {
 		return err
 	}
 	return nil
