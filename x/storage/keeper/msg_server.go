@@ -45,6 +45,10 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		paymentAcc = ownerAcc
 	}
 
+	primaryAcc, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	if err != nil {
+		return nil, err
+	}
 	if msg.PrimarySpApproval.TimeoutHeight < uint64(ctx.BlockHeight()) {
 		return nil, errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
@@ -63,7 +67,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		SourceType:       types.SOURCE_TYPE_ORIGIN,
 		ReadQuota:        types.READ_QUOTA_FREE,
 		PaymentAddress:   paymentAcc.String(),
-		PrimarySpAddress: msg.PrimarySpAddress,
+		PrimarySpAddress: primaryAcc.String(),
 	}
 
 	if msg.ReadQuota != types.READ_QUOTA_FREE {

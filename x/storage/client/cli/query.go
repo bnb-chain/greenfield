@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -27,6 +28,8 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdQueryParams())
 	cmd.AddCommand(CmdHeadBucket())
 	cmd.AddCommand(CmdHeadObject())
+	cmd.AddCommand(CmdListBuckets())
+	cmd.AddCommand(CmdListObjects())
 
 	// this line is used by starport scaffolding # 1
 
@@ -48,11 +51,11 @@ func CmdHeadBucket() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryBucketRequest{
+			params := &types.QueryHeadBucketRequest{
 				BucketName: reqBucketName,
 			}
 
-			res, err := queryClient.Bucket(cmd.Context(), params)
+			res, err := queryClient.HeadBucket(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -82,12 +85,77 @@ func CmdHeadObject() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryObjectRequest{
+			params := &types.QueryHeadObjectRequest{
 				BucketName: reqBucketName,
 				ObjectName: reqObjectName,
 			}
 
-			res, err := queryClient.Object(cmd.Context(), params)
+			res, err := queryClient.HeadObject(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdListBuckets() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-buckets",
+		Short: "Query listBuckets",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx := client.GetClientContextFromCmd(cmd)
+			pageReq, err := client.ReadPageRequest(cmd.Flags())
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryListBucketsRequest{
+				Pagination: pageReq,
+			}
+
+			res, err := queryClient.ListBuckets(context.Background(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdListObjects() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-objects [bucket-name]",
+		Short: "Query listObjects",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqBucketName := args[0]
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryListObjectsRequest{
+
+				BucketName: reqBucketName,
+			}
+
+			res, err := queryClient.ListObjects(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

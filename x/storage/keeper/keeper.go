@@ -57,9 +57,9 @@ func NewKeeper(
 		paymentKeeper: paymentKeeper,
 	}
 
-	k.bucketSeq = NewSequence(types.BucketPrefix)
-	k.objectSeq = NewSequence(types.ObjectPrefix)
-	k.groupSeq = NewSequence(types.GroupPrefix)
+	k.bucketSeq = NewSequence(types.BucketSequencePrefix)
+	k.objectSeq = NewSequence(types.ObjectSequencePrefix)
+	k.groupSeq = NewSequence(types.GroupSequencePrefix)
 	return &k
 }
 

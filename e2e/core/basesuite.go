@@ -23,7 +23,7 @@ type SPKeyManagers struct {
 type BaseSuite struct {
 	suite.Suite
 	config          *Config
-	Client          client.GreenfieldClient
+	Client          *client.GreenfieldClient
 	Validator       keys.KeyManager
 	StorageProvider SPKeyManagers
 }

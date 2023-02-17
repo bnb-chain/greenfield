@@ -1,6 +1,7 @@
 package tests
 
 import (
+	"context"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/stretchr/testify/suite"
 	"math"
@@ -24,7 +25,7 @@ func (s *StorageTestSuite) SetupSuite() {
 func (s *StorageTestSuite) SetupTest() {
 }
 
-func (s *PaymentTestSuite) TestCreateBucket() {
+func (s *StorageTestSuite) TestCreateBucket() {
 	var err error
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -37,6 +38,22 @@ func (s *PaymentTestSuite) TestCreateBucket() {
 	s.SendTxBlock(msgCreateBucket, user)
 
 	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, s.StorageProvider.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// DeleteBucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(msgDeleteBucket, user)
 }
 
 func TestStorageTestSuite(t *testing.T) {

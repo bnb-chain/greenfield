@@ -1,4 +1,5 @@
 syntax = "proto3";
+
 package bnbchain.greenfield.storage;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
@@ -13,47 +14,83 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // Query defines the gRPC querier service.
 service Query {
+  
   // Parameters queries the parameters of the module.
-  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+  rpc Params (QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/greenfield/storage/params";
+  
   }
 
   // this line is used by starport scaffolding # 2
-
-  // Queries a list of Bucket items.
-  rpc Bucket(QueryBucketRequest) returns (QueryBucketResponse) {
-    option (google.api.http).get = "/greenfield/storage/bucket/{bucket_name}";
+  
+  // Queries a bucket with specify name.
+  rpc HeadBucket (QueryHeadBucketRequest) returns (QueryHeadBucketResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_name}";
+  
   }
-
-  // Queries a list of Object items.
-  rpc Object(QueryObjectRequest) returns (QueryObjectResponse) {
-    option (google.api.http).get = "/greenfield/storage/object/{bucket_name}/{object_name}";
+  
+  // Queries a object with specify name.
+  rpc HeadObject (QueryHeadObjectRequest) returns (QueryHeadObjectResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_object/{bucket_name}/{object_name}";
+  
+  }
+  
+  // Queries a list of bucket items.
+  rpc ListBuckets (QueryListBucketsRequest) returns (QueryListBucketsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_buckets";
+  
+  }
+  
+  // Queries a list of object items under the bucket.
+  rpc ListObjects (QueryListObjectsRequest) returns (QueryListObjectsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_objects/{bucketName}";
+  
   }
 }
-
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
+  
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
 // this line is used by starport scaffolding # 3
-message QueryBucketRequest {
+message QueryHeadBucketRequest {
   string bucket_name = 1;
 }
 
-message QueryBucketResponse {
+message QueryHeadBucketResponse {
   BucketInfo bucket_info = 1;
 }
 
-message QueryObjectRequest {
+message QueryHeadObjectRequest {
   string bucket_name = 1;
   string object_name = 2;
 }
 
-message QueryObjectResponse {
+message QueryHeadObjectResponse {
   ObjectInfo object_info = 1;
 }
+
+message QueryListBucketsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryListBucketsResponse {
+  repeated BucketInfo bucket_infos = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryListObjectsRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string bucketName = 2;
+}
+
+message QueryListObjectsResponse {
+  repeated ObjectInfo object_infos = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
