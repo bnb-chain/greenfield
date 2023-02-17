@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func InitConfig() *Config {
-	// todo: support qa and testnet config
+	// TODO: support qa and testnet config
 	return InitE2eConfig()
 }
 
