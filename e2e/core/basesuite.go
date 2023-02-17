@@ -34,7 +34,7 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 		Mode:      &mode,
 		GasLimit:  1000000,
 		Memo:      "",
-		FeeAmount: sdk.Coins{{Denom: s.config.Denom, Amount: sdk.NewInt(1)}},
+		FeeAmount: sdk.Coins{{Denom: s.config.GasDenom, Amount: sdk.NewInt(1000000)}},
 	}
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
@@ -46,7 +46,7 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 
 func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.KeyManager) {
 	var outputs []banktypes.Output
-	denom := s.config.Denom
+	denom := s.config.GasDenom
 	for i := 0; i < n; i++ {
 		km := GenRandomKeyManager()
 		accounts = append(accounts, km)

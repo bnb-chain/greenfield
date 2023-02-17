@@ -22,7 +22,7 @@ func (s *PaymentTestSuite) SetupSuite() {
 func (s *PaymentTestSuite) SetupTest() {}
 
 func (s *PaymentTestSuite) TestPaymentAccount() {
-	user := s.GenAndChargeAccounts(1, 100)[0]
+	user := s.GenAndChargeAccounts(1, 1e10)[0]
 	ctx := context.Background()
 	// create a new payment account
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
