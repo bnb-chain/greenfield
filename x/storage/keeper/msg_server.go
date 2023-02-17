@@ -15,8 +15,6 @@ type msgServer struct {
 	Keeper
 }
 
-// TODO: add event for all message
-
 // NewMsgServerImpl returns an implementation of the MsgServer interface
 // for the provided Keeper.
 func NewMsgServerImpl(keeper Keeper) types.MsgServer {
@@ -52,15 +50,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 	if err != nil {
 		return nil, err
 	}
-	// TODO: this is a very tricky implement. Will be refactor later.
-	spApproval := msg.PrimarySpApprovalSignature
-	msg.PrimarySpApprovalSignature = []byte("")
-	bz, err := msg.Marshal()
-	if err != nil {
-		return nil, err
-	}
 
-	err = k.VerifySPAndSignature(ctx, []string{msg.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	err = k.VerifySPAndSignature(ctx, msg.PrimarySpAddress,
+		sdk.Keccak256(msg.GetApprovalBytes()), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -84,8 +76,24 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 			return nil, err
 		}
 	}
-
-	return &types.MsgCreateBucketResponse{}, k.Keeper.CreateBucket(ctx, bucketInfo)
+	err = k.Keeper.CreateBucket(ctx, bucketInfo)
+	if err != nil {
+		return nil, err
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
+		OwnerAddress:     bucketInfo.Owner,
+		BucketName:       bucketInfo.BucketName,
+		IsPublic:         bucketInfo.IsPublic,
+		CreateAt:         bucketInfo.CreateAt,
+		Id:               bucketInfo.Id,
+		SourceType:       bucketInfo.SourceType,
+		ReadQuota:        bucketInfo.ReadQuota,
+		PaymentAddress:   bucketInfo.PaymentAddress,
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCreateBucketResponse{}, nil
 }
 
 func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucket) (*types.MsgDeleteBucketResponse, error) {
@@ -98,19 +106,44 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 	if bucketInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
 		return nil, types.ErrSourceTypeMismatch
 	}
-	// TODO: check if have the permission to delete bucket
-	return &types.MsgDeleteBucketResponse{}, k.Keeper.DeleteBucket(ctx, msg.BucketName)
+	if bucketInfo.Owner != msg.Operator {
+		return nil, types.ErrAccessDenied
+	}
+
+	err := k.Keeper.DeleteBucket(ctx, msg.BucketName)
+	if err != nil {
+		return nil, err
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
+		OperatorAddress:  msg.Operator,
+		OwnerAddress:     bucketInfo.Owner,
+		BucketName:       bucketInfo.BucketName,
+		Id:               bucketInfo.Id,
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgDeleteBucketResponse{}, nil
 }
 
 func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateBucketInfo) (*types.MsgUpdateBucketInfoResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	bucketInfo, found := k.Keeper.GetBucket(ctx, msg.BucketName)
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
 	if bucketInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
 		return nil, types.ErrSourceTypeMismatch
+	}
+	if bucketInfo.Owner != msg.Operator {
+		return nil, types.ErrAccessDenied
+	}
+	eventUpdateBucketInfo := &types.EventUpdateBucketInfo{
+		OperatorAddress:      msg.Operator,
+		BucketName:           bucketInfo.BucketName,
+		Id:                   bucketInfo.Id,
+		ReadQuotaBefore:      bucketInfo.ReadQuota,
+		PaymentAddressBefore: bucketInfo.PaymentAddress,
 	}
 
 	if msg.PaymentAddress != "" && msg.PaymentAddress != bucketInfo.PaymentAddress {
@@ -131,16 +164,19 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 		}
 		bucketInfo.ReadQuota = msg.ReadQuota
 	}
+	eventUpdateBucketInfo.ReadQuotaAfter = bucketInfo.ReadQuota
+	eventUpdateBucketInfo.PaymentAddressAfter = bucketInfo.PaymentAddress
 
 	k.Keeper.SetBucket(ctx, bucketInfo)
+	if err := ctx.EventManager().EmitTypedEvents(eventUpdateBucketInfo); err != nil {
+		return nil, err
+	}
 	return &types.MsgUpdateBucketInfoResponse{}, nil
 }
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	// TODO: check bucket and object permission
-	// TODO: pay for the object. Interact with PaymentModule
-
 	// check owner AccAddress
 	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
@@ -153,14 +189,8 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, types.ErrNoSuchBucket
 	}
 
-	// TODO: this is a very tricky implement. Will be refactor later.
-	spApproval := msg.PrimarySpApprovalSignature
-	msg.PrimarySpApprovalSignature = []byte("")
-	bz, err := msg.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	err = k.VerifySPAndSignature(ctx, []string{bucketInfo.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	err = k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpAddress,
+		sdk.Keccak256(msg.GetApprovalBytes()), msg.PrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -185,14 +215,35 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
-	return &types.MsgCreateObjectResponse{}, k.Keeper.CreateObject(ctx, objectInfo)
+	err = k.Keeper.CreateObject(ctx, objectInfo)
+	if err != nil {
+		return nil, err
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
+		CreatorAddress:   msg.Creator,
+		OwnerAddress:     objectInfo.Owner,
+		BucketName:       bucketInfo.BucketName,
+		ObjectName:       objectInfo.ObjectName,
+		Id:               objectInfo.Id,
+		CreateAt:         bucketInfo.CreateAt,
+		PayloadSize:      objectInfo.PayloadSize,
+		IsPublic:         objectInfo.IsPublic,
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+		ContentType:      objectInfo.ContentType,
+		Status:           objectInfo.ObjectStatus,
+		RedundancyType:   objectInfo.RedundancyType,
+		SourceType:       objectInfo.SourceType,
+		Checksums:        objectInfo.Checksums,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCreateObjectResponse{}, nil
 }
 
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check permission when permission module ready
-	// TODO: submit event/log
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
@@ -211,13 +262,15 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	}
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
 		return nil, types.ErrObjectAlreadyExists
-	} else {
-		objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
 	}
+	objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
 
-	err = k.VerifySPAndSignature(ctx, msg.SecondarySpAddresses, objectInfo.Checksums[1:], msg.SecondarySpSignatures)
-	if err != nil {
-		return nil, err
+	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
+	for i, spAddr := range msg.SecondarySpAddresses {
+		err = k.VerifySPAndSignature(ctx, spAddr, objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	err = k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
@@ -228,10 +281,63 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	// TODO(fynn): SetBucket/Object will cost a lot every time we set it. So maybe need to split the info to two types
 	// key-value, one is immutable attributes, another is mutable attributes, to reduce performance overhead
-	k.SetBucket(ctx, bucketInfo)
-	k.SetObject(ctx, objectInfo)
+	objectInfo.SecondarySpAddresses = msg.SecondarySpAddresses
 
+	k.Keeper.SetBucket(ctx, bucketInfo)
+	k.Keeper.SetObject(ctx, objectInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
+		OperatorAddress:    msg.Operator,
+		BucketName:         bucketInfo.BucketName,
+		ObjectName:         objectInfo.ObjectName,
+		Id:                 objectInfo.Id,
+		Status:             objectInfo.ObjectStatus,
+		SecondarySpAddress: objectInfo.SecondarySpAddresses,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgSealObjectResponse{}, nil
+}
+
+func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCancelCreateObject) (*types.MsgCancelCreateObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	bucketInfo, found := k.Keeper.GetBucket(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	objectInfo, found := k.Keeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
+	if !found {
+		return nil, types.ErrNoSuchObject
+	}
+
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+		return nil, types.ErrObjectNotInit
+	}
+
+	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+	if operatorAcc.String() != objectInfo.Owner {
+		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
+	}
+	err = k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	if err != nil {
+		return nil, err
+	}
+	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
+		OperatorAddress:  msg.Operator,
+		BucketName:       bucketInfo.BucketName,
+		ObjectName:       objectInfo.ObjectName,
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+		Id:               objectInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCancelCreateObjectResponse{}, nil
 }
 
 func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (*types.MsgCopyObjectResponse, error) {
@@ -261,19 +367,13 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, types.ErrSourceTypeMismatch
 	}
 
-	// TODO: this is a very tricky implement. Will be refactor later.
-	spApproval := msg.DstPrimarySpApprovalSignature
-	msg.DstPrimarySpApprovalSignature = []byte("")
-	bz, err := msg.Marshal()
-	if err != nil {
-		return nil, err
-	}
-	err = k.VerifySPAndSignature(ctx, []string{dstBucketInfo.PrimarySpAddress}, [][]byte{sdk.Keccak256(bz)}, [][]byte{spApproval})
+	err = k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpAddress,
+		sdk.Keccak256(msg.GetApprovalBytes()), msg.DstPrimarySpApprovalSignature)
 	if err != nil {
 		return nil, err
 	}
 
-	// check if have permission for copy object from this bucket
+	// check permission for copy object from this bucket
 	// Currently only allowed object owner to CopyObject
 	if srcObjectInfo.Owner != msg.Operator {
 		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "access denied (%s)", srcObjectInfo.String())
@@ -298,6 +398,17 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 	}
 	k.Keeper.SetObject(ctx, objectInfo)
 
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
+		OperatorAddress: msg.Operator,
+		SrcBucketName:   srcObjectInfo.BucketName,
+		SrcObjectName:   srcObjectInfo.ObjectName,
+		DstBucketName:   objectInfo.BucketName,
+		DstObjectName:   objectInfo.ObjectName,
+		SrcObjectId:     srcObjectInfo.Id,
+		DstObjectId:     objectInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgCopyObjectResponse{}, nil
 }
 
@@ -332,6 +443,17 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 		return nil, err
 	}
 	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
+		OperatorAddress:      msg.Operator,
+		BucketName:           bucketInfo.BucketName,
+		ObjectName:           objectInfo.ObjectName,
+		Id:                   objectInfo.Id,
+		PrimarySpAddress:     bucketInfo.PrimarySpAddress,
+		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgDeleteObjectResponse{}, nil
 }
 
@@ -351,12 +473,14 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 		return nil, types.ErrObjectNotInit
 	}
 
-	// Currently, only the primary sp is allowed to reject seal object
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
-	// TODO: operator address or other address (for reject seal object)
+	if spAcc.String() != bucketInfo.PrimarySpAddress {
+		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
+	}
+
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return nil, types.ErrNoSuchStorageProvider
@@ -370,6 +494,15 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 	}
 
 	k.Keeper.DeleteObject(ctx, msg.BucketName, msg.ObjectName)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
+		OperatorAddress: msg.Operator,
+		BucketName:      bucketInfo.BucketName,
+		ObjectName:      objectInfo.ObjectName,
+		Id:              objectInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgRejectSealObjectResponse{}, nil
 }
 
@@ -403,6 +536,15 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 			return nil, err
 		}
 	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
+		OwnerAddress: groupInfo.Owner,
+		GroupName:    groupInfo.GroupName,
+		Id:           groupInfo.Id,
+		SourceType:   groupInfo.SourceType,
+		Members:      msg.Members,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgCreateGroupResponse{}, nil
 }
 
@@ -417,7 +559,19 @@ func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup)
 		return nil, types.ErrSourceTypeMismatch
 	}
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	return &types.MsgDeleteGroupResponse{}, k.Keeper.DeleteGroup(ctx, msg.Operator, msg.GroupName)
+	err := k.Keeper.DeleteGroup(ctx, msg.Operator, msg.GroupName)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
+		OwnerAddress: groupInfo.Owner,
+		GroupName:    groupInfo.GroupName,
+		Id:           groupInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgDeleteGroupResponse{}, nil
 }
 
 func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (*types.MsgLeaveGroupResponse, error) {
@@ -430,7 +584,20 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
 		return nil, types.ErrSourceTypeMismatch
 	}
-	return &types.MsgLeaveGroupResponse{}, k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, msg.Member)
+
+	err := k.Keeper.RemoveGroupMember(ctx, groupInfo.Id, msg.Member)
+	if err != nil {
+		return nil, err
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventLeaveGroup{
+		MemberAddress: msg.Member,
+		OwnerAddress:  groupInfo.Owner,
+		GroupName:     groupInfo.GroupName,
+		Id:            groupInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgLeaveGroupResponse{}, nil
 }
 
 func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdateGroupMember) (*types.MsgUpdateGroupMemberResponse, error) {
@@ -471,6 +638,17 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{
+		OperatorAddress: msg.Operator,
+		OwnerAddress:    groupInfo.Owner,
+		GroupName:       groupInfo.GroupName,
+		Id:              groupInfo.Id,
+		MembersToAdd:    msg.MembersToAdd,
+		MembersToDelete: msg.MembersToDelete,
+	}); err != nil {
+		return nil, err
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil

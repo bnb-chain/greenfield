@@ -25,18 +25,18 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdBucket())
-	cmd.AddCommand(CmdObject())
+	cmd.AddCommand(CmdHeadBucket())
+	cmd.AddCommand(CmdHeadObject())
 
 	// this line is used by starport scaffolding # 1
 
 	return cmd
 }
 
-func CmdBucket() *cobra.Command {
+func CmdHeadBucket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "bucket [bucket-name]",
-		Short: "Query bucket",
+		Use:   "head-bucket [bucket-name]",
+		Short: "Query bucket by bucket name",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqBucketName := args[0]
@@ -66,10 +66,10 @@ func CmdBucket() *cobra.Command {
 	return cmd
 }
 
-func CmdObject() *cobra.Command {
+func CmdHeadObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "object [bucket-name] [object-name]",
-		Short: "Query object",
+		Use:   "head-object [bucket-name] [object-name]",
+		Short: "Query object by bucket-name and object-name",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqBucketName := args[0]

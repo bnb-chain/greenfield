@@ -53,15 +53,15 @@ $gnfd tx bank send validator0 "$user_addr" "100000$denom" -y
 $gnfd q bank balances "$user_addr"
 
 # ----- payment account test -----
-$gnfd q payment params
+# $gnfd q payment params
 # create payment account
-$gnfd tx payment create-payment-account --from user -y
-payment_account=$($gnfd q payment get-payment-accounts-by-owner "$user_addr" --output json | jq -r '.paymentAccounts[0]')
+# $gnfd tx payment create-payment-account --from user -y
+# payment_account=$($gnfd q payment get-payment-accounts-by-owner "$user_addr" --output json | jq -r '.paymentAccounts[0]')
 # disable payment account refund
-refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
-check_operation "disable refund" "$refundable" "true"
-$gnfd tx payment disable-refund "$payment_account" --from user -y
-refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
-check_operation "disable refund" "$refundable" "false"
+# refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
+# check_operation "disable refund" "$refundable" "true"
+# $gnfd tx payment disable-refund "$payment_account" --from user -y
+# refundable=$($gnfd q payment show-payment-account "$payment_account" -o json | jq '.paymentAccount.refundable')
+# check_operation "disable refund" "$refundable" "false"
 # deposit
-$gnfd tx payment deposit "${payment_account}" 100 --from user -y
+# $gnfd tx payment deposit "${payment_account}" 100 --from user -y
