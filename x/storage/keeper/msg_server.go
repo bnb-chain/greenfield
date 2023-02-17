@@ -65,13 +65,13 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		CreateAt:         ctx.BlockHeight(),
 		Id:               k.GetBucketId(ctx),
 		SourceType:       types.SOURCE_TYPE_ORIGIN,
-		ReadQuota:        types.READ_QUOTA_FREE,
+		ReadQuota:        msg.ReadQuota,
 		PaymentAddress:   paymentAcc.String(),
 		PrimarySpAddress: primarySPAcc.String(),
 	}
 
-	if msg.ReadQuota != types.READ_QUOTA_FREE {
-		err := k.paymentKeeper.ChargeInitialReadFee(ctx, &bucketInfo)
+	if msg.ReadQuota != 0 {
+		err := k.ChargeInitialReadFee(ctx, &bucketInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -150,7 +150,7 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 		if !k.paymentKeeper.IsPaymentAccountOwner(ctx, bucketInfo.Owner, msg.PaymentAddress) {
 			return nil, paymenttypes.ErrNotPaymentAccountOwner
 		}
-		err := k.paymentKeeper.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
+		err := k.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
 		if err != nil {
 			return nil, err
 		}
@@ -158,7 +158,7 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 	}
 
 	if msg.ReadQuota != bucketInfo.ReadQuota {
-		err := k.paymentKeeper.ChargeUpdateReadQuota(ctx, &bucketInfo, msg.ReadQuota)
+		err := k.ChargeUpdateReadQuota(ctx, &bucketInfo, msg.ReadQuota)
 		if err != nil {
 			return nil, err
 		}
@@ -210,7 +210,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		Checksums:            msg.ExpectChecksums,
 		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
 	}
-	err = k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err = k.LockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -273,7 +273,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		}
 	}
 
-	err = k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
+	err = k.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +322,7 @@ func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCance
 	if operatorAcc.String() != objectInfo.Owner {
 		return nil, sdkerrors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
 	}
-	err = k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err = k.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -392,7 +392,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
-	err = k.paymentKeeper.LockStoreFee(ctx, &dstBucketInfo, &objectInfo)
+	err = k.LockStoreFee(ctx, &dstBucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +438,7 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 		return nil, types.ErrAccessDenied
 	}
 
-	err := k.paymentKeeper.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
+	err := k.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -488,7 +488,7 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return nil, types.ErrStorageProviderNotInService
 	}
-	err = k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err = k.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}

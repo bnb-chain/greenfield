@@ -14,7 +14,6 @@ func DefaultGenesis() *GenesisState {
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
-		BnbPriceList:            []BnbPrice{{0, 2e8}},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -63,16 +62,6 @@ func (gs GenesisState) Validate() error {
 			return fmt.Errorf("duplicated index for autoSettleRecord")
 		}
 		autoSettleRecordIndexMap[index] = struct{}{}
-	}
-	// Check for duplicated index in BnbPrice
-	BnbPriceIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.BnbPriceList {
-		index := string(BnbPriceKey(elem.Time))
-		if _, ok := BnbPriceIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for BnbPrice")
-		}
-		BnbPriceIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

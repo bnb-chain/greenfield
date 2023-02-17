@@ -165,7 +165,7 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 }
 
 // NewMsgBucketReadQuota creates a new MsgBucketReadQuota instance.
-func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota ReadQuota, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota uint64, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
 	return &MsgUpdateBucketInfo{
 		Operator:       operator.String(),
 		BucketName:     bucketName,

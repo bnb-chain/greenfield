@@ -28,7 +28,7 @@ var (
 	AutoSettleRecordKeyPrefix    = []byte{0x01}
 	StreamRecordKeyPrefix        = []byte{0x02}
 	PaymentAccountCountKeyPrefix = []byte{0x03}
-	BnbPriceKeyPrefix            = []byte{0x04}
+	SpStoragePriceKeyPrefix      = []byte{0x04}
 	FlowKeyPrefix                = []byte{0x05}
 	PaymentAccountKeyPrefix      = []byte{0x06}
 )
@@ -113,6 +113,21 @@ func StreamRecordKey(
 
 	accountBytes := []byte(account)
 	key = append(key, accountBytes...)
+
+	return key
+}
+
+func SpStoragePriceKey(
+	sp string,
+	updateTime int64,
+) []byte {
+	timeBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+
+	var key []byte
+	spBytes := []byte(sp)
+	key = append(key, spBytes...)
+	key = append(key, timeBytes...)
 
 	return key
 }

@@ -7,7 +7,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/payment/auto_settle_record.proto";
-import "greenfield/payment/bnb_price.proto";
+import "greenfield/payment/sp_storage_price.proto";
 import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
@@ -74,13 +74,13 @@ service Query {
     option (google.api.http).get = "/greenfield/payment/auto_settle_record";
   }
 
-  // Queries a list of BnbPrice items.
-  rpc BnbPrice(QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
-    option (google.api.http).get = "/greenfield/payment/bnb_price/{time}";
-  }
-  rpc BnbPriceAll(QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
-    option (google.api.http).get = "/greenfield/payment/bnb_price";
-  }
+//  // Queries a list of BnbPrice items.
+//  rpc BnbPrice(QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
+//    option (google.api.http).get = "/greenfield/payment/bnb_price/{time}";
+//  }
+//  rpc BnbPriceAll(QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
+//    option (google.api.http).get = "/greenfield/payment/bnb_price";
+//  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -183,19 +183,19 @@ message QueryAllAutoSettleRecordResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetBnbPriceRequest {
-  int64 time = 1;
-}
-
-message QueryGetBnbPriceResponse {
-  BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllBnbPriceRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllBnbPriceResponse {
-  repeated BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
+//message QueryGetBnbPriceRequest {
+//  int64 time = 1;
+//}
+//
+//message QueryGetBnbPriceResponse {
+//  BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
+//}
+//
+//message QueryAllBnbPriceRequest {
+//  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+//}
+//
+//message QueryAllBnbPriceResponse {
+//  repeated BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
+//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+//}

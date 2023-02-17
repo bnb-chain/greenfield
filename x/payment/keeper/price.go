@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -11,22 +9,13 @@ import (
 )
 
 // GetReadPrice priceTime is kept to retrieve the price of ReadPacket at historical time
-func (k Keeper) GetReadPrice(ctx sdk.Context, readQuota storagetypes.ReadQuota, _priceTime int64) (sdkmath.Int, error) {
+func (k Keeper) GetReadPrice(ctx sdk.Context, spAddr string, readQuota uint64, _priceTime int64) (sdkmath.Int, error) {
 	return k.GetReadPriceV0(readQuota)
 }
 
-func (k Keeper) GetReadPriceV0(readPacket storagetypes.ReadQuota) (price sdkmath.Int, err error) {
-	switch readPacket {
-	case storagetypes.READ_QUOTA_FREE:
-		price = sdkmath.NewInt(0)
-	case storagetypes.READ_QUOTA_1G:
-		price = sdkmath.NewInt(2)
-	case storagetypes.READ_QUOTA_10G:
-		price = sdkmath.NewInt(4)
-	default:
-		err = fmt.Errorf("invalid read packet level: %d", readPacket)
-	}
-	return
+func (k Keeper) GetReadPriceV0(readQuota uint64) (price sdkmath.Int, err error) {
+	// todo: WARNING HARDCODE Here. Need refine according to the params of payment module
+	return sdkmath.NewIntFromUint64(readQuota), nil
 }
 
 func (k Keeper) GetStorePrice(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) types.StorePrice {
