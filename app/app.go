@@ -307,9 +307,8 @@ func New(
 		keys[crosschaintypes.StoreKey],
 		app.GetSubspace(crosschaintypes.ModuleName),
 	)
-	ck := app.CrossChainKeeper
-	app.ParamsKeeper.SetCrossChainKeeper(ck)
-	app.RegisterCrossChainParamsChangeApp()
+	app.ParamsKeeper.SetCrossChainKeeper(app.CrossChainKeeper)
+	app.RegisterCrossChainSyncParamsApp()
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
@@ -701,7 +700,7 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	// init cross chain channel permissions
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.SyncParamsChangeChannellID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
@@ -847,8 +846,8 @@ func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
-func (app *App) RegisterCrossChainParamsChangeApp() {
-	err := app.CrossChainKeeper.RegisterChannel(paramproposal.SyncParamsChangeChannel, paramproposal.SyncParamsChangeChannellID, app.ParamsKeeper)
+func (app *App) RegisterCrossChainSyncParamsApp() {
+	err := app.CrossChainKeeper.RegisterChannel(paramproposal.SyncParamsChannel, paramproposal.SyncParamsChannellID, app.ParamsKeeper)
 	if err != nil {
 		return
 	}

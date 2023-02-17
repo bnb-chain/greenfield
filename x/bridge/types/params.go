@@ -16,7 +16,7 @@ const (
 var (
 	KeyParamTransferOutRelayerFee    = []byte("TransferOutRelayerFee")
 	KeyParamTransferOutAckRelayerFee = []byte("TransferOutAckRelayerFee")
-	KeySyncParamsChangeRelayerFee    = []byte("SyncParamsChangeRelayerFee")
+	KeySyncParamsRelayerFee          = []byte("SyncParamsRelayerFee")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -40,7 +40,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, p.TransferOutRelayerFee, validateTransferOutRelayerFee),
 		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
-		paramtypes.NewParamSetPair(KeySyncParamsChangeRelayerFee, p.SyncParamsChangeRelayerFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeySyncParamsRelayerFee, p.SyncParamsChangeRelayerFee, validateTransferOutRelayerFee),
 	}
 }
 

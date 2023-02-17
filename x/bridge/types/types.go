@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	TransferOutChannel      = "transferOut"
-	TransferInChannel       = "transferIn"
-	SyncParamsChangeChannel = paramproposal.SyncParamsChangeChannel
+	TransferOutChannel = "transferOut"
+	TransferInChannel  = "transferIn"
+	SyncParamsChannel  = paramproposal.SyncParamsChannel
 
-	TransferOutChannelID       sdk.ChannelID = 1
-	TransferInChannelID        sdk.ChannelID = 2
-	SyncParamsChangeChannellID               = paramproposal.SyncParamsChangeChannellID
+	TransferOutChannelID sdk.ChannelID = 1
+	TransferInChannelID  sdk.ChannelID = 2
+	SyncParamsChannelID                = paramproposal.SyncParamsChannellID
 )
 
 type RefundReason uint32

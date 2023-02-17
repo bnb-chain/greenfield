@@ -290,7 +290,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field KeySyncParamsChangeRelayerFee", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field KeySyncParamsRelayerFee", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
