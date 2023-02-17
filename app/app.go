@@ -308,7 +308,9 @@ func New(
 		app.GetSubspace(crosschaintypes.ModuleName),
 	)
 	app.ParamsKeeper.SetCrossChainKeeper(app.CrossChainKeeper)
-	app.RegisterCrossChainSyncParamsApp()
+	if err := app.RegisterCrossChainSyncParamsApp(); err != nil {
+		panic(err)
+	}
 
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
@@ -846,9 +848,9 @@ func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
 }
 
-func (app *App) RegisterCrossChainSyncParamsApp() {
-	err := app.CrossChainKeeper.RegisterChannel(paramproposal.SyncParamsChannel, paramproposal.SyncParamsChannellID, app.ParamsKeeper)
-	if err != nil {
-		return
+func (app *App) RegisterCrossChainSyncParamsApp() error {
+	if err := app.CrossChainKeeper.RegisterChannel(paramproposal.SyncParamsChannel, paramproposal.SyncParamsChannelID, app.ParamsKeeper); err != nil {
+		return err
 	}
+	return nil
 }

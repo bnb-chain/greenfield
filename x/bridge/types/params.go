@@ -29,9 +29,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return Params{
-		TransferOutRelayerFee:      DefaultTransferOutRelayerFeeParam,
-		TransferOutAckRelayerFee:   DefaultTransferOutAckRelayerFeeParam,
-		SyncParamsChangeRelayerFee: DefaultSyncParamsRelayerFeeParam,
+		TransferOutRelayerFee:    DefaultTransferOutRelayerFeeParam,
+		TransferOutAckRelayerFee: DefaultTransferOutAckRelayerFeeParam,
+		SyncParamsRelayerFee:     DefaultSyncParamsRelayerFeeParam,
 	}
 }
 
@@ -40,7 +40,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, p.TransferOutRelayerFee, validateTransferOutRelayerFee),
 		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
-		paramtypes.NewParamSetPair(KeySyncParamsRelayerFee, p.SyncParamsChangeRelayerFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeySyncParamsRelayerFee, p.SyncParamsRelayerFee, validateTransferOutRelayerFee),
 	}
 }
 
@@ -62,12 +62,12 @@ func (p Params) Validate() error {
 		return fmt.Errorf("transfer out ack relayer fee should not be negative, is %s", p.TransferOutAckRelayerFee)
 	}
 
-	syncParamsRelayerFee, valid := big.NewInt(0).SetString(p.SyncParamsChangeRelayerFee, 10)
+	syncParamsRelayerFee, valid := big.NewInt(0).SetString(p.SyncParamsRelayerFee, 10)
 	if !valid {
-		return fmt.Errorf("invalid sync params change relayer fee, is %s", p.SyncParamsChangeRelayerFee)
+		return fmt.Errorf("invalid sync params change relayer fee, is %s", p.SyncParamsRelayerFee)
 	}
 	if syncParamsRelayerFee.Cmp(big.NewInt(0)) < 0 {
-		return fmt.Errorf("transfer out relayer fee should not be negative, is %s", p.SyncParamsChangeRelayerFee)
+		return fmt.Errorf("sync params change relayer fee should not be negative, is %s", p.SyncParamsRelayerFee)
 	}
 	return nil
 }

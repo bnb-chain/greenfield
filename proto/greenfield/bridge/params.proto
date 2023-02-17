@@ -12,5 +12,5 @@ message Params {
   // Relayer fee for the ACK or FAIL_ACK package of the cross chain transfer out tx
   string transfer_out_ack_relayer_fee = 2;
   //
-  string sync_params_change_relayer_fee = 3;
+  string sync_params_relayer_fee = 3;
 }
