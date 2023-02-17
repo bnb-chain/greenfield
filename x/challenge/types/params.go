@@ -211,7 +211,7 @@ func validateSlashDenom(v interface{}) error {
 	}
 
 	if strings.TrimSpace(slashDemon) == "" {
-		return errors.New("deposit denom cannot be blank")
+		return errors.New("slash denom cannot be blank")
 	}
 
 	if err := sdk.ValidateDenom(slashDemon); err != nil {

@@ -34,7 +34,7 @@ import (
 )
 
 func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKeys := sdk.NewKVStoreKeys(paymenttypes.StoreKey, authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey,
+	storeKeys := sdk.NewKVStoreKeys(paramstypes.StoreKey, authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey,
 		stakingtypes.StoreKey, storagetypes.StoreKey, paymenttypes.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -47,12 +47,13 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	stateStore := store.NewCommitMultiStore(db)
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
-	stateStore.MountStoreWithDB(storeKeys[paymenttypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[paramstypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[authtypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[banktypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[authz.ModuleName], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[stakingtypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[storagetypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[paymenttypes.StoreKey], storetypes.StoreTypeIAVL, db)
 
 	stateStore.MountStoreWithDB(tkeys[paramstypes.TStoreKey], storetypes.StoreTypeTransient, nil)
 
@@ -63,13 +64,14 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	paramKeeper := paramskeeper.NewKeeper(cdc, types.Amino, storeKeys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
+	paramKeeper.Subspace(paramstypes.ModuleName)
 	paramKeeper.Subspace(authtypes.ModuleName)
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
 	paramKeeper.Subspace(storagetypes.ModuleName)
 	paramKeeper.Subspace(sptypes.ModuleName)
 	paramKeeper.Subspace(stakingtypes.ModuleName)
-	paramKeeper.Subspace(paramstypes.ModuleName)
+	paramKeeper.Subspace(paymenttypes.ModuleName)
 
 	paramsSubspace := paramstypes.NewSubspace(cdc,
 		types.Amino,
