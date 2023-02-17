@@ -42,3 +42,9 @@ message Approval {
   uint64 expired_height = 1;
   bytes sig = 2;
 }
+
+// SecondarySpSignDoc used to generate seal signature of secondary SP
+message SecondarySpSignDoc {
+  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  bytes checksum = 2;
+}

@@ -276,7 +276,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// TODO: check permission when permission module ready
-	primarySpAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	spSealAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
@@ -286,8 +286,14 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		return nil, types.ErrNoSuchBucket
 	}
 
-	if bucketInfo.PrimarySpAddress != primarySpAcc.String() {
-		return nil, types.ErrSPAddressMismatch
+	spAddr := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spAddr)
+	if !found {
+		return nil, types.ErrNoSuchStorageProvider
+	}
+
+	if sp.SealAddress != spSealAcc.String() {
+		return nil, errors.Wrapf(types.ErrAccessDenied, "Only SP's seal address is allowed to SealObject")
 	}
 
 	objectInfo, found := k.GetObject(ctx, msg.BucketName, msg.ObjectName)
@@ -307,11 +313,14 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		if err != nil {
 			return nil, err
 		}
-		err = k.VerifySPAndSignature(ctx, spAcc.String(), objectInfo.Checksums[i+1], msg.SecondarySpSignatures[i])
+		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Checksums[i+1])
+		err = k.VerifySPAndSignature(ctx, spAcc.String(), sr.GetSignBytes(), msg.SecondarySpSignatures[i])
 		if err != nil {
 			return nil, err
 		}
 	}
+
+	objectInfo.SecondarySpAddresses = msg.SecondarySpAddresses
 
 	err = k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
@@ -321,13 +330,12 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	// TODO(fynn): SetBucket/Object will cost a lot every time we set it. So maybe need to split the info to two types
 	// key-value, one is immutable attributes, another is mutable attributes, to reduce performance overhead
-	objectInfo.SecondarySpAddresses = msg.SecondarySpAddresses
 
 	k.Keeper.SetBucket(ctx, bucketInfo)
 	k.Keeper.SetObject(ctx, objectInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
-		OperatorAddress:    primarySpAcc.String(),
+		OperatorAddress:    spSealAcc.String(),
 		BucketName:         bucketInfo.BucketName,
 		ObjectName:         objectInfo.ObjectName,
 		Id:                 objectInfo.Id,

@@ -135,7 +135,7 @@ func VerifySignature(sigAccAddress sdk.AccAddress, sigHash []byte, sig []byte) e
 
 	pubKeyAddr := ethcrypto.PubkeyToAddress(*ecPubKey)
 	if !bytes.Equal(pubKeyAddr.Bytes(), sigAccAddress.Bytes()) {
-		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "feePayer pubkey %s is different from transaction pubkey %s", pubKeyAddr, sigAccAddress)
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "pubkey %s is different from approval pubkey %s", pubKeyAddr, sigAccAddress)
 	}
 
 	recoveredSignerAcc := sdk.AccAddress(pubKeyAddr.Bytes())

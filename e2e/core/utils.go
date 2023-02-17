@@ -60,12 +60,12 @@ func randString(n int) string {
 	return *(*string)(unsafe.Pointer(&b))
 }
 
-// generate random object name.
-func GetRandomObjectName() string {
-	return randString(16)
+// GenRandomObjectName generate random object name.
+func GenRandomObjectName() string {
+	return randString(10)
 }
 
-// generate random bucket name.
-func GetRandomBucketName() string {
-	return randString(60)
+// GenRandomBucketName generate random bucket name.
+func GenRandomBucketName() string {
+	return randString(5)
 }
