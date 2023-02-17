@@ -129,9 +129,9 @@ func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkm
 }
 
 func (k msgServer) calculateRewardAmounts(ctx sdk.Context, total sdkmath.Int, challenger, submitter string, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
-	challengerReward := sdk.ZeroInt()
-	eachValidatorReward := sdk.ZeroInt()
-	submitterReward := sdk.ZeroInt()
+	challengerReward := sdkmath.ZeroInt()
+	var eachValidatorReward sdkmath.Int
+	var submitterReward sdkmath.Int
 	if challenger == "" { // the challenge is submitted by challenger
 		challengerRatio := k.RewardChallengerRatio(ctx)
 		challengerReward = challengerRatio.MulInt(total).TruncateInt()
@@ -187,7 +187,10 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64,
 	if err != nil {
 		panic(err)
 	}
-	k.SpKeeper.Slash(ctx, spOperatorAddress, rewards)
+	err = k.SpKeeper.Slash(ctx, spOperatorAddress, rewards)
+	if err != nil {
+		panic(err)
+	}
 
 	event := types.EventCompleteChallenge{
 		ChallengeId:            challenge.Id,

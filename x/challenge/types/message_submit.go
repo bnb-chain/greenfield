@@ -56,7 +56,7 @@ func (msg *MsgSubmit) ValidateBasic() error {
 		return err
 	}
 
-	if msg.RandomIndex == false && (msg.Index < 0 || msg.Index > 5) {
+	if !msg.RandomIndex && msg.Index > 5 {
 		return sdkerrors.Wrapf(ErrInvalidIndex, "Index should be correctly provided when random index is disabled")
 	}
 
