@@ -16,19 +16,19 @@ $ alias gnfd="./build/bin/gnfd"
 $ receiver=0x32Ff14Fa1547314b95991976DB432F9Aa648A423
 ## query the balance of receiver
 $ gnfd q bank balances $receiver --node tcp://127.0.0.1:26750 
-## send 500bnb to the receiver (note the decimal of BNB is 18)
-$ gnfd tx bank send validator0 $receiver 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block  -y
+## send 500BNB to the receiver (note the decimal of BNB is 18)
+$ gnfd tx bank send validator0 $receiver 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block  -y
 ## query the balance of receiver again
 $ gnfd q bank balances $receiver --node tcp://127.0.0.1:26750 
 ## try send some token that does not exit, error is expected.
-$ gnfd tx bank send validator0 $receiver 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block  -y
-## try multi send, send each 500bnb to both receiver and receiver2
+$ gnfd tx bank send validator0 $receiver 500000000000000000000ETH --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block  -y
+## try multi send, send each 500BNB to both receiver and receiver2
 $ receiver2=0x6d6247501b822fd4eaa76fcb64baea360279497f
-$ gnfd tx bank multi-send validator0 $receiver $receiver2 500bnb --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block  -y --gas 500000
+$ gnfd tx bank multi-send validator0 $receiver $receiver2 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block  -y --gas 500000
 ## query the metadata of BNB
 $ gnfd q bank  denom-metadata --node tcp://127.0.0.1:26750 
 ## query the total supply of BNB
-$ gnfd q bank  total    --denom bnb   --node tcp://127.0.0.1:26750 
+$ gnfd q bank  total    --denom BNB   --node tcp://127.0.0.1:26750 
 ```
 
 ## Detailed CLI
@@ -54,15 +54,15 @@ gnfd query bank balances [address] [flags]
 Example:
 
 ```sh
-gnfd query bank balances bnb..
+gnfd query bank balances 0xabcd..
 ```
 
 Example Output:
 
 ```yml
 balances:
-- amount: "1000000000"
-  denom: bnb
+- amount: "10000000000000000000000"
+  denom: BNB
 pagination:
   next_key: null
   total: "0"
@@ -79,32 +79,25 @@ gnfd query bank denom-metadata [flags]
 Example:
 
 ```sh
-gnfd query bank denom-metadata --denom bnb
+gnfd query bank denom-metadata --denom BNB
 ```
 
 Example Output:
 
 ```yml
-metadatas:
-  - base: wei
-    denom_units:
-      - aliases:
-          - ether
-        denom: weibnb
-        exponent: 0
-      - aliases:
-          - gwei
-        denom: gweibnb
-        exponent: 9
-      - aliases: []
-        denom: bnb
-        exponent: 18
-    description: The native staking token of the Greenfield.
-    display: bnb
-    name: ""
-    symbol: ""
-    uri: ""
-    uri_hash: ""
+metadata:
+  base: BNB
+  denom_units:
+    - aliases:
+        - wei
+      denom: BNB
+      exponent: 0
+  description: The native staking token of the Greenfield.
+  display: BNB
+  name: ""
+  symbol: ""
+  uri: ""
+  uri_hash: ""
 ```
 
 #### total
@@ -118,14 +111,14 @@ gnfd query bank total [flags]
 Example:
 
 ```sh
-gnfd query bank total --denom bnb
+gnfd query bank total --denom BNB
 ```
 
 Example Output:
 
 ```yml
 amount: "1000000000000000800000000000"
-denom: bnb
+denom: BNB
 ```
 
 ### Transactions
@@ -147,5 +140,5 @@ gnfd tx bank send [from_key_or_address] [to_address] [amount] [flags]
 Example:
 
 ```sh
-gnfd tx bank send addr1.. addr2.. 100bnb
+gnfd tx bank send addr1.. addr2.. 100000000000000000000BNB
 ```
