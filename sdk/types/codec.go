@@ -14,7 +14,6 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
-	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -36,6 +35,5 @@ func Cdc() *codec.ProtoCodec {
 	paymenttypes.RegisterInterfaces(interfaceRegistry)
 	storagetypes.RegisterInterfaces(interfaceRegistry)
 	govv1.RegisterInterfaces(interfaceRegistry)
-	govv1beta1.RegisterInterfaces(interfaceRegistry)
 	return codec.NewProtoCodec(interfaceRegistry)
 }
