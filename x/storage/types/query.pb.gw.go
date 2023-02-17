@@ -361,11 +361,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Bucket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "bucket", "bucket_name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Bucket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "bucket", "bucket_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_Object_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "object", "bucket_name", "object_name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Object_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "object", "bucket_name", "object_name"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

@@ -30,12 +30,12 @@ var (
 
 var (
 	KeySlashDenom     = []byte("SlashDenom")
-	DefaultSlashDenom = "deposit"
+	DefaultSlashDenom = "bnb"
 )
 
 var (
-	KeySlashAmountPerKb     = []byte("SlashAmountPerKb")
-	DefaultSlashAmountPerKb = sdk.ZeroDec()
+	KeySlashAmountSizeRate     = []byte("SlashAmountSizeRate")
+	DefaultSlashAmountSizeRate = sdk.ZeroDec()
 )
 
 var (
@@ -69,7 +69,7 @@ func NewParams(
 	challengeExpirePeriod uint64,
 	slashCoolingOffPeriod uint64,
 	slashDenom string,
-	slashAmountPerKb sdk.Dec,
+	slashAmountSizeRate sdk.Dec,
 	slashAmountMin math.Int,
 	slashAmountMax math.Int,
 	rewardValidatorRatio sdk.Dec,
@@ -80,7 +80,7 @@ func NewParams(
 		ChallengeExpirePeriod: challengeExpirePeriod,
 		SlashCoolingOffPeriod: slashCoolingOffPeriod,
 		SlashDenom:            slashDenom,
-		SlashAmountPerKb:      slashAmountPerKb,
+		SlashAmountSizeRate:   slashAmountSizeRate,
 		SlashAmountMin:        slashAmountMin,
 		SlashAmountMax:        slashAmountMax,
 		RewardValidatorRatio:  rewardValidatorRatio,
@@ -95,7 +95,7 @@ func DefaultParams() Params {
 		DefaultChallengeExpirePeriod,
 		DefaultSlashCoolingOffPeriod,
 		DefaultSlashDenom,
-		DefaultSlashAmountPerKb,
+		DefaultSlashAmountSizeRate,
 		DefaultSlashAmountMin,
 		DefaultSlashAmountMax,
 		DefaultRewardValidatorRatio,
@@ -110,7 +110,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyChallengeExpirePeriod, &p.ChallengeExpirePeriod, validateChallengeExpirePeriod),
 		paramtypes.NewParamSetPair(KeySlashCoolingOffPeriod, &p.SlashCoolingOffPeriod, validateSlashCoolingOffPeriod),
 		paramtypes.NewParamSetPair(KeySlashDenom, &p.SlashDenom, validateSlashDenom),
-		paramtypes.NewParamSetPair(KeySlashAmountPerKb, &p.SlashAmountPerKb, validateSlashAmountPerKb),
+		paramtypes.NewParamSetPair(KeySlashAmountSizeRate, &p.SlashAmountSizeRate, validateSlashAmountSizeRate),
 		paramtypes.NewParamSetPair(KeySlashAmountMin, &p.SlashAmountMin, validateSlashAmountMin),
 		paramtypes.NewParamSetPair(KeySlashAmountMax, &p.SlashAmountMax, validateSlashAmountMax),
 		paramtypes.NewParamSetPair(KeyRewardValidatorRatio, &p.RewardValidatorRatio, validateRewardValidatorRatio),
@@ -136,7 +136,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateSlashAmountPerKb(p.SlashAmountPerKb); err != nil {
+	if err := validateSlashAmountSizeRate(p.SlashAmountSizeRate); err != nil {
 		return err
 	}
 
@@ -221,15 +221,15 @@ func validateSlashDenom(v interface{}) error {
 	return nil
 }
 
-// validateSlashAmountPerKb validates the SlashAmountPerKb param
-func validateSlashAmountPerKb(v interface{}) error {
-	slashAmountPerKb, ok := v.(sdk.Dec)
+// validateSlashAmountSizeRate validates the SlashAmountPerSizeRate param
+func validateSlashAmountSizeRate(v interface{}) error {
+	slashAmountSizeRate, ok := v.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if slashAmountPerKb.LT(sdk.ZeroDec()) {
-		return errors.New("slash amount per kilo bytes cannot be lower than zero")
+	if slashAmountSizeRate.LT(sdk.ZeroDec()) {
+		return errors.New("slash amount size rate cannot be lower than zero")
 	}
 
 	return nil

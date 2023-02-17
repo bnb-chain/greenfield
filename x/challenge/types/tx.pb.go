@@ -31,12 +31,18 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type MsgSubmit struct {
-	Creator           string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// The challenger address.
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// The storage provider to be challenged.
 	SpOperatorAddress string `protobuf:"bytes,2,opt,name=sp_operator_address,json=spOperatorAddress,proto3" json:"sp_operator_address,omitempty"`
-	BucketName        string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	ObjectName        string `protobuf:"bytes,4,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	RandomIndex       bool   `protobuf:"varint,5,opt,name=random_index,json=randomIndex,proto3" json:"random_index,omitempty"`
-	Index             uint32 `protobuf:"varint,6,opt,name=index,proto3" json:"index,omitempty"`
+	// The bucket of the object info to be challenged.
+	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// The name of the object info to be challenged.
+	ObjectName string `protobuf:"bytes,4,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// Randomly pick a segment/piece to challenge or not.
+	RandomIndex bool `protobuf:"varint,5,opt,name=random_index,json=randomIndex,proto3" json:"random_index,omitempty"`
+	// The index of segment/piece to challenge, start from zero.
+	Index uint32 `protobuf:"varint,6,opt,name=index,proto3" json:"index,omitempty"`
 }
 
 func (m *MsgSubmit) Reset()         { *m = MsgSubmit{} }
@@ -151,11 +157,16 @@ func (m *MsgSubmitResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgSubmitResponse proto.InternalMessageInfo
 
 type MsgAttest struct {
-	Creator          string   `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	ChallengeId      uint64   `protobuf:"varint,2,opt,name=challenge_id,json=challengeId,proto3" json:"challenge_id,omitempty"`
-	VoteResult       uint32   `protobuf:"varint,3,opt,name=vote_result,json=voteResult,proto3" json:"vote_result,omitempty"`
+	// The submitter address.
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// The id of the challenge.
+	ChallengeId uint64 `protobuf:"varint,2,opt,name=challenge_id,json=challengeId,proto3" json:"challenge_id,omitempty"`
+	// Vote result of the attestation.
+	VoteResult uint32 `protobuf:"varint,3,opt,name=vote_result,json=voteResult,proto3" json:"vote_result,omitempty"`
+	// The validators participated in the attestation.
 	VoteValidatorSet []uint64 `protobuf:"fixed64,4,rep,packed,name=vote_validator_set,json=voteValidatorSet,proto3" json:"vote_validator_set,omitempty"`
-	VoteAggSignature []byte   `protobuf:"bytes,5,opt,name=vote_agg_signature,json=voteAggSignature,proto3" json:"vote_agg_signature,omitempty"`
+	// The aggregated BLS signature from the validators.
+	VoteAggSignature []byte `protobuf:"bytes,5,opt,name=vote_agg_signature,json=voteAggSignature,proto3" json:"vote_agg_signature,omitempty"`
 }
 
 func (m *MsgAttest) Reset()         { *m = MsgAttest{} }

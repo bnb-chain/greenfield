@@ -109,7 +109,7 @@ func (k Keeper) verifySignature(ctx sdk.Context, attest *types.MsgAttest) ([]str
 }
 
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
-	perKb := k.SlashAmountPerKb(ctx)
+	perKb := k.SlashAmountSizeRate(ctx)
 	decSize := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize))
 	decRoot, err := decSize.ApproxSqrt()
 	if err != nil {

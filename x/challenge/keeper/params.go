@@ -13,7 +13,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.ChallengeExpirePeriod(ctx),
 		k.SlashCoolingOffPeriod(ctx),
 		k.SlashDenom(ctx),
-		k.SlashAmountPerKb(ctx),
+		k.SlashAmountSizeRate(ctx),
 		k.SlashAmountMin(ctx),
 		k.SlashAmountMax(ctx),
 		k.RewardValidatorRatio(ctx),
@@ -50,9 +50,9 @@ func (k Keeper) SlashCoolingOffPeriod(ctx sdk.Context) (res uint64) {
 	return
 }
 
-// SlashAmountPerKb returns the SlashAmountPerKb param
-func (k Keeper) SlashAmountPerKb(ctx sdk.Context) (res sdk.Dec) {
-	k.paramstore.Get(ctx, types.KeySlashAmountPerKb, &res)
+// SlashAmountSizeRate returns the SlashAmountSizeRate param
+func (k Keeper) SlashAmountSizeRate(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeySlashAmountSizeRate, &res)
 	return
 }
 

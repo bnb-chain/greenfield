@@ -1,8 +1,12 @@
 package challenge
 
 import (
+	"fmt"
+
 	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
 )
@@ -52,21 +56,57 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 	count := keeper.GetChallengeCount(ctx)
 	needed := keeper.EventCountPerBlock(ctx)
 	events := make([]proto.Message, 0)
-	for count < needed {
-		count++
-		challengeId, _ := keeper.GetChallengeID(ctx)
+
+	if count >= needed {
+		return
+	}
+
+	objectMap := make(map[string]struct{})                 // for de-duplication
+	iteration, maxIteration := uint64(0), 2*(needed-count) // to prevent endless loop
+	for count < needed && iteration < maxIteration {
+		iteration++
+
 		// TODO: random object to challenge
 		randomObjectKey := []byte{}
-		randomIndex := uint32(1)
-		randomSpOperatorAddress := ""
 		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, randomObjectKey)
 		if !found { // there is no object info yet
+			return
+		}
+
+		if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
 			continue
 		}
 
+		// random index
+		randomIndex := uint32(1)
+
+		// random sp address
+		bucket, _ := keeper.StorageKeeper.GetBucket(ctx, objectInfo.ObjectName)
+		randomSpOperatorAddress := ""
+		if randomIndex == 0 { //primary sp
+			randomSpOperatorAddress = bucket.PrimarySpAddress
+		} else { //secondary sp
+			secondarySpAddresses := objectInfo.SecondarySpAddresses
+			randomSpOperatorAddress = secondarySpAddresses[randomIndex-1]
+		}
+		addr, _ := sdk.AccAddressFromHexUnsafe(randomSpOperatorAddress)
+		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, addr)
+		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
+			continue
+		}
+
+		mapKey := fmt.Sprintf("%s-%d", randomSpOperatorAddress, objectInfo.Id)
+		if _, ok := objectMap[mapKey]; ok {
+			continue
+		}
+
+		objectMap[mapKey] = struct{}{}
+		challengeId, _ := keeper.GetChallengeID(ctx)
+		objectKey := storagetypes.GetObjectKey(bucket.BucketName, objectInfo.ObjectName)
 		challenge := types.Challenge{
 			Id:                challengeId,
 			SpOperatorAddress: randomSpOperatorAddress,
+			ObjectKey:         objectKey,
 			Index:             randomIndex,
 			Height:            uint64(ctx.BlockHeight()),
 			ChallengerAddress: "",
@@ -79,6 +119,8 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 			ObjectId:          objectInfo.Id.Uint64(),
 			Index:             randomIndex,
 		})
+
+		count++
 	}
 	_ = ctx.EventManager().EmitTypedEvents(events...)
 }

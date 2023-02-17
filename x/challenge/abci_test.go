@@ -1,1 +1,1 @@
-package challenge
+package challenge_test

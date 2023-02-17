@@ -18,11 +18,22 @@ service Msg {
 message MsgSubmit {
   option (cosmos.msg.v1.signer) = "creator";
 
+  // The challenger address.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The storage provider to be challenged.
   string sp_operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The bucket of the object info to be challenged.
   string bucket_name = 3;
+
+  // The name of the object info to be challenged.
   string object_name = 4;
+
+  // Randomly pick a segment/piece to challenge or not.
   bool random_index = 5;
+
+  // The index of segment/piece to challenge, start from zero.
   uint32 index = 6;
 }
 
@@ -31,10 +42,19 @@ message MsgSubmitResponse {}
 message MsgAttest {
   option (cosmos.msg.v1.signer) = "creator";
 
+  // The submitter address.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The id of the challenge.
   uint64 challenge_id = 2;
+
+  // Vote result of the attestation.
   uint32 vote_result = 3;
+
+  // The validators participated in the attestation.
   repeated fixed64 vote_validator_set = 4;
+
+  // The aggregated BLS signature from the validators.
   bytes vote_agg_signature = 5;
 }
 
