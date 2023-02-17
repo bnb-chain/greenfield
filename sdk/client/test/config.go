@@ -10,4 +10,5 @@ const (
 	TEST_GRPC_ADDR   = "localhost:9090"
 	TEST_RPC_ADDR    = "http://0.0.0.0:26750"
 	TEST_CHAIN_ID    = "greenfield_9000-121"
+	TEST_TOKEN_NAME  = "bnb"
 )
