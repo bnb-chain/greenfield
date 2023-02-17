@@ -19,7 +19,7 @@ No initial donors, foundation, or company will get funds in the genesis setup.
 BNB is transferred from BSC to Greenfield as the first cross-chain action. The initial validator set and storage provider
 of Greenfield at the genesis will first lock a certain amount of BNB into the "Greenfield Token Hub" contract on BSC. This contract 
 is used as part of the native bridge for BNB transferring after the genesis. These initial locked BNB will be used as 
-the self-stake of validators, the deposit of storage provider and  early days gas fees.
+the self-stake of validators, the deposit of storage provider and early days gas fees.
 
 The initial BNB allocation on greenfield is around 1M BNB. (TODO: not finalized)
 
