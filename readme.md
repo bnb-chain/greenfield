@@ -64,7 +64,7 @@ $ addr=`./build/bin/gnfd keys list --home   $(pwd)/deployment/localup/.local/val
 $ ./build/bin/gnfd q bank balances $addr  --node tcp://127.0.0.1:26750 
 
 ## send BNB
-$ ./build/bin/gnfd tx bank send validator0 0x73a4Cf67b46D7E4efbb95Fc6F59D64129299c2E3 100bnb --from validator0 -y --node tcp://127.0.0.1:26750 --home $(pwd)/deployment/localup/.local/validator0 -keyring-backend test  --broadcast-mode block
+$ ./build/bin/gnfd tx bank send validator0 0x73a4Cf67b46D7E4efbb95Fc6F59D64129299c2E3 100000000000000000000BNB --from validator0 -y --node tcp://127.0.0.1:26750 --home $(pwd)/deployment/localup/.local/validator0 -keyring-backend test  --broadcast-mode block
 
 ## create a storage bucket
 $ ./build/bin/gnfd  tx storage create-bucket bucketname 0x73a4Cf67b46D7E4efbb95Fc6F59D64129299c2E3  --from validator0  -y  --node tcp://127.0.0.1:26750 --home  $(pwd)/deployment/localup/.local/validator0 --keyring-backend test --broadcast-mode  block

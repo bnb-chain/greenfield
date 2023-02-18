@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -185,6 +186,8 @@ func init() {
 	}
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+ShortName)
+
+	sdk.DefaultPowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -613,9 +616,6 @@ func New(
 	app.MountMemoryStores(memKeys)
 
 	// initialize BaseApp
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
-
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
@@ -634,6 +634,9 @@ func New(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
+
+	ms := app.CommitMultiStore()
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
@@ -642,27 +645,24 @@ func New(
 		// Execute the upgraded register, such as the newly added Msg type
 		// ex.
 		// app.GovKeeper.Router().RegisterService(...)
-		ms := app.CommitMultiStore()
-		ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
-		if loadLatest {
-			err = app.UpgradeKeeper.InitUpgraded(ctx)
-			if err != nil {
-				panic(err)
-			}
+		err = app.UpgradeKeeper.InitUpgraded(ctx)
+		if err != nil {
+			panic(err)
 		}
 	}
 
 	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
-	app.initModules()
+	app.initModules(ctx)
 
 	return app
 }
 
-func (app *App) initModules() {
+func (app *App) initModules(ctx sdk.Context) {
 	app.initBridge()
-
 	app.initCrossChain()
+
+	app.initGashub(ctx)
 }
 
 func (app *App) initCrossChain() {
@@ -672,6 +672,12 @@ func (app *App) initCrossChain() {
 
 func (app *App) initBridge() {
 	bridgemodulekeeper.RegisterCrossApps(app.BridgeKeeper)
+}
+
+func (app *App) initGashub(ctx sdk.Context) {
+	if app.LastBlockHeight() > 0 {
+		app.GashubKeeper.RegisterGasCalculators(ctx)
+	}
 }
 
 // Name returns the name of the App

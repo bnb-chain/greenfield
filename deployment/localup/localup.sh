@@ -52,9 +52,9 @@ function generate_genesis() {
       spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
       spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
       spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
-      ${bin} add-genesis-account $sp_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $sp_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
       ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
-      ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+      ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
       ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     done
 
@@ -100,9 +100,10 @@ function generate_genesis() {
             --commission-rate=${COMMISSION_RATE} \
             --details="validator${i}" \
             --website="http://website" \
-            --node tcp://localhost:$((${VALIDATOR_P2P_PORT_START}+${i})) \
+            --node tcp://localhost:$((${VALIDATOR_RPC_PORT_START}+${i})) \
             --node-id "validator${i}" \
-            --ip 127.0.0.1
+            --ip 127.0.0.1 \
+            --gas ""
         cp ${workspace}/.local/validator${i}/config/gentx/gentx-validator${i}.json ${workspace}/.local/gentx/
     done
 
@@ -133,8 +134,7 @@ function generate_genesis() {
         sed -i -e "s/\"reserve_time\": \"15552000\"/\"reserve_time\": \"600\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"forced_settle_time\": \"86400\"/\"forced_settle_time\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/172800s/${DEPOSIT_VOTE_PERIOD}/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"10000000\"/\"${MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-
+        sed -i -e "s/\"10000000\"/\"${GOV_MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
 
     # enable swagger API for validator0
@@ -182,12 +182,12 @@ function sp_join() {
         sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
         sleep 6
         ${bin} tx sp grant 0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2 \
-            --spend-limit 1000000bnb \
+            --spend-limit 10000000000000000000000BNB \
             --SPAddress "${sp_addr}" \
             --from sp${i}_fund \
             --home "${workspace}/.local/sp${i}" \
             --keyring-backend test \
-            --node http://localhost:26750 \
+            --node http://localhost:${VALIDATOR_RPC_PORT_START} \
             --yes
     done
 
@@ -213,17 +213,17 @@ function sp_join() {
             --from sp${i} \
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
-            --node http://localhost:26750 \
+            --node http://localhost:${VALIDATOR_RPC_PORT_START} \
             --broadcast-mode  block \
             --yes
 
         sleep 6
         # deposit the proposal
-        ${bin} tx gov deposit $((${PROPOSAL_ID_START} + ${i})) 10000bnb \
+        ${bin} tx gov deposit $((${PROPOSAL_ID_START} + ${i})) 1000000000000000000BNB \
             --from sp${i} \
             --keyring-backend test \
             --home ${workspace}/.local/sp${i} \
-            --node http://localhost:26750 \
+            --node http://localhost:${VALIDATOR_RPC_PORT_START} \
             --broadcast-mode  block \
             --yes
 
@@ -233,7 +233,7 @@ function sp_join() {
             --from validator0 \
             --keyring-backend test \
             --home ${workspace}/.local/validator0 \
-            --node http://localhost:26750 \
+            --node http://localhost:${VALIDATOR_RPC_PORT_START} \
             --broadcast-mode  block \
             --yes
         sleep 1
@@ -248,7 +248,7 @@ function sp_check() {
     # wait 360s , and then check the sp if ready
     n=0
     while [ $n -le 360 ]; do
-        cnt=("$(${bin} query sp storage-providers --node http://localhost:26750 | grep approval_address | wc -l)")
+        cnt=("$(${bin} query sp storage-providers --node http://localhost:${VALIDATOR_RPC_PORT_START} | grep approval_address | wc -l)")
         ((n++))
         sleep 1
         if [ "$cnt" -eq "$sp_size" ]; then
@@ -274,12 +274,12 @@ fi
 case ${CMD} in
 init)
     echo "===== init ===="
-    init $SIZE
+    init $SIZE $SP_SIZE
     echo "===== end ===="
     ;;
 generate)
     echo "===== generate genesis ===="
-    generate_genesis $SIZE
+    generate_genesis $SIZE $SP_SIZE
     echo "===== end ===="
     ;;
 start)

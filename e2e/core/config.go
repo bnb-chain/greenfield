@@ -14,7 +14,7 @@ type Config struct {
 }
 
 func InitConfig() *Config {
-	// todo: support qa and testnet config
+	// TODO: support qa and testnet config
 	return InitE2eConfig()
 }
 
@@ -22,7 +22,7 @@ func InitE2eConfig() *Config {
 	return &Config{
 		GrpcAddr: "localhost:9090",
 		ChainId:  "greenfield_9000-121",
-		Denom:    "bnb",
+		Denom:    "BNB",
 		Mnemonic: ParseValidatorMnemonic(0),
 	}
 }

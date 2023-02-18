@@ -5,9 +5,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/bnb-chain/greenfield/e2e/core"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type PaymentTestSuite struct {
@@ -18,8 +19,7 @@ func (s *PaymentTestSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
 }
 
-func (s *PaymentTestSuite) SetupTest() {
-}
+func (s *PaymentTestSuite) SetupTest() {}
 
 func (s *PaymentTestSuite) TestPaymentAccount() {
 	user := s.GenAndChargeAccounts(1, 100)[0]
