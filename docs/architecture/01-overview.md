@@ -108,6 +108,3 @@ the owner address, users can derive multiple "Payment Addresses" to pay these fe
 while each bucket can be associated with these payment addresses, and the system will charge these accounts for storing
 and/or downloading. Many buckets can share the same payment address. Such association information is also stored on 
 chains with consensus as well.
-
-The payment of Greenfield is on a stream pay model, which will greatly reduce the complexity to implement the billing 
-logic - more described in Part 3.
