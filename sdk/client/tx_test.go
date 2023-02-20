@@ -3,15 +3,16 @@ package client
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/sdk/client/test"
-	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	"github.com/bnb-chain/greenfield/sdk/client/test"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {

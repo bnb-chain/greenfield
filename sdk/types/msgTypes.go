@@ -1,10 +1,6 @@
 package types
 
 import (
-	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -13,6 +9,11 @@ import (
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type (

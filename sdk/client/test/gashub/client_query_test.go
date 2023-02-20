@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
-	"github.com/bnb-chain/greenfield/sdk/client/test"
 	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	"github.com/stretchr/testify/assert"
+
+	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
+	"github.com/bnb-chain/greenfield/sdk/client/test"
 )
 
 func TestGashubParams(t *testing.T) {

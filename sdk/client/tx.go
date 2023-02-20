@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	xauthsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
@@ -202,7 +201,7 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 		return err
 	}
 	if gasPrice.IsZero() {
-		return errors.Wrap(types.SimulatedGasPriceError, "gas price is 0. ")
+		return types.SimulatedGasPriceError
 	}
 	feeAmount := sdk.NewCoins(sdk.NewInt64Coin(types.Denom,
 		sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()),
