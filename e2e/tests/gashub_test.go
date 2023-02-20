@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -13,8 +15,6 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
-	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 type GashubTestSuite struct {
@@ -63,7 +63,7 @@ func (s *GashubTestSuite) TestUpdateParams() {
 	s.Require().True(proposalId != 0)
 
 	queryProposal := &govtypesv1.QueryProposalRequest{ProposalId: proposalId}
-	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 
 	// 3. submit MsgVote and wait the proposal exec
@@ -73,7 +73,7 @@ func (s *GashubTestSuite) TestUpdateParams() {
 
 	for {
 		time.Sleep(60 * time.Second)
-		proposalRes, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+		proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 		s.Require().NoError(err)
 		if proposalRes.Proposal.Status == govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED {
 			break
