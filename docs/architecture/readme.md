@@ -3,7 +3,7 @@ This section dives into the internals of the Greenfield Blockchain implementatio
 
 ### Table of Contents
 
-- [Framework](./01-framework.md)
+- [Overview](./01-overview.md)
 - [Key Management](./02-key_management.md)
 - [Token Economics](./03-token_economics.md)
 - [Storage Provider Management](./04-storage_provider_management.md)
