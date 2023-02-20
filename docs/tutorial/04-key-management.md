@@ -2,7 +2,7 @@
 
 ## Abstract
 
-The gnfd-cosmos-sdk comes with a built-in keyring module that helps manage private and public keypairs for secure interactions with a node. In this tutorial, we'll explore how to use the gnfd command to manage keys in the gnfd-cosmos-sdk.
+The greenfield-cosmos-sdk comes with a built-in keyring module that helps manage private and public keypairs for secure interactions with a node. In this tutorial, we'll explore how to use the gnfd command to manage keys in the greenfield-cosmos-sdk.
 
 ## Quick Start
 
