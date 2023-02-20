@@ -24,7 +24,6 @@ type TransactionClient interface {
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
 func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
-
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 
@@ -205,8 +204,10 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 	if gasPrice.IsZero() {
 		return types.SimulatedGasPriceError
 	}
-	feeAmount := sdk.NewCoins(sdk.NewInt64Coin(types.Denom,
-		sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()),
+	feeAmount := sdk.NewCoins(
+		sdk.NewInt64Coin(
+			types.Denom,
+			sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()),
 	)
 	if txOpt != nil && !txOpt.FeeAmount.IsZero() {
 		feeAmount = txOpt.FeeAmount
