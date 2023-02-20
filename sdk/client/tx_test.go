@@ -43,11 +43,10 @@ func TestSendTokenWithTxOptionSucceed(t *testing.T) {
 	assert.NoError(t, err)
 	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{
-		Mode:      &mode,
-		GasLimit:  123456,
-		Memo:      "test",
-		FeeAmount: sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 1)),
-		FeePayer:  payerAddr,
+		Mode:     &mode,
+		GasLimit: 123456,
+		Memo:     "test",
+		FeePayer: payerAddr,
 	}
 	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
 	assert.NoError(t, err)
