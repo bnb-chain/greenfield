@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-	"github.com/bnb-chain/greenfield/sdk/types"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,6 +12,8 @@ import (
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc"
+
+	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 type TransactionClient interface {
