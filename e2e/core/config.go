@@ -36,12 +36,12 @@ func InitE2eConfig() *Config {
 	}
 }
 
-// ParseValidatorMnemonic read a file and return the last non-empty line
+// ParseValidatorMnemonic read the validator mnemonic from file
 func ParseValidatorMnemonic(i int) string {
 	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/validator%d/info", i))
 }
 
-// ParseValidatorMnemonic read a file and return the last non-empty line
+// ParseSPMnemonics read the sp mnemonics from file
 func ParseSPMnemonics(i int) SPMnemonics {
 	return SPMnemonics{
 		OperatorMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/info", i)),
