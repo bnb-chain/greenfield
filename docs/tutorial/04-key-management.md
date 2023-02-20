@@ -2,29 +2,47 @@
 
 ## Abstract
 
-The keyring module could help managing keys. It holds the private/public 
-keypairs used to interact with a node
+The gnfd-cosmos-sdk comes with a built-in keyring module that helps manage private and public keypairs for secure interactions with a node. In this tutorial, we'll explore how to use the gnfd command to manage keys in the gnfd-cosmos-sdk.
 
 ## Quick Start
 
-```
+To begin, start a local cluster and set up an alias for the gnfd command:
+
+```sh
 ## Start a local cluster
 $ bash ./deployment/localup/localup.sh all 3
 $ alias gnfd="./build/bin/gnfd"
-$ moniker=temp
-## create a new key
-$ gnfd keys add $moniker --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
-## show info of the key
-$ gnfd keys show $moniker --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
-## list all existed keys
+```
+
+Next, create a new key with the following command:
+
+```sh
+$ gnfd keys add <name> --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
+```
+
+You can replace <name> with any name you choose. The command will prompt you to enter a passphrase to encrypt the key.
+
+To show information about the key you just created, run:
+
+```sh
+$ gnfd keys show <name> --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
+```
+
+To list all existing keys, run:
+
+```sh
 $ gnfd keys list --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
-## delete the key
-$ gnfd keys delete $moniker --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
+```
+
+To delete a key, use the following command:
+
+```sh
+$ gnfd keys delete <name> --keyring-backend test --keyring-dir ./deployment/localup/.local/validator0
 ```
 
 ## Detailed CLI
 
-A user can interact with the `keyring` module using the CLI.
+The following section explains the different commands that can be used with the gnfd command to manage keys.
 
 #### add
 
@@ -221,4 +239,3 @@ Example Output:
   pubkey_hex: 021265c6...2df21242
   type: local
 ```
-
