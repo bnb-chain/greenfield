@@ -7,7 +7,7 @@ message Challenge {
   uint64 id = 1;
   string sp_operator_address = 2;
   bytes object_key = 3;
-  uint32 index = 4;
+  uint32 segment_index = 4;
   uint64 height = 5;
   string challenger_address = 6;
 }

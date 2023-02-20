@@ -78,16 +78,19 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 		}
 
 		// random index
-		randomIndex := uint32(1)
+		randomSegmentIndex := uint32(1)
 
 		// random sp address
 		bucket, _ := keeper.StorageKeeper.GetBucket(ctx, objectInfo.ObjectName)
 		randomSpOperatorAddress := ""
-		if randomIndex == 0 { //primary sp
+		var redundancyIndex int32
+		if randomSegmentIndex == 0 { //primary sp
 			randomSpOperatorAddress = bucket.PrimarySpAddress
+			redundancyIndex = int32(-1)
 		} else { //secondary sp
 			secondarySpAddresses := objectInfo.SecondarySpAddresses
-			randomSpOperatorAddress = secondarySpAddresses[randomIndex-1]
+			randomSpOperatorAddress = secondarySpAddresses[randomSegmentIndex-1]
+			redundancyIndex = int32(randomSegmentIndex - 1)
 		}
 		addr, _ := sdk.AccAddressFromHexUnsafe(randomSpOperatorAddress)
 		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, addr)
@@ -107,7 +110,7 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 			Id:                challengeId,
 			SpOperatorAddress: randomSpOperatorAddress,
 			ObjectKey:         objectKey,
-			Index:             randomIndex,
+			SegmentIndex:      randomSegmentIndex,
 			Height:            uint64(ctx.BlockHeight()),
 			ChallengerAddress: "",
 		}
@@ -115,9 +118,10 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 		keeper.SetChallengeID(ctx, challengeId+1)
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challenge.Id,
-			SpOperatorAddress: randomSpOperatorAddress,
 			ObjectId:          objectInfo.Id.Uint64(),
-			Index:             randomIndex,
+			SegmentIndex:      randomSegmentIndex,
+			SpOperatorAddress: randomSpOperatorAddress,
+			RedundancyIndex:   redundancyIndex,
 		})
 
 		count++

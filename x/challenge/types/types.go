@@ -1,5 +1,10 @@
 package types
 
 const (
-	ChallengeResultSucceed = 1
+	ChallengeResultSucceed = uint32(1)
+	ChallengeResultFailed  = uint32(2)
+)
+
+const (
+	RedundancyIndexPrimary = int32(-1)
 )

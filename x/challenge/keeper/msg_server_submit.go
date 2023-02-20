@@ -37,13 +37,20 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrInvalidObjectStatus
 	}
 
+	redundancyIndex := types.RedundancyIndexPrimary
+	for i, sp := range objectInfo.GetSecondarySpAddresses() {
+		if sp == msg.SpOperatorAddress {
+			redundancyIndex = int32(i)
+			break
+		}
+	}
+
 	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
 	objectId := objectInfo.Id
 
-	index := msg.Index
+	segmentIndex := msg.SegmentIndex
 	if msg.RandomIndex {
-		//TODO: random index
-
+		//TODO: random segmentIndex
 	}
 
 	challengeId, err := k.GetChallengeID(ctx)
@@ -54,7 +61,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		Id:                challengeId,
 		SpOperatorAddress: msg.SpOperatorAddress,
 		ObjectKey:         objectKey,
-		Index:             msg.Index,
+		SegmentIndex:      msg.SegmentIndex,
 		Height:            uint64(ctx.BlockHeight()),
 		ChallengerAddress: msg.Creator,
 	}
@@ -65,9 +72,10 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,
-		SpOperatorAddress: msg.SpOperatorAddress,
 		ObjectId:          objectId.Uint64(),
-		Index:             index,
+		SegmentIndex:      segmentIndex,
+		SpOperatorAddress: msg.SpOperatorAddress,
+		RedundancyIndex:   redundancyIndex,
 	}); err != nil {
 		return nil, err
 	}

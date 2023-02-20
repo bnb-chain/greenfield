@@ -30,11 +30,11 @@ message MsgSubmit {
   // The name of the object info to be challenged.
   string object_name = 4;
 
-  // Randomly pick a segment/piece to challenge or not.
-  bool random_index = 5;
-
   // The index of segment/piece to challenge, start from zero.
-  uint32 index = 6;
+  uint32 segment_index = 5;
+
+  // Randomly pick a segment/piece to challenge or not.
+  bool random_index = 6;
 }
 
 message MsgSubmitResponse {}

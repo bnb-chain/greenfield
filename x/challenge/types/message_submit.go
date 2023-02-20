@@ -10,14 +10,14 @@ const TypeMsgSubmit = "submit"
 
 var _ sdk.Msg = &MsgSubmit{}
 
-func NewMsgSubmit(creator sdk.AccAddress, spOperatorAddress sdk.AccAddress, bucketName, objectName string, randomIndex bool, index uint32) *MsgSubmit {
+func NewMsgSubmit(creator sdk.AccAddress, spOperatorAddress sdk.AccAddress, bucketName, objectName string, randomIndex bool, segmentIndex uint32) *MsgSubmit {
 	return &MsgSubmit{
 		Creator:           creator.String(),
 		SpOperatorAddress: spOperatorAddress.String(),
 		BucketName:        bucketName,
 		ObjectName:        objectName,
 		RandomIndex:       randomIndex,
-		Index:             index,
+		SegmentIndex:      segmentIndex,
 	}
 }
 
@@ -56,7 +56,7 @@ func (msg *MsgSubmit) ValidateBasic() error {
 		return err
 	}
 
-	if !msg.RandomIndex && msg.Index > 5 {
+	if !msg.RandomIndex && msg.SegmentIndex > 5 {
 		return sdkerrors.Wrapf(ErrInvalidIndex, "Index should be correctly provided when random index is disabled")
 	}
 
