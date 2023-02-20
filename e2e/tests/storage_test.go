@@ -14,9 +14,7 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-var (
-	TestBucket = "testbucket"
-)
+var TestBucket = "testbucket"
 
 type StorageTestSuite struct {
 	core.BaseSuite
@@ -135,7 +133,8 @@ func (s *StorageTestSuite) TestCreateObject() {
 	secondarySPs := []sdk.AccAddress{
 		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
 		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr()}
+		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
+	}
 	msgSealObject := storagetypes.NewMsgSealObject(s.StorageProvider.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
 	sr := storagetypes.NewSecondarySpSignDoc(s.StorageProvider.OperatorKey.GetAddr(), checksum)
 	secondarySig, err := s.StorageProvider.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
