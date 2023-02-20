@@ -23,6 +23,7 @@ type (
 		paramStore    paramtypes.Subspace
 		spKeeper      types.SpKeeper
 		paymentKeeper types.PaymentKeeper
+		accountKeeper types.AccountKeeper
 
 		// sequence
 		bucketSeq Sequence
@@ -36,6 +37,7 @@ func NewKeeper(
 	storeKey,
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
+	accountKeeper types.AccountKeeper,
 	spKeeper types.SpKeeper,
 	paymentKeeper types.PaymentKeeper,
 
@@ -50,13 +52,14 @@ func NewKeeper(
 		storeKey:      storeKey,
 		memKey:        memKey,
 		paramStore:    ps,
+		accountKeeper: accountKeeper,
 		spKeeper:      spKeeper,
 		paymentKeeper: paymentKeeper,
 	}
 
-	k.bucketSeq = NewSequence(types.BucketPrefix)
-	k.objectSeq = NewSequence(types.ObjectPrefix)
-	k.groupSeq = NewSequence(types.GroupPrefix)
+	k.bucketSeq = NewSequence(types.BucketSequencePrefix)
+	k.objectSeq = NewSequence(types.ObjectSequencePrefix)
+	k.groupSeq = NewSequence(types.GroupSequencePrefix)
 	return &k
 }
 
@@ -299,12 +302,12 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []b
 		return types.ErrStorageProviderNotInService
 	}
 
-	approvalAcc, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+	approvalAccAddress, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
 	if err != nil {
 		return err
 	}
 
-	err = types.VerifySignature(approvalAcc, sigData, signature)
+	err = types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
 		return err
 	}

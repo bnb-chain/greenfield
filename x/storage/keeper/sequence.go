@@ -8,8 +8,8 @@ import (
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-// sequenceIDPrefix a fix key to read/ write data on the storage layer
-var sequenceIDPrefix = []byte{0x1}
+// sequenceKey a fix key to read/ write data on the storage layer
+var sequenceKey = []byte{0x1}
 
 // sequence is a persistent unique key generator based on a counter.
 type Sequence struct {
@@ -25,25 +25,25 @@ func NewSequence(prefix []byte) Sequence {
 // NextVal increments and persists the counter by one and returns the value.
 func (s Sequence) NextVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
-	v := pStore.Get(sequenceIDPrefix)
+	v := pStore.Get(sequenceKey)
 	seq := types.MustUnmarshalUint(v)
 	seq = seq.Incr()
 
-	pStore.Set(sequenceIDPrefix, types.MustMarshalUint(seq))
+	pStore.Set(sequenceKey, types.MustMarshalUint(seq))
 	return seq
 }
 
 // CurVal returns the last value used. 0 if none.
 func (s Sequence) CurVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
-	v := pStore.Get(sequenceIDPrefix)
+	v := pStore.Get(sequenceKey)
 	return types.MustUnmarshalUint(v)
 }
 
 // PeekNextVal returns the CurVal + increment step. Not persistent.
 func (s Sequence) PeekNextVal(store sdk.KVStore) math.Uint {
 	pStore := prefix.NewStore(store, s.prefix)
-	v := pStore.Get(sequenceIDPrefix)
+	v := pStore.Get(sequenceKey)
 	seq := types.MustUnmarshalUint(v)
 	seq = seq.Incr()
 	return seq
@@ -57,10 +57,10 @@ func (s Sequence) PeekNextVal(store sdk.KVStore) math.Uint {
 // method consumes unnecessary gas otherwise. A scenario would be an import from genesis.
 func (s Sequence) InitVal(store sdk.KVStore, seq math.Uint) error {
 	pStore := prefix.NewStore(store, s.prefix)
-	if pStore.Has(sequenceIDPrefix) {
+	if pStore.Has(sequenceKey) {
 		return types.ErrSequenceUniqueConstraint
 	}
 
-	pStore.Set(sequenceIDPrefix, types.MustMarshalUint(seq))
+	pStore.Set(sequenceKey, types.MustMarshalUint(seq))
 	return nil
 }
