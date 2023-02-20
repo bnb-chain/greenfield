@@ -1,6 +1,8 @@
 package types
 
-import "errors"
+import (
+	"errors"
+)
 
 var (
 	KeyManagerNotInitError = errors.New("Key manager is not initialized yet ")
