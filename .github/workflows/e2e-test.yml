@@ -54,6 +54,8 @@ jobs:
         cat ./deployment/localup/.env
     - name: run local chain
       run:  bash ./deployment/localup/localup.sh all 1 1
+    - name: check sp
+      run: bash ./deployment/localup/localup.sh sp_check 1 1
     - name: run e2e test
       run: |
         make e2e_test
