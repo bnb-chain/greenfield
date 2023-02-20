@@ -7,6 +7,7 @@ import (
 	"math"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -229,7 +230,7 @@ func CmdCreateObject() *cobra.Command {
 			}
 
 			// read file
-			f, err := os.OpenFile(argObjectPath, os.O_RDONLY, 0644)
+			f, err := os.OpenFile(filepath.Clean(argObjectPath), os.O_RDONLY, 0600)
 			if err != nil {
 				return err
 			}

@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 type SPMnemonics struct {
@@ -53,10 +54,12 @@ func ParseSPMnemonics(i int) SPMnemonics {
 }
 
 func ParseMnemonicFromFile(fileName string) string {
+	fileName = filepath.Clean(fileName)
 	file, err := os.Open(fileName)
 	if err != nil {
 		panic(err)
 	}
+	// #nosec
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
