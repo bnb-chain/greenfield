@@ -29,8 +29,8 @@ func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newCh
 
 // ApplyStreamRecordChanges assume StreamRecordChange is unique by Addr
 func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []types.StreamRecordChange) error {
-	for _, fc := range streamRecordChanges {
-		_, err := k.UpdateStreamRecordByAddr(ctx, &fc)
+	for i := 0; i < len(streamRecordChanges); i++ {
+		_, err := k.UpdateStreamRecordByAddr(ctx, &streamRecordChanges[i])
 		if err != nil {
 			return fmt.Errorf("update stream record failed: %w", err)
 		}

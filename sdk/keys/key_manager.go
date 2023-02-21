@@ -3,16 +3,14 @@ package keys
 import (
 	"encoding/hex"
 	"fmt"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	ctypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	ethHd "github.com/evmos/ethermint/crypto/hd"
-
-	"strings"
-
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
+	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	ethHd "github.com/evmos/ethermint/crypto/hd"
 )
 
 const (

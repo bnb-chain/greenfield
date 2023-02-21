@@ -1,6 +1,5 @@
 package tests
 
-// Basic imports
 import (
 	"context"
 	"testing"

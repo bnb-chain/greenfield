@@ -197,7 +197,7 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sd
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreate},
 		sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))},
-		sdk.ValAddress(from.Bytes()).String(),
+		sdk.AccAddress(from.Bytes()).String(),
 		"test",
 	)
 	suite.Require().NoError(err)

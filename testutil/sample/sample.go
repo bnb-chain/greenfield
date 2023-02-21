@@ -20,6 +20,7 @@ func Checksum() []byte {
 
 func RandStr(length int) []byte {
 	randBytes := make([]byte, length/2)
+	// #nosec
 	rand.Read(randBytes)
 	return randBytes
 }

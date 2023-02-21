@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
-	"github.com/bnb-chain/greenfield/sdk/client/test"
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	"github.com/stretchr/testify/assert"
+
+	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
+	"github.com/bnb-chain/greenfield/sdk/client/test"
 )
 
 func TestOracleParams(t *testing.T) {

@@ -1,9 +1,11 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/gogo/protobuf/proto"
 )
 
 const (
@@ -50,14 +52,14 @@ var (
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
 	creator sdk.AccAddress, bucketName string, isPublic bool,
-	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, primarySPApproval []byte) *MsgCreateBucket {
+	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte) *MsgCreateBucket {
 	return &MsgCreateBucket{
-		Creator:                    creator.String(),
-		BucketName:                 bucketName,
-		IsPublic:                   isPublic,
-		PaymentAddress:             paymentAddress.String(),
-		PrimarySpAddress:           primarySPAddress.String(),
-		PrimarySpApprovalSignature: primarySPApproval,
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		IsPublic:          isPublic,
+		PaymentAddress:    paymentAddress.String(),
+		PrimarySpAddress:  primarySPAddress.String(),
+		PrimarySpApproval: &Approval{timeoutHeight, sig},
 	}
 }
 
@@ -89,30 +91,30 @@ func (msg *MsgCreateBucket) GetSignBytes() []byte {
 
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateBucket) GetApprovalBytes() []byte {
-	newMsg := msg
-	newMsg.PrimarySpApprovalSignature = []byte{}
-	return newMsg.GetSignBytes()
+	fakeMsg := proto.Clone(msg).(*MsgCreateBucket)
+	fakeMsg.PrimarySpApproval.Sig = []byte{}
+	return fakeMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCreateBucket) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid primary sp address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid primary sp address (%s)", err)
 	}
 
 	// PaymentAddress is optional, use creator by default if not set.
 	if msg.PaymentAddress != "" {
 		if _, err := sdk.AccAddressFromHexUnsafe(msg.PaymentAddress); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid store payment address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid store payment address (%s)", err)
 		}
 	}
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 	return nil
 }
@@ -154,11 +156,11 @@ func (msg *MsgDeleteBucket) GetSignBytes() []byte {
 func (msg *MsgDeleteBucket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 
 	return nil
@@ -198,16 +200,16 @@ func (msg *MsgUpdateBucketInfo) GetSignBytes() []byte {
 func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
 	}
 
 	return nil
@@ -216,7 +218,7 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	isPublic bool, expectChecksums [][]byte, contentType string, primarySPApproval []byte,
+	isPublic bool, expectChecksums [][]byte, contentType string, timeoutHeight uint64, sig []byte,
 	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
 
 	var secSPAddrs []string
@@ -231,7 +233,7 @@ func NewMsgCreateObject(
 		PayloadSize:                payloadSize,
 		IsPublic:                   isPublic,
 		ContentType:                contentType,
-		PrimarySpApprovalSignature: primarySPApproval,
+		PrimarySpApproval:          &Approval{timeoutHeight, sig},
 		ExpectChecksums:            expectChecksums,
 		ExpectSecondarySpAddresses: secSPAddrs,
 	}
@@ -265,32 +267,28 @@ func (msg *MsgCreateObject) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCreateObject) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 
 	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
 	if err := CheckValidExpectChecksums(msg.ExpectChecksums); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidChcecksum, "invalid checksum (%s)", err)
+		return errors.Wrapf(ErrInvalidChcecksum, "invalid checksum (%s)", err)
 	}
 
 	if err := CheckValidContentType(msg.ContentType); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidContentType, "invalid checksum (%s)", err)
-	}
-
-	if msg.PrimarySpApprovalSignature == nil {
-		return sdkerrors.Wrapf(ErrInvalidSPSignature, "empty sp signature")
+		return errors.Wrapf(ErrInvalidContentType, "invalid checksum (%s)", err)
 	}
 
 	for _, spAddress := range msg.ExpectSecondarySpAddresses {
 		if _, err := sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
 		}
 	}
 	return nil
@@ -298,9 +296,9 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateObject) GetApprovalBytes() []byte {
-	newMsg := msg
-	newMsg.PrimarySpApprovalSignature = []byte{}
-	return newMsg.GetSignBytes()
+	fakeMsg := proto.Clone(msg).(*MsgCreateObject)
+	fakeMsg.PrimarySpApproval.Sig = []byte{}
+	return fakeMsg.GetSignBytes()
 }
 
 func NewMsgCancelCreateObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgCancelCreateObject {
@@ -335,14 +333,14 @@ func (msg *MsgCancelCreateObject) GetSignBytes() []byte {
 func (msg *MsgCancelCreateObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 
 	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
 	return nil
@@ -385,15 +383,15 @@ func (msg *MsgDeleteObject) GetSignBytes() []byte {
 func (msg *MsgDeleteObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 
 	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 	return nil
 }
@@ -445,40 +443,40 @@ func (msg *MsgSealObject) GetSignBytes() []byte {
 func (msg *MsgSealObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Operator); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
 	}
 
 	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
 	}
 
 	// TODO: 6 hard code here.
 	if len(msg.SecondarySpAddresses) != 6 {
-		return sdkerrors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (d%), but (d%)", 6, len(msg.SecondarySpAddresses))
+		return errors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (%d), but (%d)", 6, len(msg.SecondarySpAddresses))
 	}
 
 	for _, addr := range msg.SecondarySpAddresses {
 		_, err := sdk.AccAddressFromHexUnsafe(addr)
 		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid secondary sp address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid secondary sp address (%s)", err)
 		}
 	}
 
 	if len(msg.SecondarySpSignatures) != 6 {
-		return sdkerrors.Wrapf(ErrInvalidSPSignature, "Missing SP signatures")
+		return errors.Wrapf(ErrInvalidSPSignature, "Missing SP signatures")
 	}
 
 	for _, sig := range msg.SecondarySpSignatures {
 		if sig == nil && len(sig) != ethcrypto.SignatureLength {
-			return sdkerrors.Wrapf(ErrInvalidSPSignature, "invalid SP signatures")
+			return errors.Wrapf(ErrInvalidSPSignature, "invalid SP signatures")
 		}
 	}
 
@@ -487,14 +485,14 @@ func (msg *MsgSealObject) ValidateBasic() error {
 
 func NewMsgCopyObject(
 	operator sdk.AccAddress, srcBucketName string, dstBucketName string,
-	srcObjectName string, dstObjectName string, dstPrimarySPApproval []byte) *MsgCopyObject {
+	srcObjectName string, dstObjectName string, timeoutHeight uint64, sig []byte) *MsgCopyObject {
 	return &MsgCopyObject{
-		Operator:                      operator.String(),
-		SrcBucketName:                 srcBucketName,
-		DstBucketName:                 dstBucketName,
-		SrcObjectName:                 srcObjectName,
-		DstObjectName:                 dstObjectName,
-		DstPrimarySpApprovalSignature: dstPrimarySPApproval,
+		Operator:             operator.String(),
+		SrcBucketName:        srcBucketName,
+		DstBucketName:        dstBucketName,
+		SrcObjectName:        srcObjectName,
+		DstObjectName:        dstObjectName,
+		DstPrimarySpApproval: &Approval{timeoutHeight, sig},
 	}
 }
 
@@ -524,32 +522,32 @@ func (msg *MsgCopyObject) GetSignBytes() []byte {
 
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCopyObject) GetApprovalBytes() []byte {
-	newMsg := msg
-	newMsg.DstPrimarySpApprovalSignature = []byte{}
-	return newMsg.GetSignBytes()
+	fakeMsg := proto.Clone(msg).(*MsgCopyObject)
+	fakeMsg.DstPrimarySpApproval.Sig = []byte{}
+	return fakeMsg.GetSignBytes()
 }
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCopyObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.SrcBucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid src bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid src bucket name (%s)", err)
 	}
 
 	if err := CheckValidObjectName(msg.SrcObjectName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid src object name (%s)", err)
+		return errors.Wrapf(ErrInvalidObjectName, "invalid src object name (%s)", err)
 	}
 
 	if err := CheckValidBucketName(msg.DstBucketName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidBucketName, "invalid src bucket name (%s)", err)
+		return errors.Wrapf(ErrInvalidBucketName, "invalid src bucket name (%s)", err)
 	}
 
 	if err := CheckValidObjectName(msg.DstObjectName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidObjectName, "invalid src object name (%s)", err)
+		return errors.Wrapf(ErrInvalidObjectName, "invalid src object name (%s)", err)
 	}
 	return nil
 }
@@ -591,7 +589,7 @@ func (msg *MsgRejectSealObject) GetSignBytes() []byte {
 func (msg *MsgRejectSealObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
@@ -637,11 +635,11 @@ func (msg *MsgCreateGroup) GetSignBytes() []byte {
 func (msg *MsgCreateGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidGroupName(msg.GroupName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
+		return errors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
 	}
 	return nil
 }
@@ -682,11 +680,11 @@ func (msg *MsgDeleteGroup) GetSignBytes() []byte {
 func (msg *MsgDeleteGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidGroupName(msg.GroupName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
+		return errors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
 	}
 	return nil
 }
@@ -728,11 +726,11 @@ func (msg *MsgLeaveGroup) GetSignBytes() []byte {
 func (msg *MsgLeaveGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Member)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	if err := CheckValidGroupName(msg.GroupName); err != nil {
-		return sdkerrors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
+		return errors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
 	}
 	return nil
 }
@@ -784,7 +782,7 @@ func (msg *MsgUpdateGroupMember) GetSignBytes() []byte {
 func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }
