@@ -20,11 +20,13 @@ const (
 )
 
 func GenRandomAddr() sdk.AccAddress {
+	// #nosec
 	return sdk.AccAddress(crypto.AddressHash([]byte(fmt.Sprintf("%d", rand.Int()))))
 }
 
 func GenRandomHexString(len int) string {
 	b := make([]byte, len)
+	// #nosec
 	_, err := rand.Read(b)
 	if err != nil {
 		panic(err)

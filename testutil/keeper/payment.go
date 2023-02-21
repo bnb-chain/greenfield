@@ -95,6 +95,7 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 func GetRandomAddress() string {
 	b := make([]byte, 20)
+	// #nosec
 	_, err := rand.Read(b)
 	if err != nil {
 		panic(err)
