@@ -46,5 +46,15 @@ validator would be jailed forever. Here are the steps for impeaching a validator
 
 ## Staking Reward Distribution
 
-There is no inflation of tokens on Greenfield, all the block rewards come from the transaction fee. Block rewards will be
-distributed passively, delegators can submit withdrawal requests to get all the up-to-date block rewards.
+In BNB Greenfield blockchain, rewards gained from transaction fees are paid to validators. The fee distribution
+module fairly distributes the rewards to the validators' constituent delegators.
+
+Rewards are calculated per period. The period is updated each time a validator's delegation changes, for example, when
+the validator receives a new delegation. The rewards for a single validator can then be calculated by taking the total
+rewards for the period before the delegation started, minus the current total rewards.
+
+The commission to the validator is paid when the validator is removed or when the validator requests a withdrawal.
+The commission is calculated and incremented at every `BeginBlock` operation to update accumulated fee amounts.
+
+The rewards to a delegator are distributed when the delegation is changed or removed, or a withdrawal is requested.
+Before rewards are distributed, all slashes to the validator that occurred during the current delegation are applied.
