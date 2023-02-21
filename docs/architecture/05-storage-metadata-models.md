@@ -1,0 +1,417 @@
+# Storage MetaData Models
+
+## Abstract
+The basic data models for Greenfield storage are:
+
+- bucket
+- object
+- group
+- permission
+
+These metadata are stored as blockchain state into the persistent storage of the Greenfield blockchain.
+
+## Concepts
+
+### Bucket
+
+Bucket is the unit to group storage "objects". BucketName has to be globally unique. Every user account can create a
+bucket. The account will become the "owner" of the bucket.
+
+Each bucket should be associated with its own Primary SP, and the payment accounts for Read and Store. The owner's
+address will be the default payment account.
+
+### Object
+
+Object is the basic unit to store data on Greenfield. The metadata for the object will be stored on the Greenfield
+blockchain:
+
+- name and ID
+- owner
+- bucket that hosts it
+- size and timestamps
+- content type
+- checkSums for the storage pieces
+- storage status
+- associated SP information
+
+Object metadata is stored with the bucket name as the prefix of the key. It is possible to iterate through all
+objects under the same bucket, but it may be a heavy-lifting job for a large bucket with lots of objects.
+
+### Group
+
+A Group is a collection of accounts with the same permissions. The group name is not allowed to be duplicated under the
+same user. However, a group can not create or own any resource. A group can not be a member of another group either.
+
+A resource can only have a limited number of groups associated with it for permissions. This ensures that the on-chain
+permission check can be finished within a constant time.
+
+## State
+
+The storage module keeps state of the following primary objects:
+
+* BucketInfo 
+* ObjectInfo
+* GroupInfo
+
+These primary objects should be primarily stored and accessed by the `ID` which is a auto-incremented sequence. An 
+additional indices are maintained per primary objects in order to compatibility with the S3 object storage.
+
+* BucketInfo: `0x11 | hash(bucketName) -> BigEndian(bucketId)`
+* ObjectInfo: `0x12 | hash(bucketName)_hash(objectName) -> BigEndian(objectId)`
+* GroupInfo: `0x13 | OwnerAddr_hash(groupName) -> BigEndian(groupId)`
+
+* BucketInfoById: `0x21 | BigEndian(bucketId) -> ProtoBuf(BucketInfo)`
+* ObjectInfoById: `0x22 | BigEndian(objectId) -> ProtoBuf(ObjectInfo)`
+* GroupInfoById: `0x23 | BigEndian(groupId) -> ProtoBuf(GroupInfo)`
+
+```protobuf
+message BucketInfo {
+  // owner is the account address of bucket creator, it is also the bucket owner.
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is a globally unique name of bucket
+  string bucket_name = 2;
+  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
+  bool is_public = 3;
+  // id is the unique identification for bucket.
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // source_type define the source of the bucket
+  SourceType source_type = 5;
+  // create_at define the block number when the bucket created.
+  int64 create_at = 6;
+  // payment_address is the address of the payment account
+  string payment_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_address is the address of the primary sp. Objects belongs to this bucket will never
+  // leave this SP, unless you explicitly shift them to another SP.
+  string primary_sp_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // read_quota defines the traffic quota for read
+  ReadQuota read_quota = 9;
+  // payment_price_time TODO(Owen): refine the comments
+  int64 payment_price_time = 10;
+  // payment_out_flows
+  repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
+}
+
+message ObjectInfo {
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket
+  string bucket_name = 2;
+  // object_name is the name of object
+  string object_name = 3;
+  // id is the unique identifier of object
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // payloadSize is the total size of the object payload
+  uint64 payload_size = 5;
+  // is_public define the highest permissions for object. When the object is public, everyone can access it.
+  bool is_public = 6;
+  // content_type define the format of the object which should be a standard MIME type.
+  string content_type = 7;
+  // create_at define the block number when the object created
+  int64 create_at = 8;
+  // object_status define the upload status of the object.
+  ObjectStatus object_status = 9;
+  // redundancy_type define the type of the redundancy which can be multi-replication or EC.
+  RedundancyType redundancy_type = 10;
+  // source_type define the source of the object.
+  SourceType source_type = 11;
+  // checksums define the root hash of the pieces which stored in a SP.
+  repeated bytes checksums = 12;
+  // secondary_sp_addresses define the addresses of secondary_sps
+  repeated string secondary_sp_addresses = 13 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // lockedBalance
+  string lockedBalance = 14 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+message GroupInfo {
+  // owner is the owner of the group. It can not changed once it created.
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of group which is unique under an account.
+  string group_name = 2;
+  // source_type
+  SourceType source_type = 3;
+  // id is the unique identifier of group
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+```
+
+### Params
+
+The storage module contains the following parameters,
+they can be updated with governance.
+
+```protobuf
+// Params defines the parameters for the module.
+message Params {
+  // TODO: We should think more about the version-control of the storage params.
+  option (gogoproto.goproto_stringer) = false;
+
+  // max_segment_size is the maximum size of a segment. default: 16M
+  uint64 max_segment_size = 1;
+  // redundant_data_check_num is the num of data chunks of EC redundancy algorithm
+  uint32 redundant_data_chunk_num = 2;
+  // redundant_data_check_num is the num of parity chunks of EC redundancy algorithm
+  uint32 redundant_parity_chunk_num = 3;
+  // max_payload_size is the maximum size of the payload, default: 2G
+  uint64 max_payload_size = 4;
+}
+```
+
+* the max_segment_size/redundant_data_chunk_num/redundant_parity_chunk_num is for redundancy algorithm
+* the max_payload_size is a limit on the size of objects uploaded by users
+
+## Keepers
+
+The storage module keeper provides access to query the parameters, bucketInfo, objectInfo, groupInfo and several 
+interface for Create/Delete/Update the resources.
+
+
+## Messages
+
+### MsgCreateBucket
+
+Used to create bucket for user
+
+```protobuf
+message MsgCreateBucket {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // creator is the account address of bucket creator, it is also the bucket owner.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is a globally unique name of bucket
+  string bucket_name = 2;
+  // is_public means the bucket is private or public. if private, only bucket owner or grantee can read it,
+  // otherwise every greenfield user can read it.
+  bool is_public = 3;
+  // payment_address is an account address specified by bucket owner to pay the read fee. Default: creator
+  string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_address is the address of primary sp.
+  string primary_sp_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_approval is the approval info of the primary SP which indicates that primary sp confirm the user's request.
+  Approval primary_sp_approval = 7;
+  // read_quota
+  ReadQuota read_quota = 8;
+}
+```
+
+### MsgDeleteBucket
+
+Used to delete bucket for user. It is important to note that you cannot delete a non-empty bucket.
+
+```protobuf
+message MsgDeleteBucket {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // creator is the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // bucket_name is the name of the bucket to be deleted.
+  string bucket_name = 2;
+}
+```
+
+### MsgUpdateBucketInfo
+Used to update bucket info for user. 
+
+```protobuf
+message MsgUpdateBucketInfo {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the account address of the operator
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // bucket_name is the name of bucket which you'll update
+  string bucket_name = 2;
+
+  // read_quota is the traffic quota that you read from primary sp
+  ReadQuota read_quota = 3;
+
+  // payment_address is the account address of the payment account
+  string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+```
+
+### MsgCreateObject
+
+Used to create object under a bucket for user.
+
+```protobuf
+message MsgCreateObject {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // creator is the account address of object uploader
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object is stored.
+  string bucket_name = 2;
+  // object_name is the name of object
+  string object_name = 3;
+  // payload_size is size of the object's payload
+  uint64 payload_size = 4;
+  // is_public means the bucket is private or public. if private, only bucket owner or grantee can access it,
+  // otherwise every greenfield user can access it.
+  bool is_public = 5;
+  // content_type is a standard MIME type describing the format of the object.
+  string content_type = 6;
+  // primary_sp_approval is the approval info of the primary SP which indicates that primary sp confirm the user's request.
+  Approval primary_sp_approval = 7;
+  // expect_checksums is a list of hashes which was generate by redundancy algorithm.
+  repeated bytes expect_checksums = 8;
+  // redundancy_type can be ec or replica
+  RedundancyType redundancy_type = 9;
+  // expect_secondarySPs is a list of StorageProvider address, which is optional
+  repeated string expect_secondary_sp_addresses = 10 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+```
+### MsgDeleteObject
+
+Used to delete object for user.
+
+```protobuf
+message MsgDeleteObject {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the account address of the operator who has the DeleteObject permission of the object to be deleted.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object which to be deleted is stored.
+  string bucket_name = 2;
+  // object_name is the name of the object which to be deleted.
+  string object_name = 3;
+}
+
+```
+### MsgSealObject
+
+Used to seal object for storage provider.
+
+```protobuf
+message MsgSealObject {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the account address of primary SP
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object is stored.
+  string bucket_name = 2;
+  // object_name is the name of object to be sealed.
+  string object_name = 3;
+  // secondary_sp_addresses is a list of storage provider which store the redundant data.
+  repeated string secondary_sp_addresses = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // secondary_sp_signatures is the signature of the secondary sp that can
+  // acknowledge that the payload data has received and stored.
+  repeated bytes secondary_sp_signatures = 5;
+}
+
+```
+### MsgCopyObject
+
+Used to copy object for user.
+
+```protobuf
+message MsgCopyObject {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the account address of the operator who has the CopyObject permission of the object to be deleted.
+  string operator = 1;
+  // src_bucket_name is the name of the bucket where the object to be copied is located
+  string src_bucket_name = 2;
+  // dst_bucket_name is the name of the bucket where the object is copied to.
+  string dst_bucket_name = 3;
+  // src_object_name is the name of the object which to be copied
+  string src_object_name = 4;
+  // dst_object_name is the name of the object which is copied to
+  string dst_object_name = 5;
+  // primary_sp_approval is the approval info of the primary SP which indicates that primary sp confirm the user's request.
+  Approval dst_primary_sp_approval = 6;
+}
+```
+### MsgRejectSealObject
+
+Used to reject seal object for sp.
+
+```protobuf
+message MsgRejectSealObject {
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator is the account address of the object owner
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket where the object is stored.
+  string bucket_name = 2;
+  // object_name is the name of unsealed object to be reject.
+  string object_name = 3;
+}
+```
+### MsgCancelCreateObject
+
+Used to cancel create object for user.
+
+```protobuf
+message MsgCancelCreateObject {
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator is the account address of the operator
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket
+  string bucket_name = 2;
+  // object_name is the name of the object
+  string object_name = 3;
+}
+```
+### MsgCreateGroup
+
+Used to create group for user.
+
+```protobuf
+message MsgCreateGroup {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // owner is the account address of group owner who create the group
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of the group. it's not globally unique.
+  string group_name = 2;
+  // member_request is a list of member which to be add or remove
+  repeated string members = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+```
+### MsgDeleteGroup
+
+Used to delete group for user.
+
+```protobuf
+message MsgDeleteGroup {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the account address of the operator who has the DeleteGroup permission of the group to be deleted.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of the group which to be deleted
+  string group_name = 2;
+}
+
+```
+### MsgLeaveGroup
+
+Used to leave a group for group member
+
+```protobuf
+message MsgLeaveGroup {
+  option (cosmos.msg.v1.signer) = "member";
+
+  // member is the account address of the member who want to leave the group
+  string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_owner is the owner of the group you want to leave
+  string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name is the name of the group you want to leave
+  string group_name = 3;
+}
+```
+
