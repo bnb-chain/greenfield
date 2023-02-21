@@ -62,7 +62,7 @@ func (k Keeper) GetAllSpStoragePrice(ctx sdk.Context) (list []types.SpStoragePri
 	return
 }
 
-// find the latest price before the given time
+// GetSpStoragePriceByTime find the latest price before the given time
 func (k Keeper) GetSpStoragePriceByTime(
 	ctx sdk.Context,
 	spAddr string,
@@ -72,7 +72,7 @@ func (k Keeper) GetSpStoragePriceByTime(
 
 	startKey := types.SpStoragePriceKey(
 		spAddr,
-		time,
+		time+1,
 	)
 	iterator := store.ReverseIterator(nil, startKey)
 	defer iterator.Close()
@@ -81,7 +81,9 @@ func (k Keeper) GetSpStoragePriceByTime(
 	}
 
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
+	_, updateTime := types.ParseSpStoragePriceKey(iterator.Key())
 	val.SpAddress = spAddr
+	val.UpdateTime = updateTime
 
 	return val, nil
 }

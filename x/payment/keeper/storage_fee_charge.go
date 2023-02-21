@@ -39,48 +39,42 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 }
 
 func (k Keeper) ApplyFlowChanges(ctx sdk.Context, from string, flowChanges []types.OutFlow) (err error) {
-	//currentTime := ctx.BlockTime().Unix()
-	//streamRecord, found := k.GetStreamRecord(ctx, from)
-	//if !found {
-	//	streamRecord = types.NewStreamRecord(from, currentTime)
-	//}
-	//prevTime := streamRecord.CrudTimestamp
-	//priceChanged := false
-	//var prevBNBPrice types.BNBPrice
-	//if prevTime != currentTime {
-	//	prevBNBPrice, err = k.GetBNBPriceByTime(ctx, prevTime)
-	//	if err != nil {
-	//		return fmt.Errorf("get bnb price by time failed: %w", err)
-	//	}
-	//	priceChanged = !prevBNBPrice.Equal(currentBNBPrice)
-	//}
-	//var streamRecordChanges []types.StreamRecordChange
-	//// calculate rate changes in flowChanges
-	//for _, flowChange := range flowChanges {
-	//	rateChangeInBNB := USD2BNB(flowChange.Rate, currentBNBPrice)
-	//	k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
-	//		*types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
-	//		*types.NewDefaultStreamRecordChangeWithAddr(flowChange.SpAddress).WithRateChange(rateChangeInBNB),
-	//	})
-	//}
-	//// calculate rate changes if price changes
-	//if priceChanged {
-	//	for _, flow := range streamRecord.OutFlowsInUSD {
-	//		prevRateInBNB := USD2BNB(flow.Rate, prevBNBPrice)
-	//		currentRateInBNB := USD2BNB(flow.Rate, currentBNBPrice)
-	//		rateChangeInBNB := currentRateInBNB.Sub(prevRateInBNB)
-	//		k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
-	//			*types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(rateChangeInBNB.Neg()),
-	//			*types.NewDefaultStreamRecordChangeWithAddr(flow.SpAddress).WithRateChange(rateChangeInBNB),
-	//		})
-	//	}
-	//}
-	//// update flows
-	//MergeOutFlows(&streamRecord.OutFlowsInUSD, flowChanges)
-	//k.SetStreamRecord(ctx, streamRecord)
-	//err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
-	//if err != nil {
-	//	return fmt.Errorf("apply stream record changes failed: %w", err)
-	//}
+	currentTime := ctx.BlockTime().Unix()
+	streamRecord, found := k.GetStreamRecord(ctx, from)
+	if !found {
+		streamRecord = types.NewStreamRecord(from, currentTime)
+	}
+	var streamRecordChanges []types.StreamRecordChange
+	// calculate rate changes in flowChanges
+	for _, flowChange := range flowChanges {
+		k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
+			*types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(flowChange.Rate.Neg()),
+			*types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate),
+		})
+	}
+	// update flows
+	MergeOutFlows(&streamRecord.OutFlows, flowChanges)
+	k.SetStreamRecord(ctx, streamRecord)
+	err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes failed: %w", err)
+	}
 	return nil
+}
+
+func MergeOutFlows(flow *[]types.OutFlow, changes []types.OutFlow) []types.OutFlow {
+	for _, change := range changes {
+		found := false
+		for i, f := range *flow {
+			if f.ToAddress == change.ToAddress {
+				found = true
+				(*flow)[i].Rate = (*flow)[i].Rate.Add(change.Rate)
+				break
+			}
+		}
+		if !found {
+			*flow = append(*flow, change)
+		}
+	}
+	return *flow
 }

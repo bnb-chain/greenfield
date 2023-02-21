@@ -7,10 +7,10 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/payment/auto_settle_record.proto";
-import "greenfield/payment/sp_storage_price.proto";
 import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
+import "greenfield/payment/sp_storage_price.proto";
 import "greenfield/payment/stream_record.proto";
 
 // this line is used by starport scaffolding # 1
@@ -64,23 +64,19 @@ service Query {
     option (google.api.http).get = "/greenfield/payment/get_payment_accounts_by_owner/{owner}";
   }
 
-  // this line is used by starport scaffolding # 2
-
   // Queries a list of AutoSettleRecord items.
   rpc AutoSettleRecord(QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/auto_settle_record/{timestamp}/{addr}";
   }
+
   rpc AutoSettleRecordAll(QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/auto_settle_record";
   }
 
-//  // Queries a list of BnbPrice items.
-//  rpc BnbPrice(QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
-//    option (google.api.http).get = "/greenfield/payment/bnb_price/{time}";
-//  }
-//  rpc BnbPriceAll(QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
-//    option (google.api.http).get = "/greenfield/payment/bnb_price";
-//  }
+  rpc QueryGetSpStoragePriceByTime(QueryGetSpStoragePriceByTimeRequest) returns (QueryGetSpStoragePriceByTimeResponse) {
+    option (google.api.http).get = "/greenfield/payment/get_sp_storage_price_by_time/{sp_addr}/{timestamp}";
+  }
+
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -183,19 +179,11 @@ message QueryAllAutoSettleRecordResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-//message QueryGetBnbPriceRequest {
-//  int64 time = 1;
-//}
-//
-//message QueryGetBnbPriceResponse {
-//  BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
-//}
-//
-//message QueryAllBnbPriceRequest {
-//  cosmos.base.query.v1beta1.PageRequest pagination = 1;
-//}
-//
-//message QueryAllBnbPriceResponse {
-//  repeated BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
-//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-//}
+message QueryGetSpStoragePriceByTimeRequest {
+  string sp_addr = 1;
+  int64 timestamp = 2;
+}
+
+message QueryGetSpStoragePriceByTimeResponse {
+  SpStoragePrice sp_storage_price = 1 [(gogoproto.nullable) = false];
+}

@@ -167,7 +167,7 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 			if !k.paymentKeeper.IsPaymentAccountOwner(ctx, bucketInfo.Owner, paymentAcc.String()) {
 				return nil, paymenttypes.ErrNotPaymentAccountOwner
 			}
-			err := k.paymentKeeper.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
+			err := k.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
 			if err != nil {
 				return nil, err
 			}
@@ -495,7 +495,7 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 		return nil, types.ErrAccessDenied
 	}
 
-	err := k.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
+	err = k.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return nil, err
 	}

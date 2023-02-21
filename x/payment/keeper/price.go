@@ -17,7 +17,7 @@ func (k Keeper) GetReadPrice(ctx sdk.Context, spAddr string, readQuota uint64, p
 	if err != nil {
 		return sdkmath.NewInt(0), fmt.Errorf("get sp storage price failed: %w", err)
 	}
-	rate := spStoragePrice.ReadQuotaPrice.Mul(sdkmath.NewIntFromUint64(readQuota)).QuoRaw(types.PriceUint)
+	rate := spStoragePrice.ReadQuotaPrice.Mul(sdkmath.NewIntFromUint64(readQuota)).QuoRaw(types.PriceUnit)
 	return rate, nil
 }
 
@@ -32,13 +32,13 @@ func (k Keeper) GetStorePrice(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 			panic("there should be 6 secondary sps")
 		}
 		storePrice.Flows = []types.OutFlow{
-			{SpAddress: bucketInfo.PrimarySpAddress, Rate: sdkmath.NewInt(40)},
-			{SpAddress: objectInfo.SecondarySpAddresses[0], Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySpAddresses[1], Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySpAddresses[2], Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySpAddresses[3], Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySpAddresses[4], Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySpAddresses[5], Rate: sdkmath.NewInt(10)},
+			{ToAddress: bucketInfo.PrimarySpAddress, Rate: sdkmath.NewInt(40)},
+			{ToAddress: objectInfo.SecondarySpAddresses[0], Rate: sdkmath.NewInt(10)},
+			{ToAddress: objectInfo.SecondarySpAddresses[1], Rate: sdkmath.NewInt(10)},
+			{ToAddress: objectInfo.SecondarySpAddresses[2], Rate: sdkmath.NewInt(10)},
+			{ToAddress: objectInfo.SecondarySpAddresses[3], Rate: sdkmath.NewInt(10)},
+			{ToAddress: objectInfo.SecondarySpAddresses[4], Rate: sdkmath.NewInt(10)},
+			{ToAddress: objectInfo.SecondarySpAddresses[5], Rate: sdkmath.NewInt(10)},
 		}
 	}
 	return storePrice

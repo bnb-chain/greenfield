@@ -15,7 +15,7 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 		return fmt.Errorf("get read price failed: %w", err)
 	}
 	flowChanges := []types.OutFlow{
-		{SpAddress: bucketInfo.PrimarySpAddress, Rate: price},
+		{ToAddress: bucketInfo.PrimarySpAddress, Rate: price},
 	}
 	return k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 }
@@ -30,7 +30,7 @@ func (k Keeper) ChargeUpdateReadQuota(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get new read price failed: %w", err)
 	}
 	flowChanges := []types.OutFlow{
-		{SpAddress: bucketInfo.PrimarySpAddress, Rate: newPrice.Sub(prevPrice)},
+		{ToAddress: bucketInfo.PrimarySpAddress, Rate: newPrice.Sub(prevPrice)},
 	}
 	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 	if err != nil {
@@ -96,7 +96,7 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 			return fmt.Errorf("get prev read price failed: %w", err)
 		}
 		err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, []types.OutFlow{
-			{SpAddress: bucketInfo.PrimarySpAddress, Rate: prevReadPrice.Neg()},
+			{ToAddress: bucketInfo.PrimarySpAddress, Rate: prevReadPrice.Neg()},
 		})
 		if err != nil {
 			return fmt.Errorf("apply prev read payment account usd flow changes failed: %w", err)
@@ -107,7 +107,7 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 			return fmt.Errorf("get current read price failed: %w", err)
 		}
 		err = k.paymentKeeper.ApplyFlowChanges(ctx, *paymentAddress, []types.OutFlow{
-			{SpAddress: bucketInfo.PrimarySpAddress, Rate: currentReadPrice},
+			{ToAddress: bucketInfo.PrimarySpAddress, Rate: currentReadPrice},
 		})
 		if err != nil {
 			return fmt.Errorf("apply current read payment account usd flow changes failed: %w", err)
@@ -142,27 +142,10 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	return nil
 }
 
-//func MergeOutFlows(flow *[]types.OutFlow, changes []types.OutFlow) []types.OutFlow {
-//	for _, change := range changes {
-//		found := false
-//		for i, f := range *flow {
-//			if f.SpAddress == change.SpAddress {
-//				found = true
-//				(*flow)[i].Rate = (*flow)[i].Rate.Add(change.Rate)
-//				break
-//			}
-//		}
-//		if !found {
-//			*flow = append(*flow, change)
-//		}
-//	}
-//	return *flow
-//}
-
 func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	negFlows = make([]types.OutFlow, len(flows))
 	for i, flow := range flows {
-		negFlows[i] = types.OutFlow{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
+		negFlows[i] = types.OutFlow{ToAddress: flow.ToAddress, Rate: flow.Rate.Neg()}
 	}
 	return negFlows
 }

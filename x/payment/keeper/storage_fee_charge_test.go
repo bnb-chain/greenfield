@@ -86,7 +86,6 @@ func TestMergeStreamRecordChanges(t *testing.T) {
 
 func TestAutoForceSettle(t *testing.T) {
 	keeper, ctx := keepertest.PaymentKeeper(t)
-	keeper.SubmitBNBPrice(ctx, 0, 1e8)
 	params := keeper.GetParams(ctx)
 	var startTime int64 = 100
 	ctx = ctx.WithBlockTime(time.Unix(startTime, 0))
@@ -103,16 +102,16 @@ func TestAutoForceSettle(t *testing.T) {
 	userStreamRecord, found := keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
-	flowChanges := []types.OutFlowInUSD{
-		{SpAddress: sp, Rate: rate},
+	flowChanges := []types.OutFlow{
+		{ToAddress: sp, Rate: rate},
 	}
-	err = keeper.ApplyUSDFlowChanges(ctx, user, flowChanges)
+	err = keeper.ApplyFlowChanges(ctx, user, flowChanges)
 	require.NoError(t, err)
 	userStreamRecord, found = keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
-	require.Equal(t, 1, len(userStreamRecord.OutFlowsInUSD))
-	require.Equal(t, userStreamRecord.OutFlowsInUSD[0].SpAddress, sp)
+	require.Equal(t, 1, len(userStreamRecord.OutFlows))
+	require.Equal(t, userStreamRecord.OutFlows[0].ToAddress, sp)
 	spStreamRecord, found := keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
 	require.True(t, found)
