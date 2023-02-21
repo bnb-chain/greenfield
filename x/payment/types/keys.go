@@ -131,3 +131,10 @@ func SpStoragePriceKey(
 
 	return key
 }
+
+func ParseSpStoragePriceKey(key []byte) (spAddr string, updateTime int64) {
+	length := len(key)
+	spAddr = string(key[:length-8])
+	updateTime = int64(binary.BigEndian.Uint64(key[length-8 : length]))
+	return
+}

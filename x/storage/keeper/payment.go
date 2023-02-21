@@ -14,10 +14,10 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	if err != nil {
 		return fmt.Errorf("get read price failed: %w", err)
 	}
-	flowChanges := []types.OutFlowInUSD{
+	flowChanges := []types.OutFlow{
 		{SpAddress: bucketInfo.PrimarySpAddress, Rate: price},
 	}
-	return k.paymentKeeper.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
+	return k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 }
 
 func (k Keeper) ChargeUpdateReadQuota(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newReadPacket uint64) error {
@@ -29,10 +29,10 @@ func (k Keeper) ChargeUpdateReadQuota(ctx sdk.Context, bucketInfo *storagetypes.
 	if err != nil {
 		return fmt.Errorf("get new read price failed: %w", err)
 	}
-	flowChanges := []types.OutFlowInUSD{
+	flowChanges := []types.OutFlow{
 		{SpAddress: bucketInfo.PrimarySpAddress, Rate: newPrice.Sub(prevPrice)},
 	}
-	err = k.paymentKeeper.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
+	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
@@ -81,7 +81,7 @@ func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetype
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
-	err = k.paymentKeeper.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, feePrice.Flows)
+	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, feePrice.Flows)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
@@ -95,7 +95,7 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 		if err != nil {
 			return fmt.Errorf("get prev read price failed: %w", err)
 		}
-		err = k.paymentKeeper.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, []types.OutFlowInUSD{
+		err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, []types.OutFlow{
 			{SpAddress: bucketInfo.PrimarySpAddress, Rate: prevReadPrice.Neg()},
 		})
 		if err != nil {
@@ -106,7 +106,7 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 		if err != nil {
 			return fmt.Errorf("get current read price failed: %w", err)
 		}
-		err = k.paymentKeeper.ApplyUSDFlowChanges(ctx, *paymentAddress, []types.OutFlowInUSD{
+		err = k.paymentKeeper.ApplyFlowChanges(ctx, *paymentAddress, []types.OutFlow{
 			{SpAddress: bucketInfo.PrimarySpAddress, Rate: currentReadPrice},
 		})
 		if err != nil {
@@ -119,11 +119,11 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 		//// update old store
 		//flows := bucketInfo.PaymentOutFlows
 		//negFlows := GetNegFlows(flows)
-		//err = k.paymentKeeper.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
+		//err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
 		//if err != nil {
 		//	return fmt.Errorf("apply prev store payment account usd flow changes failed: %w", err)
 		//}
-		//err = k.ApplyUSDFlowChanges(ctx, *paymentAddress, flows)
+		//err = k.ApplyFlowChanges(ctx, *paymentAddress, flows)
 		//if err != nil {
 		//	return fmt.Errorf("apply current store payment account usd flow changes failed: %w", err)
 		//}
@@ -135,14 +135,14 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	feePrice := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
 	negFlows := GetNegFlows(feePrice.Flows)
-	err := k.paymentKeeper.ApplyUSDFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
+	err := k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}
 	return nil
 }
 
-//func MergeOutFlows(flow *[]types.OutFlowInUSD, changes []types.OutFlowInUSD) []types.OutFlowInUSD {
+//func MergeOutFlows(flow *[]types.OutFlow, changes []types.OutFlow) []types.OutFlow {
 //	for _, change := range changes {
 //		found := false
 //		for i, f := range *flow {
@@ -159,10 +159,10 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 //	return *flow
 //}
 
-func GetNegFlows(flows []types.OutFlowInUSD) (negFlows []types.OutFlowInUSD) {
-	negFlows = make([]types.OutFlowInUSD, len(flows))
+func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
+	negFlows = make([]types.OutFlow, len(flows))
 	for i, flow := range flows {
-		negFlows[i] = types.OutFlowInUSD{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
+		negFlows[i] = types.OutFlow{SpAddress: flow.SpAddress, Rate: flow.Rate.Neg()}
 	}
 	return negFlows
 }

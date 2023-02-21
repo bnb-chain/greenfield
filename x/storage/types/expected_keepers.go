@@ -28,7 +28,7 @@ type SpKeeper interface {
 type PaymentKeeper interface {
 	IsPaymentAccountOwner(ctx sdk.Context, addr string, owner string) bool
 	GetReadPrice(ctx sdk.Context, spAddr string, readQuota uint64, priceTime int64) (sdkmath.Int, error)
-	ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []paymenttypes.OutFlowInUSD) (err error)
+	ApplyFlowChanges(ctx sdk.Context, from string, flowChanges []paymenttypes.OutFlow) (err error)
 	GetParams(ctx sdk.Context) paymenttypes.Params
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
 	GetStorePrice(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) paymenttypes.StorePrice

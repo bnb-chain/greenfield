@@ -27,7 +27,7 @@ func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newCh
 	}
 }
 
-// assume StreamRecordChange is unique by Addr
+// ApplyStreamRecordChanges assume StreamRecordChange is unique by Addr
 func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []types.StreamRecordChange) error {
 	for _, fc := range streamRecordChanges {
 		_, err := k.UpdateStreamRecordByAddr(ctx, &fc)
@@ -38,12 +38,8 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 	return nil
 }
 
-func (k Keeper) ApplyUSDFlowChanges(ctx sdk.Context, from string, flowChanges []types.OutFlowInUSD) (err error) {
+func (k Keeper) ApplyFlowChanges(ctx sdk.Context, from string, flowChanges []types.OutFlow) (err error) {
 	//currentTime := ctx.BlockTime().Unix()
-	//currentBNBPrice, err := k.GetBNBPriceByTime(ctx, currentTime)
-	//if err != nil {
-	//	return fmt.Errorf("get current bnb price failed: %w", err)
-	//}
 	//streamRecord, found := k.GetStreamRecord(ctx, from)
 	//if !found {
 	//	streamRecord = types.NewStreamRecord(from, currentTime)

@@ -161,7 +161,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 	// the implementation itself may cause chain force settle, but in reality, it will not happen.
 	// only the SP can be the flow receiver, so in settlement, the rate of SP will reduce, but never get below zero and
 	// trigger another force settle.
-	for _, flow := range streamRecord.OutFlowsInUSD {
+	for _, flow := range streamRecord.OutFlows {
 		change = types.NewDefaultStreamRecordChangeWithAddr(flow.SpAddress).WithRateChange(flow.Rate.Neg())
 		_, err := k.UpdateStreamRecordByAddr(ctx, change)
 		if err != nil {

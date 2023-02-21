@@ -44,5 +44,5 @@ message StreamRecord {
   // the unix timestamp when the stream account will be settled
   int64 settleTimestamp = 8;
   // the accumulated outflow rates of the stream account
-  repeated OutFlowInUSD outFlowsInUSD = 9 [(gogoproto.nullable) = false];
+  repeated OutFlow outFlows = 9 [(gogoproto.nullable) = false];
 }

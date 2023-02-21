@@ -37,7 +37,7 @@ func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmat
 
 type StorePrice struct {
 	UserPayRate sdkmath.Int
-	Flows       []OutFlowInUSD
+	Flows       []OutFlow
 }
 
 type BNBPrice struct {
@@ -47,4 +47,10 @@ type BNBPrice struct {
 
 func (price BNBPrice) Equal(other BNBPrice) bool {
 	return price.Num.Equal(other.Num) && price.Precision.Equal(other.Precision)
+}
+
+type FlowChange struct {
+	from       string
+	to         string
+	RateChange sdkmath.Int
 }
