@@ -31,6 +31,9 @@ service Query {
     option (google.api.http).get = "/greenfield/sp/get_sp_storage_price_by_time/{sp_addr}/{timestamp}";
   }
 
+  rpc QueryGetSecondarySpStorePriceByTime(QueryGetSecondarySpStorePriceByTimeRequest) returns (QueryGetSecondarySpStorePriceByTimeResponse) {
+    option (google.api.http).get = "/greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -61,4 +64,12 @@ message QueryGetSpStoragePriceByTimeRequest {
 
 message QueryGetSpStoragePriceByTimeResponse {
   SpStoragePrice sp_storage_price = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGetSecondarySpStorePriceByTimeRequest {
+  int64 timestamp = 1;
+}
+
+message QueryGetSecondarySpStorePriceByTimeResponse {
+  SecondarySpStorePrice secondary_sp_store_price = 1 [(gogoproto.nullable) = false];
 }

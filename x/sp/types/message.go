@@ -84,6 +84,9 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
+	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
+	}
 	return nil
 }
 
@@ -207,6 +210,9 @@ func (msg *MsgUpdateSpStoragePrice) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
+	}
+	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
 	}
 	return nil
 }

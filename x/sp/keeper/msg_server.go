@@ -92,15 +92,20 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	//
-	//// set initial sp storage price
-	//spStoragePrice := paymenttypes.SpStoragePrice{
-	//	SpAddress:  spAcc.String(),
-	//	UpdateTime: ctx.BlockTime().Unix(),
-	//	ReadPrice:  msg.ReadPrice,
-	//	StorePrice: msg.StorePrice,
-	//}
-	//k.payment(ctx, spStoragePrice)
+
+	// set initial sp storage price
+	spStoragePrice := types.SpStoragePrice{
+		SpAddress:     spAcc.String(),
+		UpdateTime:    ctx.BlockTime().Unix(),
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
+	}
+	k.SetSpStoragePrice(ctx, spStoragePrice)
+	err = k.UpdateSecondarySpStorePrice(ctx)
+	if err != nil {
+		return nil, err
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),
@@ -208,5 +213,9 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		StorePrice: msg.StorePrice,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
+	err := k.UpdateSecondarySpStorePrice(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "update secondary sp store price failed")
+	}
 	return &types.MsgUpdateSpStoragePriceResponse{}, nil
 }

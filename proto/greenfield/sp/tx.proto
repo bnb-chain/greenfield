@@ -39,8 +39,10 @@ message MsgCreateStorageProvider {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // free read quota, in byte
+  uint64 free_read_quota = 10;
   // store price, in 10 ^ -8 bnb per charge byte
-  string store_price = 10 [
+  string store_price = 11 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
@@ -90,8 +92,10 @@ message MsgUpdateSpStoragePrice {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // free read quota, in byte
+  uint64 free_read_quota = 4;
   // store price, in 10 ^ -8 bnb per charge byte
-  string store_price = 4 [
+  string store_price = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false

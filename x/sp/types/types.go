@@ -18,6 +18,10 @@ const (
 	MaxIdentityLength = 3000
 	MaxWebsiteLength  = 140
 	MaxDetailsLength  = 280
+	// SecondarySpStorePriceRatio shows the ratio of the store price of the secondary sp to the primary sp
+	// the unit is 1e-8, so the default value is 80%
+	SecondarySpStorePriceRatio = 80000000
+	RatioUnit                  = 100000000
 )
 
 // NewStorageProvider constructs a new StorageProvider

@@ -28,7 +28,7 @@ var (
 	AutoSettleRecordKeyPrefix    = []byte{0x01}
 	StreamRecordKeyPrefix        = []byte{0x02}
 	PaymentAccountCountKeyPrefix = []byte{0x03}
-	PaymentAccountKeyPrefix      = []byte{0x06}
+	PaymentAccountKeyPrefix      = []byte{0x04}
 )
 
 // AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
