@@ -1,0 +1,24 @@
+
+
+{
+  "messages": [
+    {
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "content": {
+        "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+        "title": "Oracle params change",
+        "description": "Change",
+        "changes": [
+          {
+            "subspace": "oracle",
+            "key": "RelayerTimeout",
+            "value": "\"100\""
+          }
+        ]
+      },
+      "authority": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
+    }
+  ],
+  "metadata": "4pIMOgIGx1vZGU=",
+  "deposit": "1000000000000000000BNB"
+}
