@@ -59,5 +59,3 @@ message MsgAttest {
 }
 
 message MsgAttestResponse {}
-
-// this line is used by starport scaffolding # proto/tx/message

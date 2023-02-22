@@ -12,11 +12,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-// coolingOffMultiplier is used to purge slashes. The purpose of it is for: if the cooling-off period is increase, e.g.
-// by gov, then we still keep some recent slashes for the new parameter. However, if it is increased too large, then
-// there is the possibility that some recent slashes for the new parameter will be gone, and we think this is acceptable.
-const coolingOffMultiplier = 3
-
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 	// reset count of challenge in current block to zero
 	keeper.ResetChallengeCount(ctx)
@@ -40,7 +35,7 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 	// delete too old slashes at this height
 	coolingOff := keeper.SlashCoolingOffPeriod(ctx)
-	height = uint64(ctx.BlockHeight()) - coolingOff*coolingOffMultiplier
+	height = uint64(ctx.BlockHeight()) - coolingOff
 	slashes := keeper.GetAllRecentSlash(ctx)
 	for _, elem := range slashes {
 		if elem.Height < height {
@@ -50,7 +45,6 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 }
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
-	// emit new challenge events if more challenges are needed
 	count := keeper.GetChallengeCount(ctx)
 	needed := keeper.EventCountPerBlock(ctx)
 	if count >= needed {
@@ -60,7 +54,6 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	events := make([]proto.Message, 0)                     // for events
 	objectMap := make(map[string]struct{})                 // for de-duplication
 	iteration, maxIteration := uint64(0), 2*(needed-count) // to prevent endless loop
-	height := uint64(ctx.BlockHeight()) - keeper.SlashCoolingOffPeriod(ctx)
 	for count < needed && iteration < maxIteration {
 		iteration++
 
@@ -102,7 +95,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// check recent slash
-		if keeper.ExistsSlash(ctx, height, strings.ToLower(spOperatorAddress), objectKey) {
+		if keeper.ExistsSlash(ctx, strings.ToLower(spOperatorAddress), objectKey) {
 			continue
 		}
 

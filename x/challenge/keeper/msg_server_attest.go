@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/big"
@@ -32,7 +31,6 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	if !found {
 		return nil, types.ErrUnknownObject
 	}
-	objectSize := objectInfo.PayloadSize
 	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
 		return nil, types.ErrInvalidObjectStatus
 	}
@@ -44,15 +42,12 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	// check slash
-	recentSlashes := k.GetAllRecentSlash(ctx)
-	for _, slash := range recentSlashes {
-		if slash.SpOperatorAddress == challenge.SpOperatorAddress &&
-			bytes.Equal(slash.ObjectKey, challenge.GetObjectKey()) {
-			return nil, types.ErrDuplicatedSlash
-		}
+	if k.ExistsSlash(ctx, strings.ToLower(challenge.SpOperatorAddress), challenge.GetObjectKey()) {
+		return nil, types.ErrDuplicatedSlash
 	}
 
 	// do slash & reward
+	objectSize := objectInfo.PayloadSize
 	k.doSlashAndRewards(ctx, uint64(objectSize), challenge, msg.Creator, validators)
 
 	k.RemoveOngoingChallenge(ctx, msg.ChallengeId)

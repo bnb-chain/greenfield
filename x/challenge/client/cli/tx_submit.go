@@ -3,8 +3,10 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -16,24 +18,36 @@ var _ = strconv.Itoa(0)
 
 func CmdSubmit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "submit [sp-operator-address] [bucket-name] [object-name] [random-index] [index]",
+		Use:   "submit [sp-operator-address] [bucket-name] [object-name] [random-index] [segment-index]",
 		Short: "Broadcast message submit",
 		Args:  cobra.ExactArgs(5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argSpOperatorAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
 			if err != nil {
-				return err
+				return fmt.Errorf("sp-operator-address %s not a valid address, please input a valid sp-operator-address", args[0])
 			}
 
-			argBucketName := args[1]
-			argObjectName := args[2]
+			argBucketName := strings.TrimSpace(args[1])
+			if err := storagetypes.CheckValidBucketName(argBucketName); err != nil {
+				return fmt.Errorf("bucket-name %s not a valid bucket name, please input a valid bucket-name", argBucketName)
+			}
 
-			//TODO: parse args
-			argRandomIndex := true
-			// validate that the challenge id is an uint
-			argIndex, err := strconv.ParseUint(args[3], 10, 32)
+			argObjectName := strings.TrimSpace(args[2])
+			if err := storagetypes.CheckValidObjectName(argObjectName); err != nil {
+				return fmt.Errorf("object-name %s not a valid object name, please input a valid object-name", argObjectName)
+			}
+
+			argRandomIndex, err := strconv.ParseBool(args[3])
 			if err != nil {
-				return fmt.Errorf("index %s not a valid uint, please input a valid index", args[3])
+				return fmt.Errorf("random-index %s not a valid bool, please input a valid random-index", args[3])
+			}
+
+			argSegmentIndex := uint64(0)
+			if !argRandomIndex {
+				argSegmentIndex, err = strconv.ParseUint(args[4], 10, 64)
+				if err != nil {
+					return fmt.Errorf("segment-index %s not a valid uint, please input a valid segment-index", args[4])
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -47,7 +61,7 @@ func CmdSubmit() *cobra.Command {
 				argBucketName,
 				argObjectName,
 				argRandomIndex,
-				uint32(argIndex),
+				uint32(argSegmentIndex),
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

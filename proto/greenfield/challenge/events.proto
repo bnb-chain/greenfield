@@ -18,7 +18,7 @@ message EventStartChallenge {
   // The storage provider to be challenged.
   string sp_operator_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  // The redundancy index, which is from the index of the sp.
+  // The redundancy index, which comes from the index of storage providers.
   int32 redundancy_index = 5;
 }
 

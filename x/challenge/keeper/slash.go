@@ -95,7 +95,7 @@ func (k Keeper) GetAllRecentSlash(ctx sdk.Context) (list []types.Slash) {
 }
 
 // ExistsSlash check whether there exists recent slash for a pair of sp and object info or not
-func (k Keeper) ExistsSlash(ctx sdk.Context, minHeight uint64, spAddress string, objectKey []byte) bool {
+func (k Keeper) ExistsSlash(ctx sdk.Context, spAddress string, objectKey []byte) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.RecentSlashKey))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 
@@ -104,7 +104,7 @@ func (k Keeper) ExistsSlash(ctx sdk.Context, minHeight uint64, spAddress string,
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.Slash
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		if val.Height > minHeight && val.SpOperatorAddress == spAddress && bytes.Equal(val.ObjectKey, objectKey) {
+		if val.SpOperatorAddress == spAddress && bytes.Equal(val.ObjectKey, objectKey) {
 			return true
 		}
 	}

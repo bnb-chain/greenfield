@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -26,14 +28,28 @@ func CmdAttest() *cobra.Command {
 			}
 
 			// validate that the vote result id is an uint
-			argVoteResult, err := strconv.ParseUint(args[1], 10, 32)
+			argVoteResult, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
-				return fmt.Errorf("vote-result %s not a valid uint, please input a valid vote-result", args[0])
+				return fmt.Errorf("vote-result %s not a valid uint, please input a valid vote-result", args[1])
 			}
 
-			//TODO: parse args
-			//argVoteValidatorSet := args[2]
-			//argVoteAggSignature := args[3]
+			argVoteValidatorSet := make([]uint64, 0)
+			splits := strings.Split(args[2], ",")
+			for _, split := range splits {
+				val, err := strconv.ParseUint(split, 10, 64)
+				if err != nil {
+					return fmt.Errorf("vote-validator-set %s not a valid comma seperated uint array, please input a valid vote-validator-set", args[2])
+				}
+				argVoteValidatorSet = append(argVoteValidatorSet, val)
+			}
+			if len(argVoteValidatorSet) == 0 {
+				return fmt.Errorf("vote-validator-set %s not a valid comma seperated uint array, please input a valid vote-validator-set", args[2])
+			}
+
+			argVoteAggSignature, err := hex.DecodeString(args[3])
+			if err != nil {
+				return fmt.Errorf("vote-agg-signature %s not a hex encoded bytes, please input a valid vote-agg-signature", args[3])
+			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -44,8 +60,8 @@ func CmdAttest() *cobra.Command {
 				clientCtx.GetFromAddress(),
 				argChallengeId,
 				uint32(argVoteResult),
-				[]uint64{},
-				[]byte{},
+				argVoteValidatorSet,
+				argVoteAggSignature,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

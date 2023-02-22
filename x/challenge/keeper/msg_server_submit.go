@@ -36,12 +36,27 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrInvalidObjectStatus
 	}
 
-	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
-	objectId := objectInfo.Id
+	// check whether the sp stores the object info
+	stored := false
+	for _, sp := range objectInfo.GetSecondarySpAddresses() {
+		if strings.EqualFold(msg.SpOperatorAddress, sp) {
+			stored = true
+			break
+		}
+	}
+	if !stored {
+		bucket, _ := k.StorageKeeper.GetBucket(ctx, msg.BucketName)
+		if strings.EqualFold(msg.SpOperatorAddress, bucket.GetPrimarySpAddress()) {
+			stored = true
+		}
+	}
+	if !stored {
+		return nil, types.ErrNotStoredOnSp
+	}
 
 	// check sp recent slash
-	height := uint64(ctx.BlockHeight()) - k.Keeper.SlashCoolingOffPeriod(ctx)
-	if k.ExistsSlash(ctx, height, strings.ToLower(msg.SpOperatorAddress), objectKey) {
+	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
+	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), objectKey) {
 		return nil, types.ErrExistsRecentSlash
 	}
 
@@ -80,7 +95,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,
-		ObjectId:          objectId.Uint64(),
+		ObjectId:          objectInfo.Id.Uint64(),
 		SegmentIndex:      segmentIndex,
 		SpOperatorAddress: msg.SpOperatorAddress,
 		RedundancyIndex:   redundancyIndex,
