@@ -1,6 +1,10 @@
 package keeper
 
 import (
+	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	"math/rand"
 	"testing"
 
@@ -31,6 +35,8 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		banktypes.StoreKey,
 		authtypes.StoreKey,
 		paramstypes.StoreKey,
+		sptypes.StoreKey,
+		authz.ModuleName,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
@@ -54,6 +60,7 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(authtypes.ModuleName)
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
+	paramKeeper.Subspace(sptypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
@@ -76,6 +83,21 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
 	)
+	authzKeeper := authzkeeper.NewKeeper(
+		storeKeys[authz.ModuleName],
+		cdc,
+		baseapp.NewMsgServiceRouter(),
+		accountKeeper,
+	)
+	spKeeper := spkeeper.NewKeeper(
+		cdc,
+		storeKeys[sptypes.ModuleName],
+		storeKeys[sptypes.MemStoreKey],
+		GetSubspace(paramKeeper, sptypes.ModuleName),
+		accountKeeper,
+		bankKeeper,
+		authzKeeper,
+	)
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
@@ -83,6 +105,7 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		paramsSubspace,
 		bankKeeper,
 		accountKeeper,
+		spKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())

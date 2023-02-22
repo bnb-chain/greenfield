@@ -25,10 +25,6 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.AutoSettleRecordList {
 		k.SetAutoSettleRecord(ctx, elem)
 	}
-	// Set all the SpStoragePrice
-	for _, elem := range genState.SpStoragePriceList {
-		k.SetSpStoragePrice(ctx, elem)
-	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)
 }
@@ -42,7 +38,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.PaymentAccountCountList = k.GetAllPaymentAccountCount(ctx)
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
 	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
-	genesis.SpStoragePriceList = k.GetAllSpStoragePrice(ctx)
 	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis

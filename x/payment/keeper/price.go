@@ -13,33 +13,39 @@ func (k Keeper) GetReadPrice(ctx sdk.Context, spAddr string, readQuota uint64, p
 	if readQuota == 0 {
 		return sdkmath.NewInt(0), nil
 	}
-	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, spAddr, priceTime)
+	spStoragePrice, err := k.spKeeper.GetSpStoragePriceByTime(ctx, spAddr, priceTime)
 	if err != nil {
 		return sdkmath.NewInt(0), fmt.Errorf("get sp storage price failed: %w", err)
 	}
-	rate := spStoragePrice.ReadQuotaPrice.Mul(sdkmath.NewIntFromUint64(readQuota)).QuoRaw(types.PriceUnit)
+	rate := spStoragePrice.ReadPrice.Mul(sdkmath.NewIntFromUint64(readQuota)).QuoRaw(types.PriceUnit)
 	return rate, nil
 }
 
-func (k Keeper) GetStorePrice(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) types.StorePrice {
-	// A simple mock price: 4 per byte per second for primary SP and 1 per byte per second for 6 secondary SPs
+func (k Keeper) GetStorePrice(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) (price types.StorePrice, err error) {
+	primarySpPrice, err := k.spKeeper.GetSpStoragePriceByTime(ctx, bucketInfo.PrimarySpAddress, bucketInfo.PaymentPriceTime)
+	if err != nil {
+		return types.StorePrice{}, fmt.Errorf("get sp storage price failed: %w", err)
+	}
+	secondarySpStorePrice, err := k.spKeeper.GetSecondarySpStorePriceByTime(ctx, bucketInfo.PaymentPriceTime)
+	if err != nil {
+		return types.StorePrice{}, fmt.Errorf("get secondary sp store price failed: %w", err)
+	}
 	storePrice := types.StorePrice{
-		UserPayRate: sdkmath.NewInt(100),
+		UserPayRate: primarySpPrice.StorePrice.Add(secondarySpStorePrice.StorePrice.MulRaw(6)),
 	}
 	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_INIT {
-		// TODO: WARNING HARDCODE Here. Need refine according to the params of storage module
 		if len(objectInfo.SecondarySpAddresses) != 6 {
 			panic("there should be 6 secondary sps")
 		}
 		storePrice.Flows = []types.OutFlow{
-			{ToAddress: bucketInfo.PrimarySpAddress, Rate: sdkmath.NewInt(40)},
-			{ToAddress: objectInfo.SecondarySpAddresses[0], Rate: sdkmath.NewInt(10)},
-			{ToAddress: objectInfo.SecondarySpAddresses[1], Rate: sdkmath.NewInt(10)},
-			{ToAddress: objectInfo.SecondarySpAddresses[2], Rate: sdkmath.NewInt(10)},
-			{ToAddress: objectInfo.SecondarySpAddresses[3], Rate: sdkmath.NewInt(10)},
-			{ToAddress: objectInfo.SecondarySpAddresses[4], Rate: sdkmath.NewInt(10)},
-			{ToAddress: objectInfo.SecondarySpAddresses[5], Rate: sdkmath.NewInt(10)},
+			{ToAddress: bucketInfo.PrimarySpAddress, Rate: primarySpPrice.StorePrice},
+			{ToAddress: objectInfo.SecondarySpAddresses[0], Rate: secondarySpStorePrice.StorePrice},
+			{ToAddress: objectInfo.SecondarySpAddresses[1], Rate: secondarySpStorePrice.StorePrice},
+			{ToAddress: objectInfo.SecondarySpAddresses[2], Rate: secondarySpStorePrice.StorePrice},
+			{ToAddress: objectInfo.SecondarySpAddresses[3], Rate: secondarySpStorePrice.StorePrice},
+			{ToAddress: objectInfo.SecondarySpAddresses[4], Rate: secondarySpStorePrice.StorePrice},
+			{ToAddress: objectInfo.SecondarySpAddresses[5], Rate: secondarySpStorePrice.StorePrice},
 		}
 	}
-	return storePrice
+	return storePrice, nil
 }

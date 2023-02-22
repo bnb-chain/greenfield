@@ -6,5 +6,3 @@ const (
 	// the unit is 1e-8, so the default value is 80%
 	SecondarySpStorePriceRatio = 80000000
 )
-
-var ()

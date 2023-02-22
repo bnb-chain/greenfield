@@ -14,6 +14,7 @@ var (
 	ErrInsufficientDepositAmount   = errors.Register(ModuleName, 6, "insufficient deposit amount")
 	ErrDepositAccountNotAllowed    = errors.Register(ModuleName, 7, "the deposit address must be the sp address or the fund address of sp.")
 	ErrInvalidDepositDenom         = errors.Register(ModuleName, 8, "the deposit address must be the sp address or the fund address of sp.")
+	ErrSpStoragePriceExpired       = errors.Register(ModuleName, 9, "sp storage price expired")
 
 	ErrSignerNotGovModule = errors.Register(ModuleName, 40, "signer is not gov module account")
 	ErrSignerEmpty        = errors.Register(ModuleName, 41, "signer is empty")

@@ -13,5 +13,4 @@ var (
 	ErrNotPaymentAccountOwner             = errorsmod.Register(ModuleName, 1204, "not payment account owner")
 	ErrPaymentAccountAlreadyNonRefundable = errorsmod.Register(ModuleName, 1205, "payment account has already be set as non-refundable")
 	ErrInsufficientBalance                = errorsmod.Register(ModuleName, 1206, "insufficient balance")
-	ErrSpStoragePriceExpired              = errorsmod.Register(ModuleName, 1207, "sp storage price expired")
 )

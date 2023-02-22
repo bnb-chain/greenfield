@@ -17,6 +17,7 @@ service Msg {
   rpc CreateStorageProvider(MsgCreateStorageProvider) returns (MsgCreateStorageProviderResponse);
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc EditStorageProvider(MsgEditStorageProvider) returns (MsgEditStorageProviderResponse);
+  rpc UpdateSpStoragePrice(MsgUpdateSpStoragePrice) returns (MsgUpdateSpStoragePriceResponse);
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -32,6 +33,18 @@ message MsgCreateStorageProvider {
   string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string endpoint = 7;
   cosmos.base.v1beta1.Coin deposit = 8 [(gogoproto.nullable) = false];
+  // read price, in 10 ^ -8 bnb per byte
+  string read_price = 9 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // store price, in 10 ^ -8 bnb per charge byte
+  string store_price = 10 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // MsgCreateStorageProviderResponse defines the Msg/CreateStorageProvider response type.
@@ -64,4 +77,25 @@ message MsgEditStorageProvider {
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
 message MsgEditStorageProviderResponse {}
 
-// this line is used by starport scaffolding # proto/tx/message
+message MsgUpdateSpStoragePrice {
+  option (cosmos.msg.v1.signer) = "sp_address";
+
+  // sp address
+  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // if the block time is greater than expire timestamp, the price is invalid and will be ignored
+  int64 expire_time = 2;
+  // read price, in 10 ^ -8 bnb per byte
+  string read_price = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // store price, in 10 ^ -8 bnb per charge byte
+  string store_price = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgUpdateSpStoragePriceResponse {}

@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 // SetSpStoragePrice set a specific SpStoragePrice in the store from its index
@@ -85,5 +85,33 @@ func (k Keeper) GetSpStoragePriceByTime(
 	val.SpAddress = spAddr
 	val.UpdateTime = updateTime
 
+	return val, nil
+}
+
+func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice types.SecondarySpStorePrice) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondarySpStorePriceKeyPrefix)
+	key := types.SecondarySpStorePriceKey(
+		secondarySpStorePrice.UpdateTime,
+	)
+	secondarySpStorePrice.UpdateTime = 0
+	b := k.cdc.MustMarshal(&secondarySpStorePrice)
+	store.Set(key, b)
+}
+
+func (k Keeper) GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val types.SecondarySpStorePrice, err error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondarySpStorePriceKeyPrefix)
+
+	startKey := types.SecondarySpStorePriceKey(
+		time + 1,
+	)
+	iterator := store.ReverseIterator(nil, startKey)
+	defer iterator.Close()
+	if !iterator.Valid() {
+		return val, fmt.Errorf("no price found")
+	}
+
+	k.cdc.MustUnmarshal(iterator.Value(), &val)
+	_, updateTime := types.ParseSpStoragePriceKey(iterator.Key())
+	val.UpdateTime = updateTime
 	return val, nil
 }

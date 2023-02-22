@@ -127,15 +127,6 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
 	)
-	paymentKeeper := *paymentmodulekeeper.NewKeeper(
-		cdc,
-		storeKeys[paymentmoduletypes.StoreKey],
-		storeKeys[paymentmoduletypes.MemStoreKey],
-		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
-
-		bankKeeper,
-		accountKeeper,
-	)
 
 	spKeeper := spkeeper.NewKeeper(
 		cdc,
@@ -145,6 +136,16 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		accountKeeper,
 		bankKeeper,
 		authzKeeper,
+	)
+	paymentKeeper := *paymentmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[paymentmoduletypes.StoreKey],
+		storeKeys[paymentmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
+
+		bankKeeper,
+		accountKeeper,
+		spKeeper,
 	)
 
 	k := keeper.NewKeeper(

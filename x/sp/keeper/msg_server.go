@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -93,6 +92,15 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	k.SetStorageProvider(ctx, sp)
+	//
+	//// set initial sp storage price
+	//spStoragePrice := paymenttypes.SpStoragePrice{
+	//	SpAddress:  spAcc.String(),
+	//	UpdateTime: ctx.BlockTime().Unix(),
+	//	ReadPrice:  msg.ReadPrice,
+	//	StorePrice: msg.StorePrice,
+	//}
+	//k.payment(ctx, spStoragePrice)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),
@@ -185,4 +193,20 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 	return &types.MsgDepositResponse{}, nil
+}
+
+func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpdateSpStoragePrice) (*types.MsgUpdateSpStoragePriceResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	current := ctx.BlockTime().Unix()
+	if current > msg.ExpireTime {
+		return nil, types.ErrSpStoragePriceExpired
+	}
+	spStorePrice := types.SpStoragePrice{
+		SpAddress:  msg.SpAddress,
+		UpdateTime: current,
+		ReadPrice:  msg.ReadPrice,
+		StorePrice: msg.StorePrice,
+	}
+	k.SetSpStoragePrice(ctx, spStorePrice)
+	return &types.MsgUpdateSpStoragePriceResponse{}, nil
 }

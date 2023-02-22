@@ -54,7 +54,10 @@ func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.In
 }
 
 func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	feePrice := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	feePrice, err := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	if err != nil {
+		return fmt.Errorf("get store price failed: %w", err)
+	}
 	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketInfo.PaymentAddress, feePrice.UserPayRate)
 	if err != nil {
 		return fmt.Errorf("lock store fee by rate failed: %w", err)
@@ -76,8 +79,11 @@ func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 
 func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	// todo: what if store payment account is changed before unlock?
-	feePrice := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
-	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
+	feePrice, err := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	if err != nil {
+		return fmt.Errorf("get store price failed: %w", err)
+	}
+	err = k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
@@ -133,9 +139,12 @@ func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storaget
 }
 
 func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	feePrice := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	feePrice, err := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	if err != nil {
+		return fmt.Errorf("get store price failed: %w", err)
+	}
 	negFlows := GetNegFlows(feePrice.Flows)
-	err := k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
+	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
 	if err != nil {
 		return fmt.Errorf("apply usd flow changes failed: %w", err)
 	}

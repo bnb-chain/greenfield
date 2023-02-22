@@ -7,7 +7,6 @@ import "greenfield/payment/auto_settle_record.proto";
 import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
-import "greenfield/payment/sp_storage_price.proto";
 import "greenfield/payment/stream_record.proto";
 
 // this line is used by starport scaffolding # genesis/proto/import
@@ -21,6 +20,5 @@ message GenesisState {
   repeated PaymentAccountCount payment_account_count_list = 3 [(gogoproto.nullable) = false];
   repeated PaymentAccount payment_account_list = 4 [(gogoproto.nullable) = false];
   repeated AutoSettleRecord auto_settle_record_list = 5 [(gogoproto.nullable) = false];
-  repeated SpStoragePrice sp_storage_price_list = 6 [(gogoproto.nullable) = false];
   // this line is used by starport scaffolding # genesis/proto/state
 }

@@ -31,7 +31,7 @@ type PaymentKeeper interface {
 	ApplyFlowChanges(ctx sdk.Context, from string, flowChanges []paymenttypes.OutFlow) (err error)
 	GetParams(ctx sdk.Context) paymenttypes.Params
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
-	GetStorePrice(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) paymenttypes.StorePrice
+	GetStorePrice(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) (paymenttypes.StorePrice, error)
 	//// TODO(owen): add a thin wrapper to storage module and only provide basic interface here.
 	//ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *BucketInfo, paymentAddress *string) error
 	//LockStoreFee(ctx sdk.Context, bucketInfo *BucketInfo, objectInfo *ObjectInfo) error
