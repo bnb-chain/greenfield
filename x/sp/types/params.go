@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"cosmossdk.io/math"
@@ -16,11 +17,11 @@ const (
 	// Default maximum number of SP
 	DefaultMaxStorageProviders uint32 = 100
 	// Dafault deposit denom
-	DefaultDepositDenom = "bnb"
+	DefaultDepositDenom = "BNB"
 )
 
 // DefaultMinDeposit defines the minimum deposit amount for all storage provider
-var DefaulMinDeposit math.Int = math.NewInt(10000)
+var DefaulMinDeposit = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
 
 var (
 	KeyMaxStorageProviders = []byte("MaxStorageProviders")

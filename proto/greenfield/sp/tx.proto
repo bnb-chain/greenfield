@@ -20,7 +20,7 @@ service Msg {
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 
-// MsgCreateStorageProvider defines a SDK message for creating a new storage provider.
+// MsgCreateStorageProvider defines message for creating a new storage provider.
 message MsgCreateStorageProvider {
   option (cosmos.msg.v1.signer) = "creator";
 

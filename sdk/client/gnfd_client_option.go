@@ -1,8 +1,9 @@
 package client
 
 import (
-	"github.com/bnb-chain/greenfield/sdk/keys"
 	"google.golang.org/grpc"
+
+	"github.com/bnb-chain/greenfield/sdk/keys"
 )
 
 // GreenfieldClientOption configures how we set up the greenfield client.
