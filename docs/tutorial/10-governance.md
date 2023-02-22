@@ -452,25 +452,102 @@ $ gnfd tx gov submit-proposal [path-to-proposal-json] [flags]
 
 Example:
 
-#### Cross Chain Parameter change proposal
+#### Greenfield module parameter change proposal
 
 ```bash
-$ gnfd tx gov submit-proposal param-change /path/to/proposal.json --from 0x2737dca53A25120358f4811c762f71712eF23aFE
+$ gnfd tx gov submit-proposal /path/to/proposal.json --from 0x2737dca53A25120358f4811c762f71712eF23aFE
 ```
 
 ```json
+
 {
-  "title": "BSC smart contract upgrade",
-  "description": "BSC smart contract upgrade",
-  "changes": [
+  "messages": [
     {
-      "subspace": "BSC",
-      "key": "upgrade",
-      "value": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf"
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "content": {
+        "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+        "title": "Oracle params change",
+        "description": "Change",
+        "changes": [
+          {
+            "subspace": "oracle",
+            "key": "RelayerTimeout",
+            "value": "\"100\""
+          }
+        ]
+      },
+      "authority": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
     }
   ],
-  "deposit": "1000000000000BNB",
-  "cross_chain": true,
-  "addresses": ["0x6c615C766EE6b7e69275b0D070eF50acc93ab880"]
+  "metadata": "4pIMOgIGx1vZGU=",
+  "deposit": "1000000000000000000BNB"
+}
+```
+
+#### BSC smart contract parameter change  proposal
+
+
+```json
+{
+  "messages": [
+    {
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "content": {
+        "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+        "title": "BSC smart contract parameter change",
+        "description": "change contract parameter",
+        "changes": [
+          {
+            "subspace": "BSC",
+            "key": "key",
+            "value": ""
+          }
+        ],
+        "cross_chain": true,
+        "addresses": ["0x6c615C766EE6b7e69275b0D070eF50acc93ab880"]
+      },
+      "authority": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
+    }
+  ],
+  "metadata": "4pIMOgIGx1vZGU=",
+  "deposit": "1000000000000000000BNB"
+}
+```
+
+
+#### BSC smart contract upgrade proposal
+
+```json
+{
+  "messages": [
+    {
+      "@type": "/cosmos.gov.v1.MsgExecLegacyContent",
+      "content": {
+        "@type": "/cosmos.params.v1beta1.ParameterChangeProposal",
+        "title": "upgrade GovHub and CrossChain",
+        "description": "upgrade GovHub and CrossChain",
+        "changes": [
+          {
+            "subspace": "BSC",
+            "key": "upgrade",
+            "value": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf"
+          },
+          {
+            "subspace": "BSC",
+            "key": "upgrade",
+            "value": "0x9d4454B023096f34B160D6B654540c56A1F81688"
+          }
+        ],
+        "cross_chain": true,
+        "addresses": [
+          "0x6c615C766EE6b7e69275b0D070eF50acc93ab880",
+          "0x04ED4ad3cDe36FE8ba944E3D6CFC54f7Fe6c3C72"
+        ]
+      },
+      "authority": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
+    }
+  ],
+  "metadata": "4pIMOgIGx1vZGU=",
+  "deposit": "1000000000000000000BNB"
 }
 ```
