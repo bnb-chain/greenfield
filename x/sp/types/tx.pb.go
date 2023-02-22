@@ -31,7 +31,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
-// MsgCreateStorageProvider defines a SDK message for creating a new storage provider.
+// MsgCreateStorageProvider defines message for creating a new storage provider.
 type MsgCreateStorageProvider struct {
 	Creator         string      `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	Description     Description `protobuf:"bytes,2,opt,name=description,proto3" json:"description"`

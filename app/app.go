@@ -468,6 +468,7 @@ func New(
 		keys[storagemoduletypes.StoreKey],
 		keys[storagemoduletypes.MemStoreKey],
 		app.GetSubspace(storagemoduletypes.ModuleName),
+		app.AccountKeeper,
 		app.SpKeeper,
 		app.PaymentKeeper,
 	)

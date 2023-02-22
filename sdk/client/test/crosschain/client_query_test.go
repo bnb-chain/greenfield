@@ -4,10 +4,11 @@ import (
 	"context"
 	"testing"
 
-	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
-	"github.com/bnb-chain/greenfield/sdk/client/test"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 	"github.com/stretchr/testify/assert"
+
+	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
+	"github.com/bnb-chain/greenfield/sdk/client/test"
 )
 
 func TestCrosschainParams(t *testing.T) {
