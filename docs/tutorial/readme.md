@@ -13,3 +13,4 @@ This section provides the detailed usage of each module, runbook of testnet/main
 - [Payment](./08-payment.md)
 - [Validator and Staking](./09-validator-staking.md)
 - [Governance](./10-governance.md)
+- [Bridge](./11-bridge.md)
