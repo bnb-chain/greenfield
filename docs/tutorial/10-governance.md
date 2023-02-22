@@ -452,23 +452,25 @@ $ gnfd tx gov submit-proposal [path-to-proposal-json] [flags]
 
 Example:
 
+#### Cross Chain Parameter change proposal
+
 ```bash
-$ gnfd tx gov submit-proposal /path/to/proposal.json --from 0x2737dca53A25120358f4811c762f71712eF23aFE
+$ gnfd tx gov submit-proposal param-change /path/to/proposal.json --from 0x2737dca53A25120358f4811c762f71712eF23aFE
 ```
 
 ```json
 {
-  "messages": [
+  "title": "BSC smart contract upgrade",
+  "description": "BSC smart contract upgrade",
+  "changes": [
     {
-      "@type": "/cosmos.bank.v1beta1.MsgSend",
-      "from_address": "0x2737dca53A25120358f4811c762f71712eF23aFE",
-      "to_address": "0x50508768BD41e5CD4A82A0fBc38C14d3bEA45A78",
-      "amount":[{"denom": "BNB","amount": "100000000000"}]
+      "subspace": "BSC",
+      "key": "upgrade",
+      "value": "0x8f86403A4DE0BB5791fa46B8e795C547942fE4Cf"
     }
   ],
-  "metadata": "",
   "deposit": "1000000000000BNB",
-  "title": "Proposal Title",
-  "summary": "Proposal Summary"
+  "cross_chain": true,
+  "addresses": ["0x6c615C766EE6b7e69275b0D070eF50acc93ab880"]
 }
 ```
