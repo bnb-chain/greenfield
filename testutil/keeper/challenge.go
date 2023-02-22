@@ -127,6 +127,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKeys[storagetypes.StoreKey],
 		memStoreKey,
 		GetSubspace(paramKeeper, storagetypes.ModuleName),
+		accountKeeper,
 		spKeeper,
 		paymentKeeper,
 	)
