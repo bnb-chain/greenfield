@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"math/big"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
@@ -56,7 +57,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 
 	k.RemoveOngoingChallenge(ctx, msg.ChallengeId)
 	slash := types.Slash{
-		SpOperatorAddress: challenge.SpOperatorAddress,
+		SpOperatorAddress: strings.ToLower(challenge.SpOperatorAddress),
 		ObjectKey:         challenge.ObjectKey,
 		Height:            uint64(ctx.BlockHeight()),
 	}
@@ -194,7 +195,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64,
 
 	event := types.EventCompleteChallenge{
 		ChallengeId:            challenge.Id,
-		Result:                 0,
+		Result:                 types.ChallengeResultSucceed,
 		SpOperatorAddress:      challenge.SpOperatorAddress,
 		SlashAmount:            slashAmount.String(),
 		ChallengerAddress:      challenge.ChallengerAddress,

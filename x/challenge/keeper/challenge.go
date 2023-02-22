@@ -42,9 +42,7 @@ func (k Keeper) RemoveOngoingChallenge(
 	id uint64,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.OngoingChallengeKeyPrefix))
-	store.Delete(types.OngoingChallengeKey(
-		id,
-	))
+	store.Delete(types.OngoingChallengeKey(id))
 }
 
 // GetAllOngoingChallenge returns all ongoingChallenge

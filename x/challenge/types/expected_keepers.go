@@ -23,6 +23,7 @@ type StorageKeeper interface {
 	GetObjectWithKey(ctx sdk.Context, objectKey []byte) (objectInfo storage.ObjectInfo, found bool)
 	GetObjectAfterKey(ctx sdk.Context, objectKey []byte) (objectInfo storage.ObjectInfo, found bool)
 	GetBucket(ctx sdk.Context, bucketName string) (bucketInfo storage.BucketInfo, found bool)
+	MaxSegmentSize(ctx sdk.Context) (res uint64)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

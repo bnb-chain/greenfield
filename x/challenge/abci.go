@@ -2,8 +2,9 @@ package challenge
 
 import (
 	"fmt"
+	"strings"
 
-	"github.com/bnb-chain/greenfield/x/challenge/keeper"
+	k "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -16,21 +17,18 @@ import (
 // there is the possibility that some recent slashes for the new parameter will be gone, and we think this is acceptable.
 const coolingOffMultiplier = 3
 
-func BeginBlocker(ctx sdk.Context, keeper keeper.Keeper) {
+func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 	// reset count of challenge in current block to zero
 	keeper.ResetChallengeCount(ctx)
 
 	// delete expired challenges at this height
 	events := make([]proto.Message, 0)
-	height := uint64(ctx.BlockHeight())
 	expirePeriod := keeper.ChallengeExpirePeriod(ctx)
-	minHeight := height
-	if height > expirePeriod {
-		minHeight = height - expirePeriod
-	}
+	height := uint64(ctx.BlockHeight()) - expirePeriod
+
 	challenges := keeper.GetAllOngoingChallenge(ctx)
 	for _, elem := range challenges {
-		if elem.Height < minHeight {
+		if elem.Height < height {
 			events = append(events, &types.EventExpireChallenge{
 				ChallengeId: elem.Id,
 			})
@@ -42,34 +40,34 @@ func BeginBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 
 	// delete too old slashes at this height
 	coolingOff := keeper.SlashCoolingOffPeriod(ctx)
-	minHeight = height - coolingOff*coolingOffMultiplier
+	height = uint64(ctx.BlockHeight()) - coolingOff*coolingOffMultiplier
 	slashes := keeper.GetAllRecentSlash(ctx)
 	for _, elem := range slashes {
-		if elem.Height < minHeight {
+		if elem.Height < height {
 			keeper.RemoveRecentSlash(ctx, elem.Id)
 		}
 	}
 }
 
-func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
+func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	// emit new challenge events if more challenges are needed
 	count := keeper.GetChallengeCount(ctx)
 	needed := keeper.EventCountPerBlock(ctx)
-	events := make([]proto.Message, 0)
-
 	if count >= needed {
 		return
 	}
 
+	events := make([]proto.Message, 0)                     // for events
 	objectMap := make(map[string]struct{})                 // for de-duplication
 	iteration, maxIteration := uint64(0), 2*(needed-count) // to prevent endless loop
+	height := uint64(ctx.BlockHeight()) - keeper.SlashCoolingOffPeriod(ctx)
 	for count < needed && iteration < maxIteration {
 		iteration++
 
-		// TODO: random object to challenge
-		randomObjectKey := []byte{}
-		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, randomObjectKey)
-		if !found { // there is no object info yet
+		// random object info
+		objectKey := k.RandomObjectKey(ctx.BlockHeader().RandaoMix)
+		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, objectKey)
+		if !found { // there is no object info yet, cannot generate challenges
 			return
 		}
 
@@ -77,40 +75,56 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 			continue
 		}
 
-		// random index
-		randomSegmentIndex := uint32(1)
+		// random redundancy index (sp address)
+		var spOperatorAddress string
+		secondarySpAddresses := objectInfo.SecondarySpAddresses
 
-		// random sp address
-		bucket, _ := keeper.StorageKeeper.GetBucket(ctx, objectInfo.ObjectName)
-		randomSpOperatorAddress := ""
-		var redundancyIndex int32
-		if randomSegmentIndex == 0 { //primary sp
-			randomSpOperatorAddress = bucket.PrimarySpAddress
-			redundancyIndex = int32(-1)
-		} else { //secondary sp
-			secondarySpAddresses := objectInfo.SecondarySpAddresses
-			randomSpOperatorAddress = secondarySpAddresses[randomSegmentIndex-1]
-			redundancyIndex = int32(randomSegmentIndex - 1)
+		redundancyIndex := k.RandomRedundancyIndex(ctx.BlockHeader().RandaoMix, uint64(len(secondarySpAddresses)+1))
+		redundancyIndex--
+
+		bucket, found := keeper.StorageKeeper.GetBucket(ctx, objectInfo.ObjectName)
+		if !found {
+			continue
 		}
-		addr, _ := sdk.AccAddressFromHexUnsafe(randomSpOperatorAddress)
+		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
+			spOperatorAddress = bucket.PrimarySpAddress
+		} else {
+			spOperatorAddress = objectInfo.SecondarySpAddresses[redundancyIndex]
+		}
+
+		addr, err := sdk.AccAddressFromHexUnsafe(spOperatorAddress)
+		if err != nil {
+			continue
+		}
 		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, addr)
 		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
 			continue
 		}
 
-		mapKey := fmt.Sprintf("%s-%d", randomSpOperatorAddress, objectInfo.Id)
-		if _, ok := objectMap[mapKey]; ok {
+		// check recent slash
+		if keeper.ExistsSlash(ctx, height, strings.ToLower(spOperatorAddress), objectKey) {
+			continue
+		}
+
+		// random segment/piece index
+		segments := k.CalculateSegments(objectInfo.PayloadSize, keeper.StorageKeeper.MaxSegmentSize(ctx))
+		segmentIndex := k.RandomSegmentIndex(ctx.BlockHeader().RandaoMix, segments)
+
+		mapKey := fmt.Sprintf("%s-%d", spOperatorAddress, objectInfo.Id)
+		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
 			continue
 		}
 
 		objectMap[mapKey] = struct{}{}
-		challengeId, _ := keeper.GetChallengeID(ctx)
-		objectKey := storagetypes.GetObjectKey(bucket.BucketName, objectInfo.ObjectName)
+		challengeId, err := keeper.GetChallengeID(ctx)
+		if err != nil {
+			continue
+		}
 		challenge := types.Challenge{
 			Id:                challengeId,
-			SpOperatorAddress: randomSpOperatorAddress,
-			ObjectKey:         objectKey,
-			SegmentIndex:      randomSegmentIndex,
+			SpOperatorAddress: spOperatorAddress,
+			ObjectKey:         storagetypes.GetObjectKey(bucket.BucketName, objectInfo.ObjectName),
+			SegmentIndex:      segmentIndex,
 			Height:            uint64(ctx.BlockHeight()),
 			ChallengerAddress: "",
 		}
@@ -119,8 +133,8 @@ func EndBlocker(ctx sdk.Context, keeper keeper.Keeper) {
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challenge.Id,
 			ObjectId:          objectInfo.Id.Uint64(),
-			SegmentIndex:      randomSegmentIndex,
-			SpOperatorAddress: randomSpOperatorAddress,
+			SegmentIndex:      segmentIndex,
+			SpOperatorAddress: spOperatorAddress,
 			RedundancyIndex:   redundancyIndex,
 		})
 

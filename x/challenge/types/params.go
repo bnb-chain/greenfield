@@ -30,12 +30,12 @@ var (
 
 var (
 	KeySlashDenom     = []byte("SlashDenom")
-	DefaultSlashDenom = "bnb"
+	DefaultSlashDenom = "BNB"
 )
 
 var (
 	KeySlashAmountSizeRate     = []byte("SlashAmountSizeRate")
-	DefaultSlashAmountSizeRate = sdk.ZeroDec()
+	DefaultSlashAmountSizeRate = sdk.NewDecWithPrec(5, 1)
 )
 
 var (

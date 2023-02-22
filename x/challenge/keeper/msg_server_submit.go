@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strings"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -26,8 +27,6 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrInvalidSpStatus
 	}
 
-	// check sp recent slash
-
 	// check object & read needed data
 	objectInfo, found := k.StorageKeeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
@@ -37,6 +36,16 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrInvalidObjectStatus
 	}
 
+	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
+	objectId := objectInfo.Id
+
+	// check sp recent slash
+	height := uint64(ctx.BlockHeight()) - k.Keeper.SlashCoolingOffPeriod(ctx)
+	if k.ExistsSlash(ctx, height, strings.ToLower(msg.SpOperatorAddress), objectKey) {
+		return nil, types.ErrExistsRecentSlash
+	}
+
+	// generate redundancyIndex
 	redundancyIndex := types.RedundancyIndexPrimary
 	for i, sp := range objectInfo.GetSecondarySpAddresses() {
 		if sp == msg.SpOperatorAddress {
@@ -45,12 +54,11 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		}
 	}
 
-	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
-	objectId := objectInfo.Id
-
+	// generate segment index
 	segmentIndex := msg.SegmentIndex
 	if msg.RandomIndex {
-		//TODO: random segmentIndex
+		segments := CalculateSegments(objectInfo.PayloadSize, k.Keeper.StorageKeeper.MaxSegmentSize(ctx))
+		segmentIndex = RandomSegmentIndex(ctx.BlockHeader().RandaoMix, segments)
 	}
 
 	challengeId, err := k.GetChallengeID(ctx)
