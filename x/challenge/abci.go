@@ -52,14 +52,16 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		return
 	}
 
-	events := make([]proto.Message, 0)                     // for events
-	objectMap := make(map[string]struct{})                 // for de-duplication
-	iteration, maxIteration := uint64(0), 2*(needed-count) // to prevent endless loop
+	events := make([]proto.Message, 0)     // for events
+	objectMap := make(map[string]struct{}) // for de-duplication
+	// TODO: can we calculate the possibility for each iteration, then we can set a valid iteration upper bound ？
+	iteration, maxIteration := uint64(0), 1000*(needed-count) // to prevent endless loop
 	for count < needed && iteration < maxIteration {
 		iteration++
+		seed := k.SeedFromRandaoMix(ctx.BlockHeader().RandaoMix, iteration)
 
 		// random object info
-		objectKey := k.RandomObjectKey(ctx.BlockHeader().RandaoMix)
+		objectKey := k.RandomObjectKey(seed)
 		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, objectKey)
 		if !found { // there is no object info yet, cannot generate challenges
 			return
@@ -78,7 +80,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			continue
 		}
 
-		redundancyIndex := k.RandomRedundancyIndex(ctx.BlockHeader().RandaoMix, uint64(len(secondarySpAddresses)+1))
+		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(secondarySpAddresses)+1))
 		redundancyIndex--
 
 		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
@@ -108,7 +110,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 		// random segment/piece index
 		segments := k.CalculateSegments(objectInfo.PayloadSize, keeper.StorageKeeper.MaxSegmentSize(ctx))
-		segmentIndex := k.RandomSegmentIndex(ctx.BlockHeader().RandaoMix, segments)
+		segmentIndex := k.RandomSegmentIndex(seed, segments)
 
 		objectMap[mapKey] = struct{}{}
 		challengeId := keeper.GetChallengeId(ctx)
