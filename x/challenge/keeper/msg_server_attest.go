@@ -24,13 +24,9 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	//check object, and get object info
 	objectKey := challenge.ObjectKey
 	objectInfo, found := k.StorageKeeper.GetObjectWithKey(ctx, objectKey)
-	if !found {
+	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
 		return nil, types.ErrUnknownObject
 	}
-	//be noted: even the object info is not in service now, we will continue slash the storage provider
-	//if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
-	//	return nil, types.ErrInvalidObjectStatus
-	//}
 
 	// check attest validators and signatures
 	validators, err := k.verifySignature(ctx, msg)

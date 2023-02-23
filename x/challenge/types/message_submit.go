@@ -31,7 +31,7 @@ func (msg *MsgSubmit) Type() string {
 }
 
 func (msg *MsgSubmit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		panic(err)
 	}

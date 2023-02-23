@@ -36,24 +36,24 @@ func (k msgServer) Heartbeat(goCtx context.Context, msg *types.MsgHeartbeat) (*t
 		return nil, err
 	}
 
-	// calculate rewards
-	total := k.paymentKeeper.QueryValidatorRewards(ctx)
-	validatorReward, submitterReward := k.calculateHeartbeatRewards(ctx, total)
-
 	// reward tx validator & submitter
-	toValidator := sdk.Coins{
-		sdk.Coin{Denom: app.Denom, Amount: validatorReward},
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, paymentmoduletypes.ModuleName, distributiontypes.ModuleName, toValidator)
-	if err != nil {
-		return nil, err
-	}
-	toSubmitter := sdk.Coins{
-		sdk.Coin{Denom: app.Denom, Amount: submitterReward},
-	}
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, paymentmoduletypes.ModuleName, submitterAddress, toSubmitter)
-	if err != nil {
-		return nil, err
+	total := k.paymentKeeper.QueryValidatorRewards(ctx)
+	if !total.IsZero() {
+		validatorReward, submitterReward := k.calculateHeartbeatRewards(ctx, total)
+		toValidator := sdk.Coins{
+			sdk.Coin{Denom: app.Denom, Amount: validatorReward},
+		}
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, paymentmoduletypes.ModuleName, distributiontypes.ModuleName, toValidator)
+		if err != nil {
+			return nil, err
+		}
+		toSubmitter := sdk.Coins{
+			sdk.Coin{Denom: app.Denom, Amount: submitterReward},
+		}
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, paymentmoduletypes.ModuleName, submitterAddress, toSubmitter)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventChallengeHeartbeat{
