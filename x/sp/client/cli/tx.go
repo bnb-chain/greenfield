@@ -15,10 +15,15 @@ import (
 )
 
 const (
-	FlagSpendLimit  = "spend-limit"
-	FlagSpAddress   = "SPAddress"
-	FlagExpiration  = "expiration"
-	DefaultEndpoint = "sp0.greenfield.io"
+	FlagSpendLimit = "spend-limit"
+	FlagSpAddress  = "SPAddress"
+	FlagExpiration = "expiration"
+	FlagEndpoint   = "endpoint"
+
+	FlagEditMoniker = "new-moniker"
+	FlagIdentity    = "identity"
+	FlagWebsite     = "website"
+	FlagDetails     = "details"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -45,15 +50,19 @@ func CmdEditStorageProvider() *cobra.Command {
 		Short: "Broadcast message editStorageProvider",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			endpoint, _ := cmd.Flags().GetString(FlagEndpoint)
-
 			argSpAddress := args[0]
 
 			spAddress, err := sdk.AccAddressFromHexUnsafe(argSpAddress)
 			if err != nil {
 				return err
 			}
+
+			endpoint, _ := cmd.Flags().GetString(FlagEndpoint)
+			moniker, _ := cmd.Flags().GetString(FlagEditMoniker)
+			identity, _ := cmd.Flags().GetString(FlagIdentity)
+			website, _ := cmd.Flags().GetString(FlagWebsite)
+			details, _ := cmd.Flags().GetString(FlagDetails)
+			description := types.NewDescription(moniker, identity, website, details)
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -63,7 +72,7 @@ func CmdEditStorageProvider() *cobra.Command {
 			msg := types.NewMsgEditStorageProvider(
 				spAddress,
 				endpoint,
-				types.Description{},
+				description,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -73,6 +82,12 @@ func CmdEditStorageProvider() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(FlagEndpoint, types.DoNotModifyDesc, "The storage provider's endpoint")
+	// DescriptionEdit
+	cmd.Flags().String(FlagEditMoniker, types.DoNotModifyDesc, "The storage provider's name")
+	cmd.Flags().String(FlagIdentity, types.DoNotModifyDesc, "The (optional) identity signature (ex. UPort or Keybase)")
+	cmd.Flags().String(FlagWebsite, types.DoNotModifyDesc, "The storage provider's (optional) website")
+	cmd.Flags().String(FlagDetails, types.DoNotModifyDesc, "The storage provider's (optional) details")
 
 	return cmd
 }

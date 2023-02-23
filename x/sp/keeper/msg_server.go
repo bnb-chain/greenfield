@@ -144,6 +144,11 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	}
 
 	oldEndpoint := sp.Endpoint
+	// replace endpoint
+	if len(msg.Endpoint) != 0 {
+		sp.Endpoint = msg.Endpoint
+	}
+	
 	if _, err := msg.Description.EnsureLength(); err != nil {
 		return nil, err
 	}
