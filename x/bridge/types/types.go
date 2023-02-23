@@ -12,7 +12,6 @@ import (
 const (
 	TransferOutChannel = "transferOut"
 	TransferInChannel  = "transferIn"
-	SyncParamsChannel  = paramsproposal.SyncParamsChannel
 
 	TransferOutChannelID sdk.ChannelID = 1
 	TransferInChannelID  sdk.ChannelID = 2

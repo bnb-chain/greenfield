@@ -311,7 +311,7 @@ func New(
 		app.GetSubspace(crosschaintypes.ModuleName),
 	)
 	app.ParamsKeeper.SetCrossChainKeeper(app.CrossChainKeeper)
-	if err := app.RegisterCrossChainSyncParamsApp(); err != nil {
+	if err := app.ParamsKeeper.RegisterCrossChainSyncParamsApp(); err != nil {
 		panic(err)
 	}
 
@@ -853,11 +853,4 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 // SimulationManager implements the SimulationApp interface
 func (app *App) SimulationManager() *module.SimulationManager {
 	return app.sm
-}
-
-func (app *App) RegisterCrossChainSyncParamsApp() error {
-	if err := app.CrossChainKeeper.RegisterChannel(bridgemoduletypes.SyncParamsChannel, bridgemoduletypes.SyncParamsChannelID, app.ParamsKeeper); err != nil {
-		return err
-	}
-	return nil
 }
