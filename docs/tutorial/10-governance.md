@@ -7,6 +7,19 @@ Start a local cluster:
 ## Start a local cluster
 $ bash ./deployment/localup/localup.sh all 3
 $ alias gnfd="./build/bin/gnfd"
+
+## Create a proposal
+$ gnfd tx gov submit-proposal  /path/to/your_file.json  --from 0x7224A7Ad3c484814165baf1d51D1356B014a659B  --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block
+
+## Make a deposit 
+$ gnfd tx gov deposit 1 1000000000000000000BNB  --from 0x7224A7Ad3c484814165baf1d51D1356B014a659B  --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block
+
+## Vote the proposal from validator1
+gnfd tx gov vote 1  yes --from 0x029dF90943a668560529666FEC22e28E40e83c4c  --home ./deployment/localup/.local/validator1 --keyring-backend test --node http://localhost:26750 -b block
+
+## Query the proposal details
+gnfd query gov proposal 1
+
 ```
 
 ## Query
@@ -431,7 +444,7 @@ $ gnfd tx gov deposit [proposal-id] [deposit] [flags]
 Example:
 
 ```bash
-$ gnfd tx gov deposit 7 1000000000000000000BNB --from 0x50508768BD41e5CD4A82A0fBc38C14d3bEA45A78
+$ gnfd tx gov deposit 1 1000000000000000000BNB --from 0x50508768BD41e5CD4A82A0fBc38C14d3bEA45A78
 ```
 
 ### draft-proposal
@@ -500,7 +513,7 @@ $ gnfd tx gov submit-proposal /path/to/proposal.json --from 0x2737dca53A25120358
           {
             "subspace": "BSC",
             "key": "key",
-            "value": ""
+            "value": "0x33"
           }
         ],
         "cross_chain": true,
