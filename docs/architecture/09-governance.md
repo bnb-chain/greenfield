@@ -9,8 +9,8 @@ The Greenfield BlockChain utilizes on-chain governance, which is achieved by ste
 There are various types of proposals. Include but not limited to:
 - Proposals for creating and editing validators, staking rewards distribution, details as described in [staking_model](./08-consensus_and_staking.md)
 - Proposals for creating and removing storage provider which specified in [storage_provider_model](./04-storage_provider_management.md)
-- `Greenfield` modules parameters change proposal 
-- `BSC` smart contract parameters change and upgrade proposal 
+- Parameters change proposal for `Greenfield` modules
+- Parameters change and upgrade proposals for `BSC` smart contracts 
 
 
 ## Governance Parameters
@@ -45,9 +45,9 @@ All bonded BNB holders get the right to vote on proposals with one of following 
 - NoWithVeto: Which indicates a proposal either (1) spam (2) infringes on minority interests (3) violates rules of engagement
 - Abstain: The voter wishes to contribute to quorum without voting for or against a proposal.
 
-Voters may change their vote at any time before voting period ends,
-Be aware of that voting power is measured in terms of bonded BNB, and delegators inherit the vote of validators they are 
-delegated to. If delegator votes after its validator, it will override its validator vote by its own.
+Voters may change their vote at any time before voting period ends, be aware of that voting power is measured in terms 
+of bonded BNB, and delegators inherit the vote of validators they are delegated to. If delegator votes after its validator, 
+it will override its validator vote by its own.
 
 ## Tally
 
