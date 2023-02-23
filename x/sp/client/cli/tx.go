@@ -45,6 +45,9 @@ func CmdEditStorageProvider() *cobra.Command {
 		Short: "Broadcast message editStorageProvider",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			endpoint, _ := cmd.Flags().GetString(FlagEndpoint)
+
 			argSpAddress := args[0]
 
 			spAddress, err := sdk.AccAddressFromHexUnsafe(argSpAddress)
@@ -59,7 +62,7 @@ func CmdEditStorageProvider() *cobra.Command {
 
 			msg := types.NewMsgEditStorageProvider(
 				spAddress,
-				DefaultEndpoint,
+				endpoint,
 				types.Description{},
 			)
 			if err := msg.ValidateBasic(); err != nil {
