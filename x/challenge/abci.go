@@ -4,12 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/gogo/protobuf/proto"
+
 	k "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gogo/protobuf/proto"
 )
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
@@ -46,7 +47,7 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	count := keeper.GetChallengeCount(ctx)
-	needed := keeper.EventCountPerBlock(ctx)
+	needed := keeper.ChallengeCountPerBlock(ctx)
 	if count >= needed {
 		return
 	}
@@ -72,13 +73,14 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		var spOperatorAddress string
 		secondarySpAddresses := objectInfo.SecondarySpAddresses
 
-		redundancyIndex := k.RandomRedundancyIndex(ctx.BlockHeader().RandaoMix, uint64(len(secondarySpAddresses)+1))
-		redundancyIndex--
-
 		bucket, found := keeper.StorageKeeper.GetBucket(ctx, objectInfo.ObjectName)
 		if !found {
 			continue
 		}
+
+		redundancyIndex := k.RandomRedundancyIndex(ctx.BlockHeader().RandaoMix, uint64(len(secondarySpAddresses)+1))
+		redundancyIndex--
+
 		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
 			spOperatorAddress = bucket.PrimarySpAddress
 		} else {
@@ -94,6 +96,11 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			continue
 		}
 
+		mapKey := fmt.Sprintf("%s-%d", spOperatorAddress, objectInfo.Id)
+		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
+			continue
+		}
+
 		// check recent slash
 		if keeper.ExistsSlash(ctx, strings.ToLower(spOperatorAddress), objectKey) {
 			continue
@@ -103,16 +110,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		segments := k.CalculateSegments(objectInfo.PayloadSize, keeper.StorageKeeper.MaxSegmentSize(ctx))
 		segmentIndex := k.RandomSegmentIndex(ctx.BlockHeader().RandaoMix, segments)
 
-		mapKey := fmt.Sprintf("%s-%d", spOperatorAddress, objectInfo.Id)
-		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
-			continue
-		}
-
 		objectMap[mapKey] = struct{}{}
-		challengeId, err := keeper.GetChallengeID(ctx)
-		if err != nil {
-			continue
-		}
+		challengeId := keeper.GetChallengeId(ctx)
 		challenge := types.Challenge{
 			Id:                challengeId,
 			SpOperatorAddress: spOperatorAddress,

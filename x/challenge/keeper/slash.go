@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"encoding/binary"
 
-	"github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
 // GetRecentSlashCount get the total number of recentSlash

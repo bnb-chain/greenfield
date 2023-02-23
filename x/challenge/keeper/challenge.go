@@ -6,7 +6,6 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // SetOngoingChallenge set a specific ongoingChallenge in the store from its index
@@ -61,17 +60,17 @@ func (k Keeper) GetAllOngoingChallenge(ctx sdk.Context) (list []types.Challenge)
 	return
 }
 
-// GetChallengeID gets the highest challenge ID
-func (k Keeper) GetChallengeID(ctx sdk.Context) (challengeId uint64, err error) {
+// GetChallengeId gets the highest challenge ID
+func (k Keeper) GetChallengeId(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	byteKey := types.KeyPrefix(types.ChallengeIdKey)
 	bz := store.Get(byteKey)
 
 	if bz == nil {
-		return 0, sdkerrors.Wrap(types.ErrInvalidGenesis, "initial challenge ID hasn't been set")
+		return 0
 	}
 
-	return binary.BigEndian.Uint64(bz), nil
+	return binary.BigEndian.Uint64(bz)
 }
 
 // SetChallengeID sets the new challenge ID to the store
@@ -83,7 +82,7 @@ func (k Keeper) SetChallengeID(ctx sdk.Context, challengeId uint64) {
 	store.Set(byteKey, bz)
 }
 
-// GetChallengeCount gets the highest challenge ID
+// GetChallengeCount gets the count of challenges
 func (k Keeper) GetChallengeCount(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	byteKey := types.KeyPrefix(types.ChallengeCountKey)
@@ -113,4 +112,26 @@ func (k Keeper) ResetChallengeCount(ctx sdk.Context) {
 // IncrChallengeCount increases the count of challenge by one
 func (k Keeper) IncrChallengeCount(ctx sdk.Context) {
 	k.setGetChallengeCount(ctx, k.GetChallengeCount(ctx)+1)
+}
+
+// GetHeartbeatChallengeId gets the challenge id of the latest heartbeat challenge
+func (k Keeper) GetHeartbeatChallengeId(ctx sdk.Context) uint64 {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	byteKey := types.KeyPrefix(types.HeartbeatChallengeIdKey)
+	bz := store.Get(byteKey)
+
+	if bz == nil {
+		return 0
+	}
+
+	return binary.BigEndian.Uint64(bz)
+}
+
+// SetHeartbeatChallengeId sets the new id of challenge to the store
+func (k Keeper) SetHeartbeatChallengeId(ctx sdk.Context, challengeId uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	byteKey := types.KeyPrefix(types.HeartbeatChallengeIdKey)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, challengeId)
+	store.Set(byteKey, bz)
 }

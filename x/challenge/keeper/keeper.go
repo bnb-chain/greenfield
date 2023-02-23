@@ -3,12 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
 type (
@@ -18,9 +19,11 @@ type (
 		memKey     storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
+		bankKeeper    types.BankKeeper
 		StorageKeeper types.StorageKeeper
 		SpKeeper      types.SpKeeper
 		stakingKeeper types.StakingKeeper
+		paymentKeeper types.PaymentKeeper
 	}
 )
 
@@ -30,9 +33,11 @@ func NewKeeper(
 	memKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
 
+	bankKeeper types.BankKeeper,
 	storageKeeper types.StorageKeeper,
 	spKeeper types.SpKeeper,
 	stakingKeeper types.StakingKeeper,
+	paymentKeeper types.PaymentKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -44,9 +49,11 @@ func NewKeeper(
 		storeKey:      storeKey,
 		memKey:        memKey,
 		paramstore:    ps,
+		bankKeeper:    bankKeeper,
 		StorageKeeper: storageKeeper,
 		SpKeeper:      spKeeper,
 		stakingKeeper: stakingKeeper,
+		paymentKeeper: paymentKeeper,
 	}
 }
 

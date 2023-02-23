@@ -29,8 +29,11 @@ const (
 	// ChallengeIdKey is the key to retrieve the max id of challenge
 	ChallengeIdKey = "Challenge/id/"
 
-	// ChallengeCountKey is the count of challenges in the current block
+	// ChallengeCountKey is key to track the count of challenges in the current block
 	ChallengeCountKey = "Challenge/count/"
+
+	// HeartbeatChallengeIdKey is the key to record the latest heartbeat challenge id
+	HeartbeatChallengeIdKey = "Challenge/heartbeat/"
 
 	RecentSlashKey      = "Slash/value/"
 	RecentSlashCountKey = "Slash/count/"

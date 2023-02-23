@@ -92,7 +92,6 @@ import (
 	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
-
 	challengemodule "github.com/bnb-chain/greenfield/x/challenge"
 	challengemodulekeeper "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
@@ -482,9 +481,11 @@ func New(
 		keys[challengemoduletypes.StoreKey],
 		keys[challengemoduletypes.MemStoreKey],
 		app.GetSubspace(challengemoduletypes.ModuleName),
+		app.BankKeeper,
 		app.StorageKeeper,
 		app.SpKeeper,
 		app.StakingKeeper,
+		app.PaymentKeeper,
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 

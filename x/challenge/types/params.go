@@ -9,13 +9,15 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
+
+	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	KeyEventCountPerBlock            = []byte("EventCountPerBlock")
-	DefaultEventCountPerBlock uint64 = 3
+	KeyChallengeCountPerBlock            = []byte("ChallengeCountPerBlock")
+	DefaultChallengeCountPerBlock uint64 = 3
 )
 
 var (
@@ -30,7 +32,7 @@ var (
 
 var (
 	KeySlashDenom     = []byte("SlashDenom")
-	DefaultSlashDenom = "BNB"
+	DefaultSlashDenom = types.Denom
 )
 
 var (
@@ -40,12 +42,12 @@ var (
 
 var (
 	KeySlashAmountMin     = []byte("SlashAmountMin")
-	DefaultSlashAmountMin = math.NewInt(10)
+	DefaultSlashAmountMin = types.NewIntFromInt64WithDecimal(10, types.DecimalBNB)
 )
 
 var (
 	KeySlashAmountMax     = []byte("SlashAmountMax")
-	DefaultSlashAmountMax = math.NewInt(100)
+	DefaultSlashAmountMax = types.NewIntFromInt64WithDecimal(100, types.DecimalBNB)
 )
 
 var (
@@ -58,6 +60,21 @@ var (
 	DefaultRewardChallengerRatio = sdk.NewDecWithPrec(3, 1)
 )
 
+var (
+	KeyHeartbeatInterval            = []byte("HeartbeatInterval")
+	DefaultHeartbeatInterval uint64 = 1000
+)
+
+var (
+	KeyHeartbeatRewardRate     = []byte("HeartbeatRewardRate")
+	DefaultHeartbeatRewardRate = sdk.NewDecWithPrec(1, 3)
+)
+
+var (
+	KeyHeartbeatRewardThreshold     = []byte("HeartbeatRewardThreshold")
+	DefaultHeartbeatRewardThreshold = types.NewIntFromInt64WithDecimal(10e6, types.DecimalGwei)
+)
+
 // ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
@@ -65,7 +82,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(
-	eventCountPerBlock uint64,
+	challengeCountPerBlock uint64,
 	challengeExpirePeriod uint64,
 	slashCoolingOffPeriod uint64,
 	slashDenom string,
@@ -74,24 +91,30 @@ func NewParams(
 	slashAmountMax math.Int,
 	rewardValidatorRatio sdk.Dec,
 	rewardChallengerRatio sdk.Dec,
+	heartbeatInterval uint64,
+	heartbeatRewardRate sdk.Dec,
+	heartbeatRewardThreshold math.Int,
 ) Params {
 	return Params{
-		EventCountPerBlock:    eventCountPerBlock,
-		ChallengeExpirePeriod: challengeExpirePeriod,
-		SlashCoolingOffPeriod: slashCoolingOffPeriod,
-		SlashDenom:            slashDenom,
-		SlashAmountSizeRate:   slashAmountSizeRate,
-		SlashAmountMin:        slashAmountMin,
-		SlashAmountMax:        slashAmountMax,
-		RewardValidatorRatio:  rewardValidatorRatio,
-		RewardChallengerRatio: rewardChallengerRatio,
+		ChallengeCountPerBlock:   challengeCountPerBlock,
+		ChallengeExpirePeriod:    challengeExpirePeriod,
+		SlashCoolingOffPeriod:    slashCoolingOffPeriod,
+		SlashDenom:               slashDenom,
+		SlashAmountSizeRate:      slashAmountSizeRate,
+		SlashAmountMin:           slashAmountMin,
+		SlashAmountMax:           slashAmountMax,
+		RewardValidatorRatio:     rewardValidatorRatio,
+		RewardChallengerRatio:    rewardChallengerRatio,
+		HeartbeatInterval:        heartbeatInterval,
+		HeartbeatRewardRate:      heartbeatRewardRate,
+		HeartbeatRewardThreshold: heartbeatRewardThreshold,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(
-		DefaultEventCountPerBlock,
+		DefaultChallengeCountPerBlock,
 		DefaultChallengeExpirePeriod,
 		DefaultSlashCoolingOffPeriod,
 		DefaultSlashDenom,
@@ -100,13 +123,16 @@ func DefaultParams() Params {
 		DefaultSlashAmountMax,
 		DefaultRewardValidatorRatio,
 		DefaultRewardChallengerRatio,
+		DefaultHeartbeatInterval,
+		DefaultHeartbeatRewardRate,
+		DefaultHeartbeatRewardThreshold,
 	)
 }
 
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyEventCountPerBlock, &p.EventCountPerBlock, validateEventCountPerBlock),
+		paramtypes.NewParamSetPair(KeyChallengeCountPerBlock, &p.ChallengeCountPerBlock, validateChallengeCountPerBlock),
 		paramtypes.NewParamSetPair(KeyChallengeExpirePeriod, &p.ChallengeExpirePeriod, validateChallengeExpirePeriod),
 		paramtypes.NewParamSetPair(KeySlashCoolingOffPeriod, &p.SlashCoolingOffPeriod, validateSlashCoolingOffPeriod),
 		paramtypes.NewParamSetPair(KeySlashDenom, &p.SlashDenom, validateSlashDenom),
@@ -115,12 +141,15 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeySlashAmountMax, &p.SlashAmountMax, validateSlashAmountMax),
 		paramtypes.NewParamSetPair(KeyRewardValidatorRatio, &p.RewardValidatorRatio, validateRewardValidatorRatio),
 		paramtypes.NewParamSetPair(KeyRewardChallengerRatio, &p.RewardChallengerRatio, validateRewardChallengerRatio),
+		paramtypes.NewParamSetPair(KeyHeartbeatInterval, &p.HeartbeatInterval, validateHeartbeatInterval),
+		paramtypes.NewParamSetPair(KeyHeartbeatRewardRate, &p.HeartbeatRewardRate, validateHeartbeatRewardRate),
+		paramtypes.NewParamSetPair(KeyHeartbeatRewardThreshold, &p.HeartbeatRewardThreshold, validateHeartbeatRewardThreshold),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	if err := validateEventCountPerBlock(p.EventCountPerBlock); err != nil {
+	if err := validateChallengeCountPerBlock(p.ChallengeCountPerBlock); err != nil {
 		return err
 	}
 
@@ -164,6 +193,18 @@ func (p Params) Validate() error {
 		return errors.New("the sum of validator and challenger reward ratio should be equal to or less than one")
 	}
 
+	if err := validateHeartbeatInterval(p.HeartbeatInterval); err != nil {
+		return err
+	}
+
+	if err := validateHeartbeatRewardRate(p.HeartbeatRewardRate); err != nil {
+		return err
+	}
+
+	if err := validateHeartbeatRewardThreshold(p.HeartbeatRewardThreshold); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -173,8 +214,8 @@ func (p Params) String() string {
 	return string(out)
 }
 
-// validateEventCountPerBlock validates the EventCountPerBlock param
-func validateEventCountPerBlock(v interface{}) error {
+// validateChallengeCountPerBlock validates the ChallengeCountPerBlock param
+func validateChallengeCountPerBlock(v interface{}) error {
 	_, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
@@ -243,7 +284,7 @@ func validateSlashAmountMin(v interface{}) error {
 	}
 
 	if slashAmountMin.LT(sdk.ZeroInt()) {
-		return errors.New("min slash amount per kilo bytes cannot be lower than zero")
+		return errors.New("min slash amount cannot be lower than zero")
 	}
 
 	return nil
@@ -257,7 +298,7 @@ func validateSlashAmountMax(v interface{}) error {
 	}
 
 	if slashAmountMax.LT(sdk.ZeroInt()) {
-		return errors.New("max slash amount per kilo bytes cannot be lower than zero")
+		return errors.New("max slash amount cannot be lower than zero")
 	}
 
 	return nil
@@ -286,6 +327,47 @@ func validateRewardChallengerRatio(v interface{}) error {
 
 	if rewardChallengerRatio.LT(sdk.ZeroDec()) {
 		return errors.New("challenger reward ratio cannot be lower than zero")
+	}
+
+	return nil
+}
+
+// validateHeartbeatInterval validates the HeartbeatInterval param
+func validateHeartbeatInterval(v interface{}) error {
+	heartbeatInterval, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+	if heartbeatInterval == 0 {
+		return errors.New("heartbeat interval cannot be zero")
+	}
+
+	return nil
+}
+
+// validateHeartbeatRewardRate validates the HeartbeatRewardRate param
+func validateHeartbeatRewardRate(v interface{}) error {
+	heartbeatRewardRate, ok := v.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if heartbeatRewardRate.LT(sdk.ZeroDec()) {
+		return errors.New("heartbeat reward rate cannot be lower than zero")
+	}
+
+	return nil
+}
+
+// validateHeartbeatRewardThreshold validates the HeartbeatRewardThreshold param
+func validateHeartbeatRewardThreshold(v interface{}) error {
+	heartbeatRewardThreshold, ok := v.(math.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if heartbeatRewardThreshold.LT(sdk.ZeroInt()) {
+		return errors.New("heartbeat reward threshold cannot be lower than zero")
 	}
 
 	return nil

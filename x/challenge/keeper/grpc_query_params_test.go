@@ -3,10 +3,11 @@ package keeper_test
 import (
 	"testing"
 
-	testkeeper "github.com/bnb-chain/greenfield/testutil/keeper"
-	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
+
+	testkeeper "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
 func TestParamsQuery(t *testing.T) {

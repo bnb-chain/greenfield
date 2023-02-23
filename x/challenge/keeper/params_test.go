@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	testkeeper "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetParams(t *testing.T) {
@@ -15,7 +16,7 @@ func TestGetParams(t *testing.T) {
 	k.SetParams(ctx, params)
 
 	require.EqualValues(t, params, k.GetParams(ctx))
-	require.EqualValues(t, params.EventCountPerBlock, k.EventCountPerBlock(ctx))
+	require.EqualValues(t, params.ChallengeCountPerBlock, k.ChallengeCountPerBlock(ctx))
 	require.EqualValues(t, params.ChallengeExpirePeriod, k.ChallengeExpirePeriod(ctx))
 	require.EqualValues(t, params.SlashCoolingOffPeriod, k.SlashCoolingOffPeriod(ctx))
 	require.EqualValues(t, params.SlashAmountSizeRate, k.SlashAmountSizeRate(ctx))

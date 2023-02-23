@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	// "github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
@@ -32,6 +31,7 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdSubmit())
 	cmd.AddCommand(CmdAttest())
+	cmd.AddCommand(CmdHeartbeat())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

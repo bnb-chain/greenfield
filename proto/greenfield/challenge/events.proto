@@ -58,3 +58,8 @@ message EventExpireChallenge {
   // The id of challenge.
   uint64 challenge_id = 1;
 }
+
+message EventChallengeHeartbeat {
+  // The id of challenge.
+  uint64 challenge_id = 1;
+}

@@ -3,14 +3,6 @@ package keeper
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/x/challenge/keeper"
-	"github.com/bnb-chain/greenfield/x/challenge/types"
-	paymentkeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	storagekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -31,6 +23,15 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
+
+	"github.com/bnb-chain/greenfield/x/challenge/keeper"
+	"github.com/bnb-chain/greenfield/x/challenge/types"
+	paymentkeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -145,9 +146,11 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		storeKey,
 		memStoreKey,
 		paramsSubspace,
+		bankKeeper,
 		storageKeeper,
 		spKeeper,
 		stakingKeeper,
+		paymentKeeper,
 	)
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
 

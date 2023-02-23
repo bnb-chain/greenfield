@@ -11,9 +11,5 @@ option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 // GenesisState defines the challenge module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
-  repeated Challenge ongoingChallenges = 2 [(gogoproto.nullable) = false];
-  repeated Slash recentSlashes = 3 [(gogoproto.nullable) = false];
-  uint64 recentSlashCount = 4;
-  uint64 startingChallengeId = 5;
   // this line is used by starport scaffolding # genesis/proto/state
 }

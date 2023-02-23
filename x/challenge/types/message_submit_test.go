@@ -3,10 +3,11 @@ package types
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func TestMsgSubmit_ValidateBasic(t *testing.T) {
@@ -36,16 +37,6 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 				ObjectName: "",
 			},
 			err: storagetypes.ErrInvalidObjectName,
-		}, {
-			name: "invalid segment/piece index",
-			msg: MsgSubmit{
-				Creator:      sample.AccAddress(),
-				BucketName:   "bucket",
-				ObjectName:   "object",
-				RandomIndex:  false,
-				SegmentIndex: 10,
-			},
-			err: ErrInvalidIndex,
 		}, {
 			name: "valid message with random index",
 			msg: MsgSubmit{

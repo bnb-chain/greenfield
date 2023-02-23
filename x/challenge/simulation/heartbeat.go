@@ -11,7 +11,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
-func SimulateMsgAttest(
+func SimulateMsgHeartbeat(
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	k keeper.Keeper,
@@ -19,12 +19,12 @@ func SimulateMsgAttest(
 	return func(r *rand.Rand, app *baseapp.BaseApp, ctx sdk.Context, accs []simtypes.Account, chainID string,
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
-		msg := &types.MsgAttest{
+		msg := &types.MsgHeartbeat{
 			Creator: simAccount.Address.String(),
 		}
 
-		// TODO: Handling the Attest simulation
+		// TODO: Handling the Heartbeat simulation
 
-		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "Attest simulation not implemented"), nil, nil
+		return simtypes.NoOpMsg(types.ModuleName, msg.Type(), "Heartbeat simulation not implemented"), nil, nil
 	}
 }

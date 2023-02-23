@@ -1,7 +1,5 @@
 package types
 
-// DONTCOVER
-
 import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -19,12 +17,15 @@ var (
 	ErrInvalidObjectStatus = sdkerrors.Register(ModuleName, 8, "invalid object status to challenge")
 	ErrNotStoredOnSp       = sdkerrors.Register(ModuleName, 9, "the object is not stored on the storage provider")
 	ErrExistsRecentSlash   = sdkerrors.Register(ModuleName, 10, "the storage provider and object info had been slashed recently")
+	ErrInvalidSegmentIndex = sdkerrors.Register(ModuleName, 11, "the segment/piece index is invalid")
 
-	ErrInvalidVoteResult       = sdkerrors.Register(ModuleName, 11, "invalid vote result")
-	ErrInvalidVoteValidatorSet = sdkerrors.Register(ModuleName, 12, "invalid validator set")
-	ErrInvalidVoteAggSignature = sdkerrors.Register(ModuleName, 13, "invalid bls signature")
-	ErrUnknownChallenge        = sdkerrors.Register(ModuleName, 14, "unknown challenge")
-	ErrDuplicatedSlash         = sdkerrors.Register(ModuleName, 15, "duplicated slash in cooling-off period")
-	ErrInvalidBlsPubKey        = sdkerrors.Register(ModuleName, 16, "invalid bls public key")
-	ErrNotEnoughVotes          = sdkerrors.Register(ModuleName, 17, "attest votes are not enough")
+	ErrInvalidVoteResult       = sdkerrors.Register(ModuleName, 12, "invalid vote result")
+	ErrInvalidVoteValidatorSet = sdkerrors.Register(ModuleName, 13, "invalid validator set")
+	ErrInvalidVoteAggSignature = sdkerrors.Register(ModuleName, 14, "invalid bls signature")
+	ErrUnknownChallenge        = sdkerrors.Register(ModuleName, 15, "unknown challenge")
+	ErrDuplicatedSlash         = sdkerrors.Register(ModuleName, 16, "duplicated slash in cooling-off period")
+	ErrInvalidBlsPubKey        = sdkerrors.Register(ModuleName, 17, "invalid bls public key")
+	ErrNotEnoughVotes          = sdkerrors.Register(ModuleName, 18, "attest votes are not enough")
+
+	ErrInvalidChallengeId = sdkerrors.Register(ModuleName, 19, "invalid challenge id")
 )

@@ -4,10 +4,11 @@ import (
 	"context"
 	"strings"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.MsgSubmitResponse, error) {
@@ -60,10 +61,10 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrExistsRecentSlash
 	}
 
-	// generate redundancyIndex
+	// generate redundancy index
 	redundancyIndex := types.RedundancyIndexPrimary
 	for i, sp := range objectInfo.GetSecondarySpAddresses() {
-		if sp == msg.SpOperatorAddress {
+		if strings.EqualFold(msg.SpOperatorAddress, sp) {
 			redundancyIndex = int32(i)
 			break
 		}
@@ -71,15 +72,16 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 
 	// generate segment index
 	segmentIndex := msg.SegmentIndex
+	segments := CalculateSegments(objectInfo.PayloadSize, k.Keeper.StorageKeeper.MaxSegmentSize(ctx))
 	if msg.RandomIndex {
-		segments := CalculateSegments(objectInfo.PayloadSize, k.Keeper.StorageKeeper.MaxSegmentSize(ctx))
 		segmentIndex = RandomSegmentIndex(ctx.BlockHeader().RandaoMix, segments)
+	} else {
+		if uint64(segmentIndex) > segments-1 {
+			return nil, types.ErrInvalidSegmentIndex
+		}
 	}
 
-	challengeId, err := k.GetChallengeID(ctx)
-	if err != nil {
-		return nil, err
-	}
+	challengeId := k.GetChallengeId(ctx)
 	challenge := types.Challenge{
 		Id:                challengeId,
 		SpOperatorAddress: msg.SpOperatorAddress,

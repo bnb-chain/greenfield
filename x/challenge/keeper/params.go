@@ -2,14 +2,15 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
-		k.EventCountPerBlock(ctx),
+		k.ChallengeCountPerBlock(ctx),
 		k.ChallengeExpirePeriod(ctx),
 		k.SlashCoolingOffPeriod(ctx),
 		k.SlashDenom(ctx),
@@ -18,6 +19,9 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.SlashAmountMax(ctx),
 		k.RewardValidatorRatio(ctx),
 		k.RewardChallengerRatio(ctx),
+		k.HeartbeatInterval(ctx),
+		k.HeartbeatRewardRate(ctx),
+		k.HeartbeatRewardThreshold(ctx),
 	)
 }
 
@@ -26,9 +30,9 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramstore.SetParamSet(ctx, &params)
 }
 
-// EventCountPerBlock returns the EventCountPerBlock param
-func (k Keeper) EventCountPerBlock(ctx sdk.Context) (res uint64) {
-	k.paramstore.Get(ctx, types.KeyEventCountPerBlock, &res)
+// ChallengeCountPerBlock returns the ChallengeCountPerBlock param
+func (k Keeper) ChallengeCountPerBlock(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyChallengeCountPerBlock, &res)
 	return
 }
 
@@ -77,5 +81,23 @@ func (k Keeper) RewardValidatorRatio(ctx sdk.Context) (res sdk.Dec) {
 // RewardChallengerRatio returns the RewardChallengerRatio param
 func (k Keeper) RewardChallengerRatio(ctx sdk.Context) (res sdk.Dec) {
 	k.paramstore.Get(ctx, types.KeyRewardChallengerRatio, &res)
+	return
+}
+
+// HeartbeatInterval returns the HeartbeatInterval param
+func (k Keeper) HeartbeatInterval(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyHeartbeatInterval, &res)
+	return
+}
+
+// HeartbeatRewardRate returns the HeartbeatRewardRate param
+func (k Keeper) HeartbeatRewardRate(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyHeartbeatRewardRate, &res)
+	return
+}
+
+// HeartbeatRewardThreshold returns the HeartbeatRewardThreshold param
+func (k Keeper) HeartbeatRewardThreshold(ctx sdk.Context) (res math.Int) {
+	k.paramstore.Get(ctx, types.KeyHeartbeatRewardThreshold, &res)
 	return
 }
