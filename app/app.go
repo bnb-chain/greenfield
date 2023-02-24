@@ -305,6 +305,16 @@ func New(
 		tkeys[paramstypes.TStoreKey],
 	)
 
+	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		keys[crosschaintypes.StoreKey],
+		app.GetSubspace(crosschaintypes.ModuleName),
+	)
+	app.ParamsKeeper.SetCrossChainKeeper(app.CrossChainKeeper)
+	if err := app.ParamsKeeper.RegisterCrossChainSyncParamsApp(); err != nil {
+		panic(err)
+	}
+
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
 
@@ -356,12 +366,6 @@ func New(
 		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
 		app.GetSubspace(slashingtypes.ModuleName),
-	)
-
-	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
-		appCodec,
-		keys[crosschaintypes.StoreKey],
-		app.GetSubspace(crosschaintypes.ModuleName),
 	)
 
 	app.OracleKeeper = oraclekeeper.NewKeeper(
@@ -705,6 +709,7 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	// init cross chain channel permissions
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
@@ -842,7 +847,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
-
 	return paramsKeeper
 }
 

@@ -512,8 +512,8 @@ $ gnfd tx gov submit-proposal /path/to/proposal.json --from 0x2737dca53A25120358
         "changes": [
           {
             "subspace": "BSC",
-            "key": "key",
-            "value": "0x33"
+            "key": "batchSizeForOracle",
+            "value": "0000000000000000000000000000000000000000000000000000000000000033"
           }
         ],
         "cross_chain": true,

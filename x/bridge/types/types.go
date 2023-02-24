@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramsproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 )
 
 const (
@@ -14,6 +15,7 @@ const (
 
 	TransferOutChannelID sdk.ChannelID = 1
 	TransferInChannelID  sdk.ChannelID = 2
+	SyncParamsChannelID                = paramsproposal.SyncParamsChannelID
 )
 
 type RefundReason uint32
