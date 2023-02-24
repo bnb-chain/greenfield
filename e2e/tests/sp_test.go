@@ -62,7 +62,6 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		s.StorageProvider.SealKey.GetAddr(),
 		s.StorageProvider.ApprovalKey.GetAddr(), description,
 		"sp0.greenfield.io", deposit)
-	//s.StorageProvider.OperatorKey.GetAddr().String(),
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},

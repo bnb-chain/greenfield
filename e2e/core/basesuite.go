@@ -85,34 +85,3 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 	_ = s.SendTxBlock(&msg, s.Validator)
 	return accounts
 }
-
-//func CreateSpProposal(creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
-//	approvalAddress sdk.AccAddress, sealAddress sdk.AccAddress,
-//	description spTypes.Description, endpoint string, deposit math.Int, t testing.TB) (*os.File, error) {
-//	coins := sdk.NewCoin(s.Config.Denom, deposit)
-//	provider, err := spTypes.NewMsgCreateStorageProvider(creator, SpAddress, fundingAddress, sealAddress, approvalAddress, description, endpoint, coins)
-//	if err != nil {
-//		return nil, err
-//	}
-//	var data commonData
-//	var msg map[string]interface{}
-//	marshal, err := json.Marshal(provider)
-//	_ = json.Unmarshal(marshal, &msg)
-//	msg["@type"] = "/bnbchain.greenfield.sp.MsgCreateStorageProvider"
-//
-//	metadata := []byte{42}
-//	data.Metadata = base64.StdEncoding.EncodeToString(metadata)
-//	data.Deposit = fmt.Sprintf("%s%s", constant.GovMinDeposit.String(), constant.Denomm)
-//	data.Messages = append(data.Messages, msg)
-//	pro, err := json.MarshalIndent(data, "", "  ")
-//	if err != nil {
-//		return nil, err
-//	}
-//	log.Info(string(pro))
-//	file := testutil.TempFile(t)
-//	_, err = file.Write(pro)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return file, nil
-//}
