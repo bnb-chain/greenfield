@@ -15,9 +15,11 @@ type SPMnemonics struct {
 }
 
 type Config struct {
+	RpcAddr           string      `yaml:"RpcAddr"`
 	GrpcAddr          string      `yaml:"GrpcAddr"`
 	ChainId           string      `yaml:"ChainId"`
-	ValidatorMnemonic string      `yaml:"Mnemonic"` // validator operator account mnemonic with enough balance
+	ValidatorMnemonic string      `yaml:"Mnemonic"`        // validator operator account mnemonic with enough balance
+	RelayerMnemonic   string      `yaml:"RelayerMnemonic"` // relayer's mnemonic for bls key
 	SPMnemonics       SPMnemonics `yaml:"SPMnemonics"`
 	Denom             string      `yaml:"Denom"`
 }
@@ -29,10 +31,12 @@ func InitConfig() *Config {
 
 func InitE2eConfig() *Config {
 	return &Config{
+		RpcAddr:           "tcp://127.0.0.1:26750",
 		GrpcAddr:          "localhost:9090",
 		ChainId:           "greenfield_9000-121",
 		Denom:             "BNB",
 		ValidatorMnemonic: ParseValidatorMnemonic(0),
+		RelayerMnemonic:   ParseRelayerMnemonic(0),
 		SPMnemonics:       ParseSPMnemonics(0),
 	}
 }
@@ -40,6 +44,11 @@ func InitE2eConfig() *Config {
 // ParseValidatorMnemonic read the validator mnemonic from file
 func ParseValidatorMnemonic(i int) string {
 	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/validator%d/info", i))
+}
+
+// ParseRelayerMnemonic read the relayer mnemonic from file
+func ParseRelayerMnemonic(i int) string {
+	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/relayer%d/relayer_bls_info", i))
 }
 
 // ParseSPMnemonics read the sp mnemonics from file

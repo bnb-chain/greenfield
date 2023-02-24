@@ -18,21 +18,21 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 	keeper.ResetChallengeCount(ctx)
 
 	// delete expired challenges at this height
-	events := make([]proto.Message, 0)
+	// events := make([]proto.Message, 0)
 	expirePeriod := keeper.ChallengeExpirePeriod(ctx)
 	height := uint64(ctx.BlockHeight()) - expirePeriod
 
-	challenges := keeper.GetAllOngoingChallenge(ctx)
-	for _, elem := range challenges {
-		if elem.Height < height {
-			events = append(events, &types.EventExpireChallenge{
-				ChallengeId: elem.Id,
-			})
-			keeper.RemoveOngoingChallenge(ctx, elem.Id)
-		}
-	}
-
-	_ = ctx.EventManager().EmitTypedEvents(events...)
+	//challenges := keeper.GetAllOngoingChallenge(ctx)
+	//for _, elem := range challenges {
+	//	if elem.Height < height {
+	//		events = append(events, &types.EventExpireChallenge{
+	//			ChallengeId: elem.Id,
+	//		})
+	//		keeper.RemoveOngoingChallenge(ctx, elem.Id)
+	//	}
+	//}
+	//
+	//_ = ctx.EventManager().EmitTypedEvents(events...)
 
 	// delete too old slashes at this height
 	coolingOff := keeper.SlashCoolingOffPeriod(ctx)
@@ -64,10 +64,12 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		objectKey := k.RandomObjectKey(seed)
 		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, objectKey)
 		if !found { // there is no object info yet, cannot generate challenges
+			ctx.Logger().Info("No object info yet", "height", ctx.BlockHeight())
 			return
 		}
 
 		if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
+			ctx.Logger().Info("123No object info yet", "height", ctx.BlockHeight())
 			continue
 		}
 
@@ -75,8 +77,9 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		var spOperatorAddress string
 		secondarySpAddresses := objectInfo.SecondarySpAddresses
 
-		bucket, found := keeper.StorageKeeper.GetBucket(ctx, objectInfo.ObjectName)
+		bucket, found := keeper.StorageKeeper.GetBucket(ctx, objectInfo.BucketName)
 		if !found {
+			ctx.Logger().Info("456No object info yet", "height", ctx.BlockHeight())
 			continue
 		}
 
@@ -95,16 +98,19 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, addr)
 		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
+			ctx.Logger().Info("789No object info yet", "height", ctx.BlockHeight())
 			continue
 		}
 
 		mapKey := fmt.Sprintf("%s-%d", spOperatorAddress, objectInfo.Id)
 		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
+			ctx.Logger().Info("101112No object info yet", "height", ctx.BlockHeight())
 			continue
 		}
 
 		// check recent slash
 		if keeper.ExistsSlash(ctx, strings.ToLower(spOperatorAddress), objectKey) {
+			ctx.Logger().Info("abcNo object info yet", "height", ctx.BlockHeight())
 			continue
 		}
 

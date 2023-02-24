@@ -78,7 +78,7 @@ func (k msgServer) calculateChallengeRewards(ctx sdk.Context, total sdkmath.Int,
 	challengerReward := sdkmath.ZeroInt()
 	var eachValidatorReward sdkmath.Int
 	var submitterReward sdkmath.Int
-	if challenger == "" { // the challenge is submitted by challenger
+	if challenger != "" { // the challenge is submitted by challenger
 		challengerRatio := k.RewardChallengerRatio(ctx)
 		challengerReward = challengerRatio.MulInt(total).TruncateInt()
 

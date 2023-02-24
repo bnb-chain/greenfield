@@ -41,6 +41,12 @@ func NewMnemonicKeyManager(mnemonic string) (KeyManager, error) {
 	return &k, err
 }
 
+func NewBlsMnemonicKeyManager(mnemonic string) (KeyManager, error) {
+	k := keyManager{}
+	err := k.recoveryBlsFromMnemonic(mnemonic, FullPath)
+	return &k, err
+}
+
 //TODO NewKeyStoreKeyManager to be implemented
 
 func (m *keyManager) recoveryFromPrivateKey(privateKey string) error {
@@ -77,6 +83,25 @@ func (m *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 		return err
 	}
 	priKey := ethHd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
+	addr := types.AccAddress(priKey.PubKey().Address())
+	m.addr = addr
+	m.privKey = priKey
+	m.mnemonic = mnemonic
+	return nil
+}
+
+func (m *keyManager) recoveryBlsFromMnemonic(mnemonic, keyPath string) error {
+	words := strings.Split(mnemonic, " ")
+	if len(words) != 12 && len(words) != 24 {
+		return fmt.Errorf("mnemonic length should either be 12 or 24")
+	}
+
+	derivedPriv, err := hd.EthBLS.Derive()(mnemonic, defaultBIP39Passphrase, keyPath)
+	if err != nil {
+		return err
+	}
+
+	priKey := hd.EthBLS.Generate()(derivedPriv)
 	addr := types.AccAddress(priKey.PubKey().Address())
 	m.addr = addr
 	m.privKey = priKey
