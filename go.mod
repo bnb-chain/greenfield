@@ -228,7 +228,7 @@ require (
 
 replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/gnfd-cosmos-sdk v0.0.2-0.20230224015925-7707c68a2c24
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/gnfd-cosmos-sdk v0.0.7
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/tendermint/tendermint => github.com/bnb-chain/gnfd-tendermint v0.0.0-20230221140735-f71f0ca687ba
+	github.com/tendermint/tendermint => github.com/bnb-chain/gnfd-tendermint v0.0.2
 )
