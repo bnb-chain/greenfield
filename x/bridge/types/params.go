@@ -35,8 +35,8 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, p.TransferOutRelayerFee, validateTransferOutRelayerFee),
-		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, &p.TransferOutRelayerFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, &p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
 	}
 }
 
