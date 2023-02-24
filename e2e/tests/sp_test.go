@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"strconv"
 	"testing"
 	"time"
@@ -49,12 +51,13 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	authorization, err := sptypes.NewDepositAuthorization(s.StorageProvider.OperatorKey.GetAddr(), &coins)
 	s.Require().NoError(err)
 
+	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
 	now := time.Now().Add(24 * time.Hour)
 	grantMsg, err := authz.NewMsgGrant(
-		s.StorageProvider.OperatorKey.GetAddr(), sdk.AccAddress("0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"), authorization, &now)
+		s.StorageProvider.OperatorKey.GetAddr(), govAddr, authorization, &now)
 	s.SendTxBlock(grantMsg, s.StorageProvider.OperatorKey)
 
-	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(sdk.AccAddress("0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"),
+	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.FundingKey.GetAddr(),
 		s.StorageProvider.SealKey.GetAddr(),
 		s.StorageProvider.ApprovalKey.GetAddr(), description,
@@ -96,13 +99,15 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	txRes = s.SendTxBlock(msgVote, s.Validator)
 	s.Require().Equal(txRes.Code, uint32(0))
 
-	for {
-		time.Sleep(60 * time.Second)
-		proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
-		s.Require().NoError(err)
-		if proposalRes.Proposal.Status == govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED {
-			break
-		}
+	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
+	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
+
+	s.T().Logf("voting period %s", *queryVoteParamsResp.VotingParams.VotingPeriod)
+	time.Sleep(*queryVoteParamsResp.VotingParams.VotingPeriod)
+	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+	if proposalRes.Proposal.Status == govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED {
+		s.Require().True(false)
 	}
 
 	// 4. query new gas params
@@ -111,14 +116,6 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	s.Require().NoError(err)
 
 	fmt.Println(queryRes)
-
-	//log.Log("queryRes", queryRes)
-
-	//for _, params := range queryRes.GetParams() {
-	//	if params.MsgTypeUrl == typeUrl {
-	//		s.Require().True(params.GetFixedType().Equal(msgSendGasParams.GetFixedType()))
-	//	}
-	//}
 }
 
 func TestStorageProviderTestSuite(t *testing.T) {
