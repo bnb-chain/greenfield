@@ -1,5 +1,38 @@
 # Changelog
 
+## v0.0.6
+This release includes following features:
+1. Support cross chain governance;
+2. Storage module improvement;
+3. Add e2e test framework and swagger API script;
+
+* [\#76](https://github.com/bnb-chain/greenfield/pull/76) feat: update tx simulation in sdk
+* [\#63](https://github.com/bnb-chain/greenfield/pull/63) feat: enable params change proposal for cross chain governance
+* [\#74](https://github.com/bnb-chain/greenfield/pull/74) docs: local network
+* [\#72](https://github.com/bnb-chain/greenfield/pull/72) doc: add overview and tutorial doc for governance
+* [\#73](https://github.com/bnb-chain/greenfield/pull/73) doc: add doc for the bridge module
+* [\#71](https://github.com/bnb-chain/greenfield/pull/71) docs: add consensus and staking part
+* [\#69](https://github.com/bnb-chain/greenfield/pull/69) ci: add gosec checker
+* [\#65](https://github.com/bnb-chain/greenfield/pull/65) docs: add the key management docs and keyring module tutorial
+* [\#66](https://github.com/bnb-chain/greenfield/pull/66) feat: add decimals of BNB and gweiBNB and e2e test of gashub module
+* [\#67](https://github.com/bnb-chain/greenfield/pull/67) docs: add the overview of architecture && cross chain
+* [\#64](https://github.com/bnb-chain/greenfield/pull/64) feat: sdk gas price simulation
+* [\#57](https://github.com/bnb-chain/greenfield/pull/57) feat: storage module improvement
+* [\#53](https://github.com/bnb-chain/greenfield/pull/53) feat: add init function for gashub module
+* [\#60](https://github.com/bnb-chain/greenfield/pull/60) fix: unify denom as BNB
+* [\#62](https://github.com/bnb-chain/greenfield/pull/62) refactor: rewrite the NewGreenfieldClient function by option pattern
+* [\#58](https://github.com/bnb-chain/greenfield/pull/58) docs: add the token economics docs and bank module tutorial
+* [\#59](https://github.com/bnb-chain/greenfield/pull/59) feat: gov RegisterInterfaces for sdk
+* [\#54](https://github.com/bnb-chain/greenfield/pull/54) feat: Add deploy scripts for sp
+* [\#48](https://github.com/bnb-chain/greenfield/pull/48) feat: add go-sdk and e2e test framework
+* [\#56](https://github.com/bnb-chain/greenfield/pull/56) docs: build the framework of docs
+* [\#49](https://github.com/bnb-chain/greenfield/pull/49) feat: Add event for storage module
+* [\#55](https://github.com/bnb-chain/greenfield/pull/55) feat: enable swagger api for local deployment
+* [\#51](https://github.com/bnb-chain/greenfield/pull/51) feat: added proto-gen-swagger for both greenfield and cosmos-sdk
+* [\#44](https://github.com/bnb-chain/greenfield/pull/44) feat: add payment to storage module
+* [\#47](https://github.com/bnb-chain/greenfield/pull/47) feat: add config for cross chain in env
+
+
 ## v0.0.5
 This release includes features, mainly:
 1. Implement payment module;
