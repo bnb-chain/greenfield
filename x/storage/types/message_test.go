@@ -24,55 +24,55 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgCreateBucket{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 testBucketName,
-				IsPublic:                   true,
-				PaymentAddress:             sample.AccAddress(),
-				PrimarySpAddress:           sample.AccAddress(),
-				PrimarySpApprovalSignature: []byte(""),
+				Creator:           sample.AccAddress(),
+				BucketName:        testBucketName,
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: &Approval{},
 			},
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 "TestBucket",
-				IsPublic:                   true,
-				PaymentAddress:             sample.AccAddress(),
-				PrimarySpAddress:           sample.AccAddress(),
-				PrimarySpApprovalSignature: []byte(""),
-			},
-			err: ErrInvalidBucketName,
-		}, {
-			name: "invalid bucket name",
-			msg: MsgCreateBucket{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 "Test-Bucket",
-				IsPublic:                   true,
-				PaymentAddress:             sample.AccAddress(),
-				PrimarySpAddress:           sample.AccAddress(),
-				PrimarySpApprovalSignature: []byte(""),
+				Creator:           sample.AccAddress(),
+				BucketName:        "TestBucket",
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: &Approval{},
 			},
 			err: ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 "ss",
-				IsPublic:                   true,
-				PaymentAddress:             sample.AccAddress(),
-				PrimarySpAddress:           sample.AccAddress(),
-				PrimarySpApprovalSignature: []byte(""),
+				Creator:           sample.AccAddress(),
+				BucketName:        "Test-Bucket",
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: &Approval{},
 			},
 			err: ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 string(testInvalidBucketNameWithLongLength[:]),
-				IsPublic:                   true,
-				PaymentAddress:             sample.AccAddress(),
-				PrimarySpAddress:           sample.AccAddress(),
-				PrimarySpApprovalSignature: []byte(""),
+				Creator:           sample.AccAddress(),
+				BucketName:        "ss",
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: &Approval{},
+			},
+			err: ErrInvalidBucketName,
+		}, {
+			name: "invalid bucket name",
+			msg: MsgCreateBucket{
+				Creator:           sample.AccAddress(),
+				BucketName:        string(testInvalidBucketNameWithLongLength[:]),
+				IsPublic:          true,
+				PaymentAddress:    sample.AccAddress(),
+				PrimarySpAddress:  sample.AccAddress(),
+				PrimarySpApproval: &Approval{},
 			},
 			err: ErrInvalidBucketName,
 		},
@@ -122,6 +122,34 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgUpdateBucketInfo
+		err  error
+	}{
+		{
+			name: "basic",
+			msg: MsgUpdateBucketInfo{
+				Operator:       sample.AccAddress(),
+				BucketName:     testBucketName,
+				PaymentAddress: sample.AccAddress(),
+				ReadQuota:      READ_QUOTA_FREE,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
@@ -137,7 +165,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				PayloadSize:                1024,
 				IsPublic:                   false,
 				ContentType:                "content-type",
-				PrimarySpApprovalSignature: sample.Checksum(),
+				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
@@ -150,7 +178,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				PayloadSize:                1024,
 				IsPublic:                   false,
 				ContentType:                "content-type",
-				PrimarySpApprovalSignature: sample.Checksum(),
+				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
@@ -164,7 +192,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				PayloadSize:                1024,
 				IsPublic:                   false,
 				ContentType:                "content-type",
-				PrimarySpApprovalSignature: sample.Checksum(),
+				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
@@ -178,11 +206,38 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				PayloadSize:                1024,
 				IsPublic:                   false,
 				ContentType:                "content-type",
-				PrimarySpApprovalSignature: sample.Checksum(),
+				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
 			err: ErrInvalidObjectName,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgCancelCreateObject_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgCancelCreateObject
+		err  error
+	}{
+		{
+			name: "basic",
+			msg: MsgCancelCreateObject{
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
+				ObjectName: testObjectName,
+			},
 		},
 	}
 	for _, tt := range tests {

@@ -7,20 +7,21 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 // GetReadPrice priceTime is kept to retrieve the price of ReadPacket at historical time
-func (k Keeper) GetReadPrice(ctx sdk.Context, readPacket types.ReadPacket, _priceTime int64) (sdkmath.Int, error) {
-	return k.GetReadPriceV0(readPacket)
+func (k Keeper) GetReadPrice(ctx sdk.Context, readQuota storagetypes.ReadQuota, _priceTime int64) (sdkmath.Int, error) {
+	return k.GetReadPriceV0(readQuota)
 }
 
-func (k Keeper) GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, err error) {
+func (k Keeper) GetReadPriceV0(readPacket storagetypes.ReadQuota) (price sdkmath.Int, err error) {
 	switch readPacket {
-	case types.READ_PACKET_FREE:
+	case storagetypes.READ_QUOTA_FREE:
 		price = sdkmath.NewInt(0)
-	case types.READ_PACKET_1GB:
+	case storagetypes.READ_QUOTA_1G:
 		price = sdkmath.NewInt(2)
-	case types.READ_PACKET_10GB:
+	case storagetypes.READ_QUOTA_10G:
 		price = sdkmath.NewInt(4)
 	default:
 		err = fmt.Errorf("invalid read packet level: %d", readPacket)
@@ -28,28 +29,29 @@ func (k Keeper) GetReadPriceV0(readPacket types.ReadPacket) (price sdkmath.Int, 
 	return
 }
 
-func (k Keeper) GetStorePrice(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) types.StorePrice {
+func (k Keeper) GetStorePrice(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) types.StorePrice {
 	// price may change with objectInfo.CreateAt
-	return k.GetStorePriceV0(ctx, bucketMeta, objectInfo)
+	return k.GetStorePriceV0(ctx, bucketInfo, objectInfo)
 }
 
-func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketMeta *types.MockBucketMeta, objectInfo *types.MockObjectInfo) types.StorePrice {
+func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) types.StorePrice {
 	// A simple mock price: 4 per byte per second for primary SP and 1 per byte per second for 6 secondary SPs
 	storePrice := types.StorePrice{
 		UserPayRate: sdkmath.NewInt(100),
 	}
-	if objectInfo.ObjectState != types.OBJECT_STATE_INIT {
-		if len(objectInfo.SecondarySPs) != 6 {
+	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_INIT {
+		// TODO: WARNING HARDCODE Here. Need refine according to the params of storage module
+		if len(objectInfo.SecondarySpAddresses) != 6 {
 			panic("there should be 6 secondary sps")
 		}
 		storePrice.Flows = []types.OutFlowInUSD{
-			{SpAddress: bucketMeta.SpAddress, Rate: sdkmath.NewInt(40)},
-			{SpAddress: objectInfo.SecondarySPs[0].Id, Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySPs[1].Id, Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySPs[2].Id, Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySPs[3].Id, Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySPs[4].Id, Rate: sdkmath.NewInt(10)},
-			{SpAddress: objectInfo.SecondarySPs[5].Id, Rate: sdkmath.NewInt(10)},
+			{SpAddress: bucketInfo.PrimarySpAddress, Rate: sdkmath.NewInt(40)},
+			{SpAddress: objectInfo.SecondarySpAddresses[0], Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySpAddresses[1], Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySpAddresses[2], Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySpAddresses[3], Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySpAddresses[4], Rate: sdkmath.NewInt(10)},
+			{SpAddress: objectInfo.SecondarySpAddresses[5], Rate: sdkmath.NewInt(10)},
 		}
 	}
 	return storePrice

@@ -1,6 +1,7 @@
 syntax = "proto3";
 package bnbchain.greenfield.storage;
 
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
@@ -10,4 +11,40 @@ enum SourceType {
 
   SOURCE_TYPE_ORIGIN = 0;
   SOURCE_TYPE_BSC_CROSS_CHAIN = 1;
+}
+
+// TODO: Need to confirm the read quota enum which determined by payment module
+// TODO: Make this field be configured through governance
+enum ReadQuota {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  READ_QUOTA_FREE = 0;
+  READ_QUOTA_1G = 1;
+  READ_QUOTA_10G = 2;
+}
+
+enum RedundancyType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  REDUNDANCY_REPLICA_TYPE = 0;
+  REDUNDANCY_EC_TYPE = 1;
+  REDUNDANCY_INLINE_TYPE = 2;
+}
+
+enum ObjectStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  OBJECT_STATUS_INIT = 0;
+  OBJECT_STATUS_IN_SERVICE = 1;
+}
+
+message Approval {
+  uint64 expired_height = 1;
+  bytes sig = 2;
+}
+
+// SecondarySpSignDoc used to generate seal signature of secondary SP
+message SecondarySpSignDoc {
+  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  bytes checksum = 2;
 }

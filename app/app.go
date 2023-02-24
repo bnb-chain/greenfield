@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"io"
+	"math/big"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -185,6 +186,8 @@ func init() {
 	}
 
 	DefaultNodeHome = filepath.Join(userHomeDir, "."+ShortName)
+
+	sdk.DefaultPowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(18), nil))
 }
 
 // App extends an ABCI application, but with most of its parameters exported.
@@ -302,6 +305,16 @@ func New(
 		tkeys[paramstypes.TStoreKey],
 	)
 
+	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		keys[crosschaintypes.StoreKey],
+		app.GetSubspace(crosschaintypes.ModuleName),
+	)
+	app.ParamsKeeper.SetCrossChainKeeper(app.CrossChainKeeper)
+	if err := app.ParamsKeeper.RegisterCrossChainSyncParamsApp(); err != nil {
+		panic(err)
+	}
+
 	// set the BaseApp's parameter store
 	bApp.SetParamStore(app.ParamsKeeper.Subspace(baseapp.Paramspace).WithKeyTable(paramstypes.ConsensusParamsKeyTable()))
 
@@ -353,12 +366,6 @@ func New(
 		keys[slashingtypes.StoreKey],
 		&stakingKeeper,
 		app.GetSubspace(slashingtypes.ModuleName),
-	)
-
-	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
-		appCodec,
-		keys[crosschaintypes.StoreKey],
-		app.GetSubspace(crosschaintypes.ModuleName),
 	)
 
 	app.OracleKeeper = oraclekeeper.NewKeeper(
@@ -461,7 +468,9 @@ func New(
 		keys[storagemoduletypes.StoreKey],
 		keys[storagemoduletypes.MemStoreKey],
 		app.GetSubspace(storagemoduletypes.ModuleName),
+		app.AccountKeeper,
 		app.SpKeeper,
+		app.PaymentKeeper,
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
@@ -612,9 +621,6 @@ func New(
 	app.MountMemoryStores(memKeys)
 
 	// initialize BaseApp
-	app.SetInitChainer(app.InitChainer)
-	app.SetBeginBlocker(app.BeginBlocker)
-
 	anteHandler, err := ante.NewAnteHandler(
 		ante.HandlerOptions{
 			AccountKeeper:   app.AccountKeeper,
@@ -633,6 +639,9 @@ func New(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
+
+	ms := app.CommitMultiStore()
+	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
 	if loadLatest {
 		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
@@ -641,27 +650,24 @@ func New(
 		// Execute the upgraded register, such as the newly added Msg type
 		// ex.
 		// app.GovKeeper.Router().RegisterService(...)
-		ms := app.CommitMultiStore()
-		ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
-		if loadLatest {
-			err = app.UpgradeKeeper.InitUpgraded(ctx)
-			if err != nil {
-				panic(err)
-			}
+		err = app.UpgradeKeeper.InitUpgraded(ctx)
+		if err != nil {
+			panic(err)
 		}
 	}
 
 	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
-	app.initModules()
+	app.initModules(ctx)
 
 	return app
 }
 
-func (app *App) initModules() {
+func (app *App) initModules(ctx sdk.Context) {
 	app.initBridge()
-
 	app.initCrossChain()
+
+	app.initGashub(ctx)
 }
 
 func (app *App) initCrossChain() {
@@ -671,6 +677,12 @@ func (app *App) initCrossChain() {
 
 func (app *App) initBridge() {
 	bridgemodulekeeper.RegisterCrossApps(app.BridgeKeeper)
+}
+
+func (app *App) initGashub(ctx sdk.Context) {
+	if app.LastBlockHeight() > 0 {
+		app.GashubKeeper.RegisterGasCalculators(ctx)
+	}
 }
 
 // Name returns the name of the App
@@ -697,6 +709,7 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	// init cross chain channel permissions
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
@@ -788,8 +801,8 @@ func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig
 	ModuleBasics.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
 
 	// register app's OpenAPI routes.
-	apiSvr.Router.Handle("/static/openapi.yml", http.FileServer(http.FS(docs.Docs)))
-	apiSvr.Router.HandleFunc("/", openapiconsole.Handler(Name, "/static/openapi.yml"))
+	apiSvr.Router.Handle("/static/swagger.yaml", http.FileServer(http.FS(docs.Docs)))
+	apiSvr.Router.HandleFunc("/", openapiconsole.Handler(Name, "/static/swagger.yaml"))
 }
 
 // RegisterTxService implements the Application.RegisterTxService method.
@@ -834,7 +847,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
 	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
-
 	return paramsKeeper
 }
 

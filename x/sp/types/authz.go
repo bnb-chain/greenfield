@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -28,7 +29,7 @@ func (a DepositAuthorization) MsgTypeURL() string {
 // ValidateBasic implements Authorization.ValidateBasic.
 func (a DepositAuthorization) ValidateBasic() error {
 	if a.MaxDeposit != nil && a.MaxDeposit.IsNegative() {
-		return sdkerrors.Wrapf(authz.ErrNegativeMaxTokens, "negative coin amount: %v", a.MaxDeposit)
+		return errors.Wrapf(authz.ErrNegativeMaxTokens, "negative coin amount: %v", a.MaxDeposit)
 	}
 	return nil
 }

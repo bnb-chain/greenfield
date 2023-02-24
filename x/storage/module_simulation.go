@@ -69,6 +69,14 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgCopyObject int = 100
 
+	opWeightMsgUpdateBucketReadQuota = "op_weight_msg_update_bucket_read_quota"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgUpdateBucketReadQuota int = 100
+
+	opWeightMsgCancelCreateObject = "op_weight_msg_cancel_create_object"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCancelCreateObject int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -133,7 +141,7 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	)
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgPutObject,
-		storagesimulation.SimulateMsgPutObject(am.accountKeeper, am.bankKeeper, am.keeper),
+		storagesimulation.SimulateMsgCreateObject(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	var weightMsgSealObject int
@@ -222,6 +230,28 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgCopyObject,
 		storagesimulation.SimulateMsgCopyObject(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgUpdateBucketReadQuota int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgUpdateBucketReadQuota, &weightMsgUpdateBucketReadQuota, nil,
+		func(_ *rand.Rand) {
+			weightMsgUpdateBucketReadQuota = defaultWeightMsgUpdateBucketReadQuota
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgUpdateBucketReadQuota,
+		storagesimulation.SimulateMsgUpdateBucketInfo(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgCancelCreateObject int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCancelCreateObject, &weightMsgCancelCreateObject, nil,
+		func(_ *rand.Rand) {
+			weightMsgCancelCreateObject = defaultWeightMsgCancelCreateObject
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgCancelCreateObject,
+		storagesimulation.SimulateMsgCancelCreateObject(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

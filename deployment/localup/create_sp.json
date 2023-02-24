@@ -11,17 +11,16 @@
     },
     "sp_address":"0x78FeF615b06251ecfA9Ba01B7DB2BFA892722dDC",
     "funding_address":"0x1d05CCD43A6c27fBCdfE6Ac727B0e9B889AAbC3B",
-    "seal_address": "0x2163A7A41a71ea4A831E4F5Af7f90dd32E440592",
-    "approval_address": "0x78FeF615b06251ecfA9Ba01B7DB2BFA892722dDC",
+    "seal_address":"0x2163A7A41a71ea4A831E4F5Af7f90dd32E440592",
+    "approval_address":"0x78FeF615b06251ecfA9Ba01B7DB2BFA892722dDC",
     "endpoint": "sp0.greenfield.io",
     "deposit":{
-      "denom":"bnb",
-      "amount":"10000"
+      "denom":"BNB",
+      "amount":"10000000000000000000000"
     },
     "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
   }
 ],
   "metadata": "4pIMOgIGx1vZGU=",
-  "deposit": "1bnb"
+  "deposit": "1000000000000000000BNB"
 }
-
