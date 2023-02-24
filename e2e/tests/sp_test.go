@@ -2,20 +2,19 @@ package tests
 
 import (
 	"context"
+	"fmt"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"strconv"
 	"testing"
 	"time"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
-	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
+
+	authz "github.com/cosmos/cosmos-sdk/x/authz"
 )
 
 type StorageProviderTestSuite struct {
@@ -30,6 +29,12 @@ func (s *StorageProviderTestSuite) SetupTest() {
 }
 
 func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
+	//user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	ctx := context.Background()
+	validator := s.Validator.GetAddr()
+
+	// 1. submit CreateStorageProviderParams
 	deposit := sdk.Coin{
 		Denom:  "bnb",
 		Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
@@ -38,26 +43,25 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		Moniker:  "sp0",
 		Identity: "",
 	}
-	// CreateStorageProvider
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	msgCreateStorageProvider, err := sptypes.NewMsgCreateStorageProvider(sdk.AccAddress("0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"), s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.FundingKey.GetAddr(),
+
+	// grant
+	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
+	authorization, err := sptypes.NewDepositAuthorization(s.StorageProvider.OperatorKey.GetAddr(), &coins)
+	s.Require().NoError(err)
+
+	now := time.Now().Add(24 * time.Hour)
+	grantMsg, err := authz.NewMsgGrant(
+		s.StorageProvider.OperatorKey.GetAddr(), sdk.AccAddress("0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"), authorization, &now)
+	s.SendTxBlock(grantMsg, s.StorageProvider.OperatorKey)
+
+	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(sdk.AccAddress("0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"),
+		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.FundingKey.GetAddr(),
 		s.StorageProvider.SealKey.GetAddr(),
 		s.StorageProvider.ApprovalKey.GetAddr(), description,
 		"sp0.greenfield.io", deposit)
-	//msgCreateSP
-
-	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateStorageProvider, user)
-
-	ctx := context.Background()
-	validator := s.Validator.GetAddr()
-
-	// 1. submit CreateStorageProviderParams
-	typeUrl := sdk.MsgTypeURL(&banktypes.MsgSend{})
-	msgSendGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1e6)
-	msgUpdateGasParams := gashubtypes.NewMsgUpdateMsgGasParams(authtypes.NewModuleAddress(gov.ModuleName), []*gashubtypes.MsgGasParams{msgSendGasParams})
+	//s.StorageProvider.OperatorKey.GetAddr().String(),
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
-		[]sdk.Msg{msgUpdateGasParams},
+		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
 		validator.String(),
 		"test",
@@ -102,15 +106,19 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	}
 
 	// 4. query new gas params
-	queryRequest := &gashubtypes.QueryParamsRequest{}
-	queryRes, err := s.Client.GashubQueryClient.Params(ctx, queryRequest)
+	queryRequest := &sptypes.QueryParamsRequest{}
+	queryRes, err := s.Client.SpQueryClient.Params(ctx, queryRequest)
 	s.Require().NoError(err)
 
-	for _, params := range queryRes.GetParams().MsgGasParamsSet {
-		if params.MsgTypeUrl == typeUrl {
-			s.Require().True(params.GetFixedType().Equal(msgSendGasParams.GetFixedType()))
-		}
-	}
+	fmt.Println(queryRes)
+
+	//log.Log("queryRes", queryRes)
+
+	//for _, params := range queryRes.GetParams() {
+	//	if params.MsgTypeUrl == typeUrl {
+	//		s.Require().True(params.GetFixedType().Equal(msgSendGasParams.GetFixedType()))
+	//	}
+	//}
 }
 
 func TestStorageProviderTestSuite(t *testing.T) {
