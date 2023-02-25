@@ -12,6 +12,7 @@ import (
 
 type SpKeeper interface {
 	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp sp.StorageProvider, found bool)
+	DepositDenomForSP(ctx sdk.Context) (res string)
 	Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []sp.RewardInfo) error
 }
 
@@ -22,7 +23,7 @@ type StakingKeeper interface {
 
 type StorageKeeper interface {
 	GetObject(ctx sdk.Context, bucketName string, objectName string) (objectInfo storage.ObjectInfo, found bool)
-	GetObjectWithKey(ctx sdk.Context, objectKey []byte) (objectInfo storage.ObjectInfo, found bool)
+	GetObjectById(ctx sdk.Context, objectId uint64) (objectInfo storage.ObjectInfo, found bool)
 	GetObjectAfterKey(ctx sdk.Context, objectKey []byte) (objectInfo storage.ObjectInfo, found bool)
 	GetBucket(ctx sdk.Context, bucketName string) (bucketInfo storage.BucketInfo, found bool)
 	MaxSegmentSize(ctx sdk.Context) (res uint64)

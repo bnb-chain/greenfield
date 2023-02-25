@@ -222,17 +222,9 @@ func (k Keeper) DeleteObject(ctx sdk.Context, bucketName string, objectName stri
 	objectStore.Delete(objectKey)
 }
 
-func (k Keeper) GetObjectWithKey(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	objectStore := prefix.NewStore(store, types.ObjectPrefix)
-
-	bz := objectStore.Get(objectKey)
-	if bz == nil {
-		return objectInfo, false
-	}
-
-	k.cdc.MustUnmarshal(bz, &objectInfo)
-	return objectInfo, true
+func (k Keeper) GetObjectById(ctx sdk.Context, objectId uint64) (objectInfo types.ObjectInfo, found bool) {
+	//TODO: implement me, current is faked for test
+	return k.GetObjectAfterKey(ctx, nil)
 }
 
 func (k Keeper) GetObjectAfterKey(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {

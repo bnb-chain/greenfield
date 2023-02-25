@@ -17,7 +17,6 @@ func TestGetParams(t *testing.T) {
 
 	require.EqualValues(t, params, k.GetParams(ctx))
 	require.EqualValues(t, params.ChallengeCountPerBlock, k.ChallengeCountPerBlock(ctx))
-	require.EqualValues(t, params.ChallengeExpirePeriod, k.ChallengeExpirePeriod(ctx))
 	require.EqualValues(t, params.SlashCoolingOffPeriod, k.SlashCoolingOffPeriod(ctx))
 	require.EqualValues(t, params.SlashAmountSizeRate, k.SlashAmountSizeRate(ctx))
 	require.EqualValues(t, params.SlashAmountMin, k.SlashAmountMin(ctx))

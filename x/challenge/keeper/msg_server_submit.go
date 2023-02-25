@@ -56,8 +56,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// check sp recent slash
-	objectKey := storagetypes.GetObjectKey(msg.BucketName, msg.ObjectName)
-	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), objectKey) {
+	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), objectInfo.Id.Uint64()) {
 		return nil, types.ErrExistsRecentSlash
 	}
 
@@ -81,19 +80,15 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		}
 	}
 
-	challengeId := k.GetChallengeId(ctx)
+	challengeId := k.GetOngoingChallengeId(ctx)
+	k.SetOngoingChallengeId(ctx, challengeId+1)
+	k.IncrChallengeCountCurrentBlock(ctx)
+
 	challenge := types.Challenge{
 		Id:                challengeId,
-		SpOperatorAddress: msg.SpOperatorAddress,
-		ObjectKey:         objectKey,
-		SegmentIndex:      msg.SegmentIndex,
-		Height:            uint64(ctx.BlockHeight()),
-		ChallengerAddress: msg.Creator,
+		ChallengerAddress: msg.SpOperatorAddress,
 	}
-
-	k.SetOngoingChallenge(ctx, challenge)
-	k.SetChallengeID(ctx, challengeId+1)
-	k.IncrChallengeCount(ctx)
+	k.SaveChallenge(ctx, challenge)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,

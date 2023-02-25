@@ -15,15 +15,15 @@ import (
 func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.MsgAttestResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// check challenge
-	challenge, found := k.GetOngoingChallenge(ctx, msg.ChallengeId)
-	if !found {
-		return nil, types.ErrUnknownChallenge
+	ongoingId := k.GetOngoingChallengeId(ctx)
+	attestedId := k.GetAttestChallengeId(ctx)
+
+	if msg.ChallengeId <= attestedId || msg.ChallengeId > ongoingId {
+		return nil, types.ErrInvalidChallengeId
 	}
 
 	//check object, and get object info
-	objectKey := challenge.ObjectKey
-	objectInfo, found := k.StorageKeeper.GetObjectWithKey(ctx, objectKey)
+	objectInfo, found := k.StorageKeeper.GetObjectById(ctx, msg.ObjectId)
 	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
 		return nil, types.ErrUnknownObject
 	}
@@ -35,21 +35,21 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	// check slash
-	if k.ExistsSlash(ctx, strings.ToLower(challenge.SpOperatorAddress), challenge.GetObjectKey()) {
+	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), msg.ObjectId) {
 		return nil, types.ErrDuplicatedSlash
 	}
 
 	// do slash & reward
 	objectSize := objectInfo.PayloadSize
-	k.doSlashAndRewards(ctx, uint64(objectSize), challenge, msg.Creator, validators)
+	k.doSlashAndRewards(ctx, uint64(objectSize), msg, validators)
 
-	k.RemoveOngoingChallenge(ctx, msg.ChallengeId)
 	slash := types.Slash{
-		SpOperatorAddress: strings.ToLower(challenge.SpOperatorAddress),
-		ObjectKey:         challenge.ObjectKey,
+		SpOperatorAddress: strings.ToLower(msg.SpOperatorAddress),
+		ObjectId:          msg.ObjectId,
 		Height:            uint64(ctx.BlockHeight()),
 	}
-	k.AppendRecentSlash(ctx, slash)
+	k.SaveSlash(ctx, slash)
+	k.RemoveChallengeUntil(ctx, msg.ChallengeId)
 
 	return &types.MsgAttestResponse{}, nil
 }
@@ -99,16 +99,22 @@ func (k msgServer) calculateChallengeRewards(ctx sdk.Context, total sdkmath.Int,
 	return challengerReward, eachValidatorReward, submitterReward
 }
 
-func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64,
-	challenge types.Challenge, submitter string, validators []string) {
+func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *types.MsgAttest, validators []string) {
+	submitter := msg.Creator
+	challenger := ""
+	challenge, found := k.GetChallenge(ctx, msg.ChallengeId)
+	if found {
+		challenger = challenge.ChallengerAddress
+	}
+
 	slashAmount := k.calculateChallengeSlash(ctx, objectSize)
 	challengerReward, eachValidatorReward, submitterReward := k.calculateChallengeRewards(ctx, slashAmount,
-		challenge.ChallengerAddress, submitter, int64(len(validators)))
+		challenger, submitter, int64(len(validators)))
 
-	denom := k.SlashDenom(ctx)
+	denom := k.SpKeeper.DepositDenomForSP(ctx)
 	rewards := make([]sptypes.RewardInfo, 0)
 	rewards = append(rewards, sptypes.RewardInfo{
-		Address: challenge.ChallengerAddress,
+		Address: challenger,
 		Amount: sdk.Coin{
 			Denom:  denom,
 			Amount: challengerReward,
@@ -129,7 +135,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64,
 			Denom:  denom,
 			Amount: submitterReward,
 		}})
-	spOperatorAddress, err := sdk.AccAddressFromHexUnsafe(challenge.SpOperatorAddress)
+	spOperatorAddress, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -139,11 +145,11 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64,
 	}
 
 	event := types.EventCompleteChallenge{
-		ChallengeId:            challenge.Id,
+		ChallengeId:            msg.ChallengeId,
 		Result:                 types.ChallengeResultSucceed,
-		SpOperatorAddress:      challenge.SpOperatorAddress,
+		SpOperatorAddress:      msg.SpOperatorAddress,
 		SlashAmount:            slashAmount.String(),
-		ChallengerAddress:      challenge.ChallengerAddress,
+		ChallengerAddress:      challenger,
 		ChallengerRewardAmount: challengerReward.String(),
 		SubmitterAddress:       submitter,
 		SubmitterRewardAmount:  submitterReward.String(),

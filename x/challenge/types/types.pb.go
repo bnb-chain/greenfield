@@ -24,11 +24,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type Challenge struct {
 	Id                uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	SpOperatorAddress string `protobuf:"bytes,2,opt,name=sp_operator_address,json=spOperatorAddress,proto3" json:"sp_operator_address,omitempty"`
-	ObjectKey         []byte `protobuf:"bytes,3,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	SegmentIndex      uint32 `protobuf:"varint,4,opt,name=segment_index,json=segmentIndex,proto3" json:"segment_index,omitempty"`
-	Height            uint64 `protobuf:"varint,5,opt,name=height,proto3" json:"height,omitempty"`
-	ChallengerAddress string `protobuf:"bytes,6,opt,name=challenger_address,json=challengerAddress,proto3" json:"challenger_address,omitempty"`
+	ChallengerAddress string `protobuf:"bytes,2,opt,name=challenger_address,json=challengerAddress,proto3" json:"challenger_address,omitempty"`
 }
 
 func (m *Challenge) Reset()         { *m = Challenge{} }
@@ -71,34 +67,6 @@ func (m *Challenge) GetId() uint64 {
 	return 0
 }
 
-func (m *Challenge) GetSpOperatorAddress() string {
-	if m != nil {
-		return m.SpOperatorAddress
-	}
-	return ""
-}
-
-func (m *Challenge) GetObjectKey() []byte {
-	if m != nil {
-		return m.ObjectKey
-	}
-	return nil
-}
-
-func (m *Challenge) GetSegmentIndex() uint32 {
-	if m != nil {
-		return m.SegmentIndex
-	}
-	return 0
-}
-
-func (m *Challenge) GetHeight() uint64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
-}
-
 func (m *Challenge) GetChallengerAddress() string {
 	if m != nil {
 		return m.ChallengerAddress
@@ -107,10 +75,9 @@ func (m *Challenge) GetChallengerAddress() string {
 }
 
 type Slash struct {
-	Id                uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	SpOperatorAddress string `protobuf:"bytes,2,opt,name=sp_operator_address,json=spOperatorAddress,proto3" json:"sp_operator_address,omitempty"`
-	ObjectKey         []byte `protobuf:"bytes,3,opt,name=object_key,json=objectKey,proto3" json:"object_key,omitempty"`
-	Height            uint64 `protobuf:"varint,4,opt,name=height,proto3" json:"height,omitempty"`
+	SpOperatorAddress string `protobuf:"bytes,1,opt,name=sp_operator_address,json=spOperatorAddress,proto3" json:"sp_operator_address,omitempty"`
+	ObjectId          uint64 `protobuf:"varint,2,opt,name=object_id,json=objectId,proto3" json:"object_id,omitempty"`
+	Height            uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
 }
 
 func (m *Slash) Reset()         { *m = Slash{} }
@@ -146,13 +113,6 @@ func (m *Slash) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_Slash proto.InternalMessageInfo
 
-func (m *Slash) GetId() uint64 {
-	if m != nil {
-		return m.Id
-	}
-	return 0
-}
-
 func (m *Slash) GetSpOperatorAddress() string {
 	if m != nil {
 		return m.SpOperatorAddress
@@ -160,11 +120,11 @@ func (m *Slash) GetSpOperatorAddress() string {
 	return ""
 }
 
-func (m *Slash) GetObjectKey() []byte {
+func (m *Slash) GetObjectId() uint64 {
 	if m != nil {
-		return m.ObjectKey
+		return m.ObjectId
 	}
-	return nil
+	return 0
 }
 
 func (m *Slash) GetHeight() uint64 {
@@ -182,26 +142,23 @@ func init() {
 func init() { proto.RegisterFile("greenfield/challenge/types.proto", fileDescriptor_9c297f0764c47d40) }
 
 var fileDescriptor_9c297f0764c47d40 = []byte{
-	// 296 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x91, 0x31, 0x4b, 0xc3, 0x40,
-	0x18, 0x86, 0x7b, 0xb5, 0x2d, 0xf4, 0x68, 0x05, 0x4f, 0x90, 0x2c, 0x3d, 0x42, 0x5d, 0xb2, 0x34,
-	0x41, 0xfc, 0x05, 0xea, 0x24, 0x1d, 0x84, 0xb8, 0xb9, 0x84, 0x5c, 0xee, 0x33, 0x77, 0x9a, 0xde,
-	0x85, 0xdc, 0x09, 0xcd, 0xe2, 0x6f, 0xf0, 0x67, 0x39, 0x76, 0x12, 0x47, 0x49, 0xfe, 0x88, 0x98,
-	0xc4, 0xa6, 0xb8, 0x3b, 0x7e, 0xef, 0xfb, 0x0e, 0xcf, 0xc7, 0x83, 0xdd, 0xb4, 0x00, 0x50, 0x8f,
-	0x12, 0x32, 0x1e, 0x24, 0x22, 0xce, 0x32, 0x50, 0x29, 0x04, 0xb6, 0xcc, 0xc1, 0xf8, 0x79, 0xa1,
-	0xad, 0x26, 0x0b, 0xa6, 0x58, 0x22, 0x62, 0xa9, 0xfc, 0x7e, 0xea, 0xef, 0xa7, 0xcb, 0x0f, 0x84,
-	0xa7, 0x37, 0xbf, 0x17, 0x39, 0xc6, 0x43, 0xc9, 0x1d, 0xe4, 0x22, 0x6f, 0x14, 0x0e, 0x25, 0x27,
-	0x3e, 0x3e, 0x35, 0x79, 0xa4, 0x73, 0x28, 0x62, 0xab, 0x8b, 0x28, 0xe6, 0xbc, 0x00, 0x63, 0x9c,
-	0xa1, 0x8b, 0xbc, 0x69, 0x78, 0x62, 0xf2, 0xbb, 0xae, 0xb9, 0x6a, 0x0b, 0xb2, 0xc0, 0x58, 0xb3,
-	0x27, 0x48, 0x6c, 0xf4, 0x0c, 0xa5, 0x73, 0xe4, 0x22, 0x6f, 0x16, 0x4e, 0xdb, 0x64, 0x0d, 0x25,
-	0x39, 0xc7, 0x73, 0x03, 0xe9, 0x06, 0x94, 0x8d, 0xa4, 0xe2, 0xb0, 0x75, 0x46, 0x2e, 0xf2, 0xe6,
-	0xe1, 0xac, 0x0b, 0x6f, 0x7f, 0x32, 0x72, 0x86, 0x27, 0x02, 0x64, 0x2a, 0xac, 0x33, 0x6e, 0x38,
-	0xba, 0x8b, 0xac, 0x30, 0xd9, 0x63, 0xf7, 0x28, 0x93, 0x16, 0xa5, 0x6f, 0x3a, 0x94, 0xe5, 0x2b,
-	0x1e, 0xdf, 0x67, 0xb1, 0x11, 0xff, 0xfd, 0x53, 0x8f, 0x3b, 0x3a, 0xc4, 0xbd, 0x5e, 0xbf, 0x57,
-	0x14, 0xed, 0x2a, 0x8a, 0xbe, 0x2a, 0x8a, 0xde, 0x6a, 0x3a, 0xd8, 0xd5, 0x74, 0xf0, 0x59, 0xd3,
-	0xc1, 0xc3, 0x45, 0x2a, 0xad, 0x78, 0x61, 0x7e, 0xa2, 0x37, 0x01, 0x53, 0x6c, 0xd5, 0xd8, 0x09,
-	0x0e, 0x44, 0x6e, 0xff, 0xaa, 0x64, 0x93, 0xc6, 0xe5, 0xe5, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff,
-	0xe3, 0xba, 0x77, 0x80, 0xef, 0x01, 0x00, 0x00,
+	// 255 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x90, 0xb1, 0x4a, 0xc4, 0x30,
+	0x1c, 0xc6, 0x9b, 0x7a, 0x1e, 0x36, 0x83, 0x60, 0x04, 0x29, 0x88, 0xa1, 0xdc, 0x74, 0xcb, 0xb5,
+	0x88, 0x4f, 0xa0, 0x4e, 0xea, 0x20, 0xd4, 0xcd, 0xa5, 0x34, 0xcd, 0xdf, 0x26, 0x12, 0x93, 0x90,
+	0x44, 0xd0, 0xb7, 0xf0, 0xb1, 0x1c, 0x6f, 0x74, 0x94, 0xf6, 0x45, 0x84, 0xb6, 0x5e, 0xc5, 0xf1,
+	0xcb, 0xef, 0xfb, 0x02, 0xff, 0x1f, 0xce, 0x5a, 0x07, 0xa0, 0x9f, 0x24, 0x28, 0x5e, 0x34, 0xa2,
+	0x56, 0x0a, 0x74, 0x0b, 0x45, 0x78, 0xb7, 0xe0, 0x73, 0xeb, 0x4c, 0x30, 0xe4, 0x8c, 0x69, 0xd6,
+	0x88, 0x5a, 0xea, 0x7c, 0xae, 0xe6, 0xbb, 0xea, 0xea, 0x16, 0x27, 0xd7, 0xbf, 0x81, 0x1c, 0xe2,
+	0x58, 0xf2, 0x14, 0x65, 0x68, 0xbd, 0x28, 0x63, 0xc9, 0xc9, 0x06, 0x93, 0x5d, 0xd3, 0x55, 0x35,
+	0xe7, 0x0e, 0xbc, 0x4f, 0xe3, 0x0c, 0xad, 0x93, 0xf2, 0x68, 0x26, 0x97, 0x23, 0x58, 0x29, 0xbc,
+	0xff, 0xa0, 0x6a, 0x2f, 0x48, 0x8e, 0x8f, 0xbd, 0xad, 0x8c, 0x05, 0x57, 0x07, 0x33, 0x0f, 0xd1,
+	0x38, 0xf4, 0xf6, 0x7e, 0x22, 0xd3, 0x90, 0x9c, 0xe2, 0xc4, 0xb0, 0x67, 0x68, 0x42, 0x25, 0xf9,
+	0xf0, 0xfd, 0xa2, 0x3c, 0x18, 0x1f, 0x6e, 0x38, 0x39, 0xc1, 0x4b, 0x01, 0xb2, 0x15, 0x21, 0xdd,
+	0x1b, 0xc8, 0x94, 0xae, 0xee, 0x3e, 0x3b, 0x8a, 0xb6, 0x1d, 0x45, 0xdf, 0x1d, 0x45, 0x1f, 0x3d,
+	0x8d, 0xb6, 0x3d, 0x8d, 0xbe, 0x7a, 0x1a, 0x3d, 0x9e, 0xb7, 0x32, 0x88, 0x57, 0x96, 0x37, 0xe6,
+	0xa5, 0x60, 0x9a, 0x6d, 0x86, 0xf3, 0x8b, 0x3f, 0xa6, 0xde, 0xfe, 0xbb, 0x62, 0xcb, 0x41, 0xd6,
+	0xc5, 0x4f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd0, 0xc0, 0xc5, 0x9e, 0x50, 0x01, 0x00, 0x00,
 }
 
 func (m *Challenge) Marshal() (dAtA []byte, err error) {
@@ -228,30 +185,6 @@ func (m *Challenge) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.ChallengerAddress)
 		copy(dAtA[i:], m.ChallengerAddress)
 		i = encodeVarintTypes(dAtA, i, uint64(len(m.ChallengerAddress)))
-		i--
-		dAtA[i] = 0x32
-	}
-	if m.Height != 0 {
-		i = encodeVarintTypes(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x28
-	}
-	if m.SegmentIndex != 0 {
-		i = encodeVarintTypes(dAtA, i, uint64(m.SegmentIndex))
-		i--
-		dAtA[i] = 0x20
-	}
-	if len(m.ObjectKey) > 0 {
-		i -= len(m.ObjectKey)
-		copy(dAtA[i:], m.ObjectKey)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.ObjectKey)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.SpOperatorAddress) > 0 {
-		i -= len(m.SpOperatorAddress)
-		copy(dAtA[i:], m.SpOperatorAddress)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.SpOperatorAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -286,26 +219,19 @@ func (m *Slash) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Height != 0 {
 		i = encodeVarintTypes(dAtA, i, uint64(m.Height))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x18
 	}
-	if len(m.ObjectKey) > 0 {
-		i -= len(m.ObjectKey)
-		copy(dAtA[i:], m.ObjectKey)
-		i = encodeVarintTypes(dAtA, i, uint64(len(m.ObjectKey)))
+	if m.ObjectId != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.ObjectId))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x10
 	}
 	if len(m.SpOperatorAddress) > 0 {
 		i -= len(m.SpOperatorAddress)
 		copy(dAtA[i:], m.SpOperatorAddress)
 		i = encodeVarintTypes(dAtA, i, uint64(len(m.SpOperatorAddress)))
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.Id != 0 {
-		i = encodeVarintTypes(dAtA, i, uint64(m.Id))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -330,20 +256,6 @@ func (m *Challenge) Size() (n int) {
 	if m.Id != 0 {
 		n += 1 + sovTypes(uint64(m.Id))
 	}
-	l = len(m.SpOperatorAddress)
-	if l > 0 {
-		n += 1 + l + sovTypes(uint64(l))
-	}
-	l = len(m.ObjectKey)
-	if l > 0 {
-		n += 1 + l + sovTypes(uint64(l))
-	}
-	if m.SegmentIndex != 0 {
-		n += 1 + sovTypes(uint64(m.SegmentIndex))
-	}
-	if m.Height != 0 {
-		n += 1 + sovTypes(uint64(m.Height))
-	}
 	l = len(m.ChallengerAddress)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
@@ -357,16 +269,12 @@ func (m *Slash) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Id != 0 {
-		n += 1 + sovTypes(uint64(m.Id))
-	}
 	l = len(m.SpOperatorAddress)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
-	l = len(m.ObjectKey)
-	if l > 0 {
-		n += 1 + l + sovTypes(uint64(l))
+	if m.ObjectId != 0 {
+		n += 1 + sovTypes(uint64(m.ObjectId))
 	}
 	if m.Height != 0 {
 		n += 1 + sovTypes(uint64(m.Height))
@@ -429,110 +337,6 @@ func (m *Challenge) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SpOperatorAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SpOperatorAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ObjectKey", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ObjectKey = append(m.ObjectKey[:0], dAtA[iNdEx:postIndex]...)
-			if m.ObjectKey == nil {
-				m.ObjectKey = []byte{}
-			}
-			iNdEx = postIndex
-		case 4:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SegmentIndex", wireType)
-			}
-			m.SegmentIndex = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.SegmentIndex |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 5:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ChallengerAddress", wireType)
 			}
@@ -615,25 +419,6 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
-			}
-			m.Id = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Id |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SpOperatorAddress", wireType)
 			}
@@ -665,11 +450,11 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 			}
 			m.SpOperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ObjectKey", wireType)
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
 			}
-			var byteLen int
+			m.ObjectId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTypes
@@ -679,27 +464,12 @@ func (m *Slash) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				byteLen |= int(b&0x7F) << shift
+				m.ObjectId |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.ObjectKey = append(m.ObjectKey[:0], dAtA[iNdEx:postIndex]...)
-			if m.ObjectKey == nil {
-				m.ObjectKey = []byte{}
-			}
-			iNdEx = postIndex
-		case 4:
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
 			}

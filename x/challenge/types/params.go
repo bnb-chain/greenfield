@@ -3,7 +3,6 @@ package types
 import (
 	"errors"
 	"fmt"
-	"strings"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,18 +20,8 @@ var (
 )
 
 var (
-	KeyChallengeExpirePeriod            = []byte("ChallengeExpirePeriod")
-	DefaultChallengeExpirePeriod uint64 = 100
-)
-
-var (
 	KeySlashCoolingOffPeriod            = []byte("SlashCoolingOffPeriod")
 	DefaultSlashCoolingOffPeriod uint64 = 100
-)
-
-var (
-	KeySlashDenom     = []byte("SlashDenom")
-	DefaultSlashDenom = types.Denom
 )
 
 var (
@@ -62,7 +51,7 @@ var (
 
 var (
 	KeyHeartbeatInterval            = []byte("HeartbeatInterval")
-	DefaultHeartbeatInterval uint64 = 1000
+	DefaultHeartbeatInterval uint64 = 100
 )
 
 var (
@@ -83,9 +72,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	challengeCountPerBlock uint64,
-	challengeExpirePeriod uint64,
 	slashCoolingOffPeriod uint64,
-	slashDenom string,
 	slashAmountSizeRate sdk.Dec,
 	slashAmountMin math.Int,
 	slashAmountMax math.Int,
@@ -97,9 +84,7 @@ func NewParams(
 ) Params {
 	return Params{
 		ChallengeCountPerBlock:   challengeCountPerBlock,
-		ChallengeExpirePeriod:    challengeExpirePeriod,
 		SlashCoolingOffPeriod:    slashCoolingOffPeriod,
-		SlashDenom:               slashDenom,
 		SlashAmountSizeRate:      slashAmountSizeRate,
 		SlashAmountMin:           slashAmountMin,
 		SlashAmountMax:           slashAmountMax,
@@ -115,9 +100,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultChallengeCountPerBlock,
-		DefaultChallengeExpirePeriod,
 		DefaultSlashCoolingOffPeriod,
-		DefaultSlashDenom,
 		DefaultSlashAmountSizeRate,
 		DefaultSlashAmountMin,
 		DefaultSlashAmountMax,
@@ -133,9 +116,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyChallengeCountPerBlock, &p.ChallengeCountPerBlock, validateChallengeCountPerBlock),
-		paramtypes.NewParamSetPair(KeyChallengeExpirePeriod, &p.ChallengeExpirePeriod, validateChallengeExpirePeriod),
 		paramtypes.NewParamSetPair(KeySlashCoolingOffPeriod, &p.SlashCoolingOffPeriod, validateSlashCoolingOffPeriod),
-		paramtypes.NewParamSetPair(KeySlashDenom, &p.SlashDenom, validateSlashDenom),
 		paramtypes.NewParamSetPair(KeySlashAmountSizeRate, &p.SlashAmountSizeRate, validateSlashAmountSizeRate),
 		paramtypes.NewParamSetPair(KeySlashAmountMin, &p.SlashAmountMin, validateSlashAmountMin),
 		paramtypes.NewParamSetPair(KeySlashAmountMax, &p.SlashAmountMax, validateSlashAmountMax),
@@ -153,15 +134,7 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateChallengeExpirePeriod(p.ChallengeExpirePeriod); err != nil {
-		return err
-	}
-
 	if err := validateSlashCoolingOffPeriod(p.SlashCoolingOffPeriod); err != nil {
-		return err
-	}
-
-	if err := validateSlashDenom(p.SlashDenom); err != nil {
 		return err
 	}
 
@@ -224,39 +197,11 @@ func validateChallengeCountPerBlock(v interface{}) error {
 	return nil
 }
 
-// validateChallengeExpirePeriod validates the ChallengeExpirePeriod param
-func validateChallengeExpirePeriod(v interface{}) error {
-	_, ok := v.(uint64)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", v)
-	}
-
-	return nil
-}
-
 // validateSlashCoolingOffPeriod validates the SlashCoolingOffPeriod param
 func validateSlashCoolingOffPeriod(v interface{}) error {
 	_, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
-	}
-
-	return nil
-}
-
-// validateSlashDenom validates the SlashDenom param
-func validateSlashDenom(v interface{}) error {
-	slashDemon, ok := v.(string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", v)
-	}
-
-	if strings.TrimSpace(slashDemon) == "" {
-		return errors.New("slash denom cannot be blank")
-	}
-
-	if err := sdk.ValidateDenom(slashDemon); err != nil {
-		return err
 	}
 
 	return nil

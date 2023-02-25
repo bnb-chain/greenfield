@@ -21,18 +21,16 @@ func createChallenge(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Chal
 	for i := range items {
 		items[i].Id = uint64(i)
 
-		keeper.SetOngoingChallenge(ctx, items[i])
+		keeper.SaveChallenge(ctx, items[i])
 	}
 	return items
 }
 
-func TestOngoingChallengeGet(t *testing.T) {
+func TestChallengeGet(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
 	items := createChallenge(keeper, ctx, 10)
 	for _, item := range items {
-		rst, found := keeper.GetOngoingChallenge(ctx,
-			item.Id,
-		)
+		rst, found := keeper.GetChallenge(ctx, item.Id)
 		require.True(t, found)
 		require.Equal(t,
 			nullify.Fill(&item),
@@ -40,25 +38,12 @@ func TestOngoingChallengeGet(t *testing.T) {
 		)
 	}
 }
-func TestOngoingChallengeRemove(t *testing.T) {
+func TestChallengeRemove(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
 	items := createChallenge(keeper, ctx, 10)
 	for _, item := range items {
-		keeper.RemoveOngoingChallenge(ctx,
-			item.Id,
-		)
-		_, found := keeper.GetOngoingChallenge(ctx,
-			item.Id,
-		)
+		keeper.RemoveChallengeUntil(ctx, item.Id)
+		_, found := keeper.GetChallenge(ctx, item.Id)
 		require.False(t, found)
 	}
-}
-
-func TestOngoingChallengeGetAll(t *testing.T) {
-	keeper, ctx := keepertest.ChallengeKeeper(t)
-	items := createChallenge(keeper, ctx, 10)
-	require.ElementsMatch(t,
-		nullify.Fill(items),
-		nullify.Fill(keeper.GetAllOngoingChallenge(ctx)),
-	)
 }

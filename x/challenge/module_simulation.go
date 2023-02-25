@@ -65,9 +65,6 @@ func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeyChallengeCountPerBlock), func(r *rand.Rand) string {
 			return string(types.Amino.MustMarshalJSON(challengeParams.ChallengeCountPerBlock))
 		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyChallengeExpirePeriod), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.ChallengeExpirePeriod))
-		}),
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashCoolingOffPeriod), func(r *rand.Rand) string {
 			return string(types.Amino.MustMarshalJSON(challengeParams.SlashCoolingOffPeriod))
 		}),

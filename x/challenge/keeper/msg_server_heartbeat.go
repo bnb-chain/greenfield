@@ -22,7 +22,7 @@ func (k msgServer) Heartbeat(goCtx context.Context, msg *types.MsgHeartbeat) (*t
 
 	// check challenge id
 	heartbeatInterval := k.HeartbeatInterval(ctx)
-	maxChallengeId := k.GetChallengeId(ctx)
+	maxChallengeId := k.GetOngoingChallengeId(ctx)
 	heartbeatChallengeId := k.GetHeartbeatChallengeId(ctx)
 
 	if msg.ChallengeId > maxChallengeId || msg.ChallengeId <= heartbeatChallengeId ||

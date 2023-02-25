@@ -3,67 +3,59 @@ package keeper
 import (
 	"encoding/binary"
 
-	"github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
-// SetOngoingChallenge set a specific ongoingChallenge in the store from its index
-func (k Keeper) SetOngoingChallenge(ctx sdk.Context, ongoingChallenge types.Challenge) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.OngoingChallengeKeyPrefix))
-	b := k.cdc.MustMarshal(&ongoingChallenge)
-	store.Set(types.OngoingChallengeKey(
-		ongoingChallenge.Id,
-	), b)
+// SaveChallenge saves challenge to the store
+func (k Keeper) SaveChallenge(ctx sdk.Context, challenge types.Challenge) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ChallengeKeyPrefix))
+	bz := k.cdc.MustMarshal(&challenge)
+
+	store.Set(getChallengeKeyBytes(challenge.Id), bz)
 }
 
-// GetOngoingChallenge returns a ongoingChallenge from its index
-func (k Keeper) GetOngoingChallenge(
-	ctx sdk.Context,
-	id uint64,
-) (val types.Challenge, found bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.OngoingChallengeKeyPrefix))
-
-	b := store.Get(types.OngoingChallengeKey(
-		id,
-	))
-	if b == nil {
-		return val, false
+// SaveChallenge saves challenge to the store
+func (k Keeper) GetChallenge(ctx sdk.Context, challengeId uint64) (challenge types.Challenge, found bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ChallengeKeyPrefix))
+	bz := store.Get(getChallengeKeyBytes(challengeId))
+	if bz == nil {
+		return challenge, false
 	}
-
-	k.cdc.MustUnmarshal(b, &val)
-	return val, true
+	k.cdc.MustUnmarshal(bz, &challenge)
+	return challenge, true
 }
 
-// RemoveOngoingChallenge removes a ongoingChallenge from the store
-func (k Keeper) RemoveOngoingChallenge(
-	ctx sdk.Context,
-	id uint64,
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.OngoingChallengeKeyPrefix))
-	store.Delete(types.OngoingChallengeKey(id))
-}
-
-// GetAllOngoingChallenge returns all ongoingChallenge
-func (k Keeper) GetAllOngoingChallenge(ctx sdk.Context) (list []types.Challenge) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.OngoingChallengeKeyPrefix))
+// SaveChallenge saves challenge to the store
+func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, challengeId uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ChallengeKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		var val types.Challenge
-		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		list = append(list, val)
+		var challenge types.Challenge
+		k.cdc.MustUnmarshal(iterator.Value(), &challenge)
+		if challenge.Id <= challengeId {
+			store.Delete(getChallengeKeyBytes(challenge.Id))
+		}
 	}
 
-	return
 }
 
-// GetChallengeId gets the highest challenge ID
-func (k Keeper) GetChallengeId(ctx sdk.Context) uint64 {
+// getChallengeKeyBytes returns the byte representation of Challenge key
+func getChallengeKeyBytes(challengeId uint64) []byte {
+	idBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(idBytes, challengeId)
+
+	return idBytes
+}
+
+// GetOngoingChallengeId gets the highest challenge id
+func (k Keeper) GetOngoingChallengeId(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.ChallengeIdKey)
+	byteKey := types.KeyPrefix(types.OngoingChallengeIdKey)
 	bz := store.Get(byteKey)
 
 	if bz == nil {
@@ -73,19 +65,19 @@ func (k Keeper) GetChallengeId(ctx sdk.Context) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-// SetChallengeID sets the new challenge ID to the store
-func (k Keeper) SetChallengeID(ctx sdk.Context, challengeId uint64) {
+// SetOngoingChallengeId sets the new challenge id to the store
+func (k Keeper) SetOngoingChallengeId(ctx sdk.Context, challengeId uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.ChallengeIdKey)
+	byteKey := types.KeyPrefix(types.OngoingChallengeIdKey)
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, challengeId)
 	store.Set(byteKey, bz)
 }
 
-// GetChallengeCount gets the count of challenges
-func (k Keeper) GetChallengeCount(ctx sdk.Context) uint64 {
+// GetAttestChallengeId gets the challenge id of the latest heartbeat challenge
+func (k Keeper) GetAttestChallengeId(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.ChallengeCountKey)
+	byteKey := types.KeyPrefix(types.AttestChallengeIdKey)
 	bz := store.Get(byteKey)
 
 	if bz == nil {
@@ -95,23 +87,13 @@ func (k Keeper) GetChallengeCount(ctx sdk.Context) uint64 {
 	return binary.BigEndian.Uint64(bz)
 }
 
-// setGetChallengeCount sets the new count of challenge to the store
-func (k Keeper) setGetChallengeCount(ctx sdk.Context, challengeId uint64) {
+// SetAttestChallengeId sets the new id of challenge to the store
+func (k Keeper) SetAttestChallengeId(ctx sdk.Context, challengeId uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	byteKey := types.KeyPrefix(types.ChallengeCountKey)
+	byteKey := types.KeyPrefix(types.AttestChallengeIdKey)
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, challengeId)
 	store.Set(byteKey, bz)
-}
-
-// ResetChallengeCount sets the count of challenge to zero
-func (k Keeper) ResetChallengeCount(ctx sdk.Context) {
-	k.setGetChallengeCount(ctx, 0)
-}
-
-// IncrChallengeCount increases the count of challenge by one
-func (k Keeper) IncrChallengeCount(ctx sdk.Context) {
-	k.setGetChallengeCount(ctx, k.GetChallengeCount(ctx)+1)
 }
 
 // GetHeartbeatChallengeId gets the challenge id of the latest heartbeat challenge
@@ -134,4 +116,36 @@ func (k Keeper) SetHeartbeatChallengeId(ctx sdk.Context, challengeId uint64) {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, challengeId)
 	store.Set(byteKey, bz)
+}
+
+// GetChallengeCountCurrentBlock gets the count of challenges
+func (k Keeper) GetChallengeCountCurrentBlock(ctx sdk.Context) uint64 {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	byteKey := types.KeyPrefix(types.CurrentBlockChallengeCountKey)
+	bz := store.Get(byteKey)
+
+	if bz == nil {
+		return 0
+	}
+
+	return binary.BigEndian.Uint64(bz)
+}
+
+// setGetChallengeCountCurrentBlock sets the new count of challenge to the store
+func (k Keeper) setGetChallengeCountCurrentBlock(ctx sdk.Context, challengeId uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	byteKey := types.KeyPrefix(types.CurrentBlockChallengeCountKey)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, challengeId)
+	store.Set(byteKey, bz)
+}
+
+// ResetChallengeCountCurrentBlock sets the count of challenge to zero
+func (k Keeper) ResetChallengeCountCurrentBlock(ctx sdk.Context) {
+	k.setGetChallengeCountCurrentBlock(ctx, 0)
+}
+
+// IncrChallengeCountCurrentBlock increases the count of challenge by one
+func (k Keeper) IncrChallengeCountCurrentBlock(ctx sdk.Context) {
+	k.setGetChallengeCountCurrentBlock(ctx, k.GetChallengeCountCurrentBlock(ctx)+1)
 }

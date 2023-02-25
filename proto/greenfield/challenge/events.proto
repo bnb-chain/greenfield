@@ -54,11 +54,6 @@ message EventCompleteChallenge {
   string validator_reward_amount = 10;
 }
 
-message EventExpireChallenge {
-  // The id of challenge.
-  uint64 challenge_id = 1;
-}
-
 message EventChallengeHeartbeat {
   // The id of challenge.
   uint64 challenge_id = 1;

@@ -23,20 +23,23 @@ func KeyPrefix(p string) []byte {
 }
 
 const (
-	// OngoingChallengeKeyPrefix is the prefix to retrieve all Challenge
-	OngoingChallengeKeyPrefix = "Challenge/ongoing/"
+	// OngoingChallengeIdKey is the key to retrieve the max id of challenge
+	OngoingChallengeIdKey = "Challenge/ongoing/"
 
-	// ChallengeIdKey is the key to retrieve the max id of challenge
-	ChallengeIdKey = "Challenge/id/"
-
-	// ChallengeCountKey is key to track the count of challenges in the current block
-	ChallengeCountKey = "Challenge/count/"
+	// AttestChallengeIdKey is the key to record the latest attest challenge id
+	AttestChallengeIdKey = "Challenge/attest/"
 
 	// HeartbeatChallengeIdKey is the key to record the latest heartbeat challenge id
 	HeartbeatChallengeIdKey = "Challenge/heartbeat/"
 
-	RecentSlashKey      = "Slash/value/"
-	RecentSlashCountKey = "Slash/count/"
+	// CurrentBlockChallengeCountKey is key to track the count of challenges in the current block
+	CurrentBlockChallengeCountKey = "Challenge/current/"
+
+	// ChallengeKeyPrefix is the prefix to retrieve Challenge
+	ChallengeKeyPrefix = "Challenge/value/"
+
+	// SlashKeyPrefix is the prefix to retrieve Slash
+	SlashKeyPrefix = "Slash/value/"
 )
 
 // OngoingChallengeKey returns the store key to retrieve a Challenge from the index fields

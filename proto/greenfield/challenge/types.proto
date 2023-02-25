@@ -5,16 +5,11 @@ option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 
 message Challenge {
   uint64 id = 1;
-  string sp_operator_address = 2;
-  bytes object_key = 3;
-  uint32 segment_index = 4;
-  uint64 height = 5;
-  string challenger_address = 6;
+  string challenger_address = 2;
 }
 
 message Slash {
-  uint64 id = 1;
-  string sp_operator_address = 2;
-  bytes object_key = 3;
-  uint64 height = 4;
+  string sp_operator_address = 1;
+  uint64 object_id = 2;
+  uint64 height = 3;
 }

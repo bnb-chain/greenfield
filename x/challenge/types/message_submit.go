@@ -49,11 +49,16 @@ func (msg *MsgSubmit) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := storagetypes.CheckValidBucketName(msg.BucketName); err != nil {
+	_, err = sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
+	}
+
+	if err = storagetypes.CheckValidBucketName(msg.BucketName); err != nil {
 		return err
 	}
 
-	if err := storagetypes.CheckValidObjectName(msg.ObjectName); err != nil {
+	if err = storagetypes.CheckValidObjectName(msg.ObjectName); err != nil {
 		return err
 	}
 

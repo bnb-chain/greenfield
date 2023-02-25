@@ -12,12 +12,13 @@ import (
 	"time"
 
 	"github.com/bits-and-blooms/bitset"
-	"github.com/bnb-chain/greenfield/e2e/core"
-	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+
+	"github.com/bnb-chain/greenfield/e2e/core"
+	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type ChallengeTestSuite struct {
@@ -124,7 +125,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 func (s *ChallengeTestSuite) TestSubmit() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, secondarySps := s.createObject()
+	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
 	event := filterEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
@@ -132,7 +133,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
 	s.Require().Equal(event.SpOperatorAddress, primarySp.String())
 
-	bucketName, objectName, primarySp, secondarySps = s.createObject()
+	bucketName, objectName, _, secondarySps := s.createObject()
 	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), secondarySps[0], bucketName, objectName, false, 0)
 	txRes = s.SendTxBlock(msgSubmit, user)
 	event = filterEventFromTx(txRes)
@@ -167,7 +168,6 @@ func (s *ChallengeTestSuite) TestAttest() {
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
 	event := filterEventFromTx(txRes)
-	fmt.Println(event)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
@@ -175,8 +175,8 @@ func (s *ChallengeTestSuite) TestAttest() {
 
 	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, challengetypes.ChallengeResultSucceed,
-		valBitset.Bytes(), nil)
+	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp,
+		challengetypes.ChallengeResultSucceed, valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
 	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
@@ -192,7 +192,7 @@ func (s *ChallengeTestSuite) TestAttest() {
 func (s *ChallengeTestSuite) TestHeartbeat() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	heartbeatInterval := uint64(1000)
+	heartbeatInterval := uint64(100)
 
 	for i := 0; ; i++ {
 		bucketName, objectName, primarySp, _ := s.createObject()
