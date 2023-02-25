@@ -25,34 +25,38 @@ func TestMsgAttest_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid vote result",
 			msg: MsgAttest{
-				Creator:    sample.AccAddress(),
-				VoteResult: 100,
+				Creator:           sample.AccAddress(),
+				SpOperatorAddress: sample.AccAddress(),
+				VoteResult:        100,
 			},
 			err: ErrInvalidVoteResult,
 		}, {
 			name: "invalid vote result",
 			msg: MsgAttest{
-				Creator:          sample.AccAddress(),
-				VoteResult:       ChallengeResultSucceed,
-				VoteValidatorSet: make([]uint64, 0),
+				Creator:           sample.AccAddress(),
+				SpOperatorAddress: sample.AccAddress(),
+				VoteResult:        ChallengeResultSucceed,
+				VoteValidatorSet:  make([]uint64, 0),
 			},
 			err: ErrInvalidVoteValidatorSet,
 		}, {
 			name: "invalid vote aggregated signature",
 			msg: MsgAttest{
-				Creator:          sample.AccAddress(),
-				VoteResult:       ChallengeResultSucceed,
-				VoteValidatorSet: []uint64{1},
-				VoteAggSignature: []byte{1, 2, 3},
+				Creator:           sample.AccAddress(),
+				SpOperatorAddress: sample.AccAddress(),
+				VoteResult:        ChallengeResultSucceed,
+				VoteValidatorSet:  []uint64{1},
+				VoteAggSignature:  []byte{1, 2, 3},
 			},
 			err: ErrInvalidVoteAggSignature,
 		}, {
 			name: "valid message",
 			msg: MsgAttest{
-				Creator:          sample.AccAddress(),
-				VoteResult:       ChallengeResultSucceed,
-				VoteValidatorSet: []uint64{1},
-				VoteAggSignature: sig[:],
+				Creator:           sample.AccAddress(),
+				SpOperatorAddress: sample.AccAddress(),
+				VoteResult:        ChallengeResultSucceed,
+				VoteValidatorSet:  []uint64{1},
+				VoteAggSignature:  sig[:],
 			},
 		},
 	}
