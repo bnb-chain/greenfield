@@ -3,12 +3,11 @@ package keeper
 import (
 	"context"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
@@ -148,7 +147,6 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	if len(msg.Endpoint) != 0 {
 		sp.Endpoint = msg.Endpoint
 	}
-	
 	if _, err := msg.Description.EnsureLength(); err != nil {
 		return nil, err
 	}
