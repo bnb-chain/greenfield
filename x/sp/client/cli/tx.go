@@ -15,10 +15,15 @@ import (
 )
 
 const (
-	FlagSpendLimit  = "spend-limit"
-	FlagSpAddress   = "SPAddress"
-	FlagExpiration  = "expiration"
-	DefaultEndpoint = "sp0.greenfield.io"
+	FlagSpendLimit = "spend-limit"
+	FlagSpAddress  = "SPAddress"
+	FlagExpiration = "expiration"
+	FlagEndpoint   = "endpoint"
+
+	FlagEditMoniker = "new-moniker"
+	FlagIdentity    = "identity"
+	FlagWebsite     = "website"
+	FlagDetails     = "details"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -52,6 +57,13 @@ func CmdEditStorageProvider() *cobra.Command {
 				return err
 			}
 
+			endpoint, _ := cmd.Flags().GetString(FlagEndpoint)
+			moniker, _ := cmd.Flags().GetString(FlagEditMoniker)
+			identity, _ := cmd.Flags().GetString(FlagIdentity)
+			website, _ := cmd.Flags().GetString(FlagWebsite)
+			details, _ := cmd.Flags().GetString(FlagDetails)
+			description := types.NewDescription(moniker, identity, website, details)
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -59,8 +71,8 @@ func CmdEditStorageProvider() *cobra.Command {
 
 			msg := types.NewMsgEditStorageProvider(
 				spAddress,
-				DefaultEndpoint,
-				types.Description{},
+				endpoint,
+				description,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -70,6 +82,12 @@ func CmdEditStorageProvider() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(FlagEndpoint, types.DoNotModifyDesc, "The storage provider's endpoint")
+	// DescriptionEdit
+	cmd.Flags().String(FlagEditMoniker, types.DoNotModifyDesc, "The storage provider's name")
+	cmd.Flags().String(FlagIdentity, types.DoNotModifyDesc, "The (optional) identity signature (ex. UPort or Keybase)")
+	cmd.Flags().String(FlagWebsite, types.DoNotModifyDesc, "The storage provider's (optional) website")
+	cmd.Flags().String(FlagDetails, types.DoNotModifyDesc, "The storage provider's (optional) details")
 
 	return cmd
 }

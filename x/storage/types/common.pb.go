@@ -184,6 +184,7 @@ func (m *Approval) GetSig() []byte {
 	return nil
 }
 
+// SecondarySpSignDoc used to generate seal signature of secondary SP
 type SecondarySpSignDoc struct {
 	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	Checksum  []byte `protobuf:"bytes,2,opt,name=checksum,proto3" json:"checksum,omitempty"`

@@ -26,6 +26,11 @@ service Query {
   rpc StorageProviders(QueryStorageProvidersRequest) returns (QueryStorageProvidersResponse) {
     option (google.api.http).get = "/greenfield/sp/storage_providers";
   }
+
+  // Queries a storage provider with specify address
+  rpc StorageProvider(QueryStorageProviderRequest) returns (QueryStorageProviderResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/sp/storage_provider/{spAddress}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -45,6 +50,15 @@ message QueryStorageProvidersRequest {
 
 message QueryStorageProvidersResponse {
   repeated StorageProvider sps = 1 [(gogoproto.nullable) = false];
+
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryStorageProviderRequest {
+  string spAddress = 1;
+}
+
+message QueryStorageProviderResponse {
+  StorageProvider storageProvider = 1;
 }
