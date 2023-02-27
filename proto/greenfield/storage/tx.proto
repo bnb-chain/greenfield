@@ -82,8 +82,10 @@ message MsgCreateObject {
   Approval primary_sp_approval = 7;
   // expect_checksums is a list of hashes which was generate by redundancy algorithm.
   repeated bytes expect_checksums = 8;
+  // redundancy_type can be ec or replica
+  RedundancyType redundancy_type = 9;
   // expect_secondarySPs is a list of StorageProvider address, which is optional
-  repeated string expect_secondary_sp_addresses = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string expect_secondary_sp_addresses = 10 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message MsgCreateObjectResponse {}

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store"
+	sdkstore "github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/assert"
@@ -35,7 +35,7 @@ func NewMockContext() *MockContext {
 	db := dbm.NewMemDB()
 	return &MockContext{
 		db:    dbm.NewMemDB(),
-		store: store.NewCommitMultiStore(db),
+		store: sdkstore.NewCommitMultiStore(db),
 	}
 }
 

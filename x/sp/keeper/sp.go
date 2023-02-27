@@ -6,6 +6,21 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
+func (k Keeper) CheckIfValidStorageProvider(ctx sdk.Context, addr sdk.AccAddress) error {
+	store := ctx.KVStore(k.storeKey)
+
+	value := store.Get(types.GetStorageProviderKey(addr))
+	if value == nil {
+		return types.ErrStorageProviderNotFound
+	}
+
+	sp := types.MustUnmarshalStorageProvider(k.cdc, value)
+	if sp.Status != types.STATUS_IN_SERVICE {
+		return types.ErrStorageProviderNotInService
+	}
+	return nil
+}
+
 func (k Keeper) GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 

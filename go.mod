@@ -4,7 +4,6 @@ go 1.18
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
-	cosmossdk.io/math v1.0.0-beta.3
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
 	github.com/cosmos/cosmos-sdk v0.46.4
 	github.com/cosmos/ibc-go/v5 v5.0.0
@@ -29,6 +28,7 @@ require (
 require golang.org/x/text v0.7.0 // indirect
 
 require (
+	cosmossdk.io/math v1.0.0-beta.3
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.6
 	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
@@ -228,8 +228,9 @@ require (
 )
 
 replace (
+	cosmossdk.io/math => github.com/bnb-chain/gnfd-cosmos-sdk/math v0.0.0-20230227041659-42c3a8e748d8
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/gnfd-cosmos-sdk v0.0.7
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/gnfd-cosmos-sdk v0.0.2-0.20230227041659-42c3a8e748d8
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/tendermint/tendermint => github.com/bnb-chain/gnfd-tendermint v0.0.2
 )
