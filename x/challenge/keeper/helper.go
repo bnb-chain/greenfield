@@ -38,6 +38,16 @@ func RandomObjectKey(seed []byte) []byte {
 	return append(bucketKey, objectKey...)
 }
 
+// RandomObjectId generates a random object id for challenge.
+// Be noted: id starts from 1.
+func RandomObjectId(seed []byte, objectCount uint64) uint64 {
+	number := new(big.Int)
+	number.SetBytes(sdk.Keccak256(seed))
+	number = big.NewInt(0).Abs(number)
+	id := big.NewInt(0).Mod(number, big.NewInt(int64(objectCount)))
+	return id.Uint64() + 1
+}
+
 // CalculateSegments calculates the number of segments for the payload size.
 func CalculateSegments(payloadSize, segmentSize uint64) uint64 {
 	segments := payloadSize / segmentSize
@@ -58,10 +68,11 @@ func RandomSegmentIndex(seed []byte, segments uint64) uint32 {
 }
 
 // RandomRedundancyIndex generates a random redundancy index (storage provider) for challenge.
+// Be noted: RedundancyIndex starts from -1 (the primary sp).
 func RandomRedundancyIndex(seed []byte, sps uint64) int32 {
 	number := new(big.Int)
 	number.SetBytes(sdk.Keccak256(seed)[32:])
 	number = big.NewInt(0).Abs(number)
 	index := big.NewInt(0).Mod(number, big.NewInt(int64(sps)))
-	return int32(index.Uint64())
+	return int32(index.Uint64()) - 1
 }

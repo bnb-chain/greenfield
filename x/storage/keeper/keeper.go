@@ -146,6 +146,13 @@ func (k Keeper) GetObjectID(ctx sdk.Context) math.Uint {
 	return seq
 }
 
+func (k Keeper) GetObjectCount(ctx sdk.Context) math.Uint {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.objectSeq.CurVal(store)
+	return seq
+}
+
 func (k Keeper) GetGroupId(ctx sdk.Context) math.Uint {
 	store := ctx.KVStore(k.storeKey)
 
@@ -224,30 +231,14 @@ func (k Keeper) DeleteObject(ctx sdk.Context, bucketName string, objectName stri
 
 func (k Keeper) GetObjectById(ctx sdk.Context, objectId uint64) (objectInfo types.ObjectInfo, found bool) {
 	//TODO: implement me, current is faked for test
-	return k.GetObjectAfterKey(ctx, nil)
-}
-
-func (k Keeper) GetObjectAfterKey(ctx sdk.Context, objectKey []byte) (objectInfo types.ObjectInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
-
-	// iterate after the key
-	iterator := objectStore.Iterator(objectKey, nil)
+	iterator := objectStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		k.cdc.MustUnmarshal(iterator.Value(), &objectInfo)
 		return objectInfo, true
 	}
-
-	// if not found, iterate from the beginning
-	iterator = objectStore.Iterator(nil, nil)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		k.cdc.MustUnmarshal(iterator.Value(), &objectInfo)
-		return objectInfo, true
-	}
-
-	// no object info yet
 	return objectInfo, false
 }
 

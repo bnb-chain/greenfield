@@ -43,8 +43,12 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		seed := k.SeedFromRandaoMix(ctx.BlockHeader().RandaoMix, iteration)
 
 		// random object info
-		objectKey := k.RandomObjectKey(seed)
-		objectInfo, found := keeper.StorageKeeper.GetObjectAfterKey(ctx, objectKey)
+		objectCount := keeper.StorageKeeper.GetObjectCount(ctx)
+		if objectCount.IsZero() {
+			return
+		}
+		objectId := k.RandomObjectId(seed, objectCount.Uint64())
+		objectInfo, found := keeper.StorageKeeper.GetObjectById(ctx, objectId)
 		if !found { // there is no object info yet, cannot generate challenges
 			return
 		}
@@ -63,8 +67,6 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(secondarySpAddresses)+1))
-		redundancyIndex--
-
 		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
 			spOperatorAddress = bucket.PrimarySpAddress
 		} else {
