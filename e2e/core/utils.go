@@ -48,7 +48,7 @@ var mtx sync.Mutex
 func randString(n int) string {
 	mtx.Lock()
 	src := rand.NewSource(time.Now().UnixNano())
-	time.Sleep(2 * time.Nanosecond)
+	time.Sleep(1 * time.Millisecond)
 	mtx.Unlock()
 
 	b := make([]byte, n)

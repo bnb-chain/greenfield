@@ -40,7 +40,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	var err error
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	bucketName := core.GenRandomBucketName()
+	bucketName := "ch" + core.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
