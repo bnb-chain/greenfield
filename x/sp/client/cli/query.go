@@ -22,13 +22,15 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdGetStorageProviders())
+	cmd.AddCommand(CmdStorageProviders())
+	cmd.AddCommand(CmdStorageProvider())
+
 	// this line is used by starport scaffolding # 1
 
 	return cmd
 }
 
-func CmdGetStorageProviders() *cobra.Command {
+func CmdStorageProviders() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "storage-providers",
 		Short: "Query StorageProviders",
@@ -45,6 +47,40 @@ func CmdGetStorageProviders() *cobra.Command {
 			params := &types.QueryStorageProvidersRequest{}
 
 			res, err := queryClient.StorageProviders(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdStorageProvider() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "storage-provider [sp-address]",
+		Short: "Query storage-provider with specify address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqSpAddress := args[0]
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryStorageProviderRequest{
+
+				SpAddress: reqSpAddress,
+			}
+
+			res, err := queryClient.StorageProvider(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
