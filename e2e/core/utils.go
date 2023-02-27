@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -42,9 +43,14 @@ func GenRandomKeyManager() keys.KeyManager {
 	return keyManager
 }
 
-var src = rand.NewSource(time.Now().UnixNano())
+var mtx sync.Mutex
 
 func randString(n int) string {
+	mtx.Lock()
+	src := rand.NewSource(time.Now().UnixNano())
+	time.Sleep(2 * time.Nanosecond)
+	mtx.Unlock()
+
 	b := make([]byte, n)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
 	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
