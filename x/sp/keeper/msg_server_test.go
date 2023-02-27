@@ -36,8 +36,8 @@ func TestKeeper(t *testing.T) {
 	require.EqualValues(t, found, true)
 }
 
-// This function tests GetStorageProvider, GetStorageProviderByFundingAddr,
-//  GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr
+// TestStorageProviderBasics tests GetStorageProvider, GetStorageProviderByFundingAddr,
+// GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr
 func TestStorageProviderBasics(t *testing.T) {
 	k, ctx := keepertest.SpKeeper(t)
 
@@ -61,28 +61,28 @@ func TestStorageProviderBasics(t *testing.T) {
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+	_, found := k.GetStorageProvider(ctx, spAcc)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(t, found, true)
 
 	k.SetStorageProviderByFundingAddr(ctx, sp)
-	sp, found = k.GetStorageProviderByFundingAddr(ctx, fundingAcc)
+	_, found = k.GetStorageProviderByFundingAddr(ctx, fundingAcc)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(t, found, true)
 
 	k.SetStorageProviderBySealAddr(ctx, sp)
-	sp, found = k.GetStorageProviderBySealAddr(ctx, sealAcc)
+	_, found = k.GetStorageProviderBySealAddr(ctx, sealAcc)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(t, found, true)
 
 	k.SetStorageProviderByApprovalAddr(ctx, sp)
-	sp, found = k.GetStorageProviderByApprovalAddr(ctx, approvalAcc)
+	_, found = k.GetStorageProviderByApprovalAddr(ctx, approvalAcc)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}

@@ -52,6 +52,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	now := time.Now().Add(24 * time.Hour)
 	grantMsg, err := authz.NewMsgGrant(
 		s.StorageProvider.OperatorKey.GetAddr(), govAddr, authorization, &now)
+	s.Require().NoError(err)
 	s.SendTxBlock(grantMsg, s.StorageProvider.OperatorKey)
 
 	// 3. submit CreateStorageProvider proposal
@@ -98,6 +99,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
 	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
+	s.Require().NoError(err)
 
 	// 6. wait a voting period and confirm that the proposal success.
 	s.T().Logf("voting period %s", *queryVoteParamsResp.VotingParams.VotingPeriod)
@@ -114,10 +116,10 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	}
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	s.Require().Equal(querySPResp.StorageProvider.OperatorAddress, s.StorageProvider.OperatorKey.GetAddr())
-	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, s.StorageProvider.FundingKey.GetAddr())
-	s.Require().Equal(querySPResp.StorageProvider.SealAddress, s.StorageProvider.SealKey.GetAddr())
-	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, s.StorageProvider.ApprovalKey.GetAddr())
+	s.Require().Equal(querySPResp.StorageProvider.OperatorAddress, s.StorageProvider.OperatorKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, s.StorageProvider.FundingKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.SealAddress, s.StorageProvider.SealKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, s.StorageProvider.ApprovalKey.GetAddr().String())
 	s.Require().Equal(querySPResp.StorageProvider.Endpoint, "sp0.greenfield.io")
 }
 
