@@ -64,10 +64,10 @@ func randString(n int) string {
 
 // GenRandomObjectName generate random object name.
 func GenRandomObjectName() string {
-	return randString(10)
+	return randString(20)
 }
 
 // GenRandomBucketName generate random bucket name.
 func GenRandomBucketName() string {
-	return randString(5)
+	return randString(10)
 }
