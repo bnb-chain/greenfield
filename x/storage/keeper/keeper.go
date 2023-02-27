@@ -68,25 +68,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-type CreateBucketOptions struct {
-	IsPublic          bool
-	SourceType        types.SourceType
-	ReadQuota         types.ReadQuota
-	PaymentAddress    string
-	PrimarySpApproval *types.Approval
-	ApprovalMsgBytes  []byte
-}
-
-type DeleteBucketOptions struct {
-	SourceType types.SourceType
-}
-
-type UpdateBucketOptions struct {
-	SourceType     types.SourceType
-	ReadQuota      types.ReadQuota
-	PaymentAddress string
-}
-
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
 	primarySpAddress string, opts CreateBucketOptions) (math.Uint, error) {
@@ -271,17 +252,6 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId math.Uint) (bucketIn
 	k.cdc.MustUnmarshal(bz, &bucketInfo)
 
 	return bucketInfo, true
-}
-
-type CreateObjectOptions struct {
-	IsPublic             bool
-	ContentType          string
-	SourceType           types.SourceType
-	RedundancyType       types.RedundancyType
-	Checksums            [][]byte
-	SecondarySpAddresses []string
-	PrimarySpApproval    *types.Approval
-	ApprovalMsgBytes     []byte
 }
 
 func (k Keeper) CreateObject(
@@ -485,10 +455,6 @@ func (k Keeper) SealObject(
 	return nil
 }
 
-type CancelCreateObjectOptions struct {
-	SourceType types.SourceType
-}
-
 func (k Keeper) CancelCreateObject(
 	ctx sdk.Context, ownAcc sdk.AccAddress,
 	bucketName, objectName string, opts CancelCreateObjectOptions) error {
@@ -536,10 +502,6 @@ func (k Keeper) CancelCreateObject(
 		return err
 	}
 	return nil
-}
-
-type DeleteObjectOptions struct {
-	SourceType types.SourceType
 }
 
 func (k Keeper) DeleteObject(
@@ -591,13 +553,6 @@ func (k Keeper) DeleteObject(
 		return err
 	}
 	return nil
-}
-
-type CopyObjectOptions struct {
-	SourceType        types.SourceType
-	IsPublic          bool
-	PrimarySpApproval *types.Approval
-	ApprovalMsgBytes  []byte
 }
 
 func (k Keeper) CopyObject(
@@ -729,11 +684,6 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	return nil
 }
 
-type CreateGroupOptions struct {
-	Members    []string
-	SourceType types.SourceType
-}
-
 func (k Keeper) CreateGroup(
 	ctx sdk.Context, owner sdk.AccAddress,
 	groupName string, opts CreateGroupOptions) (math.Uint, error) {
@@ -827,10 +777,6 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName
 	return nil
 }
 
-type LeaveGroupOptions struct {
-	types.SourceType
-}
-
 func (k Keeper) LeaveGroup(
 	ctx sdk.Context, member sdk.AccAddress, owner sdk.AccAddress,
 	groupName string, opts LeaveGroupOptions) error {
@@ -855,12 +801,6 @@ func (k Keeper) LeaveGroup(
 		return err
 	}
 	return nil
-}
-
-type UpdateGroupMemberOptions struct {
-	SourceType      types.SourceType
-	MembersToAdd    []string
-	MembersToDelete []string
 }
 
 func (k Keeper) UpdateGroupMember(ctx sdk.Context, owner sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
