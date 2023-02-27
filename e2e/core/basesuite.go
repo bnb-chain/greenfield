@@ -57,6 +57,9 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
 	s.T().Logf("tx_hash: %s", response.TxResponse.TxHash)
+	//msgJson, err := json.Marshal(msg)
+	//s.Require().NoError(err)
+	//s.T().Logf("tx_hash: %s, msg: %s", response.TxResponse.TxHash, msgJson)
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
 	return response.TxResponse
 }

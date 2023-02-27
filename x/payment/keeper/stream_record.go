@@ -180,34 +180,34 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 }
 
 func (k Keeper) AutoSettle(ctx sdk.Context) {
-	currentTimestamp := ctx.BlockTime().Unix()
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
-
-	defer iterator.Close()
-
-	var num uint64 = 0
-	maxNum := k.GetParams(ctx).MaxAutoForceSettleNum
-	for ; iterator.Valid(); iterator.Next() {
-		if num >= maxNum {
-			return
-		}
-		val := types.ParseAutoSettleRecordKey(iterator.Key())
-		if val.Timestamp > currentTimestamp {
-			return
-		}
-		streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
-		if !found {
-			ctx.Logger().Error("stream record not found", "addr", val.Addr)
-			panic("stream record not found")
-		}
-		change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
-		err := k.UpdateStreamRecord(ctx, &streamRecord, change)
-		if err != nil {
-			ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
-			panic("force settle failed")
-		}
-		num += 1
-	}
-
+	//currentTimestamp := ctx.BlockTime().Unix()
+	//store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
+	//iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	//
+	//defer iterator.Close()
+	//
+	//var num uint64 = 0
+	//maxNum := k.GetParams(ctx).MaxAutoForceSettleNum
+	//for ; iterator.Valid(); iterator.Next() {
+	//	if num >= maxNum {
+	//		return
+	//	}
+	//	val := types.ParseAutoSettleRecordKey(iterator.Key())
+	//	if val.Timestamp > currentTimestamp {
+	//		return
+	//	}
+	//	streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
+	//	if !found {
+	//		ctx.Logger().Error("stream record not found", "addr", val.Addr)
+	//		panic("stream record not found")
+	//	}
+	//	change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
+	//	err := k.UpdateStreamRecord(ctx, &streamRecord, change)
+	//	if err != nil {
+	//		ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
+	//		panic("force settle failed")
+	//	}
+	//	num += 1
+	//}
+	//
 }

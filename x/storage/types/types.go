@@ -4,6 +4,12 @@ import (
 	sdkmath "cosmossdk.io/math"
 )
 
+const (
+	SecondarySPNum = 6
+	// MinChargeSize is the minimum size to charge for a storage object
+	MinChargeSize = 1024
+)
+
 // Type aliases to the SDK's math sub-module
 //
 // Deprecated: Functionality of this package has been moved to it's own module:

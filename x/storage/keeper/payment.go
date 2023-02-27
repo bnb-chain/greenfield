@@ -3,40 +3,22 @@ package keeper
 import (
 	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
-	currentTime := ctx.BlockTime().Unix()
-	price, err := k.paymentKeeper.GetReadPrice(ctx, bucketInfo.PrimarySpAddress, bucketInfo.ReadQuota, currentTime)
+	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
+	if bucketInfo.ReadQuota == 0 {
+		return nil
+	}
+	bill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("get read price failed: %w", err)
+		return fmt.Errorf("get bucket bill failed: %w", err)
 	}
-	flowChanges := []types.OutFlow{
-		{ToAddress: bucketInfo.PrimarySpAddress, Rate: price},
-	}
-	return k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
-}
-
-func (k Keeper) ChargeUpdateReadQuota(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newReadPacket uint64) error {
-	prevPrice, err := k.paymentKeeper.GetReadPrice(ctx, bucketInfo.PaymentAddress, bucketInfo.ReadQuota, bucketInfo.PaymentPriceTime)
-	if err != nil {
-		return fmt.Errorf("get prev read price failed: %w", err)
-	}
-	newPrice, err := k.paymentKeeper.GetReadPrice(ctx, bucketInfo.PaymentAddress, newReadPacket, ctx.BlockTime().Unix())
-	if err != nil {
-		return fmt.Errorf("get new read price failed: %w", err)
-	}
-	flowChanges := []types.OutFlow{
-		{ToAddress: bucketInfo.PrimarySpAddress, Rate: newPrice.Sub(prevPrice)},
-	}
-	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, flowChanges)
-	if err != nil {
-		return fmt.Errorf("apply usd flow changes failed: %w", err)
-	}
-	return nil
+	return k.paymentKeeper.ApplyFlowChanges(ctx, bill.From, bill.Flows)
 }
 
 func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.Int) (sdkmath.Int, error) {
@@ -54,21 +36,42 @@ func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.In
 }
 
 func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	feePrice, err := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
+		PrimarySp: bucketInfo.PrimarySpAddress,
+		PriceTime: ctx.BlockTime().Unix(),
+	})
 	if err != nil {
 		return fmt.Errorf("get store price failed: %w", err)
 	}
-	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketInfo.PaymentAddress, feePrice.UserPayRate)
+	size := sdkmath.NewIntFromUint64(objectInfo.ChargeSize)
+	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(size).TruncateInt()
+	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketInfo.PaymentAddress, rate)
 	if err != nil {
 		return fmt.Errorf("lock store fee by rate failed: %w", err)
 	}
-	objectInfo.LockedBalance = &lockedBalance
+	bucketInfo.BillingInfo.ObjectsLockedBalance = append(bucketInfo.BillingInfo.ObjectsLockedBalance, storagetypes.ObjectLockedBalance{
+		ObjectId:      objectInfo.Id,
+		LockedBalance: lockedBalance,
+	})
 	return nil
 }
 
 // UnlockStoreFee unlock store fee if the object is deleted in INIT state
 func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	lockedBalance := objectInfo.LockedBalance
+	var lockedBalance sdkmath.Int
+	found := false
+	for i, v := range bucketInfo.BillingInfo.ObjectsLockedBalance {
+		if v.ObjectId == objectInfo.Id {
+			lockedBalance = v.LockedBalance
+			bucketInfo.BillingInfo.ObjectsLockedBalance[i] = bucketInfo.BillingInfo.ObjectsLockedBalance[len(bucketInfo.BillingInfo.ObjectsLockedBalance)-1]
+			found = true
+			break
+		}
+	}
+	if !found {
+		return fmt.Errorf("object locked balance not found")
+	}
+	bucketInfo.BillingInfo.ObjectsLockedBalance = bucketInfo.BillingInfo.ObjectsLockedBalance[:len(bucketInfo.BillingInfo.ObjectsLockedBalance)-1]
 	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(lockedBalance.Neg())
 	_, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
@@ -78,75 +81,105 @@ func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 }
 
 func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	// todo: what if store payment account is changed before unlock?
-	feePrice, err := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	prevBill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("get store price failed: %w", err)
+		return fmt.Errorf("get bucket bill failed: %w", err)
 	}
 	err = k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
-	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, feePrice.Flows)
+	// change bucket billing info
+	bucketInfo.BillingInfo.TotalChargeSize += objectInfo.ChargeSize
+	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
+	for _, sp := range objectInfo.SecondarySpAddresses {
+		bucketInfo.BillingInfo.SecondarySpObjectsSize = AddSecondarySpObjectsSize(bucketInfo.BillingInfo.SecondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
+			SpAddress:       sp,
+			TotalChargeSize: objectInfo.ChargeSize,
+		})
+	}
+	// calculate new bill and charge
+	newBill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("apply usd flow changes failed: %w", err)
+		return fmt.Errorf("get new bucket bill failed: %w", err)
+	}
+	err = k.ChargeAccordingToBillChange(ctx, prevBill, newBill)
+	if err != nil {
+		return fmt.Errorf("charge according to bill change failed: %w", err)
 	}
 	return nil
 }
 
-func (k Keeper) ChargeUpdatePaymentAccount(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, paymentAddress *string) error {
-	if paymentAddress != nil {
-		// update old read payment account
-		prevReadPrice, err := k.paymentKeeper.GetReadPrice(ctx, bucketInfo.PaymentAddress, bucketInfo.ReadQuota, bucketInfo.PaymentPriceTime)
-		if err != nil {
-			return fmt.Errorf("get prev read price failed: %w", err)
-		}
-		err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, []types.OutFlow{
-			{ToAddress: bucketInfo.PrimarySpAddress, Rate: prevReadPrice.Neg()},
+func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
+	userFlows.From = bucketInfo.PaymentAddress
+	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
+		PrimarySp: bucketInfo.PrimarySpAddress,
+		PriceTime: bucketInfo.BillingInfo.PriceTime,
+	})
+	if err != nil {
+		return userFlows, fmt.Errorf("get storage price failed: %w", err)
+	}
+	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ReadQuota)).TruncateInt()
+	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
+	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
+	if primarySpRate.IsPositive() {
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: bucketInfo.PrimarySpAddress,
+			Rate:      primarySpRate,
 		})
-		if err != nil {
-			return fmt.Errorf("apply prev read payment account usd flow changes failed: %w", err)
+	}
+	for _, spObjectsSize := range bucketInfo.BillingInfo.SecondarySpObjectsSize {
+		rate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(spObjectsSize.TotalChargeSize)).TruncateInt()
+		if rate.IsZero() {
+			continue
 		}
-		// update new read payment account
-		currentReadPrice, err := k.paymentKeeper.GetReadPrice(ctx, bucketInfo.PaymentAddress, bucketInfo.ReadQuota, ctx.BlockTime().Unix())
-		if err != nil {
-			return fmt.Errorf("get current read price failed: %w", err)
-		}
-		err = k.paymentKeeper.ApplyFlowChanges(ctx, *paymentAddress, []types.OutFlow{
-			{ToAddress: bucketInfo.PrimarySpAddress, Rate: currentReadPrice},
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: spObjectsSize.SpAddress,
+			Rate:      rate,
 		})
-		if err != nil {
-			return fmt.Errorf("apply current read payment account usd flow changes failed: %w", err)
-		}
-		// update bucket meta
-		bucketInfo.PaymentAddress = *paymentAddress
-		bucketInfo.PaymentPriceTime = ctx.BlockTime().Unix()
+	}
+	return userFlows, nil
+}
 
-		//// update old store
-		//flows := bucketInfo.PaymentOutFlows
-		//negFlows := GetNegFlows(flows)
-		//err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
-		//if err != nil {
-		//	return fmt.Errorf("apply prev store payment account usd flow changes failed: %w", err)
-		//}
-		//err = k.ApplyFlowChanges(ctx, *paymentAddress, flows)
-		//if err != nil {
-		//	return fmt.Errorf("apply current store payment account usd flow changes failed: %w", err)
-		//}
-		//bucketInfo.PaymentAddress = *paymentAddress
+func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prev, current types.UserFlows) error {
+	prev.Flows = GetNegFlows(prev.Flows)
+	if prev.From == current.From {
+		flowChanges := keeper.MergeOutFlows(&prev.Flows, current.Flows)
+		err := k.paymentKeeper.ApplyFlowChanges(ctx, prev.From, flowChanges)
+		if err != nil {
+			return fmt.Errorf("apply flow changes failed: %w", err)
+		}
+	} else {
+		err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prev, current})
+		if err != nil {
+			return fmt.Errorf("apply user flows list failed: %w", err)
+		}
 	}
 	return nil
 }
 
 func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	feePrice, err := k.paymentKeeper.GetStorePrice(ctx, bucketInfo, objectInfo)
+	prevBill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("get store price failed: %w", err)
+		return fmt.Errorf("get bucket bill failed: %w", err)
 	}
-	negFlows := GetNegFlows(feePrice.Flows)
-	err = k.paymentKeeper.ApplyFlowChanges(ctx, bucketInfo.PaymentAddress, negFlows)
+	// change bucket billing info
+	bucketInfo.BillingInfo.TotalChargeSize -= objectInfo.ChargeSize
+	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
+	for _, sp := range objectInfo.SecondarySpAddresses {
+		bucketInfo.BillingInfo.SecondarySpObjectsSize = AddSecondarySpObjectsSize(bucketInfo.BillingInfo.SecondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
+			SpAddress:       sp,
+			TotalChargeSize: -objectInfo.ChargeSize,
+		})
+	}
+	// calculate new bill and charge
+	newBill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("apply usd flow changes failed: %w", err)
+		return fmt.Errorf("get new bucket bill failed: %w", err)
+	}
+	err = k.ChargeAccordingToBillChange(ctx, prevBill, newBill)
+	if err != nil {
+		return fmt.Errorf("charge according to bill change failed: %w", err)
 	}
 	return nil
 }
@@ -157,4 +190,19 @@ func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 		negFlows[i] = types.OutFlow{ToAddress: flow.ToAddress, Rate: flow.Rate.Neg()}
 	}
 	return negFlows
+}
+
+func AddSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, new storagetypes.SecondarySpObjectsSize) []storagetypes.SecondarySpObjectsSize {
+	found := false
+	for i, spObjectsSize := range prev {
+		if spObjectsSize.SpAddress == new.SpAddress {
+			prev[i].TotalChargeSize += new.TotalChargeSize
+			found = true
+			break
+		}
+	}
+	if !found {
+		prev = append(prev, new)
+	}
+	return prev
 }

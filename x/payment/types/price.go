@@ -2,6 +2,7 @@ package types
 
 import (
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type StreamRecordChange struct {
@@ -35,9 +36,20 @@ func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmat
 	return change
 }
 
-type StorePrice struct {
-	UserPayRate sdkmath.Int
-	Flows       []OutFlow
+type StoragePriceParams struct {
+	PrimarySp string
+	PriceTime int64
+}
+
+type StoragePrice struct {
+	ReadPrice           sdk.Dec
+	PrimaryStorePrice   sdk.Dec
+	SecondaryStorePrice sdk.Dec
+}
+
+type UserFlows struct {
+	From  string
+	Flows []OutFlow
 }
 
 type BNBPrice struct {

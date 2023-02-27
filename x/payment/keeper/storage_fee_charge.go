@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -46,15 +45,51 @@ func (k Keeper) ApplyFlowChanges(ctx sdk.Context, from string, flowChanges []typ
 	}
 	var streamRecordChanges []types.StreamRecordChange
 	// calculate rate changes in flowChanges
+	totalRate := sdk.ZeroInt()
 	for _, flowChange := range flowChanges {
-		k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
-			*types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(flowChange.Rate.Neg()),
-			*types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate),
-		})
+		totalRate = totalRate.Add(flowChange.Rate)
+		streamRecordChanges = append(streamRecordChanges, *types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate))
 	}
 	// update flows
 	MergeOutFlows(&streamRecord.OutFlows, flowChanges)
-	k.SetStreamRecord(ctx, streamRecord)
+	streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
+	err = k.UpdateStreamRecord(ctx, &streamRecord, streamRecordChange)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes for user failed: %w", err)
+	}
+	err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes for SPs failed: %w", err)
+	}
+	return nil
+}
+
+func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFlows) (err error) {
+	currentTime := ctx.BlockTime().Unix()
+	var streamRecordChanges []types.StreamRecordChange
+	for _, userFlows := range userFlowsList {
+		from := userFlows.From
+		streamRecord, found := k.GetStreamRecord(ctx, from)
+		if !found {
+			streamRecord = types.NewStreamRecord(from, currentTime)
+		}
+		// calculate rate changes in flowChanges
+		totalRate := sdk.ZeroInt()
+		for _, flowChange := range userFlows.Flows {
+			k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
+				*types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate),
+			})
+			totalRate = totalRate.Add(flowChange.Rate)
+		}
+		// update flows
+		MergeOutFlows(&streamRecord.OutFlows, userFlows.Flows)
+		streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
+		err = k.UpdateStreamRecord(ctx, &streamRecord, streamRecordChange)
+		if err != nil {
+			return fmt.Errorf("apply stream record changes for user failed: %w", err)
+		}
+		k.SetStreamRecord(ctx, streamRecord)
+	}
 	err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
 	if err != nil {
 		return fmt.Errorf("apply stream record changes failed: %w", err)

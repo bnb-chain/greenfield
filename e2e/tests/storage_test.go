@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"math"
 	"testing"
 
@@ -155,6 +156,32 @@ func (s *StorageTestSuite) TestCreateObject() {
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	s.SendTxBlock(msgDeleteBucket, user)
+}
+
+func (s *StorageTestSuite) TestCharge() {
+	ctx := context.Background()
+	var err error
+	// create bucket
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := core.GenRandomBucketName()
+	bucketReadQuota := uint64(1000)
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil)
+	msgCreateBucket.ReadQuota = bucketReadQuota
+	msgCreateBucket.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user)
+	// query user payment address
+	userPaymentAccount, err := s.Client.StreamRecord(ctx, &paymenttypes.QueryGetStreamRecordRequest{
+		Account: user.GetAddr().String(),
+	})
+	s.Require().NoError(err)
+	s.T().Logf("user payment account %s", userPaymentAccount)
+	// create object
+	// seal object
+	// change payment account
+	// auto force settle
 }
 
 func TestStorageTestSuite(t *testing.T) {

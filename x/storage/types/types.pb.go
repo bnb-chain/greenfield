@@ -46,10 +46,8 @@ type BucketInfo struct {
 	PrimarySpAddress string `protobuf:"bytes,8,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
 	// read_quota defines the traffic quota for read in bytes per month
 	ReadQuota uint64 `protobuf:"varint,9,opt,name=read_quota,json=readQuota,proto3" json:"read_quota,omitempty"`
-	// the time of the payment price, used to calculate the charge rate of the bucket
-	PaymentPriceTime int64 `protobuf:"varint,10,opt,name=payment_price_time,json=paymentPriceTime,proto3" json:"payment_price_time,omitempty"`
-	// the total size of the objects in the bucket, used to calculate the charge rate of the bucket
-	TotalChargeSize uint64 `protobuf:"varint,11,opt,name=total_charge_size,json=totalChargeSize,proto3" json:"total_charge_size,omitempty"`
+	// billing info of the bucket
+	BillingInfo BillingInfo `protobuf:"bytes,10,opt,name=billing_info,json=billingInfo,proto3" json:"billing_info"`
 }
 
 func (m *BucketInfo) Reset()         { *m = BucketInfo{} }
@@ -141,19 +139,180 @@ func (m *BucketInfo) GetReadQuota() uint64 {
 	return 0
 }
 
-func (m *BucketInfo) GetPaymentPriceTime() int64 {
+func (m *BucketInfo) GetBillingInfo() BillingInfo {
 	if m != nil {
-		return m.PaymentPriceTime
+		return m.BillingInfo
+	}
+	return BillingInfo{}
+}
+
+// BillingInfo is the billing information of the bucket
+type BillingInfo struct {
+	// the time of the payment price, used to calculate the charge rate of the bucket
+	PriceTime int64 `protobuf:"varint,1,opt,name=price_time,json=priceTime,proto3" json:"price_time,omitempty"`
+	// the total size of the objects in the bucket, used to calculate the charge rate of the bucket
+	TotalChargeSize uint64 `protobuf:"varint,2,opt,name=total_charge_size,json=totalChargeSize,proto3" json:"total_charge_size,omitempty"`
+	// locked balance of the objects in the bucket
+	ObjectsLockedBalance []ObjectLockedBalance `protobuf:"bytes,3,rep,name=objects_locked_balance,json=objectsLockedBalance,proto3" json:"objects_locked_balance"`
+	// secondary sp objects size statistics
+	SecondarySpObjectsSize []SecondarySpObjectsSize `protobuf:"bytes,4,rep,name=secondary_sp_objects_size,json=secondarySpObjectsSize,proto3" json:"secondary_sp_objects_size"`
+}
+
+func (m *BillingInfo) Reset()         { *m = BillingInfo{} }
+func (m *BillingInfo) String() string { return proto.CompactTextString(m) }
+func (*BillingInfo) ProtoMessage()    {}
+func (*BillingInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bf95fa2efdc74d97, []int{1}
+}
+func (m *BillingInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *BillingInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_BillingInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *BillingInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BillingInfo.Merge(m, src)
+}
+func (m *BillingInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *BillingInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_BillingInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_BillingInfo proto.InternalMessageInfo
+
+func (m *BillingInfo) GetPriceTime() int64 {
+	if m != nil {
+		return m.PriceTime
 	}
 	return 0
 }
 
-func (m *BucketInfo) GetTotalChargeSize() uint64 {
+func (m *BillingInfo) GetTotalChargeSize() uint64 {
 	if m != nil {
 		return m.TotalChargeSize
 	}
 	return 0
 }
+
+func (m *BillingInfo) GetObjectsLockedBalance() []ObjectLockedBalance {
+	if m != nil {
+		return m.ObjectsLockedBalance
+	}
+	return nil
+}
+
+func (m *BillingInfo) GetSecondarySpObjectsSize() []SecondarySpObjectsSize {
+	if m != nil {
+		return m.SecondarySpObjectsSize
+	}
+	return nil
+}
+
+// secondary sp objects size statistics
+type SecondarySpObjectsSize struct {
+	// address is the address of the secondary sp
+	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// size is the total size of the objects in the secondary sp
+	TotalChargeSize uint64 `protobuf:"varint,2,opt,name=total_charge_size,json=totalChargeSize,proto3" json:"total_charge_size,omitempty"`
+}
+
+func (m *SecondarySpObjectsSize) Reset()         { *m = SecondarySpObjectsSize{} }
+func (m *SecondarySpObjectsSize) String() string { return proto.CompactTextString(m) }
+func (*SecondarySpObjectsSize) ProtoMessage()    {}
+func (*SecondarySpObjectsSize) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bf95fa2efdc74d97, []int{2}
+}
+func (m *SecondarySpObjectsSize) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SecondarySpObjectsSize) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SecondarySpObjectsSize.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SecondarySpObjectsSize) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SecondarySpObjectsSize.Merge(m, src)
+}
+func (m *SecondarySpObjectsSize) XXX_Size() int {
+	return m.Size()
+}
+func (m *SecondarySpObjectsSize) XXX_DiscardUnknown() {
+	xxx_messageInfo_SecondarySpObjectsSize.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SecondarySpObjectsSize proto.InternalMessageInfo
+
+func (m *SecondarySpObjectsSize) GetSpAddress() string {
+	if m != nil {
+		return m.SpAddress
+	}
+	return ""
+}
+
+func (m *SecondarySpObjectsSize) GetTotalChargeSize() uint64 {
+	if m != nil {
+		return m.TotalChargeSize
+	}
+	return 0
+}
+
+type ObjectLockedBalance struct {
+	// id is the unique identifier of object
+	ObjectId Uint `protobuf:"bytes,1,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
+	// locked_balance is the locked balance of the object
+	LockedBalance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=locked_balance,json=lockedBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"locked_balance"`
+}
+
+func (m *ObjectLockedBalance) Reset()         { *m = ObjectLockedBalance{} }
+func (m *ObjectLockedBalance) String() string { return proto.CompactTextString(m) }
+func (*ObjectLockedBalance) ProtoMessage()    {}
+func (*ObjectLockedBalance) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bf95fa2efdc74d97, []int{3}
+}
+func (m *ObjectLockedBalance) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ObjectLockedBalance) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ObjectLockedBalance.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ObjectLockedBalance) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ObjectLockedBalance.Merge(m, src)
+}
+func (m *ObjectLockedBalance) XXX_Size() int {
+	return m.Size()
+}
+func (m *ObjectLockedBalance) XXX_DiscardUnknown() {
+	xxx_messageInfo_ObjectLockedBalance.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ObjectLockedBalance proto.InternalMessageInfo
 
 type ObjectInfo struct {
 	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
@@ -181,17 +340,15 @@ type ObjectInfo struct {
 	Checksums [][]byte `protobuf:"bytes,12,rep,name=checksums,proto3" json:"checksums,omitempty"`
 	// secondary_sp_addresses define the addresses of secondary_sps
 	SecondarySpAddresses []string `protobuf:"bytes,13,rep,name=secondary_sp_addresses,json=secondarySpAddresses,proto3" json:"secondary_sp_addresses,omitempty"`
-	// lockedBalance
-	LockedBalance *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,14,opt,name=lockedBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"lockedBalance,omitempty"`
 	// the size of the object which is charged, e.g. objects whose size is less than 1MB will be charged as 1MB
-	ChargeSize uint64 `protobuf:"varint,15,opt,name=charge_size,json=chargeSize,proto3" json:"charge_size,omitempty"`
+	ChargeSize uint64 `protobuf:"varint,14,opt,name=charge_size,json=chargeSize,proto3" json:"charge_size,omitempty"`
 }
 
 func (m *ObjectInfo) Reset()         { *m = ObjectInfo{} }
 func (m *ObjectInfo) String() string { return proto.CompactTextString(m) }
 func (*ObjectInfo) ProtoMessage()    {}
 func (*ObjectInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bf95fa2efdc74d97, []int{1}
+	return fileDescriptor_bf95fa2efdc74d97, []int{4}
 }
 func (m *ObjectInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -326,7 +483,7 @@ func (m *GroupInfo) Reset()         { *m = GroupInfo{} }
 func (m *GroupInfo) String() string { return proto.CompactTextString(m) }
 func (*GroupInfo) ProtoMessage()    {}
 func (*GroupInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bf95fa2efdc74d97, []int{2}
+	return fileDescriptor_bf95fa2efdc74d97, []int{5}
 }
 func (m *GroupInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -386,7 +543,7 @@ func (m *GroupMemberInfo) Reset()         { *m = GroupMemberInfo{} }
 func (m *GroupMemberInfo) String() string { return proto.CompactTextString(m) }
 func (*GroupMemberInfo) ProtoMessage()    {}
 func (*GroupMemberInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_bf95fa2efdc74d97, []int{3}
+	return fileDescriptor_bf95fa2efdc74d97, []int{6}
 }
 func (m *GroupMemberInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -431,6 +588,9 @@ func (m *GroupMemberInfo) GetExpireTime() uint64 {
 
 func init() {
 	proto.RegisterType((*BucketInfo)(nil), "bnbchain.greenfield.storage.BucketInfo")
+	proto.RegisterType((*BillingInfo)(nil), "bnbchain.greenfield.storage.BillingInfo")
+	proto.RegisterType((*SecondarySpObjectsSize)(nil), "bnbchain.greenfield.storage.SecondarySpObjectsSize")
+	proto.RegisterType((*ObjectLockedBalance)(nil), "bnbchain.greenfield.storage.ObjectLockedBalance")
 	proto.RegisterType((*ObjectInfo)(nil), "bnbchain.greenfield.storage.ObjectInfo")
 	proto.RegisterType((*GroupInfo)(nil), "bnbchain.greenfield.storage.GroupInfo")
 	proto.RegisterType((*GroupMemberInfo)(nil), "bnbchain.greenfield.storage.GroupMemberInfo")
@@ -439,57 +599,67 @@ func init() {
 func init() { proto.RegisterFile("greenfield/storage/types.proto", fileDescriptor_bf95fa2efdc74d97) }
 
 var fileDescriptor_bf95fa2efdc74d97 = []byte{
-	// 800 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xc1, 0x72, 0x23, 0x35,
-	0x10, 0xcd, 0xc4, 0x89, 0xb1, 0x7b, 0x1c, 0x7b, 0x99, 0x4a, 0x51, 0xc3, 0x86, 0xd8, 0xde, 0x1c,
-	0xc0, 0xb0, 0xc4, 0xa6, 0x96, 0x0b, 0xd7, 0x84, 0x2a, 0x20, 0x07, 0xc2, 0x32, 0x0e, 0x17, 0x0e,
-	0x4c, 0x69, 0x34, 0xbd, 0x13, 0x61, 0x8f, 0x34, 0x48, 0x9a, 0x62, 0xbd, 0x9f, 0xc0, 0x09, 0xf8,
-	0x96, 0xfd, 0x88, 0x3d, 0x2e, 0x7b, 0xa2, 0xf6, 0x90, 0xa2, 0x92, 0x1f, 0xa1, 0x46, 0xd2, 0x3a,
-	0xb6, 0xa1, 0x1c, 0x92, 0x2a, 0x4e, 0x33, 0xfd, 0xf4, 0xba, 0xa5, 0xee, 0x7e, 0x2d, 0x41, 0x37,
-	0x93, 0x88, 0xfc, 0x09, 0xc3, 0x69, 0x3a, 0x52, 0x5a, 0x48, 0x92, 0xe1, 0x48, 0xcf, 0x0a, 0x54,
-	0xc3, 0x42, 0x0a, 0x2d, 0x82, 0xbd, 0x84, 0x27, 0xf4, 0x9c, 0x30, 0x3e, 0xbc, 0x26, 0x0e, 0x1d,
-	0xf1, 0xfe, 0xbb, 0x54, 0xa8, 0x5c, 0xa8, 0xd8, 0x50, 0x47, 0xd6, 0xb0, 0x7e, 0xf7, 0x77, 0x33,
-	0x91, 0x09, 0x8b, 0x57, 0x7f, 0x0e, 0xdd, 0x5f, 0xd8, 0xad, 0x20, 0xb3, 0x1c, 0xb9, 0x1e, 0x25,
-	0x44, 0xa1, 0x5b, 0xee, 0xfd, 0xcb, 0x61, 0xa8, 0xc8, 0x73, 0xc1, 0x2d, 0xe1, 0xe0, 0xf7, 0x2d,
-	0x80, 0xe3, 0x92, 0x4e, 0x50, 0x9f, 0xf0, 0x27, 0x22, 0x18, 0xc2, 0xb6, 0xf8, 0x99, 0xa3, 0x0c,
-	0xbd, 0xbe, 0x37, 0x68, 0x1e, 0x87, 0xaf, 0x9e, 0x1f, 0xee, 0xba, 0x53, 0x1c, 0xa5, 0xa9, 0x44,
-	0xa5, 0xc6, 0x5a, 0x32, 0x9e, 0x45, 0x96, 0x16, 0xf4, 0xc0, 0x4f, 0x8c, 0x77, 0xcc, 0x49, 0x8e,
-	0xe1, 0x66, 0xe5, 0x15, 0x81, 0x85, 0x4e, 0x49, 0x8e, 0xc1, 0x1e, 0x34, 0x99, 0x8a, 0x8b, 0x32,
-	0x99, 0x32, 0x1a, 0xd6, 0xfa, 0xde, 0xa0, 0x11, 0x35, 0x98, 0x7a, 0x6c, 0xec, 0xe0, 0x21, 0x6c,
-	0xb2, 0x34, 0xdc, 0x32, 0x5b, 0xed, 0xbd, 0xb8, 0xe8, 0x6d, 0xbc, 0xbe, 0xe8, 0x6d, 0x7d, 0xc7,
-	0xb8, 0x7e, 0xf5, 0xfc, 0xd0, 0x77, 0xdb, 0x56, 0x66, 0xb4, 0xc9, 0xd2, 0xe0, 0x2b, 0xf0, 0x95,
-	0x28, 0x25, 0xc5, 0xb8, 0xaa, 0x66, 0xb8, 0xdd, 0xf7, 0x06, 0xed, 0x47, 0x1f, 0x0c, 0xd7, 0x54,
-	0x73, 0x38, 0x36, 0xfc, 0xb3, 0x59, 0x81, 0x11, 0xa8, 0xf9, 0x7f, 0x75, 0x26, 0x2a, 0x91, 0x68,
-	0x8c, 0x89, 0x0e, 0xeb, 0x7d, 0x6f, 0x50, 0x8b, 0x1a, 0x16, 0x38, 0xd2, 0xc1, 0x11, 0x74, 0x5c,
-	0x1d, 0x63, 0x62, 0x33, 0x0e, 0xdf, 0xba, 0xa1, 0x16, 0x6d, 0xe7, 0xe0, 0xd0, 0xe0, 0x0b, 0x08,
-	0x0a, 0xc9, 0x72, 0x22, 0x67, 0xb1, 0x2a, 0xe6, 0x51, 0x1a, 0x37, 0x44, 0xb9, 0xe7, 0x7c, 0xc6,
-	0xc5, 0x9b, 0x38, 0xfb, 0x00, 0x12, 0x49, 0x1a, 0xff, 0x54, 0x0a, 0x4d, 0xc2, 0x66, 0xdf, 0x1b,
-	0x6c, 0x45, 0xcd, 0x0a, 0xf9, 0xb6, 0x02, 0x82, 0x8f, 0x21, 0x78, 0x73, 0xd2, 0x42, 0xb2, 0xaa,
-	0x2e, 0x2c, 0xc7, 0x10, 0x4c, 0x3e, 0xf7, 0xdc, 0xca, 0xe3, 0x6a, 0xe1, 0x8c, 0xe5, 0x18, 0x7c,
-	0x04, 0x6f, 0x6b, 0xa1, 0xc9, 0x34, 0xa6, 0xe7, 0x44, 0x66, 0x18, 0x2b, 0xf6, 0x0c, 0x43, 0xdf,
-	0xc4, 0xec, 0x98, 0x85, 0xcf, 0x0d, 0x3e, 0x66, 0xcf, 0xf0, 0xe0, 0x97, 0x3a, 0xc0, 0x37, 0xc9,
-	0x8f, 0x48, 0xff, 0x27, 0x51, 0xf4, 0xc0, 0x17, 0x26, 0xbc, 0x25, 0xd4, 0x2c, 0xc1, 0x42, 0x86,
-	0x70, 0x2b, 0x61, 0x3c, 0x80, 0x56, 0x41, 0x66, 0x53, 0x41, 0x52, 0x9b, 0xd4, 0xb6, 0x49, 0xca,
-	0x77, 0x58, 0x95, 0xd0, 0xb2, 0x0a, 0xeb, 0x2b, 0x2a, 0x7c, 0x00, 0x2d, 0x2a, 0xb8, 0xae, 0xea,
-	0x68, 0x94, 0x65, 0xda, 0x1d, 0xf9, 0x0e, 0xfb, 0xa7, 0x62, 0x1a, 0x2b, 0x8a, 0x39, 0x85, 0x1d,
-	0x97, 0x8d, 0xd2, 0x44, 0x97, 0xca, 0x74, 0xaa, 0xfd, 0xe8, 0xc3, 0xb5, 0xd2, 0xb4, 0xe5, 0x1d,
-	0x1b, 0x87, 0xa8, 0x25, 0x16, 0xac, 0xe0, 0x0c, 0x3a, 0x12, 0xd3, 0x92, 0xa7, 0x84, 0xd3, 0x99,
-	0x3d, 0x12, 0x98, 0x88, 0x0f, 0xd7, 0x46, 0x8c, 0xe6, 0x3e, 0x46, 0xf0, 0x6d, 0xb9, 0x64, 0xaf,
-	0x8e, 0x8f, 0x7f, 0xf7, 0xf1, 0x79, 0x0f, 0x9a, 0xf4, 0x1c, 0xe9, 0x44, 0x95, 0xb9, 0x0a, 0x5b,
-	0xfd, 0xda, 0xa0, 0x15, 0x5d, 0x03, 0xc1, 0x29, 0xbc, 0xa3, 0x90, 0x0a, 0x9e, 0x2e, 0xcb, 0x1f,
-	0x55, 0xb8, 0xd3, 0xaf, 0xad, 0x55, 0xcf, 0xee, 0xdc, 0x6f, 0x3e, 0x02, 0xa8, 0x82, 0x1f, 0x60,
-	0x67, 0x2a, 0xe8, 0x04, 0xd3, 0x63, 0x32, 0x25, 0x9c, 0x62, 0xd8, 0x36, 0xaa, 0xf8, 0xec, 0xf5,
-	0x45, 0xef, 0xfd, 0x8c, 0xe9, 0xf3, 0x32, 0x19, 0x52, 0x91, 0xbb, 0xab, 0xd2, 0x7d, 0x0e, 0x55,
-	0x3a, 0x71, 0x77, 0xee, 0x89, 0xd1, 0x0c, 0xb8, 0x0d, 0x4f, 0xb8, 0x8e, 0x96, 0xc3, 0x55, 0x5a,
-	0x5c, 0x9c, 0x88, 0x8e, 0x11, 0x0f, 0xd0, 0xeb, 0x61, 0xf8, 0xc3, 0x83, 0xe6, 0x97, 0x52, 0x94,
-	0xc5, 0x9d, 0x66, 0x61, 0x1f, 0x20, 0xab, 0x9c, 0x17, 0x47, 0xa1, 0x69, 0x10, 0x23, 0xf4, 0x95,
-	0xae, 0xd4, 0xee, 0xde, 0x95, 0xdb, 0x8c, 0xcc, 0xc1, 0x6f, 0x1e, 0x74, 0x4c, 0x4e, 0x5f, 0x63,
-	0x9e, 0xa0, 0x34, 0x99, 0x7d, 0x02, 0xf5, 0xdc, 0x58, 0x37, 0xa6, 0xe6, 0x78, 0x6e, 0xcb, 0xcd,
-	0xff, 0x36, 0xa5, 0x3d, 0xf0, 0xf1, 0x69, 0xc1, 0xa4, 0xbb, 0xa6, 0x6a, 0xb6, 0xce, 0x16, 0xaa,
-	0x2e, 0xa8, 0xe3, 0x93, 0x17, 0x97, 0x5d, 0xef, 0xe5, 0x65, 0xd7, 0xfb, 0xeb, 0xb2, 0xeb, 0xfd,
-	0x7a, 0xd5, 0xdd, 0x78, 0x79, 0xd5, 0xdd, 0xf8, 0xf3, 0xaa, 0xbb, 0xf1, 0xfd, 0x68, 0xa1, 0xcf,
-	0x09, 0x4f, 0x0e, 0x4d, 0x69, 0x46, 0x0b, 0x2f, 0xdb, 0xd3, 0xe5, 0x87, 0x36, 0xa9, 0x9b, 0xb7,
-	0xed, 0xd3, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xcd, 0xc4, 0x71, 0x44, 0x8b, 0x07, 0x00, 0x00,
+	// 945 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0x4d, 0x6f, 0xe3, 0x44,
+	0x18, 0xae, 0xe3, 0xb4, 0xc4, 0xaf, 0xd3, 0x14, 0x4c, 0x55, 0x79, 0xb7, 0x34, 0xc9, 0xe6, 0x00,
+	0x81, 0x55, 0x93, 0x55, 0xf7, 0x00, 0x07, 0x2e, 0x0d, 0x12, 0x10, 0x09, 0x0a, 0xeb, 0x94, 0x0b,
+	0x17, 0x6b, 0x3c, 0x9e, 0xa6, 0x43, 0xed, 0x19, 0xe3, 0x19, 0x8b, 0xcd, 0x4a, 0xfc, 0x02, 0x2e,
+	0xf0, 0x37, 0x38, 0xf7, 0xc8, 0x0f, 0xd8, 0xe3, 0xb2, 0x27, 0xc4, 0x61, 0x85, 0xda, 0x3f, 0x82,
+	0x3c, 0x33, 0x6d, 0x9d, 0x50, 0xa5, 0x1f, 0x12, 0xa7, 0x64, 0x1e, 0xbf, 0xcf, 0xbc, 0xdf, 0x8f,
+	0x0d, 0xed, 0x69, 0x4e, 0x08, 0x3b, 0xa2, 0x24, 0x89, 0x87, 0x42, 0xf2, 0x1c, 0x4d, 0xc9, 0x50,
+	0xce, 0x32, 0x22, 0x06, 0x59, 0xce, 0x25, 0xf7, 0xb6, 0x23, 0x16, 0xe1, 0x63, 0x44, 0xd9, 0xe0,
+	0xca, 0x70, 0x60, 0x0c, 0x1f, 0x3e, 0xc0, 0x5c, 0xa4, 0x5c, 0x84, 0xca, 0x74, 0xa8, 0x0f, 0x9a,
+	0xf7, 0x70, 0x73, 0xca, 0xa7, 0x5c, 0xe3, 0xe5, 0x3f, 0x83, 0xee, 0x54, 0xbc, 0x65, 0x68, 0x96,
+	0x12, 0x26, 0x87, 0x11, 0x12, 0xc4, 0x3c, 0xee, 0x5c, 0x13, 0x0c, 0xe6, 0x69, 0xca, 0x99, 0x36,
+	0xe8, 0xfd, 0x52, 0x07, 0x18, 0x15, 0xf8, 0x84, 0xc8, 0x31, 0x3b, 0xe2, 0xde, 0x00, 0x56, 0xf9,
+	0x4f, 0x8c, 0xe4, 0xbe, 0xd5, 0xb5, 0xfa, 0xce, 0xc8, 0x7f, 0x7d, 0xba, 0xbb, 0x69, 0xa2, 0xd8,
+	0x8f, 0xe3, 0x9c, 0x08, 0x31, 0x91, 0x39, 0x65, 0xd3, 0x40, 0x9b, 0x79, 0x1d, 0x70, 0x23, 0xc5,
+	0x0e, 0x19, 0x4a, 0x89, 0x5f, 0x2b, 0x59, 0x01, 0x68, 0xe8, 0x00, 0xa5, 0xc4, 0xdb, 0x06, 0x87,
+	0x8a, 0x30, 0x2b, 0xa2, 0x84, 0x62, 0xdf, 0xee, 0x5a, 0xfd, 0x46, 0xd0, 0xa0, 0xe2, 0x5b, 0x75,
+	0xf6, 0x1e, 0x43, 0x8d, 0xc6, 0x7e, 0x5d, 0xb9, 0xda, 0x7e, 0xf9, 0xa6, 0xb3, 0xf2, 0xf7, 0x9b,
+	0x4e, 0xfd, 0x3b, 0xca, 0xe4, 0xeb, 0xd3, 0x5d, 0xd7, 0xb8, 0x2d, 0x8f, 0x41, 0x8d, 0xc6, 0xde,
+	0x97, 0xe0, 0x0a, 0x5e, 0xe4, 0x98, 0x84, 0x65, 0x35, 0xfd, 0xd5, 0xae, 0xd5, 0x6f, 0xed, 0x7d,
+	0x30, 0x58, 0x52, 0xcd, 0xc1, 0x44, 0xd9, 0x1f, 0xce, 0x32, 0x12, 0x80, 0xb8, 0xfc, 0x5f, 0xc6,
+	0x84, 0x73, 0x82, 0x24, 0x09, 0x91, 0xf4, 0xd7, 0xba, 0x56, 0xdf, 0x0e, 0x1a, 0x1a, 0xd8, 0x97,
+	0xde, 0x3e, 0x6c, 0x98, 0x3a, 0x86, 0x48, 0x67, 0xec, 0xbf, 0x75, 0x43, 0x2d, 0x5a, 0x86, 0x60,
+	0x50, 0xef, 0x73, 0xf0, 0xb2, 0x9c, 0xa6, 0x28, 0x9f, 0x85, 0x22, 0xbb, 0xbc, 0xa5, 0x71, 0xc3,
+	0x2d, 0x6f, 0x1b, 0xce, 0x24, 0xbb, 0xb8, 0x67, 0x07, 0x20, 0x27, 0x28, 0x0e, 0x7f, 0x2c, 0xb8,
+	0x44, 0xbe, 0xd3, 0xb5, 0xfa, 0xf5, 0xc0, 0x29, 0x91, 0x67, 0x25, 0xe0, 0x3d, 0x83, 0x66, 0x44,
+	0x93, 0x84, 0xb2, 0x69, 0x48, 0xd9, 0x11, 0xf7, 0xa1, 0x6b, 0xf5, 0xdd, 0xbd, 0xfe, 0xd2, 0x8a,
+	0x8c, 0x34, 0xa1, 0xec, 0xf5, 0xa8, 0x5e, 0x56, 0x3c, 0x70, 0xa3, 0x2b, 0xa8, 0xf7, 0x47, 0x0d,
+	0xdc, 0x8a, 0x49, 0x19, 0x41, 0x96, 0xd3, 0xb2, 0xe4, 0x34, 0x25, 0x6a, 0x26, 0xec, 0xc0, 0x51,
+	0xc8, 0x21, 0x4d, 0x89, 0xf7, 0x11, 0xbc, 0x23, 0xb9, 0x44, 0x49, 0x88, 0x8f, 0x51, 0x3e, 0x25,
+	0xa1, 0xa0, 0x2f, 0xf4, 0x0c, 0xd4, 0x83, 0x0d, 0xf5, 0xe0, 0x33, 0x85, 0x4f, 0xe8, 0x0b, 0xe2,
+	0x25, 0xb0, 0xc5, 0xa3, 0x1f, 0x08, 0x96, 0x22, 0x4c, 0x38, 0x3e, 0x21, 0x71, 0x18, 0xa1, 0x04,
+	0x31, 0x4c, 0x7c, 0xbb, 0x6b, 0xf7, 0xdd, 0xbd, 0x27, 0x4b, 0xe3, 0xfe, 0x46, 0x51, 0xbf, 0x52,
+	0xc4, 0x91, 0xe6, 0x99, 0xf8, 0x37, 0xcd, 0xad, 0x73, 0xcf, 0x3c, 0x09, 0x0f, 0x04, 0xc1, 0x9c,
+	0xc5, 0xa6, 0x09, 0x17, 0xae, 0x55, 0x84, 0x75, 0xe5, 0xf0, 0xe9, 0xf2, 0xd1, 0xb9, 0x60, 0x4f,
+	0x32, 0xed, 0x5b, 0x94, 0x59, 0x18, 0x9f, 0x5b, 0xe2, 0xda, 0xa7, 0xbd, 0x9f, 0x61, 0xeb, 0x7a,
+	0x9e, 0xf7, 0x31, 0x40, 0x65, 0x14, 0x6e, 0x5a, 0x2e, 0x47, 0x5c, 0xce, 0xc0, 0x1d, 0x4a, 0xdc,
+	0x3b, 0xb5, 0xe0, 0xdd, 0x6b, 0x0a, 0xe5, 0x7d, 0x02, 0x8e, 0xce, 0x3f, 0xa4, 0xb1, 0xf1, 0xbd,
+	0x74, 0xdb, 0x1a, 0xda, 0x7a, 0x1c, 0x7b, 0x18, 0x5a, 0x0b, 0xcd, 0x52, 0x1b, 0x3e, 0xfa, 0xd4,
+	0xd0, 0xdf, 0x9f, 0x52, 0x79, 0x5c, 0x44, 0x03, 0xcc, 0x53, 0x23, 0x56, 0xe6, 0x67, 0x57, 0xc4,
+	0x27, 0x46, 0xf5, 0xc6, 0xca, 0x01, 0x18, 0x07, 0x63, 0x26, 0x83, 0xf5, 0xa4, 0x1a, 0x5e, 0xef,
+	0xf7, 0x55, 0x00, 0x1d, 0xf6, 0xff, 0x23, 0x41, 0x1d, 0x70, 0x4d, 0xfa, 0xca, 0xc0, 0xd6, 0x06,
+	0x1a, 0x52, 0x06, 0x77, 0x92, 0xa1, 0x47, 0xd0, 0xcc, 0xd0, 0x2c, 0xe1, 0x28, 0xd6, 0xbd, 0x58,
+	0x55, 0xbd, 0x70, 0x0d, 0xa6, 0x9a, 0x3d, 0xa7, 0x79, 0x6b, 0x0b, 0x9a, 0xf7, 0x08, 0x9a, 0x98,
+	0x33, 0x59, 0xea, 0x8b, 0xd2, 0x31, 0x25, 0x2e, 0x81, 0x6b, 0xb0, 0xff, 0xea, 0x53, 0x63, 0x41,
+	0x9f, 0x0e, 0x60, 0xdd, 0x64, 0x23, 0x24, 0x92, 0x85, 0x50, 0xba, 0xd0, 0xda, 0xfb, 0xf0, 0x16,
+	0xeb, 0x33, 0x51, 0x84, 0xa0, 0xc9, 0x2b, 0x27, 0xef, 0x10, 0x36, 0x72, 0x12, 0x17, 0x2c, 0x46,
+	0x0c, 0xcf, 0x74, 0x48, 0xa0, 0x6e, 0x7c, 0xbc, 0xf4, 0xc6, 0xe0, 0x92, 0xa3, 0xe4, 0xb5, 0x95,
+	0xcf, 0x9d, 0x17, 0xc5, 0xda, 0xbd, 0xbf, 0x58, 0xbf, 0x07, 0x0e, 0x3e, 0x26, 0xf8, 0x44, 0x14,
+	0xa9, 0xf0, 0x9b, 0x5d, 0xbb, 0xdf, 0x0c, 0xae, 0x00, 0xef, 0x00, 0xb6, 0xe6, 0xf6, 0xdc, 0x6c,
+	0x18, 0x11, 0xfe, 0x7a, 0xd7, 0x5e, 0x3a, 0x3d, 0x9b, 0x95, 0x1d, 0xde, 0xbf, 0x60, 0x95, 0xb3,
+	0x52, 0x5d, 0xb4, 0x96, 0x6a, 0x2e, 0xe0, 0xab, 0x1d, 0xfb, 0xd3, 0x02, 0xe7, 0x8b, 0x9c, 0x17,
+	0xd9, 0xbd, 0x66, 0x75, 0x07, 0x60, 0x5a, 0x92, 0xab, 0xa3, 0xea, 0x28, 0x44, 0x0d, 0xe2, 0x42,
+	0xd5, 0xec, 0xfb, 0x57, 0xed, 0x2e, 0x23, 0xdd, 0xfb, 0xcd, 0x82, 0x0d, 0x95, 0xd3, 0xd7, 0x24,
+	0x8d, 0x48, 0xae, 0x32, 0x7b, 0x02, 0x6b, 0xa9, 0x3a, 0xdd, 0x98, 0x9a, 0xb1, 0x33, 0x2e, 0x6b,
+	0xb7, 0xdb, 0xa2, 0x0e, 0xb8, 0xe4, 0x79, 0x46, 0x73, 0xf3, 0x66, 0xb1, 0x75, 0x9d, 0x35, 0x54,
+	0xbe, 0x5a, 0x46, 0xe3, 0x97, 0x67, 0x6d, 0xeb, 0xd5, 0x59, 0xdb, 0xfa, 0xe7, 0xac, 0x6d, 0xfd,
+	0x7a, 0xde, 0x5e, 0x79, 0x75, 0xde, 0x5e, 0xf9, 0xeb, 0xbc, 0xbd, 0xf2, 0xfd, 0xb0, 0xa2, 0x39,
+	0x11, 0x8b, 0x76, 0x55, 0x69, 0x86, 0x95, 0xef, 0x9c, 0xe7, 0xf3, 0x9f, 0x5d, 0xd1, 0x9a, 0xfa,
+	0xd2, 0x79, 0xfa, 0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe0, 0x79, 0xfa, 0xca, 0x99, 0x09, 0x00,
+	0x00,
 }
 
 func (m *BucketInfo) Marshal() (dAtA []byte, err error) {
@@ -512,16 +682,16 @@ func (m *BucketInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.TotalChargeSize != 0 {
-		i = encodeVarintTypes(dAtA, i, uint64(m.TotalChargeSize))
-		i--
-		dAtA[i] = 0x58
+	{
+		size, err := m.BillingInfo.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTypes(dAtA, i, uint64(size))
 	}
-	if m.PaymentPriceTime != 0 {
-		i = encodeVarintTypes(dAtA, i, uint64(m.PaymentPriceTime))
-		i--
-		dAtA[i] = 0x50
-	}
+	i--
+	dAtA[i] = 0x52
 	if m.ReadQuota != 0 {
 		i = encodeVarintTypes(dAtA, i, uint64(m.ReadQuota))
 		i--
@@ -588,6 +758,145 @@ func (m *BucketInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *BillingInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *BillingInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *BillingInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.SecondarySpObjectsSize) > 0 {
+		for iNdEx := len(m.SecondarySpObjectsSize) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.SecondarySpObjectsSize[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTypes(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x22
+		}
+	}
+	if len(m.ObjectsLockedBalance) > 0 {
+		for iNdEx := len(m.ObjectsLockedBalance) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.ObjectsLockedBalance[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTypes(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x1a
+		}
+	}
+	if m.TotalChargeSize != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.TotalChargeSize))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.PriceTime != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.PriceTime))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SecondarySpObjectsSize) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SecondarySpObjectsSize) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SecondarySpObjectsSize) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.TotalChargeSize != 0 {
+		i = encodeVarintTypes(dAtA, i, uint64(m.TotalChargeSize))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.SpAddress) > 0 {
+		i -= len(m.SpAddress)
+		copy(dAtA[i:], m.SpAddress)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.SpAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *ObjectLockedBalance) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ObjectLockedBalance) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ObjectLockedBalance) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.LockedBalance.Size()
+		i -= size
+		if _, err := m.LockedBalance.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	{
+		size := m.ObjectId.Size()
+		i -= size
+		if _, err := m.ObjectId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func (m *ObjectInfo) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -611,19 +920,7 @@ func (m *ObjectInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.ChargeSize != 0 {
 		i = encodeVarintTypes(dAtA, i, uint64(m.ChargeSize))
 		i--
-		dAtA[i] = 0x78
-	}
-	if m.LockedBalance != nil {
-		{
-			size := m.LockedBalance.Size()
-			i -= size
-			if _, err := m.LockedBalance.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintTypes(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x72
+		dAtA[i] = 0x70
 	}
 	if len(m.SecondarySpAddresses) > 0 {
 		for iNdEx := len(m.SecondarySpAddresses) - 1; iNdEx >= 0; iNdEx-- {
@@ -863,12 +1160,64 @@ func (m *BucketInfo) Size() (n int) {
 	if m.ReadQuota != 0 {
 		n += 1 + sovTypes(uint64(m.ReadQuota))
 	}
-	if m.PaymentPriceTime != 0 {
-		n += 1 + sovTypes(uint64(m.PaymentPriceTime))
+	l = m.BillingInfo.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	return n
+}
+
+func (m *BillingInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.PriceTime != 0 {
+		n += 1 + sovTypes(uint64(m.PriceTime))
 	}
 	if m.TotalChargeSize != 0 {
 		n += 1 + sovTypes(uint64(m.TotalChargeSize))
 	}
+	if len(m.ObjectsLockedBalance) > 0 {
+		for _, e := range m.ObjectsLockedBalance {
+			l = e.Size()
+			n += 1 + l + sovTypes(uint64(l))
+		}
+	}
+	if len(m.SecondarySpObjectsSize) > 0 {
+		for _, e := range m.SecondarySpObjectsSize {
+			l = e.Size()
+			n += 1 + l + sovTypes(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *SecondarySpObjectsSize) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.SpAddress)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	if m.TotalChargeSize != 0 {
+		n += 1 + sovTypes(uint64(m.TotalChargeSize))
+	}
+	return n
+}
+
+func (m *ObjectLockedBalance) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.ObjectId.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	l = m.LockedBalance.Size()
+	n += 1 + l + sovTypes(uint64(l))
 	return n
 }
 
@@ -925,10 +1274,6 @@ func (m *ObjectInfo) Size() (n int) {
 			l = len(s)
 			n += 1 + l + sovTypes(uint64(l))
 		}
-	}
-	if m.LockedBalance != nil {
-		l = m.LockedBalance.Size()
-		n += 1 + l + sovTypes(uint64(l))
 	}
 	if m.ChargeSize != 0 {
 		n += 1 + sovTypes(uint64(m.ChargeSize))
@@ -1251,10 +1596,10 @@ func (m *BucketInfo) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 10:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PaymentPriceTime", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BillingInfo", wireType)
 			}
-			m.PaymentPriceTime = 0
+			var msglen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowTypes
@@ -1264,12 +1609,95 @@ func (m *BucketInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.PaymentPriceTime |= int64(b&0x7F) << shift
+				msglen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		case 11:
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BillingInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *BillingInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: BillingInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: BillingInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PriceTime", wireType)
+			}
+			m.PriceTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PriceTime |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalChargeSize", wireType)
 			}
@@ -1288,6 +1716,293 @@ func (m *BucketInfo) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectsLockedBalance", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ObjectsLockedBalance = append(m.ObjectsLockedBalance, ObjectLockedBalance{})
+			if err := m.ObjectsLockedBalance[len(m.ObjectsLockedBalance)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SecondarySpObjectsSize", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SecondarySpObjectsSize = append(m.SecondarySpObjectsSize, SecondarySpObjectsSize{})
+			if err := m.SecondarySpObjectsSize[len(m.SecondarySpObjectsSize)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SecondarySpObjectsSize) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SecondarySpObjectsSize: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SecondarySpObjectsSize: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalChargeSize", wireType)
+			}
+			m.TotalChargeSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalChargeSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ObjectLockedBalance) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ObjectLockedBalance: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ObjectLockedBalance: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ObjectId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LockedBalance", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.LockedBalance.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTypes(dAtA[iNdEx:])
@@ -1680,42 +2395,6 @@ func (m *ObjectInfo) Unmarshal(dAtA []byte) error {
 			m.SecondarySpAddresses = append(m.SecondarySpAddresses, string(dAtA[iNdEx:postIndex]))
 			iNdEx = postIndex
 		case 14:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LockedBalance", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
-			m.LockedBalance = &v
-			if err := m.LockedBalance.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 15:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ChargeSize", wireType)
 			}

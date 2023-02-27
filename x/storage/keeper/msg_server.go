@@ -70,11 +70,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		PrimarySpAddress: primaryAcc.String(),
 	}
 
-	if msg.ReadQuota != 0 {
-		err := k.ChargeInitialReadFee(ctx, &bucketInfo)
-		if err != nil {
-			return nil, err
-		}
+	err = k.ChargeInitialReadFee(ctx, &bucketInfo)
+	if err != nil {
+		return nil, err
 	}
 	err = k.Keeper.CreateBucket(ctx, bucketInfo)
 	if err != nil {
@@ -157,7 +155,12 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 		PaymentAddressBefore: bucketInfo.PaymentAddress,
 	}
 
+	prevBill, err := k.GetBucketBill(ctx, &bucketInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "Get previous bucket bill failed.")
+	}
 	var paymentAcc sdk.AccAddress
+	// Either payment address or read quota changes, changeBill will be true
 	if msg.PaymentAddress != "" {
 		paymentAcc, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
 		if err != nil {
@@ -167,21 +170,25 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 			if !k.paymentKeeper.IsPaymentAccountOwner(ctx, bucketInfo.Owner, paymentAcc.String()) {
 				return nil, paymenttypes.ErrNotPaymentAccountOwner
 			}
-			err := k.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &msg.PaymentAddress)
-			if err != nil {
-				return nil, err
+			if len(bucketInfo.BillingInfo.ObjectsLockedBalance) > 0 {
+				return nil, errors.Wrapf(types.ErrPaymentAddressChangeNotAllowed, "bucket %s has locked balance", bucketInfo.BucketName)
 			}
 			bucketInfo.PaymentAddress = msg.PaymentAddress
 		}
 	}
-
 	if msg.ReadQuota != bucketInfo.ReadQuota {
-		err := k.ChargeUpdateReadQuota(ctx, &bucketInfo, msg.ReadQuota)
-		if err != nil {
-			return nil, err
-		}
 		bucketInfo.ReadQuota = msg.ReadQuota
 	}
+	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
+	currentBill, err := k.GetBucketBill(ctx, &bucketInfo)
+	if err != nil {
+		return nil, errors.Wrap(err, "Get current bucket bill failed")
+	}
+	err = k.ChargeAccordingToBillChange(ctx, prevBill, currentBill)
+	if err != nil {
+		return nil, errors.Wrap(err, "Charge according to bill change failed")
+	}
+
 	eventUpdateBucketInfo.ReadQuotaAfter = bucketInfo.ReadQuota
 	eventUpdateBucketInfo.PaymentAddressAfter = bucketInfo.PaymentAddress
 
@@ -241,16 +248,18 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		SourceType:           types.SOURCE_TYPE_ORIGIN,
 		Checksums:            msg.ExpectChecksums,
 		SecondarySpAddresses: secondarySPs,
+		ChargeSize:           k.GetChargeSize(ctx, msg.PayloadSize),
 	}
 	err = k.LockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "Lock store fee failed.")
 	}
 
 	err = k.Keeper.CreateObject(ctx, objectInfo)
 	if err != nil {
 		return nil, err
 	}
+	k.Keeper.SetBucket(ctx, bucketInfo)
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
 		CreatorAddress:   ownerAcc.String(),
 		OwnerAddress:     objectInfo.Owner,
@@ -326,7 +335,6 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	if err != nil {
 		return nil, err
 	}
-	objectInfo.LockedBalance = nil
 
 	// TODO(fynn): SetBucket/Object will cost a lot every time we set it. So maybe need to split the info to two types
 	// key-value, one is immutable attributes, another is mutable attributes, to reduce performance overhead

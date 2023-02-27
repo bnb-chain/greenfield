@@ -313,3 +313,10 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []b
 	}
 	return nil
 }
+
+func (k Keeper) GetChargeSize(_ctx sdk.Context, payloadSize uint64) uint64 {
+	if payloadSize < types.MinChargeSize {
+		return types.MinChargeSize
+	}
+	return payloadSize
+}

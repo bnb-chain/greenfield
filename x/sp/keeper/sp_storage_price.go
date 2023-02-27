@@ -104,7 +104,7 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 	if len(sps) == 0 {
 		return fmt.Errorf("no sp found")
 	}
-	total := sdk.ZeroInt()
+	total := sdk.ZeroDec()
 	current := ctx.BlockTime().Unix()
 	for _, sp := range sps {
 		price, err := k.GetSpStoragePriceByTime(ctx, sp.OperatorAddress, current)
@@ -113,8 +113,7 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 		}
 		total = total.Add(price.StorePrice)
 	}
-	avg := total.QuoRaw(int64(len(sps)))
-	price := avg.MulRaw(types.SecondarySpStorePriceRatio).QuoRaw(types.RatioUnit)
+	price := types.SecondarySpStorePriceRatio.Mul(total).QuoInt64(int64(len(sps)))
 	secondarySpStorePrice := types.SecondarySpStorePrice{
 		StorePrice: price,
 		UpdateTime: current,

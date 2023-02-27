@@ -2,8 +2,8 @@ package tests
 
 import (
 	"context"
-	sdkmath "cosmossdk.io/math"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"math/rand"
 	"testing"
 	"time"
@@ -34,8 +34,8 @@ func (s *SpTestSuite) TestSpStoragePrice() {
 	s.Require().NoError(err)
 	s.T().Log(spStoragePrice)
 	// update storage price
-	newReadPrice := sdkmath.NewInt(randInt64(100, 200))
-	newStorePrice := sdkmath.NewInt(randInt64(10000, 20000))
+	newReadPrice := sdk.NewDec(randInt64(100, 200))
+	newStorePrice := sdk.NewDec(randInt64(10000, 20000))
 	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     spAddr,
 		ExpireTime:    time.Now().Unix() + 86400,
@@ -68,8 +68,8 @@ func (s *SpTestSuite) CheckSecondarySpPrice() {
 	sps, err := s.Client.StorageProviders(ctx, &sptypes.QueryStorageProvidersRequest{})
 	s.Require().NoError(err)
 	s.T().Logf("sps: %s", sps)
-	spNum := sdkmath.NewIntFromUint64(sps.Pagination.Total)
-	total := sdkmath.NewInt(0)
+	spNum := int64(sps.Pagination.Total)
+	total := sdk.ZeroDec()
 	for _, sp := range sps.Sps {
 		spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 			SpAddr:    sp.OperatorAddress,
@@ -79,7 +79,7 @@ func (s *SpTestSuite) CheckSecondarySpPrice() {
 		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, spStoragePrice)
 		total = total.Add(spStoragePrice.SpStoragePrice.StorePrice)
 	}
-	expectedSecondarySpStorePrice := total.Quo(spNum).MulRaw(sptypes.SecondarySpStorePriceRatio).QuoRaw(sptypes.RatioUnit)
+	expectedSecondarySpStorePrice := sptypes.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
 	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
 }
 

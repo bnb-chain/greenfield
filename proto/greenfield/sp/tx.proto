@@ -35,16 +35,16 @@ message MsgCreateStorageProvider {
   cosmos.base.v1beta1.Coin deposit = 8 [(gogoproto.nullable) = false];
   // read price, in 10 ^ -8 bnb per byte
   string read_price = 9 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
   // free read quota, in byte
   uint64 free_read_quota = 10;
   // store price, in 10 ^ -8 bnb per charge byte
   string store_price = 11 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
 }
@@ -88,16 +88,16 @@ message MsgUpdateSpStoragePrice {
   int64 expire_time = 2;
   // read price, in 10 ^ -8 bnb per byte
   string read_price = 3 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
   // free read quota, in byte
   uint64 free_read_quota = 4;
   // store price, in 10 ^ -8 bnb per charge byte
   string store_price = 5 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
 }
