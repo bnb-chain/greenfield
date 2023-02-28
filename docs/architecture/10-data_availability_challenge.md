@@ -101,7 +101,10 @@ Heartbeat only includes the necessary information for liveness-check purpose.
 
 ## RANDAO
 
-To support random challenges, a RANDAO mechanism is introduced like the following. 
+To support random challenges, a RANDAO mechanism is introduced like the following.
+Overall, the idea is very similar to the RANDAO in Ethereum beacon chain, you can refer to
+[here](https://eth2book.info/altair/part2/building_blocks/randomness) for more information.
+
 When proposing a new block, the proposer, i.e. a validator, needs to sign the current block number to get 
 a `randao reveal`, and mixes the reveal into randao result `randao mix` by using `xor` operation. 
 The other validators will verify the `randao reveal` and `randao mix` by following steps: 
@@ -110,6 +113,7 @@ about what it contributes to the RANDAO. It either contributes the correct signa
 or it gives up the right for proposing the current block. If the validator does propose the current block, 
 it still cannot predict the reveal from other validators, and even be slashed for stopping proposing blocks.
 2. The `randao mix` is correctly updated by using `xor` operation.
+
 
 The implementation is conducted in Tendermint layer - a new field called `randao_mix` is added into block header.
 Greenfield blockchain then uses the field as a seed to randomly pick objects and storage providers to challenge 
