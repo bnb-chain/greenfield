@@ -1,8 +1,8 @@
 # Data Availability Challenge
 
 Data availability means the data is correctly stored on storage providers, and can be correctly downloaded by users.
-The challenge module is designed and used to detect whether a data segment/piece is available in the
-specified SP. For this kind of challenges, there will be three steps:
+The challenge module is designed and used to detect whether a data segment/piece is correctly stored on a
+specified storage provider. For this kind of challenges, there will be three steps:
 
 1. Each validator asks the challenged SP for this data piece and the local manifest of the object, if the validator
    can't get the expected piece, the piece should be regarded as unavailable.
@@ -20,7 +20,7 @@ for this data availability challenge.
 
 ## Workflow
 
-The data availability challenge mechanism workflow is as below:
+The data availability challenge workflow is as below:
 
 1. Anyone can submit a transaction to challenge data availability, the challenge information would be recorded on-chain
    temporarily, and also would be written into the typed event after the transaction has been executed.
@@ -42,100 +42,44 @@ The data availability challenge mechanism workflow is as below:
 8. The cooling-off period is set for the validator to regain, recover, or shift this piece of data, once the cooling off
    period time expires, this data availability can be challenged again, if this piece of data is still unavailable, the
    validator would be slashed again.
+<div align="center"><img src="https://raw.githubusercontent.com/bnb-chain/greenfield-whitepaper/main/assets/19.2%20Data%20Availability%20Challenge.jpg"  height="80%" width="80%"></div>
+<div align="center"><i>Data Availability Challenge Workflow</i></div>
 
-## Messages
+## Create Challenge
 
-The following messages are introduced for data availability challenge. For the detailed definition, please refer
-to [this](https://github.com/bnb-chain/greenfield/blob/master/proto/greenfield/challenge/tx.proto).
+There are two ways to trigger challenges.
 
-### Submit Message
+### Submitted Challenges
 
-Anyone can submit this kind of messages to trigger data availability challenges, if he/she finds that the data is not
-available or incorrect stored. The submitter will be called as challenger, and will be rewarded if the challenge
+Anyone can send `MsgSubmit` messages to trigger data availability challenges, if he/she finds that the data is not
+available or incorrect stored. When submitting the challenge, user can choose the segment/piece of an object to
+challenge or let the blockchain randomly selects a segment/piece to challenge.
+The submitter will be called as challenger, and will be rewarded if the challenge
 succeeds later.
 
-```protobuf
-message MsgSubmit {
-  option (cosmos.msg.v1.signer) = "creator";
+### Random Challenges
 
-  // The challenger address.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+In each block, challenges will be automatically created, to challenge different objects which are stored on different 
+storage providers. The count of random challenges in each block is governed, and can be changed by submitting proposals.
+To support randomness, a *RANDAO* mechanism is introduced in Greenfield blockchain. For more information about *RANDAO*,
+please refer to the following section.
 
-  // The storage provider to be challenged.
-  string sp_operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+## Attest Challenge
 
-  // The bucket of the object info to be challenged.
-  string bucket_name = 3;
+Each validator will listen to the events of challenge creations, and vote the challenge by using its own BLS key.
+When there are more than 2/3 votes are collected, an attestation message `MsgAttest` will be submitted to slash the 
+challenged storage provider. And the voted validators, the attestation submitter, and the challenger (if there is) will 
+be rewarded accordingly.
 
-  // The name of the object info to be challenged.
-  string object_name = 4;
 
-  // The index of segment/piece to challenge, start from zero.
-  uint32 segment_index = 5;
+## Challenge Heartbeat
 
-  // Randomly pick a segment/piece to challenge or not.
-  bool random_index = 6;
-}
-```
-
-### Attest Message
-
-When there are more than 2/3 votes are collected, an attestation message will be submitted to slash the challenged
-storage provider, and the voted validators, the attestation submitter, and the challenger (if there is) will be
-rewarded accordingly.
-
-```protobuf
-message MsgAttest {
-  option (cosmos.msg.v1.signer) = "creator";
-
-  // The submitter address.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  // The id of the challenge.
-  uint64 challenge_id = 2;
-
-  // The id of the challenge.
-  uint64 object_id = 3;
-
-  // The storage provider to be challenged.
-  string sp_operator_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  // Vote result of the attestation.
-  uint32 vote_result = 5;
-
-  // The validators participated in the attestation.
-  repeated fixed64 vote_validator_set = 6;
-
-  // The aggregated BLS signature from the validators.
-  bytes vote_agg_signature = 7;
-}
-```
-
-### Heartbeat Message
-
-Heartbeat message is submitted periodically to indicate the off-chain challenge detect module is running correctly.
-Meanwhile, the income for securing stored objects will be transferred from payment account to distribution account,
+To indicate the off-chain challenge detect module is running correctly, validators have to vote and submit 
+`MsgHeartbeat` messages periodically to the blockchain. During processing this kind of messages, the income for securing 
+stored objects will be transferred from payment account to distribution account,
 and income can be withdrawn by validators and their delegators later.
 
-```protobuf
-message MsgHeartbeat {
-  option (cosmos.msg.v1.signer) = "creator";
-
-  // The submitter address.
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  // The id of the challenge.
-  uint64 challenge_id = 2;
-
-  // The validators participated in the attestation.
-  repeated fixed64 vote_validator_set = 3;
-
-  // The aggregated BLS signature from the validators.
-  bytes vote_agg_signature = 4;
-}
-```
-
-## Events
+## Challenge Events
 
 The following events are introduced for data availability challenge. For the detailed definition, please refer
 to [this](https://github.com/bnb-chain/greenfield/blob/master/proto/greenfield/challenge/events.proto).
@@ -154,3 +98,19 @@ and rewards amounts are also recorded.
 ### Heartbeat Event
 
 Heartbeat only includes the necessary information for liveness-check purpose. 
+
+## RANDAO
+
+To support random challenges, a RANDAO mechanism is introduced like the following. 
+When proposing a new block, the proposer, i.e. a validator, needs to sign the current block number to get 
+a `randao reveal`, and mixes the reveal into randao result `randao mix` by using `xor` operation. 
+The other validators will verify the `randao reveal` and `randao mix` by following steps: 
+1. The signature is verified using the proposer's public key. It means that the proposer has almost no choice 
+about what it contributes to the RANDAO. It either contributes the correct signature over the block number, 
+or it gives up the right for proposing the current block. If the validator does propose the current block, 
+it still cannot predict the reveal from other validators, and even be slashed for stopping proposing blocks.
+2. The `randao mix` is correctly updated by using `xor` operation.
+
+The implementation is conducted in Tendermint layer - a new field called `randao_mix` is added into block header.
+Greenfield blockchain then uses the field as a seed to randomly pick objects and storage providers to challenge 
+in each block.
