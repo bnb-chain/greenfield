@@ -277,7 +277,7 @@ func (k Keeper) CreateObject(
 		if err != nil {
 			return math.ZeroUint(), err
 		}
-		err = k.spKeeper.CheckIfValidStorageProvider(ctx, spAcc)
+		err = k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
 		if err != nil {
 			return math.ZeroUint(), err
 		}

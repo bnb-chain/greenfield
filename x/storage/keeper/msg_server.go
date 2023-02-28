@@ -41,6 +41,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
+	// TODO(alex): add id to response
 	_ = id
 	return &types.MsgCreateBucketResponse{}, nil
 }
@@ -103,7 +104,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
-	// TODO(alex): return to client
+	// TODO(alex): add id to response
 	_ = id
 
 	return &types.MsgCreateObjectResponse{}, nil
@@ -163,6 +164,8 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 	if err != nil {
 		return nil, err
 	}
+
+	// TODO(alex): add id to response
 	_ = id
 	return &types.MsgCopyObjectResponse{}, nil
 }
@@ -212,6 +215,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	if err != nil {
 		return nil, err
 	}
+	// TODO(alex): add id to response
 	_ = id
 	return &types.MsgCreateGroupResponse{}, nil
 }

@@ -22,7 +22,7 @@ type BankKeeper interface {
 type SpKeeper interface {
 	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp sptypes.StorageProvider, found bool)
 	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp sptypes.StorageProvider, found bool)
-	CheckIfValidStorageProvider(ctx sdk.Context, addr sdk.AccAddress) error
+	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
 }
 
 type PaymentKeeper interface {

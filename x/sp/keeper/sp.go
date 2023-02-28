@@ -6,7 +6,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-func (k Keeper) CheckIfValidStorageProvider(ctx sdk.Context, addr sdk.AccAddress) error {
+func (k Keeper) IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
 
 	value := store.Get(types.GetStorageProviderKey(addr))
