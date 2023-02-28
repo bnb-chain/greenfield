@@ -114,6 +114,9 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProviderByApprovalAddr(ctx, sp)
+	k.SetStorageProviderByFundingAddr(ctx, sp)
+	k.SetStorageProviderBySealAddr(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),

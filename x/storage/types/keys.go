@@ -41,35 +41,45 @@ var (
 	ipAddress       = regexp.MustCompile(`^(\d+\.){3}\d+$`)
 )
 
-// GetBucketStoreKey return the bucket store key
-func GetBucketStoreKey(bucketName string) []byte {
-	objectHashKey := sdk.Keccak256([]byte(bucketName))
-	return append(BucketPrefix, objectHashKey...)
+// GetBucketKey return the bucket name store key
+func GetBucketKey(bucketName string) []byte {
+	objectNameHash := sdk.Keccak256([]byte(bucketName))
+	return append(BucketPrefix, objectNameHash...)
 }
 
-func GetObjectStoreKey(bucketName string, objectName string) []byte {
-	bucketKey := sdk.Keccak256([]byte(bucketName))
-	objectKey := sdk.Keccak256([]byte(objectName))
-	return append(ObjectPrefix, append(bucketKey, objectKey...)...)
+// GetObjectKey return the object name store key
+func GetObjectKey(bucketName string, objectName string) []byte {
+	bucketNameHash := sdk.Keccak256([]byte(bucketName))
+	objectNameHash := sdk.Keccak256([]byte(objectName))
+	return append(ObjectPrefix, append(bucketNameHash, objectNameHash...)...)
 }
 
-func GetGroupStoreKey(owner sdk.AccAddress, groupName string) []byte {
-	groupKey := sdk.Keccak256([]byte(groupName))
-	return append(GroupPrefix, append(owner.Bytes(), groupKey...)...)
+func GetObjectKeyOnlyBucketPrefix(bucketName string) []byte {
+	return append(ObjectPrefix, sdk.Keccak256([]byte(bucketName))...)
 }
 
+// GetGroupKey return the group name store key
+func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
+	groupNameHash := sdk.Keccak256([]byte(groupName))
+	return append(GroupPrefix, append(owner.Bytes(), groupNameHash...)...)
+}
+
+// GetGroupMemberKey return the group member name store key
 func GetGroupMemberKey(groupId math.Uint, memberAcc sdk.AccAddress) []byte {
 	return append(GroupMemberPrefix, append(groupId.Bytes(), memberAcc.Bytes()...)...)
 }
 
-func GetBucketByIDStoreKey(bucketId math.Uint) []byte {
+// GetBucketByIDKey return the bucketID store key
+func GetBucketByIDKey(bucketId math.Uint) []byte {
 	return append(BucketByIDPrefix, EncodeSequence(bucketId)...)
 }
 
-func GetObjectByIDStoreKey(objectId math.Uint) []byte {
+// GetObjectByIDKey return the objectId store key
+func GetObjectByIDKey(objectId math.Uint) []byte {
 	return append(ObjectByIDPrefix, EncodeSequence(objectId)...)
 }
 
-func GetGroupByIDStoreKey(groupId math.Uint) []byte {
+// GetGroupByIDKey return the groupId store key
+func GetGroupByIDKey(groupId math.Uint) []byte {
 	return append(GroupByIDPrefix, EncodeSequence(groupId)...)
 }

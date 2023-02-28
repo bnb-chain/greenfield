@@ -1,6 +1,8 @@
 package keeper
 
-import "github.com/bnb-chain/greenfield/x/storage/types"
+import (
+	"github.com/bnb-chain/greenfield/x/storage/types"
+)
 
 type CreateBucketOptions struct {
 	IsPublic          bool

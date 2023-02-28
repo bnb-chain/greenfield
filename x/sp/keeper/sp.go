@@ -69,6 +69,7 @@ func (k Keeper) GetStorageProviderByApprovalAddr(ctx sdk.Context, approvalAddr s
 func (k Keeper) SetStorageProvider(ctx sdk.Context, sp types.StorageProvider) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalStorageProvider(k.cdc, &sp)
+
 	store.Set(types.GetStorageProviderKey(sp.GetOperator()), bz)
 }
 

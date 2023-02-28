@@ -74,8 +74,8 @@ func (k Keeper) CreateBucket(
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
-	bucketStoreKey := types.GetBucketStoreKey(bucketName)
-	if store.Has(bucketStoreKey) {
+	bucketKey := types.GetBucketKey(bucketName)
+	if store.Has(bucketKey) {
 		return math.ZeroUint(), types.ErrBucketAlreadyExists
 	}
 
@@ -118,8 +118,8 @@ func (k Keeper) CreateBucket(
 
 	// store the bucket
 	bz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(bucketStoreKey, types.EncodeSequence(bucketInfo.Id))
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bz)
+	store.Set(bucketKey, types.EncodeSequence(bucketInfo.Id))
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	// emit CreateBucket Event
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
@@ -140,7 +140,7 @@ func (k Keeper) CreateBucket(
 
 func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error {
 	store := ctx.KVStore(k.storeKey)
-	bucketStoreKey := types.GetBucketStoreKey(bucketName)
+	bucketKey := types.GetBucketKey(bucketName)
 
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
@@ -157,12 +157,12 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// check if the bucket empty
-	if k.isEmptyBucket(ctx, bucketStoreKey) {
+	if k.isEmptyBucket(ctx, bucketName) {
 		return types.ErrBucketNotEmpty
 	}
 
-	store.Delete(bucketStoreKey)
-	store.Delete(types.GetBucketByIDStoreKey(bucketInfo.Id))
+	store.Delete(bucketKey)
+	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
 		OperatorAddress:  operator.String(),
@@ -213,7 +213,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bz)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
 		OperatorAddress:      operator.String(),
@@ -232,8 +232,8 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bucketStoreKey := types.GetBucketStoreKey(bucketName)
-	bz := store.Get(bucketStoreKey)
+	bucketKey := types.GetBucketKey(bucketName)
+	bz := store.Get(bucketKey)
 	if bz == nil {
 		return bucketInfo, false
 	}
@@ -244,7 +244,7 @@ func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (bucketInfo ty
 func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId math.Uint) (bucketInfo types.BucketInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(types.GetBucketByIDStoreKey(bucketId))
+	bz := store.Get(types.GetBucketByIDKey(bucketId))
 	if bz == nil {
 		return bucketInfo, false
 	}
@@ -294,7 +294,7 @@ func (k Keeper) CreateObject(
 		return math.ZeroUint(), err
 	}
 
-	objectKey := types.GetObjectStoreKey(bucketName, objectName)
+	objectKey := types.GetObjectKey(bucketName, objectName)
 	if store.Has(objectKey) {
 		return math.ZeroUint(), types.ErrObjectAlreadyExists
 	}
@@ -324,11 +324,11 @@ func (k Keeper) CreateObject(
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bbz)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
 	store.Set(objectKey, types.EncodeSequence(objectInfo.Id))
-	store.Set(types.GetObjectByIDStoreKey(objectInfo.Id), obz)
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
 		CreatorAddress:   ownerAcc.String(),
@@ -354,9 +354,8 @@ func (k Keeper) CreateObject(
 
 func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	bz := objectStore.Get(types.GetObjectStoreKey(bucketName, objectName))
+	bz := store.Get(types.GetObjectKey(bucketName, objectName))
 	if bz == nil {
 		return objectInfo, false
 	}
@@ -367,7 +366,7 @@ func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName str
 func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId math.Uint) (objectInfo types.ObjectInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(types.GetObjectByIDStoreKey(objectId))
+	bz := store.Get(types.GetObjectByIDKey(objectId))
 	if bz == nil {
 		return objectInfo, false
 	}
@@ -390,12 +389,12 @@ func (k Keeper) SealObject(
 		return types.ErrNoSuchBucket
 	}
 
-	sp, found := k.spKeeper.GetStorageProvider(ctx, spSealAcc)
+	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, spSealAcc)
 	if !found {
-		return types.ErrNoSuchStorageProvider
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "sealAddr: %s, status: %s", spSealAcc.String(), sp.Status.String())
 	}
 
-	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromBech32(bucketInfo.PrimarySpAddress)) {
+	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
 		return errors.Wrapf(types.ErrAccessDenied, "Only SP's seal address is allowed to SealObject")
 	}
 
@@ -437,10 +436,10 @@ func (k Keeper) SealObject(
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	store := ctx.KVStore(k.storeKey)
 	bbz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bbz)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(types.GetObjectByIDStoreKey(objectInfo.Id), obz)
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
 		OperatorAddress:    spSealAcc.String(),
@@ -487,10 +486,10 @@ func (k Keeper) CancelCreateObject(
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bbz)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
-	store.Delete(types.GetObjectStoreKey(bucketName, objectName))
-	store.Delete(types.GetObjectByIDStoreKey(objectInfo.Id))
+	store.Delete(types.GetObjectKey(bucketName, objectName))
+	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
 		OperatorAddress:  ownAcc.String(),
@@ -537,10 +536,10 @@ func (k Keeper) DeleteObject(
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bbz)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
-	store.Delete(types.GetObjectStoreKey(bucketName, objectName))
-	store.Delete(types.GetObjectByIDStoreKey(objectInfo.Id))
+	store.Delete(types.GetObjectKey(bucketName, objectName))
+	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
 		OperatorAddress:      operator.String(),
@@ -615,11 +614,11 @@ func (k Keeper) CopyObject(
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&dstBucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(dstBucketInfo.Id), bbz)
+	store.Set(types.GetBucketByIDKey(dstBucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(types.GetObjectStoreKey(dstBucketName, dstObjectName), types.EncodeSequence(objectInfo.Id))
-	store.Set(types.GetObjectByIDStoreKey(objectInfo.Id), obz)
+	store.Set(types.GetObjectKey(dstBucketName, dstObjectName), types.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
 		OperatorAddress: operator.String(),
@@ -652,7 +651,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
 	if found {
-		return types.ErrNoSuchStorageProvider
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "sealAddr: %s, status: %s", operator.String(), sp.Status.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
@@ -668,10 +667,10 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(types.GetBucketByIDStoreKey(bucketInfo.Id), bbz)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
-	store.Delete(types.GetObjectStoreKey(bucketName, objectName))
-	store.Delete(types.GetObjectByIDStoreKey(objectInfo.Id))
+	store.Delete(types.GetObjectKey(bucketName, objectName))
+	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
 		OperatorAddress: operator.String(),
@@ -697,8 +696,8 @@ func (k Keeper) CreateGroup(
 	}
 
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(types.GetGroupStoreKey(owner, groupName), types.EncodeSequence(groupInfo.Id))
-	store.Set(types.GetGroupByIDStoreKey(groupInfo.Id), gbz)
+	store.Set(types.GetGroupKey(owner, groupName), types.EncodeSequence(groupInfo.Id))
+	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
 	for _, member := range opts.Members {
@@ -729,7 +728,7 @@ func (k Keeper) CreateGroup(
 func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName string) (groupInfo types.GroupInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(types.GetGroupStoreKey(ownerAddr, groupName))
+	bz := store.Get(types.GetGroupKey(ownerAddr, groupName))
 	if bz == nil {
 		return groupInfo, false
 	}
@@ -740,7 +739,7 @@ func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress, groupNam
 func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId math.Uint) (groupInfo types.GroupInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(types.GetGroupByIDStoreKey(groupId))
+	bz := store.Get(types.GetGroupByIDKey(groupId))
 	if bz == nil {
 		return groupInfo, false
 	}
@@ -764,8 +763,8 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName
 		return types.ErrSourceTypeMismatch
 	}
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	store.Delete(types.GetGroupStoreKey(ownerAddr, groupName))
-	store.Delete(types.GetGroupByIDStoreKey(groupInfo.Id))
+	store.Delete(types.GetGroupKey(ownerAddr, groupName))
+	store.Delete(types.GetGroupByIDKey(groupInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
@@ -855,7 +854,7 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []b
 	}
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
-		return types.ErrNoSuchStorageProvider
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "spAddr: %s, status: %s", sp.OperatorAddress, sp.Status.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
@@ -894,10 +893,10 @@ func (k Keeper) GenNextGroupId(ctx sdk.Context) math.Uint {
 	return seq
 }
 
-func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
+func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketName string) bool {
 	store := ctx.KVStore(k.storeKey)
-	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+	objectStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketName))
 
-	iter := objectStore.Iterator(bucketKey, nil)
+	iter := objectStore.Iterator(nil, nil)
 	return iter.Valid()
 }

@@ -261,6 +261,7 @@ func CmdCreateObject() *cobra.Command {
 				isPublic,
 				expectChecksum,
 				contentType,
+				types.REDUNDANCY_EC_TYPE,
 				math.MaxUint,
 				nil,
 				nil, // NOTE(fynn): Not specified here.

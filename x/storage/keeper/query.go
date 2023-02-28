@@ -80,7 +80,7 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.ObjectPrefix)
 
-	objectPrefixStore := prefix.NewStore(objectStore, types.GetBucketStoreKey(req.BucketName))
+	objectPrefixStore := prefix.NewStore(objectStore, types.GetBucketKey(req.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
 		var objectInfo types.ObjectInfo
