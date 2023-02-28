@@ -64,17 +64,17 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 
 	// check to see if the funding address has been registered before
 	if _, found := k.GetStorageProviderByFundingAddr(ctx, fundingAcc); found {
-		return nil, types.ErrStorageProviderOwnerExists
+		return nil, types.ErrStorageProviderFundingAddrExists
 	}
 
 	// check to see if the seal address has been registered before
 	if _, found := k.GetStorageProviderBySealAddr(ctx, sealAcc); found {
-		return nil, types.ErrStoraveProviderSealAddrExists
+		return nil, types.ErrStorageProviderSealAddrExists
 	}
 
 	// check to see if the approval address has been registered before
 	if _, found := k.GetStorageProviderByApprovalAddr(ctx, approvalAcc); found {
-		return nil, types.ErrStoraveProviderApprovalAddrExists
+		return nil, types.ErrStorageProviderApprovalAddrExists
 	}
 
 	if _, err := msg.Description.EnsureLength(); err != nil {
@@ -114,6 +114,9 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProviderByApprovalAddr(ctx, sp)
+	k.SetStorageProviderByFundingAddr(ctx, sp)
+	k.SetStorageProviderBySealAddr(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),
