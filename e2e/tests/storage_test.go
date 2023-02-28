@@ -32,7 +32,6 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := core.GenRandomBucketName()
-	fmt.Println(bucketName)
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)

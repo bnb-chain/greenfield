@@ -17,7 +17,7 @@ func (k Keeper) SaveChallenge(ctx sdk.Context, challenge types.Challenge) {
 	store.Set(getChallengeKeyBytes(challenge.Id), bz)
 }
 
-// SaveChallenge saves challenge to the store
+// GetChallenge gets a challenge by id
 func (k Keeper) GetChallenge(ctx sdk.Context, challengeId uint64) (challenge types.Challenge, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ChallengeKeyPrefix))
 	bz := store.Get(getChallengeKeyBytes(challengeId))
@@ -28,7 +28,7 @@ func (k Keeper) GetChallenge(ctx sdk.Context, challengeId uint64) (challenge typ
 	return challenge, true
 }
 
-// SaveChallenge saves challenge to the store
+// RemoveChallengeUntil removes challenges which are created earlier
 func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, challengeId uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.ChallengeKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})
@@ -41,7 +41,6 @@ func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, challengeId uint64) {
 			store.Delete(getChallengeKeyBytes(challenge.Id))
 		}
 	}
-
 }
 
 // getChallengeKeyBytes returns the byte representation of Challenge key
@@ -74,7 +73,7 @@ func (k Keeper) SetOngoingChallengeId(ctx sdk.Context, challengeId uint64) {
 	store.Set(byteKey, bz)
 }
 
-// GetAttestChallengeId gets the challenge id of the latest heartbeat challenge
+// GetAttestChallengeId gets the challenge id of the latest attestation challenge
 func (k Keeper) GetAttestChallengeId(ctx sdk.Context) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	byteKey := types.KeyPrefix(types.AttestChallengeIdKey)

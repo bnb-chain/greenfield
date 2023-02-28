@@ -1,9 +1,5 @@
 package types
 
-import (
-	"encoding/binary"
-)
-
 const (
 	// ModuleName defines the module name
 	ModuleName = "challenge"
@@ -41,17 +37,3 @@ const (
 	// SlashKeyPrefix is the prefix to retrieve Slash
 	SlashKeyPrefix = "Slash/value/"
 )
-
-// OngoingChallengeKey returns the store key to retrieve a Challenge from the index fields
-func OngoingChallengeKey(
-	id uint64,
-) []byte {
-	var key []byte
-
-	idBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(idBytes, uint64(id))
-	key = append(key, idBytes...)
-	key = append(key, []byte("/")...)
-
-	return key
-}

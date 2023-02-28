@@ -17,7 +17,7 @@ func (k Keeper) SaveSlash(ctx sdk.Context, slash types.Slash) {
 	store.Set(getSlashKeyBytes(slash.SpOperatorAddress, slash.ObjectId), bz)
 }
 
-// SaveChallenge saves challenge to the store
+// RemoveSlashUntil removes slashes which are created earlier
 func (k Keeper) RemoveSlashUntil(ctx sdk.Context, height uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefix(types.SlashKeyPrefix))
 	iterator := sdk.KVStorePrefixIterator(store, []byte{})

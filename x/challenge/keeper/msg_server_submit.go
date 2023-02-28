@@ -49,10 +49,9 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		bucket, _ := k.StorageKeeper.GetBucket(ctx, msg.BucketName)
 		if strings.EqualFold(msg.SpOperatorAddress, bucket.GetPrimarySpAddress()) {
 			stored = true
+		} else {
+			return nil, types.ErrNotStoredOnSp
 		}
-	}
-	if !stored {
-		return nil, types.ErrNotStoredOnSp
 	}
 
 	// check sp recent slash
