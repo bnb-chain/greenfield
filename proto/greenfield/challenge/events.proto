@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.sp;
+package bnbchain.greenfield.challenge;
 
 import "cosmos_proto/cosmos.proto";
 

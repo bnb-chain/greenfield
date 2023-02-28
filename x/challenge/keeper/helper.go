@@ -31,13 +31,6 @@ func SeedFromRandaoMix(randaoMix []byte, number uint64) []byte {
 	return seedBytes
 }
 
-// RandomObjectKey generates a random object key for challenge.
-func RandomObjectKey(seed []byte) []byte {
-	bucketKey := sdk.Keccak256(seed[:32])
-	objectKey := sdk.Keccak256(seed[32:])
-	return append(bucketKey, objectKey...)
-}
-
 // RandomObjectId generates a random object id for challenge.
 // Be noted: id starts from 1.
 func RandomObjectId(seed []byte, objectCount uint64) uint64 {

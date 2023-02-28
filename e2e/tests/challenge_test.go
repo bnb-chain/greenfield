@@ -213,11 +213,12 @@ func (s *ChallengeTestSuite) TestHeartbeat() {
 			heartbeatInterval = ((events[length-1].ChallengeId / heartbeatInterval) + 1) * heartbeatInterval
 			fmt.Println("Need to wait for challenge id", heartbeatInterval)
 		}
-
 		if length > 0 && events[length-1].ChallengeId > heartbeatInterval {
 			break
 		}
-		fmt.Println("Current challenge id", events[length-1].ChallengeId)
+		if length > 0 {
+			fmt.Println("Current challenge id", events[length-1].ChallengeId)
+		}
 		time.Sleep(5 * time.Second)
 	}
 
@@ -259,7 +260,7 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 	challengeEvents := make([]challengetypes.EventStartChallenge, 0)
 
 	for _, event := range blockRes.EndBlockEvents {
-		if event.Type == "bnbchain.greenfield.sp.EventStartChallenge" {
+		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {
 
 			challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress := "", "", "", "", ""
 			for _, attr := range event.Attributes {
@@ -294,7 +295,7 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
 	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress := "", "", "", "", ""
 	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "bnbchain.greenfield.sp.EventStartChallenge" {
+		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {
 			for _, attr := range event.Attributes {
 				if attr.Key == "challenge_id" {
 					challengeIdStr = strings.Trim(attr.Value, `"`)
