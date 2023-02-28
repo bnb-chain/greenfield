@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package bnbchain.greenfield.storage;
 
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
@@ -26,9 +27,19 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_name}";
   }
 
+  // Queries a bucket by its id
+  rpc HeadBucketById(QueryHeadBucketRequest) returns (QueryHeadBucketResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_id}";
+  }
+
   // Queries a object with specify name.
   rpc HeadObject(QueryHeadObjectRequest) returns (QueryHeadObjectResponse) {
     option (google.api.http).get = "/greenfield/storage/head_object/{bucket_name}/{object_name}";
+  }
+
+  // Queries a object by its id
+  rpc HeadObjectById(QueryHeadObjectByIdRequest) returns (QueryHeadObjectResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_object/{object_id}";
   }
 
   // Queries a list of bucket items.
@@ -38,7 +49,12 @@ service Query {
 
   // Queries a list of object items under the bucket.
   rpc ListObjects(QueryListObjectsRequest) returns (QueryListObjectsResponse) {
-    option (google.api.http).get = "/greenfield/storage/list_objects/{bucketName}";
+    option (google.api.http).get = "/greenfield/storage/list_objects/{bucket_name}";
+  }
+
+  // Queries a list of object items under the bucket.
+  rpc ListObjectsByBucketId(QueryListObjectsRequest) returns (QueryListObjectsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_objects/{bucket_id}";
   }
 }
 
@@ -54,6 +70,7 @@ message QueryParamsResponse {
 // this line is used by starport scaffolding # 3
 message QueryHeadBucketRequest {
   string bucket_name = 1;
+  string bucket_id = 2;
 }
 
 message QueryHeadBucketResponse {
@@ -63,6 +80,10 @@ message QueryHeadBucketResponse {
 message QueryHeadObjectRequest {
   string bucket_name = 1;
   string object_name = 2;
+}
+
+message QueryHeadObjectByIdRequest {
+  string object_id = 1;
 }
 
 message QueryHeadObjectResponse {
@@ -80,7 +101,8 @@ message QueryListBucketsResponse {
 
 message QueryListObjectsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
-  string bucketName = 2;
+  string bucket_name = 2;
+  string bucket_id = 3;
 }
 
 message QueryListObjectsResponse {

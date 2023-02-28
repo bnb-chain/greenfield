@@ -41,9 +41,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
-	// TODO(alex): add id to response
-	_ = id
-	return &types.MsgCreateBucketResponse{}, nil
+	return &types.MsgCreateBucketResponse{
+		BucketId: id,
+	}, nil
 }
 
 func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucket) (*types.MsgDeleteBucketResponse, error) {
@@ -104,10 +104,9 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
-	// TODO(alex): add id to response
-	_ = id
-
-	return &types.MsgCreateObjectResponse{}, nil
+	return &types.MsgCreateObjectResponse{
+		ObjectId: id,
+	}, nil
 }
 
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
@@ -165,9 +164,9 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 		return nil, err
 	}
 
-	// TODO(alex): add id to response
-	_ = id
-	return &types.MsgCopyObjectResponse{}, nil
+	return &types.MsgCopyObjectResponse{
+		ObjectId: id,
+	}, nil
 }
 
 func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObject) (*types.MsgDeleteObjectResponse, error) {
@@ -215,9 +214,10 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 	if err != nil {
 		return nil, err
 	}
-	// TODO(alex): add id to response
-	_ = id
-	return &types.MsgCreateGroupResponse{}, nil
+
+	return &types.MsgCreateGroupResponse{
+		GroupId: id,
+	}, nil
 }
 
 func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup) (*types.MsgDeleteGroupResponse, error) {
