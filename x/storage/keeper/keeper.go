@@ -152,7 +152,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 
 	// check permission
 	OwnerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
-	if OwnerAcc.Equals(operator) {
+	if !OwnerAcc.Equals(operator) {
 		return types.ErrAccessDenied
 	}
 
@@ -188,7 +188,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 	// check permission
 	OwnerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
-	if OwnerAcc.Equals(operator) {
+	if !OwnerAcc.Equals(operator) {
 		return types.ErrAccessDenied
 	}
 
@@ -526,7 +526,7 @@ func (k Keeper) DeleteObject(
 	}
 
 	// Currently, only the owner is allowed to delete object
-	if operator.Equals(sdk.MustAccAddressFromHex(objectInfo.Owner)) {
+	if !operator.Equals(sdk.MustAccAddressFromHex(objectInfo.Owner)) {
 		return errors.Wrapf(types.ErrAccessDenied, "no permission")
 	}
 
