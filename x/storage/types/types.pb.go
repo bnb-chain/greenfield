@@ -138,7 +138,7 @@ func (m *BucketInfo) GetReadQuota() ReadQuota {
 	if m != nil {
 		return m.ReadQuota
 	}
-	return READ_QUOTA_INVALID
+	return READ_QUOTA_FREE
 }
 
 func (m *BucketInfo) GetPaymentPriceTime() int64 {

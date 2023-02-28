@@ -118,7 +118,7 @@ func (m *EventCreateBucket) GetReadQuota() ReadQuota {
 	if m != nil {
 		return m.ReadQuota
 	}
-	return READ_QUOTA_INVALID
+	return READ_QUOTA_FREE
 }
 
 func (m *EventCreateBucket) GetPaymentAddress() string {
@@ -279,14 +279,14 @@ func (m *EventUpdateBucketInfo) GetReadQuotaBefore() ReadQuota {
 	if m != nil {
 		return m.ReadQuotaBefore
 	}
-	return READ_QUOTA_INVALID
+	return READ_QUOTA_FREE
 }
 
 func (m *EventUpdateBucketInfo) GetReadQuotaAfter() ReadQuota {
 	if m != nil {
 		return m.ReadQuotaAfter
 	}
-	return READ_QUOTA_INVALID
+	return READ_QUOTA_FREE
 }
 
 func (m *EventUpdateBucketInfo) GetPaymentAddressBefore() string {

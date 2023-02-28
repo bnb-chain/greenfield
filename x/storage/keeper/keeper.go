@@ -203,7 +203,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	// update quota
-	if opts.ReadQuota != types.READ_QUOTA_INVALID && opts.ReadQuota != bucketInfo.ReadQuota {
+	if opts.ReadQuota != bucketInfo.ReadQuota {
 		err := k.paymentKeeper.ChargeUpdateReadQuota(ctx, &bucketInfo, opts.ReadQuota)
 		if err != nil {
 			return err

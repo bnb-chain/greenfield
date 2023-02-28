@@ -126,7 +126,7 @@ func (m *MsgCreateBucket) GetReadQuota() ReadQuota {
 	if m != nil {
 		return m.ReadQuota
 	}
-	return READ_QUOTA_INVALID
+	return READ_QUOTA_FREE
 }
 
 type MsgCreateBucketResponse struct {
@@ -1318,7 +1318,7 @@ func (m *MsgUpdateBucketInfo) GetReadQuota() ReadQuota {
 	if m != nil {
 		return m.ReadQuota
 	}
-	return READ_QUOTA_INVALID
+	return READ_QUOTA_FREE
 }
 
 func (m *MsgUpdateBucketInfo) GetPaymentAddress() string {

@@ -3,8 +3,8 @@ package keeper
 import "github.com/bnb-chain/greenfield/x/storage/types"
 
 type CreateBucketOptions struct {
-	IsPublic bool
-	types.SourceType
+	IsPublic          bool
+	SourceType        types.SourceType
 	ReadQuota         types.ReadQuota
 	PaymentAddress    string
 	PrimarySpApproval *types.Approval
@@ -12,20 +12,20 @@ type CreateBucketOptions struct {
 }
 
 type DeleteBucketOptions struct {
-	types.SourceType
+	SourceType types.SourceType
 }
 
 type UpdateBucketOptions struct {
-	types.SourceType
-	types.ReadQuota
+	SourceType     types.SourceType
+	ReadQuota      types.ReadQuota
 	PaymentAddress string
 }
 
 type CreateObjectOptions struct {
-	IsPublic    bool
-	ContentType string
-	types.SourceType
-	types.RedundancyType
+	IsPublic             bool
+	ContentType          string
+	SourceType           types.SourceType
+	RedundancyType       types.RedundancyType
 	Checksums            [][]byte
 	SecondarySpAddresses []string
 	PrimarySpApproval    *types.Approval
@@ -33,29 +33,29 @@ type CreateObjectOptions struct {
 }
 
 type CancelCreateObjectOptions struct {
-	types.SourceType
+	SourceType types.SourceType
 }
 
 type DeleteObjectOptions struct {
-	types.SourceType
+	SourceType types.SourceType
 }
 
 type CopyObjectOptions struct {
-	types.SourceType
+	SourceType        types.SourceType
 	IsPublic          bool
 	PrimarySpApproval *types.Approval
 	ApprovalMsgBytes  []byte
 }
 type CreateGroupOptions struct {
-	Members []string
-	types.SourceType
+	Members    []string
+	SourceType types.SourceType
 }
 type LeaveGroupOptions struct {
-	types.SourceType
+	SourceType types.SourceType
 }
 
 type UpdateGroupMemberOptions struct {
-	types.SourceType
+	SourceType      types.SourceType
 	MembersToAdd    []string
 	MembersToDelete []string
 }
