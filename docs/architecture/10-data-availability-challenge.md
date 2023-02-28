@@ -46,7 +46,7 @@ The data availability challenge mechanism workflow is as below:
 ## Messages
 
 The following messages are introduced for data availability challenge. For the detailed definition, please refer
-to [this](https://github.com/bnb-chain/greenfield/blob/develop/proto/greenfield/challenge/tx.proto).
+to [this](https://github.com/bnb-chain/greenfield/blob/master/proto/greenfield/challenge/tx.proto).
 
 ### Submit Message
 
@@ -54,11 +54,62 @@ Anyone can submit this kind of messages to trigger data availability challenges,
 available or incorrect stored. The submitter will be called as challenger, and will be rewarded if the challenge
 succeeds later.
 
+```protobuf
+message MsgSubmit {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // The challenger address.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The storage provider to be challenged.
+  string sp_operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The bucket of the object info to be challenged.
+  string bucket_name = 3;
+
+  // The name of the object info to be challenged.
+  string object_name = 4;
+
+  // The index of segment/piece to challenge, start from zero.
+  uint32 segment_index = 5;
+
+  // Randomly pick a segment/piece to challenge or not.
+  bool random_index = 6;
+}
+```
+
 ### Attest Message
 
 When there are more than 2/3 votes are collected, an attestation message will be submitted to slash the challenged
 storage provider, and the voted validators, the attestation submitter, and the challenger (if there is) will be
 rewarded accordingly.
+
+```protobuf
+message MsgAttest {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // The submitter address.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The id of the challenge.
+  uint64 challenge_id = 2;
+
+  // The id of the challenge.
+  uint64 object_id = 3;
+
+  // The storage provider to be challenged.
+  string sp_operator_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // Vote result of the attestation.
+  uint32 vote_result = 5;
+
+  // The validators participated in the attestation.
+  repeated fixed64 vote_validator_set = 6;
+
+  // The aggregated BLS signature from the validators.
+  bytes vote_agg_signature = 7;
+}
+```
 
 ### Heartbeat Message
 
@@ -66,10 +117,28 @@ Heartbeat message is submitted periodically to indicate the off-chain challenge 
 Meanwhile, the income for securing stored objects will be transferred from payment account to distribution account,
 and income can be withdrawn by validators and their delegators later.
 
+```protobuf
+message MsgHeartbeat {
+  option (cosmos.msg.v1.signer) = "creator";
+
+  // The submitter address.
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The id of the challenge.
+  uint64 challenge_id = 2;
+
+  // The validators participated in the attestation.
+  repeated fixed64 vote_validator_set = 3;
+
+  // The aggregated BLS signature from the validators.
+  bytes vote_agg_signature = 4;
+}
+```
+
 ## Events
 
 The following events are introduced for data availability challenge. For the detailed definition, please refer
-to [this](https://github.com/bnb-chain/greenfield/blob/develop/proto/greenfield/challenge/events.proto).
+to [this](https://github.com/bnb-chain/greenfield/blob/master/proto/greenfield/challenge/events.proto).
 
 ### Start Event
 

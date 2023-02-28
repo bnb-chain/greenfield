@@ -15,6 +15,8 @@ Following are the events that the Greenfield blockchain emits, grouped by module
 
 * [Bridge](https://github.com/bnb-chain/greenfield/blob/master/proto/greenfield/bridge/event.proto)
 
+* [Challenge](https://github.com/bnb-chain/greenfield/blob/master/proto/greenfield/challenge/events.proto)
+
 * [Distribution](https://github.com/bnb-chain/gnfd-cosmos-sdk/blob/master/x/distribution/spec/06_events.md)
 
 * [Feegrant](https://github.com/bnb-chain/gnfd-cosmos-sdk/blob/master/x/feegrant/spec/04_events.md)
