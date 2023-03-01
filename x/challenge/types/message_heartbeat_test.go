@@ -19,13 +19,13 @@ func TestMsgHeartbeat_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgHeartbeat{
-				Creator: "invalid_address",
+				Submitter: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "invalid vote aggregated signature",
 			msg: MsgHeartbeat{
-				Creator:          sample.AccAddress(),
+				Submitter:        sample.AccAddress(),
 				VoteValidatorSet: []uint64{1},
 				VoteAggSignature: []byte{1, 2, 3},
 			},
@@ -33,7 +33,7 @@ func TestMsgHeartbeat_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid message",
 			msg: MsgHeartbeat{
-				Creator:          sample.AccAddress(),
+				Submitter:        sample.AccAddress(),
 				VoteValidatorSet: []uint64{1},
 				VoteAggSignature: sig[:],
 			},

@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -33,12 +34,12 @@ func SeedFromRandaoMix(randaoMix []byte, number uint64) []byte {
 
 // RandomObjectId generates a random object id for challenge.
 // Be noted: id starts from 1.
-func RandomObjectId(seed []byte, objectCount uint64) uint64 {
-	number := new(big.Int)
-	number.SetBytes(sdk.Keccak256(seed))
-	number = big.NewInt(0).Abs(number)
-	id := big.NewInt(0).Mod(number, big.NewInt(int64(objectCount)))
-	return id.Uint64() + 1
+func RandomObjectId(seed []byte, objectCount sdkmath.Uint) sdkmath.Uint {
+	number := new(big.Int).SetBytes(sdk.Keccak256(seed))
+	number = new(big.Int).Abs(number)
+
+	id := sdkmath.NewUintFromBigInt(number).Mod(objectCount).AddUint64(1)
+	return id
 }
 
 // CalculateSegments calculates the number of segments for the payload size.
@@ -53,19 +54,17 @@ func CalculateSegments(payloadSize, segmentSize uint64) uint64 {
 
 // RandomSegmentIndex generates a random segment index for challenge.
 func RandomSegmentIndex(seed []byte, segments uint64) uint32 {
-	number := new(big.Int)
-	number.SetBytes(sdk.Keccak256(seed)[:32])
-	number = big.NewInt(0).Abs(number)
-	index := big.NewInt(0).Mod(number, big.NewInt(int64(segments)))
+	number := new(big.Int).SetBytes(sdk.Keccak256(seed)[:32])
+	number = new(big.Int).Abs(number)
+	index := new(big.Int).Mod(number, big.NewInt(int64(segments)))
 	return uint32(index.Uint64())
 }
 
 // RandomRedundancyIndex generates a random redundancy index (storage provider) for challenge.
 // Be noted: RedundancyIndex starts from -1 (the primary sp).
 func RandomRedundancyIndex(seed []byte, sps uint64) int32 {
-	number := new(big.Int)
-	number.SetBytes(sdk.Keccak256(seed)[32:])
-	number = big.NewInt(0).Abs(number)
-	index := big.NewInt(0).Mod(number, big.NewInt(int64(sps)))
+	number := new(big.Int).SetBytes(sdk.Keccak256(seed)[32:])
+	number = new(big.Int).Abs(number)
+	index := new(big.Int).Mod(number, big.NewInt(int64(sps)))
 	return int32(index.Uint64()) - 1
 }

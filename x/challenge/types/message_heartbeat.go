@@ -11,9 +11,9 @@ const TypeMsgHeartbeat = "heartbeat"
 
 var _ sdk.Msg = &MsgHeartbeat{}
 
-func NewMsgHeartbeat(creator sdk.AccAddress, challengeId uint64, voteValidatorSet []uint64, voteAggSignature []byte) *MsgHeartbeat {
+func NewMsgHeartbeat(submitter sdk.AccAddress, challengeId uint64, voteValidatorSet []uint64, voteAggSignature []byte) *MsgHeartbeat {
 	return &MsgHeartbeat{
-		Creator:          creator.String(),
+		Submitter:        submitter.String(),
 		ChallengeId:      challengeId,
 		VoteValidatorSet: voteValidatorSet,
 		VoteAggSignature: voteAggSignature,
@@ -29,7 +29,7 @@ func (msg *MsgHeartbeat) Type() string {
 }
 
 func (msg *MsgHeartbeat) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
 	if err != nil {
 		panic(err)
 	}
@@ -42,9 +42,9 @@ func (msg *MsgHeartbeat) GetSignBytes() []byte {
 }
 
 func (msg *MsgHeartbeat) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid submitter address (%s)", err)
 	}
 
 	if len(msg.VoteValidatorSet) == 0 {

@@ -19,13 +19,13 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgSubmit{
-				Creator: "invalid_address",
+				Challenger: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgSubmit{
-				Creator:           sample.AccAddress(),
+				Challenger:        sample.AccAddress(),
 				SpOperatorAddress: sample.AccAddress(),
 				BucketName:        "1",
 			},
@@ -33,7 +33,7 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid object name",
 			msg: MsgSubmit{
-				Creator:           sample.AccAddress(),
+				Challenger:        sample.AccAddress(),
 				SpOperatorAddress: sample.AccAddress(),
 				BucketName:        "bucket",
 				ObjectName:        "",
@@ -42,7 +42,7 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid message with random index",
 			msg: MsgSubmit{
-				Creator:           sample.AccAddress(),
+				Challenger:        sample.AccAddress(),
 				SpOperatorAddress: sample.AccAddress(),
 				BucketName:        "bucket",
 				ObjectName:        "object",
@@ -52,7 +52,7 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid message with specific index",
 			msg: MsgSubmit{
-				Creator:           sample.AccAddress(),
+				Challenger:        sample.AccAddress(),
 				SpOperatorAddress: sample.AccAddress(),
 				BucketName:        "bucket",
 				ObjectName:        "object",

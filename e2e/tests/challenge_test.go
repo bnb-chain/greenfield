@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -79,7 +80,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
@@ -175,8 +176,8 @@ func (s *ChallengeTestSuite) TestAttest() {
 
 	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp,
-		challengetypes.ChallengeResultSucceed, valBitset.Bytes(), nil)
+	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
 	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
@@ -277,12 +278,12 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 				}
 			}
 			challengeId, _ := strconv.ParseInt(challengeIdStr, 10, 64)
-			objectId, _ := strconv.ParseInt(objectIdStr, 10, 64)
+			objectId := sdkmath.NewUintFromString(objectIdStr)
 			redundancyIndex, _ := strconv.ParseInt(redundancyIndexStr, 10, 32)
 			segmentIndex, _ := strconv.ParseInt(segmentIndexStr, 10, 32)
 			challengeEvents = append(challengeEvents, challengetypes.EventStartChallenge{
 				ChallengeId:       uint64(challengeId),
-				ObjectId:          uint64(objectId),
+				ObjectId:          objectId,
 				SegmentIndex:      uint32(segmentIndex),
 				SpOperatorAddress: spOpAddress,
 				RedundancyIndex:   int32(redundancyIndex),
@@ -312,12 +313,12 @@ func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge
 		}
 	}
 	challengeId, _ := strconv.ParseInt(challengeIdStr, 10, 64)
-	objectId, _ := strconv.ParseInt(objectIdStr, 10, 64)
+	objectId := sdkmath.NewUintFromString(objectIdStr)
 	redundancyIndex, _ := strconv.ParseInt(redundancyIndexStr, 10, 32)
 	segmentIndex, _ := strconv.ParseInt(segmentIndexStr, 10, 32)
 	return challengetypes.EventStartChallenge{
 		ChallengeId:       uint64(challengeId),
-		ObjectId:          uint64(objectId),
+		ObjectId:          objectId,
 		SegmentIndex:      uint32(segmentIndex),
 		SpOperatorAddress: spOpAddress,
 		RedundancyIndex:   int32(redundancyIndex),

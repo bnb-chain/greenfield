@@ -1,11 +1,12 @@
 package types
 
-const (
-	// ChallengeResultSucceed stands for the result of succeed challenge
-	ChallengeResultSucceed = uint32(1)
+import (
+	sdkmath "cosmossdk.io/math"
+)
 
-	// ChallengeResultFailed stands for the result of failed challenge
-	ChallengeResultFailed = uint32(2)
+type (
+	Int  = sdkmath.Int
+	Uint = sdkmath.Uint
 )
 
 // RedundancyIndexPrimary defines the redundancy index for primary storage provider (asked by storage provider api)

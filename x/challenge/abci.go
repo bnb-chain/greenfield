@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
 
@@ -45,8 +44,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		if objectCount.IsZero() {
 			return
 		}
-		objectId := k.RandomObjectId(seed, objectCount.Uint64())
-		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, sdkmath.NewUint(objectId))
+		objectId := k.RandomObjectId(seed, objectCount)
+		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, objectId)
 		if !found { // there is no object info yet, cannot generate challenges
 			return
 		}
@@ -86,7 +85,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// check recent slash
-		if keeper.ExistsSlash(ctx, strings.ToLower(spOperatorAddress), objectInfo.Id.Uint64()) {
+		if keeper.ExistsSlash(ctx, strings.ToLower(spOperatorAddress), objectInfo.Id) {
 			continue
 		}
 
@@ -95,14 +94,16 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		segmentIndex := k.RandomSegmentIndex(seed, segments)
 
 		objectMap[mapKey] = struct{}{}
+
 		challengeId := keeper.GetOngoingChallengeId(ctx)
 		keeper.SetOngoingChallengeId(ctx, challengeId+1)
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challengeId,
-			ObjectId:          objectInfo.Id.Uint64(),
+			ObjectId:          objectInfo.Id,
 			SegmentIndex:      segmentIndex,
 			SpOperatorAddress: spOperatorAddress,
 			RedundancyIndex:   redundancyIndex,
+			ChallengerAddress: "",
 		})
 
 		count++

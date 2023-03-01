@@ -20,7 +20,7 @@ func SimulateMsgAttest(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgAttest{
-			Creator: simAccount.Address.String(),
+			Submitter: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the Attest simulation

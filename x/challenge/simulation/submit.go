@@ -20,7 +20,7 @@ func SimulateMsgSubmit(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgSubmit{
-			Creator: simAccount.Address.String(),
+			Challenger: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the Submit simulation

@@ -23,7 +23,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	//check object, and get object info
-	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, sdkmath.NewUint(msg.ObjectId))
+	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
 	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
 		return nil, types.ErrUnknownObject
 	}
@@ -49,7 +49,6 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		Height:            uint64(ctx.BlockHeight()),
 	}
 	k.SaveSlash(ctx, slash)
-	k.RemoveChallengeUntil(ctx, msg.ChallengeId)
 
 	return &types.MsgAttestResponse{}, nil
 }
@@ -100,12 +99,8 @@ func (k msgServer) calculateChallengeRewards(ctx sdk.Context, total sdkmath.Int,
 }
 
 func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *types.MsgAttest, validators []string) {
-	submitter := msg.Creator
-	challenger := ""
-	challenge, found := k.GetChallenge(ctx, msg.ChallengeId)
-	if found {
-		challenger = challenge.ChallengerAddress
-	}
+	submitter := msg.Submitter
+	challenger := msg.ChallengerAddress
 
 	slashAmount := k.calculateChallengeSlash(ctx, objectSize)
 	challengerReward, eachValidatorReward, submitterReward := k.calculateChallengeRewards(ctx, slashAmount,
@@ -113,13 +108,15 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *ty
 
 	denom := k.SpKeeper.DepositDenomForSP(ctx)
 	rewards := make([]sptypes.RewardInfo, 0)
-	rewards = append(rewards, sptypes.RewardInfo{
-		Address: challenger,
-		Amount: sdk.Coin{
-			Denom:  denom,
-			Amount: challengerReward,
-		},
-	})
+	if challenger != "" {
+		rewards = append(rewards, sptypes.RewardInfo{
+			Address: challenger,
+			Amount: sdk.Coin{
+				Denom:  denom,
+				Amount: challengerReward,
+			},
+		})
+	}
 	for _, val := range validators {
 		rewards = append(rewards, sptypes.RewardInfo{
 			Address: val,
@@ -146,7 +143,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *ty
 
 	event := types.EventCompleteChallenge{
 		ChallengeId:            msg.ChallengeId,
-		Result:                 types.ChallengeResultSucceed,
+		Result:                 types.CHALLENGE_SUCCEED,
 		SpOperatorAddress:      msg.SpOperatorAddress,
 		SlashAmount:            slashAmount.String(),
 		ChallengerAddress:      challenger,

@@ -15,7 +15,7 @@ import (
 func (k msgServer) Heartbeat(goCtx context.Context, msg *types.MsgHeartbeat) (*types.MsgHeartbeatResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	submitterAddress, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	submitterAddress, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
 	if err != nil {
 		return nil, err
 	}

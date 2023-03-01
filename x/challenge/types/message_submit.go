@@ -11,9 +11,9 @@ const TypeMsgSubmit = "submit"
 
 var _ sdk.Msg = &MsgSubmit{}
 
-func NewMsgSubmit(creator sdk.AccAddress, spOperatorAddress sdk.AccAddress, bucketName, objectName string, randomIndex bool, segmentIndex uint32) *MsgSubmit {
+func NewMsgSubmit(challenger sdk.AccAddress, spOperatorAddress sdk.AccAddress, bucketName, objectName string, randomIndex bool, segmentIndex uint32) *MsgSubmit {
 	return &MsgSubmit{
-		Creator:           creator.String(),
+		Challenger:        challenger.String(),
 		SpOperatorAddress: spOperatorAddress.String(),
 		BucketName:        bucketName,
 		ObjectName:        objectName,
@@ -31,7 +31,7 @@ func (msg *MsgSubmit) Type() string {
 }
 
 func (msg *MsgSubmit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Challenger)
 	if err != nil {
 		panic(err)
 	}
@@ -44,9 +44,9 @@ func (msg *MsgSubmit) GetSignBytes() []byte {
 }
 
 func (msg *MsgSubmit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Challenger)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid challenger address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)

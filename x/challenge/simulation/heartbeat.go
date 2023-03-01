@@ -20,7 +20,7 @@ func SimulateMsgHeartbeat(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgHeartbeat{
-			Creator: simAccount.Address.String(),
+			Submitter: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the Heartbeat simulation

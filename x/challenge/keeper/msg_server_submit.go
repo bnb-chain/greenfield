@@ -53,7 +53,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// check sp recent slash
-	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), objectInfo.Id.Uint64()) {
+	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), objectInfo.Id) {
 		return nil, types.ErrExistsRecentSlash
 	}
 
@@ -81,18 +81,13 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	k.SetOngoingChallengeId(ctx, challengeId+1)
 	k.IncrChallengeCountCurrentBlock(ctx)
 
-	challenge := types.Challenge{
-		Id:                challengeId,
-		ChallengerAddress: msg.SpOperatorAddress,
-	}
-	k.SaveChallenge(ctx, challenge)
-
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,
-		ObjectId:          objectInfo.Id.Uint64(),
+		ObjectId:          objectInfo.Id,
 		SegmentIndex:      segmentIndex,
 		SpOperatorAddress: msg.SpOperatorAddress,
 		RedundancyIndex:   redundancyIndex,
+		ChallengerAddress: msg.Challenger,
 	}); err != nil {
 		return nil, err
 	}

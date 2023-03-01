@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
@@ -15,7 +16,7 @@ import (
 func createSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Slash {
 	items := make([]types.Slash, n)
 	for i := range items {
-		items[i].ObjectId = uint64(i)
+		items[i].ObjectId = sdkmath.NewUint(uint64(i))
 		items[i].Height = uint64(i)
 		items[i].SpOperatorAddress = fmt.Sprintf("addr-%d", i)
 		keeper.SaveSlash(ctx, items[i])

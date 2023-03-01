@@ -11,14 +11,15 @@ const TypeMsgAttest = "attest"
 
 var _ sdk.Msg = &MsgAttest{}
 
-func NewMsgAttest(creator sdk.AccAddress, challengeId, objectId uint64, spOperatorAddress sdk.AccAddress, voteResult uint32,
-	voteValidatorSet []uint64, voteAggSignature []byte) *MsgAttest {
+func NewMsgAttest(submitter sdk.AccAddress, challengeId uint64, objectId Uint, spOperatorAddress string,
+	voteResult VoteResult, challenger string, voteValidatorSet []uint64, voteAggSignature []byte) *MsgAttest {
 	return &MsgAttest{
-		Creator:           creator.String(),
+		Submitter:         submitter.String(),
 		ChallengeId:       challengeId,
 		ObjectId:          objectId,
-		SpOperatorAddress: spOperatorAddress.String(),
-		VoteResult:        voteResult,
+		SpOperatorAddress: spOperatorAddress,
+		VoteResult:        VoteResult(voteResult),
+		ChallengerAddress: challenger,
 		VoteValidatorSet:  voteValidatorSet,
 		VoteAggSignature:  voteAggSignature,
 	}
@@ -33,7 +34,7 @@ func (msg *MsgAttest) Type() string {
 }
 
 func (msg *MsgAttest) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
 	if err != nil {
 		panic(err)
 	}
@@ -46,9 +47,9 @@ func (msg *MsgAttest) GetSignBytes() []byte {
 }
 
 func (msg *MsgAttest) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid submitter address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
@@ -56,8 +57,15 @@ func (msg *MsgAttest) ValidateBasic() error {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
 	}
 
-	if msg.VoteResult != ChallengeResultSucceed {
+	if msg.VoteResult != CHALLENGE_SUCCEED {
 		return sdkerrors.Wrap(ErrInvalidVoteResult, "only succeed challenge can submit attest")
+	}
+
+	if msg.ChallengerAddress != "" {
+		_, err = sdk.AccAddressFromHexUnsafe(msg.ChallengerAddress)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid challenger address (%s)", err)
+		}
 	}
 
 	if len(msg.VoteValidatorSet) == 0 {
@@ -74,8 +82,7 @@ func (msg *MsgAttest) ValidateBasic() error {
 func (msg *MsgAttest) GetBlsSignBytes() [32]byte {
 	challengeIdBz := make([]byte, 8)
 	binary.BigEndian.PutUint64(challengeIdBz, msg.ChallengeId)
-	objectIdBz := make([]byte, 8)
-	binary.BigEndian.PutUint64(objectIdBz, uint64(msg.ObjectId))
+	objectIdBz := msg.ObjectId.Bytes()
 	resultBz := make([]byte, 8)
 	binary.BigEndian.PutUint64(resultBz, uint64(msg.VoteResult))
 
@@ -84,6 +91,7 @@ func (msg *MsgAttest) GetBlsSignBytes() [32]byte {
 	bs = append(bs, objectIdBz...)
 	bs = append(bs, resultBz...)
 	bs = append(bs, []byte(msg.SpOperatorAddress)...)
+	bs = append(bs, []byte(msg.ChallengerAddress)...)
 	hash := sdk.Keccak256Hash(bs)
 	return hash
 }
