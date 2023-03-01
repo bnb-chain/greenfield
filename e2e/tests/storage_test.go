@@ -107,7 +107,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)

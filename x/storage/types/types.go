@@ -21,19 +21,11 @@ type (
 	Uint = sdkmath.Uint
 )
 
-func MustMarshalUint(n sdkmath.Uint) []byte {
-	nb, err := n.Marshal()
-	if err != nil {
-		panic(err)
-	}
-	return nb
+func EncodeSequence(u Uint) []byte {
+	return u.Bytes()
 }
 
-func MustUnmarshalUint(data []byte) sdkmath.Uint {
-	n := sdkmath.ZeroUint()
-	err := n.Unmarshal(data)
-	if err != nil {
-		panic(err)
-	}
-	return n
+func DecodeSequence(bz []byte) Uint {
+	u := sdkmath.NewUint(0)
+	return u.SetBytes(bz)
 }

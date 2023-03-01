@@ -64,6 +64,28 @@ func (sp StorageProvider) GetFundingAccAddress() sdk.AccAddress {
 	return addr
 }
 
+func (sp StorageProvider) GetSealAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr, err := sdk.AccAddressFromHexUnsafe(sp.SealAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func (sp StorageProvider) GetApprovalAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
 func (sp StorageProvider) IsInService() bool {
 	return sp.GetStatus() == STATUS_IN_SERVICE
 }

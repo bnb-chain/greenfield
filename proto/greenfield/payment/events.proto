@@ -3,6 +3,7 @@ package bnbchain.greenfield.payment;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "greenfield/payment/base.proto";
 import "greenfield/payment/stream_record.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";

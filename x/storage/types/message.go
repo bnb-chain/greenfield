@@ -218,7 +218,7 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	isPublic bool, expectChecksums [][]byte, contentType string, timeoutHeight uint64, sig []byte,
+	isPublic bool, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
 	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
 
 	var secSPAddrs []string
@@ -235,6 +235,7 @@ func NewMsgCreateObject(
 		ContentType:                contentType,
 		PrimarySpApproval:          &Approval{timeoutHeight, sig},
 		ExpectChecksums:            expectChecksums,
+		RedundancyType:             redundancyType,
 		ExpectSecondarySpAddresses: secSPAddrs,
 	}
 }

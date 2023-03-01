@@ -34,6 +34,11 @@ service Query {
   rpc QueryGetSecondarySpStorePriceByTime(QueryGetSecondarySpStorePriceByTimeRequest) returns (QueryGetSecondarySpStorePriceByTimeResponse) {
     option (google.api.http).get = "/greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}";
   }
+
+  // Queries a storage provider with specify address
+  rpc StorageProvider(QueryStorageProviderRequest) returns (QueryStorageProviderResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/sp/storage_provider/{spAddress}";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -53,6 +58,7 @@ message QueryStorageProvidersRequest {
 
 message QueryStorageProvidersResponse {
   repeated StorageProvider sps = 1 [(gogoproto.nullable) = false];
+
   // pagination defines the pagination in the response.
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
@@ -72,4 +78,12 @@ message QueryGetSecondarySpStorePriceByTimeRequest {
 
 message QueryGetSecondarySpStorePriceByTimeResponse {
   SecondarySpStorePrice secondary_sp_store_price = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryStorageProviderRequest {
+  string spAddress = 1;
+}
+
+message QueryStorageProviderResponse {
+  StorageProvider storageProvider = 1;
 }

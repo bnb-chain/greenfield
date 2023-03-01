@@ -12,8 +12,6 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-var _ types.QueryServer = Keeper{}
-
 func (k Keeper) StorageProviders(goCtx context.Context, req *types.QueryStorageProvidersRequest) (*types.QueryStorageProvidersResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -80,4 +78,22 @@ func (k Keeper) QueryGetSecondarySpStorePriceByTime(goCtx context.Context, req *
 		return nil, status.Errorf(codes.Internal, "err: %s", err)
 	}
 	return &types.QueryGetSecondarySpStorePriceByTimeResponse{SecondarySpStorePrice: price}, nil
+}
+
+func (k Keeper) StorageProvider(goCtx context.Context, req *types.QueryStorageProviderRequest) (*types.QueryStorageProviderResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spAddr, err := sdk.AccAddressFromHexUnsafe(req.SpAddress)
+	if err != nil {
+		return nil, err
+	}
+	sp, found := k.GetStorageProvider(ctx, spAddr)
+	if !found {
+		return nil, types.ErrStorageProviderNotFound
+	}
+	return &types.QueryStorageProviderResponse{StorageProvider: &sp}, nil
 }

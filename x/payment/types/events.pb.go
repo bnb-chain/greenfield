@@ -89,23 +89,25 @@ func (m *EventCreatePaymentAccount) GetIndex() uint64 {
 	return 0
 }
 
-type StreamRecordUpdate struct {
-	Old *StreamRecord `protobuf:"bytes,1,opt,name=old,proto3" json:"old,omitempty"`
-	New *StreamRecord `protobuf:"bytes,2,opt,name=new,proto3" json:"new,omitempty"`
+type EventDisableRefund struct {
+	// owner is the message signer for MsgDisableRefund and the address of the payment account owner
+	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
+	// addr is the address of the payment account to disable refund
+	Addr string `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
 }
 
-func (m *StreamRecordUpdate) Reset()         { *m = StreamRecordUpdate{} }
-func (m *StreamRecordUpdate) String() string { return proto.CompactTextString(m) }
-func (*StreamRecordUpdate) ProtoMessage()    {}
-func (*StreamRecordUpdate) Descriptor() ([]byte, []int) {
+func (m *EventDisableRefund) Reset()         { *m = EventDisableRefund{} }
+func (m *EventDisableRefund) String() string { return proto.CompactTextString(m) }
+func (*EventDisableRefund) ProtoMessage()    {}
+func (*EventDisableRefund) Descriptor() ([]byte, []int) {
 	return fileDescriptor_befcc80e27bc8df9, []int{1}
 }
-func (m *StreamRecordUpdate) XXX_Unmarshal(b []byte) error {
+func (m *EventDisableRefund) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *StreamRecordUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventDisableRefund) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_StreamRecordUpdate.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventDisableRefund.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -115,48 +117,68 @@ func (m *StreamRecordUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *StreamRecordUpdate) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_StreamRecordUpdate.Merge(m, src)
+func (m *EventDisableRefund) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventDisableRefund.Merge(m, src)
 }
-func (m *StreamRecordUpdate) XXX_Size() int {
+func (m *EventDisableRefund) XXX_Size() int {
 	return m.Size()
 }
-func (m *StreamRecordUpdate) XXX_DiscardUnknown() {
-	xxx_messageInfo_StreamRecordUpdate.DiscardUnknown(m)
+func (m *EventDisableRefund) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventDisableRefund.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_StreamRecordUpdate proto.InternalMessageInfo
+var xxx_messageInfo_EventDisableRefund proto.InternalMessageInfo
 
-func (m *StreamRecordUpdate) GetOld() *StreamRecord {
+func (m *EventDisableRefund) GetOwner() string {
 	if m != nil {
-		return m.Old
+		return m.Owner
 	}
-	return nil
+	return ""
 }
 
-func (m *StreamRecordUpdate) GetNew() *StreamRecord {
+func (m *EventDisableRefund) GetAddr() string {
 	if m != nil {
-		return m.New
+		return m.Addr
 	}
-	return nil
+	return ""
 }
 
-type EventStreamRecordUpdates struct {
-	Updates []*StreamRecordUpdate `protobuf:"bytes,1,rep,name=updates,proto3" json:"updates,omitempty"`
+// Stream Payment Record of a stream account
+type EventStreamRecordUpdate struct {
+	// account address
+	Account string `protobuf:"bytes,1,opt,name=account,proto3" json:"account,omitempty"`
+	// latest update timestamp of the stream record
+	CrudTimestamp int64 `protobuf:"varint,2,opt,name=crud_timestamp,json=crudTimestamp,proto3" json:"crud_timestamp,omitempty"`
+	// The per-second rate that an account's balance is changing.
+	// It is the sum of the account's inbound and outbound flow rates.
+	NetflowRate github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=netflow_rate,json=netflowRate,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"netflow_rate"`
+	// The balance of the stream account at the latest CRUD timestamp.
+	StaticBalance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=staticBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"staticBalance"`
+	// reserved balance of the stream account
+	// If the netflow rate is negative, the reserved balance is `netflow_rate * reserve_time`
+	BufferBalance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=bufferBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"bufferBalance"`
+	// the locked balance of the stream account after it puts a new object and before the object is sealed
+	LockBalance github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=lockBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"lockBalance"`
+	// the status of the stream account
+	Status int32 `protobuf:"varint,7,opt,name=status,proto3" json:"status,omitempty"`
+	// the unix timestamp when the stream account will be settled
+	SettleTimestamp int64 `protobuf:"varint,8,opt,name=settleTimestamp,proto3" json:"settleTimestamp,omitempty"`
+	// the accumulated outflow rates of the stream account
+	OutFlows []OutFlow `protobuf:"bytes,9,rep,name=outFlows,proto3" json:"outFlows"`
 }
 
-func (m *EventStreamRecordUpdates) Reset()         { *m = EventStreamRecordUpdates{} }
-func (m *EventStreamRecordUpdates) String() string { return proto.CompactTextString(m) }
-func (*EventStreamRecordUpdates) ProtoMessage()    {}
-func (*EventStreamRecordUpdates) Descriptor() ([]byte, []int) {
+func (m *EventStreamRecordUpdate) Reset()         { *m = EventStreamRecordUpdate{} }
+func (m *EventStreamRecordUpdate) String() string { return proto.CompactTextString(m) }
+func (*EventStreamRecordUpdate) ProtoMessage()    {}
+func (*EventStreamRecordUpdate) Descriptor() ([]byte, []int) {
 	return fileDescriptor_befcc80e27bc8df9, []int{2}
 }
-func (m *EventStreamRecordUpdates) XXX_Unmarshal(b []byte) error {
+func (m *EventStreamRecordUpdate) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EventStreamRecordUpdates) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventStreamRecordUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EventStreamRecordUpdates.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventStreamRecordUpdate.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -166,21 +188,49 @@ func (m *EventStreamRecordUpdates) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *EventStreamRecordUpdates) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventStreamRecordUpdates.Merge(m, src)
+func (m *EventStreamRecordUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventStreamRecordUpdate.Merge(m, src)
 }
-func (m *EventStreamRecordUpdates) XXX_Size() int {
+func (m *EventStreamRecordUpdate) XXX_Size() int {
 	return m.Size()
 }
-func (m *EventStreamRecordUpdates) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventStreamRecordUpdates.DiscardUnknown(m)
+func (m *EventStreamRecordUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventStreamRecordUpdate.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EventStreamRecordUpdates proto.InternalMessageInfo
+var xxx_messageInfo_EventStreamRecordUpdate proto.InternalMessageInfo
 
-func (m *EventStreamRecordUpdates) GetUpdates() []*StreamRecordUpdate {
+func (m *EventStreamRecordUpdate) GetAccount() string {
 	if m != nil {
-		return m.Updates
+		return m.Account
+	}
+	return ""
+}
+
+func (m *EventStreamRecordUpdate) GetCrudTimestamp() int64 {
+	if m != nil {
+		return m.CrudTimestamp
+	}
+	return 0
+}
+
+func (m *EventStreamRecordUpdate) GetStatus() int32 {
+	if m != nil {
+		return m.Status
+	}
+	return 0
+}
+
+func (m *EventStreamRecordUpdate) GetSettleTimestamp() int64 {
+	if m != nil {
+		return m.SettleTimestamp
+	}
+	return 0
+}
+
+func (m *EventStreamRecordUpdate) GetOutFlows() []OutFlow {
+	if m != nil {
+		return m.OutFlows
 	}
 	return nil
 }
@@ -238,42 +288,51 @@ func (m *EventForceSettle) GetAddr() string {
 
 func init() {
 	proto.RegisterType((*EventCreatePaymentAccount)(nil), "bnbchain.greenfield.payment.EventCreatePaymentAccount")
-	proto.RegisterType((*StreamRecordUpdate)(nil), "bnbchain.greenfield.payment.StreamRecordUpdate")
-	proto.RegisterType((*EventStreamRecordUpdates)(nil), "bnbchain.greenfield.payment.EventStreamRecordUpdates")
+	proto.RegisterType((*EventDisableRefund)(nil), "bnbchain.greenfield.payment.EventDisableRefund")
+	proto.RegisterType((*EventStreamRecordUpdate)(nil), "bnbchain.greenfield.payment.EventStreamRecordUpdate")
 	proto.RegisterType((*EventForceSettle)(nil), "bnbchain.greenfield.payment.EventForceSettle")
 }
 
 func init() { proto.RegisterFile("greenfield/payment/events.proto", fileDescriptor_befcc80e27bc8df9) }
 
 var fileDescriptor_befcc80e27bc8df9 = []byte{
-	// 424 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x52, 0xcf, 0x6a, 0xd4, 0x40,
-	0x18, 0xcf, 0xb8, 0xad, 0xe2, 0x14, 0x54, 0xc2, 0x1e, 0xd2, 0x0a, 0xd9, 0x25, 0x87, 0xb2, 0x82,
-	0x99, 0x40, 0x3d, 0xea, 0xa5, 0x2b, 0x0a, 0xb9, 0x49, 0x16, 0x2f, 0x5e, 0x96, 0xc9, 0xcc, 0x67,
-	0x1a, 0x4c, 0x66, 0xc2, 0xcc, 0xac, 0xdb, 0xbe, 0x84, 0xfa, 0x16, 0xbe, 0x40, 0x1f, 0xa2, 0xc7,
-	0xd2, 0x93, 0x78, 0x58, 0x64, 0xf7, 0x45, 0x24, 0x33, 0xa3, 0x2e, 0x28, 0xea, 0x9e, 0xe6, 0x0f,
-	0xbf, 0x7f, 0x7c, 0xdf, 0x0f, 0x8f, 0x2a, 0x05, 0x20, 0xde, 0xd6, 0xd0, 0xf0, 0xac, 0xa3, 0x17,
-	0x2d, 0x08, 0x93, 0xc1, 0x7b, 0x10, 0x46, 0x93, 0x4e, 0x49, 0x23, 0xc3, 0x87, 0xa5, 0x28, 0xd9,
-	0x19, 0xad, 0x05, 0xf9, 0x85, 0x24, 0x1e, 0x79, 0x74, 0xc8, 0xa4, 0x6e, 0xa5, 0x9e, 0x5b, 0x68,
-	0xe6, 0x1e, 0x8e, 0x77, 0x34, 0xac, 0x64, 0x25, 0xdd, 0x7f, 0x7f, 0xf3, 0xbf, 0xc7, 0x7f, 0xb0,
-	0xd3, 0x46, 0x01, 0x6d, 0xe7, 0x0a, 0x98, 0x54, 0xdc, 0xe1, 0x92, 0x8f, 0x08, 0x1f, 0xbe, 0xe8,
-	0x63, 0x3c, 0x57, 0x40, 0x0d, 0xbc, 0x72, 0xd0, 0x53, 0xc6, 0xe4, 0x42, 0x98, 0xf0, 0x31, 0xde,
-	0xa3, 0x9c, 0xab, 0x08, 0x8d, 0xd1, 0xe4, 0xee, 0x34, 0xba, 0xb9, 0x4c, 0x87, 0xde, 0xfb, 0x94,
-	0x73, 0x05, 0x5a, 0xcf, 0x8c, 0xaa, 0x45, 0x55, 0x58, 0x54, 0x48, 0xf0, 0xbe, 0x5c, 0x0a, 0x50,
-	0xd1, 0xad, 0x7f, 0xc0, 0x1d, 0x2c, 0x1c, 0xe2, 0xfd, 0x5a, 0x70, 0x38, 0x8f, 0x06, 0x63, 0x34,
-	0xd9, 0x2b, 0xdc, 0x23, 0xf9, 0x80, 0x70, 0x38, 0xb3, 0x49, 0x0b, 0x1b, 0xf4, 0x75, 0xc7, 0xa9,
-	0x81, 0xf0, 0x29, 0x1e, 0xc8, 0x86, 0xdb, 0x24, 0x07, 0x27, 0x8f, 0xc8, 0x5f, 0x86, 0x45, 0xb6,
-	0xd9, 0x45, 0xcf, 0xea, 0xc9, 0x02, 0x96, 0x36, 0xd7, 0x6e, 0x64, 0x01, 0xcb, 0x04, 0x70, 0x64,
-	0x27, 0xf4, 0x7b, 0x28, 0x1d, 0xe6, 0xf8, 0xce, 0xc2, 0x5d, 0x23, 0x34, 0x1e, 0x4c, 0x0e, 0x4e,
-	0xb2, 0xff, 0x16, 0x77, 0x12, 0xc5, 0x0f, 0x7e, 0xf2, 0x19, 0xe1, 0x07, 0xd6, 0xe7, 0xa5, 0x54,
-	0x0c, 0x66, 0x60, 0x4c, 0x03, 0x3b, 0x2e, 0x00, 0xf0, 0x7d, 0x6d, 0x79, 0x7c, 0x5e, 0xd2, 0x86,
-	0x0a, 0x06, 0x7e, 0x15, 0xcf, 0xae, 0x56, 0xa3, 0xe0, 0xeb, 0x6a, 0x74, 0x5c, 0xd5, 0xe6, 0x6c,
-	0x51, 0x12, 0x26, 0x5b, 0x5f, 0x22, 0x7f, 0xa4, 0x9a, 0xbf, 0xcb, 0xcc, 0x45, 0x07, 0x9a, 0xe4,
-	0xc2, 0xdc, 0x5c, 0xa6, 0xd8, 0xdb, 0xe4, 0xc2, 0x14, 0xf7, 0xbc, 0xe8, 0xd4, 0x69, 0x4e, 0xf3,
-	0xab, 0x75, 0x8c, 0xae, 0xd7, 0x31, 0xfa, 0xb6, 0x8e, 0xd1, 0xa7, 0x4d, 0x1c, 0x5c, 0x6f, 0xe2,
-	0xe0, 0xcb, 0x26, 0x0e, 0xde, 0x64, 0x5b, 0xfa, 0xa5, 0x28, 0x53, 0x3b, 0x88, 0x6c, 0xab, 0x8a,
-	0xe7, 0x3f, 0xcb, 0x68, 0xcd, 0xca, 0xdb, 0xb6, 0x85, 0x4f, 0xbe, 0x07, 0x00, 0x00, 0xff, 0xff,
-	0xa6, 0xef, 0x06, 0x25, 0x1e, 0x03, 0x00, 0x00,
+	// 569 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x4f, 0x6f, 0xd3, 0x3e,
+	0x18, 0x6e, 0xb6, 0x76, 0x7f, 0xbc, 0xdf, 0xf6, 0x43, 0x56, 0x05, 0xd9, 0x10, 0x69, 0x55, 0xc1,
+	0xd4, 0x03, 0x4d, 0xa4, 0x71, 0xe5, 0xb2, 0x02, 0x95, 0x7a, 0x02, 0xa5, 0x70, 0xe1, 0x40, 0xe4,
+	0xc4, 0x6f, 0xbb, 0x68, 0x89, 0x5d, 0xd9, 0x0e, 0xdd, 0x3e, 0x01, 0x47, 0xf8, 0x16, 0x7c, 0x81,
+	0x7d, 0x88, 0x1d, 0xa7, 0x9d, 0x10, 0x87, 0x09, 0xb5, 0x5f, 0x04, 0xc5, 0x71, 0xba, 0x0e, 0x4d,
+	0x6c, 0x48, 0x3d, 0x25, 0x7e, 0xfd, 0xf8, 0x79, 0x1e, 0x3f, 0xb6, 0x5f, 0xd4, 0x18, 0x09, 0x00,
+	0x36, 0x8c, 0x21, 0xa1, 0xde, 0x98, 0x9c, 0xa6, 0xc0, 0x94, 0x07, 0x9f, 0x81, 0x29, 0xe9, 0x8e,
+	0x05, 0x57, 0x1c, 0x3f, 0x0e, 0x59, 0x18, 0x1d, 0x91, 0x98, 0xb9, 0xd7, 0x48, 0xd7, 0x20, 0xf7,
+	0x76, 0x23, 0x2e, 0x53, 0x2e, 0x03, 0x0d, 0xf5, 0x8a, 0x41, 0xb1, 0x6e, 0xaf, 0x3e, 0xe2, 0x23,
+	0x5e, 0xd4, 0xf3, 0x3f, 0x53, 0x7d, 0x72, 0x8b, 0x5c, 0x48, 0x24, 0x98, 0xe9, 0xfd, 0x5b, 0xa6,
+	0xa5, 0x12, 0x40, 0xd2, 0x40, 0x40, 0xc4, 0x05, 0x2d, 0x70, 0xad, 0xaf, 0x16, 0xda, 0x7d, 0x93,
+	0xbb, 0x7c, 0x25, 0x80, 0x28, 0x78, 0x57, 0x40, 0x0f, 0xa3, 0x88, 0x67, 0x4c, 0xe1, 0xe7, 0xa8,
+	0x4a, 0x28, 0x15, 0xb6, 0xd5, 0xb4, 0xda, 0x9b, 0x5d, 0xfb, 0xf2, 0xac, 0x53, 0x37, 0xd6, 0x0e,
+	0x29, 0x15, 0x20, 0xe5, 0x40, 0x89, 0x98, 0x8d, 0x7c, 0x8d, 0xc2, 0x2e, 0xaa, 0xf1, 0x09, 0x03,
+	0x61, 0xaf, 0xdc, 0x01, 0x2f, 0x60, 0xb8, 0x8e, 0x6a, 0x31, 0xa3, 0x70, 0x62, 0xaf, 0x36, 0xad,
+	0x76, 0xd5, 0x2f, 0x06, 0x2d, 0x81, 0xb0, 0x36, 0xf4, 0x3a, 0x96, 0x24, 0x4c, 0xc0, 0x87, 0x61,
+	0xc6, 0xe8, 0x35, 0xb7, 0x75, 0x3f, 0xee, 0xd2, 0xf9, 0xca, 0x7d, 0x9c, 0xb7, 0xbe, 0xd4, 0xd0,
+	0x23, 0x2d, 0x3a, 0xd0, 0x11, 0xf9, 0x3a, 0xa1, 0x0f, 0x63, 0x4a, 0x14, 0xe0, 0x03, 0xb4, 0x4e,
+	0x8a, 0x38, 0xee, 0xd4, 0x2e, 0x81, 0xf8, 0x19, 0xda, 0x89, 0x44, 0x46, 0x03, 0x15, 0xa7, 0x20,
+	0x15, 0x49, 0xc7, 0xda, 0xc7, 0xaa, 0xbf, 0x9d, 0x57, 0xdf, 0x97, 0x45, 0x1c, 0xa0, 0xff, 0x18,
+	0xa8, 0x61, 0xc2, 0x27, 0x81, 0x20, 0x0a, 0x74, 0x0e, 0x9b, 0xdd, 0x97, 0xe7, 0x57, 0x8d, 0xca,
+	0xcf, 0xab, 0xc6, 0xfe, 0x28, 0x56, 0x47, 0x59, 0xe8, 0x46, 0x3c, 0x35, 0x17, 0xc2, 0x7c, 0x3a,
+	0x92, 0x1e, 0x7b, 0xea, 0x74, 0x0c, 0xd2, 0xed, 0x33, 0x75, 0x79, 0xd6, 0x41, 0xc6, 0x4d, 0x9f,
+	0x29, 0x7f, 0xcb, 0x30, 0xfa, 0xb9, 0xf7, 0x10, 0x6d, 0x4b, 0x45, 0x54, 0x1c, 0x75, 0x49, 0x42,
+	0x58, 0x04, 0x76, 0x75, 0x09, 0x0a, 0x37, 0x29, 0x73, 0x8d, 0x30, 0x1b, 0x0e, 0x41, 0x94, 0x1a,
+	0xb5, 0x65, 0x68, 0xdc, 0xa0, 0xc4, 0x9f, 0xd0, 0x56, 0xc2, 0xa3, 0xe3, 0x52, 0x61, 0x6d, 0x19,
+	0x39, 0x2d, 0x10, 0xe2, 0x87, 0x68, 0x2d, 0xdf, 0x54, 0x26, 0xed, 0xf5, 0xa6, 0xd5, 0xae, 0xf9,
+	0x66, 0x84, 0xdb, 0xe8, 0x7f, 0x09, 0x4a, 0x25, 0x30, 0x3f, 0x33, 0x7b, 0x43, 0x1f, 0xe4, 0x9f,
+	0x65, 0xdc, 0x43, 0x1b, 0x3c, 0x53, 0xbd, 0x84, 0x4f, 0xa4, 0xbd, 0xd9, 0x5c, 0x6d, 0x6f, 0x1d,
+	0x3c, 0x75, 0xff, 0xf2, 0xde, 0xdd, 0xb7, 0x05, 0xb8, 0x5b, 0xcd, 0x37, 0xe1, 0xcf, 0xd7, 0xb6,
+	0xbe, 0x5b, 0xe8, 0x81, 0xbe, 0x89, 0x3d, 0x2e, 0x22, 0x18, 0x68, 0x95, 0x7f, 0x7c, 0x86, 0x50,
+	0x9a, 0xa6, 0x41, 0x68, 0x02, 0x5b, 0x59, 0x42, 0x60, 0x3b, 0x86, 0xd4, 0x64, 0xd6, 0xed, 0x9f,
+	0x4f, 0x1d, 0xeb, 0x62, 0xea, 0x58, 0xbf, 0xa6, 0x8e, 0xf5, 0x6d, 0xe6, 0x54, 0x2e, 0x66, 0x4e,
+	0xe5, 0xc7, 0xcc, 0xa9, 0x7c, 0xf4, 0x16, 0xf8, 0x43, 0x16, 0x76, 0x74, 0x08, 0xde, 0x42, 0x43,
+	0x3a, 0x99, 0xb7, 0x24, 0x2d, 0x16, 0xae, 0xe9, 0x5e, 0xf4, 0xe2, 0x77, 0x00, 0x00, 0x00, 0xff,
+	0xff, 0xb7, 0x62, 0x22, 0x12, 0x43, 0x05, 0x00, 0x00,
 }
 
 func (m *EventCreatePaymentAccount) Marshal() (dAtA []byte, err error) {
@@ -318,7 +377,7 @@ func (m *EventCreatePaymentAccount) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
-func (m *StreamRecordUpdate) Marshal() (dAtA []byte, err error) {
+func (m *EventDisableRefund) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -328,44 +387,34 @@ func (m *StreamRecordUpdate) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *StreamRecordUpdate) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventDisableRefund) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *StreamRecordUpdate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventDisableRefund) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.New != nil {
-		{
-			size, err := m.New.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintEvents(dAtA, i, uint64(size))
-		}
+	if len(m.Addr) > 0 {
+		i -= len(m.Addr)
+		copy(dAtA[i:], m.Addr)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Addr)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Old != nil {
-		{
-			size, err := m.Old.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintEvents(dAtA, i, uint64(size))
-		}
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *EventStreamRecordUpdates) Marshal() (dAtA []byte, err error) {
+func (m *EventStreamRecordUpdate) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -375,20 +424,20 @@ func (m *EventStreamRecordUpdates) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EventStreamRecordUpdates) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventStreamRecordUpdate) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EventStreamRecordUpdates) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventStreamRecordUpdate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.Updates) > 0 {
-		for iNdEx := len(m.Updates) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.OutFlows) > 0 {
+		for iNdEx := len(m.OutFlows) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.Updates[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.OutFlows[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -396,8 +445,70 @@ func (m *EventStreamRecordUpdates) MarshalToSizedBuffer(dAtA []byte) (int, error
 				i = encodeVarintEvents(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x4a
 		}
+	}
+	if m.SettleTimestamp != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.SettleTimestamp))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.Status != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x38
+	}
+	{
+		size := m.LockBalance.Size()
+		i -= size
+		if _, err := m.LockBalance.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
+	{
+		size := m.BufferBalance.Size()
+		i -= size
+		if _, err := m.BufferBalance.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	{
+		size := m.StaticBalance.Size()
+		i -= size
+		if _, err := m.StaticBalance.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	{
+		size := m.NetflowRate.Size()
+		i -= size
+		if _, err := m.NetflowRate.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.CrudTimestamp != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.CrudTimestamp))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.Account) > 0 {
+		i -= len(m.Account)
+		copy(dAtA[i:], m.Account)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Account)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -473,31 +584,52 @@ func (m *EventCreatePaymentAccount) Size() (n int) {
 	return n
 }
 
-func (m *StreamRecordUpdate) Size() (n int) {
+func (m *EventDisableRefund) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Old != nil {
-		l = m.Old.Size()
+	l = len(m.Owner)
+	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	if m.New != nil {
-		l = m.New.Size()
+	l = len(m.Addr)
+	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
 	return n
 }
 
-func (m *EventStreamRecordUpdates) Size() (n int) {
+func (m *EventStreamRecordUpdate) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.Updates) > 0 {
-		for _, e := range m.Updates {
+	l = len(m.Account)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.CrudTimestamp != 0 {
+		n += 1 + sovEvents(uint64(m.CrudTimestamp))
+	}
+	l = m.NetflowRate.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = m.StaticBalance.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = m.BufferBalance.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = m.LockBalance.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.Status != 0 {
+		n += 1 + sovEvents(uint64(m.Status))
+	}
+	if m.SettleTimestamp != 0 {
+		n += 1 + sovEvents(uint64(m.SettleTimestamp))
+	}
+	if len(m.OutFlows) > 0 {
+		for _, e := range m.OutFlows {
 			l = e.Size()
 			n += 1 + l + sovEvents(uint64(l))
 		}
@@ -659,7 +791,7 @@ func (m *EventCreatePaymentAccount) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *StreamRecordUpdate) Unmarshal(dAtA []byte) error {
+func (m *EventDisableRefund) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -682,17 +814,17 @@ func (m *StreamRecordUpdate) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: StreamRecordUpdate: wiretype end group for non-group")
+			return fmt.Errorf("proto: EventDisableRefund: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: StreamRecordUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EventDisableRefund: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Old", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -702,33 +834,29 @@ func (m *StreamRecordUpdate) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvents
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvents
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Old == nil {
-				m.Old = &StreamRecord{}
-			}
-			if err := m.Old.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field New", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Addr", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -738,27 +866,23 @@ func (m *StreamRecordUpdate) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvents
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvents
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.New == nil {
-				m.New = &StreamRecord{}
-			}
-			if err := m.New.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Addr = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -781,7 +905,7 @@ func (m *StreamRecordUpdate) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EventStreamRecordUpdates) Unmarshal(dAtA []byte) error {
+func (m *EventStreamRecordUpdate) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -804,15 +928,240 @@ func (m *EventStreamRecordUpdates) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EventStreamRecordUpdates: wiretype end group for non-group")
+			return fmt.Errorf("proto: EventStreamRecordUpdate: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventStreamRecordUpdates: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EventStreamRecordUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Updates", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Account", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Account = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CrudTimestamp", wireType)
+			}
+			m.CrudTimestamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.CrudTimestamp |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetflowRate", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.NetflowRate.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StaticBalance", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StaticBalance.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BufferBalance", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BufferBalance.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LockBalance", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.LockBalance.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= int32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SettleTimestamp", wireType)
+			}
+			m.SettleTimestamp = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SettleTimestamp |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OutFlows", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -839,8 +1188,8 @@ func (m *EventStreamRecordUpdates) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Updates = append(m.Updates, &StreamRecordUpdate{})
-			if err := m.Updates[len(m.Updates)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.OutFlows = append(m.OutFlows, OutFlow{})
+			if err := m.OutFlows[len(m.OutFlows)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

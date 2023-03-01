@@ -197,17 +197,15 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 	if txOpt != nil && txOpt.GasLimit != 0 {
 		gasLimit = txOpt.GasLimit
 	}
-	gasPrice, err := sdk.ParseCoinsNormalized(simulateRes.GasInfo.GetMinGasPrices())
+	gasPrice, err := sdk.ParseCoinNormalized(simulateRes.GasInfo.GetMinGasPrice())
 	if err != nil {
 		return err
 	}
-	if gasPrice.IsZero() {
+	if gasPrice.IsNil() || gasPrice.IsZero() {
 		return types.SimulatedGasPriceError
 	}
 	feeAmount := sdk.NewCoins(
-		sdk.NewInt64Coin(
-			types.Denom,
-			sdk.NewInt(int64(gasLimit)).Mul(gasPrice[0].Amount).Int64()),
+		sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit)))), // gasPrice * gasLimit
 	)
 	if txOpt != nil && !txOpt.FeeAmount.IsZero() {
 		feeAmount = txOpt.FeeAmount

@@ -19,7 +19,7 @@ func (k Keeper) HeadBucket(goCtx context.Context, req *types.QueryHeadBucketRequ
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	bucketInfo, found := k.GetBucket(ctx, req.BucketName)
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
 	if found {
 		return &types.QueryHeadBucketResponse{
 			BucketInfo: &bucketInfo,
@@ -36,7 +36,7 @@ func (k Keeper) HeadObject(goCtx context.Context, req *types.QueryHeadObjectRequ
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	objectInfo, found := k.GetObject(ctx, req.BucketName, req.ObjectName)
+	objectInfo, found := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
 	if found {
 		return &types.QueryHeadObjectResponse{
 			ObjectInfo: &objectInfo,
