@@ -53,7 +53,7 @@ func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRe
 
 	var bucketInfos []types.BucketInfo
 	store := ctx.KVStore(k.storeKey)
-	bucketStore := prefix.NewStore(store, types.BucketPrefix)
+	bucketStore := prefix.NewStore(store, types.BucketByIDPrefix)
 
 	pageRes, err := query.Paginate(bucketStore, req.Pagination, func(key []byte, value []byte) error {
 		var bucketInfo types.BucketInfo
@@ -78,16 +78,13 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 
 	var objectInfos []types.ObjectInfo
 	store := ctx.KVStore(k.storeKey)
-	objectStore := prefix.NewStore(store, types.ObjectPrefix)
-
-	objectPrefixStore := prefix.NewStore(objectStore, types.GetBucketKey(req.BucketName))
+	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(req.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
-		var objectInfo types.ObjectInfo
-		if err := k.cdc.Unmarshal(value, &objectInfo); err != nil {
-			return err
+		objectInfo, found := k.GetObjectInfoById(ctx, types.DecodeSequence(value))
+		if found {
+			objectInfos = append(objectInfos, objectInfo)
 		}
-		objectInfos = append(objectInfos, objectInfo)
 		return nil
 	})
 

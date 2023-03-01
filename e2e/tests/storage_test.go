@@ -142,16 +142,30 @@ func (s *StorageTestSuite) TestCreateObject() {
 	err = storagetypes.VerifySignature(s.StorageProvider.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
-	s.Require().NoError(err)
-
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
 	s.SendTxBlock(msgSealObject, s.StorageProvider.SealKey)
 
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.Require().Greater(len(queryListBucketResponse.BucketInfos), 0)
+
+	// ListObject
+	queryListObjectsRequest := storagetypes.QueryListObjectsRequest{
+		BucketName: bucketName,
+	}
+	queryListObjectsResponse, err := s.Client.ListObjects(ctx, &queryListObjectsRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
+	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
+
 	// DeleteObject
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
 	s.SendTxBlock(msgDeleteObject, user)
+
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	s.SendTxBlock(msgDeleteBucket, user)
