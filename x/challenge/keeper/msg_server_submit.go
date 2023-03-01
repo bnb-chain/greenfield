@@ -29,7 +29,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// check object & read needed data
-	objectInfo, found := k.StorageKeeper.GetObject(ctx, msg.BucketName, msg.ObjectName)
+	objectInfo, found := k.StorageKeeper.GetObjectInfo(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
 		return nil, types.ErrUnknownObject
 	}
@@ -46,7 +46,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		}
 	}
 	if !stored {
-		bucket, _ := k.StorageKeeper.GetBucket(ctx, msg.BucketName)
+		bucket, _ := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
 		if !strings.EqualFold(msg.SpOperatorAddress, bucket.GetPrimarySpAddress()) {
 			return nil, types.ErrNotStoredOnSp
 		}

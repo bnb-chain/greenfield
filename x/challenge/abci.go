@@ -45,7 +45,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			return
 		}
 		objectId := k.RandomObjectId(seed, objectCount.Uint64())
-		objectInfo, found := keeper.StorageKeeper.GetObjectById(ctx, objectId)
+		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, objectId)
 		if !found { // there is no object info yet, cannot generate challenges
 			return
 		}
@@ -58,7 +58,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		var spOperatorAddress string
 		secondarySpAddresses := objectInfo.SecondarySpAddresses
 
-		bucket, found := keeper.StorageKeeper.GetBucket(ctx, objectInfo.BucketName)
+		bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
 		if !found {
 			continue
 		}
