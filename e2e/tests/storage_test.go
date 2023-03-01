@@ -53,10 +53,9 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
-	fmt.Println(queryHeadBucketResponse.BucketInfo.BucketName)
 	// DeleteBucket
-	//msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
-	//s.SendTxBlock(msgDeleteBucket, user)
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(msgDeleteBucket, user)
 }
 
 func (s *StorageTestSuite) TestCreateObject() {
@@ -143,21 +142,33 @@ func (s *StorageTestSuite) TestCreateObject() {
 	err = storagetypes.VerifySignature(s.StorageProvider.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
-	s.Require().NoError(err)
-
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
 	s.SendTxBlock(msgSealObject, s.StorageProvider.SealKey)
 
-	fmt.Println(objectName)
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.Require().Greater(len(queryListBucketResponse.BucketInfos), 0)
+
+	// ListObject
+	queryListObjectsRequest := storagetypes.QueryListObjectsRequest{
+		BucketName: bucketName,
+	}
+	queryListObjectsResponse, err := s.Client.ListObjects(ctx, &queryListObjectsRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
+	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
 
 	// DeleteObject
-	//msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
-	//s.SendTxBlock(msgDeleteObject, user)
-	//// DeleteBucket
-	//msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
-	//s.SendTxBlock(msgDeleteBucket, user)
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(msgDeleteObject, user)
+
+	// DeleteBucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(msgDeleteBucket, user)
 }
 
 func TestStorageTestSuite(t *testing.T) {
