@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
 
@@ -40,12 +41,12 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		seed := k.SeedFromRandaoMix(ctx.BlockHeader().RandaoMix, iteration)
 
 		// random object info
-		objectCount := keeper.StorageKeeper.GetObjectCount(ctx)
+		objectCount := keeper.StorageKeeper.GetObjectInfoCount(ctx)
 		if objectCount.IsZero() {
 			return
 		}
 		objectId := k.RandomObjectId(seed, objectCount.Uint64())
-		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, objectId)
+		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, sdkmath.NewUint(objectId))
 		if !found { // there is no object info yet, cannot generate challenges
 			return
 		}

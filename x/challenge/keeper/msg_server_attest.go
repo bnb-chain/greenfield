@@ -23,7 +23,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	//check object, and get object info
-	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
+	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, sdkmath.NewUint(msg.ObjectId))
 	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
 		return nil, types.ErrUnknownObject
 	}
