@@ -12,6 +12,9 @@ const (
 
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_challenge"
+
+	// TStoreKey defines transient store key
+	TStoreKey = "transient_challenge"
 )
 
 func KeyPrefix(p string) []byte {

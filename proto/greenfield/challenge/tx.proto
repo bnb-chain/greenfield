@@ -49,7 +49,7 @@ message MsgAttest {
   // The id of the challenge.
   uint64 challenge_id = 2;
 
-  // The id of the challenge.
+  // The id of the object info.
   uint64 object_id = 3;
 
   // The storage provider to be challenged.

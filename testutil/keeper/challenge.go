@@ -38,7 +38,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKeys := sdk.NewKVStoreKeys(paramstypes.StoreKey, authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey,
 		stakingtypes.StoreKey, storagetypes.StoreKey, paymenttypes.StoreKey)
 
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, types.TStoreKey)
 
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
 
@@ -145,6 +145,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k := keeper.NewKeeper(cdc,
 		storeKey,
 		memStoreKey,
+		tkeys[types.TStoreKey],
 		paramsSubspace,
 		bankKeeper,
 		storageKeeper,

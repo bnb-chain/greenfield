@@ -161,7 +161,7 @@ type MsgAttest struct {
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
 	// The id of the challenge.
 	ChallengeId uint64 `protobuf:"varint,2,opt,name=challenge_id,json=challengeId,proto3" json:"challenge_id,omitempty"`
-	// The id of the challenge.
+	// The id of the object info.
 	ObjectId uint64 `protobuf:"varint,3,opt,name=object_id,json=objectId,proto3" json:"object_id,omitempty"`
 	// The storage provider to be challenged.
 	SpOperatorAddress string `protobuf:"bytes,4,opt,name=sp_operator_address,json=spOperatorAddress,proto3" json:"sp_operator_address,omitempty"`

@@ -17,6 +17,7 @@ type (
 		cdc        codec.BinaryCodec
 		storeKey   storetypes.StoreKey
 		memKey     storetypes.StoreKey
+		tKey       storetypes.StoreKey
 		paramstore paramtypes.Subspace
 
 		bankKeeper    types.BankKeeper
@@ -29,10 +30,8 @@ type (
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
+	storeKey, memKey, tKey storetypes.StoreKey,
 	ps paramtypes.Subspace,
-
 	bankKeeper types.BankKeeper,
 	storageKeeper types.StorageKeeper,
 	spKeeper types.SpKeeper,
@@ -48,6 +47,7 @@ func NewKeeper(
 		cdc:           cdc,
 		storeKey:      storeKey,
 		memKey:        memKey,
+		tKey:          tKey,
 		paramstore:    ps,
 		bankKeeper:    bankKeeper,
 		StorageKeeper: storageKeeper,

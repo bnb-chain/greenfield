@@ -14,9 +14,6 @@ import (
 )
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
-	// reset count of challenge in current block to zero
-	keeper.ResetChallengeCountCurrentBlock(ctx)
-
 	// delete too old slashes at this height
 	coolingOff := keeper.SlashCoolingOffPeriod(ctx)
 	blockHeight := uint64(ctx.BlockHeight())

@@ -119,29 +119,22 @@ func (k Keeper) SetHeartbeatChallengeId(ctx sdk.Context, challengeId uint64) {
 
 // GetChallengeCountCurrentBlock gets the count of challenges
 func (k Keeper) GetChallengeCountCurrentBlock(ctx sdk.Context) uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	store := ctx.TransientStore(k.tKey)
 	byteKey := types.KeyPrefix(types.CurrentBlockChallengeCountKey)
 	bz := store.Get(byteKey)
-
 	if bz == nil {
 		return 0
 	}
-
 	return binary.BigEndian.Uint64(bz)
 }
 
 // setGetChallengeCountCurrentBlock sets the new count of challenge to the store
 func (k Keeper) setGetChallengeCountCurrentBlock(ctx sdk.Context, challengeId uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
+	store := ctx.TransientStore(k.tKey)
 	byteKey := types.KeyPrefix(types.CurrentBlockChallengeCountKey)
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, challengeId)
 	store.Set(byteKey, bz)
-}
-
-// ResetChallengeCountCurrentBlock sets the count of challenge to zero
-func (k Keeper) ResetChallengeCountCurrentBlock(ctx sdk.Context) {
-	k.setGetChallengeCountCurrentBlock(ctx, 0)
 }
 
 // IncrChallengeCountCurrentBlock increases the count of challenge by one

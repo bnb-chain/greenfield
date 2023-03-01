@@ -47,9 +47,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 	if !stored {
 		bucket, _ := k.StorageKeeper.GetBucket(ctx, msg.BucketName)
-		if strings.EqualFold(msg.SpOperatorAddress, bucket.GetPrimarySpAddress()) {
-			stored = true
-		} else {
+		if !strings.EqualFold(msg.SpOperatorAddress, bucket.GetPrimarySpAddress()) {
 			return nil, types.ErrNotStoredOnSp
 		}
 	}
