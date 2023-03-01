@@ -2,8 +2,8 @@ syntax = "proto3";
 
 package bnbchain.greenfield.storage;
 
-import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/storage/params.proto";
