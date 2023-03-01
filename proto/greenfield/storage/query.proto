@@ -28,8 +28,8 @@ service Query {
   }
 
   // Queries a bucket by its id
-  rpc HeadBucketById(QueryHeadBucketRequest) returns (QueryHeadBucketResponse) {
-    option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_id}";
+  rpc HeadBucketById(QueryHeadBucketByIdRequest) returns (QueryHeadBucketResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_bucket_by_id/{bucket_id}";
   }
 
   // Queries a object with specify name.
@@ -39,7 +39,7 @@ service Query {
 
   // Queries a object by its id
   rpc HeadObjectById(QueryHeadObjectByIdRequest) returns (QueryHeadObjectResponse) {
-    option (google.api.http).get = "/greenfield/storage/head_object/{object_id}";
+    option (google.api.http).get = "/greenfield/storage/head_object_by_id/{object_id}";
   }
 
   // Queries a list of bucket items.
@@ -53,8 +53,8 @@ service Query {
   }
 
   // Queries a list of object items under the bucket.
-  rpc ListObjectsByBucketId(QueryListObjectsRequest) returns (QueryListObjectsResponse) {
-    option (google.api.http).get = "/greenfield/storage/list_objects/{bucket_id}";
+  rpc ListObjectsByBucketId(QueryListObjectsByBucketIdRequest) returns (QueryListObjectsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_objects_by_bucket_id/{bucket_id}";
   }
 }
 
@@ -70,7 +70,10 @@ message QueryParamsResponse {
 // this line is used by starport scaffolding # 3
 message QueryHeadBucketRequest {
   string bucket_name = 1;
-  string bucket_id = 2;
+}
+
+message QueryHeadBucketByIdRequest {
+  string bucket_id = 1;
 }
 
 message QueryHeadBucketResponse {
@@ -102,7 +105,11 @@ message QueryListBucketsResponse {
 message QueryListObjectsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
   string bucket_name = 2;
-  string bucket_id = 3;
+}
+
+message QueryListObjectsByBucketIdRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string bucket_id = 2;
 }
 
 message QueryListObjectsResponse {

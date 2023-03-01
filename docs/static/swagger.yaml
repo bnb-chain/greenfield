@@ -1675,119 +1675,6 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/storage/head_bucket/{bucket_id}:
-    get:
-      summary: Queries a bucket by its id
-      operationId: HeadBucketById
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              bucket_info:
-                type: object
-                properties:
-                  owner:
-                    type: string
-                    description: >-
-                      owner is the account address of bucket creator, it is also
-                      the bucket owner.
-                  bucket_name:
-                    type: string
-                    title: bucket_name is a globally unique name of bucket
-                  is_public:
-                    type: boolean
-                    description: >-
-                      is_public define the highest permissions for bucket. When
-                      the bucket is public, everyone can get the object in it.
-                  id:
-                    type: string
-                    description: id is the unique identification for bucket.
-                  source_type:
-                    title: source_type define the source of the bucket
-                    type: string
-                    enum:
-                      - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
-                    default: SOURCE_TYPE_ORIGIN
-                  create_at:
-                    type: string
-                    format: int64
-                    description: create_at define the block number when the bucket created.
-                  payment_address:
-                    type: string
-                    title: payment_address is the address of the payment account
-                  primary_sp_address:
-                    type: string
-                    description: >-
-                      primary_sp_address is the address of the primary sp.
-                      Objects belongs to this bucket will never
-
-                      leave this SP, unless you explicitly shift them to another
-                      SP.
-                  read_quota:
-                    title: read_quota defines the traffic quota for read
-                    type: string
-                    enum:
-                      - READ_QUOTA_FREE
-                      - READ_QUOTA_1G
-                      - READ_QUOTA_10G
-                    default: READ_QUOTA_FREE
-                  payment_price_time:
-                    type: string
-                    format: int64
-                    title: 'payment_price_time TODO(Owen): refine the comments'
-                  payment_out_flows:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        sp_address:
-                          type: string
-                          title: SP(service provider) stream account address
-                        rate:
-                          type: string
-                          title: flow rate in USD
-                      title: >-
-                        OutFlowInUSD defines the accumulative outflow stream
-                        rate in USD
-
-                        from a stream account or a bucket to a SP
-                    title: payment_out_flows
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: bucket_id
-          in: path
-          required: true
-          type: string
-        - name: bucket_name
-          in: query
-          required: false
-          type: string
-      tags:
-        - Query
   /greenfield/storage/head_bucket/{bucket_name}:
     get:
       summary: Queries a bucket with specify name.
@@ -1895,9 +1782,114 @@ paths:
           in: path
           required: true
           type: string
+      tags:
+        - Query
+  /greenfield/storage/head_bucket_by_id/{bucket_id}:
+    get:
+      summary: Queries a bucket by its id
+      operationId: HeadBucketById
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              bucket_info:
+                type: object
+                properties:
+                  owner:
+                    type: string
+                    description: >-
+                      owner is the account address of bucket creator, it is also
+                      the bucket owner.
+                  bucket_name:
+                    type: string
+                    title: bucket_name is a globally unique name of bucket
+                  is_public:
+                    type: boolean
+                    description: >-
+                      is_public define the highest permissions for bucket. When
+                      the bucket is public, everyone can get the object in it.
+                  id:
+                    type: string
+                    description: id is the unique identification for bucket.
+                  source_type:
+                    title: source_type define the source of the bucket
+                    type: string
+                    enum:
+                      - SOURCE_TYPE_ORIGIN
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                    default: SOURCE_TYPE_ORIGIN
+                  create_at:
+                    type: string
+                    format: int64
+                    description: create_at define the block number when the bucket created.
+                  payment_address:
+                    type: string
+                    title: payment_address is the address of the payment account
+                  primary_sp_address:
+                    type: string
+                    description: >-
+                      primary_sp_address is the address of the primary sp.
+                      Objects belongs to this bucket will never
+
+                      leave this SP, unless you explicitly shift them to another
+                      SP.
+                  read_quota:
+                    title: read_quota defines the traffic quota for read
+                    type: string
+                    enum:
+                      - READ_QUOTA_FREE
+                      - READ_QUOTA_1G
+                      - READ_QUOTA_10G
+                    default: READ_QUOTA_FREE
+                  payment_price_time:
+                    type: string
+                    format: int64
+                    title: 'payment_price_time TODO(Owen): refine the comments'
+                  payment_out_flows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sp_address:
+                          type: string
+                          title: SP(service provider) stream account address
+                        rate:
+                          type: string
+                          title: flow rate in USD
+                      title: >-
+                        OutFlowInUSD defines the accumulative outflow stream
+                        rate in USD
+
+                        from a stream account or a bucket to a SP
+                    title: payment_out_flows
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
         - name: bucket_id
-          in: query
-          required: false
+          in: path
+          required: true
           type: string
       tags:
         - Query
@@ -2018,7 +2010,7 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/storage/head_object/{object_id}:
+  /greenfield/storage/head_object_by_id/{object_id}:
     get:
       summary: Queries a object by its id
       operationId: HeadObjectById
@@ -2325,211 +2317,6 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/storage/list_objects/{bucket_id}:
-    get:
-      summary: Queries a list of object items under the bucket.
-      operationId: ListObjectsByBucketId
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              object_infos:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    owner:
-                      type: string
-                    bucket_name:
-                      type: string
-                      title: bucket_name is the name of the bucket
-                    object_name:
-                      type: string
-                      title: object_name is the name of object
-                    id:
-                      type: string
-                      title: id is the unique identifier of object
-                    payload_size:
-                      type: string
-                      format: uint64
-                      title: payloadSize is the total size of the object payload
-                    is_public:
-                      type: boolean
-                      description: >-
-                        is_public define the highest permissions for object.
-                        When the object is public, everyone can access it.
-                    content_type:
-                      type: string
-                      description: >-
-                        content_type define the format of the object which
-                        should be a standard MIME type.
-                    create_at:
-                      type: string
-                      format: int64
-                      title: >-
-                        create_at define the block number when the object
-                        created
-                    object_status:
-                      description: object_status define the upload status of the object.
-                      type: string
-                      enum:
-                        - OBJECT_STATUS_INIT
-                        - OBJECT_STATUS_IN_SERVICE
-                      default: OBJECT_STATUS_INIT
-                    redundancy_type:
-                      description: >-
-                        redundancy_type define the type of the redundancy which
-                        can be multi-replication or EC.
-                      type: string
-                      enum:
-                        - REDUNDANCY_REPLICA_TYPE
-                        - REDUNDANCY_EC_TYPE
-                        - REDUNDANCY_INLINE_TYPE
-                      default: REDUNDANCY_REPLICA_TYPE
-                    source_type:
-                      description: source_type define the source of the object.
-                      type: string
-                      enum:
-                        - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
-                      default: SOURCE_TYPE_ORIGIN
-                    checksums:
-                      type: array
-                      items:
-                        type: string
-                        format: byte
-                      description: >-
-                        checksums define the root hash of the pieces which
-                        stored in a SP.
-                    secondary_sp_addresses:
-                      type: array
-                      items:
-                        type: string
-                      title: >-
-                        secondary_sp_addresses define the addresses of
-                        secondary_sps
-                    locked_balance:
-                      type: string
-                      title: lockedBalance
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: bucket_id
-          in: path
-          required: true
-          type: string
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-        - name: bucket_name
-          in: query
-          required: false
-          type: string
-      tags:
-        - Query
   /greenfield/storage/list_objects/{bucket_name}:
     get:
       summary: Queries a list of object items under the bucket.
@@ -2729,10 +2516,207 @@ paths:
           in: query
           required: false
           type: boolean
+      tags:
+        - Query
+  /greenfield/storage/list_objects_by_bucket_id/{bucket_id}:
+    get:
+      summary: Queries a list of object items under the bucket.
+      operationId: ListObjectsByBucketId
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              object_infos:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                    bucket_name:
+                      type: string
+                      title: bucket_name is the name of the bucket
+                    object_name:
+                      type: string
+                      title: object_name is the name of object
+                    id:
+                      type: string
+                      title: id is the unique identifier of object
+                    payload_size:
+                      type: string
+                      format: uint64
+                      title: payloadSize is the total size of the object payload
+                    is_public:
+                      type: boolean
+                      description: >-
+                        is_public define the highest permissions for object.
+                        When the object is public, everyone can access it.
+                    content_type:
+                      type: string
+                      description: >-
+                        content_type define the format of the object which
+                        should be a standard MIME type.
+                    create_at:
+                      type: string
+                      format: int64
+                      title: >-
+                        create_at define the block number when the object
+                        created
+                    object_status:
+                      description: object_status define the upload status of the object.
+                      type: string
+                      enum:
+                        - OBJECT_STATUS_INIT
+                        - OBJECT_STATUS_IN_SERVICE
+                      default: OBJECT_STATUS_INIT
+                    redundancy_type:
+                      description: >-
+                        redundancy_type define the type of the redundancy which
+                        can be multi-replication or EC.
+                      type: string
+                      enum:
+                        - REDUNDANCY_REPLICA_TYPE
+                        - REDUNDANCY_EC_TYPE
+                        - REDUNDANCY_INLINE_TYPE
+                      default: REDUNDANCY_REPLICA_TYPE
+                    source_type:
+                      description: source_type define the source of the object.
+                      type: string
+                      enum:
+                        - SOURCE_TYPE_ORIGIN
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      default: SOURCE_TYPE_ORIGIN
+                    checksums:
+                      type: array
+                      items:
+                        type: string
+                        format: byte
+                      description: >-
+                        checksums define the root hash of the pieces which
+                        stored in a SP.
+                    secondary_sp_addresses:
+                      type: array
+                      items:
+                        type: string
+                      title: >-
+                        secondary_sp_addresses define the addresses of
+                        secondary_sps
+                    locked_balance:
+                      type: string
+                      title: lockedBalance
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
         - name: bucket_id
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
           in: query
           required: false
           type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /greenfield/storage/params:

@@ -65,3 +65,12 @@ func TestSequenceIncrements(t *testing.T) {
 		fmt.Print("i= ", i.Uint64(), "id=", id.Uint64(), "curID", curId.Uint64())
 	}
 }
+
+func TestSequence(t *testing.T) {
+	id, err := math.ParseUint("4")
+	require.NoError(t, err)
+
+	fmt.Printf("parse bucket id is ------------ %s \n", id)
+
+	fmt.Println(id)
+}

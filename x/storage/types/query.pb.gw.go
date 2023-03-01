@@ -51,10 +51,6 @@ func local_request_Query_Params_0(ctx context.Context, marshaler runtime.Marshal
 
 }
 
-var (
-	filter_Query_HeadBucket_0 = &utilities.DoubleArray{Encoding: map[string]int{"bucket_name": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
-
 func request_Query_HeadBucket_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq QueryHeadBucketRequest
 	var metadata runtime.ServerMetadata
@@ -75,13 +71,6 @@ func request_Query_HeadBucket_0(ctx context.Context, marshaler runtime.Marshaler
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "bucket_name", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_HeadBucket_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.HeadBucket(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -111,24 +100,13 @@ func local_request_Query_HeadBucket_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "bucket_name", err)
 	}
 
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_HeadBucket_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-
 	msg, err := server.HeadBucket(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-var (
-	filter_Query_HeadBucketById_0 = &utilities.DoubleArray{Encoding: map[string]int{"bucket_id": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
-)
-
 func request_Query_HeadBucketById_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryHeadBucketRequest
+	var protoReq QueryHeadBucketByIdRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -147,13 +125,6 @@ func request_Query_HeadBucketById_0(ctx context.Context, marshaler runtime.Marsh
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "bucket_id", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_HeadBucketById_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.HeadBucketById(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -162,7 +133,7 @@ func request_Query_HeadBucketById_0(ctx context.Context, marshaler runtime.Marsh
 }
 
 func local_request_Query_HeadBucketById_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryHeadBucketRequest
+	var protoReq QueryHeadBucketByIdRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -181,13 +152,6 @@ func local_request_Query_HeadBucketById_0(ctx context.Context, marshaler runtime
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "bucket_id", err)
-	}
-
-	if err := req.ParseForm(); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Query_HeadBucketById_0); err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.HeadBucketById(ctx, &protoReq)
@@ -438,7 +402,7 @@ var (
 )
 
 func request_Query_ListObjectsByBucketId_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryListObjectsRequest
+	var protoReq QueryListObjectsByBucketIdRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -472,7 +436,7 @@ func request_Query_ListObjectsByBucketId_0(ctx context.Context, marshaler runtim
 }
 
 func local_request_Query_ListObjectsByBucketId_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryListObjectsRequest
+	var protoReq QueryListObjectsByBucketIdRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -904,17 +868,17 @@ var (
 
 	pattern_Query_HeadBucket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket", "bucket_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadBucketById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket", "bucket_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_HeadBucketById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket_by_id", "bucket_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_HeadObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "head_object", "bucket_name", "object_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadObjectById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_object", "object_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_HeadObjectById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_object_by_id", "object_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_ListBuckets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "list_buckets"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_ListObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects", "bucket_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ListObjectsByBucketId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects", "bucket_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ListObjectsByBucketId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects_by_bucket_id", "bucket_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

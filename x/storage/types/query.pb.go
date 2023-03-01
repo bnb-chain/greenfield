@@ -117,7 +117,6 @@ func (m *QueryParamsResponse) GetParams() Params {
 // this line is used by starport scaffolding # 3
 type QueryHeadBucketRequest struct {
 	BucketName string `protobuf:"bytes,1,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	BucketId   string `protobuf:"bytes,2,opt,name=bucket_id,json=bucketId,proto3" json:"bucket_id,omitempty"`
 }
 
 func (m *QueryHeadBucketRequest) Reset()         { *m = QueryHeadBucketRequest{} }
@@ -160,7 +159,44 @@ func (m *QueryHeadBucketRequest) GetBucketName() string {
 	return ""
 }
 
-func (m *QueryHeadBucketRequest) GetBucketId() string {
+type QueryHeadBucketByIdRequest struct {
+	BucketId string `protobuf:"bytes,1,opt,name=bucket_id,json=bucketId,proto3" json:"bucket_id,omitempty"`
+}
+
+func (m *QueryHeadBucketByIdRequest) Reset()         { *m = QueryHeadBucketByIdRequest{} }
+func (m *QueryHeadBucketByIdRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryHeadBucketByIdRequest) ProtoMessage()    {}
+func (*QueryHeadBucketByIdRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1b80b580af04cb0, []int{3}
+}
+func (m *QueryHeadBucketByIdRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryHeadBucketByIdRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryHeadBucketByIdRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryHeadBucketByIdRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryHeadBucketByIdRequest.Merge(m, src)
+}
+func (m *QueryHeadBucketByIdRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryHeadBucketByIdRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryHeadBucketByIdRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryHeadBucketByIdRequest proto.InternalMessageInfo
+
+func (m *QueryHeadBucketByIdRequest) GetBucketId() string {
 	if m != nil {
 		return m.BucketId
 	}
@@ -175,7 +211,7 @@ func (m *QueryHeadBucketResponse) Reset()         { *m = QueryHeadBucketResponse
 func (m *QueryHeadBucketResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryHeadBucketResponse) ProtoMessage()    {}
 func (*QueryHeadBucketResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{3}
+	return fileDescriptor_b1b80b580af04cb0, []int{4}
 }
 func (m *QueryHeadBucketResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -220,7 +256,7 @@ func (m *QueryHeadObjectRequest) Reset()         { *m = QueryHeadObjectRequest{}
 func (m *QueryHeadObjectRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryHeadObjectRequest) ProtoMessage()    {}
 func (*QueryHeadObjectRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{4}
+	return fileDescriptor_b1b80b580af04cb0, []int{5}
 }
 func (m *QueryHeadObjectRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -271,7 +307,7 @@ func (m *QueryHeadObjectByIdRequest) Reset()         { *m = QueryHeadObjectByIdR
 func (m *QueryHeadObjectByIdRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryHeadObjectByIdRequest) ProtoMessage()    {}
 func (*QueryHeadObjectByIdRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{5}
+	return fileDescriptor_b1b80b580af04cb0, []int{6}
 }
 func (m *QueryHeadObjectByIdRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -315,7 +351,7 @@ func (m *QueryHeadObjectResponse) Reset()         { *m = QueryHeadObjectResponse
 func (m *QueryHeadObjectResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryHeadObjectResponse) ProtoMessage()    {}
 func (*QueryHeadObjectResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{6}
+	return fileDescriptor_b1b80b580af04cb0, []int{7}
 }
 func (m *QueryHeadObjectResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -359,7 +395,7 @@ func (m *QueryListBucketsRequest) Reset()         { *m = QueryListBucketsRequest
 func (m *QueryListBucketsRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryListBucketsRequest) ProtoMessage()    {}
 func (*QueryListBucketsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{7}
+	return fileDescriptor_b1b80b580af04cb0, []int{8}
 }
 func (m *QueryListBucketsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -404,7 +440,7 @@ func (m *QueryListBucketsResponse) Reset()         { *m = QueryListBucketsRespon
 func (m *QueryListBucketsResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryListBucketsResponse) ProtoMessage()    {}
 func (*QueryListBucketsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{8}
+	return fileDescriptor_b1b80b580af04cb0, []int{9}
 }
 func (m *QueryListBucketsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -450,14 +486,13 @@ func (m *QueryListBucketsResponse) GetPagination() *query.PageResponse {
 type QueryListObjectsRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	BucketName string             `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	BucketId   string             `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3" json:"bucket_id,omitempty"`
 }
 
 func (m *QueryListObjectsRequest) Reset()         { *m = QueryListObjectsRequest{} }
 func (m *QueryListObjectsRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryListObjectsRequest) ProtoMessage()    {}
 func (*QueryListObjectsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{9}
+	return fileDescriptor_b1b80b580af04cb0, []int{10}
 }
 func (m *QueryListObjectsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -500,7 +535,52 @@ func (m *QueryListObjectsRequest) GetBucketName() string {
 	return ""
 }
 
-func (m *QueryListObjectsRequest) GetBucketId() string {
+type QueryListObjectsByBucketIdRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	BucketId   string             `protobuf:"bytes,2,opt,name=bucket_id,json=bucketId,proto3" json:"bucket_id,omitempty"`
+}
+
+func (m *QueryListObjectsByBucketIdRequest) Reset()         { *m = QueryListObjectsByBucketIdRequest{} }
+func (m *QueryListObjectsByBucketIdRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryListObjectsByBucketIdRequest) ProtoMessage()    {}
+func (*QueryListObjectsByBucketIdRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_b1b80b580af04cb0, []int{11}
+}
+func (m *QueryListObjectsByBucketIdRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryListObjectsByBucketIdRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryListObjectsByBucketIdRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryListObjectsByBucketIdRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryListObjectsByBucketIdRequest.Merge(m, src)
+}
+func (m *QueryListObjectsByBucketIdRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryListObjectsByBucketIdRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryListObjectsByBucketIdRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryListObjectsByBucketIdRequest proto.InternalMessageInfo
+
+func (m *QueryListObjectsByBucketIdRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+func (m *QueryListObjectsByBucketIdRequest) GetBucketId() string {
 	if m != nil {
 		return m.BucketId
 	}
@@ -516,7 +596,7 @@ func (m *QueryListObjectsResponse) Reset()         { *m = QueryListObjectsRespon
 func (m *QueryListObjectsResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryListObjectsResponse) ProtoMessage()    {}
 func (*QueryListObjectsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_b1b80b580af04cb0, []int{10}
+	return fileDescriptor_b1b80b580af04cb0, []int{12}
 }
 func (m *QueryListObjectsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -563,6 +643,7 @@ func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "bnbchain.greenfield.storage.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "bnbchain.greenfield.storage.QueryParamsResponse")
 	proto.RegisterType((*QueryHeadBucketRequest)(nil), "bnbchain.greenfield.storage.QueryHeadBucketRequest")
+	proto.RegisterType((*QueryHeadBucketByIdRequest)(nil), "bnbchain.greenfield.storage.QueryHeadBucketByIdRequest")
 	proto.RegisterType((*QueryHeadBucketResponse)(nil), "bnbchain.greenfield.storage.QueryHeadBucketResponse")
 	proto.RegisterType((*QueryHeadObjectRequest)(nil), "bnbchain.greenfield.storage.QueryHeadObjectRequest")
 	proto.RegisterType((*QueryHeadObjectByIdRequest)(nil), "bnbchain.greenfield.storage.QueryHeadObjectByIdRequest")
@@ -570,64 +651,66 @@ func init() {
 	proto.RegisterType((*QueryListBucketsRequest)(nil), "bnbchain.greenfield.storage.QueryListBucketsRequest")
 	proto.RegisterType((*QueryListBucketsResponse)(nil), "bnbchain.greenfield.storage.QueryListBucketsResponse")
 	proto.RegisterType((*QueryListObjectsRequest)(nil), "bnbchain.greenfield.storage.QueryListObjectsRequest")
+	proto.RegisterType((*QueryListObjectsByBucketIdRequest)(nil), "bnbchain.greenfield.storage.QueryListObjectsByBucketIdRequest")
 	proto.RegisterType((*QueryListObjectsResponse)(nil), "bnbchain.greenfield.storage.QueryListObjectsResponse")
 }
 
 func init() { proto.RegisterFile("greenfield/storage/query.proto", fileDescriptor_b1b80b580af04cb0) }
 
 var fileDescriptor_b1b80b580af04cb0 = []byte{
-	// 807 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xbc, 0x96, 0xcf, 0x6e, 0xd3, 0x4a,
-	0x14, 0xc6, 0xe3, 0xf4, 0xde, 0xaa, 0x9d, 0x5c, 0xdd, 0xc5, 0xdc, 0x5e, 0x28, 0x6e, 0xe5, 0x54,
-	0x46, 0x82, 0x0a, 0xa8, 0xa7, 0x7f, 0x41, 0x08, 0xb1, 0x20, 0x48, 0xd0, 0x48, 0x08, 0x4a, 0x16,
-	0x08, 0x75, 0x53, 0x8d, 0xe3, 0xa9, 0x3b, 0xd0, 0x78, 0xd2, 0xd8, 0x41, 0x44, 0x55, 0x36, 0xac,
-	0x91, 0x40, 0xe2, 0x01, 0xd8, 0xb0, 0x46, 0x08, 0xc1, 0x06, 0xf1, 0x00, 0x5d, 0x56, 0x62, 0xc3,
-	0x0a, 0xa1, 0x96, 0x07, 0x41, 0x9e, 0x39, 0x8e, 0xed, 0x24, 0x4d, 0x1d, 0x54, 0x75, 0xe7, 0x4c,
-	0xce, 0xf9, 0xe6, 0x77, 0x3e, 0x9f, 0x39, 0x63, 0x64, 0xb8, 0x0d, 0xc6, 0xbc, 0x4d, 0xce, 0xb6,
-	0x1d, 0xe2, 0x07, 0xa2, 0x41, 0x5d, 0x46, 0x76, 0x9a, 0xac, 0xd1, 0xb2, 0xea, 0x0d, 0x11, 0x08,
-	0x3c, 0x65, 0x7b, 0x76, 0x75, 0x8b, 0x72, 0xcf, 0x8a, 0x03, 0x2d, 0x08, 0xd4, 0xcf, 0x55, 0x85,
-	0x5f, 0x13, 0xfe, 0x86, 0x0c, 0x25, 0xea, 0x87, 0xca, 0xd3, 0x2f, 0xa9, 0x5f, 0xc4, 0xa6, 0x3e,
-	0x08, 0x92, 0x67, 0x0b, 0x36, 0x0b, 0xe8, 0x02, 0xa9, 0x53, 0x97, 0x7b, 0x34, 0xe0, 0xc2, 0x83,
-	0xd8, 0x09, 0x57, 0xb8, 0x42, 0x69, 0x84, 0x4f, 0xb0, 0x3a, 0xed, 0x0a, 0xe1, 0x6e, 0x33, 0x42,
-	0xeb, 0x9c, 0x50, 0xcf, 0x13, 0x81, 0x4c, 0x89, 0xf4, 0x8b, 0x7d, 0xb8, 0xeb, 0xb4, 0x41, 0x6b,
-	0x51, 0x40, 0xbf, 0xc2, 0x82, 0x56, 0x9d, 0xc1, 0xff, 0xe6, 0x04, 0xc2, 0x0f, 0x43, 0xac, 0x35,
-	0x99, 0x54, 0x61, 0x3b, 0x4d, 0xe6, 0x07, 0xe6, 0x63, 0xf4, 0x5f, 0x6a, 0xd5, 0xaf, 0x0b, 0xcf,
-	0x67, 0xf8, 0x16, 0x1a, 0x55, 0xe2, 0x93, 0xda, 0x8c, 0x36, 0x5b, 0x58, 0x3c, 0x6f, 0x0d, 0xb0,
-	0xc5, 0x52, 0xc9, 0xa5, 0xbf, 0xf6, 0x7e, 0x14, 0x73, 0x15, 0x48, 0x34, 0x1f, 0xa1, 0x33, 0x52,
-	0x79, 0x95, 0x51, 0xa7, 0xd4, 0xac, 0x3e, 0x65, 0x01, 0xec, 0x89, 0x8b, 0xa8, 0x60, 0xcb, 0x85,
-	0x0d, 0x8f, 0xd6, 0x98, 0xdc, 0x61, 0xbc, 0x82, 0xd4, 0xd2, 0x7d, 0x5a, 0x63, 0x78, 0x0a, 0x8d,
-	0x43, 0x00, 0x77, 0x26, 0xf3, 0xf2, 0xef, 0x31, 0xb5, 0x50, 0x76, 0xcc, 0x2a, 0x3a, 0xdb, 0xa3,
-	0x0b, 0xd4, 0xab, 0x1d, 0x61, 0xee, 0x6d, 0x0a, 0x40, 0xbf, 0x38, 0x10, 0x5d, 0x29, 0x94, 0xbd,
-	0x4d, 0x11, 0x11, 0x84, 0xcf, 0xe6, 0x7a, 0x02, 0xfe, 0x81, 0xfd, 0x84, 0x55, 0xb3, 0xc3, 0x17,
-	0x51, 0x41, 0xc8, 0x0c, 0x15, 0xa0, 0xf0, 0x91, 0x5a, 0x0a, 0x03, 0xcc, 0xeb, 0x48, 0xef, 0xd2,
-	0x2e, 0xb5, 0xca, 0x4e, 0xa4, 0x3f, 0x85, 0xc6, 0x21, 0x9d, 0x3b, 0xa0, 0x3e, 0xa6, 0x16, 0xba,
-	0x6a, 0x8f, 0xb0, 0xe2, 0xda, 0xa3, 0xbc, 0xac, 0xb5, 0x2b, 0x05, 0x55, 0xbb, 0xe8, 0x3c, 0x9b,
-	0x14, 0x36, 0xb9, 0xc7, 0xfd, 0x40, 0xd9, 0x13, 0x75, 0x0b, 0xbe, 0x83, 0x50, 0xdc, 0xcc, 0xb0,
-	0xc7, 0x05, 0x0b, 0xce, 0x41, 0xd8, 0xf9, 0x96, 0x3a, 0x4a, 0xd0, 0xf9, 0xd6, 0x1a, 0x75, 0x19,
-	0xe4, 0x56, 0x12, 0x99, 0xe6, 0x67, 0x0d, 0x4d, 0xf6, 0xee, 0x01, 0x95, 0xac, 0xa1, 0x7f, 0x12,
-	0x6f, 0x31, 0xec, 0xc0, 0x91, 0x21, 0x5e, 0x23, 0x74, 0x61, 0x21, 0x7e, 0x99, 0x3e, 0xbe, 0x9b,
-	0xc2, 0xce, 0x83, 0x35, 0xc7, 0x61, 0x2b, 0x9c, 0x14, 0xf7, 0x5b, 0x2d, 0xe1, 0x8d, 0xb2, 0xef,
-	0xa4, 0xbd, 0xe9, 0x6e, 0xb0, 0xfc, 0xe0, 0xd3, 0x31, 0xd2, 0x75, 0x3a, 0x52, 0xce, 0x76, 0x08,
-	0x63, 0x67, 0x13, 0x3d, 0x92, 0xcd, 0xd9, 0xb8, 0x49, 0x22, 0x67, 0xe3, 0x56, 0x39, 0x39, 0x67,
-	0x17, 0x5f, 0x16, 0xd0, 0xdf, 0x92, 0x1b, 0xbf, 0xd2, 0xd0, 0xa8, 0x1a, 0x28, 0x98, 0x0c, 0x24,
-	0xeb, 0x9d, 0x66, 0xfa, 0x7c, 0xf6, 0x04, 0xc5, 0x60, 0x9a, 0x2f, 0xbe, 0xfd, 0x7a, 0x93, 0x9f,
-	0xc6, 0x3a, 0x39, 0x72, 0xbe, 0xe2, 0xf7, 0x1a, 0x42, 0xf1, 0xb4, 0xc1, 0x4b, 0xc7, 0x6f, 0xd2,
-	0x33, 0xf3, 0xf4, 0xe5, 0xe1, 0x92, 0x80, 0x6e, 0x45, 0xd2, 0x11, 0x3c, 0xd7, 0x8f, 0x6e, 0x8b,
-	0x51, 0x67, 0x43, 0xbd, 0x78, 0xb2, 0x9b, 0x68, 0x99, 0x36, 0xfe, 0xa0, 0xa1, 0x7f, 0x63, 0xb5,
-	0x70, 0xba, 0x9c, 0x26, 0xf4, 0x92, 0x84, 0x9e, 0xc3, 0x97, 0xb3, 0x42, 0x73, 0xa7, 0x8d, 0xbf,
-	0x82, 0xc7, 0xaa, 0xdd, 0xb2, 0xe2, 0xa6, 0x46, 0x73, 0x56, 0xdc, 0xf4, 0xe0, 0x34, 0x6f, 0x4b,
-	0xdc, 0x9b, 0xf8, 0xc6, 0x91, 0xb8, 0xaa, 0xe1, 0xd3, 0x1e, 0x93, 0xdd, 0xc4, 0x90, 0x6f, 0xe3,
-	0x4f, 0xe0, 0x78, 0x3c, 0xcf, 0xf1, 0xb5, 0x61, 0x68, 0x12, 0x37, 0xc0, 0x1f, 0x96, 0x71, 0xbc,
-	0xeb, 0x51, 0x19, 0x9d, 0xeb, 0xa5, 0x8d, 0xdf, 0x69, 0xa8, 0x90, 0x18, 0xc1, 0x38, 0xc3, 0xd6,
-	0xbd, 0xb7, 0x82, 0xbe, 0x32, 0x64, 0x16, 0x10, 0xcf, 0x4a, 0x62, 0x13, 0xcf, 0xf4, 0x23, 0xde,
-	0xe6, 0x7e, 0x00, 0x7d, 0xe2, 0xe3, 0x8f, 0x80, 0x09, 0xf3, 0x2c, 0x2b, 0x66, 0x7a, 0x40, 0x67,
-	0xc5, 0xec, 0x1a, 0x9a, 0xe6, 0x55, 0x89, 0x39, 0x8f, 0xad, 0x23, 0x31, 0x95, 0xa1, 0x7e, 0xd7,
-	0x21, 0xfc, 0xa2, 0xa1, 0xff, 0x13, 0x7a, 0xa5, 0x16, 0xdc, 0x51, 0xce, 0xe9, 0xe2, 0x2f, 0x4b,
-	0x7c, 0x0b, 0x5f, 0xc9, 0x8c, 0xcf, 0x9d, 0x76, 0xa9, 0xbc, 0x77, 0x60, 0x68, 0xfb, 0x07, 0x86,
-	0xf6, 0xf3, 0xc0, 0xd0, 0x5e, 0x1f, 0x1a, 0xb9, 0xfd, 0x43, 0x23, 0xf7, 0xfd, 0xd0, 0xc8, 0xad,
-	0x13, 0x97, 0x07, 0x5b, 0x4d, 0xdb, 0xaa, 0x8a, 0x1a, 0xb1, 0x3d, 0x7b, 0x4e, 0x12, 0x25, 0xb5,
-	0x9f, 0xa7, 0xbf, 0x3e, 0xed, 0x51, 0xf9, 0xf9, 0xb9, 0xf4, 0x3b, 0x00, 0x00, 0xff, 0xff, 0x54,
-	0xfd, 0x36, 0xa5, 0x79, 0x0b, 0x00, 0x00,
+	// 831 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x4f, 0x4f, 0x13, 0x4f,
+	0x18, 0xc7, 0xbb, 0xfd, 0xfd, 0x24, 0x32, 0x35, 0x1e, 0x46, 0x54, 0x5c, 0xc8, 0x82, 0x6b, 0xa2,
+	0xc4, 0x84, 0x1d, 0xfe, 0x88, 0xa6, 0x21, 0x9a, 0x50, 0x13, 0xa5, 0x89, 0x51, 0xec, 0xc9, 0x70,
+	0x69, 0x66, 0xbb, 0xc3, 0xb2, 0x4a, 0x77, 0x4a, 0x77, 0x6b, 0x6c, 0x08, 0x17, 0x4e, 0xde, 0x34,
+	0xf1, 0x2d, 0x78, 0xf6, 0xa0, 0xf1, 0x62, 0x7c, 0x01, 0x1c, 0x31, 0x5e, 0x3c, 0x19, 0x03, 0xbe,
+	0x10, 0xb3, 0x33, 0xcf, 0x76, 0xff, 0x15, 0xba, 0x25, 0xdc, 0x96, 0x61, 0x9e, 0x79, 0x3e, 0xdf,
+	0xe7, 0x6f, 0x91, 0x66, 0xb7, 0x19, 0x73, 0x37, 0x1c, 0xb6, 0x65, 0x11, 0xcf, 0xe7, 0x6d, 0x6a,
+	0x33, 0xb2, 0xdd, 0x61, 0xed, 0xae, 0xd1, 0x6a, 0x73, 0x9f, 0xe3, 0x09, 0xd3, 0x35, 0x1b, 0x9b,
+	0xd4, 0x71, 0x8d, 0xe8, 0xa2, 0x01, 0x17, 0xd5, 0x6b, 0x0d, 0xee, 0x35, 0xb9, 0x57, 0x17, 0x57,
+	0x89, 0xfc, 0x43, 0xda, 0xa9, 0xb7, 0xe5, 0x5f, 0xc4, 0xa4, 0x1e, 0x3c, 0x48, 0x5e, 0xcf, 0x9b,
+	0xcc, 0xa7, 0xf3, 0xa4, 0x45, 0x6d, 0xc7, 0xa5, 0xbe, 0xc3, 0x5d, 0xb8, 0x3b, 0x66, 0x73, 0x9b,
+	0xcb, 0x37, 0x82, 0x2f, 0x38, 0x9d, 0xb4, 0x39, 0xb7, 0xb7, 0x18, 0xa1, 0x2d, 0x87, 0x50, 0xd7,
+	0xe5, 0xbe, 0x30, 0x09, 0xdf, 0x9f, 0xea, 0xc3, 0xdd, 0xa2, 0x6d, 0xda, 0x0c, 0x2f, 0xf4, 0x13,
+	0xe6, 0x77, 0x5b, 0x0c, 0xfe, 0xaf, 0x8f, 0x21, 0xfc, 0x3c, 0xc0, 0x5a, 0x13, 0x46, 0x35, 0xb6,
+	0xdd, 0x61, 0x9e, 0xaf, 0xbf, 0x40, 0x97, 0x12, 0xa7, 0x5e, 0x8b, 0xbb, 0x1e, 0xc3, 0x2b, 0x68,
+	0x44, 0x3e, 0x3e, 0xae, 0x4c, 0x2b, 0x33, 0xa5, 0x85, 0x1b, 0xc6, 0x09, 0x61, 0x31, 0xa4, 0x71,
+	0xe5, 0xff, 0xfd, 0xdf, 0x53, 0x85, 0x1a, 0x18, 0xea, 0x65, 0x74, 0x45, 0xbc, 0xbc, 0xca, 0xa8,
+	0x55, 0xe9, 0x34, 0x5e, 0x31, 0x1f, 0x7c, 0xe2, 0x29, 0x54, 0x32, 0xc5, 0x41, 0xdd, 0xa5, 0x4d,
+	0x26, 0x3c, 0x8c, 0xd6, 0x90, 0x3c, 0x7a, 0x4a, 0x9b, 0x4c, 0x2f, 0x23, 0x35, 0x65, 0x5a, 0xe9,
+	0x56, 0xad, 0xd0, 0x7c, 0x02, 0x8d, 0x82, 0xb9, 0x63, 0x81, 0xf1, 0x79, 0x79, 0x50, 0xb5, 0xf4,
+	0x06, 0xba, 0x9a, 0xf1, 0x0a, 0x9a, 0x56, 0x7b, 0x6e, 0x1d, 0x77, 0x83, 0x83, 0xb0, 0x5b, 0x27,
+	0x0a, 0x93, 0x2f, 0x54, 0xdd, 0x0d, 0x1e, 0xf2, 0x05, 0xdf, 0xfa, 0x7a, 0x4c, 0xda, 0x33, 0xf3,
+	0x25, 0x6b, 0xe4, 0x96, 0x16, 0x5c, 0xe0, 0xc2, 0x42, 0x5e, 0x28, 0xca, 0x0b, 0xf2, 0x28, 0xa3,
+	0x5d, 0xbe, 0x9d, 0xd2, 0x0e, 0xe6, 0x91, 0x76, 0x79, 0x90, 0xd2, 0x1e, 0x62, 0x45, 0xda, 0x43,
+	0xbb, 0xbc, 0xda, 0xe5, 0x0b, 0x52, 0x3b, 0xef, 0x7d, 0xeb, 0x14, 0x9c, 0x3c, 0x71, 0x3c, 0x5f,
+	0x86, 0x27, 0xac, 0x25, 0xfc, 0x08, 0xa1, 0xa8, 0xd4, 0xc1, 0xc7, 0x4d, 0x03, 0xba, 0x24, 0xe8,
+	0x0b, 0x43, 0x36, 0x1a, 0xf4, 0x85, 0xb1, 0x46, 0x6d, 0x06, 0xb6, 0xb5, 0x98, 0xa5, 0xfe, 0x55,
+	0x41, 0xe3, 0x59, 0x1f, 0xa0, 0x64, 0x0d, 0x5d, 0x88, 0x65, 0x31, 0xa8, 0xcf, 0xff, 0x86, 0x48,
+	0x23, 0xd4, 0x68, 0x29, 0x4a, 0xa6, 0x87, 0x1f, 0x27, 0xb0, 0x8b, 0x10, 0x9a, 0x41, 0xd8, 0x12,
+	0x27, 0xc1, 0xbd, 0xa7, 0xc4, 0x62, 0x23, 0xc3, 0x77, 0xd6, 0xb1, 0x49, 0x17, 0x58, 0x31, 0xd3,
+	0x3b, 0x6f, 0x15, 0x74, 0x3d, 0x0d, 0x51, 0xe9, 0x42, 0x04, 0xac, 0xb3, 0xc6, 0x49, 0xf4, 0x62,
+	0x31, 0xd5, 0x8b, 0x89, 0x3c, 0xf6, 0xe2, 0x11, 0xe5, 0x31, 0x56, 0x91, 0xf9, 0xf2, 0x18, 0x95,
+	0x64, 0x98, 0xc7, 0xa8, 0x30, 0xcf, 0x2e, 0x8f, 0x0b, 0x5f, 0x4a, 0xe8, 0x9c, 0xe0, 0xc6, 0xef,
+	0x14, 0x34, 0x22, 0x87, 0x1b, 0x26, 0x27, 0x92, 0x65, 0x27, 0xab, 0x3a, 0x97, 0xdf, 0x40, 0x32,
+	0xe8, 0xfa, 0xde, 0xcf, 0xbf, 0x1f, 0x8a, 0x93, 0x58, 0x25, 0xc7, 0xce, 0x7a, 0xfc, 0x49, 0x41,
+	0x28, 0x9a, 0x6d, 0x78, 0x71, 0xb0, 0x93, 0xcc, 0xfc, 0x55, 0xef, 0x0c, 0x67, 0x04, 0x74, 0x4b,
+	0x82, 0x8e, 0xe0, 0xd9, 0x7e, 0x74, 0x9b, 0x8c, 0x5a, 0x75, 0x99, 0x78, 0xb2, 0x13, 0x2b, 0xd0,
+	0x5d, 0xfc, 0x4d, 0x41, 0x17, 0x93, 0x73, 0x1c, 0xdf, 0x1b, 0xc6, 0x7f, 0x6c, 0xfa, 0x9d, 0x12,
+	0xbc, 0x2c, 0xc0, 0x17, 0xf1, 0xfc, 0x00, 0xf0, 0xba, 0xd9, 0xad, 0x3b, 0x56, 0x0f, 0xdf, 0xb1,
+	0x76, 0xf1, 0x77, 0x88, 0xb6, 0x2c, 0xbc, 0xbc, 0xd1, 0x4e, 0xac, 0x84, 0xbc, 0xd0, 0xc9, 0x81,
+	0xad, 0x3f, 0x14, 0xd0, 0xf7, 0xf1, 0xf2, 0xb1, 0xd0, 0xb2, 0xf4, 0x93, 0xd1, 0x26, 0x3b, 0xb1,
+	0xe5, 0x12, 0xc5, 0x3e, 0xda, 0x23, 0x79, 0x63, 0x9f, 0xd9, 0x3c, 0xa7, 0x94, 0x31, 0x38, 0xf6,
+	0x00, 0x0c, 0xb1, 0xef, 0x2d, 0xb7, 0x5d, 0xfc, 0x51, 0x41, 0xa5, 0xd8, 0x02, 0xc0, 0x39, 0x00,
+	0xb2, 0x3b, 0x49, 0x5d, 0x1a, 0xd2, 0x0a, 0xb8, 0x67, 0x04, 0xb7, 0x8e, 0xa7, 0xfb, 0x71, 0x6f,
+	0x39, 0x9e, 0x0f, 0x35, 0xe3, 0xe1, 0xcf, 0x80, 0x09, 0xf3, 0x2d, 0x2f, 0x66, 0x72, 0x3d, 0xe4,
+	0xc5, 0x4c, 0x0d, 0x51, 0xfd, 0xae, 0xc0, 0x9c, 0xc3, 0xc6, 0xb1, 0x98, 0x32, 0xa0, 0x5e, 0xaa,
+	0x29, 0x7f, 0x28, 0xe8, 0x72, 0xdf, 0xfd, 0x80, 0x1f, 0x0c, 0x05, 0x92, 0x59, 0x2c, 0xa7, 0x15,
+	0xb2, 0x22, 0x84, 0x2c, 0xe3, 0xf2, 0x20, 0x21, 0x41, 0xa1, 0xf4, 0x1a, 0x34, 0xde, 0xab, 0x95,
+	0xea, 0xfe, 0xa1, 0xa6, 0x1c, 0x1c, 0x6a, 0xca, 0x9f, 0x43, 0x4d, 0x79, 0x7f, 0xa4, 0x15, 0x0e,
+	0x8e, 0xb4, 0xc2, 0xaf, 0x23, 0xad, 0xb0, 0x4e, 0x6c, 0xc7, 0xdf, 0xec, 0x98, 0x46, 0x83, 0x37,
+	0x89, 0xe9, 0x9a, 0xb3, 0x02, 0x2f, 0xee, 0xe8, 0x4d, 0xf2, 0x07, 0xb3, 0x39, 0x22, 0x7e, 0x31,
+	0x2f, 0xfe, 0x0b, 0x00, 0x00, 0xff, 0xff, 0xa7, 0xdf, 0x8d, 0x1b, 0x2c, 0x0c, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -647,7 +730,7 @@ type QueryClient interface {
 	// Queries a bucket with specify name.
 	HeadBucket(ctx context.Context, in *QueryHeadBucketRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error)
 	// Queries a bucket by its id
-	HeadBucketById(ctx context.Context, in *QueryHeadBucketRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error)
+	HeadBucketById(ctx context.Context, in *QueryHeadBucketByIdRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error)
 	// Queries a object with specify name.
 	HeadObject(ctx context.Context, in *QueryHeadObjectRequest, opts ...grpc.CallOption) (*QueryHeadObjectResponse, error)
 	// Queries a object by its id
@@ -657,7 +740,7 @@ type QueryClient interface {
 	// Queries a list of object items under the bucket.
 	ListObjects(ctx context.Context, in *QueryListObjectsRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error)
 	// Queries a list of object items under the bucket.
-	ListObjectsByBucketId(ctx context.Context, in *QueryListObjectsRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error)
+	ListObjectsByBucketId(ctx context.Context, in *QueryListObjectsByBucketIdRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error)
 }
 
 type queryClient struct {
@@ -686,7 +769,7 @@ func (c *queryClient) HeadBucket(ctx context.Context, in *QueryHeadBucketRequest
 	return out, nil
 }
 
-func (c *queryClient) HeadBucketById(ctx context.Context, in *QueryHeadBucketRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error) {
+func (c *queryClient) HeadBucketById(ctx context.Context, in *QueryHeadBucketByIdRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error) {
 	out := new(QueryHeadBucketResponse)
 	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.storage.Query/HeadBucketById", in, out, opts...)
 	if err != nil {
@@ -731,7 +814,7 @@ func (c *queryClient) ListObjects(ctx context.Context, in *QueryListObjectsReque
 	return out, nil
 }
 
-func (c *queryClient) ListObjectsByBucketId(ctx context.Context, in *QueryListObjectsRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error) {
+func (c *queryClient) ListObjectsByBucketId(ctx context.Context, in *QueryListObjectsByBucketIdRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error) {
 	out := new(QueryListObjectsResponse)
 	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.storage.Query/ListObjectsByBucketId", in, out, opts...)
 	if err != nil {
@@ -747,7 +830,7 @@ type QueryServer interface {
 	// Queries a bucket with specify name.
 	HeadBucket(context.Context, *QueryHeadBucketRequest) (*QueryHeadBucketResponse, error)
 	// Queries a bucket by its id
-	HeadBucketById(context.Context, *QueryHeadBucketRequest) (*QueryHeadBucketResponse, error)
+	HeadBucketById(context.Context, *QueryHeadBucketByIdRequest) (*QueryHeadBucketResponse, error)
 	// Queries a object with specify name.
 	HeadObject(context.Context, *QueryHeadObjectRequest) (*QueryHeadObjectResponse, error)
 	// Queries a object by its id
@@ -757,7 +840,7 @@ type QueryServer interface {
 	// Queries a list of object items under the bucket.
 	ListObjects(context.Context, *QueryListObjectsRequest) (*QueryListObjectsResponse, error)
 	// Queries a list of object items under the bucket.
-	ListObjectsByBucketId(context.Context, *QueryListObjectsRequest) (*QueryListObjectsResponse, error)
+	ListObjectsByBucketId(context.Context, *QueryListObjectsByBucketIdRequest) (*QueryListObjectsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -770,7 +853,7 @@ func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsReq
 func (*UnimplementedQueryServer) HeadBucket(ctx context.Context, req *QueryHeadBucketRequest) (*QueryHeadBucketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HeadBucket not implemented")
 }
-func (*UnimplementedQueryServer) HeadBucketById(ctx context.Context, req *QueryHeadBucketRequest) (*QueryHeadBucketResponse, error) {
+func (*UnimplementedQueryServer) HeadBucketById(ctx context.Context, req *QueryHeadBucketByIdRequest) (*QueryHeadBucketResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HeadBucketById not implemented")
 }
 func (*UnimplementedQueryServer) HeadObject(ctx context.Context, req *QueryHeadObjectRequest) (*QueryHeadObjectResponse, error) {
@@ -785,7 +868,7 @@ func (*UnimplementedQueryServer) ListBuckets(ctx context.Context, req *QueryList
 func (*UnimplementedQueryServer) ListObjects(ctx context.Context, req *QueryListObjectsRequest) (*QueryListObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListObjects not implemented")
 }
-func (*UnimplementedQueryServer) ListObjectsByBucketId(ctx context.Context, req *QueryListObjectsRequest) (*QueryListObjectsResponse, error) {
+func (*UnimplementedQueryServer) ListObjectsByBucketId(ctx context.Context, req *QueryListObjectsByBucketIdRequest) (*QueryListObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListObjectsByBucketId not implemented")
 }
 
@@ -830,7 +913,7 @@ func _Query_HeadBucket_Handler(srv interface{}, ctx context.Context, dec func(in
 }
 
 func _Query_HeadBucketById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryHeadBucketRequest)
+	in := new(QueryHeadBucketByIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -842,7 +925,7 @@ func _Query_HeadBucketById_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/bnbchain.greenfield.storage.Query/HeadBucketById",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).HeadBucketById(ctx, req.(*QueryHeadBucketRequest))
+		return srv.(QueryServer).HeadBucketById(ctx, req.(*QueryHeadBucketByIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -920,7 +1003,7 @@ func _Query_ListObjects_Handler(srv interface{}, ctx context.Context, dec func(i
 }
 
 func _Query_ListObjectsByBucketId_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryListObjectsRequest)
+	in := new(QueryListObjectsByBucketIdRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -932,7 +1015,7 @@ func _Query_ListObjectsByBucketId_Handler(srv interface{}, ctx context.Context, 
 		FullMethod: "/bnbchain.greenfield.storage.Query/ListObjectsByBucketId",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).ListObjectsByBucketId(ctx, req.(*QueryListObjectsRequest))
+		return srv.(QueryServer).ListObjectsByBucketId(ctx, req.(*QueryListObjectsByBucketIdRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1054,17 +1137,40 @@ func (m *QueryHeadBucketRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
-	if len(m.BucketId) > 0 {
-		i -= len(m.BucketId)
-		copy(dAtA[i:], m.BucketId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.BucketId)))
-		i--
-		dAtA[i] = 0x12
-	}
 	if len(m.BucketName) > 0 {
 		i -= len(m.BucketName)
 		copy(dAtA[i:], m.BucketName)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryHeadBucketByIdRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryHeadBucketByIdRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryHeadBucketByIdRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.BucketId) > 0 {
+		i -= len(m.BucketId)
+		copy(dAtA[i:], m.BucketId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.BucketId)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1312,17 +1418,52 @@ func (m *QueryListObjectsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	if len(m.BucketId) > 0 {
-		i -= len(m.BucketId)
-		copy(dAtA[i:], m.BucketId)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.BucketId)))
-		i--
-		dAtA[i] = 0x1a
-	}
 	if len(m.BucketName) > 0 {
 		i -= len(m.BucketName)
 		copy(dAtA[i:], m.BucketName)
 		i = encodeVarintQuery(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.Pagination != nil {
+		{
+			size, err := m.Pagination.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryListObjectsByBucketIdRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryListObjectsByBucketIdRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryListObjectsByBucketIdRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.BucketId) > 0 {
+		i -= len(m.BucketId)
+		copy(dAtA[i:], m.BucketId)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.BucketId)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1431,6 +1572,15 @@ func (m *QueryHeadBucketRequest) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	return n
+}
+
+func (m *QueryHeadBucketByIdRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
 	l = len(m.BucketId)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
@@ -1538,6 +1688,19 @@ func (m *QueryListObjectsRequest) Size() (n int) {
 	}
 	l = len(m.BucketName)
 	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryListObjectsByBucketIdRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	l = len(m.BucketId)
@@ -1766,7 +1929,57 @@ func (m *QueryHeadBucketRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.BucketName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryHeadBucketByIdRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryHeadBucketByIdRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryHeadBucketByIdRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
 			}
@@ -2490,7 +2703,93 @@ func (m *QueryListObjectsRequest) Unmarshal(dAtA []byte) error {
 			}
 			m.BucketName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryListObjectsByBucketIdRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryListObjectsByBucketIdRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryListObjectsByBucketIdRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
 			}
