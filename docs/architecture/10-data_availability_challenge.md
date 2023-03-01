@@ -1,8 +1,8 @@
 # Data Availability Challenge
 
-Data availability means the data is correctly stored on storage providers, and can be correctly downloaded by users.
+Data availability means the data is correctly stored on storage providers and can be correctly downloaded by users.
 The challenge module is designed and used to detect whether a data segment/piece is correctly stored on a
-specified storage provider. For this kind of challenges, there will be three steps:
+specified storage provider. For this kind of challenge, there will be three steps:
 
 1. Each validator asks the challenged SP for this data piece and the local manifest of the object, if the validator
    can't get the expected piece, the piece should be regarded as unavailable.
