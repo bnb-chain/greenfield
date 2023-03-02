@@ -42,6 +42,10 @@ docker-image:
 test:
 	go test $$(go list ./... | grep -v e2e | grep -v sdk)
 
+e2e_start_localchain:
+	bash ./deployment/localup/localup.sh all 1 7
+	bash ./deployment/localup/localup.sh sp_check 1 7
+
 e2e_test:
 	go test -p 1 ./e2e/...
 

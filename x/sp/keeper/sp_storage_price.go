@@ -116,7 +116,7 @@ func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice 
 func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 	sps := k.GetAllStorageProviders(ctx)
 	if len(sps) == 0 {
-		return fmt.Errorf("no sp found")
+		return nil
 	}
 	total := sdk.ZeroDec()
 	current := ctx.BlockTime().Unix()

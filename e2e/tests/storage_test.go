@@ -195,6 +195,10 @@ func (s *StorageTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamR
 		sr = streamRecordResp.StreamRecord
 	} else {
 		s.Require().ErrorContainsf(err, "not found", "account: %s", addr)
+		sr.StaticBalance = sdk.ZeroInt()
+		sr.BufferBalance = sdk.ZeroInt()
+		sr.LockBalance = sdk.ZeroInt()
+		sr.NetflowRate = sdk.ZeroInt()
 	}
 	return sr
 }
