@@ -122,7 +122,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.IsPublic, false)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_INIT)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, user.GetAddr().String())
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)

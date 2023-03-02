@@ -1327,7 +1327,60 @@ paths:
           type: string
       tags:
         - Query
-  /bnb-chain/greenfield/sp/storage_provider/{spAddress}:
+  /greenfield/sp/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: SpParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  max_storage_providers:
+                    type: integer
+                    format: int64
+                    description: max_storage_providers is the maximum number of validators.
+                  deposit_denom:
+                    type: string
+                    description: deposit_denom defines the staking coin denomination.
+                  min_deposit:
+                    type: string
+                    description: >-
+                      min_deposit_amount defines the minimum deposit amount for
+                      storage providers.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /greenfield/storage_provider/{spAddress}:
     get:
       summary: Queries a storage provider with specify address
       operationId: StorageProvider
@@ -1343,30 +1396,34 @@ paths:
                   operator_address:
                     type: string
                     description: >-
-                      operator_address defines the address of the sp's operator;
-                      It also is the unqiue index key of sp.
+                      operator_address defines the account address of the
+                      storage provider's operator; It also is the unique index
+                      key of sp.
                   funding_address:
                     type: string
                     description: >-
-                      fund_address is the account address of the storage
-                      provider for deposit, remuneration.
+                      funding_address defines one of the storage provider's
+                      accounts which is used to deposit and reward.
                   seal_address:
                     type: string
                     title: >-
-                      seal_address is the account address of the storage
-                      provider for sealObject
+                      seal_address defines one of the storage provider's
+                      accounts which is used to SealObject
                   approval_address:
                     type: string
-                    description: >-
-                      approval_address is the account address of the storage
-                      provider for ack CreateBuclet/Object.
+                    title: >-
+                      approval_address defines one of the storage provider's
+                      accounts which is used to approve use's
+                      createBucket/createObject request
                   total_deposit:
                     type: string
-                    title: total_deposit define the deposit token
+                    description: >-
+                      total_deposit defines the number of tokens deposited by
+                      this storage provider for staking.
                   status:
                     title: >-
-                      status is the status of sp, which can be
-                      (in_service/read_only_service/graceful_exiting/out_of_service)
+                      status defines the current service status of this storage
+                      provider
                     type: string
                     enum:
                       - STATUS_IN_SERVICE
@@ -1377,11 +1434,13 @@ paths:
                     description: Status is the status of a storage provider.
                   endpoint:
                     type: string
-                    title: endpoint is the service address of the storage provider
+                    title: >-
+                      endpoint define the storage provider's network service
+                      address
                   description:
                     description: >-
-                      description defines the description terms for the
-                      validator.
+                      description defines the description terms for the storage
+                      provider.
                     type: object
                     properties:
                       moniker:
@@ -1438,60 +1497,7 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/sp/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: SpParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-                properties:
-                  max_storage_providers:
-                    type: integer
-                    format: int64
-                    description: max_storage_providers is the maximum number of validators.
-                  deposit_denom:
-                    type: string
-                    description: deposit_denom defines the staking coin denomination.
-                  min_deposit:
-                    type: string
-                    description: >-
-                      min_deposit_amount defines the minimum deposit amount for
-                      storage providers.
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      tags:
-        - Query
-  /greenfield/sp/storage_providers:
+  /greenfield/storage_providers:
     get:
       summary: Queries a list of GetStorageProviders items.
       operationId: StorageProviders
@@ -1509,30 +1515,34 @@ paths:
                     operator_address:
                       type: string
                       description: >-
-                        operator_address defines the address of the sp's
-                        operator; It also is the unqiue index key of sp.
+                        operator_address defines the account address of the
+                        storage provider's operator; It also is the unique index
+                        key of sp.
                     funding_address:
                       type: string
                       description: >-
-                        fund_address is the account address of the storage
-                        provider for deposit, remuneration.
+                        funding_address defines one of the storage provider's
+                        accounts which is used to deposit and reward.
                     seal_address:
                       type: string
                       title: >-
-                        seal_address is the account address of the storage
-                        provider for sealObject
+                        seal_address defines one of the storage provider's
+                        accounts which is used to SealObject
                     approval_address:
                       type: string
-                      description: >-
-                        approval_address is the account address of the storage
-                        provider for ack CreateBuclet/Object.
+                      title: >-
+                        approval_address defines one of the storage provider's
+                        accounts which is used to approve use's
+                        createBucket/createObject request
                     total_deposit:
                       type: string
-                      title: total_deposit define the deposit token
+                      description: >-
+                        total_deposit defines the number of tokens deposited by
+                        this storage provider for staking.
                     status:
                       title: >-
-                        status is the status of sp, which can be
-                        (in_service/read_only_service/graceful_exiting/out_of_service)
+                        status defines the current service status of this
+                        storage provider
                       type: string
                       enum:
                         - STATUS_IN_SERVICE
@@ -1543,11 +1553,13 @@ paths:
                       description: Status is the status of a storage provider.
                     endpoint:
                       type: string
-                      title: endpoint is the service address of the storage provider
+                      title: >-
+                        endpoint define the storage provider's network service
+                        address
                     description:
                       description: >-
                         description defines the description terms for the
-                        validator.
+                        storage provider.
                       type: object
                       properties:
                         moniker:
@@ -1700,12 +1712,15 @@ paths:
                     type: boolean
                     description: >-
                       is_public define the highest permissions for bucket. When
-                      the bucket is public, everyone can get the object in it.
+                      the bucket is public, everyone can get storage objects in
+                      it.
                   id:
                     type: string
                     description: id is the unique identification for bucket.
                   source_type:
-                    title: source_type define the source of the bucket
+                    title: >-
+                      source_type defines which chain the user should send the
+                      bucket management transactions to
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
@@ -1809,12 +1824,15 @@ paths:
                     type: boolean
                     description: >-
                       is_public define the highest permissions for bucket. When
-                      the bucket is public, everyone can get the object in it.
+                      the bucket is public, everyone can get storage objects in
+                      it.
                   id:
                     type: string
                     description: id is the unique identification for bucket.
                   source_type:
-                    title: source_type define the source of the bucket
+                    title: >-
+                      source_type defines which chain the user should send the
+                      bucket management transactions to
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
@@ -2073,9 +2091,9 @@ paths:
                     description: object_status define the upload status of the object.
                     type: string
                     enum:
-                      - OBJECT_STATUS_INIT
-                      - OBJECT_STATUS_IN_SERVICE
-                    default: OBJECT_STATUS_INIT
+                      - OBJECT_STATUS_CREATED
+                      - OBJECT_STATUS_SEALED
+                    default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
                       redundancy_type define the type of the redundancy which
@@ -2084,7 +2102,6 @@ paths:
                     enum:
                       - REDUNDANCY_REPLICA_TYPE
                       - REDUNDANCY_EC_TYPE
-                      - REDUNDANCY_INLINE_TYPE
                     default: REDUNDANCY_REPLICA_TYPE
                   source_type:
                     description: source_type define the source of the object.
@@ -2110,7 +2127,7 @@ paths:
                       secondary_sps
                   locked_balance:
                     type: string
-                    title: lockedBalance
+                    title: 'lockedBalance TODO(Owen): refine the comments'
         default:
           description: An unexpected error response.
           schema:
@@ -2190,9 +2207,9 @@ paths:
                     description: object_status define the upload status of the object.
                     type: string
                     enum:
-                      - OBJECT_STATUS_INIT
-                      - OBJECT_STATUS_IN_SERVICE
-                    default: OBJECT_STATUS_INIT
+                      - OBJECT_STATUS_CREATED
+                      - OBJECT_STATUS_SEALED
+                    default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
                       redundancy_type define the type of the redundancy which
@@ -2201,7 +2218,6 @@ paths:
                     enum:
                       - REDUNDANCY_REPLICA_TYPE
                       - REDUNDANCY_EC_TYPE
-                      - REDUNDANCY_INLINE_TYPE
                     default: REDUNDANCY_REPLICA_TYPE
                   source_type:
                     description: source_type define the source of the object.
@@ -2227,7 +2243,7 @@ paths:
                       secondary_sps
                   locked_balance:
                     type: string
-                    title: lockedBalance
+                    title: 'lockedBalance TODO(Owen): refine the comments'
         default:
           description: An unexpected error response.
           schema:
@@ -2351,13 +2367,15 @@ paths:
                       type: boolean
                       description: >-
                         is_public define the highest permissions for bucket.
-                        When the bucket is public, everyone can get the object
-                        in it.
+                        When the bucket is public, everyone can get storage
+                        objects in it.
                     id:
                       type: string
                       description: id is the unique identification for bucket.
                     source_type:
-                      title: source_type define the source of the bucket
+                      title: >-
+                        source_type defines which chain the user should send the
+                        bucket management transactions to
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
@@ -2568,9 +2586,9 @@ paths:
                       description: object_status define the upload status of the object.
                       type: string
                       enum:
-                        - OBJECT_STATUS_INIT
-                        - OBJECT_STATUS_IN_SERVICE
-                      default: OBJECT_STATUS_INIT
+                        - OBJECT_STATUS_CREATED
+                        - OBJECT_STATUS_SEALED
+                      default: OBJECT_STATUS_CREATED
                     redundancy_type:
                       description: >-
                         redundancy_type define the type of the redundancy which
@@ -2579,7 +2597,6 @@ paths:
                       enum:
                         - REDUNDANCY_REPLICA_TYPE
                         - REDUNDANCY_EC_TYPE
-                        - REDUNDANCY_INLINE_TYPE
                       default: REDUNDANCY_REPLICA_TYPE
                     source_type:
                       description: source_type define the source of the object.
@@ -2605,7 +2622,7 @@ paths:
                         secondary_sps
                     locked_balance:
                       type: string
-                      title: lockedBalance
+                      title: 'lockedBalance TODO(Owen): refine the comments'
               pagination:
                 type: object
                 properties:
@@ -2769,9 +2786,9 @@ paths:
                       description: object_status define the upload status of the object.
                       type: string
                       enum:
-                        - OBJECT_STATUS_INIT
-                        - OBJECT_STATUS_IN_SERVICE
-                      default: OBJECT_STATUS_INIT
+                        - OBJECT_STATUS_CREATED
+                        - OBJECT_STATUS_SEALED
+                      default: OBJECT_STATUS_CREATED
                     redundancy_type:
                       description: >-
                         redundancy_type define the type of the redundancy which
@@ -2780,7 +2797,6 @@ paths:
                       enum:
                         - REDUNDANCY_REPLICA_TYPE
                         - REDUNDANCY_EC_TYPE
-                        - REDUNDANCY_INLINE_TYPE
                       default: REDUNDANCY_REPLICA_TYPE
                     source_type:
                       description: source_type define the source of the object.
@@ -2806,7 +2822,7 @@ paths:
                         secondary_sps
                     locked_balance:
                       type: string
-                      title: lockedBalance
+                      title: 'lockedBalance TODO(Owen): refine the comments'
               pagination:
                 type: object
                 properties:
@@ -27448,30 +27464,30 @@ definitions:
           operator_address:
             type: string
             description: >-
-              operator_address defines the address of the sp's operator; It also
-              is the unqiue index key of sp.
+              operator_address defines the account address of the storage
+              provider's operator; It also is the unique index key of sp.
           funding_address:
             type: string
             description: >-
-              fund_address is the account address of the storage provider for
-              deposit, remuneration.
+              funding_address defines one of the storage provider's accounts
+              which is used to deposit and reward.
           seal_address:
             type: string
             title: >-
-              seal_address is the account address of the storage provider for
-              sealObject
+              seal_address defines one of the storage provider's accounts which
+              is used to SealObject
           approval_address:
             type: string
-            description: >-
-              approval_address is the account address of the storage provider
-              for ack CreateBuclet/Object.
+            title: >-
+              approval_address defines one of the storage provider's accounts
+              which is used to approve use's createBucket/createObject request
           total_deposit:
             type: string
-            title: total_deposit define the deposit token
+            description: >-
+              total_deposit defines the number of tokens deposited by this
+              storage provider for staking.
           status:
-            title: >-
-              status is the status of sp, which can be
-              (in_service/read_only_service/graceful_exiting/out_of_service)
+            title: status defines the current service status of this storage provider
             type: string
             enum:
               - STATUS_IN_SERVICE
@@ -27482,9 +27498,11 @@ definitions:
             description: Status is the status of a storage provider.
           endpoint:
             type: string
-            title: endpoint is the service address of the storage provider
+            title: endpoint define the storage provider's network service address
           description:
-            description: description defines the description terms for the validator.
+            description: >-
+              description defines the description terms for the storage
+              provider.
             type: object
             properties:
               moniker:
@@ -27521,30 +27539,32 @@ definitions:
             operator_address:
               type: string
               description: >-
-                operator_address defines the address of the sp's operator; It
-                also is the unqiue index key of sp.
+                operator_address defines the account address of the storage
+                provider's operator; It also is the unique index key of sp.
             funding_address:
               type: string
               description: >-
-                fund_address is the account address of the storage provider for
-                deposit, remuneration.
+                funding_address defines one of the storage provider's accounts
+                which is used to deposit and reward.
             seal_address:
               type: string
               title: >-
-                seal_address is the account address of the storage provider for
-                sealObject
+                seal_address defines one of the storage provider's accounts
+                which is used to SealObject
             approval_address:
               type: string
-              description: >-
-                approval_address is the account address of the storage provider
-                for ack CreateBuclet/Object.
+              title: >-
+                approval_address defines one of the storage provider's accounts
+                which is used to approve use's createBucket/createObject request
             total_deposit:
               type: string
-              title: total_deposit define the deposit token
+              description: >-
+                total_deposit defines the number of tokens deposited by this
+                storage provider for staking.
             status:
               title: >-
-                status is the status of sp, which can be
-                (in_service/read_only_service/graceful_exiting/out_of_service)
+                status defines the current service status of this storage
+                provider
               type: string
               enum:
                 - STATUS_IN_SERVICE
@@ -27555,9 +27575,11 @@ definitions:
               description: Status is the status of a storage provider.
             endpoint:
               type: string
-              title: endpoint is the service address of the storage provider
+              title: endpoint define the storage provider's network service address
             description:
-              description: description defines the description terms for the validator.
+              description: >-
+                description defines the description terms for the storage
+                provider.
               type: object
               properties:
                 moniker:
@@ -27619,30 +27641,30 @@ definitions:
       operator_address:
         type: string
         description: >-
-          operator_address defines the address of the sp's operator; It also is
-          the unqiue index key of sp.
+          operator_address defines the account address of the storage provider's
+          operator; It also is the unique index key of sp.
       funding_address:
         type: string
         description: >-
-          fund_address is the account address of the storage provider for
-          deposit, remuneration.
+          funding_address defines one of the storage provider's accounts which
+          is used to deposit and reward.
       seal_address:
         type: string
         title: >-
-          seal_address is the account address of the storage provider for
-          sealObject
+          seal_address defines one of the storage provider's accounts which is
+          used to SealObject
       approval_address:
         type: string
-        description: >-
-          approval_address is the account address of the storage provider for
-          ack CreateBuclet/Object.
+        title: >-
+          approval_address defines one of the storage provider's accounts which
+          is used to approve use's createBucket/createObject request
       total_deposit:
         type: string
-        title: total_deposit define the deposit token
+        description: >-
+          total_deposit defines the number of tokens deposited by this storage
+          provider for staking.
       status:
-        title: >-
-          status is the status of sp, which can be
-          (in_service/read_only_service/graceful_exiting/out_of_service)
+        title: status defines the current service status of this storage provider
         type: string
         enum:
           - STATUS_IN_SERVICE
@@ -27653,9 +27675,9 @@ definitions:
         description: Status is the status of a storage provider.
       endpoint:
         type: string
-        title: endpoint is the service address of the storage provider
+        title: endpoint define the storage provider's network service address
       description:
-        description: description defines the description terms for the validator.
+        description: description defines the description terms for the storage provider.
         type: object
         properties:
           moniker:
@@ -27694,12 +27716,14 @@ definitions:
         type: boolean
         description: >-
           is_public define the highest permissions for bucket. When the bucket
-          is public, everyone can get the object in it.
+          is public, everyone can get storage objects in it.
       id:
         type: string
         description: id is the unique identification for bucket.
       source_type:
-        title: source_type define the source of the bucket
+        title: >-
+          source_type defines which chain the user should send the bucket
+          management transactions to
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
@@ -27810,9 +27834,9 @@ definitions:
         description: object_status define the upload status of the object.
         type: string
         enum:
-          - OBJECT_STATUS_INIT
-          - OBJECT_STATUS_IN_SERVICE
-        default: OBJECT_STATUS_INIT
+          - OBJECT_STATUS_CREATED
+          - OBJECT_STATUS_SEALED
+        default: OBJECT_STATUS_CREATED
       redundancy_type:
         description: >-
           redundancy_type define the type of the redundancy which can be
@@ -27821,7 +27845,6 @@ definitions:
         enum:
           - REDUNDANCY_REPLICA_TYPE
           - REDUNDANCY_EC_TYPE
-          - REDUNDANCY_INLINE_TYPE
         default: REDUNDANCY_REPLICA_TYPE
       source_type:
         description: source_type define the source of the object.
@@ -27843,13 +27866,13 @@ definitions:
         title: secondary_sp_addresses define the addresses of secondary_sps
       locked_balance:
         type: string
-        title: lockedBalance
+        title: 'lockedBalance TODO(Owen): refine the comments'
   bnbchain.greenfield.storage.ObjectStatus:
     type: string
     enum:
-      - OBJECT_STATUS_INIT
-      - OBJECT_STATUS_IN_SERVICE
-    default: OBJECT_STATUS_INIT
+      - OBJECT_STATUS_CREATED
+      - OBJECT_STATUS_SEALED
+    default: OBJECT_STATUS_CREATED
   bnbchain.greenfield.storage.Params:
     type: object
     properties:
@@ -27892,12 +27915,14 @@ definitions:
             type: boolean
             description: >-
               is_public define the highest permissions for bucket. When the
-              bucket is public, everyone can get the object in it.
+              bucket is public, everyone can get storage objects in it.
           id:
             type: string
             description: id is the unique identification for bucket.
           source_type:
-            title: source_type define the source of the bucket
+            title: >-
+              source_type defines which chain the user should send the bucket
+              management transactions to
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
@@ -27983,9 +28008,9 @@ definitions:
             description: object_status define the upload status of the object.
             type: string
             enum:
-              - OBJECT_STATUS_INIT
-              - OBJECT_STATUS_IN_SERVICE
-            default: OBJECT_STATUS_INIT
+              - OBJECT_STATUS_CREATED
+              - OBJECT_STATUS_SEALED
+            default: OBJECT_STATUS_CREATED
           redundancy_type:
             description: >-
               redundancy_type define the type of the redundancy which can be
@@ -27994,7 +28019,6 @@ definitions:
             enum:
               - REDUNDANCY_REPLICA_TYPE
               - REDUNDANCY_EC_TYPE
-              - REDUNDANCY_INLINE_TYPE
             default: REDUNDANCY_REPLICA_TYPE
           source_type:
             description: source_type define the source of the object.
@@ -28016,7 +28040,7 @@ definitions:
             title: secondary_sp_addresses define the addresses of secondary_sps
           locked_balance:
             type: string
-            title: lockedBalance
+            title: 'lockedBalance TODO(Owen): refine the comments'
   bnbchain.greenfield.storage.QueryListBucketsResponse:
     type: object
     properties:
@@ -28037,12 +28061,14 @@ definitions:
               type: boolean
               description: >-
                 is_public define the highest permissions for bucket. When the
-                bucket is public, everyone can get the object in it.
+                bucket is public, everyone can get storage objects in it.
             id:
               type: string
               description: id is the unique identification for bucket.
             source_type:
-              title: source_type define the source of the bucket
+              title: >-
+                source_type defines which chain the user should send the bucket
+                management transactions to
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
@@ -28158,9 +28184,9 @@ definitions:
               description: object_status define the upload status of the object.
               type: string
               enum:
-                - OBJECT_STATUS_INIT
-                - OBJECT_STATUS_IN_SERVICE
-              default: OBJECT_STATUS_INIT
+                - OBJECT_STATUS_CREATED
+                - OBJECT_STATUS_SEALED
+              default: OBJECT_STATUS_CREATED
             redundancy_type:
               description: >-
                 redundancy_type define the type of the redundancy which can be
@@ -28169,7 +28195,6 @@ definitions:
               enum:
                 - REDUNDANCY_REPLICA_TYPE
                 - REDUNDANCY_EC_TYPE
-                - REDUNDANCY_INLINE_TYPE
               default: REDUNDANCY_REPLICA_TYPE
             source_type:
               description: source_type define the source of the object.
@@ -28193,7 +28218,7 @@ definitions:
               title: secondary_sp_addresses define the addresses of secondary_sps
             locked_balance:
               type: string
-              title: lockedBalance
+              title: 'lockedBalance TODO(Owen): refine the comments'
       pagination:
         type: object
         properties:
@@ -28296,7 +28321,6 @@ definitions:
     enum:
       - REDUNDANCY_REPLICA_TYPE
       - REDUNDANCY_EC_TYPE
-      - REDUNDANCY_INLINE_TYPE
     default: REDUNDANCY_REPLICA_TYPE
   bnbchain.greenfield.storage.SourceType:
     type: string

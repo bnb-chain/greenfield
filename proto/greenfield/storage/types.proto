@@ -13,7 +13,7 @@ message BucketInfo {
   string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is a globally unique name of bucket
   string bucket_name = 2;
-  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
+  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get storage objects in it.
   bool is_public = 3;
   // id is the unique identification for bucket.
   string id = 4 [
@@ -21,7 +21,7 @@ message BucketInfo {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // source_type define the source of the bucket
+  // source_type defines which chain the user should send the bucket management transactions to
   SourceType source_type = 5;
   // create_at define the block number when the bucket created.
   int64 create_at = 6;
@@ -68,7 +68,7 @@ message ObjectInfo {
   repeated bytes checksums = 12 [(gogoproto.moretags) = "traits:\"omit\""];
   // secondary_sp_addresses define the addresses of secondary_sps
   repeated string secondary_sp_addresses = 13 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // lockedBalance
+  // lockedBalance TODO(Owen): refine the comments
   string locked_balance = 14 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"

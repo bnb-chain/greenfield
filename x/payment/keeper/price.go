@@ -39,7 +39,7 @@ func (k Keeper) GetStorePriceV0(ctx sdk.Context, bucketInfo *storagetypes.Bucket
 	storePrice := types.StorePrice{
 		UserPayRate: sdkmath.NewInt(100),
 	}
-	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_CREATED {
 		// TODO: WARNING HARDCODE Here. Need refine according to the params of storage module
 		if len(objectInfo.SecondarySpAddresses) != 6 {
 			panic("there should be 6 secondary sps")
