@@ -661,7 +661,6 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
