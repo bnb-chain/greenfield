@@ -56,6 +56,6 @@ func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (res sdk.Coin) {
 	//TODO implement me
 	return sdk.Coin{
 		Denom:  "BNB",
-		Amount: sdkmath.Int{},
+		Amount: sdkmath.NewInt(0),
 	}
 }
