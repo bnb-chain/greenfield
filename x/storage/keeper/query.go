@@ -169,14 +169,11 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 }
 
 func (k Keeper) HeadBucketNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryNFTResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	id, err := validateAndGetId(req)
+	if err != nil {
+		return nil, err
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	id, err := math.ParseUint(req.TokenId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid token id")
-	}
 	bucketInfo, found := k.GetBucketInfoById(ctx, id)
 	if !found {
 		return nil, types.ErrNoSuchBucket
@@ -191,14 +188,11 @@ func (k Keeper) HeadBucketNFT(goCtx context.Context, req *types.QueryNFTRequest)
 }
 
 func (k Keeper) HeadObjectNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryNFTResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	id, err := validateAndGetId(req)
+	if err != nil {
+		return nil, err
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	id, err := math.ParseUint(req.TokenId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid token id")
-	}
 	objectInfo, found := k.GetObjectInfoById(ctx, id)
 	if !found {
 		return nil, types.ErrNoSuchObject
@@ -213,14 +207,11 @@ func (k Keeper) HeadObjectNFT(goCtx context.Context, req *types.QueryNFTRequest)
 }
 
 func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryNFTResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	id, err := validateAndGetId(req)
+	if err != nil {
+		return nil, err
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	id, err := math.ParseUint(req.TokenId)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid token id")
-	}
 	groupInfo, found := k.GetGroupInfoById(ctx, id)
 	if !found {
 		return nil, types.ErrNoSuchObject
@@ -232,4 +223,15 @@ func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) 
 	return &types.QueryNFTResponse{
 		MetaData: md,
 	}, nil
+}
+
+func validateAndGetId(req *types.QueryNFTRequest) (math.Uint, error) {
+	if req == nil {
+		return math.ZeroUint(), status.Error(codes.InvalidArgument, "invalid request")
+	}
+	id, err := math.ParseUint(req.TokenId)
+	if err != nil {
+		return math.ZeroUint(), status.Error(codes.InvalidArgument, "invalid token id")
+	}
+	return id, nil
 }
