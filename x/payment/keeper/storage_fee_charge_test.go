@@ -105,7 +105,8 @@ func TestAutoForceSettle(t *testing.T) {
 	flowChanges := []types.OutFlow{
 		{ToAddress: sp, Rate: rate},
 	}
-	err = keeper.ApplyFlowChanges(ctx, user, flowChanges)
+	userFlows := types.UserFlows{Flows: flowChanges, From: user}
+	err = keeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	require.NoError(t, err)
 	userStreamRecord, found = keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)

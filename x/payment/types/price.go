@@ -51,18 +51,3 @@ type UserFlows struct {
 	From  string
 	Flows []OutFlow
 }
-
-type BNBPrice struct {
-	Num       sdkmath.Int
-	Precision sdkmath.Int
-}
-
-func (price BNBPrice) Equal(other BNBPrice) bool {
-	return price.Num.Equal(other.Num) && price.Precision.Equal(other.Precision)
-}
-
-type FlowChange struct {
-	from       string
-	to         string
-	RateChange sdkmath.Int
-}

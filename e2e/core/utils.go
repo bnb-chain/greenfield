@@ -3,9 +3,10 @@ package core
 import (
 	"fmt"
 	"math/rand"
-	"sigs.k8s.io/yaml"
 	"time"
 	"unsafe"
+
+	"sigs.k8s.io/yaml"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"

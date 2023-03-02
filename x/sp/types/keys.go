@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -23,8 +24,8 @@ const (
 
 var (
 	// Keys for store prefixes
-	SpStoragePriceKeyPrefix        = []byte{0x04}
-	SecondarySpStorePriceKeyPrefix = []byte{0x05}
+	SpStoragePriceKeyPrefix          = []byte{0x04}
+	SecondarySpStorePriceKeyPrefix   = []byte{0x05}
 	StorageProviderKey               = []byte{0x21} // prefix for each key to a storage provider
 	StorageProviderByFundingAddrKey  = []byte{0x22} // prefix for each key to a storage provider index, by funding address
 	StorageProviderBySealAddrKey     = []byte{0x23} // prefix for each key to a storage provider index, by seal address

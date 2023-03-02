@@ -1,12 +1,13 @@
 package keeper
 
 import (
+	"math/rand"
+	"testing"
+
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-	"math/rand"
-	"testing"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"

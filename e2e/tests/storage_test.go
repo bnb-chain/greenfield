@@ -3,16 +3,17 @@ package tests
 import (
 	"bytes"
 	"context"
-	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"math"
+	"testing"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/samber/lo"
-	"math"
-	"testing"
-	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -233,6 +234,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 		Address: user.GetAddr().String(),
 		Denom:   s.Config.Denom,
 	})
+	s.Require().NoError(err)
 	s.T().Logf("user bank account %s", userBankAccount)
 	streamRecordsAfterCreateBucket := s.GetStreamRecords()
 	usr := streamRecordsAfterCreateBucket.User
@@ -471,12 +473,13 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 func (s *StorageTestSuite) TestDeleteBucket() {
 	var err error
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	sp := s.StorageProviders[0]
 	// 1. CreateBucket1
 	bucketName1 := core.GenRandomBucketName()
 	msgCreateBucket1 := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName1, false, s.StorageProvider.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName1, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
-	msgCreateBucket1.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket1.
+	msgCreateBucket1.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket1.
 		GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket1, user)
@@ -484,9 +487,9 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	// 2. CreateBucket1
 	bucketName2 := core.GenRandomBucketName()
 	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName2, false, s.StorageProvider.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName2, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
-	msgCreateBucket2.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket2.
+	msgCreateBucket2.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket2.
 		GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket2, user)
@@ -516,28 +519,28 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	contextType := "text/event-stream"
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName1, objectName, uint64(payloadSize),
 		false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
-	msgCreateObject.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
 
 	// SealObject
 	secondarySPs := []sdk.AccAddress{
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
-	msgSealObject := storagetypes.NewMsgSealObject(s.StorageProvider.SealKey.GetAddr(), bucketName1, objectName,
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName1, objectName,
 		secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(s.StorageProvider.OperatorKey.GetAddr(), checksum)
-	secondarySig, err := s.StorageProvider.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProvider.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, s.StorageProvider.SealKey)
+	s.SendTxBlock(msgSealObject, sp.SealKey)
 
 	// 4. Delete bucket2
 	msgDeleteBucket2 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName2)

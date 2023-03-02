@@ -2,6 +2,11 @@ package tests
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
+
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -11,10 +16,6 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
-	"math/rand"
-	"strconv"
-	"testing"
-	"time"
 )
 
 type StorageProviderTestSuite struct {
