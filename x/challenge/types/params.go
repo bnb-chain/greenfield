@@ -3,13 +3,12 @@ package types
 import (
 	"errors"
 	"fmt"
+	"math/big"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
-
-	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -31,12 +30,12 @@ var (
 
 var (
 	KeySlashAmountMin     = []byte("SlashAmountMin")
-	DefaultSlashAmountMin = types.NewIntFromInt64WithDecimal(10, types.DecimalBNB)
+	DefaultSlashAmountMin = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(10), big.NewInt(1e18)))
 )
 
 var (
 	KeySlashAmountMax     = []byte("SlashAmountMax")
-	DefaultSlashAmountMax = types.NewIntFromInt64WithDecimal(100, types.DecimalBNB)
+	DefaultSlashAmountMax = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)))
 )
 
 var (
@@ -61,7 +60,7 @@ var (
 
 var (
 	KeyHeartbeatRewardThreshold     = []byte("HeartbeatRewardThreshold")
-	DefaultHeartbeatRewardThreshold = types.NewIntFromInt64WithDecimal(10e6, types.DecimalGwei)
+	DefaultHeartbeatRewardThreshold = math.NewIntFromBigInt(big.NewInt(1e15))
 )
 
 // ParamKeyTable the param key table for launch module

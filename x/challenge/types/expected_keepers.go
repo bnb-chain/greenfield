@@ -30,7 +30,7 @@ type StorageKeeper interface {
 }
 
 type PaymentKeeper interface {
-	QueryValidatorRewards(ctx sdk.Context) (res sdkmath.Int)
+	QueryValidatorRewards(ctx sdk.Context) (res sdk.Coin)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

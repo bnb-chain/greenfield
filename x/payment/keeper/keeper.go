@@ -52,7 +52,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (res sdkmath.Int) {
+func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (res sdk.Coin) {
 	//TODO implement me
-	return sdkmath.NewInt(0)
+	return sdk.Coin{
+		Denom:  "BNB",
+		Amount: sdkmath.Int{},
+	}
 }

@@ -7,7 +7,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
-	app "github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
 )
@@ -37,19 +36,22 @@ func (k msgServer) Heartbeat(goCtx context.Context, msg *types.MsgHeartbeat) (*t
 	}
 
 	// reward tx validator & submitter
-	total := k.paymentKeeper.QueryValidatorRewards(ctx)
-	if !total.IsZero() {
-		validatorReward, submitterReward := k.calculateHeartbeatRewards(ctx, total)
+	reward := k.paymentKeeper.QueryValidatorRewards(ctx)
+	totalAmount := reward.Amount
+	denom := reward.Denom
+
+	if !totalAmount.IsZero() {
+		validatorReward, submitterReward := k.calculateHeartbeatRewards(ctx, totalAmount)
 		if validatorReward.IsPositive() && submitterReward.IsPositive() {
 			toValidator := sdk.Coins{
-				sdk.Coin{Denom: app.Denom, Amount: validatorReward},
+				sdk.Coin{Denom: denom, Amount: validatorReward},
 			}
 			err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, paymentmoduletypes.ModuleName, distributiontypes.ModuleName, toValidator)
 			if err != nil {
 				return nil, err
 			}
 			toSubmitter := sdk.Coins{
-				sdk.Coin{Denom: app.Denom, Amount: submitterReward},
+				sdk.Coin{Denom: denom, Amount: submitterReward},
 			}
 			err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, paymentmoduletypes.ModuleName, submitterAddress, toSubmitter)
 			if err != nil {
