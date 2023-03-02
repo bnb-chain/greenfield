@@ -31,11 +31,11 @@ type BucketInfo struct {
 	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	// bucket_name is a globally unique name of bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	// is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
+	// is_public define the highest permissions for bucket. When the bucket is public, everyone can get storage objects in it.
 	IsPublic bool `protobuf:"varint,3,opt,name=is_public,json=isPublic,proto3" json:"is_public,omitempty"`
 	// id is the unique identification for bucket.
 	Id Uint `protobuf:"bytes,4,opt,name=id,proto3,customtype=Uint" json:"id"`
-	// source_type define the source of the bucket
+	// source_type defines which chain the user should send the bucket management transactions to
 	SourceType SourceType `protobuf:"varint,5,opt,name=source_type,json=sourceType,proto3,enum=bnbchain.greenfield.storage.SourceType" json:"source_type,omitempty"`
 	// create_at define the block number when the bucket created.
 	CreateAt int64 `protobuf:"varint,6,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
@@ -181,7 +181,7 @@ type ObjectInfo struct {
 	Checksums [][]byte `protobuf:"bytes,12,rep,name=checksums,proto3" json:"checksums,omitempty"`
 	// secondary_sp_addresses define the addresses of secondary_sps
 	SecondarySpAddresses []string `protobuf:"bytes,13,rep,name=secondary_sp_addresses,json=secondarySpAddresses,proto3" json:"secondary_sp_addresses,omitempty"`
-	// lockedBalance
+	// lockedBalance TODO(Owen): refine the comments
 	LockedBalance *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,14,opt,name=locked_balance,json=lockedBalance,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"locked_balance,omitempty"`
 }
 
@@ -271,7 +271,7 @@ func (m *ObjectInfo) GetObjectStatus() ObjectStatus {
 	if m != nil {
 		return m.ObjectStatus
 	}
-	return OBJECT_STATUS_INIT
+	return OBJECT_STATUS_CREATED
 }
 
 func (m *ObjectInfo) GetRedundancyType() RedundancyType {
