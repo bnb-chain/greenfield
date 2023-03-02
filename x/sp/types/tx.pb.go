@@ -42,11 +42,11 @@ type MsgCreateStorageProvider struct {
 	ApprovalAddress string      `protobuf:"bytes,6,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
 	Endpoint        string      `protobuf:"bytes,7,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	Deposit         types.Coin  `protobuf:"bytes,8,opt,name=deposit,proto3" json:"deposit"`
-	// read price, in 10 ^ -8 bnb per byte
+	// read price, in bnb wei per charge byte
 	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,9,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
 	// free read quota, in byte
 	FreeReadQuota uint64 `protobuf:"varint,10,opt,name=free_read_quota,json=freeReadQuota,proto3" json:"free_read_quota,omitempty"`
-	// store price, in 10 ^ -8 bnb per charge byte
+	// store price, in bnb wei per charge byte
 	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,11,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
 }
 

@@ -13,10 +13,10 @@ import (
 )
 
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
-	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
 	if bucketInfo.ReadQuota == 0 {
 		return nil
 	}
+	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
 	bill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed: %w", err)
