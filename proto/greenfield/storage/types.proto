@@ -35,7 +35,7 @@ message BucketInfo {
   // payment_price_time TODO(Owen): refine the comments
   int64 payment_price_time = 10;
   // payment_out_flows
-  repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
+  repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false, (gogoproto.moretags) = "traits:\"omit\""];
 }
 
 message ObjectInfo {
@@ -65,7 +65,7 @@ message ObjectInfo {
   // source_type define the source of the object.
   SourceType source_type = 11;
   // checksums define the root hash of the pieces which stored in a SP.
-  repeated bytes checksums = 12;
+  repeated bytes checksums = 12 [(gogoproto.moretags) = "traits:\"omit\""];
   // secondary_sp_addresses define the addresses of secondary_sps
   repeated string secondary_sp_addresses = 13 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // lockedBalance

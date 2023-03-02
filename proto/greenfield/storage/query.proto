@@ -32,7 +32,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_bucket_by_id/{bucket_id}";
   }
 
-  // Queries a bucket NFT by token id
+  // Queries a bucket with EIP712 standard metadata info
   rpc HeadBucketNFT(QueryNFTRequest) returns (QueryNFTResponse) {
     option (google.api.http).get = "/greenfield/storage/head_bucket_nft/{token_id}";
   }
@@ -47,7 +47,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_object_by_id/{object_id}";
   }
 
-  // Queries a object NFT by token id
+  // Queries a object with EIP712 standard metadata info
   rpc HeadObjectNFT(QueryNFTRequest) returns (QueryNFTResponse) {
     option (google.api.http).get = "/greenfield/storage/head_object_nft/{token_id}";
   }
@@ -67,7 +67,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/list_objects_by_bucket_id/{bucket_id}";
   }
 
-  // Queries a group NFT by token id
+  // Queries a group with EIP712 standard metadata info
   rpc HeadGroupNFT(QueryNFTRequest) returns (QueryNFTResponse) {
     option (google.api.http).get = "/greenfield/storage/head_group_nft/{token_id}";
   }
