@@ -157,7 +157,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// check if the bucket empty
-	if k.isEmptyBucket(ctx, bucketName) {
+	if k.isNonEmptyBucket(ctx, bucketName) {
 		return types.ErrBucketNotEmpty
 	}
 
@@ -896,7 +896,7 @@ func (k Keeper) GenNextGroupId(ctx sdk.Context) math.Uint {
 	return seq
 }
 
-func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketName string) bool {
+func (k Keeper) isNonEmptyBucket(ctx sdk.Context, bucketName string) bool {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketName))
 
