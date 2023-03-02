@@ -88,7 +88,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, bucketName string) error {
 	bucketKey := types.GetBucketKey(bucketName)
 
 	// check if the bucket empty
-	if k.isEmptyBucket(ctx, bucketKey) {
+	if k.isNonEmptyBucket(ctx, bucketKey) {
 		return types.ErrBucketNotEmpty
 	}
 	bucketStore.Delete(bucketKey)
@@ -153,11 +153,11 @@ func (k Keeper) GetGroupId(ctx sdk.Context) math.Uint {
 	return seq
 }
 
-func (k Keeper) isEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
+func (k Keeper) isNonEmptyBucket(ctx sdk.Context, bucketKey []byte) bool {
 	store := ctx.KVStore(k.storeKey)
-	objectStore := prefix.NewStore(store, types.ObjectPrefix)
+	objectStore := prefix.NewStore(store, append(types.ObjectPrefix, bucketKey...))
 
-	iter := objectStore.Iterator(bucketKey, nil)
+	iter := objectStore.Iterator(nil, nil)
 	return iter.Valid()
 }
 
