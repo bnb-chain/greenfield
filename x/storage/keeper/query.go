@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-	"fmt"
-	"reflect"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -183,31 +181,12 @@ func (k Keeper) HeadBucketNFT(goCtx context.Context, req *types.QueryNFTRequest)
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
-	attributes := make([]types.Trait, 0)
-	v := reflect.ValueOf(bucketInfo)
-	typ := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldName := typ.Field(i).Name
-		if fieldName == "PaymentOutFlows" {
-			continue
-		}
-		value := fmt.Sprintf("%v", field.Interface())
-		attributes = append(attributes,
-			types.Trait{
-				TraitType: fieldName,
-				Value:     value,
-			})
-	}
-	md := types.MetaData{
-		Name: &types.MetaData_BucketName{
-			BucketName: bucketInfo.BucketName,
-		},
-		Attributes: attributes,
+	md, err := bucketInfo.ToNFTMetadata()
+	if err != nil {
+		return nil, err
 	}
 	return &types.QueryNFTResponse{
-		MetaData: &md,
+		MetaData: md,
 	}, nil
 }
 
@@ -224,31 +203,12 @@ func (k Keeper) HeadObjectNFT(goCtx context.Context, req *types.QueryNFTRequest)
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
-	attributes := make([]types.Trait, 0)
-	v := reflect.ValueOf(objectInfo)
-	typ := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldName := typ.Field(i).Name
-		if fieldName == "Checksums" {
-			continue
-		}
-		value := fmt.Sprintf("%v", field.Interface())
-		attributes = append(attributes,
-			types.Trait{
-				TraitType: fieldName,
-				Value:     value,
-			})
-	}
-	md := types.MetaData{
-		Name: &types.MetaData_ObjectName{
-			ObjectName: objectInfo.ObjectName,
-		},
-		Attributes: attributes,
+	md, err := objectInfo.ToNFTMetadata()
+	if err != nil {
+		return nil, err
 	}
 	return &types.QueryNFTResponse{
-		MetaData: &md,
+		MetaData: md,
 	}, nil
 }
 
@@ -265,27 +225,11 @@ func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) 
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
-	attributes := make([]types.Trait, 0)
-	v := reflect.ValueOf(groupInfo)
-	typ := v.Type()
-
-	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldName := typ.Field(i).Name
-		value := fmt.Sprintf("%v", field.Interface())
-		attributes = append(attributes,
-			types.Trait{
-				TraitType: fieldName,
-				Value:     value,
-			})
-	}
-	md := types.MetaData{
-		Name: &types.MetaData_GroupName{
-			GroupName: groupInfo.GroupName,
-		},
-		Attributes: attributes,
+	md, err := groupInfo.ToNFTMetadata()
+	if err != nil {
+		return nil, err
 	}
 	return &types.QueryNFTResponse{
-		MetaData: &md,
+		MetaData: md,
 	}, nil
 }
