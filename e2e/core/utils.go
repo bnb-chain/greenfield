@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"math/rand"
+	"sigs.k8s.io/yaml"
 	"time"
 	"unsafe"
 
@@ -70,4 +71,12 @@ func GenRandomObjectName() string {
 // GenRandomBucketName generate random bucket name.
 func GenRandomBucketName() string {
 	return randString(5)
+}
+
+func YamlString(data interface{}) string {
+	bz, err := yaml.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
 }

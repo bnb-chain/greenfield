@@ -232,7 +232,7 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	current := ctx.BlockTime().Unix()
 	if current > msg.ExpireTime {
-		return nil, types.ErrSpStoragePriceExpired
+		return nil, types.ErrStorageProviderPriceExpired
 	}
 	spStorePrice := types.SpStoragePrice{
 		SpAddress:  msg.SpAddress,

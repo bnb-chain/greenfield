@@ -31,7 +31,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		// 1. check if the stream should be forced settled
 		// 2. if the account is frozen, assume it
 		change := types.NewDefaultStreamRecordChangeWithAddr(msg.To).WithStaticBalanceChange(msg.Amount)
-		err := k.UpdateStreamRecord(ctx, &streamRecord, change)
+		err := k.UpdateStreamRecord(ctx, &streamRecord, change, false)
 		return &types.MsgDepositResponse{}, err
 	}
 }

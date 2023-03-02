@@ -65,7 +65,10 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 	return
 }
 
-func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
+func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange, autoSettle bool) error {
+	if streamRecord.Status != 0 {
+		return fmt.Errorf("stream account %s is frozen", streamRecord.Account)
+	}
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
@@ -119,6 +122,9 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	if streamRecord.NetflowRate.IsNegative() {
 		payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
 		if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
+			if !autoSettle {
+				return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
+			}
 			err := k.ForceSettle(ctx, streamRecord)
 			if err != nil {
 				return fmt.Errorf("check and force settle failed, err: %w", err)
@@ -137,7 +143,7 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRe
 	if !found {
 		streamRecord = types.NewStreamRecord(change.Addr, ctx.BlockTime().Unix())
 	}
-	err = k.UpdateStreamRecord(ctx, &streamRecord, change)
+	err = k.UpdateStreamRecord(ctx, &streamRecord, change, false)
 	if err != nil {
 		return
 	}
@@ -180,34 +186,35 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 }
 
 func (k Keeper) AutoSettle(ctx sdk.Context) {
-	//currentTimestamp := ctx.BlockTime().Unix()
-	//store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
-	//iterator := sdk.KVStorePrefixIterator(store, []byte{})
-	//
-	//defer iterator.Close()
-	//
-	//var num uint64 = 0
-	//maxNum := k.GetParams(ctx).MaxAutoForceSettleNum
-	//for ; iterator.Valid(); iterator.Next() {
-	//	if num >= maxNum {
-	//		return
-	//	}
-	//	val := types.ParseAutoSettleRecordKey(iterator.Key())
-	//	if val.Timestamp > currentTimestamp {
-	//		return
-	//	}
-	//	streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
-	//	if !found {
-	//		ctx.Logger().Error("stream record not found", "addr", val.Addr)
-	//		panic("stream record not found")
-	//	}
-	//	change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
-	//	err := k.UpdateStreamRecord(ctx, &streamRecord, change)
-	//	if err != nil {
-	//		ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
-	//		panic("force settle failed")
-	//	}
-	//	num += 1
-	//}
-	//
+	currentTimestamp := ctx.BlockTime().Unix()
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+
+	defer iterator.Close()
+
+	var num uint64 = 0
+	maxNum := k.GetParams(ctx).MaxAutoForceSettleNum
+	for ; iterator.Valid(); iterator.Next() {
+		if num >= maxNum {
+			return
+		}
+		val := types.ParseAutoSettleRecordKey(iterator.Key())
+		if val.Timestamp > currentTimestamp {
+			return
+		}
+		streamRecord, found := k.GetStreamRecord(ctx, val.Addr)
+		if !found {
+			ctx.Logger().Error("stream record not found", "addr", val.Addr)
+			panic("stream record not found")
+		}
+		change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
+		err := k.UpdateStreamRecord(ctx, &streamRecord, change, true)
+		if err != nil {
+			ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
+			panic("force settle failed")
+		}
+		k.SetStreamRecord(ctx, streamRecord)
+		num += 1
+	}
+
 }

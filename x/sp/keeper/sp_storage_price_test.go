@@ -1,9 +1,9 @@
 package keeper_test
 
 import (
-	sdkmath "cosmossdk.io/math"
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/sp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
 	"time"
@@ -15,15 +15,15 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 	spStoragePrice := types.SpStoragePrice{
 		SpAddress:  "sp",
 		UpdateTime: 1,
-		ReadPrice:  sdkmath.NewInt(100),
-		StorePrice: sdkmath.NewInt(100),
+		ReadPrice:  sdk.NewDec(100),
+		StorePrice: sdk.NewDec(100),
 	}
 	keeper.SetSpStoragePrice(ctx, spStoragePrice)
 	spStoragePrice2 := types.SpStoragePrice{
 		SpAddress:  "sp",
 		UpdateTime: 100,
-		ReadPrice:  sdkmath.NewInt(200),
-		StorePrice: sdkmath.NewInt(200),
+		ReadPrice:  sdk.NewDec(200),
+		StorePrice: sdk.NewDec(200),
 	}
 	keeper.SetSpStoragePrice(ctx, spStoragePrice2)
 	type args struct {
@@ -59,12 +59,12 @@ func TestKeeper_GetSecondarySpStorePriceByTime(t *testing.T) {
 	keeper, ctx := keepertest.SpKeeper(t)
 	secondarySpStorePrice := types.SecondarySpStorePrice{
 		UpdateTime: 1,
-		StorePrice: sdkmath.NewInt(100),
+		StorePrice: sdk.NewDec(100),
 	}
 	keeper.SetSecondarySpStorePrice(ctx, secondarySpStorePrice)
 	secondarySpStorePrice2 := types.SecondarySpStorePrice{
 		UpdateTime: 100,
-		StorePrice: sdkmath.NewInt(200),
+		StorePrice: sdk.NewDec(200),
 	}
 	keeper.SetSecondarySpStorePrice(ctx, secondarySpStorePrice2)
 	type args struct {
@@ -94,5 +94,4 @@ func TestKeeper_GetSecondarySpStorePriceByTime(t *testing.T) {
 			}
 		})
 	}
-
 }

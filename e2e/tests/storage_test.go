@@ -3,10 +3,16 @@ package tests
 import (
 	"bytes"
 	"context"
+	sdkmath "cosmossdk.io/math"
 	"fmt"
+	"github.com/bnb-chain/greenfield/sdk/keys"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/samber/lo"
 	"math"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -15,10 +21,14 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-var TestBucket = "testbucket"
-
 type StorageTestSuite struct {
 	core.BaseSuite
+	User keys.KeyManager
+}
+
+type StreamRecords struct {
+	User paymenttypes.StreamRecord
+	SPs  []paymenttypes.StreamRecord
 }
 
 func (s *StorageTestSuite) SetupSuite() {
@@ -26,17 +36,19 @@ func (s *StorageTestSuite) SetupSuite() {
 }
 
 func (s *StorageTestSuite) SetupTest() {
+	s.User = s.GenAndChargeAccounts(1, 1000000)[0]
 }
 
 func (s *StorageTestSuite) TestCreateBucket() {
 	var err error
+	sp := s.StorageProviders[0]
+	user := s.User
 	// CreateBucket
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := core.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
-	msgCreateBucket.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
 
@@ -49,7 +61,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, s.StorageProvider.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -62,12 +74,13 @@ func (s *StorageTestSuite) TestCreateBucket() {
 func (s *StorageTestSuite) TestCreateObject() {
 	var err error
 	// CreateBucket
+	sp := s.StorageProviders[0]
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := core.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
-	msgCreateBucket.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
 
@@ -80,7 +93,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, s.StorageProvider.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -108,7 +121,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
-	msgCreateObject.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
 
@@ -132,23 +145,21 @@ func (s *StorageTestSuite) TestCreateObject() {
 
 	// SealObject
 	secondarySPs := []sdk.AccAddress{
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
-	msgSealObject := storagetypes.NewMsgSealObject(s.StorageProvider.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(s.StorageProvider.OperatorKey.GetAddr(), checksum)
-	secondarySig, err := s.StorageProvider.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProvider.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
-	s.Require().NoError(err)
-
+	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, s.StorageProvider.SealKey)
+	s.SendTxBlock(msgSealObject, sp.SealKey)
 
 	// DeleteObject
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
@@ -158,30 +169,287 @@ func (s *StorageTestSuite) TestCreateObject() {
 	s.SendTxBlock(msgDeleteBucket, user)
 }
 
-func (s *StorageTestSuite) TestCharge() {
+func (s *StorageTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamRecord) {
 	ctx := context.Background()
+	streamRecordResp, err := s.Client.StreamRecord(ctx, &paymenttypes.QueryGetStreamRecordRequest{
+		Account: addr,
+	})
+	if streamRecordResp != nil {
+		s.Require().NoError(err)
+		sr = streamRecordResp.StreamRecord
+	} else {
+		s.Require().ErrorContainsf(err, "not found", "account: %s", addr)
+	}
+	return sr
+}
+
+func (s *StorageTestSuite) GetStreamRecords() (streamRecords StreamRecords) {
+	streamRecords.User = s.GetStreamRecord(s.User.GetAddr().String())
+	for _, sp := range s.StorageProviders {
+		sr := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
+		streamRecords.SPs = append(streamRecords.SPs, sr)
+	}
+	return streamRecords
+}
+
+func (s *StorageTestSuite) TestPayment_Smoke() {
+	ctx := context.Background()
+	sp := s.StorageProviders[0]
+	user := s.User
 	var err error
+
+	streamRecordsBeforeCreateBucket := s.GetStreamRecords()
+	s.T().Logf("streamRecordsBeforeCreateBucket: %s", core.YamlString(streamRecordsBeforeCreateBucket))
+
 	// create bucket
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := core.GenRandomBucketName()
 	bucketReadQuota := uint64(1000)
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.ReadQuota = bucketReadQuota
-	msgCreateBucket.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
-	// query user payment address
-	userPaymentAccount, err := s.Client.StreamRecord(ctx, &paymenttypes.QueryGetStreamRecordRequest{
-		Account: user.GetAddr().String(),
+
+	// check bill after creating bucket
+	userBankAccount, err := s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: user.GetAddr().String(),
+		Denom:   s.Config.Denom,
 	})
+	s.T().Logf("user bank account %s", userBankAccount)
+	streamRecordsAfterCreateBucket := s.GetStreamRecords()
+	usr := streamRecordsAfterCreateBucket.User
+	ssr0 := streamRecordsBeforeCreateBucket.SPs[0]
+	ssr1 := streamRecordsAfterCreateBucket.SPs[0]
+	s.Require().Equal(usr.StaticBalance, sdkmath.ZeroInt())
+	s.Require().Len(usr.OutFlows, 1)
+	s.Require().Equal(usr.OutFlows[0].Rate, usr.NetflowRate.Neg())
+	s.Require().Equal(usr.OutFlows[0].ToAddress, ssr1.Account)
+	s.Require().Equal(usr.NetflowRate, ssr0.NetflowRate.Sub(ssr1.NetflowRate))
+	// check price and rate calculation
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
-	s.T().Logf("user payment account %s", userPaymentAccount)
-	// create object
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    sp.OperatorKey.GetAddr().String(),
+		Timestamp: queryHeadBucketResponse.BucketInfo.BillingInfo.PriceTime,
+	})
+	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
+	s.Require().NoError(err)
+	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ReadQuota)).TruncateInt()
+	s.Require().Equal(usr.NetflowRate.Abs(), readChargeRate)
+
+	// CreateObject
+	objectName := core.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateObject, user)
+
+	// check lock balance
+	queryHeadBucketResponseAfterCreateObj, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.T().Logf("queryHeadBucketResponseAfterCreateObj %s, err: %v", queryHeadBucketResponseAfterCreateObj, err)
+	s.Require().NoError(err)
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.T().Logf("queryHeadObjectResponse %s, err: %v", queryHeadObjectResponse, err)
+	s.Require().NoError(err)
+	streamRecordsAfterCreateObject := s.GetStreamRecords()
+	s.T().Logf("streamRecordsAfterCreateObject %s", core.YamlString(streamRecordsAfterCreateObject))
+	userStreamAccountAfterCreateObj := streamRecordsAfterCreateObject.User
+	s.Require().Len(queryHeadBucketResponseAfterCreateObj.BucketInfo.BillingInfo.ObjectsLockedBalance, 1)
+	queryGetSecondarySpStorePriceByTime, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
+		Timestamp: queryHeadBucketResponse.BucketInfo.BillingInfo.PriceTime,
+	})
+	s.T().Logf("queryGetSecondarySpStorePriceByTime %s, err: %v", queryGetSecondarySpStorePriceByTime, err)
+	s.Require().NoError(err)
+	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
+	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
+	s.Require().NoError(err)
+	primaryStorePrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice
+	secondaryStorePrice := queryGetSecondarySpStorePriceByTime.SecondarySpStorePrice.StorePrice
+	chargeSize := queryHeadObjectResponse.ObjectInfo.ChargeSize
+	expectedChargeRate := primaryStorePrice.Add(secondaryStorePrice.MulInt64(6)).MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt()
+	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(paymentParams.Params.ReserveTime))
+	s.Require().Equal(
+		queryHeadBucketResponseAfterCreateObj.BucketInfo.BillingInfo.ObjectsLockedBalance[0].LockedBalance,
+		userStreamAccountAfterCreateObj.LockBalance,
+	)
+	s.Require().Equal(expectedLockedBalance.String(), userStreamAccountAfterCreateObj.LockBalance.String())
+
 	// seal object
-	// change payment account
-	// auto force settle
+	secondaryStorageProviders := s.StorageProviders[1:7]
+	secondarySPs := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) sdk.AccAddress {
+		return sp.OperatorKey.GetAddr()
+	})
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
+	secondarySigs := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) []byte {
+		sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+		secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+		s.Require().NoError(err)
+		err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+		s.Require().NoError(err)
+		return secondarySig
+	})
+	msgSealObject.SecondarySpSignatures = secondarySigs
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(msgSealObject, sp.SealKey)
+
+	// check bill after seal
+	streamRecordsAfterSeal := s.GetStreamRecords()
+	s.T().Logf("streamRecordsAfterSeal %s", core.YamlString(streamRecordsAfterSeal))
+	s.Require().Equal(sdkmath.ZeroInt(), streamRecordsAfterSeal.User.LockBalance)
+	userRateDiff := streamRecordsAfterSeal.User.NetflowRate.Sub(streamRecordsAfterCreateObject.User.NetflowRate)
+	spRateDiffs := lo.Map(streamRecordsAfterSeal.SPs, func(sp paymenttypes.StreamRecord, i int) sdkmath.Int {
+		return sp.NetflowRate.Sub(streamRecordsAfterCreateObject.SPs[i].NetflowRate)
+	})
+	spRateDiffsSum := lo.Reduce(spRateDiffs, func(sum sdkmath.Int, rate sdkmath.Int, i int) sdkmath.Int {
+		return sum.Add(rate)
+	}, sdkmath.ZeroInt())
+	s.Require().Equal(userRateDiff, spRateDiffsSum.Neg())
+	s.Require().Equal(streamRecordsAfterSeal.User.OutFlows[0].Rate.Sub(readChargeRate).String(), spRateDiffs[0].String())
+	for i, spRateDiff := range spRateDiffs[1:] {
+		s.Require().Equal(streamRecordsAfterSeal.User.OutFlows[i+1].Rate.String(), spRateDiff.String(), "sp %d", i)
+	}
+	// check rate calculation
+	s.Require().Equal(spRateDiffs[0].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+	for _, spRateDiff := range spRateDiffs[1:] {
+		s.Require().Equal(spRateDiff.String(), secondaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+	}
+
+	// change read quota
+
+	// delete object
+
+	// delete bucket
+}
+
+func (s *StorageTestSuite) TestPayment_AutoSettle() {
+	ctx := context.Background()
+	sp := s.StorageProviders[0]
+	user := s.User
+	userAddr := user.GetAddr().String()
+	var err error
+
+	bucketReadQuota := uint64(1000)
+	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
+	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
+	s.Require().NoError(err)
+	reserveTime := paymentParams.Params.ReserveTime
+	forcedSettleTime := paymentParams.Params.ForcedSettleTime
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    sp.OperatorKey.GetAddr().String(),
+		Timestamp: time.Now().Unix(),
+	})
+	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
+	s.Require().NoError(err)
+	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	paymentAccountBNBNeeded := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota * reserveTime)).TruncateInt()
+
+	// create payment account and deposit
+	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
+		Creator: userAddr,
+	}
+	_ = s.SendTxBlock(msgCreatePaymentAccount, user)
+	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	s.Require().NoError(err)
+	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
+	paymentAddr := paymentAccounts.PaymentAccounts[0]
+	s.Require().Lenf(paymentAccounts.PaymentAccounts, 1, "paymentAccounts %s", core.YamlString(paymentAccounts))
+	msgDeposit := &paymenttypes.MsgDeposit{
+		Creator: user.GetAddr().String(),
+		To:      paymentAddr,
+		Amount:  paymentAccountBNBNeeded,
+	}
+	_ = s.SendTxBlock(msgDeposit, user)
+
+	// create bucket from payment account
+	bucketName := core.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil)
+	msgCreateBucket.ReadQuota = bucketReadQuota
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user)
+	// check payment account stream record
+	paymentAccountStreamRecord := s.GetStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecord %s", core.YamlString(paymentAccountStreamRecord))
+	s.Require().Equal(paymentAccountStreamRecord.BufferBalance.String(), paymentAccountBNBNeeded.String())
+	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.String(), sdkmath.ZeroInt().String())
+
+	// create bucket from user
+	msgCreateBucket.BucketName = core.GenRandomBucketName()
+	msgCreateBucket.PaymentAddress = ""
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	res := s.SendTxBlock(msgCreateBucket, user)
+	s.T().Logf("res %s", core.YamlString(res))
+	// check user stream record
+	userStreamRecord := s.GetStreamRecord(userAddr)
+	s.T().Logf("userStreamRecord %s", core.YamlString(userStreamRecord))
+	s.Require().Equal(userStreamRecord.SettleTimestamp, userStreamRecord.CrudTimestamp+int64(reserveTime-forcedSettleTime))
+	spStreamRecord := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
+	s.T().Logf("spStreamRecord %s", core.YamlString(spStreamRecord))
+
+	// wait until settle time
+	retryCount := 0
+	for {
+		latestBlock, err := s.TmClient.TmClient.Block(ctx, nil)
+		s.Require().NoError(err)
+		currentTimestamp := latestBlock.Block.Time.Unix()
+		s.T().Logf("currentTimestamp %d, userStreamRecord.SettleTimestamp %d", currentTimestamp, userStreamRecord.SettleTimestamp)
+		if currentTimestamp > userStreamRecord.SettleTimestamp {
+			break
+		}
+		time.Sleep(time.Second)
+		retryCount++
+		if retryCount > 31 {
+			s.T().Fatalf("wait for settle time timeout")
+		}
+	}
+	// check auto settle
+	userStreamRecordAfterAutoSettle := s.GetStreamRecord(userAddr)
+	s.T().Logf("userStreamRecordAfterAutoSettle %s", core.YamlString(userStreamRecordAfterAutoSettle))
+	spStreamRecordAfterAutoSettle := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
+	s.T().Logf("spStreamRecordAfterAutoSettle %s", core.YamlString(spStreamRecordAfterAutoSettle))
+	paymentAccountStreamRecordAfterAutoSettle := s.GetStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecordAfterAutoSettle %s", core.YamlString(paymentAccountStreamRecordAfterAutoSettle))
+	// payment account become frozen
+	s.Require().NotEqual(paymentAccountStreamRecordAfterAutoSettle.Status, int32(0))
+	s.Require().Equal(spStreamRecordAfterAutoSettle.Status, int32(0))
+	s.Require().Equal(userStreamRecordAfterAutoSettle.Status, int32(0))
+	// user settle time become refreshed
+	s.Require().NotEqual(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecord.SettleTimestamp)
+	s.Require().Equal(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecordAfterAutoSettle.CrudTimestamp+int64(reserveTime-forcedSettleTime))
 }
 
 func TestStorageTestSuite(t *testing.T) {

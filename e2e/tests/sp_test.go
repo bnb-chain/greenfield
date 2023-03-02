@@ -28,6 +28,10 @@ func (s *StorageProviderTestSuite) SetupSuite() {
 func (s *StorageProviderTestSuite) SetupTest() {
 }
 
+func TestStorageProviderTestSuite(t *testing.T) {
+	suite.Run(t, new(StorageProviderTestSuite))
+}
+
 func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	ctx := context.Background()
 	validator := s.Validator.GetAddr()
@@ -43,22 +47,23 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	}
 
 	// 2. grant deposit authorization of sp to gov module account
+	sp := s.StorageProviders[0]
 	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
-	authorization, err := sptypes.NewDepositAuthorization(s.StorageProvider.OperatorKey.GetAddr(), &coins)
+	authorization, err := sptypes.NewDepositAuthorization(sp.OperatorKey.GetAddr(), &coins)
 	s.Require().NoError(err)
 
 	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
 	now := time.Now().Add(24 * time.Hour)
 	grantMsg, err := authz.NewMsgGrant(
-		s.StorageProvider.OperatorKey.GetAddr(), govAddr, authorization, &now)
+		sp.OperatorKey.GetAddr(), govAddr, authorization, &now)
 	s.Require().NoError(err)
-	s.SendTxBlock(grantMsg, s.StorageProvider.OperatorKey)
+	s.SendTxBlock(grantMsg, sp.OperatorKey)
 
 	// 3. submit CreateStorageProvider proposal
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.FundingKey.GetAddr(),
-		s.StorageProvider.SealKey.GetAddr(),
-		s.StorageProvider.ApprovalKey.GetAddr(), description,
+		sp.OperatorKey.GetAddr(), sp.FundingKey.GetAddr(),
+		sp.SealKey.GetAddr(),
+		sp.ApprovalKey.GetAddr(), description,
 		"sp0.greenfield.io", deposit)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
@@ -111,25 +116,22 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 	// 7. query storage provider
 	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
+		SpAddress: sp.OperatorKey.GetAddr().String(),
 	}
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	s.Require().Equal(querySPResp.StorageProvider.OperatorAddress, s.StorageProvider.OperatorKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, s.StorageProvider.FundingKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.SealAddress, s.StorageProvider.SealKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, s.StorageProvider.ApprovalKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.OperatorAddress, sp.OperatorKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, sp.FundingKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.SealAddress, sp.SealKey.GetAddr().String())
+	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, sp.ApprovalKey.GetAddr().String())
 	s.Require().Equal(querySPResp.StorageProvider.Endpoint, "sp0.greenfield.io")
-}
-
-func TestStorageProviderTestSuite(t *testing.T) {
-	suite.Run(t, new(StorageProviderTestSuite))
 }
 
 func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	ctx := context.Background()
 	s.CheckSecondarySpPrice()
-	spAddr := s.StorageProvider.OperatorKey.GetAddr().String()
+	sp := s.StorageProviders[0]
+	spAddr := sp.OperatorKey.GetAddr().String()
 	spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr:    spAddr,
 		Timestamp: 0,
@@ -146,7 +148,7 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 		StorePrice:    newStorePrice,
 		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
 	}
-	_ = s.SendTxBlock(msgUpdateSpStoragePrice, s.StorageProvider.OperatorKey)
+	_ = s.SendTxBlock(msgUpdateSpStoragePrice, sp.OperatorKey)
 	// query and assert
 	spStoragePrice2, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr:    spAddr,

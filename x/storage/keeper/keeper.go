@@ -161,6 +161,15 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		return types.ErrBucketNotEmpty
 	}
 
+	// check bill is empty
+	bill, err := k.GetBucketBill(ctx, &bucketInfo)
+	if err != nil {
+		return errors.Wrapf(err, "Get bucket bill failed.")
+	}
+	if len(bill.Flows) != 0 {
+		return types.ErrBucketBillNotEmpty
+	}
+
 	store.Delete(bucketKey)
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 
@@ -192,25 +201,14 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrAccessDenied
 	}
 
-	// update charge
 	paymentAcc, err := k.VerifyPaymentAccount(ctx, opts.PaymentAddress, OwnerAcc)
-	ctx.Logger().Debug("err: %w", err)
-	//if err != sdk.ErrEmptyHexAddress {
-	//	err := k.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &opts.PaymentAddress)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	bucketInfo.PaymentAddress = paymentAcc.String()
-	//}
-	//
-	//// update quota
-	//if opts.ReadQuota != bucketInfo.ReadQuota {
-	//	err := k.ChargeUpdateReadQuota(ctx, &bucketInfo, opts.ReadQuota)
-	//	if err != nil {
-	//		return err
-	//	}
-	//	bucketInfo.ReadQuota = opts.ReadQuota
-	//}
+	if err != nil {
+		return err
+	}
+	err = k.UpdateBucketInfoAndCharge(ctx, &bucketInfo, paymentAcc.String(), opts.ReadQuota)
+	if err != nil {
+		return err
+	}
 
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&bucketInfo)
@@ -315,6 +313,7 @@ func (k Keeper) CreateObject(
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,
 		SecondarySpAddresses: secondarySPs,
+		ChargeSize:           k.GetChargeSize(ctx, payloadSize),
 	}
 
 	// Lock Fee
@@ -323,7 +322,6 @@ func (k Keeper) CreateObject(
 		return math.ZeroUint(), err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
@@ -423,15 +421,15 @@ func (k Keeper) SealObject(
 			return err
 		}
 	}
+	objectInfo.SecondarySpAddresses = secondarySps
 
-	// unlock fee
+	// unlock and charge store fee
 	err := k.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return err
 	}
 
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
-	objectInfo.SecondarySpAddresses = secondarySps
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	store := ctx.KVStore(k.storeKey)
@@ -534,7 +532,6 @@ func (k Keeper) DeleteObject(
 		return err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
@@ -612,7 +609,6 @@ func (k Keeper) CopyObject(
 		return math.ZeroUint(), err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&dstBucketInfo)
 	store.Set(types.GetBucketByIDKey(dstBucketInfo.Id), bbz)
 

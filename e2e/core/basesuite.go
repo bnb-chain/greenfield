@@ -22,27 +22,34 @@ type SPKeyManagers struct {
 
 type BaseSuite struct {
 	suite.Suite
-	Config          *Config
-	Client          *client.GreenfieldClient
-	Validator       keys.KeyManager
-	StorageProvider SPKeyManagers
+	Config           *Config
+	Client           *client.GreenfieldClient
+	TmClient         *client.TendermintClient
+	Validator        keys.KeyManager
+	StorageProviders []SPKeyManagers
 }
 
 func (s *BaseSuite) SetupSuite() {
 	s.Config = InitConfig()
 	s.Client = client.NewGreenfieldClient(s.Config.GrpcAddr, s.Config.ChainId,
 		client.WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	tmClient := client.NewTendermintClient(s.Config.TendermintAddr)
+	s.TmClient = &tmClient
 	var err error
 	s.Validator, err = keys.NewMnemonicKeyManager(s.Config.ValidatorMnemonic)
 	s.Require().NoError(err)
-	s.StorageProvider.OperatorKey, err = keys.NewMnemonicKeyManager(s.Config.SPMnemonics.OperatorMnemonic)
-	s.Require().NoError(err)
-	s.StorageProvider.SealKey, err = keys.NewMnemonicKeyManager(s.Config.SPMnemonics.SealMnemonic)
-	s.Require().NoError(err)
-	s.StorageProvider.FundingKey, err = keys.NewMnemonicKeyManager(s.Config.SPMnemonics.FundingMnemonic)
-	s.Require().NoError(err)
-	s.StorageProvider.ApprovalKey, err = keys.NewMnemonicKeyManager(s.Config.SPMnemonics.ApprovalMnemonic)
-	s.Require().NoError(err)
+	for _, spMnemonics := range s.Config.SPMnemonics {
+		sPKeyManagers := SPKeyManagers{}
+		sPKeyManagers.OperatorKey, err = keys.NewMnemonicKeyManager(spMnemonics.OperatorMnemonic)
+		s.Require().NoError(err)
+		sPKeyManagers.SealKey, err = keys.NewMnemonicKeyManager(spMnemonics.SealMnemonic)
+		s.Require().NoError(err)
+		sPKeyManagers.FundingKey, err = keys.NewMnemonicKeyManager(spMnemonics.FundingMnemonic)
+		s.Require().NoError(err)
+		sPKeyManagers.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
+		s.Require().NoError(err)
+		s.StorageProviders = append(s.StorageProviders, sPKeyManagers)
+	}
 }
 
 func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.TxResponse) {
