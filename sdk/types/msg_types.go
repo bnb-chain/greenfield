@@ -1,6 +1,7 @@
 package types
 
 import (
+	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -70,4 +71,8 @@ type (
 	MsgDeleteGroup       = storagetypes.MsgDeleteGroup
 	MsgUpdateGroupMember = storagetypes.MsgUpdateGroupMember
 	MsgLeaveGroup        = storagetypes.MsgLeaveGroup
+
+	MsgSubmit    = challengetypes.MsgSubmit
+	MsgAttest    = challengetypes.MsgAttest
+	MsgHeartbeat = challengetypes.MsgHeartbeat
 )

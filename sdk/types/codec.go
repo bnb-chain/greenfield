@@ -1,6 +1,7 @@
 package types
 
 import (
+	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -22,6 +23,7 @@ import (
 
 func Cdc() *codec.ProtoCodec {
 	interfaceRegistry := types.NewInterfaceRegistry()
+	challengetypes.RegisterInterfaces(interfaceRegistry)
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
 	authtypes.RegisterInterfaces(interfaceRegistry)
 	authztypes.RegisterInterfaces(interfaceRegistry)
