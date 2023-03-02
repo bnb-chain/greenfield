@@ -264,7 +264,7 @@ function sp_check() {
 
 CMD=$1
 SIZE=3
-SP_SIZE=7
+SP_SIZE=3
 if [ ! -z $2 ] && [ "$2" -gt "0" ]; then
     SIZE=$2
 fi

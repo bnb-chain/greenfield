@@ -43,7 +43,7 @@ test:
 	go test $$(go list ./... | grep -v e2e | grep -v sdk)
 
 e2e_test:
-	go test ./e2e/...
+	go test -p 1 ./e2e/...
 
 lint:
 	golangci-lint run --fix
