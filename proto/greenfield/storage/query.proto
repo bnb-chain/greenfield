@@ -71,7 +71,6 @@ service Query {
   rpc HeadGroupNFT(QueryNFTRequest) returns (QueryNFTResponse) {
     option (google.api.http).get = "/greenfield/storage/head_group_nft/{token_id}";
   }
-
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

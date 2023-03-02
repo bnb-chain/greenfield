@@ -111,14 +111,13 @@ message MetaData {
   // externalUrl a link to external site to view NFT
   string external_url = 2;
   // name of NFT
-  oneof  name {
-    string  bucket_name = 3;
-    string  object_name = 4;
-    string  group_name = 5;
+  oneof name {
+    string bucket_name = 3;
+    string object_name = 4;
+    string group_name = 5;
   }
   // image is the link to image
   string image = 6;
   // attributes
   repeated Trait attributes = 7 [(gogoproto.nullable) = false];
 }
-
