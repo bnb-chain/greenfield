@@ -36,6 +36,8 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				FundingAddress:  tt.fundingAddress.String(),
 				SealAddress:     tt.sealAddress.String(),
 				ApprovalAddress: tt.approvalAddress.String(),
+				StorePrice:      sdk.ZeroDec(),
+				ReadPrice:       sdk.ZeroDec(),
 				Endpoint:        "sp0.greenfield.io",
 				Deposit:         coinPos,
 			}

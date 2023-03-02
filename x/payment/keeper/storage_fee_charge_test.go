@@ -147,8 +147,11 @@ func TestAutoForceSettle(t *testing.T) {
 	// reverve time - forced settle time - 1 day + 101s pass
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
+	usr, found := keeper.GetStreamRecord(ctx, user)
+	require.True(t, found)
+	err = keeper.UpdateStreamRecord(ctx, &usr, change, true)
 	require.NoError(t, err)
+	keeper.SetStreamRecord(ctx, usr)
 	userStreamRecord, _ = keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	// user has been force settled
