@@ -17,6 +17,17 @@ func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord types.StreamRecord
 	store.Set(types.StreamRecordKey(
 		streamRecord.Account,
 	), b)
+	_ = ctx.EventManager().EmitTypedEvents(&types.EventStreamRecordUpdate{
+		Account:         streamRecord.Account,
+		StaticBalance:   streamRecord.StaticBalance,
+		NetflowRate:     streamRecord.NetflowRate,
+		CrudTimestamp:   streamRecord.CrudTimestamp,
+		Status:          streamRecord.Status,
+		LockBalance:     streamRecord.LockBalance,
+		BufferBalance:   streamRecord.BufferBalance,
+		SettleTimestamp: streamRecord.SettleTimestamp,
+		OutFlows:        streamRecord.OutFlows,
+	})
 }
 
 // GetStreamRecord returns a streamRecord from its index
@@ -35,18 +46,6 @@ func (k Keeper) GetStreamRecord(
 
 	k.cdc.MustUnmarshal(b, &val)
 	return val, true
-}
-
-// RemoveStreamRecord removes a streamRecord from the store
-func (k Keeper) RemoveStreamRecord(
-	ctx sdk.Context,
-	account string,
-
-) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
-	store.Delete(types.StreamRecordKey(
-		account,
-	))
 }
 
 // GetAllStreamRecord returns all streamRecord

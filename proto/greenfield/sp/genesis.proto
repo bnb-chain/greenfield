@@ -13,5 +13,5 @@ message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
   // this used by starport scaffolding # genesis/proto/state
   repeated StorageProvider storage_providers = 2 [(gogoproto.nullable) = false];
-  repeated SpStoragePrice sp_storage_price_list = 6 [(gogoproto.nullable) = false];
+  repeated SpStoragePrice sp_storage_price_list = 3 [(gogoproto.nullable) = false];
 }

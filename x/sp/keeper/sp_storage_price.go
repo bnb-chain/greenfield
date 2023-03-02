@@ -11,6 +11,13 @@ import (
 
 // SetSpStoragePrice set a specific SpStoragePrice in the store from its index
 func (k Keeper) SetSpStoragePrice(ctx sdk.Context, SpStoragePrice types.SpStoragePrice) {
+	event := &types.EventSpStoragePriceUpdate{
+		SpAddress:     SpStoragePrice.SpAddress,
+		UpdateTime:    SpStoragePrice.UpdateTime,
+		ReadPrice:     SpStoragePrice.ReadPrice,
+		StorePrice:    SpStoragePrice.StorePrice,
+		FreeReadQuota: SpStoragePrice.FreeReadQuota,
+	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
 	key := types.SpStoragePriceKey(
 		SpStoragePrice.SpAddress,
@@ -20,6 +27,7 @@ func (k Keeper) SetSpStoragePrice(ctx sdk.Context, SpStoragePrice types.SpStorag
 	SpStoragePrice.SpAddress = ""
 	b := k.cdc.MustMarshal(&SpStoragePrice)
 	store.Set(key, b)
+	_ = ctx.EventManager().EmitTypedEvents(event)
 }
 
 // GetSpStoragePrice returns a SpStoragePrice from its index
@@ -90,6 +98,10 @@ func (k Keeper) GetSpStoragePriceByTime(
 }
 
 func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice types.SecondarySpStorePrice) {
+	event := &types.EventSecondarySpStorePriceUpdate{
+		UpdateTime: secondarySpStorePrice.UpdateTime,
+		StorePrice: secondarySpStorePrice.StorePrice,
+	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondarySpStorePriceKeyPrefix)
 	key := types.SecondarySpStorePriceKey(
 		secondarySpStorePrice.UpdateTime,
@@ -97,6 +109,7 @@ func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice 
 	secondarySpStorePrice.UpdateTime = 0
 	b := k.cdc.MustMarshal(&secondarySpStorePrice)
 	store.Set(key, b)
+	_ = ctx.EventManager().EmitTypedEvents(event)
 }
 
 // UpdateSecondarySpStorePrice calculate the price of secondary store by the average price of all sp store price

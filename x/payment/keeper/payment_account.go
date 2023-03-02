@@ -14,6 +14,11 @@ func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount types.PaymentA
 	store.Set(types.PaymentAccountKey(
 		paymentAccount.Addr,
 	), b)
+	_ = ctx.EventManager().EmitTypedEvents(&types.EventPaymentAccountUpdate{
+		Addr:       paymentAccount.Addr,
+		Owner:      paymentAccount.Owner,
+		Refundable: paymentAccount.Refundable,
+	})
 }
 
 // GetPaymentAccount returns a paymentAccount from its index

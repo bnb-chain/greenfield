@@ -6,6 +6,8 @@ package types
 import (
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"
 	math "math"
@@ -233,41 +235,167 @@ func (m *EventDeposit) GetTotalDeposit() string {
 	return ""
 }
 
+type EventSpStoragePriceUpdate struct {
+	// sp address
+	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// update time, in unix timestamp
+	UpdateTime int64 `protobuf:"varint,2,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// read price, in bnb wei per charge byte
+	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
+	// free read quota, in byte
+	FreeReadQuota uint64 `protobuf:"varint,4,opt,name=free_read_quota,json=freeReadQuota,proto3" json:"free_read_quota,omitempty"`
+	// store price, in bnb wei per charge byte
+	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
+}
+
+func (m *EventSpStoragePriceUpdate) Reset()         { *m = EventSpStoragePriceUpdate{} }
+func (m *EventSpStoragePriceUpdate) String() string { return proto.CompactTextString(m) }
+func (*EventSpStoragePriceUpdate) ProtoMessage()    {}
+func (*EventSpStoragePriceUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_685cbfa50fdf0841, []int{3}
+}
+func (m *EventSpStoragePriceUpdate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventSpStoragePriceUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventSpStoragePriceUpdate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventSpStoragePriceUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventSpStoragePriceUpdate.Merge(m, src)
+}
+func (m *EventSpStoragePriceUpdate) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventSpStoragePriceUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventSpStoragePriceUpdate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventSpStoragePriceUpdate proto.InternalMessageInfo
+
+func (m *EventSpStoragePriceUpdate) GetSpAddress() string {
+	if m != nil {
+		return m.SpAddress
+	}
+	return ""
+}
+
+func (m *EventSpStoragePriceUpdate) GetUpdateTime() int64 {
+	if m != nil {
+		return m.UpdateTime
+	}
+	return 0
+}
+
+func (m *EventSpStoragePriceUpdate) GetFreeReadQuota() uint64 {
+	if m != nil {
+		return m.FreeReadQuota
+	}
+	return 0
+}
+
+type EventSecondarySpStorePriceUpdate struct {
+	// update time, in unix timestamp
+	UpdateTime int64 `protobuf:"varint,1,opt,name=update_time,json=updateTime,proto3" json:"update_time,omitempty"`
+	// store price, in bnb wei per charge byte
+	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
+}
+
+func (m *EventSecondarySpStorePriceUpdate) Reset()         { *m = EventSecondarySpStorePriceUpdate{} }
+func (m *EventSecondarySpStorePriceUpdate) String() string { return proto.CompactTextString(m) }
+func (*EventSecondarySpStorePriceUpdate) ProtoMessage()    {}
+func (*EventSecondarySpStorePriceUpdate) Descriptor() ([]byte, []int) {
+	return fileDescriptor_685cbfa50fdf0841, []int{4}
+}
+func (m *EventSecondarySpStorePriceUpdate) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventSecondarySpStorePriceUpdate) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventSecondarySpStorePriceUpdate.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventSecondarySpStorePriceUpdate) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventSecondarySpStorePriceUpdate.Merge(m, src)
+}
+func (m *EventSecondarySpStorePriceUpdate) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventSecondarySpStorePriceUpdate) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventSecondarySpStorePriceUpdate.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventSecondarySpStorePriceUpdate proto.InternalMessageInfo
+
+func (m *EventSecondarySpStorePriceUpdate) GetUpdateTime() int64 {
+	if m != nil {
+		return m.UpdateTime
+	}
+	return 0
+}
+
 func init() {
 	proto.RegisterType((*EventCreateStorageProvider)(nil), "bnbchain.greenfield.sp.EventCreateStorageProvider")
 	proto.RegisterType((*EventEditStorageProvider)(nil), "bnbchain.greenfield.sp.EventEditStorageProvider")
 	proto.RegisterType((*EventDeposit)(nil), "bnbchain.greenfield.sp.EventDeposit")
+	proto.RegisterType((*EventSpStoragePriceUpdate)(nil), "bnbchain.greenfield.sp.EventSpStoragePriceUpdate")
+	proto.RegisterType((*EventSecondarySpStorePriceUpdate)(nil), "bnbchain.greenfield.sp.EventSecondarySpStorePriceUpdate")
 }
 
 func init() { proto.RegisterFile("greenfield/sp/events.proto", fileDescriptor_685cbfa50fdf0841) }
 
 var fileDescriptor_685cbfa50fdf0841 = []byte{
-	// 387 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x92, 0xbf, 0x8e, 0xda, 0x40,
-	0x10, 0xc6, 0x31, 0x24, 0x24, 0x2c, 0x4e, 0x88, 0xac, 0x28, 0x72, 0x5c, 0x58, 0x81, 0x34, 0x51,
-	0x24, 0xec, 0x22, 0x45, 0x8a, 0x54, 0xfc, 0xeb, 0x23, 0xe8, 0xd2, 0x38, 0x36, 0x3b, 0x98, 0x95,
-	0xcc, 0xee, 0x6a, 0x77, 0x81, 0xe4, 0x05, 0xae, 0xbe, 0x87, 0xb9, 0x87, 0xb8, 0x12, 0x5d, 0x75,
-	0xd2, 0x35, 0x27, 0x78, 0x91, 0x93, 0xd7, 0x5e, 0x83, 0x8e, 0x02, 0xe9, 0xca, 0x99, 0xfd, 0x7e,
-	0xdf, 0xa7, 0x99, 0x1d, 0xe4, 0xa5, 0x02, 0x80, 0x2e, 0x08, 0x64, 0x38, 0x94, 0x3c, 0x84, 0x0d,
-	0x50, 0x25, 0x03, 0x2e, 0x98, 0x62, 0xce, 0xa7, 0x84, 0x26, 0xf3, 0x65, 0x4c, 0x68, 0x70, 0x14,
-	0x05, 0x92, 0x7b, 0x9f, 0xe7, 0x4c, 0xae, 0x98, 0x8c, 0xb4, 0x2a, 0x2c, 0x8a, 0x02, 0xe9, 0x3d,
-	0xd4, 0x91, 0x37, 0xc9, 0x3d, 0x46, 0x02, 0x62, 0x05, 0x33, 0xc5, 0x44, 0x9c, 0xc2, 0x6f, 0xc1,
-	0x36, 0x04, 0x83, 0x70, 0x7e, 0x22, 0x24, 0x79, 0x14, 0x63, 0x2c, 0x40, 0x4a, 0xd7, 0xfa, 0x62,
-	0x7d, 0x6b, 0x0d, 0xdd, 0xbb, 0x9b, 0xfe, 0xc7, 0xd2, 0x64, 0x50, 0xbc, 0xcc, 0x94, 0x20, 0x34,
-	0x9d, 0xb6, 0x24, 0x2f, 0x1b, 0xce, 0x00, 0x75, 0x16, 0x6b, 0x8a, 0x09, 0x4d, 0x2b, 0xba, 0x7e,
-	0x81, 0x7e, 0x5f, 0x02, 0xc6, 0xe2, 0x17, 0xb2, 0x25, 0xc4, 0x59, 0xc5, 0x37, 0x2e, 0xf0, 0xed,
-	0x5c, 0x6d, 0xe0, 0x11, 0xfa, 0x10, 0x73, 0x2e, 0xd8, 0xe6, 0xc4, 0xe0, 0xd5, 0x05, 0x83, 0x8e,
-	0x21, 0x8c, 0x89, 0x87, 0xde, 0x02, 0xc5, 0x9c, 0x11, 0xaa, 0xdc, 0xd7, 0x39, 0x3c, 0xad, 0x6a,
-	0xe7, 0x2b, 0x7a, 0xa7, 0x98, 0x8a, 0xb3, 0x08, 0x03, 0x67, 0x92, 0x28, 0xb7, 0xa9, 0x05, 0xb6,
-	0x6e, 0x8e, 0x8b, 0x5e, 0xef, 0x2f, 0x72, 0xf5, 0x72, 0x27, 0x98, 0xa8, 0xe7, 0xab, 0xed, 0x22,
-	0x9b, 0x65, 0x38, 0xaa, 0x02, 0xf4, 0x72, 0xa7, 0x6d, 0x96, 0xe1, 0x89, 0xc9, 0xe8, 0x22, 0x9b,
-	0xc2, 0xf6, 0x28, 0xa9, 0x17, 0x12, 0x0a, 0x5b, 0x23, 0xe9, 0x5d, 0x59, 0xc8, 0xd6, 0x11, 0x65,
-	0xe4, 0xcb, 0x7f, 0xcc, 0x45, 0x6f, 0xcc, 0x28, 0x45, 0x8e, 0x29, 0xcf, 0x47, 0x6d, 0x9c, 0x8f,
-	0x3a, 0x1c, 0xdf, 0xee, 0x7d, 0x6b, 0xb7, 0xf7, 0xad, 0xc7, 0xbd, 0x6f, 0x5d, 0x1f, 0xfc, 0xda,
-	0xee, 0xe0, 0xd7, 0xee, 0x0f, 0x7e, 0xed, 0xcf, 0xf7, 0x94, 0xa8, 0xe5, 0x3a, 0x09, 0xe6, 0x6c,
-	0x15, 0x26, 0x34, 0xe9, 0xeb, 0x0b, 0x0d, 0x4f, 0xce, 0xf8, 0x5f, 0x7e, 0xc8, 0xea, 0x3f, 0x07,
-	0x99, 0x34, 0xf5, 0x55, 0xfe, 0x78, 0x0a, 0x00, 0x00, 0xff, 0xff, 0x3d, 0x8f, 0xc2, 0xf1, 0xe6,
-	0x02, 0x00, 0x00,
+	// 557 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xcb, 0x6e, 0xd3, 0x40,
+	0x14, 0x8d, 0xd3, 0x07, 0xf4, 0x26, 0xa5, 0xc8, 0xaa, 0x90, 0x9b, 0x85, 0xd3, 0x06, 0xa9, 0x42,
+	0x48, 0x49, 0x16, 0x2c, 0x58, 0xc0, 0xa6, 0x6d, 0xb2, 0x07, 0x07, 0x36, 0x20, 0x64, 0xc6, 0x9e,
+	0x1b, 0x77, 0x44, 0x32, 0x33, 0xcc, 0x4c, 0x52, 0xfa, 0x03, 0xac, 0xf9, 0x06, 0xbe, 0xa1, 0x1f,
+	0xd1, 0x65, 0xd5, 0x15, 0x0f, 0xa9, 0x42, 0xc9, 0x8f, 0x20, 0x8f, 0xed, 0x34, 0xa4, 0x48, 0x91,
+	0xaa, 0xae, 0x92, 0x39, 0xb9, 0xe7, 0x31, 0x27, 0xf6, 0x85, 0x5a, 0xa2, 0x10, 0x79, 0x9f, 0xe1,
+	0x80, 0xb6, 0xb5, 0x6c, 0xe3, 0x18, 0xb9, 0xd1, 0x2d, 0xa9, 0x84, 0x11, 0xee, 0xa3, 0x88, 0x47,
+	0xf1, 0x31, 0x61, 0xbc, 0x75, 0x3d, 0xd4, 0xd2, 0xb2, 0xb6, 0x13, 0x0b, 0x3d, 0x14, 0x3a, 0xb4,
+	0x53, 0xed, 0xec, 0x90, 0x51, 0x6a, 0xdb, 0x89, 0x48, 0x44, 0x86, 0xa7, 0xdf, 0x32, 0xb4, 0xf1,
+	0xbb, 0x0c, 0xb5, 0x6e, 0xaa, 0x7c, 0xa4, 0x90, 0x18, 0xec, 0x19, 0xa1, 0x48, 0x82, 0xaf, 0x94,
+	0x18, 0x33, 0x8a, 0xca, 0x7d, 0x0e, 0xa0, 0x65, 0x48, 0x28, 0x55, 0xa8, 0xb5, 0xe7, 0xec, 0x3a,
+	0x4f, 0x36, 0x0e, 0xbd, 0xcb, 0xb3, 0xe6, 0x76, 0x2e, 0x7d, 0x90, 0xfd, 0xd2, 0x33, 0x8a, 0xf1,
+	0x24, 0xd8, 0xd0, 0x32, 0x07, 0xdc, 0x03, 0xd8, 0xea, 0x8f, 0x38, 0x65, 0x3c, 0x99, 0xb1, 0xcb,
+	0x4b, 0xd8, 0x0f, 0x72, 0x42, 0x21, 0xf1, 0x02, 0xaa, 0x1a, 0xc9, 0x60, 0xc6, 0x5f, 0x59, 0xc2,
+	0xaf, 0xa4, 0xd3, 0x05, 0xf9, 0x08, 0x1e, 0x12, 0x29, 0x95, 0x18, 0xcf, 0x09, 0xac, 0x2e, 0x11,
+	0xd8, 0x2a, 0x18, 0x85, 0x48, 0x0d, 0xee, 0x23, 0xa7, 0x52, 0x30, 0x6e, 0xbc, 0xb5, 0x94, 0x1c,
+	0xcc, 0xce, 0xee, 0x63, 0xd8, 0x34, 0xc2, 0x90, 0x41, 0x48, 0x51, 0x0a, 0xcd, 0x8c, 0xb7, 0x6e,
+	0x07, 0xaa, 0x16, 0xec, 0x64, 0x58, 0xe3, 0x23, 0x78, 0xb6, 0xdc, 0x2e, 0x65, 0x66, 0xb1, 0xda,
+	0x3d, 0xa8, 0x8a, 0x01, 0x0d, 0x67, 0x06, 0xb6, 0xdc, 0xa0, 0x22, 0x06, 0xb4, 0x5b, 0x78, 0xec,
+	0x41, 0x95, 0xe3, 0xc9, 0xf5, 0x48, 0x39, 0x1b, 0xe1, 0x78, 0x52, 0x8c, 0x34, 0xbe, 0x3a, 0x50,
+	0xb5, 0x16, 0xb9, 0xe5, 0xed, 0xff, 0x31, 0x0f, 0xee, 0x15, 0x57, 0xc9, 0x7c, 0x8a, 0xe3, 0xcd,
+	0xab, 0xae, 0xfc, 0xe7, 0xaa, 0x3f, 0xcb, 0xb0, 0x63, 0x83, 0xf4, 0xe4, 0xec, 0xa6, 0x2c, 0xc6,
+	0xb7, 0x92, 0x12, 0x83, 0xb7, 0x4f, 0x55, 0x87, 0xca, 0xc8, 0x4a, 0x84, 0x86, 0x0d, 0xd1, 0x26,
+	0x5b, 0x09, 0x20, 0x83, 0xde, 0xb0, 0x21, 0xba, 0xef, 0x01, 0x14, 0x12, 0x1a, 0xca, 0xd4, 0x2d,
+	0x7f, 0x46, 0x5e, 0x9e, 0x5f, 0xd5, 0x4b, 0xbf, 0xae, 0xea, 0xfb, 0x09, 0x33, 0xc7, 0xa3, 0xa8,
+	0x15, 0x8b, 0x61, 0xfe, 0x2e, 0xe4, 0x1f, 0x4d, 0x4d, 0x3f, 0xb5, 0xcd, 0xa9, 0x44, 0xdd, 0xea,
+	0x60, 0x7c, 0x79, 0xd6, 0x84, 0x3c, 0x47, 0x07, 0xe3, 0x60, 0x23, 0xd5, 0xb3, 0xe1, 0xdd, 0x7d,
+	0xd8, 0xea, 0x2b, 0xc4, 0xd0, 0x3a, 0x7c, 0x1e, 0x09, 0x43, 0xec, 0x43, 0xb4, 0x1a, 0x6c, 0xa6,
+	0x70, 0x80, 0x84, 0xbe, 0x4e, 0x41, 0xf7, 0x03, 0x54, 0xb4, 0x11, 0x0a, 0xf3, 0x14, 0x6b, 0x77,
+	0x90, 0x02, 0xac, 0xa0, 0x8d, 0xd1, 0xf8, 0xee, 0xc0, 0x6e, 0xd6, 0x2d, 0xc6, 0x82, 0x53, 0xa2,
+	0x4e, 0xb3, 0x92, 0xff, 0xa9, 0x78, 0xa1, 0x29, 0xe7, 0x46, 0x53, 0x0b, 0x21, 0xcb, 0x77, 0x1b,
+	0xf2, 0xb0, 0x73, 0x3e, 0xf1, 0x9d, 0x8b, 0x89, 0xef, 0xfc, 0x99, 0xf8, 0xce, 0xb7, 0xa9, 0x5f,
+	0xba, 0x98, 0xfa, 0xa5, 0x1f, 0x53, 0xbf, 0xf4, 0xee, 0xe9, 0x9c, 0x76, 0xc4, 0xa3, 0xa6, 0x5d,
+	0x5c, 0xed, 0xb9, 0xed, 0xf6, 0x25, 0xdd, 0x6f, 0xd6, 0x23, 0x5a, 0xb7, 0x6b, 0xe9, 0xd9, 0xdf,
+	0x00, 0x00, 0x00, 0xff, 0xff, 0xe5, 0x83, 0x56, 0x31, 0xfd, 0x04, 0x00, 0x00,
 }
 
 func (m *EventCreateStorageProvider) Marshal() (dAtA []byte, err error) {
@@ -416,6 +544,104 @@ func (m *EventDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *EventSpStoragePriceUpdate) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventSpStoragePriceUpdate) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventSpStoragePriceUpdate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.StorePrice.Size()
+		i -= size
+		if _, err := m.StorePrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	if m.FreeReadQuota != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.FreeReadQuota))
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size := m.ReadPrice.Size()
+		i -= size
+		if _, err := m.ReadPrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.UpdateTime != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.UpdateTime))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.SpAddress) > 0 {
+		i -= len(m.SpAddress)
+		copy(dAtA[i:], m.SpAddress)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.SpAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventSecondarySpStorePriceUpdate) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventSecondarySpStorePriceUpdate) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventSecondarySpStorePriceUpdate) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.StorePrice.Size()
+		i -= size
+		if _, err := m.StorePrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if m.UpdateTime != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.UpdateTime))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -495,6 +721,43 @@ func (m *EventDeposit) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
+	return n
+}
+
+func (m *EventSpStoragePriceUpdate) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.SpAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.UpdateTime != 0 {
+		n += 1 + sovEvents(uint64(m.UpdateTime))
+	}
+	l = m.ReadPrice.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.FreeReadQuota != 0 {
+		n += 1 + sovEvents(uint64(m.FreeReadQuota))
+	}
+	l = m.StorePrice.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	return n
+}
+
+func (m *EventSecondarySpStorePriceUpdate) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.UpdateTime != 0 {
+		n += 1 + sovEvents(uint64(m.UpdateTime))
+	}
+	l = m.StorePrice.Size()
+	n += 1 + l + sovEvents(uint64(l))
 	return n
 }
 
@@ -984,6 +1247,297 @@ func (m *EventDeposit) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.TotalDeposit = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventSpStoragePriceUpdate) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventSpStoragePriceUpdate: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventSpStoragePriceUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateTime", wireType)
+			}
+			m.UpdateTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UpdateTime |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReadPrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ReadPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FreeReadQuota", wireType)
+			}
+			m.FreeReadQuota = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FreeReadQuota |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StorePrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StorePrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventSecondarySpStorePriceUpdate) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventSecondarySpStorePriceUpdate: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventSecondarySpStorePriceUpdate: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UpdateTime", wireType)
+			}
+			m.UpdateTime = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.UpdateTime |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StorePrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StorePrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

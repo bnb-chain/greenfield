@@ -387,11 +387,11 @@ type MsgUpdateSpStoragePrice struct {
 	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	// if the block time is greater than expire timestamp, the price is invalid and will be ignored
 	ExpireTime int64 `protobuf:"varint,2,opt,name=expire_time,json=expireTime,proto3" json:"expire_time,omitempty"`
-	// read price, in 10 ^ -8 bnb per byte
+	// read price, in bnb wei per charge byte
 	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
 	// free read quota, in byte
 	FreeReadQuota uint64 `protobuf:"varint,4,opt,name=free_read_quota,json=freeReadQuota,proto3" json:"free_read_quota,omitempty"`
-	// store price, in 10 ^ -8 bnb per charge byte
+	// store price, in bnb wei per charge byte
 	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
 }
 

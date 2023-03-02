@@ -38,13 +38,5 @@ func (k msgServer) CreatePaymentAccount(goCtx context.Context, msg *types.MsgCre
 		Owner:      msg.Creator,
 		Refundable: true,
 	})
-	err := ctx.EventManager().EmitTypedEvents(&types.EventCreatePaymentAccount{
-		Addr:  paymentAccountAddr,
-		Owner: msg.Creator,
-		Index: count,
-	})
-	if err != nil {
-		return nil, err
-	}
 	return &types.MsgCreatePaymentAccountResponse{}, nil
 }
