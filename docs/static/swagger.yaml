@@ -1893,6 +1893,140 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/storage/head_bucket_nft/{token_id}:
+    get:
+      summary: Queries a bucket NFT by token id
+      operationId: HeadBucketNFT
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              meta_data:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    title: description
+                  external_url:
+                    type: string
+                    title: externalUrl a link to external site to view NFT
+                  bucket_name:
+                    type: string
+                  object_name:
+                    type: string
+                  group_name:
+                    type: string
+                  image:
+                    type: string
+                    title: image is the link to image
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trait_type:
+                          type: string
+                        value:
+                          type: string
+                    title: attributes
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_group_nft/{token_id}:
+    get:
+      summary: Queries a group NFT by token id
+      operationId: HeadGroupNFT
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              meta_data:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    title: description
+                  external_url:
+                    type: string
+                    title: externalUrl a link to external site to view NFT
+                  bucket_name:
+                    type: string
+                  object_name:
+                    type: string
+                  group_name:
+                    type: string
+                  image:
+                    type: string
+                    title: image is the link to image
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trait_type:
+                          type: string
+                        value:
+                          type: string
+                    title: attributes
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/storage/head_object/{bucket_name}/{object_name}:
     get:
       summary: Queries a object with specify name.
@@ -2118,6 +2252,73 @@ paths:
                       format: byte
       parameters:
         - name: object_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_object_nft/{token_id}:
+    get:
+      summary: Queries a object NFT by token id
+      operationId: HeadObjectNFT
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              meta_data:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    title: description
+                  external_url:
+                    type: string
+                    title: externalUrl a link to external site to view NFT
+                  bucket_name:
+                    type: string
+                  object_name:
+                    type: string
+                  group_name:
+                    type: string
+                  image:
+                    type: string
+                    title: image is the link to image
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trait_type:
+                          type: string
+                        value:
+                          type: string
+                    title: attributes
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: token_id
           in: path
           required: true
           type: string
@@ -27545,6 +27746,34 @@ definitions:
             OutFlowInUSD defines the accumulative outflow stream rate in USD
             from a stream account or a bucket to a SP
         title: payment_out_flows
+  bnbchain.greenfield.storage.MetaData:
+    type: object
+    properties:
+      description:
+        type: string
+        title: description
+      external_url:
+        type: string
+        title: externalUrl a link to external site to view NFT
+      bucket_name:
+        type: string
+      object_name:
+        type: string
+      group_name:
+        type: string
+      image:
+        type: string
+        title: image is the link to image
+      attributes:
+        type: array
+        items:
+          type: object
+          properties:
+            trait_type:
+              type: string
+            value:
+              type: string
+        title: attributes
   bnbchain.greenfield.storage.ObjectInfo:
     type: object
     properties:
@@ -27991,6 +28220,37 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  bnbchain.greenfield.storage.QueryNFTResponse:
+    type: object
+    properties:
+      meta_data:
+        type: object
+        properties:
+          description:
+            type: string
+            title: description
+          external_url:
+            type: string
+            title: externalUrl a link to external site to view NFT
+          bucket_name:
+            type: string
+          object_name:
+            type: string
+          group_name:
+            type: string
+          image:
+            type: string
+            title: image is the link to image
+          attributes:
+            type: array
+            items:
+              type: object
+              properties:
+                trait_type:
+                  type: string
+                value:
+                  type: string
+            title: attributes
   bnbchain.greenfield.storage.QueryParamsResponse:
     type: object
     properties:
@@ -28044,6 +28304,13 @@ definitions:
       - SOURCE_TYPE_ORIGIN
       - SOURCE_TYPE_BSC_CROSS_CHAIN
     default: SOURCE_TYPE_ORIGIN
+  bnbchain.greenfield.storage.Trait:
+    type: object
+    properties:
+      trait_type:
+        type: string
+      value:
+        type: string
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object
     properties:
