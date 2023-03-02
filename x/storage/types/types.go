@@ -12,6 +12,11 @@ type (
 	Uint = sdkmath.Uint
 )
 
+const (
+	tagKeyTraits = "traits"
+	tagValueOmit = "omit"
+)
+
 func EncodeSequence(u Uint) []byte {
 	return u.Bytes()
 }
@@ -39,17 +44,13 @@ func toNFTMetaData(m interface{}) (*MetaData, error) {
 	typ := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
-		field := v.Field(i)
-		fieldName := typ.Field(i).Name
-		tag := typ.Field(i).Tag
-		if tag.Get("traits") == "omit" {
+		if typ.Field(i).Tag.Get(tagKeyTraits) == tagValueOmit {
 			continue
 		}
-		value := fmt.Sprintf("%v", field.Interface())
 		attributes = append(attributes,
 			Trait{
-				TraitType: fieldName,
-				Value:     value,
+				TraitType: typ.Field(i).Name,
+				Value:     fmt.Sprintf("%v", v.Field(i).Interface()),
 			})
 	}
 	name, err := getNFTName(m)

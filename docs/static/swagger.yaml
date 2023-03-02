@@ -1801,7 +1801,7 @@ paths:
         - Query
   /greenfield/storage/head_bucket_by_id/{bucket_id}:
     get:
-      summary: Queries a bucket by its id
+      summary: Queries a bucket by id
       operationId: HeadBucketById
       responses:
         '200':
@@ -1913,7 +1913,7 @@ paths:
         - Query
   /greenfield/storage/head_bucket_nft/{token_id}:
     get:
-      summary: Queries a bucket NFT by token id
+      summary: Queries a bucket with EIP712 standard metadata info
       operationId: HeadBucketNFT
       responses:
         '200':
@@ -1980,7 +1980,7 @@ paths:
         - Query
   /greenfield/storage/head_group_nft/{token_id}:
     get:
-      summary: Queries a group NFT by token id
+      summary: Queries a group with EIP712 standard metadata info
       operationId: HeadGroupNFT
       responses:
         '200':
@@ -2163,7 +2163,7 @@ paths:
         - Query
   /greenfield/storage/head_object_by_id/{object_id}:
     get:
-      summary: Queries a object by its id
+      summary: Queries a object by id
       operationId: HeadObjectById
       responses:
         '200':
@@ -2275,7 +2275,7 @@ paths:
         - Query
   /greenfield/storage/head_object_nft/{token_id}:
     get:
-      summary: Queries a object NFT by token id
+      summary: Queries a object with EIP712 standard metadata info
       operationId: HeadObjectNFT
       responses:
         '200':

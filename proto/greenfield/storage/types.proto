@@ -35,7 +35,10 @@ message BucketInfo {
   // payment_price_time TODO(Owen): refine the comments
   int64 payment_price_time = 10;
   // payment_out_flows
-  repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false, (gogoproto.moretags) = "traits:\"omit\""];
+  repeated payment.OutFlowInUSD payment_out_flows = 11 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "traits:\"omit\""
+  ];
 }
 
 message ObjectInfo {

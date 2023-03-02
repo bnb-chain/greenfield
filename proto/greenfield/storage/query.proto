@@ -27,7 +27,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_name}";
   }
 
-  // Queries a bucket by its id
+  // Queries a bucket by id
   rpc HeadBucketById(QueryHeadBucketByIdRequest) returns (QueryHeadBucketResponse) {
     option (google.api.http).get = "/greenfield/storage/head_bucket_by_id/{bucket_id}";
   }
@@ -42,7 +42,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_object/{bucket_name}/{object_name}";
   }
 
-  // Queries a object by its id
+  // Queries a object by id
   rpc HeadObjectById(QueryHeadObjectByIdRequest) returns (QueryHeadObjectResponse) {
     option (google.api.http).get = "/greenfield/storage/head_object_by_id/{object_id}";
   }

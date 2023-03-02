@@ -828,15 +828,15 @@ type QueryClient interface {
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 	// Queries a bucket with specify name.
 	HeadBucket(ctx context.Context, in *QueryHeadBucketRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error)
-	// Queries a bucket by its id
+	// Queries a bucket by id
 	HeadBucketById(ctx context.Context, in *QueryHeadBucketByIdRequest, opts ...grpc.CallOption) (*QueryHeadBucketResponse, error)
-	// Queries a bucket NFT by token id
+	// Queries a bucket with EIP712 standard metadata info
 	HeadBucketNFT(ctx context.Context, in *QueryNFTRequest, opts ...grpc.CallOption) (*QueryNFTResponse, error)
 	// Queries a object with specify name.
 	HeadObject(ctx context.Context, in *QueryHeadObjectRequest, opts ...grpc.CallOption) (*QueryHeadObjectResponse, error)
-	// Queries a object by its id
+	// Queries a object by id
 	HeadObjectById(ctx context.Context, in *QueryHeadObjectByIdRequest, opts ...grpc.CallOption) (*QueryHeadObjectResponse, error)
-	// Queries a object NFT by token id
+	// Queries a object with EIP712 standard metadata info
 	HeadObjectNFT(ctx context.Context, in *QueryNFTRequest, opts ...grpc.CallOption) (*QueryNFTResponse, error)
 	// Queries a list of bucket items.
 	ListBuckets(ctx context.Context, in *QueryListBucketsRequest, opts ...grpc.CallOption) (*QueryListBucketsResponse, error)
@@ -844,7 +844,7 @@ type QueryClient interface {
 	ListObjects(ctx context.Context, in *QueryListObjectsRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error)
 	// Queries a list of object items under the bucket.
 	ListObjectsByBucketId(ctx context.Context, in *QueryListObjectsByBucketIdRequest, opts ...grpc.CallOption) (*QueryListObjectsResponse, error)
-	// Queries a group NFT by token id
+	// Queries a group with EIP712 standard metadata info
 	HeadGroupNFT(ctx context.Context, in *QueryNFTRequest, opts ...grpc.CallOption) (*QueryNFTResponse, error)
 }
 
@@ -961,15 +961,15 @@ type QueryServer interface {
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 	// Queries a bucket with specify name.
 	HeadBucket(context.Context, *QueryHeadBucketRequest) (*QueryHeadBucketResponse, error)
-	// Queries a bucket by its id
+	// Queries a bucket by id
 	HeadBucketById(context.Context, *QueryHeadBucketByIdRequest) (*QueryHeadBucketResponse, error)
-	// Queries a bucket NFT by token id
+	// Queries a bucket with EIP712 standard metadata info
 	HeadBucketNFT(context.Context, *QueryNFTRequest) (*QueryNFTResponse, error)
 	// Queries a object with specify name.
 	HeadObject(context.Context, *QueryHeadObjectRequest) (*QueryHeadObjectResponse, error)
-	// Queries a object by its id
+	// Queries a object by id
 	HeadObjectById(context.Context, *QueryHeadObjectByIdRequest) (*QueryHeadObjectResponse, error)
-	// Queries a object NFT by token id
+	// Queries a object with EIP712 standard metadata info
 	HeadObjectNFT(context.Context, *QueryNFTRequest) (*QueryNFTResponse, error)
 	// Queries a list of bucket items.
 	ListBuckets(context.Context, *QueryListBucketsRequest) (*QueryListBucketsResponse, error)
@@ -977,7 +977,7 @@ type QueryServer interface {
 	ListObjects(context.Context, *QueryListObjectsRequest) (*QueryListObjectsResponse, error)
 	// Queries a list of object items under the bucket.
 	ListObjectsByBucketId(context.Context, *QueryListObjectsByBucketIdRequest) (*QueryListObjectsResponse, error)
-	// Queries a group NFT by token id
+	// Queries a group with EIP712 standard metadata info
 	HeadGroupNFT(context.Context, *QueryNFTRequest) (*QueryNFTResponse, error)
 }
 
