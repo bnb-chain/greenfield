@@ -6,10 +6,9 @@ import (
 	"time"
 	"unsafe"
 
-	"sigs.k8s.io/yaml"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	"sigs.k8s.io/yaml"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
 )
@@ -80,4 +79,9 @@ func YamlString(data interface{}) string {
 		panic(err)
 	}
 	return string(bz)
+}
+
+// RandInt64 generate random int64 between min and max
+func RandInt64(min, max int64) int64 {
+	return min + rand.Int63n(max-min)
 }

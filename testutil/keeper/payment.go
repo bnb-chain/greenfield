@@ -4,11 +4,7 @@ import (
 	"math/rand"
 	"testing"
 
-	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -17,6 +13,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -29,6 +26,8 @@ import (
 
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {

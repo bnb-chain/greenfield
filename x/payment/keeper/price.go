@@ -3,8 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func (k Keeper) GetStoragePrice(ctx sdk.Context, params types.StoragePriceParams) (price types.StoragePrice, err error) {

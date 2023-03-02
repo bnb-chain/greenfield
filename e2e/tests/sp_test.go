@@ -2,20 +2,20 @@ package tests
 
 import (
 	"context"
-	"math/rand"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 type StorageProviderTestSuite struct {
@@ -140,8 +140,8 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	s.Require().NoError(err)
 	s.T().Log(spStoragePrice)
 	// update storage price
-	newReadPrice := sdk.NewDec(randInt64(100, 200))
-	newStorePrice := sdk.NewDec(randInt64(10000, 20000))
+	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
+	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
 	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     spAddr,
 		ExpireTime:    time.Now().Unix() + 86400,
@@ -187,9 +187,4 @@ func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
 	}
 	expectedSecondarySpStorePrice := sptypes.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
 	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
-}
-
-// generate random int64 between min and max
-func randInt64(min, max int64) int64 {
-	return min + rand.Int63n(max-min)
 }
