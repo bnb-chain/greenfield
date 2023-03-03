@@ -22,5 +22,7 @@ func TestGetParams(t *testing.T) {
 	require.EqualValues(t, params.SlashAmountMin, k.SlashAmountMin(ctx))
 	require.EqualValues(t, params.SlashAmountMax, k.SlashAmountMax(ctx))
 	require.EqualValues(t, params.RewardValidatorRatio, k.RewardValidatorRatio(ctx))
-	require.EqualValues(t, params.RewardChallengerRatio, k.RewardChallengerRatio(ctx))
+	require.EqualValues(t, params.RewardSubmitterRatio, k.RewardSubmitterRatio(ctx))
+	require.EqualValues(t, params.RewardSubmitterThreshold, k.RewardSubmitterThreshold(ctx))
+	require.EqualValues(t, params.HeartbeatInterval, k.HeartbeatInterval(ctx))
 }

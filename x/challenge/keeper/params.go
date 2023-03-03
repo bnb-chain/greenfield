@@ -16,10 +16,9 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.SlashAmountMin(ctx),
 		k.SlashAmountMax(ctx),
 		k.RewardValidatorRatio(ctx),
-		k.RewardChallengerRatio(ctx),
+		k.RewardSubmitterRatio(ctx),
+		k.RewardSubmitterThreshold(ctx),
 		k.HeartbeatInterval(ctx),
-		k.HeartbeatRewardRate(ctx),
-		k.HeartbeatRewardThreshold(ctx),
 	)
 }
 
@@ -64,9 +63,9 @@ func (k Keeper) RewardValidatorRatio(ctx sdk.Context) (res sdk.Dec) {
 	return
 }
 
-// RewardChallengerRatio returns the RewardChallengerRatio param
-func (k Keeper) RewardChallengerRatio(ctx sdk.Context) (res sdk.Dec) {
-	k.paramstore.Get(ctx, types.KeyRewardChallengerRatio, &res)
+// RewardSubmitterRatio returns the RewardSubmitterRatio param
+func (k Keeper) RewardSubmitterRatio(ctx sdk.Context) (res sdk.Dec) {
+	k.paramstore.Get(ctx, types.KeyRewardSubmitterRatio, &res)
 	return
 }
 
@@ -76,14 +75,8 @@ func (k Keeper) HeartbeatInterval(ctx sdk.Context) (res uint64) {
 	return
 }
 
-// HeartbeatRewardRate returns the HeartbeatRewardRate param
-func (k Keeper) HeartbeatRewardRate(ctx sdk.Context) (res sdk.Dec) {
-	k.paramstore.Get(ctx, types.KeyHeartbeatRewardRate, &res)
-	return
-}
-
-// HeartbeatRewardThreshold returns the HeartbeatRewardThreshold param
-func (k Keeper) HeartbeatRewardThreshold(ctx sdk.Context) (res math.Int) {
-	k.paramstore.Get(ctx, types.KeyHeartbeatRewardThreshold, &res)
+// RewardSubmitterThreshold returns the RewardSubmitterThreshold param
+func (k Keeper) RewardSubmitterThreshold(ctx sdk.Context) (res math.Int) {
+	k.paramstore.Get(ctx, types.KeyRewardSubmitterThreshold, &res)
 	return
 }

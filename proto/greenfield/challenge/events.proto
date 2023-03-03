@@ -31,7 +31,7 @@ message EventStartChallenge {
   string challenger_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message EventCompleteChallenge {
+message EventAttestChallenge {
   // The id of challenge.
   uint64 challenge_id = 1;
 
@@ -56,14 +56,6 @@ message EventCompleteChallenge {
   // The reward amount to the submitter.
   string submitter_reward_amount = 8;
 
-  // The addresses of validators participated in the attestation.
-  repeated string validator_addresses = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  // The reward amount to the each validator.
+  // The reward amount to all validators.
   string validator_reward_amount = 10;
-}
-
-message EventChallengeHeartbeat {
-  // The id of challenge.
-  uint64 challenge_id = 1;
 }

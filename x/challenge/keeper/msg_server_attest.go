@@ -5,12 +5,14 @@ import (
 	"math/big"
 	"strings"
 
+	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/challenge/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+
+	"github.com/bnb-chain/greenfield/x/challenge/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.MsgAttestResponse, error) {
@@ -54,18 +56,21 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 			Height:            uint64(ctx.BlockHeight()),
 		}
 		k.SaveSlash(ctx, slash)
-		k.SetAttestChallengeId(ctx, msg.ChallengeId)
-	}
+	} else {
+		// check whether it is a heartbeat attest
+		heartbeatInterval := k.HeartbeatInterval(ctx)
+		if msg.ChallengeId%heartbeatInterval == 0 {
+			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heart challenge should be submitted at interval %d", heartbeatInterval)
+		}
 
-	// check whether it is a heartbeat, and will trigger rewards
-	heartbeatInterval := k.HeartbeatInterval(ctx)
-	if msg.ChallengeId%heartbeatInterval == 0 {
-		// reward tx validator & submitter
+		// reward validators & tx submitter
 		err = k.doHeartbeatAndRewards(ctx, msg)
 		if err != nil {
 			return nil, err
 		}
+
 	}
+	k.SetAttestChallengeId(ctx, msg.ChallengeId)
 
 	return &types.MsgAttestResponse{}, nil
 }
@@ -93,24 +98,29 @@ func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkm
 func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, challenger string, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	challengerReward := sdkmath.ZeroInt()
 	var eachValidatorReward sdkmath.Int
-	var submitterReward sdkmath.Int
-	if challenger != "" { // the challenge is submitted by challenger
-		challengerRatio := k.RewardChallengerRatio(ctx)
-		challengerReward = challengerRatio.MulInt(total).TruncateInt()
 
+	threshold := k.RewardSubmitterThreshold(ctx)
+	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
+	if submitterReward.GT(threshold) {
+		submitterReward = threshold
+	}
+	total = total.Sub(submitterReward)
+
+	if challenger != "" { // the challenge is triggered by blockchain automatically
+		eachValidatorReward = total.Quo(sdk.NewIntFromUint64(uint64(validators)))
+		for i := int64(0); i < validators; i++ {
+			total = total.Sub(eachValidatorReward)
+		}
+		// send remaining to submitter
+		submitterReward = submitterReward.Add(total)
+	} else { // the challenge is submitted by challenger
 		validatorRatio := k.RewardValidatorRatio(ctx)
 		eachValidatorReward = validatorRatio.MulInt(total).QuoInt64(validators).TruncateInt()
 		for i := int64(0); i < validators; i++ {
 			total = total.Sub(eachValidatorReward)
 		}
-
-		submitterReward = total.Sub(challengerReward)
-	} else { // the challenge is triggered by blockchain automatically
-		eachValidatorReward = total.Quo(sdk.NewIntFromUint64(uint64(validators)))
-		for i := int64(0); i < validators; i++ {
-			total = total.Sub(eachValidatorReward)
-		}
-		submitterReward = total
+		// the left is rewarded to challenger
+		challengerReward = total
 	}
 	return challengerReward, eachValidatorReward, submitterReward
 }
@@ -158,7 +168,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *ty
 		return err
 	}
 
-	event := types.EventCompleteChallenge{
+	event := types.EventAttestChallenge{
 		ChallengeId:            msg.ChallengeId,
 		Result:                 msg.VoteResult,
 		SpOperatorAddress:      msg.SpOperatorAddress,
@@ -167,20 +177,16 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *ty
 		ChallengerRewardAmount: challengerReward.String(),
 		SubmitterAddress:       submitter,
 		SubmitterRewardAmount:  submitterReward.String(),
-		ValidatorAddresses:     validators,
-		ValidatorRewardAmount:  eachValidatorReward.String(),
+		ValidatorRewardAmount:  eachValidatorReward.MulRaw(int64(len(validators))).String(),
 	}
 	return ctx.EventManager().EmitTypedEvents(&event)
 }
 
 func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
-	var submitterReward sdkmath.Int
-	threshold := k.HeartbeatRewardThreshold(ctx)
-	rated := k.HeartbeatRewardRate(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
-	if rated.GT(threshold) {
+	threshold := k.RewardSubmitterThreshold(ctx)
+	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
+	if submitterReward.GT(threshold) {
 		submitterReward = threshold
-	} else {
-		submitterReward = rated
 	}
 
 	return total.Sub(submitterReward), submitterReward
@@ -196,8 +202,9 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, msg *types.MsgAttest) 
 	totalAmount := reward.Amount
 	denom := reward.Denom
 
+	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
 	if !totalAmount.IsZero() {
-		validatorReward, submitterReward := k.calculateHeartbeatRewards(ctx, totalAmount)
+		validatorReward, submitterReward = k.calculateHeartbeatRewards(ctx, totalAmount)
 		if validatorReward.IsPositive() && submitterReward.IsPositive() {
 			toValidator := sdk.Coins{
 				sdk.Coin{Denom: denom, Amount: validatorReward},
@@ -216,7 +223,15 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, msg *types.MsgAttest) 
 			}
 		}
 	}
-	return ctx.EventManager().EmitTypedEvents(&types.EventChallengeHeartbeat{
-		ChallengeId: msg.ChallengeId,
+	return ctx.EventManager().EmitTypedEvents(&types.EventAttestChallenge{
+		ChallengeId:            msg.ChallengeId,
+		Result:                 msg.VoteResult,
+		SpOperatorAddress:      msg.SpOperatorAddress,
+		SlashAmount:            "",
+		ChallengerAddress:      msg.ChallengerAddress,
+		ChallengerRewardAmount: "",
+		SubmitterAddress:       msg.Submitter,
+		SubmitterRewardAmount:  submitterReward.String(),
+		ValidatorRewardAmount:  validatorReward.String(),
 	})
 }

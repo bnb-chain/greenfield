@@ -76,8 +76,8 @@ func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
 		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardValidatorRatio), func(r *rand.Rand) string {
 			return string(types.Amino.MustMarshalJSON(challengeParams.RewardValidatorRatio))
 		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardChallengerRatio), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.RewardChallengerRatio))
+		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardSubmitterRatio), func(r *rand.Rand) string {
+			return string(types.Amino.MustMarshalJSON(challengeParams.RewardSubmitterRatio))
 		}),
 	}
 }
