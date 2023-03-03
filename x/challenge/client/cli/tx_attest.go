@@ -38,7 +38,8 @@ func CmdAttest() *cobra.Command {
 			}
 
 			argVoteResult, err := strconv.ParseUint(args[3], 10, 32)
-			if err != nil || argVoteResult != uint64(types.CHALLENGE_SUCCEED) {
+			if err != nil ||
+				(argVoteResult != uint64(types.CHALLENGE_SUCCEED) && argVoteResult != uint64(types.CHALLENGE_FAILED)) {
 				return fmt.Errorf("vote-result %s not a valid uint, please input a valid vote-result", args[3])
 			}
 

@@ -26,6 +26,11 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 }
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
+	objectCount := keeper.StorageKeeper.GetObjectInfoCount(ctx)
+	if objectCount.IsZero() {
+		return
+	}
+
 	count := keeper.GetChallengeCountCurrentBlock(ctx)
 	needed := keeper.ChallengeCountPerBlock(ctx)
 	if count >= needed {
@@ -40,10 +45,6 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		seed := k.SeedFromRandaoMix(ctx.BlockHeader().RandaoMix, iteration)
 
 		// random object info
-		objectCount := keeper.StorageKeeper.GetObjectInfoCount(ctx)
-		if objectCount.IsZero() {
-			return
-		}
 		objectId := k.RandomObjectId(seed, objectCount)
 		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, objectId)
 		if !found { // there is no object info yet, cannot generate challenges
@@ -79,7 +80,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			continue
 		}
 
-		mapKey := fmt.Sprintf("%s-%d", spOperatorAddress, objectInfo.Id)
+		mapKey := fmt.Sprintf("%s-%s", spOperatorAddress, objectInfo.Id.String())
 		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
 			continue
 		}

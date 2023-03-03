@@ -3,6 +3,7 @@ package types
 import (
 	"encoding/binary"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -49,31 +50,31 @@ func (msg *MsgAttest) GetSignBytes() []byte {
 func (msg *MsgAttest) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid submitter address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid submitter address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
 	}
 
-	if msg.VoteResult != CHALLENGE_SUCCEED {
-		return sdkerrors.Wrap(ErrInvalidVoteResult, "only succeed challenge can submit attest")
+	if msg.VoteResult != CHALLENGE_SUCCEED && msg.VoteResult != CHALLENGE_FAILED {
+		return errors.Wrap(ErrInvalidVoteResult, "vote result should be 0 or 1")
 	}
 
 	if msg.ChallengerAddress != "" {
 		_, err = sdk.AccAddressFromHexUnsafe(msg.ChallengerAddress)
 		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid challenger address (%s)", err)
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid challenger address (%s)", err)
 		}
 	}
 
 	if len(msg.VoteValidatorSet) == 0 {
-		return sdkerrors.Wrap(ErrInvalidVoteValidatorSet, "vote validator set cannot be empty")
+		return errors.Wrap(ErrInvalidVoteValidatorSet, "vote validator set cannot be empty")
 	}
 
 	if len(msg.VoteAggSignature) != BlsSignatureLength {
-		return sdkerrors.Wrap(ErrInvalidVoteAggSignature, "length of aggregated signature is invalid")
+		return errors.Wrap(ErrInvalidVoteAggSignature, "length of aggregated signature is invalid")
 	}
 
 	return nil

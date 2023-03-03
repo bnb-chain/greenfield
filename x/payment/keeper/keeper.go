@@ -59,3 +59,8 @@ func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (res sdk.Coin) {
 		Amount: sdkmath.NewInt(0),
 	}
 }
+
+func (k Keeper) TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amt sdk.Coins) error {
+	//TODO implement me
+	return nil
+}

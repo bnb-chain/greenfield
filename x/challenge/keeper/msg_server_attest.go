@@ -6,10 +6,11 @@ import (
 	"strings"
 
 	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 )
 
 func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.MsgAttestResponse, error) {
@@ -34,26 +35,41 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		return nil, err
 	}
 
-	// check slash
-	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), msg.ObjectId) {
-		return nil, types.ErrDuplicatedSlash
+	if msg.VoteResult == types.CHALLENGE_SUCCEED {
+		// check slash
+		if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), msg.ObjectId) {
+			return nil, types.ErrDuplicatedSlash
+		}
+
+		// do slash & reward
+		objectSize := objectInfo.PayloadSize
+		err = k.doSlashAndRewards(ctx, uint64(objectSize), msg, validators)
+		if err != nil {
+			return nil, err
+		}
+
+		slash := types.Slash{
+			SpOperatorAddress: strings.ToLower(msg.SpOperatorAddress),
+			ObjectId:          msg.ObjectId,
+			Height:            uint64(ctx.BlockHeight()),
+		}
+		k.SaveSlash(ctx, slash)
 	}
 
-	// do slash & reward
-	objectSize := objectInfo.PayloadSize
-	k.doSlashAndRewards(ctx, uint64(objectSize), msg, validators)
-
-	slash := types.Slash{
-		SpOperatorAddress: strings.ToLower(msg.SpOperatorAddress),
-		ObjectId:          msg.ObjectId,
-		Height:            uint64(ctx.BlockHeight()),
+	// check whether it is a heartbeat, and will trigger rewards
+	heartbeatInterval := k.HeartbeatInterval(ctx)
+	if msg.ChallengeId%heartbeatInterval == 0 {
+		// reward tx validator & submitter
+		err = k.doHeartbeatAndRewards(ctx, msg)
+		if err != nil {
+			return nil, err
+		}
 	}
-	k.SaveSlash(ctx, slash)
 
 	return &types.MsgAttestResponse{}, nil
 }
 
-func (k msgServer) calculateChallengeSlash(ctx sdk.Context, objectSize uint64) sdkmath.Int {
+func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
 	sizeRate := k.SlashAmountSizeRate(ctx)
 	decSize := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize))
 	decRoot, err := decSize.ApproxSqrt()
@@ -73,7 +89,7 @@ func (k msgServer) calculateChallengeSlash(ctx sdk.Context, objectSize uint64) s
 	return slashAmount
 }
 
-func (k msgServer) calculateChallengeRewards(ctx sdk.Context, total sdkmath.Int, challenger, submitter string, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
+func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, challenger string, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	challengerReward := sdkmath.ZeroInt()
 	var eachValidatorReward sdkmath.Int
 	var submitterReward sdkmath.Int
@@ -93,18 +109,18 @@ func (k msgServer) calculateChallengeRewards(ctx sdk.Context, total sdkmath.Int,
 		for i := int64(0); i < validators; i++ {
 			total = total.Sub(eachValidatorReward)
 		}
-		submitterReward = total.Sub(challengerReward)
+		submitterReward = total
 	}
 	return challengerReward, eachValidatorReward, submitterReward
 }
 
-func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *types.MsgAttest, validators []string) {
+func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *types.MsgAttest, validators []string) error {
 	submitter := msg.Submitter
 	challenger := msg.ChallengerAddress
 
-	slashAmount := k.calculateChallengeSlash(ctx, objectSize)
-	challengerReward, eachValidatorReward, submitterReward := k.calculateChallengeRewards(ctx, slashAmount,
-		challenger, submitter, int64(len(validators)))
+	slashAmount := k.calculateSlashAmount(ctx, objectSize)
+	challengerReward, eachValidatorReward, submitterReward := k.calculateSlashRewards(ctx, slashAmount,
+		challenger, int64(len(validators)))
 
 	denom := k.SpKeeper.DepositDenomForSP(ctx)
 	rewards := make([]sptypes.RewardInfo, 0)
@@ -134,16 +150,16 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *ty
 		}})
 	spOperatorAddress, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	err = k.SpKeeper.Slash(ctx, spOperatorAddress, rewards)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	event := types.EventCompleteChallenge{
 		ChallengeId:            msg.ChallengeId,
-		Result:                 types.CHALLENGE_SUCCEED,
+		Result:                 msg.VoteResult,
 		SpOperatorAddress:      msg.SpOperatorAddress,
 		SlashAmount:            slashAmount.String(),
 		ChallengerAddress:      challenger,
@@ -153,5 +169,53 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, objectSize uint64, msg *ty
 		ValidatorAddresses:     validators,
 		ValidatorRewardAmount:  eachValidatorReward.String(),
 	}
-	_ = ctx.EventManager().EmitTypedEvents(&event)
+	return ctx.EventManager().EmitTypedEvents(&event)
+}
+
+func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
+	var submitterReward sdkmath.Int
+	threshold := k.HeartbeatRewardThreshold(ctx)
+	rated := k.HeartbeatRewardRate(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
+	if rated.GT(threshold) {
+		submitterReward = threshold
+	} else {
+		submitterReward = rated
+	}
+
+	return total.Sub(submitterReward), submitterReward
+}
+
+func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, msg *types.MsgAttest) error {
+	submitterAddress, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
+	if err != nil {
+		return err
+	}
+
+	reward := k.paymentKeeper.QueryValidatorRewards(ctx)
+	totalAmount := reward.Amount
+	denom := reward.Denom
+
+	if !totalAmount.IsZero() {
+		validatorReward, submitterReward := k.calculateHeartbeatRewards(ctx, totalAmount)
+		if validatorReward.IsPositive() && submitterReward.IsPositive() {
+			toValidator := sdk.Coins{
+				sdk.Coin{Denom: denom, Amount: validatorReward},
+			}
+			distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
+			err = k.paymentKeeper.TransferValidatorRewards(ctx, distModuleAcc, toValidator)
+			if err != nil {
+				return err
+			}
+			toSubmitter := sdk.Coins{
+				sdk.Coin{Denom: denom, Amount: submitterReward},
+			}
+			err = k.paymentKeeper.TransferValidatorRewards(ctx, submitterAddress, toSubmitter)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return ctx.EventManager().EmitTypedEvents(&types.EventChallengeHeartbeat{
+		ChallengeId: msg.ChallengeId,
+	})
 }

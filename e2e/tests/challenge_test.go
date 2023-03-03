@@ -162,7 +162,7 @@ func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, relayerKey s
 	return valBitSet
 }
 
-func (s *ChallengeTestSuite) TestAttest() {
+func (s *ChallengeTestSuite) TestNormalAttest() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	bucketName, objectName, primarySp, _ := s.createObject()
@@ -190,60 +190,62 @@ func (s *ChallengeTestSuite) TestAttest() {
 	s.Require().True(txRes.Code == 0)
 }
 
-func (s *ChallengeTestSuite) TestHeartbeat() {
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
+func (s *ChallengeTestSuite) TestHeartbeatAttest() {
+	for i := 0; i < 3; i++ {
+		s.createObject()
+	}
 
 	heartbeatInterval := uint64(100)
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	for i := 0; ; i++ {
-		bucketName, objectName, primarySp, _ := s.createObject()
-		msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
-		s.SendTxBlock(msgSubmit, user)
-
+	var event challengetypes.EventStartChallenge
+	found := false
+	height := int64(0)
+	for {
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
-		height := statusRes.SyncInfo.LatestBlockHeight
+		height = statusRes.SyncInfo.LatestBlockHeight
 
+		time.Sleep(10 * time.Millisecond)
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 		s.Require().NoError(err)
 		events := filterEventFromBlock(blockRes)
 
-		length := len(events)
-
-		if length > 0 && i == 0 && events[length-1].ChallengeId >= heartbeatInterval {
-			heartbeatInterval = ((events[length-1].ChallengeId / heartbeatInterval) + 1) * heartbeatInterval
-			fmt.Println("Need to wait for challenge id", heartbeatInterval)
+		for _, e := range events {
+			if e.ChallengeId%heartbeatInterval == 0 {
+				event = e
+				found = true
+				break
+			}
 		}
-		if length > 0 && events[length-1].ChallengeId > heartbeatInterval {
+		if found == true {
 			break
 		}
-		if length > 0 {
-			fmt.Println("Current challenge id", events[length-1].ChallengeId)
+
+		if len(events) > 0 {
+			fmt.Println("Current challenge id", events[len(events)-1].ChallengeId)
 		}
 		time.Sleep(5 * time.Second)
 	}
 
-	statusRes, err := s.TmClient.TmClient.Status(context.Background())
-	s.Require().NoError(err)
-	height := statusRes.SyncInfo.LatestBlockHeight
-
 	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
 
-	msgBroadcast := challengetypes.NewMsgHeartbeat(user.GetAddr(), heartbeatInterval, valBitset.Bytes(), nil)
-	toSign := msgBroadcast.GetBlsSignBytes()
+	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId,
+		event.SpOperatorAddress, challengetypes.CHALLENGE_SUCCEED, "", valBitset.Bytes(), nil)
+	toSign := msgAttest.GetBlsSignBytes()
 
 	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
-	msgBroadcast.VoteAggSignature = voteAggSignature
+	msgAttest.VoteAggSignature = voteAggSignature
 
-	txRes := s.SendTxBlock(msgBroadcast, user)
+	txRes := s.SendTxBlock(msgAttest, user)
 	s.Require().True(txRes.Code == 0)
 }
 
 func (s *ChallengeTestSuite) TestEndBlock() {
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 3; i++ {
 		s.createObject()
 	}
 

@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -46,12 +47,12 @@ func (msg *MsgSubmit) GetSignBytes() []byte {
 func (msg *MsgSubmit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Challenger)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid challenger address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid challenger address (%s)", err)
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
 	}
 
 	if err = storagetypes.CheckValidBucketName(msg.BucketName); err != nil {

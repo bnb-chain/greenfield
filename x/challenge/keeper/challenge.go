@@ -49,26 +49,6 @@ func (k Keeper) SetAttestChallengeId(ctx sdk.Context, challengeId uint64) {
 	store.Set(types.AttestChallengeIdKey, bz)
 }
 
-// GetHeartbeatChallengeId gets the challenge id of the latest heartbeat challenge
-func (k Keeper) GetHeartbeatChallengeId(ctx sdk.Context) uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := store.Get(types.HeartbeatChallengeIdKey)
-
-	if bz == nil {
-		return 0
-	}
-
-	return binary.BigEndian.Uint64(bz)
-}
-
-// SetHeartbeatChallengeId sets the new id of challenge to the store
-func (k Keeper) SetHeartbeatChallengeId(ctx sdk.Context, challengeId uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, challengeId)
-	store.Set(types.HeartbeatChallengeIdKey, bz)
-}
-
 // GetChallengeCountCurrentBlock gets the count of challenges
 func (k Keeper) GetChallengeCountCurrentBlock(ctx sdk.Context) uint64 {
 	store := ctx.TransientStore(k.tKey)

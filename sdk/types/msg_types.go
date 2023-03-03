@@ -72,7 +72,6 @@ type (
 	MsgUpdateGroupMember = storagetypes.MsgUpdateGroupMember
 	MsgLeaveGroup        = storagetypes.MsgLeaveGroup
 
-	MsgSubmit    = challengetypes.MsgSubmit
-	MsgAttest    = challengetypes.MsgAttest
-	MsgHeartbeat = challengetypes.MsgHeartbeat
+	MsgSubmit = challengetypes.MsgSubmit
+	MsgAttest = challengetypes.MsgAttest
 )

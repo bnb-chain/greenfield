@@ -14,7 +14,6 @@ option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 service Msg {
   rpc Submit(MsgSubmit) returns (MsgSubmitResponse);
   rpc Attest(MsgAttest) returns (MsgAttestResponse);
-  rpc Heartbeat(MsgHeartbeat) returns (MsgHeartbeatResponse);
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 
@@ -75,23 +74,5 @@ message MsgAttest {
 }
 
 message MsgAttestResponse {}
-
-message MsgHeartbeat {
-  option (cosmos.msg.v1.signer) = "submitter";
-
-  // The submitter address.
-  string submitter = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  // The id of the challenge.
-  uint64 challenge_id = 2;
-
-  // The validators participated in the attestation.
-  repeated fixed64 vote_validator_set = 3;
-
-  // The aggregated BLS signature from the validators.
-  bytes vote_agg_signature = 4;
-}
-
-message MsgHeartbeatResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
