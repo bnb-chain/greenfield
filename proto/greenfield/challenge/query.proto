@@ -1,11 +1,14 @@
 syntax = "proto3";
+
 package bnbchain.greenfield.challenge;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/challenge/params.proto";
 import "greenfield/challenge/types.proto";
+
 // this line is used by starport scaffolding # 1
 
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
@@ -17,11 +20,11 @@ service Query {
     option (google.api.http).get = "/bnb-chain/greenfield/challenge/params";
   }
   // Queries a list of LatestAttestedChallenge items.
-	rpc LatestAttestedChallenge(QueryLatestAttestedChallengeRequest) returns (QueryLatestAttestedChallengeResponse) {
-		option (google.api.http).get = "/bnb-chain/greenfield/challenge/latest_attested_challenge";
-	}
+  rpc LatestAttestedChallenge(QueryLatestAttestedChallengeRequest) returns (QueryLatestAttestedChallengeResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/challenge/latest_attested_challenge";
+  }
 
-// this line is used by starport scaffolding # 2
+  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -33,8 +36,7 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryLatestAttestedChallengeRequest {
-}
+message QueryLatestAttestedChallengeRequest {}
 
 message QueryLatestAttestedChallengeResponse {
   uint64 challengeId = 1;
