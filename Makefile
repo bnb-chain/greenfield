@@ -50,5 +50,5 @@ e2e_test:
 lint:
 	golangci-lint run --fix
 
-ci: proto-format-check build test e2e_test lint
+ci: proto-format-check build test e2e_start_localchain e2e_test lint
 	echo "ci passed"

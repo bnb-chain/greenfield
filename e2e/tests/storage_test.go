@@ -185,6 +185,91 @@ func (s *StorageTestSuite) TestCreateObject() {
 	s.SendTxBlock(msgDeleteBucket, user)
 }
 
+func (s *StorageTestSuite) TestDeleteBucket() {
+	var err error
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	sp := s.StorageProviders[0]
+	// 1. CreateBucket1
+	bucketName1 := core.GenRandomBucketName()
+	msgCreateBucket1 := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName1, false, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil)
+	msgCreateBucket1.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket1.
+		GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket1, user)
+
+	// 2. CreateBucket1
+	bucketName2 := core.GenRandomBucketName()
+	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName2, false, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil)
+	msgCreateBucket2.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket2.
+		GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket2, user)
+
+	// 3. Create object into bucket1
+	// CreateObject
+	objectName := core.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName1, objectName, uint64(payloadSize),
+		false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateObject, user)
+
+	// SealObject
+	secondarySPs := []sdk.AccAddress{
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+	}
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName1, objectName,
+		secondarySPs, nil)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+	s.Require().NoError(err)
+	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+	s.Require().NoError(err)
+
+	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
+	msgSealObject.SecondarySpSignatures = secondarySigs
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(msgSealObject, sp.SealKey)
+
+	// 4. Delete bucket2
+	msgDeleteBucket2 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName2)
+	s.SendTxBlock(msgDeleteBucket2, user)
+
+	// 5. Delete object
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName1, objectName)
+	s.SendTxBlock(msgDeleteObject, user)
+
+	// 6. delete bucket1
+	msgDeleteBucket1 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName1)
+	s.SendTxBlock(msgDeleteBucket1, user)
+}
+
 func (s *StorageTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamRecord) {
 	ctx := context.Background()
 	streamRecordResp, err := s.Client.StreamRecord(ctx, &paymenttypes.QueryGetStreamRecordRequest{
@@ -386,13 +471,13 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	reserveTime := paymentParams.Params.ReserveTime
 	forcedSettleTime := paymentParams.Params.ForcedSettleTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    sp.OperatorKey.GetAddr().String(),
-		Timestamp: time.Now().Unix(),
+		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	paymentAccountBNBNeeded := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota * reserveTime)).TruncateInt()
+	expectedRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota)).TruncateInt()
 
 	// create payment account and deposit
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
@@ -424,6 +509,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	// check payment account stream record
 	paymentAccountStreamRecord := s.GetStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecord %s", core.YamlString(paymentAccountStreamRecord))
+	s.Require().Equal(expectedRate.String(), paymentAccountStreamRecord.NetflowRate.Neg().String())
 	s.Require().Equal(paymentAccountStreamRecord.BufferBalance.String(), paymentAccountBNBNeeded.String())
 	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.String(), sdkmath.ZeroInt().String())
 
@@ -471,91 +557,6 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	// user settle time become refreshed
 	s.Require().NotEqual(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecord.SettleTimestamp)
 	s.Require().Equal(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecordAfterAutoSettle.CrudTimestamp+int64(reserveTime-forcedSettleTime))
-}
-
-func (s *StorageTestSuite) TestDeleteBucket() {
-	var err error
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	sp := s.StorageProviders[0]
-	// 1. CreateBucket1
-	bucketName1 := core.GenRandomBucketName()
-	msgCreateBucket1 := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName1, false, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
-	msgCreateBucket1.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket1.
-		GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket1, user)
-
-	// 2. CreateBucket1
-	bucketName2 := core.GenRandomBucketName()
-	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName2, false, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
-	msgCreateBucket2.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket2.
-		GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket2, user)
-
-	// 3. Create object into bucket1
-	// CreateObject
-	objectName := core.GenRandomObjectName()
-	// create test buffer
-	var buffer bytes.Buffer
-	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
-	1234567890,1234567890,1234567890,123`
-	// Create 1MiB content where each line contains 1024 characters.
-	for i := 0; i < 1024; i++ {
-		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
-	}
-	payloadSize := buffer.Len()
-	checksum := sdk.Keccak256(buffer.Bytes())
-	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
-	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName1, objectName, uint64(payloadSize),
-		false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
-	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
-
-	// SealObject
-	secondarySPs := []sdk.AccAddress{
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-	}
-	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName1, objectName,
-		secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
-	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
-	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
-	s.Require().NoError(err)
-
-	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
-	msgSealObject.SecondarySpSignatures = secondarySigs
-	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, sp.SealKey)
-
-	// 4. Delete bucket2
-	msgDeleteBucket2 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName2)
-	s.SendTxBlock(msgDeleteBucket2, user)
-
-	// 5. Delete object
-	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName1, objectName)
-	s.SendTxBlock(msgDeleteObject, user)
-
-	// 6. delete bucket1
-	msgDeleteBucket1 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName1)
-	s.SendTxBlock(msgDeleteBucket1, user)
 }
 
 func TestStorageTestSuite(t *testing.T) {

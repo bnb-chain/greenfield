@@ -145,6 +145,9 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
 	userFlows.From = bucketInfo.PaymentAddress
+	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ReadQuota == 0 {
+		return userFlows, nil
+	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: bucketInfo.PrimarySpAddress,
 		PriceTime: bucketInfo.BillingInfo.PriceTime,
