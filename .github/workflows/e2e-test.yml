@@ -56,5 +56,4 @@ jobs:
         cat ./deployment/localup/.env
     - name: run e2e test
       run: |
-        make e2e_start_chain
-        make e2e_test
+        make e2e_start_localchain e2e_test
