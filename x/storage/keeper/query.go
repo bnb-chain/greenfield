@@ -90,6 +90,10 @@ func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRe
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
+	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
+		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var bucketInfos []types.BucketInfo
@@ -114,7 +118,9 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-
+	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
+		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
+	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	var objectInfos []types.ObjectInfo
@@ -138,6 +144,9 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryListObjectsByBucketIdRequest) (*types.QueryListObjectsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
+		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)

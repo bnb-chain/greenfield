@@ -13,8 +13,9 @@ type (
 )
 
 const (
-	tagKeyTraits = "traits"
-	tagValueOmit = "omit"
+	TagKeyTraits       = "traits"
+	TagValueOmit       = "omit"
+	MaxPaginationLimit = 200 // the default limit is 100 if pagination parameters is not provided
 )
 
 func EncodeSequence(u Uint) []byte {
@@ -44,7 +45,7 @@ func toNFTMetaData(m interface{}) (*MetaData, error) {
 	typ := v.Type()
 
 	for i := 0; i < v.NumField(); i++ {
-		if typ.Field(i).Tag.Get(tagKeyTraits) == tagValueOmit {
+		if typ.Field(i).Tag.Get(TagKeyTraits) == TagValueOmit {
 			continue
 		}
 		attributes = append(attributes,
