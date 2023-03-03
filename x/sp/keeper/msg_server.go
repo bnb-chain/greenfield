@@ -28,9 +28,13 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	signers := msg.GetSigners()
-	if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
-		return nil, types.ErrSignerNotGovModule
+	if ctx.BlockHeight() == 0 {
+		// TODO may add delegator address to check
+	} else {
+		signers := msg.GetSigners()
+		if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
+			return nil, types.ErrSignerNotGovModule
+		}
 	}
 
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)

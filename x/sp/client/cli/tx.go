@@ -4,26 +4,14 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/spf13/cobra"
-
-	"github.com/bnb-chain/greenfield/x/sp/types"
-)
-
-const (
-	FlagSpendLimit = "spend-limit"
-	FlagSpAddress  = "SPAddress"
-	FlagExpiration = "expiration"
-	FlagEndpoint   = "endpoint"
-
-	FlagEditMoniker = "new-moniker"
-	FlagIdentity    = "identity"
-	FlagWebsite     = "website"
-	FlagDetails     = "details"
+	flag "github.com/spf13/pflag"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -212,4 +200,180 @@ func getExpireTime(cmd *cobra.Command) (*time.Time, error) {
 	}
 	e := time.Unix(exp, 0)
 	return &e, nil
+}
+
+// CreateStorageProviderMsgFlagSet Return the flagset, particular flags, and a description of defaults
+// this is anticipated to be used with the gen-tx
+func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaultsDesc string) {
+	fsCreateStorageProvider := flag.NewFlagSet("", flag.ContinueOnError)
+	fsCreateStorageProvider.String(FlagIP, ipDefault, "The node's public IP")
+	fsCreateStorageProvider.String(FlagNodeID, "", "The node's NodeID")
+
+	fsCreateStorageProvider.String(FlagMoniker, "", "The sp's name")
+	fsCreateStorageProvider.String(FlagWebsite, "", "The validator's (optional) website")
+	fsCreateStorageProvider.String(FlagSecurityContact, "", "The validator's (optional) security contact email")
+	fsCreateStorageProvider.String(FlagDetails, "", "The validator's (optional) details")
+	fsCreateStorageProvider.String(FlagIdentity, "", "The (optional) identity signature (ex. UPort or Keybase)")
+
+	fsCreateStorageProvider.String(FlagCreator, "", "The creator address of storage provider")
+	fsCreateStorageProvider.String(FlagSpAddress, "", "The account address of storage provider")
+	fsCreateStorageProvider.String(FlagFundingAddress, "", "The funding address of storage provider")
+	fsCreateStorageProvider.String(FlagSealAddress, "", "The seal address of storage provider")
+	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
+
+	fsCreateStorageProvider.String(FlagEndpoint, "", "The storage provider's endpoint")
+
+	return fsCreateStorageProvider, defaultsDesc
+}
+
+type TxCreateStorageProviderConfig struct {
+	ChainID string
+	NodeID  string
+
+	Creator sdk.AccAddress
+
+	Moniker         string
+	Identity        string
+	Website         string
+	SecurityContact string
+	Details         string
+
+	SpAddress       sdk.AccAddress
+	FundingAddress  sdk.AccAddress
+	SealAddress     sdk.AccAddress
+	ApprovalAddress sdk.AccAddress
+
+	Endpoint string
+
+	Deposit string
+}
+
+func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateStorageProviderConfig, error) {
+	c := TxCreateStorageProviderConfig{}
+
+	// Creator
+	creator, err := flagSet.GetString(FlagCreator)
+	if err != nil {
+		return c, err
+	}
+	addr, err := sdk.AccAddressFromHexUnsafe(creator)
+	if err != nil {
+		return c, err
+	}
+	c.Creator = addr
+
+	// Description
+	moniker, err := flagSet.GetString(FlagMoniker)
+	if err != nil {
+		return c, err
+	}
+	c.Moniker = moniker
+
+	identity, err := flagSet.GetString(FlagIdentity)
+	if err != nil {
+		return c, err
+	}
+	c.Identity = identity
+
+	website, err := flagSet.GetString(FlagWebsite)
+	if err != nil {
+		return c, err
+	}
+	c.Website = website
+
+	securityContact, err := flagSet.GetString(FlagSecurityContact)
+	if err != nil {
+		return c, err
+	}
+	c.SecurityContact = securityContact
+
+	details, err := flagSet.GetString(FlagDetails)
+	if err != nil {
+		return c, err
+	}
+	c.Details = details
+
+	// spAddress
+	spAddress, err := flagSet.GetString(FlagSpAddress)
+	fmt.Println(spAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(spAddress)
+	if err != nil {
+		return c, err
+	}
+	c.SpAddress = addr
+
+	// funding address
+	fundingAddress, err := flagSet.GetString(FlagFundingAddress)
+	fmt.Println(fundingAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(fundingAddress)
+	if err != nil {
+		return c, err
+	}
+	c.FundingAddress = addr
+
+	// seal address
+	sealAddress, err := flagSet.GetString(FlagSealAddress)
+	fmt.Println(fundingAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(sealAddress)
+	if err != nil {
+		return c, err
+	}
+	c.SealAddress = addr
+
+	// approval address
+	approvalAddress, err := flagSet.GetString(FlagApprovalAddress)
+	fmt.Println(fundingAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(approvalAddress)
+	if err != nil {
+		return c, err
+	}
+	c.ApprovalAddress = addr
+
+	// Endpoint
+	endpoint, err := flagSet.GetString(FlagEndpoint)
+	if err != nil {
+		return c, err
+	}
+	c.Endpoint = endpoint
+
+	return c, err
+}
+
+// BuildCreateStorageProviderMsg makes a new MsgCreateStorageProvider.
+func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr tx.Factory) (tx.Factory, sdk.Msg, error) {
+	depositStr := config.Deposit
+	deposit, err := sdk.ParseCoinNormalized(depositStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	description := types.NewDescription(
+		config.Moniker,
+		config.Identity,
+		config.Website,
+		config.Details,
+	)
+
+	msg, err := types.NewMsgCreateStorageProvider(
+		config.Creator, config.SpAddress, config.FundingAddress,
+		config.SealAddress, config.ApprovalAddress, description,
+		config.Endpoint, deposit,
+	)
+	if err != nil {
+		return txBldr, msg, err
+	}
+
+	return txBldr, msg, nil
 }

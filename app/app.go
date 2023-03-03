@@ -8,6 +8,9 @@ import (
 	"os"
 	"path/filepath"
 
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
+
+	"github.com/bnb-chain/greenfield/x/gensp"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -146,6 +149,7 @@ var (
 		auth.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		genutil.AppModuleBasic{},
+		gensp.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -528,6 +532,8 @@ func New(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
+		gensp.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
+			encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
@@ -576,6 +582,7 @@ func New(
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
@@ -600,6 +607,7 @@ func New(
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
 
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -630,6 +638,7 @@ func New(
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
