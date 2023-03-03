@@ -1932,10 +1932,7 @@ paths:
                     title: externalUrl a link to external site to view NFT
                   bucket_name:
                     type: string
-                  object_name:
-                    type: string
-                  group_name:
-                    type: string
+                    title: name of bucket NFT
                   image:
                     type: string
                     title: image is the link to image
@@ -1997,12 +1994,9 @@ paths:
                   external_url:
                     type: string
                     title: externalUrl a link to external site to view NFT
-                  bucket_name:
-                    type: string
-                  object_name:
-                    type: string
                   group_name:
                     type: string
+                    title: name of group NFT
                   image:
                     type: string
                     title: image is the link to image
@@ -2292,12 +2286,9 @@ paths:
                   external_url:
                     type: string
                     title: externalUrl a link to external site to view NFT
-                  bucket_name:
-                    type: string
                   object_name:
                     type: string
-                  group_name:
-                    type: string
+                    title: name of object NFT
                   image:
                     type: string
                     title: image is the link to image
@@ -27770,7 +27761,7 @@ definitions:
             OutFlowInUSD defines the accumulative outflow stream rate in USD
             from a stream account or a bucket to a SP
         title: payment_out_flows
-  bnbchain.greenfield.storage.MetaData:
+  bnbchain.greenfield.storage.BucketMetaData:
     type: object
     properties:
       description:
@@ -27781,10 +27772,32 @@ definitions:
         title: externalUrl a link to external site to view NFT
       bucket_name:
         type: string
-      object_name:
+        title: name of bucket NFT
+      image:
         type: string
+        title: image is the link to image
+      attributes:
+        type: array
+        items:
+          type: object
+          properties:
+            trait_type:
+              type: string
+            value:
+              type: string
+        title: attributes
+  bnbchain.greenfield.storage.GroupMetaData:
+    type: object
+    properties:
+      description:
+        type: string
+        title: description
+      external_url:
+        type: string
+        title: externalUrl a link to external site to view NFT
       group_name:
         type: string
+        title: name of group NFT
       image:
         type: string
         title: image is the link to image
@@ -27867,6 +27880,31 @@ definitions:
       locked_balance:
         type: string
         title: 'lockedBalance TODO(Owen): refine the comments'
+  bnbchain.greenfield.storage.ObjectMetaData:
+    type: object
+    properties:
+      description:
+        type: string
+        title: description
+      external_url:
+        type: string
+        title: externalUrl a link to external site to view NFT
+      object_name:
+        type: string
+        title: name of object NFT
+      image:
+        type: string
+        title: image is the link to image
+      attributes:
+        type: array
+        items:
+          type: object
+          properties:
+            trait_type:
+              type: string
+            value:
+              type: string
+        title: attributes
   bnbchain.greenfield.storage.ObjectStatus:
     type: string
     enum:
@@ -27897,6 +27935,62 @@ definitions:
         format: uint64
         title: 'max_payload_size is the maximum size of the payload, default: 2G'
     description: Params defines the parameters for the module.
+  bnbchain.greenfield.storage.QueryBucketNFTResponse:
+    type: object
+    properties:
+      meta_data:
+        type: object
+        properties:
+          description:
+            type: string
+            title: description
+          external_url:
+            type: string
+            title: externalUrl a link to external site to view NFT
+          bucket_name:
+            type: string
+            title: name of bucket NFT
+          image:
+            type: string
+            title: image is the link to image
+          attributes:
+            type: array
+            items:
+              type: object
+              properties:
+                trait_type:
+                  type: string
+                value:
+                  type: string
+            title: attributes
+  bnbchain.greenfield.storage.QueryGroupNFTResponse:
+    type: object
+    properties:
+      meta_data:
+        type: object
+        properties:
+          description:
+            type: string
+            title: description
+          external_url:
+            type: string
+            title: externalUrl a link to external site to view NFT
+          group_name:
+            type: string
+            title: name of group NFT
+          image:
+            type: string
+            title: image is the link to image
+          attributes:
+            type: array
+            items:
+              type: object
+              properties:
+                trait_type:
+                  type: string
+                value:
+                  type: string
+            title: attributes
   bnbchain.greenfield.storage.QueryHeadBucketResponse:
     type: object
     properties:
@@ -28245,7 +28339,7 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  bnbchain.greenfield.storage.QueryNFTResponse:
+  bnbchain.greenfield.storage.QueryObjectNFTResponse:
     type: object
     properties:
       meta_data:
@@ -28257,12 +28351,9 @@ definitions:
           external_url:
             type: string
             title: externalUrl a link to external site to view NFT
-          bucket_name:
-            type: string
           object_name:
             type: string
-          group_name:
-            type: string
+            title: name of object NFT
           image:
             type: string
             title: image is the link to image

@@ -177,7 +177,7 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 	return &types.QueryListObjectsResponse{ObjectInfos: objectInfos, Pagination: pageRes}, nil
 }
 
-func (k Keeper) HeadBucketNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryNFTResponse, error) {
+func (k Keeper) HeadBucketNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryBucketNFTResponse, error) {
 	id, err := validateAndGetId(req)
 	if err != nil {
 		return nil, err
@@ -187,16 +187,12 @@ func (k Keeper) HeadBucketNFT(goCtx context.Context, req *types.QueryNFTRequest)
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
-	md, err := bucketInfo.ToNFTMetadata()
-	if err != nil {
-		return nil, err
-	}
-	return &types.QueryNFTResponse{
-		MetaData: md,
+	return &types.QueryBucketNFTResponse{
+		MetaData: bucketInfo.ToNFTMetadata(),
 	}, nil
 }
 
-func (k Keeper) HeadObjectNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryNFTResponse, error) {
+func (k Keeper) HeadObjectNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryObjectNFTResponse, error) {
 	id, err := validateAndGetId(req)
 	if err != nil {
 		return nil, err
@@ -206,16 +202,12 @@ func (k Keeper) HeadObjectNFT(goCtx context.Context, req *types.QueryNFTRequest)
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
-	md, err := objectInfo.ToNFTMetadata()
-	if err != nil {
-		return nil, err
-	}
-	return &types.QueryNFTResponse{
-		MetaData: md,
+	return &types.QueryObjectNFTResponse{
+		MetaData: objectInfo.ToNFTMetadata(),
 	}, nil
 }
 
-func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryNFTResponse, error) {
+func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) (*types.QueryGroupNFTResponse, error) {
 	id, err := validateAndGetId(req)
 	if err != nil {
 		return nil, err
@@ -225,12 +217,8 @@ func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) 
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
-	md, err := groupInfo.ToNFTMetadata()
-	if err != nil {
-		return nil, err
-	}
-	return &types.QueryNFTResponse{
-		MetaData: md,
+	return &types.QueryGroupNFTResponse{
+		MetaData: groupInfo.ToNFTMetadata(),
 	}, nil
 }
 

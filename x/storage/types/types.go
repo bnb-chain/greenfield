@@ -27,23 +27,31 @@ func DecodeSequence(bz []byte) Uint {
 	return u.SetBytes(bz)
 }
 
-func (m *BucketInfo) ToNFTMetadata() (*MetaData, error) {
-	return toNFTMetaData(*m)
+func (m *BucketInfo) ToNFTMetadata() *BucketMetaData {
+	return &BucketMetaData{
+		BucketName: m.BucketName,
+		Attributes: getNFTAttributes(*m),
+	}
 }
 
-func (m *ObjectInfo) ToNFTMetadata() (*MetaData, error) {
-	return toNFTMetaData(*m)
+func (m *ObjectInfo) ToNFTMetadata() *ObjectMetaData {
+	return &ObjectMetaData{
+		ObjectName: m.ObjectName,
+		Attributes: getNFTAttributes(*m),
+	}
 }
 
-func (m *GroupInfo) ToNFTMetadata() (*MetaData, error) {
-	return toNFTMetaData(*m)
+func (m *GroupInfo) ToNFTMetadata() *GroupMetaData {
+	return &GroupMetaData{
+		GroupName:  m.GroupName,
+		Attributes: getNFTAttributes(*m),
+	}
 }
 
-func toNFTMetaData(m interface{}) (*MetaData, error) {
+func getNFTAttributes(m interface{}) []Trait {
 	attributes := make([]Trait, 0)
 	v := reflect.ValueOf(m)
 	typ := v.Type()
-
 	for i := 0; i < v.NumField(); i++ {
 		if typ.Field(i).Tag.Get(TagKeyTraits) == TagValueOmit {
 			continue
@@ -54,25 +62,5 @@ func toNFTMetaData(m interface{}) (*MetaData, error) {
 				Value:     fmt.Sprintf("%v", v.Field(i).Interface()),
 			})
 	}
-	name, err := getNFTName(m)
-	if err != nil {
-		return nil, err
-	}
-	return &MetaData{
-		Name:       name,
-		Attributes: attributes,
-	}, nil
-}
-
-func getNFTName(m interface{}) (isMetaData_Name, error) {
-	switch o := m.(type) {
-	case BucketInfo:
-		return &MetaData_BucketName{o.BucketName}, nil
-	case ObjectInfo:
-		return &MetaData_ObjectName{o.ObjectName}, nil
-	case GroupInfo:
-		return &MetaData_GroupName{o.GroupName}, nil
-	default:
-		return nil, ErrInvalidNFTType
-	}
+	return attributes
 }

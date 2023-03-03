@@ -472,36 +472,31 @@ func (m *Trait) GetValue() string {
 	return ""
 }
 
-type MetaData struct {
+type BucketMetaData struct {
 	// description
 	Description string `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
 	// externalUrl a link to external site to view NFT
 	ExternalUrl string `protobuf:"bytes,2,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
-	// name of NFT
-	//
-	// Types that are valid to be assigned to Name:
-	//	*MetaData_BucketName
-	//	*MetaData_ObjectName
-	//	*MetaData_GroupName
-	Name isMetaData_Name `protobuf_oneof:"name"`
+	// name of bucket NFT
+	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// image is the link to image
-	Image string `protobuf:"bytes,6,opt,name=image,proto3" json:"image,omitempty"`
+	Image string `protobuf:"bytes,4,opt,name=image,proto3" json:"image,omitempty"`
 	// attributes
-	Attributes []Trait `protobuf:"bytes,7,rep,name=attributes,proto3" json:"attributes"`
+	Attributes []Trait `protobuf:"bytes,5,rep,name=attributes,proto3" json:"attributes"`
 }
 
-func (m *MetaData) Reset()         { *m = MetaData{} }
-func (m *MetaData) String() string { return proto.CompactTextString(m) }
-func (*MetaData) ProtoMessage()    {}
-func (*MetaData) Descriptor() ([]byte, []int) {
+func (m *BucketMetaData) Reset()         { *m = BucketMetaData{} }
+func (m *BucketMetaData) String() string { return proto.CompactTextString(m) }
+func (*BucketMetaData) ProtoMessage()    {}
+func (*BucketMetaData) Descriptor() ([]byte, []int) {
 	return fileDescriptor_bf95fa2efdc74d97, []int{5}
 }
-func (m *MetaData) XXX_Unmarshal(b []byte) error {
+func (m *BucketMetaData) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MetaData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *BucketMetaData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MetaData.Marshal(b, m, deterministic)
+		return xxx_messageInfo_BucketMetaData.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -511,101 +506,213 @@ func (m *MetaData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 		return b[:n], nil
 	}
 }
-func (m *MetaData) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MetaData.Merge(m, src)
+func (m *BucketMetaData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_BucketMetaData.Merge(m, src)
 }
-func (m *MetaData) XXX_Size() int {
+func (m *BucketMetaData) XXX_Size() int {
 	return m.Size()
 }
-func (m *MetaData) XXX_DiscardUnknown() {
-	xxx_messageInfo_MetaData.DiscardUnknown(m)
+func (m *BucketMetaData) XXX_DiscardUnknown() {
+	xxx_messageInfo_BucketMetaData.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MetaData proto.InternalMessageInfo
+var xxx_messageInfo_BucketMetaData proto.InternalMessageInfo
 
-type isMetaData_Name interface {
-	isMetaData_Name()
-	MarshalTo([]byte) (int, error)
-	Size() int
-}
-
-type MetaData_BucketName struct {
-	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3,oneof" json:"bucket_name,omitempty"`
-}
-type MetaData_ObjectName struct {
-	ObjectName string `protobuf:"bytes,4,opt,name=object_name,json=objectName,proto3,oneof" json:"object_name,omitempty"`
-}
-type MetaData_GroupName struct {
-	GroupName string `protobuf:"bytes,5,opt,name=group_name,json=groupName,proto3,oneof" json:"group_name,omitempty"`
-}
-
-func (*MetaData_BucketName) isMetaData_Name() {}
-func (*MetaData_ObjectName) isMetaData_Name() {}
-func (*MetaData_GroupName) isMetaData_Name()  {}
-
-func (m *MetaData) GetName() isMetaData_Name {
-	if m != nil {
-		return m.Name
-	}
-	return nil
-}
-
-func (m *MetaData) GetDescription() string {
+func (m *BucketMetaData) GetDescription() string {
 	if m != nil {
 		return m.Description
 	}
 	return ""
 }
 
-func (m *MetaData) GetExternalUrl() string {
+func (m *BucketMetaData) GetExternalUrl() string {
 	if m != nil {
 		return m.ExternalUrl
 	}
 	return ""
 }
 
-func (m *MetaData) GetBucketName() string {
-	if x, ok := m.GetName().(*MetaData_BucketName); ok {
-		return x.BucketName
+func (m *BucketMetaData) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
 	}
 	return ""
 }
 
-func (m *MetaData) GetObjectName() string {
-	if x, ok := m.GetName().(*MetaData_ObjectName); ok {
-		return x.ObjectName
-	}
-	return ""
-}
-
-func (m *MetaData) GetGroupName() string {
-	if x, ok := m.GetName().(*MetaData_GroupName); ok {
-		return x.GroupName
-	}
-	return ""
-}
-
-func (m *MetaData) GetImage() string {
+func (m *BucketMetaData) GetImage() string {
 	if m != nil {
 		return m.Image
 	}
 	return ""
 }
 
-func (m *MetaData) GetAttributes() []Trait {
+func (m *BucketMetaData) GetAttributes() []Trait {
 	if m != nil {
 		return m.Attributes
 	}
 	return nil
 }
 
-// XXX_OneofWrappers is for the internal use of the proto package.
-func (*MetaData) XXX_OneofWrappers() []interface{} {
-	return []interface{}{
-		(*MetaData_BucketName)(nil),
-		(*MetaData_ObjectName)(nil),
-		(*MetaData_GroupName)(nil),
+type ObjectMetaData struct {
+	// description
+	Description string `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
+	// externalUrl a link to external site to view NFT
+	ExternalUrl string `protobuf:"bytes,2,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	// name of object NFT
+	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// image is the link to image
+	Image string `protobuf:"bytes,4,opt,name=image,proto3" json:"image,omitempty"`
+	// attributes
+	Attributes []Trait `protobuf:"bytes,5,rep,name=attributes,proto3" json:"attributes"`
+}
+
+func (m *ObjectMetaData) Reset()         { *m = ObjectMetaData{} }
+func (m *ObjectMetaData) String() string { return proto.CompactTextString(m) }
+func (*ObjectMetaData) ProtoMessage()    {}
+func (*ObjectMetaData) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bf95fa2efdc74d97, []int{6}
+}
+func (m *ObjectMetaData) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ObjectMetaData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ObjectMetaData.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
 	}
+}
+func (m *ObjectMetaData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ObjectMetaData.Merge(m, src)
+}
+func (m *ObjectMetaData) XXX_Size() int {
+	return m.Size()
+}
+func (m *ObjectMetaData) XXX_DiscardUnknown() {
+	xxx_messageInfo_ObjectMetaData.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ObjectMetaData proto.InternalMessageInfo
+
+func (m *ObjectMetaData) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *ObjectMetaData) GetExternalUrl() string {
+	if m != nil {
+		return m.ExternalUrl
+	}
+	return ""
+}
+
+func (m *ObjectMetaData) GetObjectName() string {
+	if m != nil {
+		return m.ObjectName
+	}
+	return ""
+}
+
+func (m *ObjectMetaData) GetImage() string {
+	if m != nil {
+		return m.Image
+	}
+	return ""
+}
+
+func (m *ObjectMetaData) GetAttributes() []Trait {
+	if m != nil {
+		return m.Attributes
+	}
+	return nil
+}
+
+type GroupMetaData struct {
+	// description
+	Description string `protobuf:"bytes,1,opt,name=description,proto3" json:"description,omitempty"`
+	// externalUrl a link to external site to view NFT
+	ExternalUrl string `protobuf:"bytes,2,opt,name=external_url,json=externalUrl,proto3" json:"external_url,omitempty"`
+	// name of group NFT
+	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
+	// image is the link to image
+	Image string `protobuf:"bytes,4,opt,name=image,proto3" json:"image,omitempty"`
+	// attributes
+	Attributes []Trait `protobuf:"bytes,5,rep,name=attributes,proto3" json:"attributes"`
+}
+
+func (m *GroupMetaData) Reset()         { *m = GroupMetaData{} }
+func (m *GroupMetaData) String() string { return proto.CompactTextString(m) }
+func (*GroupMetaData) ProtoMessage()    {}
+func (*GroupMetaData) Descriptor() ([]byte, []int) {
+	return fileDescriptor_bf95fa2efdc74d97, []int{7}
+}
+func (m *GroupMetaData) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupMetaData) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupMetaData.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GroupMetaData) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupMetaData.Merge(m, src)
+}
+func (m *GroupMetaData) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupMetaData) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupMetaData.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupMetaData proto.InternalMessageInfo
+
+func (m *GroupMetaData) GetDescription() string {
+	if m != nil {
+		return m.Description
+	}
+	return ""
+}
+
+func (m *GroupMetaData) GetExternalUrl() string {
+	if m != nil {
+		return m.ExternalUrl
+	}
+	return ""
+}
+
+func (m *GroupMetaData) GetGroupName() string {
+	if m != nil {
+		return m.GroupName
+	}
+	return ""
+}
+
+func (m *GroupMetaData) GetImage() string {
+	if m != nil {
+		return m.Image
+	}
+	return ""
+}
+
+func (m *GroupMetaData) GetAttributes() []Trait {
+	if m != nil {
+		return m.Attributes
+	}
+	return nil
 }
 
 func init() {
@@ -614,75 +721,77 @@ func init() {
 	proto.RegisterType((*GroupInfo)(nil), "bnbchain.greenfield.storage.GroupInfo")
 	proto.RegisterType((*GroupMemberInfo)(nil), "bnbchain.greenfield.storage.GroupMemberInfo")
 	proto.RegisterType((*Trait)(nil), "bnbchain.greenfield.storage.Trait")
-	proto.RegisterType((*MetaData)(nil), "bnbchain.greenfield.storage.MetaData")
+	proto.RegisterType((*BucketMetaData)(nil), "bnbchain.greenfield.storage.BucketMetaData")
+	proto.RegisterType((*ObjectMetaData)(nil), "bnbchain.greenfield.storage.ObjectMetaData")
+	proto.RegisterType((*GroupMetaData)(nil), "bnbchain.greenfield.storage.GroupMetaData")
 }
 
 func init() { proto.RegisterFile("greenfield/storage/types.proto", fileDescriptor_bf95fa2efdc74d97) }
 
 var fileDescriptor_bf95fa2efdc74d97 = []byte{
-	// 980 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xcd, 0x6e, 0xdb, 0x46,
-	0x10, 0x16, 0xf5, 0x57, 0x69, 0x28, 0xcb, 0x09, 0xa1, 0x16, 0x6c, 0x8c, 0x48, 0xb2, 0x0e, 0xa9,
-	0x82, 0xd4, 0x52, 0x91, 0x5e, 0x8a, 0xa2, 0x17, 0x0b, 0x69, 0x6a, 0x1d, 0xe2, 0xa4, 0x94, 0x7d,
-	0xe9, 0x85, 0x58, 0x92, 0x6b, 0x79, 0x6b, 0x72, 0x97, 0xdd, 0x5d, 0xd6, 0x56, 0x9e, 0xa2, 0x7d,
-	0x81, 0x3e, 0x45, 0x1e, 0x22, 0xc7, 0x34, 0xa7, 0x22, 0x07, 0xa3, 0xb0, 0xdf, 0xa0, 0xe7, 0x16,
-	0x28, 0xb8, 0xbb, 0x72, 0x24, 0x25, 0x90, 0x1b, 0x03, 0x3d, 0x89, 0x33, 0xfc, 0x66, 0x66, 0xe7,
-	0xdb, 0x6f, 0x46, 0x84, 0xf6, 0x94, 0x63, 0x4c, 0x8f, 0x08, 0x8e, 0xa3, 0xa1, 0x90, 0x8c, 0xa3,
-	0x29, 0x1e, 0xca, 0x59, 0x8a, 0xc5, 0x20, 0xe5, 0x4c, 0x32, 0x67, 0x2b, 0xa0, 0x41, 0x78, 0x8c,
-	0x08, 0x1d, 0xbc, 0x05, 0x0e, 0x0c, 0xf0, 0xce, 0xa7, 0x21, 0x13, 0x09, 0x13, 0xbe, 0x82, 0x0e,
-	0xb5, 0xa1, 0xe3, 0xee, 0xb4, 0xa6, 0x6c, 0xca, 0xb4, 0x3f, 0x7f, 0x32, 0xde, 0xbb, 0x0b, 0xd5,
-	0x52, 0x34, 0x4b, 0x30, 0x95, 0xc3, 0x00, 0x09, 0x6c, 0x5e, 0x77, 0xde, 0x73, 0x98, 0x90, 0x25,
-	0x09, 0xa3, 0x1a, 0xd0, 0xfb, 0xbb, 0x0c, 0x30, 0xca, 0xc2, 0x13, 0x2c, 0xc7, 0xf4, 0x88, 0x39,
-	0x03, 0xa8, 0xb0, 0x53, 0x8a, 0xb9, 0x6b, 0x75, 0xad, 0x7e, 0x7d, 0xe4, 0xbe, 0x7e, 0xb1, 0xd3,
-	0x32, 0xa7, 0xd8, 0x8d, 0x22, 0x8e, 0x85, 0x98, 0x48, 0x4e, 0xe8, 0xd4, 0xd3, 0x30, 0xa7, 0x03,
-	0x76, 0xa0, 0xa2, 0x7d, 0x8a, 0x12, 0xec, 0x16, 0xf3, 0x28, 0x0f, 0xb4, 0x6b, 0x1f, 0x25, 0xd8,
-	0xd9, 0x82, 0x3a, 0x11, 0x7e, 0x9a, 0x05, 0x31, 0x09, 0xdd, 0x52, 0xd7, 0xea, 0xd7, 0xbc, 0x1a,
-	0x11, 0xcf, 0x94, 0xed, 0x3c, 0x80, 0x22, 0x89, 0xdc, 0xb2, 0x2a, 0xb5, 0xf5, 0xf2, 0xbc, 0x53,
-	0x78, 0x73, 0xde, 0x29, 0x1f, 0x12, 0x2a, 0x5f, 0xbf, 0xd8, 0xb1, 0x4d, 0xd9, 0xdc, 0xf4, 0x8a,
-	0x24, 0x72, 0xf6, 0xc0, 0x16, 0x2c, 0xe3, 0x21, 0xf6, 0x73, 0x36, 0xdd, 0x4a, 0xd7, 0xea, 0x37,
-	0x1f, 0x7e, 0x36, 0x58, 0xc3, 0xe6, 0x60, 0xa2, 0xf0, 0x07, 0xb3, 0x14, 0x7b, 0x20, 0xae, 0x9e,
-	0xf3, 0x33, 0x85, 0x1c, 0x23, 0x89, 0x7d, 0x24, 0xdd, 0x6a, 0xd7, 0xea, 0x97, 0xbc, 0x9a, 0x76,
-	0xec, 0x4a, 0x67, 0x17, 0x36, 0x0d, 0x8f, 0x3e, 0xd2, 0x1d, 0xbb, 0x1f, 0x5d, 0xc3, 0x45, 0xd3,
-	0x04, 0x18, 0xaf, 0xf3, 0x18, 0x9c, 0x94, 0x93, 0x04, 0xf1, 0x99, 0x2f, 0xd2, 0xab, 0x2c, 0xb5,
-	0x6b, 0xb2, 0xdc, 0x32, 0x31, 0x93, 0x74, 0x9e, 0xe7, 0x5b, 0x00, 0x8e, 0x51, 0xe4, 0xff, 0x94,
-	0x31, 0x89, 0xdc, 0xba, 0x6a, 0xf8, 0xde, 0xda, 0x86, 0x3d, 0x8c, 0xa2, 0xef, 0x73, 0xb4, 0x57,
-	0xe7, 0xf3, 0x47, 0xe7, 0x73, 0x70, 0xe6, 0x1d, 0xa5, 0x9c, 0xe4, 0xfc, 0x91, 0x04, 0xbb, 0xa0,
-	0xfa, 0xbe, 0x65, 0xde, 0x3c, 0xcb, 0x5f, 0x1c, 0x90, 0x04, 0x3b, 0x31, 0xdc, 0x9e, 0xa3, 0x59,
-	0x26, 0xfd, 0xa3, 0x98, 0x9d, 0x0a, 0xd7, 0xee, 0x96, 0xfa, 0xf6, 0xc3, 0xfb, 0xef, 0xad, 0x6d,
-	0xd0, 0x83, 0xa7, 0x99, 0x7c, 0x1c, 0xb3, 0xd3, 0x31, 0x3d, 0x9c, 0x3c, 0x1a, 0x7d, 0x9c, 0xdf,
-	0xe6, 0x5f, 0xe7, 0x9d, 0x0d, 0xc9, 0x11, 0x91, 0xe2, 0xeb, 0x1e, 0x4b, 0x88, 0xec, 0x79, 0x73,
-	0x6a, 0x0d, 0x56, 0xf4, 0xfe, 0xa9, 0x00, 0x3c, 0x0d, 0x7e, 0xc4, 0xe1, 0xff, 0x24, 0xbf, 0x0e,
-	0xd8, 0x4c, 0xa5, 0xd7, 0x80, 0x92, 0x06, 0x68, 0x97, 0x02, 0x7c, 0x90, 0x04, 0xb7, 0xa1, 0x91,
-	0xa2, 0x59, 0xcc, 0x50, 0xe4, 0x0b, 0xf2, 0x5c, 0x6b, 0xb0, 0xec, 0xd9, 0xc6, 0x37, 0x21, 0xcf,
-	0x57, 0xf4, 0x5e, 0x5d, 0xd1, 0xfb, 0x36, 0x34, 0x42, 0x46, 0x65, 0xce, 0xad, 0xd2, 0xb0, 0x12,
-	0x96, 0x67, 0x1b, 0xdf, 0xbb, 0xda, 0xac, 0xad, 0x68, 0x73, 0x1f, 0x36, 0x4c, 0x37, 0x42, 0x22,
-	0x99, 0x09, 0xa3, 0x89, 0xfb, 0x6b, 0x35, 0xa1, 0xe9, 0x9d, 0xa8, 0x00, 0xaf, 0xc1, 0x16, 0x2c,
-	0xe7, 0x00, 0x36, 0x39, 0x8e, 0x32, 0x1a, 0x21, 0x1a, 0xce, 0xf4, 0x91, 0x40, 0x65, 0x7c, 0x70,
-	0x8d, 0xca, 0xe6, 0x31, 0x6a, 0xb4, 0x9a, 0x7c, 0xc9, 0x5e, 0x1d, 0x54, 0xfb, 0xe6, 0x83, 0x3a,
-	0x84, 0x7a, 0x78, 0x8c, 0xc3, 0x13, 0x91, 0x25, 0xc2, 0x6d, 0x74, 0x4b, 0xfd, 0xc6, 0xe8, 0xf6,
-	0xbb, 0xa2, 0x7a, 0x8b, 0x71, 0xf6, 0xe1, 0x13, 0x81, 0x43, 0x46, 0xa3, 0xe5, 0xd9, 0xc3, 0xc2,
-	0xdd, 0xe8, 0x96, 0xd6, 0x0a, 0xaa, 0x75, 0x15, 0x77, 0x35, 0x7f, 0x58, 0x38, 0x3e, 0x34, 0x63,
-	0x16, 0x9e, 0xe0, 0xc8, 0x0f, 0x50, 0x8c, 0x68, 0x88, 0xdd, 0xa6, 0x52, 0xca, 0x57, 0x6f, 0xce,
-	0x3b, 0xf7, 0xa6, 0x44, 0x1e, 0x67, 0xc1, 0x20, 0x64, 0x89, 0x59, 0xd4, 0xe6, 0x67, 0x47, 0x44,
-	0x27, 0x66, 0xe3, 0x8f, 0x95, 0x8e, 0xc0, 0x54, 0x1c, 0x53, 0xe9, 0x6d, 0xe8, 0x7c, 0x23, 0x9d,
-	0xae, 0xf7, 0xbb, 0x05, 0xf5, 0xef, 0x38, 0xcb, 0xd2, 0x1b, 0xc9, 0xff, 0x2e, 0xc0, 0x34, 0x0f,
-	0x5e, 0x54, 0x7f, 0x5d, 0x79, 0x94, 0xb6, 0x57, 0x2e, 0xa2, 0x74, 0xf3, 0x8b, 0xf8, 0x90, 0x29,
-	0xe9, 0xfd, 0x6a, 0xc1, 0xa6, 0xea, 0xe9, 0x09, 0x4e, 0x02, 0xcc, 0x55, 0x67, 0x5f, 0x40, 0x35,
-	0x51, 0xd6, 0xb5, 0xad, 0x19, 0x9c, 0x29, 0x59, 0xfc, 0x6f, 0x83, 0xd9, 0x01, 0x1b, 0x9f, 0xa5,
-	0x84, 0x9b, 0xdd, 0x56, 0x52, 0x73, 0x09, 0xda, 0x95, 0x6f, 0xb5, 0xde, 0x37, 0x50, 0x39, 0xc8,
-	0x45, 0x93, 0x53, 0xa6, 0xd4, 0xa3, 0x29, 0xb1, 0x34, 0x65, 0xca, 0xa3, 0x1a, 0x6d, 0x41, 0xe5,
-	0x67, 0x14, 0x67, 0x73, 0x32, 0xb5, 0xd1, 0xfb, 0xad, 0x08, 0xb5, 0x27, 0x58, 0xa2, 0x47, 0x48,
-	0x22, 0xa7, 0x0b, 0x76, 0x84, 0x45, 0xc8, 0x49, 0x2a, 0x09, 0xa3, 0x26, 0xc5, 0xa2, 0x2b, 0x1f,
-	0x73, 0x7c, 0x26, 0x31, 0xa7, 0x28, 0xf6, 0x33, 0x1e, 0x9b, 0x5c, 0xf6, 0xdc, 0x77, 0xc8, 0x63,
-	0x67, 0x7b, 0x79, 0x71, 0xa9, 0xbd, 0xb4, 0x57, 0x58, 0x5a, 0x5d, 0xdb, 0xcb, 0xab, 0xab, 0x3c,
-	0x87, 0x2c, 0x2c, 0xaf, 0xce, 0xd2, 0xfd, 0x57, 0x0c, 0x62, 0x41, 0x01, 0x2d, 0xa8, 0x90, 0x04,
-	0x4d, 0xb1, 0xda, 0x44, 0x75, 0x4f, 0x1b, 0xce, 0x1e, 0x00, 0x92, 0x92, 0x93, 0x20, 0x93, 0x38,
-	0xff, 0x77, 0xcb, 0x77, 0x7b, 0x6f, 0xad, 0x2c, 0x14, 0x77, 0xa3, 0x72, 0x7e, 0x0d, 0xde, 0x42,
-	0xec, 0xa8, 0x0a, 0xe5, 0xbc, 0xf4, 0x68, 0xfc, 0xf2, 0xa2, 0x6d, 0xbd, 0xba, 0x68, 0x5b, 0x7f,
-	0x5e, 0xb4, 0xad, 0x5f, 0x2e, 0xdb, 0x85, 0x57, 0x97, 0xed, 0xc2, 0x1f, 0x97, 0xed, 0xc2, 0x0f,
-	0xc3, 0x85, 0x29, 0x09, 0x68, 0xb0, 0xa3, 0x4a, 0x0c, 0x17, 0xbe, 0x4a, 0xce, 0x96, 0x3f, 0x92,
-	0x82, 0xaa, 0xfa, 0x2e, 0xf9, 0xf2, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xba, 0xd1, 0x08, 0x3a,
-	0x47, 0x09, 0x00, 0x00,
+	// 982 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xc1, 0x6e, 0xdb, 0x46,
+	0x10, 0x35, 0x4d, 0xc9, 0x95, 0x86, 0x92, 0x9c, 0x10, 0x6a, 0xc1, 0xc6, 0x88, 0xa4, 0xe8, 0x90,
+	0x2a, 0x48, 0x2d, 0x15, 0xe9, 0xa5, 0x28, 0x7a, 0xb1, 0x90, 0xa6, 0xd1, 0x21, 0x4e, 0x4a, 0xd9,
+	0x97, 0x5e, 0x88, 0x25, 0xb9, 0x96, 0xb7, 0x26, 0x77, 0xd9, 0xdd, 0x65, 0x6d, 0xe5, 0x2b, 0xda,
+	0x7f, 0xc9, 0x47, 0xe4, 0x98, 0xa6, 0x40, 0x51, 0xe4, 0x60, 0x14, 0xf6, 0x1f, 0xf4, 0xdc, 0x02,
+	0x05, 0x77, 0x57, 0x8e, 0x2c, 0x07, 0x72, 0x63, 0xc4, 0x27, 0x71, 0x86, 0x6f, 0x66, 0xf9, 0x1e,
+	0xdf, 0x8c, 0x08, 0xad, 0x09, 0xc7, 0x98, 0xee, 0x11, 0x9c, 0xc4, 0x03, 0x21, 0x19, 0x47, 0x13,
+	0x3c, 0x90, 0xd3, 0x0c, 0x8b, 0x7e, 0xc6, 0x99, 0x64, 0xee, 0x46, 0x48, 0xc3, 0x68, 0x1f, 0x11,
+	0xda, 0x7f, 0x0b, 0xec, 0x1b, 0xe0, 0xad, 0x4f, 0x23, 0x26, 0x52, 0x26, 0x02, 0x05, 0x1d, 0xe8,
+	0x40, 0xd7, 0xdd, 0x6a, 0x4e, 0xd8, 0x84, 0xe9, 0x7c, 0x71, 0x65, 0xb2, 0xb7, 0xe7, 0x4e, 0xcb,
+	0xd0, 0x34, 0xc5, 0x54, 0x0e, 0x42, 0x24, 0xb0, 0xb9, 0xdd, 0x7e, 0xc7, 0xc3, 0x44, 0x2c, 0x4d,
+	0x19, 0xd5, 0x80, 0xee, 0x3f, 0x25, 0x80, 0x61, 0x1e, 0x1d, 0x60, 0x39, 0xa2, 0x7b, 0xcc, 0xed,
+	0x43, 0x99, 0x1d, 0x52, 0xcc, 0x3d, 0xab, 0x63, 0xf5, 0xaa, 0x43, 0xef, 0xf5, 0x8b, 0xcd, 0xa6,
+	0x79, 0x8a, 0xad, 0x38, 0xe6, 0x58, 0x88, 0xb1, 0xe4, 0x84, 0x4e, 0x7c, 0x0d, 0x73, 0xdb, 0xe0,
+	0x84, 0xaa, 0x3a, 0xa0, 0x28, 0xc5, 0xde, 0x6a, 0x51, 0xe5, 0x83, 0x4e, 0x6d, 0xa3, 0x14, 0xbb,
+	0x1b, 0x50, 0x25, 0x22, 0xc8, 0xf2, 0x30, 0x21, 0x91, 0x67, 0x77, 0xac, 0x5e, 0xc5, 0xaf, 0x10,
+	0xf1, 0x4c, 0xc5, 0xee, 0x7d, 0x58, 0x25, 0xb1, 0x57, 0x52, 0x47, 0x6d, 0xbc, 0x3c, 0x6e, 0xaf,
+	0xbc, 0x39, 0x6e, 0x97, 0x76, 0x09, 0x95, 0xaf, 0x5f, 0x6c, 0x3a, 0xe6, 0xd8, 0x22, 0xf4, 0x57,
+	0x49, 0xec, 0x3e, 0x06, 0x47, 0xb0, 0x9c, 0x47, 0x38, 0x28, 0xd4, 0xf4, 0xca, 0x1d, 0xab, 0xd7,
+	0x78, 0xf0, 0x59, 0x7f, 0x89, 0x9a, 0xfd, 0xb1, 0xc2, 0xef, 0x4c, 0x33, 0xec, 0x83, 0x38, 0xbb,
+	0x2e, 0x9e, 0x29, 0xe2, 0x18, 0x49, 0x1c, 0x20, 0xe9, 0xad, 0x75, 0xac, 0x9e, 0xed, 0x57, 0x74,
+	0x62, 0x4b, 0xba, 0x5b, 0xb0, 0x6e, 0x74, 0x0c, 0x90, 0x66, 0xec, 0x7d, 0x74, 0x89, 0x16, 0x0d,
+	0x53, 0x60, 0xb2, 0xee, 0x23, 0x70, 0x33, 0x4e, 0x52, 0xc4, 0xa7, 0x81, 0xc8, 0xce, 0xba, 0x54,
+	0x2e, 0xe9, 0x72, 0xc3, 0xd4, 0x8c, 0xb3, 0x59, 0x9f, 0x6f, 0x01, 0x38, 0x46, 0x71, 0xf0, 0x53,
+	0xce, 0x24, 0xf2, 0xaa, 0x8a, 0xf0, 0xdd, 0xa5, 0x84, 0x7d, 0x8c, 0xe2, 0xef, 0x0b, 0xb4, 0x5f,
+	0xe5, 0xb3, 0x4b, 0xf7, 0x73, 0x70, 0x67, 0x8c, 0x32, 0x4e, 0x0a, 0xfd, 0x48, 0x8a, 0x3d, 0x50,
+	0xbc, 0x6f, 0x98, 0x3b, 0xcf, 0x8a, 0x1b, 0x3b, 0x24, 0xc5, 0x6e, 0x02, 0x37, 0x67, 0x68, 0x96,
+	0xcb, 0x60, 0x2f, 0x61, 0x87, 0xc2, 0x73, 0x3a, 0x76, 0xcf, 0x79, 0x70, 0xef, 0x9d, 0x67, 0x1b,
+	0x74, 0xff, 0x69, 0x2e, 0x1f, 0x25, 0xec, 0x70, 0x44, 0x77, 0xc7, 0x0f, 0x87, 0x1f, 0x17, 0x6f,
+	0xf3, 0xef, 0xe3, 0x76, 0x5d, 0x72, 0x44, 0xa4, 0xf8, 0xba, 0xcb, 0x52, 0x22, 0xbb, 0xfe, 0x4c,
+	0x5a, 0x83, 0x15, 0xdd, 0x7f, 0xcb, 0x00, 0x4f, 0xc3, 0x1f, 0x71, 0x74, 0x4d, 0xf6, 0x6b, 0x83,
+	0xc3, 0x54, 0x7b, 0x0d, 0xb0, 0x35, 0x40, 0xa7, 0x14, 0xe0, 0xbd, 0x2c, 0x78, 0x07, 0x6a, 0x19,
+	0x9a, 0x26, 0x0c, 0xc5, 0x81, 0x20, 0xcf, 0xb5, 0x07, 0x4b, 0xbe, 0x63, 0x72, 0x63, 0xf2, 0x7c,
+	0xc1, 0xef, 0x6b, 0x0b, 0x7e, 0xbf, 0x03, 0xb5, 0x88, 0x51, 0x59, 0x68, 0xab, 0x3c, 0xac, 0x8c,
+	0xe5, 0x3b, 0x26, 0x77, 0xd1, 0x9b, 0x95, 0x05, 0x6f, 0x6e, 0x43, 0xdd, 0xb0, 0x11, 0x12, 0xc9,
+	0x5c, 0x18, 0x4f, 0xdc, 0x5b, 0xea, 0x09, 0x2d, 0xef, 0x58, 0x15, 0xf8, 0x35, 0x36, 0x17, 0xb9,
+	0x3b, 0xb0, 0xce, 0x71, 0x9c, 0xd3, 0x18, 0xd1, 0x68, 0xaa, 0x1f, 0x09, 0x54, 0xc7, 0xfb, 0x97,
+	0xb8, 0x6c, 0x56, 0xa3, 0x46, 0xab, 0xc1, 0xcf, 0xc5, 0x8b, 0x83, 0xea, 0x5c, 0x7d, 0x50, 0x07,
+	0x50, 0x8d, 0xf6, 0x71, 0x74, 0x20, 0xf2, 0x54, 0x78, 0xb5, 0x8e, 0xdd, 0xab, 0x0d, 0x6f, 0x5e,
+	0x34, 0xd5, 0x5b, 0x8c, 0xbb, 0x0d, 0x9f, 0x08, 0x1c, 0x31, 0x1a, 0x9f, 0x9f, 0x3d, 0x2c, 0xbc,
+	0x7a, 0xc7, 0x5e, 0x6a, 0xa8, 0xe6, 0x59, 0xdd, 0xd9, 0xfc, 0x61, 0xe1, 0x06, 0xd0, 0x48, 0x58,
+	0x74, 0x80, 0xe3, 0x20, 0x44, 0x09, 0xa2, 0x11, 0xf6, 0x1a, 0xca, 0x29, 0x5f, 0xbd, 0x39, 0x6e,
+	0xdf, 0x9d, 0x10, 0xb9, 0x9f, 0x87, 0xfd, 0x88, 0xa5, 0x66, 0x51, 0x9b, 0x9f, 0x4d, 0x11, 0x1f,
+	0x98, 0x8d, 0x3f, 0x52, 0x3e, 0x02, 0x73, 0xe2, 0x88, 0x4a, 0xbf, 0xae, 0xfb, 0x0d, 0x75, 0xbb,
+	0xee, 0x6f, 0x16, 0x54, 0xbf, 0xe3, 0x2c, 0xcf, 0xae, 0x64, 0xff, 0xdb, 0x00, 0x93, 0xa2, 0x78,
+	0xde, 0xfd, 0x55, 0x95, 0x51, 0xde, 0x5e, 0x78, 0x11, 0xf6, 0xd5, 0x5f, 0xc4, 0xfb, 0x4c, 0x49,
+	0xf7, 0x57, 0x0b, 0xd6, 0x15, 0xa7, 0x27, 0x38, 0x0d, 0x31, 0x57, 0xcc, 0xbe, 0x80, 0xb5, 0x54,
+	0x45, 0x97, 0x52, 0x33, 0x38, 0x73, 0xe4, 0xea, 0xff, 0x1b, 0xcc, 0x36, 0x38, 0xf8, 0x28, 0x23,
+	0xdc, 0xec, 0x36, 0x5b, 0xcd, 0x25, 0xe8, 0x54, 0xb1, 0xd5, 0xba, 0xdf, 0x40, 0x79, 0xa7, 0x30,
+	0x4d, 0x21, 0x99, 0x72, 0x8f, 0x96, 0xc4, 0xd2, 0x92, 0xa9, 0x8c, 0x22, 0xda, 0x84, 0xf2, 0xcf,
+	0x28, 0xc9, 0x67, 0x62, 0xea, 0xa0, 0xfb, 0x87, 0x05, 0x0d, 0xfd, 0x27, 0xf9, 0x04, 0x4b, 0xf4,
+	0x10, 0x49, 0xe4, 0x76, 0xc0, 0x89, 0xb1, 0x88, 0x38, 0xc9, 0x24, 0x61, 0xd4, 0x34, 0x9a, 0x4f,
+	0x15, 0xc3, 0x8e, 0x8f, 0x24, 0xe6, 0x14, 0x25, 0x41, 0xce, 0x13, 0xd3, 0xd1, 0x99, 0xe5, 0x76,
+	0x79, 0xb2, 0xb8, 0xbe, 0xec, 0x0b, 0xeb, 0xab, 0x09, 0x65, 0x92, 0xa2, 0x09, 0xd6, 0xd2, 0xfb,
+	0x3a, 0x70, 0x1f, 0x03, 0x20, 0x29, 0x39, 0x09, 0x73, 0x89, 0x85, 0x57, 0x56, 0xbb, 0xb9, 0xbb,
+	0xf4, 0xb5, 0x2a, 0xee, 0xc3, 0x52, 0x21, 0xa3, 0x3f, 0x57, 0xab, 0x88, 0xe9, 0xfd, 0xf0, 0xc1,
+	0x89, 0x2d, 0x5f, 0xbb, 0xd7, 0x4d, 0xec, 0x77, 0x0b, 0xea, 0xc6, 0x83, 0x1f, 0x92, 0xd7, 0xf9,
+	0x81, 0xb3, 0x17, 0x07, 0xee, 0x9a, 0x59, 0x0d, 0x47, 0x2f, 0x4f, 0x5a, 0xd6, 0xab, 0x93, 0x96,
+	0xf5, 0xd7, 0x49, 0xcb, 0xfa, 0xe5, 0xb4, 0xb5, 0xf2, 0xea, 0xb4, 0xb5, 0xf2, 0xe7, 0x69, 0x6b,
+	0xe5, 0x87, 0xc1, 0xdc, 0x32, 0x0a, 0x69, 0xb8, 0xa9, 0x5a, 0x0f, 0xe6, 0x3e, 0xfe, 0x8e, 0xce,
+	0x7f, 0x8b, 0x86, 0x6b, 0xea, 0xf3, 0xef, 0xcb, 0xff, 0x02, 0x00, 0x00, 0xff, 0xff, 0xae, 0xb7,
+	0xb2, 0xda, 0xae, 0x0a, 0x00, 0x00,
 }
 
 func (m *BucketInfo) Marshal() (dAtA []byte, err error) {
@@ -1050,7 +1159,7 @@ func (m *Trait) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaData) Marshal() (dAtA []byte, err error) {
+func (m *BucketMetaData) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1060,12 +1169,12 @@ func (m *MetaData) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MetaData) MarshalTo(dAtA []byte) (int, error) {
+func (m *BucketMetaData) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *BucketMetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1081,7 +1190,7 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 				i = encodeVarintTypes(dAtA, i, uint64(size))
 			}
 			i--
-			dAtA[i] = 0x3a
+			dAtA[i] = 0x2a
 		}
 	}
 	if len(m.Image) > 0 {
@@ -1089,16 +1198,14 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Image)
 		i = encodeVarintTypes(dAtA, i, uint64(len(m.Image)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x22
 	}
-	if m.Name != nil {
-		{
-			size := m.Name.Size()
-			i -= size
-			if _, err := m.Name.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-		}
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x1a
 	}
 	if len(m.ExternalUrl) > 0 {
 		i -= len(m.ExternalUrl)
@@ -1117,48 +1224,136 @@ func (m *MetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MetaData_BucketName) MarshalTo(dAtA []byte) (int, error) {
+func (m *ObjectMetaData) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ObjectMetaData) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaData_BucketName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *ObjectMetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	i -= len(m.BucketName)
-	copy(dAtA[i:], m.BucketName)
-	i = encodeVarintTypes(dAtA, i, uint64(len(m.BucketName)))
-	i--
-	dAtA[i] = 0x1a
+	_ = i
+	var l int
+	_ = l
+	if len(m.Attributes) > 0 {
+		for iNdEx := len(m.Attributes) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Attributes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTypes(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Image) > 0 {
+		i -= len(m.Image)
+		copy(dAtA[i:], m.Image)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Image)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.ObjectName) > 0 {
+		i -= len(m.ObjectName)
+		copy(dAtA[i:], m.ObjectName)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.ObjectName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ExternalUrl) > 0 {
+		i -= len(m.ExternalUrl)
+		copy(dAtA[i:], m.ExternalUrl)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.ExternalUrl)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
 }
-func (m *MetaData_ObjectName) MarshalTo(dAtA []byte) (int, error) {
+
+func (m *GroupMetaData) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupMetaData) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaData_ObjectName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *GroupMetaData) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
-	i -= len(m.ObjectName)
-	copy(dAtA[i:], m.ObjectName)
-	i = encodeVarintTypes(dAtA, i, uint64(len(m.ObjectName)))
-	i--
-	dAtA[i] = 0x22
+	_ = i
+	var l int
+	_ = l
+	if len(m.Attributes) > 0 {
+		for iNdEx := len(m.Attributes) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Attributes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintTypes(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.Image) > 0 {
+		i -= len(m.Image)
+		copy(dAtA[i:], m.Image)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Image)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.GroupName) > 0 {
+		i -= len(m.GroupName)
+		copy(dAtA[i:], m.GroupName)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.GroupName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.ExternalUrl) > 0 {
+		i -= len(m.ExternalUrl)
+		copy(dAtA[i:], m.ExternalUrl)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.ExternalUrl)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Description) > 0 {
+		i -= len(m.Description)
+		copy(dAtA[i:], m.Description)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Description)))
+		i--
+		dAtA[i] = 0xa
+	}
 	return len(dAtA) - i, nil
-}
-func (m *MetaData_GroupName) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MetaData_GroupName) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	i -= len(m.GroupName)
-	copy(dAtA[i:], m.GroupName)
-	i = encodeVarintTypes(dAtA, i, uint64(len(m.GroupName)))
-	i--
-	dAtA[i] = 0x2a
-	return len(dAtA) - i, nil
-}
 func encodeVarintTypes(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTypes(v)
 	base := offset
@@ -1336,7 +1531,7 @@ func (m *Trait) Size() (n int) {
 	return n
 }
 
-func (m *MetaData) Size() (n int) {
+func (m *BucketMetaData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1350,8 +1545,9 @@ func (m *MetaData) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
 	}
-	if m.Name != nil {
-		n += m.Name.Size()
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
 	}
 	l = len(m.Image)
 	if l > 0 {
@@ -1366,34 +1562,65 @@ func (m *MetaData) Size() (n int) {
 	return n
 }
 
-func (m *MetaData_BucketName) Size() (n int) {
+func (m *ObjectMetaData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.BucketName)
-	n += 1 + l + sovTypes(uint64(l))
-	return n
-}
-func (m *MetaData_ObjectName) Size() (n int) {
-	if m == nil {
-		return 0
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
 	}
-	var l int
-	_ = l
+	l = len(m.ExternalUrl)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
 	l = len(m.ObjectName)
-	n += 1 + l + sovTypes(uint64(l))
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	l = len(m.Image)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	if len(m.Attributes) > 0 {
+		for _, e := range m.Attributes {
+			l = e.Size()
+			n += 1 + l + sovTypes(uint64(l))
+		}
+	}
 	return n
 }
-func (m *MetaData_GroupName) Size() (n int) {
+
+func (m *GroupMetaData) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
+	l = len(m.Description)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	l = len(m.ExternalUrl)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
 	l = len(m.GroupName)
-	n += 1 + l + sovTypes(uint64(l))
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	l = len(m.Image)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	if len(m.Attributes) > 0 {
+		for _, e := range m.Attributes {
+			l = e.Size()
+			n += 1 + l + sovTypes(uint64(l))
+		}
+	}
 	return n
 }
 
@@ -2588,7 +2815,7 @@ func (m *Trait) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MetaData) Unmarshal(dAtA []byte) error {
+func (m *BucketMetaData) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2611,10 +2838,10 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MetaData: wiretype end group for non-group")
+			return fmt.Errorf("proto: BucketMetaData: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MetaData: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: BucketMetaData: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2711,73 +2938,9 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Name = &MetaData_BucketName{string(dAtA[iNdEx:postIndex])}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ObjectName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = &MetaData_ObjectName{string(dAtA[iNdEx:postIndex])}
-			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GroupName", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Name = &MetaData_GroupName{string(dAtA[iNdEx:postIndex])}
-			iNdEx = postIndex
-		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
 			}
@@ -2809,7 +2972,431 @@ func (m *MetaData) Unmarshal(dAtA []byte) error {
 			}
 			m.Image = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Attributes = append(m.Attributes, Trait{})
+			if err := m.Attributes[len(m.Attributes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ObjectMetaData) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ObjectMetaData: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ObjectMetaData: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ObjectName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Image = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Attributes = append(m.Attributes, Trait{})
+			if err := m.Attributes[len(m.Attributes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupMetaData) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupMetaData: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupMetaData: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Description = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ExternalUrl", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ExternalUrl = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GroupName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Image", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Image = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Attributes", wireType)
 			}
