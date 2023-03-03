@@ -54,6 +54,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 			Height:            uint64(ctx.BlockHeight()),
 		}
 		k.SaveSlash(ctx, slash)
+		k.SetAttestChallengeId(ctx, msg.ChallengeId)
 	}
 
 	// check whether it is a heartbeat, and will trigger rewards

@@ -188,6 +188,10 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 
 	txRes = s.SendTxBlock(msgAttest, user)
 	s.Require().True(txRes.Code == 0)
+
+	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
+	s.Require().NoError(err)
+	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
 }
 
 func (s *ChallengeTestSuite) TestHeartbeatAttest() {
@@ -242,6 +246,10 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 
 	txRes := s.SendTxBlock(msgAttest, user)
 	s.Require().True(txRes.Code == 0)
+
+	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
+	s.Require().NoError(err)
+	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
 }
 
 func (s *ChallengeTestSuite) TestEndBlock() {

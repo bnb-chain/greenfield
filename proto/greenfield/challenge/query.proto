@@ -16,7 +16,12 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/bnb-chain/greenfield/challenge/params";
   }
-  // this line is used by starport scaffolding # 2
+  // Queries a list of LatestAttestedChallenge items.
+	rpc LatestAttestedChallenge(QueryLatestAttestedChallengeRequest) returns (QueryLatestAttestedChallengeResponse) {
+		option (google.api.http).get = "/bnb-chain/greenfield/challenge/latest_attested_challenge";
+	}
+
+// this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -27,3 +32,12 @@ message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
+
+message QueryLatestAttestedChallengeRequest {
+}
+
+message QueryLatestAttestedChallengeResponse {
+  uint64 challengeId = 1;
+}
+
+// this line is used by starport scaffolding # 3

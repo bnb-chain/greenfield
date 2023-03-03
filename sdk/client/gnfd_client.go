@@ -3,6 +3,7 @@ package client
 import (
 	_ "encoding/json"
 
+	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -36,6 +37,9 @@ type AuthzQueryClient = authztypes.QueryClient
 
 // BankQueryClient is a type to define the bank types Query Client
 type BankQueryClient = banktypes.QueryClient
+
+// ChallengeQueryClient is a type to define the challenge types Query Client
+type ChallengeQueryClient = challengetypes.QueryClient
 
 // CrosschainQueryClient is a type to define the crosschain types Query Client
 type CrosschainQueryClient = crosschaintypes.QueryClient
@@ -90,6 +94,8 @@ type GreenfieldClient struct {
 	AuthzQueryClient
 	// BankQueryClient holds the bank query client.
 	BankQueryClient
+	// ChallengeQueryClient holds the bank query client.
+	ChallengeQueryClient
 	// CrosschainQueryClient holds the crosschain query client.
 	CrosschainQueryClient
 	// DistrQueryClient holds the distr query client.
@@ -159,6 +165,7 @@ func NewGreenfieldClient(grpcAddr, chainId string, opts ...GreenfieldClientOptio
 	client.AuthQueryClient = authtypes.NewQueryClient(conn)
 	client.AuthzQueryClient = authztypes.NewQueryClient(conn)
 	client.BankQueryClient = banktypes.NewQueryClient(conn)
+	client.ChallengeQueryClient = challengetypes.NewQueryClient(conn)
 	client.CrosschainQueryClient = crosschaintypes.NewQueryClient(conn)
 	client.DistrQueryClient = distrtypes.NewQueryClient(conn)
 	client.FeegrantQueryClient = feegranttypes.NewQueryClient(conn)

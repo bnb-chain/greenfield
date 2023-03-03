@@ -19,7 +19,7 @@ require (
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.34.22
 	github.com/tendermint/tm-db v0.6.7
-	google.golang.org/genproto v0.0.0-20230221151758-ace64dc21148
+	google.golang.org/genproto v0.0.0-20230223222841-637eb2293923
 	google.golang.org/grpc v1.53.0
 	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.3.0
@@ -117,7 +117,7 @@ require (
 	github.com/gorilla/mux v1.8.0 // indirect
 	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 // indirect
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.15.2 // indirect
 	github.com/gsterjov/go-libsecret v0.0.0-20161001094733-a6f4afe4910c // indirect
 	github.com/gtank/merlin v0.1.1 // indirect
 	github.com/gtank/ristretto255 v0.1.2 // indirect
