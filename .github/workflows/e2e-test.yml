@@ -54,10 +54,7 @@ jobs:
       run: |
         sed -i 's/DEPOSIT_VOTE_PERIOD=300s/DEPOSIT_VOTE_PERIOD=60s/g' ./deployment/localup/.env
         cat ./deployment/localup/.env
-    - name: run local chain
-      run:  bash ./deployment/localup/localup.sh all 1 7
-    - name: check sp
-      run: bash ./deployment/localup/localup.sh sp_check 1 7
     - name: run e2e test
       run: |
+        make e2e_start_chain
         make e2e_test

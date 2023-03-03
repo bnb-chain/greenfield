@@ -45,7 +45,7 @@ e2e_start_localchain:
 	bash ./deployment/localup/localup.sh sp_check 1 7
 
 e2e_test:
-	go test -p 1 ./e2e/...
+	go test -p 1 -failfast -v ./e2e/...
 
 lint:
 	golangci-lint run --fix

@@ -236,10 +236,11 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		return nil, types.ErrStorageProviderPriceExpired
 	}
 	spStorePrice := types.SpStoragePrice{
-		SpAddress:  msg.SpAddress,
-		UpdateTime: current,
-		ReadPrice:  msg.ReadPrice,
-		StorePrice: msg.StorePrice,
+		UpdateTime:    current,
+		SpAddress:     msg.SpAddress,
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
 	err := k.UpdateSecondarySpStorePrice(ctx)
