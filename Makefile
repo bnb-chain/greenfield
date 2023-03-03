@@ -13,6 +13,7 @@ ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
 
 include .env
+export $(shell sed 's/=.*//' .env)
 
 format:
 	bash scripts/format.sh
