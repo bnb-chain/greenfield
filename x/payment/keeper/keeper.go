@@ -52,15 +52,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (res sdk.Coin) {
+func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int) {
 	//TODO implement me
-	return sdk.Coin{
-		Denom:  "BNB",
-		Amount: sdkmath.NewInt(0),
-	}
+	return sdkmath.NewInt(0)
+
 }
 
-func (k Keeper) TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amt sdk.Coins) error {
+func (k Keeper) TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error {
 	//TODO implement me
 	return nil
 }

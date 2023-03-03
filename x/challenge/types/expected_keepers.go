@@ -30,8 +30,8 @@ type StorageKeeper interface {
 }
 
 type PaymentKeeper interface {
-	QueryValidatorRewards(ctx sdk.Context) (res sdk.Coin)
-	TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amt sdk.Coins) error
+	QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int)
+	TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

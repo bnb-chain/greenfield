@@ -198,26 +198,18 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, msg *types.MsgAttest) 
 		return err
 	}
 
-	reward := k.paymentKeeper.QueryValidatorRewards(ctx)
-	totalAmount := reward.Amount
-	denom := reward.Denom
+	totalAmount := k.paymentKeeper.QueryValidatorRewards(ctx)
 
 	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
 	if !totalAmount.IsZero() {
 		validatorReward, submitterReward = k.calculateHeartbeatRewards(ctx, totalAmount)
 		if validatorReward.IsPositive() && submitterReward.IsPositive() {
-			toValidator := sdk.Coins{
-				sdk.Coin{Denom: denom, Amount: validatorReward},
-			}
 			distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
-			err = k.paymentKeeper.TransferValidatorRewards(ctx, distModuleAcc, toValidator)
+			err = k.paymentKeeper.TransferValidatorRewards(ctx, distModuleAcc, validatorReward)
 			if err != nil {
 				return err
 			}
-			toSubmitter := sdk.Coins{
-				sdk.Coin{Denom: denom, Amount: submitterReward},
-			}
-			err = k.paymentKeeper.TransferValidatorRewards(ctx, submitterAddress, toSubmitter)
+			err = k.paymentKeeper.TransferValidatorRewards(ctx, submitterAddress, submitterReward)
 			if err != nil {
 				return err
 			}
