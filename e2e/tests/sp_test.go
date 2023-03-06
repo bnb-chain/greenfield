@@ -63,7 +63,6 @@ func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
 	s.Require().NoError(err)
 
 	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
-	s.T().Logf("acc %s", govAddr)
 	now := time.Now().Add(24 * time.Hour)
 	grantMsg, err := authz.NewMsgGrant(
 		newSP.FundingKey.GetAddr(), govAddr, authorization, &now)
@@ -80,20 +79,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	// 1. create new newStorageProvider and grant
 	newSP := s.NewSpAccAndGrant()
 
-	//// 2. grant deposit authorization of sp to gov module account
-	//coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
-	//authorization, err := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
-	//s.Require().NoError(err)
-	//
-	//govAddr := authtypes.NewModuleAddress(gov.ModuleName)
-	//s.T().Logf("acc %s", govAddr)
-	//now := time.Now().Add(24 * time.Hour)
-	//grantMsg, err := authz.NewMsgGrant(
-	//	newSP.FundingKey.GetAddr(), govAddr, authorization, &now)
-	//s.Require().NoError(err)
-	//s.SendTxBlock(grantMsg, newSP.FundingKey)
-
-	// 3. submit CreateStorageProvider proposal
+	// 2. submit CreateStorageProvider proposal
 	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
 	deposit := sdk.Coin{
 		Denom:  s.Config.Denom,
@@ -104,11 +90,12 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		Identity: "",
 	}
 
+	endpoint := "http://127.0.0.1:9034"
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(), description,
-		"http://127.0.0.1:9034/", deposit)
+		endpoint, deposit)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
@@ -120,7 +107,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	txRes := s.SendTxBlock(msgProposal, s.Validator)
 	s.Require().Equal(txRes.Code, uint32(0))
 
-	// 4. query proposal and get proposal ID
+	// 3. query proposal and get proposal ID
 	var proposalId uint64
 	for _, event := range txRes.Logs[0].Events {
 		if event.Type == "submit_proposal" {
@@ -140,7 +127,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 
-	// 5. submit MsgVote and wait the proposal exec
+	// 4. submit MsgVote and wait the proposal exec
 	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
 	txRes = s.SendTxBlock(msgVote, s.Validator)
 	s.Require().Equal(txRes.Code, uint32(0))
@@ -149,14 +136,14 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
 	s.Require().NoError(err)
 
-	// 6. wait a voting period and confirm that the proposal success.
+	// 5. wait a voting period and confirm that the proposal success.
 	s.T().Logf("voting period %s", *queryVoteParamsResp.VotingParams.VotingPeriod)
 	time.Sleep(*queryVoteParamsResp.VotingParams.VotingPeriod)
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
 
-	// 7. query storage provider
+	// 6. query storage provider
 	querySPReq := sptypes.QueryStorageProviderRequest{
 		SpAddress: newSP.OperatorKey.GetAddr().String(),
 	}
@@ -166,7 +153,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, newSP.FundingKey.GetAddr().String())
 	s.Require().Equal(querySPResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
 	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.Endpoint, "http://127.0.0.1:9033")
+	s.Require().Equal(querySPResp.StorageProvider.Endpoint, endpoint)
 }
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
@@ -262,6 +249,7 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 				FundingAddress:  newSP.FundingKey.GetAddr().String(),
 				SealAddress:     newSP.SealKey.GetAddr().String(),
 				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
+				Endpoint:        "sp.io",
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
 					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
