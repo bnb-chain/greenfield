@@ -181,7 +181,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	s.Require().Equal(querySPResp.StorageProvider.Endpoint, "sp0.greenfield.io")
+	prevEndpoint := querySPResp.StorageProvider.Endpoint
+	prevDescription := querySPResp.StorageProvider.Description
 
 	// 2. edit storage provider
 	endpoint := "127.0.0.1:9033"
@@ -204,6 +205,21 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	s.Require().NoError(err)
 	s.Require().Equal(querySPResp.StorageProvider.Endpoint, endpoint)
 	s.Require().Equal(querySPResp.StorageProvider.Description.Moniker, "sp_test_edit")
+
+	// 4. revert storage provider info
+	msgEditSP = sptypes.NewMsgEditStorageProvider(
+		s.StorageProvider.OperatorKey.GetAddr(), prevEndpoint, prevDescription)
+	txRes = s.SendTxBlock(msgEditSP, s.StorageProvider.OperatorKey)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	// 5. query revert storage provider again
+	querySPReq = sptypes.QueryStorageProviderRequest{
+		SpAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
+	}
+
+	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
+	s.Require().NoError(err)
+	s.Require().Equal(querySPResp.StorageProvider.Endpoint, prevEndpoint)
 }
 
 func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
@@ -217,12 +233,31 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 		req       types.MsgCreateStorageProvider
 	}{
 		{
-			Name:      "success",
+			Name:      "invalid funding address",
 			ExceptErr: true,
 			req: types.MsgCreateStorageProvider{
 				Creator: govAddr.String(),
 				Description: sptypes.Description{
-					Moniker:  "MsgServer_sp_test",
+					Moniker:  "sp_test",
+					Identity: "",
+				},
+				SpAddress:       newSP.OperatorKey.GetAddr().String(),
+				FundingAddress:  keepertest.GetRandomAddress(),
+				SealAddress:     newSP.SealKey.GetAddr().String(),
+				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+		{
+			Name:      "invalid endpoint",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "sp_test",
 					Identity: "",
 				},
 				SpAddress:       newSP.OperatorKey.GetAddr().String(),
@@ -236,16 +271,16 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 			},
 		},
 		{
-			Name:      "invalid height",
+			Name:      "success",
 			ExceptErr: true,
 			req: types.MsgCreateStorageProvider{
 				Creator: govAddr.String(),
 				Description: sptypes.Description{
-					Moniker:  "sp_test",
+					Moniker:  "MsgServer_sp_test",
 					Identity: "",
 				},
 				SpAddress:       newSP.OperatorKey.GetAddr().String(),
-				FundingAddress:  keepertest.GetRandomAddress(),
+				FundingAddress:  newSP.FundingKey.GetAddr().String(),
 				SealAddress:     newSP.SealKey.GetAddr().String(),
 				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
 				Deposit: sdk.Coin{

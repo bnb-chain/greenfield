@@ -26,8 +26,13 @@ var _ types.MsgServer = msgServer{}
 
 // CreateStorageProvider defines a method for creating a new storage provider
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
-	// TODO: check if a valid endpoint
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	// check if a valid endpoint
+	err := types.IsValidEndpointURL(msg.Endpoint)
+	if err != nil {
+		return nil, err
+	}
 
 	signers := msg.GetSigners()
 	if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
