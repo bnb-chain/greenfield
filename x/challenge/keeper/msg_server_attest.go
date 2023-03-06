@@ -59,7 +59,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	} else {
 		// check whether it is a heartbeat attest
 		heartbeatInterval := k.HeartbeatInterval(ctx)
-		if msg.ChallengeId%heartbeatInterval == 0 {
+		if msg.ChallengeId%heartbeatInterval != 0 {
 			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heart challenge should be submitted at interval %d", heartbeatInterval)
 		}
 

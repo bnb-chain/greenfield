@@ -235,7 +235,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId,
-		event.SpOperatorAddress, challengetypes.CHALLENGE_SUCCEED, "", valBitset.Bytes(), nil)
+		event.SpOperatorAddress, challengetypes.CHALLENGE_FAILED, "", valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
 	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
