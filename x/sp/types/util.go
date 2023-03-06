@@ -1,8 +1,9 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
 	"net/url"
+
+	"cosmossdk.io/errors"
 )
 
 // Verify if input endpoint URL is valid.

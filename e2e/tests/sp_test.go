@@ -2,11 +2,11 @@ package tests
 
 import (
 	"context"
-	"github.com/cosmos/cosmos-sdk/x/params/types/proposal"
-	"github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -25,10 +25,9 @@ import (
 type StorageProviderTestSuite struct {
 	core.BaseSuite
 
-	keeper      *spkeeper.Keeper
-	ctx         context.Context
-	queryClient proposal.QueryClient
-	msgServer   sptypes.MsgServer
+	keeper    *spkeeper.Keeper
+	ctx       context.Context
+	msgServer sptypes.MsgServer
 }
 
 func (s *StorageProviderTestSuite) SetupSuite() {
