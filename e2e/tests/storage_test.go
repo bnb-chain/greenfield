@@ -390,7 +390,6 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	streamRecordsAfterCreateObject := s.GetStreamRecords()
 	s.T().Logf("streamRecordsAfterCreateObject %s", core.YamlString(streamRecordsAfterCreateObject))
 	userStreamAccountAfterCreateObj := streamRecordsAfterCreateObject.User
-	s.Require().Len(queryHeadBucketResponseAfterCreateObj.BucketInfo.BillingInfo.ObjectsLockedBalance, 1)
 	queryGetSecondarySpStorePriceByTime, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
 		Timestamp: queryHeadBucketResponse.BucketInfo.BillingInfo.PriceTime,
 	})
@@ -401,13 +400,9 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.Require().NoError(err)
 	primaryStorePrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice
 	secondaryStorePrice := queryGetSecondarySpStorePriceByTime.SecondarySpStorePrice.StorePrice
-	chargeSize := queryHeadObjectResponse.ObjectInfo.ChargeSize
+	chargeSize := s.GetChargeSize(queryHeadObjectResponse.ObjectInfo.PayloadSize)
 	expectedChargeRate := primaryStorePrice.Add(secondaryStorePrice.MulInt64(6)).MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt()
 	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(paymentParams.Params.ReserveTime))
-	s.Require().Equal(
-		queryHeadBucketResponseAfterCreateObj.BucketInfo.BillingInfo.ObjectsLockedBalance[0].LockedBalance,
-		userStreamAccountAfterCreateObj.LockBalance,
-	)
 	s.Require().Equal(expectedLockedBalance.String(), userStreamAccountAfterCreateObj.LockBalance.String())
 
 	// seal object
@@ -557,6 +552,19 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	// user settle time become refreshed
 	s.Require().NotEqual(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecord.SettleTimestamp)
 	s.Require().Equal(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecordAfterAutoSettle.CrudTimestamp+int64(reserveTime-forcedSettleTime))
+}
+
+func (s *StorageTestSuite) GetChargeSize(payloadSize uint64) uint64 {
+	ctx := context.Background()
+	storageParams, err := s.Client.StorageQueryClient.Params(ctx, &storagetypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	s.T().Logf("storageParams %s", storageParams)
+	minChargeSize := storageParams.Params.MinChargeSize
+	if payloadSize < minChargeSize {
+		return minChargeSize
+	} else {
+		return payloadSize
+	}
 }
 
 func TestStorageTestSuite(t *testing.T) {

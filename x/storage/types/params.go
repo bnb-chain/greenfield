@@ -13,6 +13,7 @@ const (
 	DefaultRedundantDataChunkNum   uint32 = 4
 	DefaultRedundantParityChunkNum uint32 = 2
 	DefaultMaxPayloadSize          uint64 = 2 * 1024 * 1024 * 1024
+	DefaultMinChargeSize           uint64 = 1 * 1024 * 1024 // 1M
 )
 
 var (
@@ -20,6 +21,7 @@ var (
 	KeyRedundantDataChunkNum   = []byte("RedundantDataChunkNum")
 	KeyRedundantParityChunkNum = []byte("RedundantParityChunkNum")
 	KeyMaxPayloadSize          = []byte("MaxPayloadSize")
+	KeyMinChargeSize           = []byte("MinChargeSize")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -32,19 +34,22 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	maxSegmentSize uint64, redundantDataChunkNum uint32,
-	redundantParityChunkNum uint32, maxPayloadSize uint64) Params {
+	redundantParityChunkNum uint32, maxPayloadSize uint64,
+	minChargeSize uint64,
+) Params {
 	return Params{
 		MaxSegmentSize:          maxSegmentSize,
 		RedundantDataChunkNum:   redundantDataChunkNum,
 		RedundantParityChunkNum: redundantParityChunkNum,
 		MaxPayloadSize:          maxPayloadSize,
+		MinChargeSize:           minChargeSize,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(DefaultMaxSegmentSize, DefaultRedundantDataChunkNum,
-		DefaultRedundantParityChunkNum, DefaultMaxPayloadSize)
+		DefaultRedundantParityChunkNum, DefaultMaxPayloadSize, DefaultMinChargeSize)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -54,6 +59,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyRedundantDataChunkNum, &p.RedundantDataChunkNum, validateRedundantDataChunkNum),
 		paramtypes.NewParamSetPair(KeyRedundantParityChunkNum, &p.RedundantParityChunkNum, validateRedundantParityChunkNum),
 		paramtypes.NewParamSetPair(KeyMaxPayloadSize, &p.MaxPayloadSize, validateMaxPayloadSize),
+		paramtypes.NewParamSetPair(KeyMinChargeSize, &p.MinChargeSize, validateMinChargeSize),
 	}
 }
 
@@ -69,6 +75,9 @@ func (p Params) Validate() error {
 		return err
 	}
 	if err := validateMaxPayloadSize(p.MaxPayloadSize); err != nil {
+		return err
+	}
+	if err := validateMinChargeSize(p.MinChargeSize); err != nil {
 		return err
 	}
 	return nil
@@ -100,6 +109,19 @@ func validateMaxPayloadSize(i interface{}) error {
 
 	if v == 0 {
 		return fmt.Errorf("max payload size must be positive: %d", v)
+	}
+
+	return nil
+}
+
+func validateMinChargeSize(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("min charge size must be positive: %d", v)
 	}
 
 	return nil

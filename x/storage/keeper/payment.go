@@ -36,65 +36,30 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 	return err
 }
 
-func (k Keeper) LockStoreFeeByRate(ctx sdk.Context, user string, rate sdkmath.Int) (sdkmath.Int, error) {
-	reserveTime := k.paymentKeeper.GetParams(ctx).ReserveTime
-	lockAmount := rate.Mul(sdkmath.NewIntFromUint64(reserveTime))
-	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithLockBalanceChange(lockAmount)
+func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	if err != nil {
+		return fmt.Errorf("get object store fee rate failed: %w", err)
+	}
+	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
-		return lockAmount, fmt.Errorf("update stream record failed: %w", err)
+		return fmt.Errorf("update stream record failed: %w", err)
 	}
 	if streamRecord.StaticBalance.IsNegative() {
-		return lockAmount, fmt.Errorf("static balance is not enough, lacks %s", streamRecord.StaticBalance.Neg().String())
+		return fmt.Errorf("static balance is not enough, lacks %s", streamRecord.StaticBalance.Neg().String())
 	}
-	return lockAmount, nil
-}
-
-func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: bucketInfo.PrimarySpAddress,
-		PriceTime: ctx.BlockTime().Unix(),
-	})
-	if err != nil {
-		return fmt.Errorf("get store price failed: %w", err)
-	}
-	size := sdkmath.NewIntFromUint64(objectInfo.ChargeSize)
-	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(size).TruncateInt()
-	lockedBalance, err := k.LockStoreFeeByRate(ctx, bucketInfo.PaymentAddress, rate)
-	if err != nil {
-		return fmt.Errorf("lock store fee by rate failed: %w", err)
-	}
-	bucketInfo.BillingInfo.ObjectsLockedBalance = append(bucketInfo.BillingInfo.ObjectsLockedBalance, storagetypes.ObjectLockedBalance{
-		ObjectId:      objectInfo.Id,
-		LockedBalance: lockedBalance,
-	})
 	return nil
 }
 
 // UnlockStoreFee unlock store fee if the object is deleted in INIT state
 func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	var lockedBalance sdkmath.Int
-	found := false
-	index := 0
-	for i, v := range bucketInfo.BillingInfo.ObjectsLockedBalance {
-		if v.ObjectId.Equal(objectInfo.Id) {
-			lockedBalance = v.LockedBalance
-			index = i
-			found = true
-			break
-		}
+	lockedBalance, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	if err != nil {
+		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	if !found {
-		return fmt.Errorf("object locked balance not found")
-	}
-	// pop the object locked balance
-	lastObjectsLockedBalanceIndex := len(bucketInfo.BillingInfo.ObjectsLockedBalance) - 1
-	if index != lastObjectsLockedBalanceIndex {
-		bucketInfo.BillingInfo.ObjectsLockedBalance[index] = bucketInfo.BillingInfo.ObjectsLockedBalance[lastObjectsLockedBalanceIndex]
-	}
-	bucketInfo.BillingInfo.ObjectsLockedBalance = bucketInfo.BillingInfo.ObjectsLockedBalance[:lastObjectsLockedBalanceIndex]
 	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(lockedBalance.Neg())
-	_, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
+	_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
 	}
@@ -107,12 +72,13 @@ func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetype
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
+	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
-		bi.BillingInfo.TotalChargeSize += objectInfo.ChargeSize
+		bi.BillingInfo.TotalChargeSize += chargeSize
 		for _, sp := range objectInfo.SecondarySpAddresses {
 			bi.BillingInfo.SecondarySpObjectsSize = AddSecondarySpObjectsSize(bi.BillingInfo.SecondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
 				SpAddress:       sp,
-				TotalChargeSize: objectInfo.ChargeSize,
+				TotalChargeSize: chargeSize,
 			})
 		}
 		return nil
@@ -195,13 +161,14 @@ func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prev, current types
 }
 
 func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
-		bi.BillingInfo.TotalChargeSize -= objectInfo.ChargeSize
+		bi.BillingInfo.TotalChargeSize -= chargeSize
 		var err error
 		for _, sp := range objectInfo.SecondarySpAddresses {
 			bucketInfo.BillingInfo.SecondarySpObjectsSize, err = SubSecondarySpObjectsSize(bucketInfo.BillingInfo.SecondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
 				SpAddress:       sp,
-				TotalChargeSize: objectInfo.ChargeSize,
+				TotalChargeSize: chargeSize,
 			})
 			if err != nil {
 				return errors.Wrapf(err, "sub secondary sp objects size")
@@ -250,4 +217,29 @@ func SubSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, toBeS
 		return nil, fmt.Errorf("secondary sp %s not found", toBeSub.SpAddress)
 	}
 	return prev, nil
+}
+
+func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
+	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
+		PrimarySp: primarySpAddress,
+		PriceTime: priceTime,
+	})
+	if err != nil {
+		return amount, fmt.Errorf("get store price failed: %w", err)
+	}
+	chargeSize := k.GetChargeSize(ctx, payloadSize, priceTime)
+	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	reserveTime := k.paymentKeeper.GetParams(ctx).ReserveTime
+	amount = rate.Mul(sdkmath.NewIntFromUint64(reserveTime))
+	return amount, nil
+}
+
+// todo(Fynn): refactor when we have a way to record the min charge size parameter history
+func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, _time int64) uint64 {
+	minChargeSize := k.GetParams(ctx).MinChargeSize
+	if payloadSize < minChargeSize {
+		return minChargeSize
+	} else {
+		return payloadSize
+	}
 }

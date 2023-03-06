@@ -170,7 +170,7 @@ func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
 		Timestamp: 0,
 	})
 	s.Require().NoError(err)
-	s.T().Log(queryGetSecondarySpStorePriceByTimeResp)
+	s.T().Logf("Secondary SP store price: %s", core.YamlString(queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice))
 	// query all sps
 	sps, err := s.Client.StorageProviders(ctx, &sptypes.QueryStorageProvidersRequest{})
 	s.Require().NoError(err)
@@ -183,7 +183,7 @@ func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
 			Timestamp: 0,
 		})
 		s.Require().NoError(err)
-		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, spStoragePrice)
+		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
 		total = total.Add(spStoragePrice.SpStoragePrice.StorePrice)
 	}
 	expectedSecondarySpStorePrice := sptypes.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
