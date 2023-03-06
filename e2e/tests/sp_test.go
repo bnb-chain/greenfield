@@ -108,7 +108,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(), description,
-		"sp0.greenfield.io", deposit)
+		"http://127.0.0.1:9034/", deposit)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
@@ -154,9 +154,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	time.Sleep(*queryVoteParamsResp.VotingParams.VotingPeriod)
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
-	if proposalRes.Proposal.Status != govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED {
-		s.Require().True(false)
-	}
+	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
 
 	// 7. query storage provider
 	querySPReq := sptypes.QueryStorageProviderRequest{
@@ -168,7 +166,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, newSP.FundingKey.GetAddr().String())
 	s.Require().Equal(querySPResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
 	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.Endpoint, "sp0.greenfield.io")
+	s.Require().Equal(querySPResp.StorageProvider.Endpoint, "http://127.0.0.1:9033")
 }
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
@@ -185,7 +183,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	prevDescription := querySPResp.StorageProvider.Description
 
 	// 2. edit storage provider
-	endpoint := "127.0.0.1:9033"
+	endpoint := "http://127.0.0.1:9034"
 	description := sptypes.Description{
 		Moniker:  "sp_test_edit",
 		Identity: "",
