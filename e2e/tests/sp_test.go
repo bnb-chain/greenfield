@@ -2,7 +2,8 @@ package tests
 
 import (
 	"context"
-	"github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/cosmos/cosmos-sdk/x/params/types/proposal"
+	"github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
 	"time"
@@ -16,15 +17,27 @@ import (
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
+	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 type StorageProviderTestSuite struct {
 	core.BaseSuite
+
+	keeper      *spkeeper.Keeper
+	ctx         context.Context
+	queryClient proposal.QueryClient
+	msgServer   sptypes.MsgServer
 }
 
 func (s *StorageProviderTestSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
+
+	k, ctx := keepertest.SpKeeper(s.T())
+	s.msgServer = spkeeper.NewMsgServerImpl(*k)
+	s.ctx = sdk.WrapSDKContext(ctx)
+	s.keeper = k
 }
 
 func (s *StorageProviderTestSuite) SetupTest() {
@@ -42,7 +55,7 @@ func (s *StorageProviderTestSuite) NewSpAcc() *core.SPKeyManagers {
 
 func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
 	// 1. create new newStorageProvider
-	newSP := keeper.NewSpAcc()
+	newSP := s.NewSpAcc()
 
 	// 2. grant deposit authorization of sp to gov module account
 	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
@@ -64,7 +77,24 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	ctx := context.Background()
 	validator := s.Validator.GetAddr()
 
-	// 1. submit CreateStorageProviderParams
+	// 1. create new newStorageProvider and grant
+	newSP := s.NewSpAccAndGrant()
+
+	//// 2. grant deposit authorization of sp to gov module account
+	//coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
+	//authorization, err := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
+	//s.Require().NoError(err)
+	//
+	//govAddr := authtypes.NewModuleAddress(gov.ModuleName)
+	//s.T().Logf("acc %s", govAddr)
+	//now := time.Now().Add(24 * time.Hour)
+	//grantMsg, err := authz.NewMsgGrant(
+	//	newSP.FundingKey.GetAddr(), govAddr, authorization, &now)
+	//s.Require().NoError(err)
+	//s.SendTxBlock(grantMsg, newSP.FundingKey)
+
+	// 3. submit CreateStorageProvider proposal
+	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
 	deposit := sdk.Coin{
 		Denom:  s.Config.Denom,
 		Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
@@ -74,23 +104,6 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		Identity: "",
 	}
 
-	// create new newStorageProvider and grant
-	newSP := s.NewSpAccAndGrant()
-
-	// 2. grant deposit authorization of sp to gov module account
-	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
-	authorization, err := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
-	s.Require().NoError(err)
-
-	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
-	s.T().Logf("acc %s", govAddr)
-	now := time.Now().Add(24 * time.Hour)
-	grantMsg, err := authz.NewMsgGrant(
-		newSP.FundingKey.GetAddr(), govAddr, authorization, &now)
-	s.Require().NoError(err)
-	s.SendTxBlock(grantMsg, newSP.FundingKey)
-
-	// 3. submit CreateStorageProvider proposal
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
@@ -194,6 +207,65 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 }
 
 func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
+	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
+	// 1. create new newStorageProvider and grant
+	newSP := s.NewSpAccAndGrant()
+
+	testCases := []struct {
+		Name      string
+		ExceptErr bool
+		req       types.MsgCreateStorageProvider
+	}{
+		{
+			Name:      "success",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "MsgServer_sp_test",
+					Identity: "",
+				},
+				SpAddress:       newSP.OperatorKey.GetAddr().String(),
+				FundingAddress:  newSP.FundingKey.GetAddr().String(),
+				SealAddress:     newSP.SealKey.GetAddr().String(),
+				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+		{
+			Name:      "invalid height",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "sp_test",
+					Identity: "",
+				},
+				SpAddress:       newSP.OperatorKey.GetAddr().String(),
+				FundingAddress:  keepertest.GetRandomAddress(),
+				SealAddress:     newSP.SealKey.GetAddr().String(),
+				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		s.Suite.T().Run(testCase.Name, func(t *testing.T) {
+			_, err := s.msgServer.CreateStorageProvider(s.ctx, &testCase.req)
+			if testCase.ExceptErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+
+	}
 
 }
 
