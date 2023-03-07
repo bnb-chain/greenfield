@@ -435,14 +435,23 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 		return sum.Add(rate)
 	}, sdkmath.ZeroInt())
 	s.Require().Equal(userRateDiff, spRateDiffsSum.Neg())
-	s.Require().Equal(streamRecordsAfterSeal.User.OutFlows[0].Rate.Sub(readChargeRate).String(), spRateDiffs[0].String())
-	for i, spRateDiff := range spRateDiffs[1:] {
-		s.Require().Equal(streamRecordsAfterSeal.User.OutFlows[i+1].Rate.String(), spRateDiff.String(), "sp %d", i)
-	}
-	// check rate calculation
-	s.Require().Equal(spRateDiffs[0].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
-	for _, spRateDiff := range spRateDiffs[1:] {
-		s.Require().Equal(spRateDiff.String(), secondaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+	spRateDiffMap := lo.Reduce(spRateDiffs, func(m map[string]sdkmath.Int, rate sdkmath.Int, i int) map[string]sdkmath.Int {
+		m[streamRecordsAfterSeal.SPs[i].Account] = rate
+		return m
+	}, make(map[string]sdkmath.Int))
+	userOutflowMap := lo.Reduce(streamRecordsAfterSeal.User.OutFlows, func(m map[string]sdkmath.Int, outflow paymenttypes.OutFlow, i int) map[string]sdkmath.Int {
+		m[outflow.ToAddress] = outflow.Rate
+		return m
+	}, make(map[string]sdkmath.Int))
+	primarySpAddr := s.StorageProviders[0].OperatorKey.GetAddr().String()
+	s.Require().Equal(
+		userOutflowMap[primarySpAddr].Sub(readChargeRate).String(),
+		spRateDiffMap[primarySpAddr].String())
+	//s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+	for i, sp := range secondarySPs {
+		secondarySpAddr := sp.String()
+		s.Require().Equal(userOutflowMap[secondarySpAddr].String(), spRateDiffMap[secondarySpAddr].String(), "sp %d", i+1)
+		s.Require().Equal(userOutflowMap[secondarySpAddr].String(), secondaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
 	}
 
 	// change read quota

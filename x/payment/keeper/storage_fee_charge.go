@@ -2,33 +2,43 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
-func (k Keeper) MergeStreamRecordChanges(base *[]types.StreamRecordChange, newChanges []types.StreamRecordChange) {
-	// merge changes with same address
-	for _, newChange := range newChanges {
-		found := false
-		for i, baseChange := range *base {
-			if baseChange.Addr == newChange.Addr {
-				(*base)[i].RateChange = baseChange.RateChange.Add(newChange.RateChange)
-				(*base)[i].StaticBalanceChange = baseChange.StaticBalanceChange.Add(newChange.StaticBalanceChange)
-				(*base)[i].LockBalanceChange = baseChange.LockBalanceChange.Add(newChange.LockBalanceChange)
-				found = true
-				break
-			}
-		}
-		if !found {
-			*base = append(*base, newChange)
-		}
+// MergeStreamRecordChanges merge changes with same address
+func (k Keeper) MergeStreamRecordChanges(changes []types.StreamRecordChange) []types.StreamRecordChange {
+	if len(changes) <= 1 {
+		return changes
 	}
+	changeMap := make(map[string]*types.StreamRecordChange)
+	for _, change := range changes {
+		currentChange, ok := changeMap[change.Addr]
+		if !ok {
+			currentChange = types.NewDefaultStreamRecordChangeWithAddr(change.Addr)
+		}
+		currentChange.RateChange = currentChange.RateChange.Add(change.RateChange)
+		currentChange.StaticBalanceChange = currentChange.StaticBalanceChange.Add(change.StaticBalanceChange)
+		currentChange.LockBalanceChange = currentChange.LockBalanceChange.Add(change.LockBalanceChange)
+		changeMap[change.Addr] = currentChange
+	}
+	var result []types.StreamRecordChange
+	for _, change := range changeMap {
+		result = append(result, *change)
+	}
+	sort.Slice(result, func(i, j int) bool {
+		return result[i].Addr < result[j].Addr
+	})
+	return result
 }
 
 // ApplyStreamRecordChanges assume StreamRecordChange is unique by Addr
 func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []types.StreamRecordChange) error {
+	streamRecordChanges = k.MergeStreamRecordChanges(streamRecordChanges)
 	for i := 0; i < len(streamRecordChanges); i++ {
 		_, err := k.UpdateStreamRecordByAddr(ctx, &streamRecordChanges[i])
 		if err != nil {
@@ -39,8 +49,8 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 }
 
 // ApplyUserFlowsList
-// assume the From field in the list are different
 func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFlows) (err error) {
+	userFlowsList = k.MergeUserFlows(userFlowsList)
 	currentTime := ctx.BlockTime().Unix()
 	var streamRecordChanges []types.StreamRecordChange
 	for _, userFlows := range userFlowsList {
@@ -52,13 +62,11 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		// calculate rate changes in flowChanges
 		totalRate := sdk.ZeroInt()
 		for _, flowChange := range userFlows.Flows {
-			k.MergeStreamRecordChanges(&streamRecordChanges, []types.StreamRecordChange{
-				*types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate),
-			})
+			streamRecordChanges = append(streamRecordChanges, *types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate))
 			totalRate = totalRate.Add(flowChange.Rate)
 		}
 		// update flows
-		MergeOutFlows(&streamRecord.OutFlows, userFlows.Flows)
+		streamRecord.OutFlows = k.MergeOutFlows(append(streamRecord.OutFlows, userFlows.Flows...))
 		streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
 		err = k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange, false)
 		if err != nil {
@@ -73,19 +81,60 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 	return nil
 }
 
-func MergeOutFlows(flow *[]types.OutFlow, changes []types.OutFlow) []types.OutFlow {
-	for _, change := range changes {
-		found := false
-		for i, f := range *flow {
-			if f.ToAddress == change.ToAddress {
-				found = true
-				(*flow)[i].Rate = (*flow)[i].Rate.Add(change.Rate)
-				break
-			}
-		}
-		if !found {
-			*flow = append(*flow, change)
+// MergeUserFlows merge flows with same From address
+func (k Keeper) MergeUserFlows(userFlowsList []types.UserFlows) []types.UserFlows {
+	if len(userFlowsList) <= 1 {
+		return userFlowsList
+	}
+	userFlowsMap := make(map[string][]types.OutFlow)
+	for _, userFlows := range userFlowsList {
+		flows, found := userFlowsMap[userFlows.From]
+		if found {
+			flows = append(flows, userFlows.Flows...)
+			userFlowsMap[userFlows.From] = flows
+		} else {
+			userFlowsMap[userFlows.From] = flows
 		}
 	}
-	return *flow
+	var newUserFlowsList []types.UserFlows
+	for from, userFlows := range userFlowsMap {
+		newUserFlowsList = append(newUserFlowsList, types.UserFlows{
+			From:  from,
+			Flows: k.MergeOutFlows(userFlows),
+		})
+	}
+	sort.Slice(newUserFlowsList, func(i, j int) bool {
+		return newUserFlowsList[i].From < newUserFlowsList[j].From
+	})
+	return newUserFlowsList
+}
+
+// MergeOutFlows merge flows with same address
+func (k Keeper) MergeOutFlows(flows []types.OutFlow) []types.OutFlow {
+	if len(flows) <= 1 {
+		return flows
+	}
+	flowMap := make(map[string]sdkmath.Int)
+	for _, flow := range flows {
+		rate, found := flowMap[flow.ToAddress]
+		if found {
+			flowMap[flow.ToAddress] = rate.Add(flow.Rate)
+		} else {
+			flowMap[flow.ToAddress] = flow.Rate
+		}
+	}
+	var newFlows []types.OutFlow
+	for addr, rate := range flowMap {
+		if rate.IsZero() {
+			continue
+		}
+		newFlows = append(newFlows, types.OutFlow{
+			ToAddress: addr,
+			Rate:      rate,
+		})
+	}
+	sort.Slice(newFlows, func(i, j int) bool {
+		return newFlows[i].ToAddress < newFlows[j].ToAddress
+	})
+	return newFlows
 }

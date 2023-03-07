@@ -7,7 +7,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -125,37 +124,29 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
 	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
 	if primarySpRate.IsPositive() {
-		userFlows.Flows = keeper.MergeOutFlows(&userFlows.Flows, []types.OutFlow{{
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: bucketInfo.PrimarySpAddress,
 			Rate:      primarySpRate,
-		}})
+		})
 	}
 	for _, spObjectsSize := range bucketInfo.BillingInfo.SecondarySpObjectsSize {
 		rate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(spObjectsSize.TotalChargeSize)).TruncateInt()
 		if rate.IsZero() {
 			continue
 		}
-		userFlows.Flows = keeper.MergeOutFlows(&userFlows.Flows, []types.OutFlow{{
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: spObjectsSize.SpAddress,
 			Rate:      rate,
-		}})
+		})
 	}
 	return userFlows, nil
 }
 
 func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prev, current types.UserFlows) error {
 	prev.Flows = GetNegFlows(prev.Flows)
-	if prev.From == current.From {
-		flowChanges := keeper.MergeOutFlows(&prev.Flows, current.Flows)
-		err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{{From: prev.From, Flows: flowChanges}})
-		if err != nil {
-			return fmt.Errorf("apply flow changes failed: %w", err)
-		}
-	} else {
-		err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prev, current})
-		if err != nil {
-			return fmt.Errorf("apply user flows list failed: %w", err)
-		}
+	err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prev, current})
+	if err != nil {
+		return fmt.Errorf("apply user flows list failed: %w", err)
 	}
 	return nil
 }

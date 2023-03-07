@@ -145,7 +145,6 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
 	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     spAddr,
-		ExpireTime:    time.Now().Unix() + 86400,
 		ReadPrice:     newReadPrice,
 		StorePrice:    newStorePrice,
 		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,

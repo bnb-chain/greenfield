@@ -74,10 +74,10 @@ func TestMergeStreamRecordChanges(t *testing.T) {
 		*types.NewDefaultStreamRecordChangeWithAddr("user3").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 	}
 	k, _ := keepertest.PaymentKeeper(t)
-	k.MergeStreamRecordChanges(&base, changes)
-	t.Logf("new base: %+v", base)
-	require.Equal(t, len(base), 3)
-	require.Equal(t, base, []types.StreamRecordChange{
+	merged := k.MergeStreamRecordChanges(append(base, changes...))
+	t.Logf("merged: %+v", merged)
+	require.Equal(t, len(merged), 3)
+	require.Equal(t, merged, []types.StreamRecordChange{
 		*types.NewDefaultStreamRecordChangeWithAddr("user1").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 		*types.NewDefaultStreamRecordChangeWithAddr("user2").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 		*types.NewDefaultStreamRecordChangeWithAddr("user3").WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
