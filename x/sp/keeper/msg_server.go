@@ -232,9 +232,6 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpdateSpStoragePrice) (*types.MsgUpdateSpStoragePriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	current := ctx.BlockTime().Unix()
-	if current > msg.ExpireTime {
-		return nil, types.ErrStorageProviderPriceExpired
-	}
 	spStorePrice := types.SpStoragePrice{
 		UpdateTime:    current,
 		SpAddress:     msg.SpAddress,
