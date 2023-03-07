@@ -28,12 +28,6 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// check if a valid endpoint
-	err := types.IsValidEndpointURL(msg.Endpoint)
-	if err != nil {
-		return nil, err
-	}
-
 	signers := msg.GetSigners()
 	if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
 		return nil, types.ErrSignerNotGovModule

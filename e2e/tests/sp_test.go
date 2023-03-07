@@ -165,18 +165,24 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	prevEndpoint := querySPResp.StorageProvider.Endpoint
-	prevDescription := querySPResp.StorageProvider.Description
+	prevSP := querySPResp.StorageProvider
 
 	// 2. edit storage provider
-	endpoint := "http://127.0.0.1:9034"
-	description := sptypes.Description{
-		Moniker:  "sp_test_edit",
-		Identity: "",
+	newSP := &sptypes.StorageProvider{
+		OperatorAddress: prevSP.OperatorAddress,
+		FundingAddress:  prevSP.FundingAddress,
+		SealAddress:     prevSP.SealAddress,
+		ApprovalAddress: prevSP.ApprovalAddress,
+		Description: sptypes.Description{
+			Moniker:  "sp_test_edit",
+			Identity: "",
+		},
+		Endpoint:     "http://127.0.0.1:9034",
+		TotalDeposit: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
-		s.StorageProvider.OperatorKey.GetAddr(), endpoint, description)
+		s.StorageProvider.OperatorKey.GetAddr(), newSP.Endpoint, newSP.Description)
 	txRes := s.SendTxBlock(msgEditSP, s.StorageProvider.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -187,12 +193,11 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	s.Require().Equal(querySPResp.StorageProvider.Endpoint, endpoint)
-	s.Require().Equal(querySPResp.StorageProvider.Description.Moniker, "sp_test_edit")
+	s.Require().Equal(querySPResp.StorageProvider, newSP)
 
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
-		s.StorageProvider.OperatorKey.GetAddr(), prevEndpoint, prevDescription)
+		s.StorageProvider.OperatorKey.GetAddr(), prevSP.Endpoint, prevSP.Description)
 	txRes = s.SendTxBlock(msgEditSP, s.StorageProvider.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -203,7 +208,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	s.Require().Equal(querySPResp.StorageProvider.Endpoint, prevEndpoint)
+	s.Require().Equal(querySPResp.StorageProvider, prevSP)
 }
 
 func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
