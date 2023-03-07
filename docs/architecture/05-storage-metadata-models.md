@@ -133,7 +133,7 @@ message ObjectInfo {
 }
 
 message GroupInfo {
-  // owner is the owner of the group. It can not changed once it created.
+  // owner is the owner of the group. It can not changed once created.
   string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name is the name of group which is unique under an account.
   string group_name = 2;
