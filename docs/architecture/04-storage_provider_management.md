@@ -38,7 +38,7 @@ It will take several transactions to join the greenfield storage network for sto
 
 ### Leave the network
 
-When the SPs join and leave the network, they have to follow a series of actions to ensure data redundancy for the
+When the SPs join or leave the network, they have to follow a series of actions to ensure data redundancy for the
 users; otherwise, their "Service Stake" will be fined. This is achieved through the data availability challenge and
 validator governance votes.
 
