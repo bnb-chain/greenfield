@@ -21,6 +21,7 @@ func (k Keeper) GetPaymentAccountCount(
 	ctx sdk.Context,
 	owner string,
 ) (val *types.PaymentAccountCount, found bool) {
+	val = &types.PaymentAccountCount{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountCountKeyPrefix)
 
 	b := store.Get(types.PaymentAccountCountKey(
@@ -30,7 +31,6 @@ func (k Keeper) GetPaymentAccountCount(
 		return val, false
 	}
 
-	val = &types.PaymentAccountCount{}
 	k.cdc.MustUnmarshal(b, val)
 	val.Owner = owner
 	return val, true

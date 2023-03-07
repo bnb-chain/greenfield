@@ -26,6 +26,7 @@ func (k Keeper) GetPaymentAccount(
 	ctx sdk.Context,
 	addr string,
 ) (val *types.PaymentAccount, found bool) {
+	val = &types.PaymentAccount{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 
 	b := store.Get(types.PaymentAccountKey(
@@ -35,7 +36,6 @@ func (k Keeper) GetPaymentAccount(
 		return val, false
 	}
 
-	val = &types.PaymentAccount{}
 	k.cdc.MustUnmarshal(b, val)
 	val.Addr = addr
 	return val, true

@@ -552,6 +552,34 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	// user settle time become refreshed
 	s.Require().NotEqual(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecord.SettleTimestamp)
 	s.Require().Equal(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecordAfterAutoSettle.CrudTimestamp+int64(reserveTime-forcedSettleTime))
+
+	// deposit, balance not enough to resume
+	depositAmount1 := sdk.NewInt(1)
+	msgDeposit1 := &paymenttypes.MsgDeposit{
+		Creator: userAddr,
+		To:      paymentAddr,
+		Amount:  depositAmount1,
+	}
+	_ = s.SendTxBlock(msgDeposit1, user)
+	// check payment account stream record
+	paymentAccountStreamRecordAfterDeposit1 := s.GetStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecordAfterDeposit1 %s", core.YamlString(paymentAccountStreamRecordAfterDeposit1))
+	s.Require().NotEqual(paymentAccountStreamRecordAfterDeposit1.Status, int32(0))
+	s.Require().Equal(paymentAccountStreamRecordAfterDeposit1.StaticBalance.String(), paymentAccountStreamRecordAfterAutoSettle.StaticBalance.Add(depositAmount1).String())
+
+	// deposit and resume
+	depositAmount2 := sdk.NewInt(1e10)
+	msgDeposit2 := &paymenttypes.MsgDeposit{
+		Creator: userAddr,
+		To:      paymentAddr,
+		Amount:  depositAmount2,
+	}
+	_ = s.SendTxBlock(msgDeposit2, user)
+	// check payment account stream record
+	paymentAccountStreamRecordAfterDeposit2 := s.GetStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecordAfterDeposit2 %s", core.YamlString(paymentAccountStreamRecordAfterDeposit2))
+	s.Require().Equal(paymentAccountStreamRecordAfterDeposit2.Status, int32(0))
+	s.Require().Equal(paymentAccountStreamRecordAfterDeposit2.StaticBalance.Add(paymentAccountStreamRecordAfterDeposit2.BufferBalance).String(), paymentAccountStreamRecordAfterDeposit1.StaticBalance.Add(depositAmount2).String())
 }
 
 func (s *StorageTestSuite) GetChargeSize(payloadSize uint64) uint64 {

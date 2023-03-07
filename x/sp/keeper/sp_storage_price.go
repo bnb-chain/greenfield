@@ -115,19 +115,24 @@ func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice 
 // UpdateSecondarySpStorePrice calculate the price of secondary store by the average price of all sp store price
 func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 	sps := k.GetAllStorageProviders(ctx)
-	if len(sps) == 0 {
-		return nil
-	}
 	total := sdk.ZeroDec()
 	current := ctx.BlockTime().Unix()
+	var spNumInService int64
 	for _, sp := range sps {
+		if sp.Status != types.STATUS_IN_SERVICE {
+			continue
+		}
 		price, err := k.GetSpStoragePriceByTime(ctx, sp.OperatorAddress, current)
 		if err != nil {
 			return err
 		}
+		spNumInService++
 		total = total.Add(price.StorePrice)
 	}
-	price := types.SecondarySpStorePriceRatio.Mul(total).QuoInt64(int64(len(sps)))
+	if spNumInService == 0 {
+		return nil
+	}
+	price := types.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNumInService)
 	secondarySpStorePrice := types.SecondarySpStorePrice{
 		StorePrice: price,
 		UpdateTime: current,

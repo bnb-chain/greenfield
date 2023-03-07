@@ -18,20 +18,39 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	if err != nil {
 		return nil, err
 	}
+
 	// change payment record
-	streamRecord, found := k.Keeper.GetStreamRecord(ctx, msg.To)
+	streamRecord, found := k.GetStreamRecord(ctx, msg.To)
+
+	// if not found, check whether the account exists, if so, create a new record, otherwise, return error
 	if !found {
+		_, paymentAccountExists := k.GetPaymentAccount(ctx, msg.To)
+		toAcc, _ := sdk.AccAddressFromHexUnsafe(msg.To)
+		if !paymentAccountExists && !k.accountKeeper.HasAccount(ctx, toAcc) {
+			return nil, types.ErrReceiveAccountNotExist
+		}
 		streamRecord.Account = msg.To
 		streamRecord.CrudTimestamp = ctx.BlockTime().Unix()
 		streamRecord.StaticBalance = msg.Amount
 		k.Keeper.SetStreamRecord(ctx, streamRecord)
 		return &types.MsgDepositResponse{}, nil
-	} else {
-		// TODO:
-		// 1. check if the stream should be forced settled
-		// 2. if the account is frozen, assume it
+	}
+
+	// add static balance
+	if streamRecord.Status == types.StreamPaymentAccountStatusNormal {
 		change := types.NewDefaultStreamRecordChangeWithAddr(msg.To).WithStaticBalanceChange(msg.Amount)
-		err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
+		err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
+		k.SetStreamRecord(ctx, streamRecord)
 		return &types.MsgDepositResponse{}, err
 	}
+	// status can only be normal or frozen
+	if streamRecord.Status != types.StreamPaymentAccountStatusFrozen {
+		return nil, types.ErrInvalidStreamAccountStatus
+	}
+	// deposit and try resume the account
+	err = k.TryResumeStreamRecord(ctx, streamRecord, msg.Amount)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDepositResponse{}, err
 }

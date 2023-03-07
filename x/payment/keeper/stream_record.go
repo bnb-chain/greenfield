@@ -36,6 +36,7 @@ func (k Keeper) GetStreamRecord(
 	ctx sdk.Context,
 	account string,
 ) (val *types.StreamRecord, found bool) {
+	val = &types.StreamRecord{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 
 	b := store.Get(types.StreamRecordKey(
@@ -45,7 +46,6 @@ func (k Keeper) GetStreamRecord(
 		return val, false
 	}
 
-	val = &types.StreamRecord{}
 	k.cdc.MustUnmarshal(b, val)
 	val.Account = account
 	return val, true
@@ -69,7 +69,7 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 }
 
 func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange, autoSettle bool) error {
-	if streamRecord.Status != 0 {
+	if streamRecord.Status != types.StreamPaymentAccountStatusNormal {
 		return fmt.Errorf("stream account %s is frozen", streamRecord.Account)
 	}
 	currentTimestamp := ctx.BlockTime().Unix()
@@ -220,4 +220,40 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		num += 1
 	}
 
+}
+
+func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, depositBalance sdkmath.Int) error {
+	if streamRecord.Status != types.StreamPaymentAccountStatusFrozen {
+		return fmt.Errorf("stream account %s status is not frozen", streamRecord.Account)
+	}
+	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(depositBalance)
+	reserveTime := k.GetParams(ctx).ReserveTime
+	totalRates := sdkmath.ZeroInt()
+	for _, flow := range streamRecord.OutFlows {
+		totalRates = totalRates.Add(flow.Rate)
+	}
+	expectedBalanceToResume := totalRates.Mul(sdkmath.NewIntFromUint64(reserveTime))
+	if streamRecord.StaticBalance.LT(expectedBalanceToResume) {
+		// deposit balance is not enough to resume, only add static balance
+		k.SetStreamRecord(ctx, streamRecord)
+		return nil
+	}
+	// resume
+	now := ctx.BlockTime().Unix()
+	streamRecord.Status = types.StreamPaymentAccountStatusNormal
+	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRates).Int64()
+	streamRecord.NetflowRate = totalRates.Neg()
+	streamRecord.BufferBalance = expectedBalanceToResume
+	streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(expectedBalanceToResume)
+	streamRecord.CrudTimestamp = ctx.BlockTime().Unix()
+	for _, flow := range streamRecord.OutFlows {
+		change := types.NewDefaultStreamRecordChangeWithAddr(flow.ToAddress).WithRateChange(flow.Rate)
+		_, err := k.UpdateStreamRecordByAddr(ctx, change)
+		if err != nil {
+			return fmt.Errorf("update receiver stream record failed: %w", err)
+		}
+	}
+	k.SetStreamRecord(ctx, streamRecord)
+	k.UpdateAutoSettleRecord(ctx, streamRecord.Account, 0, streamRecord.SettleTimestamp)
+	return nil
 }
