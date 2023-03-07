@@ -11,19 +11,19 @@ import (
 func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
 	// Set all the streamRecord
 	for _, elem := range genState.StreamRecordList {
-		k.SetStreamRecord(ctx, elem)
+		k.SetStreamRecord(ctx, &elem)
 	}
 	// Set all the paymentAccountCount
 	for _, elem := range genState.PaymentAccountCountList {
-		k.SetPaymentAccountCount(ctx, elem)
+		k.SetPaymentAccountCount(ctx, &elem)
 	}
 	// Set all the paymentAccount
 	for _, elem := range genState.PaymentAccountList {
-		k.SetPaymentAccount(ctx, elem)
+		k.SetPaymentAccount(ctx, &elem)
 	}
 	// Set all the autoSettleRecord
 	for _, elem := range genState.AutoSettleRecordList {
-		k.SetAutoSettleRecord(ctx, elem)
+		k.SetAutoSettleRecord(ctx, &elem)
 	}
 	// this line is used by starport scaffolding # genesis/module/init
 	k.SetParams(ctx, genState.Params)

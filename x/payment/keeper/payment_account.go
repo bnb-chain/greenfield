@@ -8,12 +8,12 @@ import (
 )
 
 // SetPaymentAccount set a specific paymentAccount in the store from its index
-func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount types.PaymentAccount) {
+func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount *types.PaymentAccount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
-	b := k.cdc.MustMarshal(&paymentAccount)
-	store.Set(types.PaymentAccountKey(
-		paymentAccount.Addr,
-	), b)
+	key := types.PaymentAccountKey(paymentAccount.Addr)
+	paymentAccount.Addr = ""
+	b := k.cdc.MustMarshal(paymentAccount)
+	store.Set(key, b)
 	_ = ctx.EventManager().EmitTypedEvents(&types.EventPaymentAccountUpdate{
 		Addr:       paymentAccount.Addr,
 		Owner:      paymentAccount.Owner,
@@ -25,7 +25,7 @@ func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount types.PaymentA
 func (k Keeper) GetPaymentAccount(
 	ctx sdk.Context,
 	addr string,
-) (val types.PaymentAccount, found bool) {
+) (val *types.PaymentAccount, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 
 	b := store.Get(types.PaymentAccountKey(
@@ -35,7 +35,9 @@ func (k Keeper) GetPaymentAccount(
 		return val, false
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
+	val = &types.PaymentAccount{}
+	k.cdc.MustUnmarshal(b, val)
+	val.Addr = addr
 	return val, true
 }
 
@@ -49,6 +51,7 @@ func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccou
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.PaymentAccount
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		val.Addr = string(iterator.Key())
 		list = append(list, val)
 	}
 

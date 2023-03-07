@@ -54,31 +54,6 @@ func ParseAutoSettleRecordKey(key []byte) (res AutoSettleRecord) {
 	return
 }
 
-// BnbPriceKey returns the store key to retrieve a BnbPrice from the index fields
-func BnbPriceKey(
-	time int64,
-) []byte {
-	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(time))
-	return timeBytes
-}
-
-// FlowKey returns the store key to retrieve a Flow from the index fields
-func FlowKey(
-	from string,
-	to string,
-) []byte {
-	var key []byte
-
-	fromBytes := []byte(from)
-	key = append(key, fromBytes...)
-
-	toBytes := []byte(to)
-	key = append(key, toBytes...)
-
-	return key
-}
-
 // PaymentAccountKey returns the store key to retrieve a PaymentAccount from the index fields
 func PaymentAccountKey(
 	addr string,

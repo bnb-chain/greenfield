@@ -60,7 +60,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		// update flows
 		MergeOutFlows(&streamRecord.OutFlows, userFlows.Flows)
 		streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
-		err = k.UpdateStreamRecord(ctx, &streamRecord, streamRecordChange, false)
+		err = k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange, false)
 		if err != nil {
 			return fmt.Errorf("apply stream record changes for user failed: %w", err)
 		}

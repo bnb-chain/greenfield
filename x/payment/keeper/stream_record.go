@@ -11,13 +11,8 @@ import (
 )
 
 // SetStreamRecord set a specific streamRecord in the store from its index
-func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord types.StreamRecord) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
-	b := k.cdc.MustMarshal(&streamRecord)
-	store.Set(types.StreamRecordKey(
-		streamRecord.Account,
-	), b)
-	_ = ctx.EventManager().EmitTypedEvents(&types.EventStreamRecordUpdate{
+func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord) {
+	event := &types.EventStreamRecordUpdate{
 		Account:         streamRecord.Account,
 		StaticBalance:   streamRecord.StaticBalance,
 		NetflowRate:     streamRecord.NetflowRate,
@@ -27,14 +22,20 @@ func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord types.StreamRecord
 		BufferBalance:   streamRecord.BufferBalance,
 		SettleTimestamp: streamRecord.SettleTimestamp,
 		OutFlows:        streamRecord.OutFlows,
-	})
+	}
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
+	key := types.StreamRecordKey(streamRecord.Account)
+	streamRecord.Account = ""
+	b := k.cdc.MustMarshal(streamRecord)
+	store.Set(key, b)
+	_ = ctx.EventManager().EmitTypedEvents(event)
 }
 
 // GetStreamRecord returns a streamRecord from its index
 func (k Keeper) GetStreamRecord(
 	ctx sdk.Context,
 	account string,
-) (val types.StreamRecord, found bool) {
+) (val *types.StreamRecord, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 
 	b := store.Get(types.StreamRecordKey(
@@ -44,7 +45,9 @@ func (k Keeper) GetStreamRecord(
 		return val, false
 	}
 
-	k.cdc.MustUnmarshal(b, &val)
+	val = &types.StreamRecord{}
+	k.cdc.MustUnmarshal(b, val)
+	val.Account = account
 	return val, true
 }
 
@@ -58,6 +61,7 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.StreamRecord
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
+		val.Account = string(iterator.Key())
 		list = append(list, val)
 	}
 
@@ -142,12 +146,12 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRe
 	if !found {
 		streamRecord = types.NewStreamRecord(change.Addr, ctx.BlockTime().Unix())
 	}
-	err = k.UpdateStreamRecord(ctx, &streamRecord, change, false)
+	err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return
 	}
 	k.SetStreamRecord(ctx, streamRecord)
-	return &streamRecord, nil
+	return streamRecord, nil
 }
 
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
@@ -207,7 +211,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			panic("stream record not found")
 		}
 		change := types.NewDefaultStreamRecordChangeWithAddr(val.Addr)
-		err := k.UpdateStreamRecord(ctx, &streamRecord, change, true)
+		err := k.UpdateStreamRecord(ctx, streamRecord, change, true)
 		if err != nil {
 			ctx.Logger().Error("force settle failed", "addr", val.Addr, "err", err)
 			panic("force settle failed")

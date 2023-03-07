@@ -132,7 +132,7 @@ func TestAutoForceSettle(t *testing.T) {
 	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userAddBalance)
 	ret, err := keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
-	userStreamRecord = *ret
+	userStreamRecord = ret
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
 	require.True(t, userStreamRecord.StaticBalance.IsNegative())
@@ -149,7 +149,7 @@ func TestAutoForceSettle(t *testing.T) {
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
 	usr, found := keeper.GetStreamRecord(ctx, user)
 	require.True(t, found)
-	err = keeper.UpdateStreamRecord(ctx, &usr, change, true)
+	err = keeper.UpdateStreamRecord(ctx, usr, change, true)
 	require.NoError(t, err)
 	keeper.SetStreamRecord(ctx, usr)
 	userStreamRecord, _ = keeper.GetStreamRecord(ctx, user)
