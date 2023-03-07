@@ -1,7 +1,7 @@
 # Storage MetaData Models
 
 ## Abstract
-The basic data models for Greenfield storage are:
+Below are the basic data models for Greenfield storage:
 
 - bucket
 - object
