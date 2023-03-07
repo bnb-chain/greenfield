@@ -26,7 +26,7 @@ func SeedFromRandaoMix(randaoMix []byte, number uint64) []byte {
 	seedBytes = append(seedBytes, sdk.Keccak256(lowBytes)...)
 
 	for i := range randaoMix {
-		randaoMix[i] = randaoMix[i] ^ seedBytes[i]
+		seedBytes[i] = randaoMix[i] ^ seedBytes[i]
 	}
 
 	return seedBytes
