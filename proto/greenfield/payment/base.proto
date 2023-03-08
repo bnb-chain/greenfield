@@ -18,3 +18,10 @@ message OutFlow {
     (gogoproto.nullable) = false
   ];
 }
+
+enum StreamAccountStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  STREAM_ACCOUNT_STATUS_ACTIVE = 0;
+  STREAM_ACCOUNT_STATUS_FROZEN = 1;
+}

@@ -50,7 +50,7 @@ message EventStreamRecordUpdate {
     (gogoproto.nullable) = false
   ];
   // the status of the stream account
-  int32 status = 7;
+  StreamAccountStatus status = 7;
   // the unix timestamp when the stream account will be settled
   int64 settle_timestamp = 8;
   // the accumulated outflow rates of the stream account
@@ -73,9 +73,9 @@ message EventForceSettle {
 }
 
 message EventDeposit {
-  // creator is the message signer for MsgDeposit and the address of the account to deposit from
+  // from is the the address of the account to deposit from
   string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // to is the address of the account to deposit to
+  // to is the address of the stream account to deposit to
   string to = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // amount is the amount to deposit
   string amount = 3 [
@@ -86,9 +86,9 @@ message EventDeposit {
 }
 
 message EventWithdraw {
-  // creator is the message signer for MsgWithdraw and the address of the receive account
+  // to the address of the receive account
   string to = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // from is the address of the account to withdraw from
+  // from is the address of the stream account to withdraw from
   string from = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // amount is the amount to withdraw
   string amount = 3 [

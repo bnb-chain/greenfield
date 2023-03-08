@@ -33,14 +33,20 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		streamRecord.StaticBalance = msg.Amount
 		k.SetStreamRecord(ctx, streamRecord)
 	} else {
-		if streamRecord.Status == types.StreamPaymentAccountStatusNormal {
+		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 			// add static balance
 			change := types.NewDefaultStreamRecordChangeWithAddr(msg.To).WithStaticBalanceChange(msg.Amount)
 			err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
+			if err != nil {
+				return nil, err
+			}
 			k.SetStreamRecord(ctx, streamRecord)
-		} else if streamRecord.Status == types.StreamPaymentAccountStatusFrozen {
+		} else if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN {
 			// deposit and try resume the account
 			err = k.TryResumeStreamRecord(ctx, streamRecord, msg.Amount)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			// status can only be normal or frozen
 			return nil, types.ErrInvalidStreamAccountStatus

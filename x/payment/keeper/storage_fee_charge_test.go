@@ -158,7 +158,7 @@ func TestAutoForceSettle(t *testing.T) {
 	require.Equal(t, userStreamRecord.StaticBalance, sdkmath.ZeroInt())
 	require.Equal(t, userStreamRecord.BufferBalance, sdkmath.ZeroInt())
 	require.Equal(t, userStreamRecord.NetflowRate, sdkmath.ZeroInt())
-	require.Equal(t, userStreamRecord.Status, int32(types.StreamPaymentAccountStatusFrozen))
+	require.Equal(t, userStreamRecord.Status, types.STREAM_ACCOUNT_STATUS_FROZEN)
 	change = types.NewDefaultStreamRecordChangeWithAddr(sp)
 	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)

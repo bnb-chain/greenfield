@@ -40,7 +40,7 @@ message StreamRecord {
     (gogoproto.nullable) = false
   ];
   // the status of the stream account
-  int32 status = 7;
+  StreamAccountStatus status = 7;
   // the unix timestamp when the stream account will be settled
   int64 settle_timestamp = 8;
   // the accumulated outflow rates of the stream account
