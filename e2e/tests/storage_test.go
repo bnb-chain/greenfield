@@ -347,6 +347,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ReadQuota)).TruncateInt()
+	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
 	s.Require().Equal(usr.NetflowRate.Abs(), readChargeRate)
 
 	// CreateObject
@@ -447,6 +448,10 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.Require().Equal(
 		userOutflowMap[primarySpAddr].Sub(readChargeRate).String(),
 		spRateDiffMap[primarySpAddr].String())
+	diff := spRateDiffMap[primarySpAddr].Sub(primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt())
+	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
+	s.T().Logf("diff %s", diff.String())
+	s.Require().Equal(diff.String(), sdkmath.ZeroInt().String())
 	s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
 	for i, sp := range secondarySPs {
 		secondarySpAddr := sp.String()

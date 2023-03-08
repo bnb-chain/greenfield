@@ -88,13 +88,9 @@ func (k Keeper) MergeUserFlows(userFlowsList []types.UserFlows) []types.UserFlow
 	}
 	userFlowsMap := make(map[string][]types.OutFlow)
 	for _, userFlows := range userFlowsList {
-		flows, found := userFlowsMap[userFlows.From.String()]
-		if found {
-			flows = append(flows, userFlows.Flows...)
-			userFlowsMap[userFlows.From.String()] = flows
-		} else {
-			userFlowsMap[userFlows.From.String()] = flows
-		}
+		flows, _ := userFlowsMap[userFlows.From.String()]
+		flows = append(flows, userFlows.Flows...)
+		userFlowsMap[userFlows.From.String()] = flows
 	}
 	var newUserFlowsList []types.UserFlows
 	for from, userFlows := range userFlowsMap {

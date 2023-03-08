@@ -1,11 +1,10 @@
 package keeper
 
 import (
+	"github.com/bnb-chain/greenfield/app"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -56,6 +55,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		sptypes.ModuleName:             {authtypes.Staking},
 		types.ModuleName:               {authtypes.Staking},
+		paymentmoduletypes.ModuleName:  {},
 	}
 )
 
@@ -98,8 +98,8 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 
 	require.NoError(t, stateStore.LoadLatestVersion())
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
+	cdcConfig := app.MakeEncodingConfig()
+	cdc := cdcConfig.Marshaler
 
 	paramKeeper := paramskeeper.NewKeeper(cdc, types.Amino, storeKeys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
@@ -178,9 +178,14 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	spKeeper.SetParams(ctx, sptypes.DefaultParams())
 	paymentKeeper.SetParams(ctx, paymentmoduletypes.DefaultParams())
 
-	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
-		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
+	// Initialize module accounts
+	paymentModulePool := accountKeeper.GetModuleAccount(ctx, paymentmoduletypes.ModuleName)
+	accountKeeper.SetModuleAccount(ctx, paymentModulePool)
+
+	amount := sdk.NewIntFromUint64(1e19)
+	err := bankKeeper.MintCoins(ctx, authtypes.Minter, sdk.Coins{sdk.Coin{
+		Denom:  "BNB",
+		Amount: amount,
 	}})
 	if err != nil {
 		panic("mint coins error")
