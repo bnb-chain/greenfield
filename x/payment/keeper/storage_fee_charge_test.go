@@ -1,11 +1,12 @@
 package keeper_test
 
 import (
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"

@@ -1,8 +1,9 @@
 package types
 
 import (
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	"testing"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
 
 	sdkmath "cosmossdk.io/math"
 )

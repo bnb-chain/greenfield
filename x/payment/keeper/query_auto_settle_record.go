@@ -46,7 +46,7 @@ func (k Keeper) AutoSettleRecord(c context.Context, req *types.QueryGetAutoSettl
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	addr, err := sdk.AccAddressFromBech32(req.Addr)
+	addr, err := sdk.AccAddressFromHexUnsafe(req.Addr)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}

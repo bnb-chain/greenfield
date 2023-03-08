@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/app"
 	"testing"
+
+	"github.com/bnb-chain/greenfield/app"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
