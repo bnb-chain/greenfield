@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	DefaultTransferOutRelayerFeeParam    string = "1"
+	DefaultTransferOutRelayerFeeParam    string = "1000000000000000" // 0.001
 	DefaultTransferOutAckRelayerFeeParam string = "0"
 )
 
