@@ -23,13 +23,17 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucket) (*types.MsgCreateBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: check the bucket permission
 	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return nil, err
 	}
 
-	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, msg.PrimarySpAddress, CreateBucketOptions{
+	primarySPAcc, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
 		IsPublic:          msg.IsPublic,
 		ReadQuota:         msg.ReadQuota,
