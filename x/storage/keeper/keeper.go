@@ -309,7 +309,7 @@ func (k Keeper) CreateObject(
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockHeight(),
-		ObjectStatus:         types.OBJECT_STATUS_INIT,
+		ObjectStatus:         types.OBJECT_STATUS_CREATED,
 		RedundancyType:       opts.RedundancyType, // TODO: base on redundancy policy
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,
@@ -403,7 +403,7 @@ func (k Keeper) SealObject(
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectAlreadyExists
 	}
 
@@ -429,7 +429,7 @@ func (k Keeper) SealObject(
 		return err
 	}
 
-	objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
+	objectInfo.ObjectStatus = types.OBJECT_STATUS_SEALED
 	objectInfo.SecondarySpAddresses = secondarySps
 	objectInfo.LockedBalance = nil
 
@@ -467,7 +467,7 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectNotInit
 	}
 
@@ -520,7 +520,7 @@ func (k Keeper) DeleteObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_IN_SERVICE {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
 		return types.ErrObjectNotInService
 	}
 
@@ -601,7 +601,7 @@ func (k Keeper) CopyObject(
 		ContentType:    srcObjectInfo.ContentType,
 		CreateAt:       ctx.BlockHeight(),
 		Id:             k.GenNextObjectID(ctx),
-		ObjectStatus:   types.OBJECT_STATUS_INIT,
+		ObjectStatus:   types.OBJECT_STATUS_CREATED,
 		RedundancyType: srcObjectInfo.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      srcObjectInfo.Checksums,
@@ -645,7 +645,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectNotInit
 	}
 

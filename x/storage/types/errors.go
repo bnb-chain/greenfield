@@ -33,4 +33,5 @@ var (
 	ErrInvalidContentType = errors.Register(ModuleName, 2004, "invalid content type")
 	ErrInvalidSPSignature = errors.Register(ModuleName, 2005, "invalid sp signature")
 	ErrInvalidSPAddress   = errors.Register(ModuleName, 2006, "invalid sp address")
+	ErrInvalidNFTType     = errors.Register(ModuleName, 2007, "invalid nft type")
 )
