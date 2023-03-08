@@ -10,7 +10,7 @@ import (
 // SetPaymentAccountCount set a specific paymentAccountCount in the store from its index
 func (k Keeper) SetPaymentAccountCount(ctx sdk.Context, paymentAccountCount *types.PaymentAccountCount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountCountKeyPrefix)
-	key := types.PaymentAccountCountKey(paymentAccountCount.Owner)
+	key := types.PaymentAccountCountKey(sdk.MustAccAddressFromHex(paymentAccountCount.Owner))
 	paymentAccountCount.Owner = ""
 	b := k.cdc.MustMarshal(paymentAccountCount)
 	store.Set(key, b)
@@ -19,7 +19,7 @@ func (k Keeper) SetPaymentAccountCount(ctx sdk.Context, paymentAccountCount *typ
 // GetPaymentAccountCount returns a paymentAccountCount from its index
 func (k Keeper) GetPaymentAccountCount(
 	ctx sdk.Context,
-	owner string,
+	owner sdk.AccAddress,
 ) (val *types.PaymentAccountCount, found bool) {
 	val = &types.PaymentAccountCount{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountCountKeyPrefix)
@@ -32,14 +32,14 @@ func (k Keeper) GetPaymentAccountCount(
 	}
 
 	k.cdc.MustUnmarshal(b, val)
-	val.Owner = owner
+	val.Owner = owner.String()
 	return val, true
 }
 
 // RemovePaymentAccountCount removes a paymentAccountCount from the store
 func (k Keeper) RemovePaymentAccountCount(
 	ctx sdk.Context,
-	owner string,
+	owner sdk.AccAddress,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountCountKeyPrefix)
 	store.Delete(types.PaymentAccountCountKey(
@@ -57,7 +57,7 @@ func (k Keeper) GetAllPaymentAccountCount(ctx sdk.Context) (list []types.Payment
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.PaymentAccountCount
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		val.Owner = string(iterator.Key())
+		val.Owner = sdk.AccAddress(iterator.Key()).String()
 		list = append(list, val)
 	}
 

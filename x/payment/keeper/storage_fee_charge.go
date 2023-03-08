@@ -17,21 +17,21 @@ func (k Keeper) MergeStreamRecordChanges(changes []types.StreamRecordChange) []t
 	}
 	changeMap := make(map[string]*types.StreamRecordChange)
 	for _, change := range changes {
-		currentChange, ok := changeMap[change.Addr]
+		currentChange, ok := changeMap[change.Addr.String()]
 		if !ok {
 			currentChange = types.NewDefaultStreamRecordChangeWithAddr(change.Addr)
 		}
 		currentChange.RateChange = currentChange.RateChange.Add(change.RateChange)
 		currentChange.StaticBalanceChange = currentChange.StaticBalanceChange.Add(change.StaticBalanceChange)
 		currentChange.LockBalanceChange = currentChange.LockBalanceChange.Add(change.LockBalanceChange)
-		changeMap[change.Addr] = currentChange
+		changeMap[change.Addr.String()] = currentChange
 	}
 	var result []types.StreamRecordChange
 	for _, change := range changeMap {
 		result = append(result, *change)
 	}
 	sort.Slice(result, func(i, j int) bool {
-		return result[i].Addr < result[j].Addr
+		return result[i].Addr.String() < result[j].Addr.String()
 	})
 	return result
 }
@@ -62,7 +62,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		// calculate rate changes in flowChanges
 		totalRate := sdk.ZeroInt()
 		for _, flowChange := range userFlows.Flows {
-			streamRecordChanges = append(streamRecordChanges, *types.NewDefaultStreamRecordChangeWithAddr(flowChange.ToAddress).WithRateChange(flowChange.Rate))
+			streamRecordChanges = append(streamRecordChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithRateChange(flowChange.Rate))
 			totalRate = totalRate.Add(flowChange.Rate)
 		}
 		// update flows
@@ -88,23 +88,23 @@ func (k Keeper) MergeUserFlows(userFlowsList []types.UserFlows) []types.UserFlow
 	}
 	userFlowsMap := make(map[string][]types.OutFlow)
 	for _, userFlows := range userFlowsList {
-		flows, found := userFlowsMap[userFlows.From]
+		flows, found := userFlowsMap[userFlows.From.String()]
 		if found {
 			flows = append(flows, userFlows.Flows...)
-			userFlowsMap[userFlows.From] = flows
+			userFlowsMap[userFlows.From.String()] = flows
 		} else {
-			userFlowsMap[userFlows.From] = flows
+			userFlowsMap[userFlows.From.String()] = flows
 		}
 	}
 	var newUserFlowsList []types.UserFlows
 	for from, userFlows := range userFlowsMap {
 		newUserFlowsList = append(newUserFlowsList, types.UserFlows{
-			From:  from,
+			From:  sdk.MustAccAddressFromHex(from),
 			Flows: k.MergeOutFlows(userFlows),
 		})
 	}
 	sort.Slice(newUserFlowsList, func(i, j int) bool {
-		return newUserFlowsList[i].From < newUserFlowsList[j].From
+		return newUserFlowsList[i].From.String() < newUserFlowsList[j].From.String()
 	})
 	return newUserFlowsList
 }

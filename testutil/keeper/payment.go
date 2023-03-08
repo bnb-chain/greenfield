@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"math/rand"
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -114,14 +113,4 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k.SetParams(ctx, types.DefaultParams())
 
 	return k, ctx
-}
-
-func GetRandomAddress() string {
-	b := make([]byte, 20)
-	// #nosec
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.AccAddress(b).String()
 }

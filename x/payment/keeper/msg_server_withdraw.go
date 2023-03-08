@@ -11,13 +11,14 @@ import (
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	// check stream record
-	streamRecord, found := k.Keeper.GetStreamRecord(ctx, msg.From)
+	from := sdk.MustAccAddressFromHex(msg.From)
+	streamRecord, found := k.Keeper.GetStreamRecord(ctx, from)
 	if !found {
 		return nil, types.ErrStreamRecordNotFound
 	}
 	// check whether creator can withdraw
 	if msg.Creator != msg.From {
-		paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, msg.From)
+		paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, from)
 		if !found {
 			return nil, types.ErrPaymentAccountNotFound
 		}
@@ -28,7 +29,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 			return nil, types.ErrPaymentAccountAlreadyNonRefundable
 		}
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(msg.From).WithStaticBalanceChange(msg.Amount.Neg())
+	change := types.NewDefaultStreamRecordChangeWithAddr(from).WithStaticBalanceChange(msg.Amount.Neg())
 	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return nil, err

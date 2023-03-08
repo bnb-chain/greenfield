@@ -15,14 +15,14 @@ func (k msgServer) CreatePaymentAccount(goCtx context.Context, msg *types.MsgCre
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// get current count
-	countRecord, _ := k.Keeper.GetPaymentAccountCount(ctx, msg.Creator)
+	creator := sdk.MustAccAddressFromHex(msg.Creator)
+	countRecord, _ := k.Keeper.GetPaymentAccountCount(ctx, creator)
 	count := countRecord.Count
 	// get payment account count limit
 	params := k.Keeper.GetParams(ctx)
 	if count >= params.PaymentAccountCountLimit {
 		return nil, errorsmod.Wrapf(types.ErrReachPaymentAccountLimit, "current count: %d", count)
 	}
-	creator := sdk.MustAccAddressFromHex(msg.Creator)
 	// TODO: charge fee
 	// calculate the addr
 	b := make([]byte, 8)

@@ -6,13 +6,13 @@ import (
 )
 
 type StreamRecordChange struct {
-	Addr                string
+	Addr                sdk.AccAddress
 	RateChange          sdkmath.Int
 	StaticBalanceChange sdkmath.Int
 	LockBalanceChange   sdkmath.Int
 }
 
-func NewDefaultStreamRecordChangeWithAddr(addr string) *StreamRecordChange {
+func NewDefaultStreamRecordChangeWithAddr(addr sdk.AccAddress) *StreamRecordChange {
 	return &StreamRecordChange{
 		Addr:                addr,
 		RateChange:          sdkmath.ZeroInt(),
@@ -48,6 +48,6 @@ type StoragePrice struct {
 }
 
 type UserFlows struct {
-	From  string
+	From  sdk.AccAddress
 	Flows []OutFlow
 }

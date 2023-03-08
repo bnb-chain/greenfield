@@ -1,16 +1,18 @@
 package types
 
 import (
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
 )
 
 func TestStreamRecordChange(t *testing.T) {
-	src := NewDefaultStreamRecordChangeWithAddr("addr")
+	addr := sample.RandAccAddress()
+	src := NewDefaultStreamRecordChangeWithAddr(addr)
 	t.Logf("src: %+v", src)
-	src2 := NewDefaultStreamRecordChangeWithAddr("addr").WithRateChange(sdkmath.ZeroInt())
+	src2 := NewDefaultStreamRecordChangeWithAddr(addr).WithRateChange(sdkmath.ZeroInt())
 	t.Logf("src2: %+v", src2)
-	src3 := NewDefaultStreamRecordChangeWithAddr("addr").WithRateChange(sdkmath.ZeroInt()).WithStaticBalanceChange(sdkmath.NewIntFromUint64(111))
+	src3 := NewDefaultStreamRecordChangeWithAddr(addr).WithRateChange(sdkmath.ZeroInt()).WithStaticBalanceChange(sdkmath.NewIntFromUint64(111))
 	t.Logf("src3: %+v", src3)
 }

@@ -447,7 +447,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.Require().Equal(
 		userOutflowMap[primarySpAddr].Sub(readChargeRate).String(),
 		spRateDiffMap[primarySpAddr].String())
-	//s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+	s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
 	for i, sp := range secondarySPs {
 		secondarySpAddr := sp.String()
 		s.Require().Equal(userOutflowMap[secondarySpAddr].String(), spRateDiffMap[secondarySpAddr].String(), "sp %d", i+1)
@@ -530,6 +530,8 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.Require().Equal(userStreamRecord.SettleTimestamp, userStreamRecord.CrudTimestamp+int64(reserveTime-forcedSettleTime))
 	spStreamRecord := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
 	s.T().Logf("spStreamRecord %s", core.YamlString(spStreamRecord))
+	govStreamRecord := s.GetStreamRecord(paymenttypes.GovernanceAddress.String())
+	s.T().Logf("govStreamRecord %s", core.YamlString(govStreamRecord))
 
 	// wait until settle time
 	retryCount := 0
@@ -561,6 +563,13 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	// user settle time become refreshed
 	s.Require().NotEqual(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecord.SettleTimestamp)
 	s.Require().Equal(userStreamRecordAfterAutoSettle.SettleTimestamp, userStreamRecordAfterAutoSettle.CrudTimestamp+int64(reserveTime-forcedSettleTime))
+	// gov stream record balance increase
+	govStreamRecordAfterSettle := s.GetStreamRecord(paymenttypes.GovernanceAddress.String())
+	s.T().Logf("govStreamRecordAfterSettle %s", core.YamlString(govStreamRecordAfterSettle))
+	s.Require().NotEqual(govStreamRecordAfterSettle.StaticBalance.String(), govStreamRecord.StaticBalance.String())
+	govStreamRecordStaticBalanceDelta := govStreamRecordAfterSettle.StaticBalance.Sub(govStreamRecord.StaticBalance)
+	expectedGovBalanceDelta := userStreamRecord.NetflowRate.Neg().MulRaw(userStreamRecordAfterAutoSettle.CrudTimestamp - userStreamRecord.CrudTimestamp)
+	s.Require().Equal(expectedGovBalanceDelta.String(), govStreamRecordStaticBalanceDelta.String())
 
 	// deposit, balance not enough to resume
 	depositAmount1 := sdk.NewInt(1)

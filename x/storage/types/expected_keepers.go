@@ -28,7 +28,7 @@ type SpKeeper interface {
 
 type PaymentKeeper interface {
 	GetParams(ctx sdk.Context) paymenttypes.Params
-	IsPaymentAccountOwner(ctx sdk.Context, addr string, owner string) bool
+	IsPaymentAccountOwner(ctx sdk.Context, addr, owner sdk.AccAddress) bool
 	GetStoragePrice(ctx sdk.Context, params paymenttypes.StoragePriceParams) (price paymenttypes.StoragePrice, err error)
 	ApplyUserFlowsList(ctx sdk.Context, userFlows []paymenttypes.UserFlows) (err error)
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)

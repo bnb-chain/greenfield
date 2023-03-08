@@ -13,7 +13,7 @@ func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord *types.Aut
 	b := []byte{0x00}
 	store.Set(types.AutoSettleRecordKey(
 		autoSettleRecord.Timestamp,
-		autoSettleRecord.Addr,
+		sdk.MustAccAddressFromHex(autoSettleRecord.Addr),
 	), b)
 }
 
@@ -21,7 +21,7 @@ func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord *types.Aut
 func (k Keeper) GetAutoSettleRecord(
 	ctx sdk.Context,
 	timestamp int64,
-	addr string,
+	addr sdk.AccAddress,
 ) (val *types.AutoSettleRecord, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 
@@ -34,7 +34,7 @@ func (k Keeper) GetAutoSettleRecord(
 	}
 
 	val.Timestamp = timestamp
-	val.Addr = addr
+	val.Addr = addr.String()
 	return val, true
 }
 
@@ -42,7 +42,7 @@ func (k Keeper) GetAutoSettleRecord(
 func (k Keeper) RemoveAutoSettleRecord(
 	ctx sdk.Context,
 	timestamp int64,
-	addr string,
+	addr sdk.AccAddress,
 ) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	store.Delete(types.AutoSettleRecordKey(
@@ -66,7 +66,7 @@ func (k Keeper) GetAllAutoSettleRecord(ctx sdk.Context) (list []types.AutoSettle
 	return
 }
 
-func (k Keeper) UpdateAutoSettleRecord(ctx sdk.Context, addr string, oldTime, newTime int64) {
+func (k Keeper) UpdateAutoSettleRecord(ctx sdk.Context, addr sdk.AccAddress, oldTime, newTime int64) {
 	if oldTime == newTime {
 		return
 	}
@@ -76,7 +76,7 @@ func (k Keeper) UpdateAutoSettleRecord(ctx sdk.Context, addr string, oldTime, ne
 	if newTime != 0 {
 		k.SetAutoSettleRecord(ctx, &types.AutoSettleRecord{
 			Timestamp: newTime,
-			Addr:      addr,
+			Addr:      addr.String(),
 		})
 	}
 }

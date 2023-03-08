@@ -46,9 +46,13 @@ func (k Keeper) PaymentAccount(c context.Context, req *types.QueryGetPaymentAcco
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	addr, err := sdk.AccAddressFromHexUnsafe(req.Addr)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid address")
+	}
 	val, found := k.GetPaymentAccount(
 		ctx,
-		req.Addr,
+		addr,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

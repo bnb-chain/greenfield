@@ -19,7 +19,8 @@ func (k Keeper) GetPaymentAccountsByOwner(goCtx context.Context, req *types.Quer
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	countRecord, found := k.GetPaymentAccountCount(ctx, req.Owner)
+	owner := sdk.MustAccAddressFromHex(req.Owner)
+	countRecord, found := k.GetPaymentAccountCount(ctx, owner)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}

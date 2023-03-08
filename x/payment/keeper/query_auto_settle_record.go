@@ -46,10 +46,14 @@ func (k Keeper) AutoSettleRecord(c context.Context, req *types.QueryGetAutoSettl
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	addr, err := sdk.AccAddressFromBech32(req.Addr)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
 	val, found := k.GetAutoSettleRecord(
 		ctx,
 		req.Timestamp,
-		req.Addr,
+		addr,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

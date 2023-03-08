@@ -40,7 +40,8 @@ func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInf
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(amount)
+	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
@@ -57,7 +58,8 @@ func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(lockedBalance.Neg())
+	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(lockedBalance.Neg())
 	_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
@@ -109,7 +111,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 }
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
-	userFlows.From = bucketInfo.PaymentAddress
+	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ReadQuota == 0 {
 		return userFlows, nil
 	}
