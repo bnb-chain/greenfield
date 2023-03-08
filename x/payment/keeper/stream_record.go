@@ -10,8 +10,27 @@ import (
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
+func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
+	if streamRecord.Status != types.StreamPaymentAccountStatusNormal && streamRecord.Status != types.StreamPaymentAccountStatusFrozen {
+		panic(fmt.Sprintf("invalid streamRecord status %d", streamRecord.Status))
+	}
+	if streamRecord.StaticBalance.IsNil() {
+		panic(fmt.Sprintf("invalid streamRecord staticBalance %s", streamRecord.StaticBalance))
+	}
+	if streamRecord.NetflowRate.IsNil() {
+		panic(fmt.Sprintf("invalid streamRecord netflowRate %s", streamRecord.NetflowRate))
+	}
+	if streamRecord.LockBalance.IsNil() || streamRecord.LockBalance.IsNegative() {
+		panic(fmt.Sprintf("invalid streamRecord lockBalance %s", streamRecord.LockBalance))
+	}
+	if streamRecord.BufferBalance.IsNil() || streamRecord.BufferBalance.IsNegative() {
+		panic(fmt.Sprintf("invalid streamRecord bufferBalance %s", streamRecord.BufferBalance))
+	}
+}
+
 // SetStreamRecord set a specific streamRecord in the store from its index
 func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord) {
+	k.CheckStreamRecord(streamRecord)
 	event := &types.EventStreamRecordUpdate{
 		Account:         streamRecord.Account,
 		StaticBalance:   streamRecord.StaticBalance,

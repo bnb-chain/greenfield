@@ -40,5 +40,14 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	if err != nil {
 		return nil, err
 	}
+	// emit event
+	err = ctx.EventManager().EmitTypedEvents(&types.EventWithdraw{
+		From:   msg.From,
+		To:     msg.Creator,
+		Amount: msg.Amount,
+	})
+	if err != nil {
+		return nil, err
+	}
 	return &types.MsgWithdrawResponse{}, nil
 }
