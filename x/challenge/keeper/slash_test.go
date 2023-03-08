@@ -18,7 +18,7 @@ func createSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Slash {
 	for i := range items {
 		items[i].ObjectId = sdkmath.NewUint(uint64(i))
 		items[i].Height = uint64(i)
-		items[i].SpOperatorAddress = fmt.Sprintf("addr-%d", i)
+		items[i].SpOperatorAddress = []byte(fmt.Sprintf("addr-%d", i))
 		keeper.SaveSlash(ctx, items[i])
 	}
 	return items

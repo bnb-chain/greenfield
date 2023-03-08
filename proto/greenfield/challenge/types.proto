@@ -17,7 +17,7 @@ enum VoteResult {
 }
 
 message Slash {
-  string sp_operator_address = 1;
+  bytes sp_operator_address = 1;
   string object_id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",

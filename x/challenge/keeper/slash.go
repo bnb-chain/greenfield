@@ -35,7 +35,7 @@ func (k Keeper) RemoveSlashUntil(ctx sdk.Context, height uint64) {
 }
 
 // ExistsSlash check whether there exists recent slash for a pair of sp and object info or not
-func (k Keeper) ExistsSlash(ctx sdk.Context, spOperatorAddress string, objectId sdkmath.Uint) bool {
+func (k Keeper) ExistsSlash(ctx sdk.Context, spOperatorAddress sdk.AccAddress, objectId sdkmath.Uint) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SlashKeyPrefix)
 
 	bz := store.Get(getSlashKeyBytes(spOperatorAddress, objectId))
@@ -43,9 +43,7 @@ func (k Keeper) ExistsSlash(ctx sdk.Context, spOperatorAddress string, objectId 
 }
 
 // getSlashKeyBytes returns the byte representation of Slash key
-func getSlashKeyBytes(spOperatorAddress string, objectId sdkmath.Uint) []byte {
-	idBytes := objectId.Bytes()
-	allBytes := append(sdk.Keccak256([]byte(spOperatorAddress)), idBytes...)
-
+func getSlashKeyBytes(spOperatorAddress sdk.AccAddress, objectId sdkmath.Uint) []byte {
+	allBytes := append(spOperatorAddress.Bytes(), objectId.Bytes()...)
 	return sdk.Keccak256(allBytes)
 }

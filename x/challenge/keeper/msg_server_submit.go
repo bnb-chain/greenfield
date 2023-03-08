@@ -14,13 +14,13 @@ import (
 func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.MsgSubmitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spOperatorAddress, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
+	spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	// check sp status
-	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperatorAddress)
+	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperatorAddr)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}
@@ -40,27 +40,27 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	// check whether the sp stores the object info
 	stored := false
 	for _, sp := range objectInfo.GetSecondarySpAddresses() {
-		if strings.EqualFold(msg.SpOperatorAddress, sp) {
+		if strings.EqualFold(spOperatorAddr.String(), sp) {
 			stored = true
 			break
 		}
 	}
 	if !stored {
 		bucket, _ := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
-		if !strings.EqualFold(msg.SpOperatorAddress, bucket.GetPrimarySpAddress()) {
+		if !strings.EqualFold(spOperatorAddr.String(), bucket.GetPrimarySpAddress()) {
 			return nil, types.ErrNotStoredOnSp
 		}
 	}
 
 	// check sp recent slash
-	if k.ExistsSlash(ctx, strings.ToLower(msg.SpOperatorAddress), objectInfo.Id) {
+	if k.ExistsSlash(ctx, spOperatorAddr, objectInfo.Id) {
 		return nil, types.ErrExistsRecentSlash
 	}
 
 	// generate redundancy index
 	redundancyIndex := types.RedundancyIndexPrimary
 	for i, sp := range objectInfo.GetSecondarySpAddresses() {
-		if strings.EqualFold(msg.SpOperatorAddress, sp) {
+		if strings.EqualFold(spOperatorAddr.String(), sp) {
 			redundancyIndex = int32(i)
 			break
 		}
@@ -85,7 +85,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		ChallengeId:       challengeId,
 		ObjectId:          objectInfo.Id,
 		SegmentIndex:      segmentIndex,
-		SpOperatorAddress: msg.SpOperatorAddress,
+		SpOperatorAddress: spOperatorAddr.String(),
 		RedundancyIndex:   redundancyIndex,
 		ChallengerAddress: msg.Challenger,
 	}); err != nil {

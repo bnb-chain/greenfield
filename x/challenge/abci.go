@@ -2,7 +2,6 @@ package challenge
 
 import (
 	"fmt"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/gogo/protobuf/proto"
@@ -71,11 +70,11 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			spOperatorAddress = objectInfo.SecondarySpAddresses[redundancyIndex]
 		}
 
-		addr, err := sdk.AccAddressFromHexUnsafe(spOperatorAddress)
+		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(spOperatorAddress)
 		if err != nil {
 			continue
 		}
-		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, addr)
+		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorAddr)
 		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
 			continue
 		}
@@ -86,7 +85,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// check recent slash
-		if keeper.ExistsSlash(ctx, strings.ToLower(spOperatorAddress), objectInfo.Id) {
+		if keeper.ExistsSlash(ctx, spOperatorAddr, objectInfo.Id) {
 			continue
 		}
 
