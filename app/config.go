@@ -41,7 +41,7 @@ func NewDefaultAppConfig() *AppConfig {
 	//   own app.toml to override, or use this default value.
 	//
 	// In simapp, we set the min gas prices to 0.
-	srvCfg.MinGasPrices = "1000000000BNB" // 1gei
+	srvCfg.MinGasPrices = "5000000000BNB" // 5gei
 
 	return &AppConfig{
 		Config: *srvCfg,
