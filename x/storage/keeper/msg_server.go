@@ -33,7 +33,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		return nil, err
 	}
 
-	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc.String(), CreateBucketOptions{
+	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
 		IsPublic:          msg.IsPublic,
 		ReadQuota:         msg.ReadQuota,

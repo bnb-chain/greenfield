@@ -71,7 +71,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAddress string, opts CreateBucketOptions) (sdkmath.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
@@ -85,8 +85,6 @@ func (k Keeper) CreateBucket(
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
-
-	primarySpAcc := sdk.MustAccAddressFromHex(primarySpAddress)
 
 	// check primary sp approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
