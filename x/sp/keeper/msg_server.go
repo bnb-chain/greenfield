@@ -112,10 +112,10 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	k.SetStorageProvider(ctx, sp)
-	k.SetStorageProviderByApprovalAddr(ctx, sp)
-	k.SetStorageProviderByFundingAddr(ctx, sp)
-	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
+	k.SetStorageProviderByApprovalAddr(ctx, &sp)
+	k.SetStorageProviderByFundingAddr(ctx, &sp)
+	k.SetStorageProviderBySealAddr(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),
@@ -160,7 +160,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	sp.Description = description
 
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
 		OldEndpoint: oldEndpoint,
@@ -202,7 +202,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	// Add to storage provider's deposit tokens and update the storage provider.
 	sp.TotalDeposit = sp.TotalDeposit.Add(msg.Deposit.Amount)
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
 		SpAddress:    msg.SpAddress,

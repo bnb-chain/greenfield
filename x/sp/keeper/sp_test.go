@@ -20,7 +20,7 @@ func TestSetGetStorageProvider(t *testing.T) {
 
 	sp.OperatorAddress = spAcc.String()
 
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 	sp, found := k.GetStorageProvider(ctx, spAcc)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
@@ -45,7 +45,7 @@ func TestStorageProviderBasics(t *testing.T) {
 	approvalAccStr := sample.AccAddress()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
-	sp := types.StorageProvider{
+	sp := &types.StorageProvider{
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
