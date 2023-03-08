@@ -1380,7 +1380,124 @@ paths:
                       format: byte
       tags:
         - Query
-  /greenfield/sp/storage_providers:
+  /greenfield/storage_provider/{spAddress}:
+    get:
+      summary: Queries a storage provider with specify address
+      operationId: StorageProvider
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              storageProvider:
+                type: object
+                properties:
+                  operator_address:
+                    type: string
+                    description: >-
+                      operator_address defines the account address of the
+                      storage provider's operator; It also is the unique index
+                      key of sp.
+                  funding_address:
+                    type: string
+                    description: >-
+                      funding_address defines one of the storage provider's
+                      accounts which is used to deposit and reward.
+                  seal_address:
+                    type: string
+                    title: >-
+                      seal_address defines one of the storage provider's
+                      accounts which is used to SealObject
+                  approval_address:
+                    type: string
+                    title: >-
+                      approval_address defines one of the storage provider's
+                      accounts which is used to approve use's
+                      createBucket/createObject request
+                  total_deposit:
+                    type: string
+                    description: >-
+                      total_deposit defines the number of tokens deposited by
+                      this storage provider for staking.
+                  status:
+                    title: >-
+                      status defines the current service status of this storage
+                      provider
+                    type: string
+                    enum:
+                      - STATUS_IN_SERVICE
+                      - STATUS_IN_JAILED
+                      - STATUS_GRACEFUL_EXITING
+                      - STATUS_OUT_OF_SERVICE
+                    default: STATUS_IN_SERVICE
+                    description: Status is the status of a storage provider.
+                  endpoint:
+                    type: string
+                    title: >-
+                      endpoint define the storage provider's network service
+                      address
+                  description:
+                    description: >-
+                      description defines the description terms for the storage
+                      provider.
+                    type: object
+                    properties:
+                      moniker:
+                        type: string
+                        title: >-
+                          moniker defines a human-readable name for the storage
+                          provider
+                      identity:
+                        type: string
+                        description: >-
+                          identity defines an optional identity signature (ex.
+                          UPort or Keybase).
+                      website:
+                        type: string
+                        description: website defines an optional website link.
+                      security_contact:
+                        type: string
+                        description: >-
+                          security_contact defines an optional email for
+                          security contact.
+                      details:
+                        type: string
+                        description: details define other optional details.
+                description: |-
+                  StorageProvider defines the meta info of storage provider
+                  TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
+                  TODO: add more account address for different role.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: spAddress
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage_providers:
     get:
       summary: Queries a list of GetStorageProviders items.
       operationId: StorageProviders
@@ -1398,30 +1515,34 @@ paths:
                     operator_address:
                       type: string
                       description: >-
-                        operator_address defines the address of the sp's
-                        operator; It also is the unqiue index key of sp.
+                        operator_address defines the account address of the
+                        storage provider's operator; It also is the unique index
+                        key of sp.
                     funding_address:
                       type: string
                       description: >-
-                        fund_address is the account address of the storage
-                        provider for deposit, remuneration.
+                        funding_address defines one of the storage provider's
+                        accounts which is used to deposit and reward.
                     seal_address:
                       type: string
                       title: >-
-                        seal_address is the account address of the storage
-                        provider for sealObject
+                        seal_address defines one of the storage provider's
+                        accounts which is used to SealObject
                     approval_address:
                       type: string
-                      description: >-
-                        approval_address is the account address of the storage
-                        provider for ack CreateBuclet/Object.
+                      title: >-
+                        approval_address defines one of the storage provider's
+                        accounts which is used to approve use's
+                        createBucket/createObject request
                     total_deposit:
                       type: string
-                      title: total_deposit define the deposit token
+                      description: >-
+                        total_deposit defines the number of tokens deposited by
+                        this storage provider for staking.
                     status:
                       title: >-
-                        status is the status of sp, which can be
-                        (in_service/read_only_service/graceful_exiting/out_of_service)
+                        status defines the current service status of this
+                        storage provider
                       type: string
                       enum:
                         - STATUS_IN_SERVICE
@@ -1432,11 +1553,13 @@ paths:
                       description: Status is the status of a storage provider.
                     endpoint:
                       type: string
-                      title: endpoint is the service address of the storage provider
+                      title: >-
+                        endpoint define the storage provider's network service
+                        address
                     description:
                       description: >-
                         description defines the description terms for the
-                        validator.
+                        storage provider.
                       type: object
                       properties:
                         moniker:
@@ -1564,10 +1687,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/storage/bucket/{bucket_name}:
+  /greenfield/storage/head_bucket/{bucket_name}:
     get:
-      summary: Queries a list of Bucket items.
-      operationId: Bucket
+      summary: Queries a bucket with specify name.
+      operationId: HeadBucket
       responses:
         '200':
           description: A successful response.
@@ -1589,11 +1712,15 @@ paths:
                     type: boolean
                     description: >-
                       is_public define the highest permissions for bucket. When
-                      the bucket is public, everyone can get the object in it.
+                      the bucket is public, everyone can get storage objects in
+                      it.
                   id:
                     type: string
                     description: id is the unique identification for bucket.
                   source_type:
+                    title: >-
+                      source_type defines which chain the user should send the
+                      bucket management transactions to
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
@@ -1672,10 +1799,250 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/storage/object/{bucket_name}/{object_name}:
+  /greenfield/storage/head_bucket_by_id/{bucket_id}:
     get:
-      summary: Queries a list of Object items.
-      operationId: Object
+      summary: Queries a bucket by id
+      operationId: HeadBucketById
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              bucket_info:
+                type: object
+                properties:
+                  owner:
+                    type: string
+                    description: >-
+                      owner is the account address of bucket creator, it is also
+                      the bucket owner.
+                  bucket_name:
+                    type: string
+                    title: bucket_name is a globally unique name of bucket
+                  is_public:
+                    type: boolean
+                    description: >-
+                      is_public define the highest permissions for bucket. When
+                      the bucket is public, everyone can get storage objects in
+                      it.
+                  id:
+                    type: string
+                    description: id is the unique identification for bucket.
+                  source_type:
+                    title: >-
+                      source_type defines which chain the user should send the
+                      bucket management transactions to
+                    type: string
+                    enum:
+                      - SOURCE_TYPE_ORIGIN
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                    default: SOURCE_TYPE_ORIGIN
+                  create_at:
+                    type: string
+                    format: int64
+                    description: create_at define the block number when the bucket created.
+                  payment_address:
+                    type: string
+                    title: payment_address is the address of the payment account
+                  primary_sp_address:
+                    type: string
+                    description: >-
+                      primary_sp_address is the address of the primary sp.
+                      Objects belongs to this bucket will never
+
+                      leave this SP, unless you explicitly shift them to another
+                      SP.
+                  read_quota:
+                    title: read_quota defines the traffic quota for read
+                    type: string
+                    enum:
+                      - READ_QUOTA_FREE
+                      - READ_QUOTA_1G
+                      - READ_QUOTA_10G
+                    default: READ_QUOTA_FREE
+                  payment_price_time:
+                    type: string
+                    format: int64
+                    title: 'payment_price_time TODO(Owen): refine the comments'
+                  payment_out_flows:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        sp_address:
+                          type: string
+                          title: SP(service provider) stream account address
+                        rate:
+                          type: string
+                          title: flow rate in USD
+                      title: >-
+                        OutFlowInUSD defines the accumulative outflow stream
+                        rate in USD
+
+                        from a stream account or a bucket to a SP
+                    title: payment_out_flows
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_bucket_nft/{token_id}:
+    get:
+      summary: Queries a bucket with EIP712 standard metadata info
+      operationId: HeadBucketNFT
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              meta_data:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    title: description
+                  external_url:
+                    type: string
+                    title: externalUrl a link to external site to view NFT
+                  bucket_name:
+                    type: string
+                    title: name of bucket NFT
+                  image:
+                    type: string
+                    title: image is the link to image
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trait_type:
+                          type: string
+                        value:
+                          type: string
+                    title: attributes
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_group_nft/{token_id}:
+    get:
+      summary: Queries a group with EIP712 standard metadata info
+      operationId: HeadGroupNFT
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              meta_data:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    title: description
+                  external_url:
+                    type: string
+                    title: externalUrl a link to external site to view NFT
+                  group_name:
+                    type: string
+                    title: name of group NFT
+                  image:
+                    type: string
+                    title: image is the link to image
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trait_type:
+                          type: string
+                        value:
+                          type: string
+                    title: attributes
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_object/{bucket_name}/{object_name}:
+    get:
+      summary: Queries a object with specify name.
+      operationId: HeadObject
       responses:
         '200':
           description: A successful response.
@@ -1718,9 +2085,9 @@ paths:
                     description: object_status define the upload status of the object.
                     type: string
                     enum:
-                      - OBJECT_STATUS_INIT
-                      - OBJECT_STATUS_IN_SERVICE
-                    default: OBJECT_STATUS_INIT
+                      - OBJECT_STATUS_CREATED
+                      - OBJECT_STATUS_SEALED
+                    default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
                       redundancy_type define the type of the redundancy which
@@ -1729,15 +2096,14 @@ paths:
                     enum:
                       - REDUNDANCY_REPLICA_TYPE
                       - REDUNDANCY_EC_TYPE
-                      - REDUNDANCY_INLINE_TYPE
                     default: REDUNDANCY_REPLICA_TYPE
                   source_type:
+                    description: source_type define the source of the object.
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
                       - SOURCE_TYPE_BSC_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
-                    description: source_type define the source of the object.
                   checksums:
                     type: array
                     items:
@@ -1753,9 +2119,9 @@ paths:
                     title: >-
                       secondary_sp_addresses define the addresses of
                       secondary_sps
-                  lockedBalance:
+                  locked_balance:
                     type: string
-                    title: lockedBalance
+                    title: 'lockedBalance TODO(Owen): refine the comments'
         default:
           description: An unexpected error response.
           schema:
@@ -1787,6 +2153,778 @@ paths:
           in: path
           required: true
           type: string
+      tags:
+        - Query
+  /greenfield/storage/head_object_by_id/{object_id}:
+    get:
+      summary: Queries a object by id
+      operationId: HeadObjectById
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              object_info:
+                type: object
+                properties:
+                  owner:
+                    type: string
+                  bucket_name:
+                    type: string
+                    title: bucket_name is the name of the bucket
+                  object_name:
+                    type: string
+                    title: object_name is the name of object
+                  id:
+                    type: string
+                    title: id is the unique identifier of object
+                  payload_size:
+                    type: string
+                    format: uint64
+                    title: payloadSize is the total size of the object payload
+                  is_public:
+                    type: boolean
+                    description: >-
+                      is_public define the highest permissions for object. When
+                      the object is public, everyone can access it.
+                  content_type:
+                    type: string
+                    description: >-
+                      content_type define the format of the object which should
+                      be a standard MIME type.
+                  create_at:
+                    type: string
+                    format: int64
+                    title: create_at define the block number when the object created
+                  object_status:
+                    description: object_status define the upload status of the object.
+                    type: string
+                    enum:
+                      - OBJECT_STATUS_CREATED
+                      - OBJECT_STATUS_SEALED
+                    default: OBJECT_STATUS_CREATED
+                  redundancy_type:
+                    description: >-
+                      redundancy_type define the type of the redundancy which
+                      can be multi-replication or EC.
+                    type: string
+                    enum:
+                      - REDUNDANCY_REPLICA_TYPE
+                      - REDUNDANCY_EC_TYPE
+                    default: REDUNDANCY_REPLICA_TYPE
+                  source_type:
+                    description: source_type define the source of the object.
+                    type: string
+                    enum:
+                      - SOURCE_TYPE_ORIGIN
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                    default: SOURCE_TYPE_ORIGIN
+                  checksums:
+                    type: array
+                    items:
+                      type: string
+                      format: byte
+                    description: >-
+                      checksums define the root hash of the pieces which stored
+                      in a SP.
+                  secondary_sp_addresses:
+                    type: array
+                    items:
+                      type: string
+                    title: >-
+                      secondary_sp_addresses define the addresses of
+                      secondary_sps
+                  locked_balance:
+                    type: string
+                    title: 'lockedBalance TODO(Owen): refine the comments'
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: object_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_object_nft/{token_id}:
+    get:
+      summary: Queries a object with EIP712 standard metadata info
+      operationId: HeadObjectNFT
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              meta_data:
+                type: object
+                properties:
+                  description:
+                    type: string
+                    title: description
+                  external_url:
+                    type: string
+                    title: externalUrl a link to external site to view NFT
+                  object_name:
+                    type: string
+                    title: name of object NFT
+                  image:
+                    type: string
+                    title: image is the link to image
+                  attributes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        trait_type:
+                          type: string
+                        value:
+                          type: string
+                    title: attributes
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/list_buckets:
+    get:
+      summary: Queries a list of bucket items.
+      operationId: ListBuckets
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              bucket_infos:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                      description: >-
+                        owner is the account address of bucket creator, it is
+                        also the bucket owner.
+                    bucket_name:
+                      type: string
+                      title: bucket_name is a globally unique name of bucket
+                    is_public:
+                      type: boolean
+                      description: >-
+                        is_public define the highest permissions for bucket.
+                        When the bucket is public, everyone can get storage
+                        objects in it.
+                    id:
+                      type: string
+                      description: id is the unique identification for bucket.
+                    source_type:
+                      title: >-
+                        source_type defines which chain the user should send the
+                        bucket management transactions to
+                      type: string
+                      enum:
+                        - SOURCE_TYPE_ORIGIN
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      default: SOURCE_TYPE_ORIGIN
+                    create_at:
+                      type: string
+                      format: int64
+                      description: >-
+                        create_at define the block number when the bucket
+                        created.
+                    payment_address:
+                      type: string
+                      title: payment_address is the address of the payment account
+                    primary_sp_address:
+                      type: string
+                      description: >-
+                        primary_sp_address is the address of the primary sp.
+                        Objects belongs to this bucket will never
+
+                        leave this SP, unless you explicitly shift them to
+                        another SP.
+                    read_quota:
+                      title: read_quota defines the traffic quota for read
+                      type: string
+                      enum:
+                        - READ_QUOTA_FREE
+                        - READ_QUOTA_1G
+                        - READ_QUOTA_10G
+                      default: READ_QUOTA_FREE
+                    payment_price_time:
+                      type: string
+                      format: int64
+                      title: 'payment_price_time TODO(Owen): refine the comments'
+                    payment_out_flows:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          sp_address:
+                            type: string
+                            title: SP(service provider) stream account address
+                          rate:
+                            type: string
+                            title: flow rate in USD
+                        title: >-
+                          OutFlowInUSD defines the accumulative outflow stream
+                          rate in USD
+
+                          from a stream account or a bucket to a SP
+                      title: payment_out_flows
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /greenfield/storage/list_objects/{bucket_name}:
+    get:
+      summary: Queries a list of object items under the bucket.
+      operationId: ListObjects
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              object_infos:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                    bucket_name:
+                      type: string
+                      title: bucket_name is the name of the bucket
+                    object_name:
+                      type: string
+                      title: object_name is the name of object
+                    id:
+                      type: string
+                      title: id is the unique identifier of object
+                    payload_size:
+                      type: string
+                      format: uint64
+                      title: payloadSize is the total size of the object payload
+                    is_public:
+                      type: boolean
+                      description: >-
+                        is_public define the highest permissions for object.
+                        When the object is public, everyone can access it.
+                    content_type:
+                      type: string
+                      description: >-
+                        content_type define the format of the object which
+                        should be a standard MIME type.
+                    create_at:
+                      type: string
+                      format: int64
+                      title: >-
+                        create_at define the block number when the object
+                        created
+                    object_status:
+                      description: object_status define the upload status of the object.
+                      type: string
+                      enum:
+                        - OBJECT_STATUS_CREATED
+                        - OBJECT_STATUS_SEALED
+                      default: OBJECT_STATUS_CREATED
+                    redundancy_type:
+                      description: >-
+                        redundancy_type define the type of the redundancy which
+                        can be multi-replication or EC.
+                      type: string
+                      enum:
+                        - REDUNDANCY_REPLICA_TYPE
+                        - REDUNDANCY_EC_TYPE
+                      default: REDUNDANCY_REPLICA_TYPE
+                    source_type:
+                      description: source_type define the source of the object.
+                      type: string
+                      enum:
+                        - SOURCE_TYPE_ORIGIN
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      default: SOURCE_TYPE_ORIGIN
+                    checksums:
+                      type: array
+                      items:
+                        type: string
+                        format: byte
+                      description: >-
+                        checksums define the root hash of the pieces which
+                        stored in a SP.
+                    secondary_sp_addresses:
+                      type: array
+                      items:
+                        type: string
+                      title: >-
+                        secondary_sp_addresses define the addresses of
+                        secondary_sps
+                    locked_balance:
+                      type: string
+                      title: 'lockedBalance TODO(Owen): refine the comments'
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_name
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /greenfield/storage/list_objects_by_bucket_id/{bucket_id}:
+    get:
+      summary: Queries a list of object items under the bucket.
+      operationId: ListObjectsByBucketId
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              object_infos:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                    bucket_name:
+                      type: string
+                      title: bucket_name is the name of the bucket
+                    object_name:
+                      type: string
+                      title: object_name is the name of object
+                    id:
+                      type: string
+                      title: id is the unique identifier of object
+                    payload_size:
+                      type: string
+                      format: uint64
+                      title: payloadSize is the total size of the object payload
+                    is_public:
+                      type: boolean
+                      description: >-
+                        is_public define the highest permissions for object.
+                        When the object is public, everyone can access it.
+                    content_type:
+                      type: string
+                      description: >-
+                        content_type define the format of the object which
+                        should be a standard MIME type.
+                    create_at:
+                      type: string
+                      format: int64
+                      title: >-
+                        create_at define the block number when the object
+                        created
+                    object_status:
+                      description: object_status define the upload status of the object.
+                      type: string
+                      enum:
+                        - OBJECT_STATUS_CREATED
+                        - OBJECT_STATUS_SEALED
+                      default: OBJECT_STATUS_CREATED
+                    redundancy_type:
+                      description: >-
+                        redundancy_type define the type of the redundancy which
+                        can be multi-replication or EC.
+                      type: string
+                      enum:
+                        - REDUNDANCY_REPLICA_TYPE
+                        - REDUNDANCY_EC_TYPE
+                      default: REDUNDANCY_REPLICA_TYPE
+                    source_type:
+                      description: source_type define the source of the object.
+                      type: string
+                      enum:
+                        - SOURCE_TYPE_ORIGIN
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      default: SOURCE_TYPE_ORIGIN
+                    checksums:
+                      type: array
+                      items:
+                        type: string
+                        format: byte
+                      description: >-
+                        checksums define the root hash of the pieces which
+                        stored in a SP.
+                    secondary_sp_addresses:
+                      type: array
+                      items:
+                        type: string
+                      title: >-
+                        secondary_sp_addresses define the addresses of
+                        secondary_sps
+                    locked_balance:
+                      type: string
+                      title: 'lockedBalance TODO(Owen): refine the comments'
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_id
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
       tags:
         - Query
   /greenfield/storage/params:
@@ -23108,6 +24246,9 @@ paths:
                     type: string
                     format: uint64
                     description: GasUsed is the amount of gas actually consumed.
+                  min_gas_price:
+                    type: string
+                    description: MinGasPrice are the min gas price.
               result:
                 description: result is the result of the simulation.
                 type: object
@@ -26305,6 +27446,79 @@ definitions:
               min_deposit_amount defines the minimum deposit amount for storage
               providers.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  bnbchain.greenfield.sp.QueryStorageProviderResponse:
+    type: object
+    properties:
+      storageProvider:
+        type: object
+        properties:
+          operator_address:
+            type: string
+            description: >-
+              operator_address defines the account address of the storage
+              provider's operator; It also is the unique index key of sp.
+          funding_address:
+            type: string
+            description: >-
+              funding_address defines one of the storage provider's accounts
+              which is used to deposit and reward.
+          seal_address:
+            type: string
+            title: >-
+              seal_address defines one of the storage provider's accounts which
+              is used to SealObject
+          approval_address:
+            type: string
+            title: >-
+              approval_address defines one of the storage provider's accounts
+              which is used to approve use's createBucket/createObject request
+          total_deposit:
+            type: string
+            description: >-
+              total_deposit defines the number of tokens deposited by this
+              storage provider for staking.
+          status:
+            title: status defines the current service status of this storage provider
+            type: string
+            enum:
+              - STATUS_IN_SERVICE
+              - STATUS_IN_JAILED
+              - STATUS_GRACEFUL_EXITING
+              - STATUS_OUT_OF_SERVICE
+            default: STATUS_IN_SERVICE
+            description: Status is the status of a storage provider.
+          endpoint:
+            type: string
+            title: endpoint define the storage provider's network service address
+          description:
+            description: >-
+              description defines the description terms for the storage
+              provider.
+            type: object
+            properties:
+              moniker:
+                type: string
+                title: moniker defines a human-readable name for the storage provider
+              identity:
+                type: string
+                description: >-
+                  identity defines an optional identity signature (ex. UPort or
+                  Keybase).
+              website:
+                type: string
+                description: website defines an optional website link.
+              security_contact:
+                type: string
+                description: >-
+                  security_contact defines an optional email for security
+                  contact.
+              details:
+                type: string
+                description: details define other optional details.
+        description: |-
+          StorageProvider defines the meta info of storage provider
+          TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
+          TODO: add more account address for different role.
   bnbchain.greenfield.sp.QueryStorageProvidersResponse:
     type: object
     properties:
@@ -26316,30 +27530,32 @@ definitions:
             operator_address:
               type: string
               description: >-
-                operator_address defines the address of the sp's operator; It
-                also is the unqiue index key of sp.
+                operator_address defines the account address of the storage
+                provider's operator; It also is the unique index key of sp.
             funding_address:
               type: string
               description: >-
-                fund_address is the account address of the storage provider for
-                deposit, remuneration.
+                funding_address defines one of the storage provider's accounts
+                which is used to deposit and reward.
             seal_address:
               type: string
               title: >-
-                seal_address is the account address of the storage provider for
-                sealObject
+                seal_address defines one of the storage provider's accounts
+                which is used to SealObject
             approval_address:
               type: string
-              description: >-
-                approval_address is the account address of the storage provider
-                for ack CreateBuclet/Object.
+              title: >-
+                approval_address defines one of the storage provider's accounts
+                which is used to approve use's createBucket/createObject request
             total_deposit:
               type: string
-              title: total_deposit define the deposit token
+              description: >-
+                total_deposit defines the number of tokens deposited by this
+                storage provider for staking.
             status:
               title: >-
-                status is the status of sp, which can be
-                (in_service/read_only_service/graceful_exiting/out_of_service)
+                status defines the current service status of this storage
+                provider
               type: string
               enum:
                 - STATUS_IN_SERVICE
@@ -26350,9 +27566,11 @@ definitions:
               description: Status is the status of a storage provider.
             endpoint:
               type: string
-              title: endpoint is the service address of the storage provider
+              title: endpoint define the storage provider's network service address
             description:
-              description: description defines the description terms for the validator.
+              description: >-
+                description defines the description terms for the storage
+                provider.
               type: object
               properties:
                 moniker:
@@ -26414,30 +27632,30 @@ definitions:
       operator_address:
         type: string
         description: >-
-          operator_address defines the address of the sp's operator; It also is
-          the unqiue index key of sp.
+          operator_address defines the account address of the storage provider's
+          operator; It also is the unique index key of sp.
       funding_address:
         type: string
         description: >-
-          fund_address is the account address of the storage provider for
-          deposit, remuneration.
+          funding_address defines one of the storage provider's accounts which
+          is used to deposit and reward.
       seal_address:
         type: string
         title: >-
-          seal_address is the account address of the storage provider for
-          sealObject
+          seal_address defines one of the storage provider's accounts which is
+          used to SealObject
       approval_address:
         type: string
-        description: >-
-          approval_address is the account address of the storage provider for
-          ack CreateBuclet/Object.
+        title: >-
+          approval_address defines one of the storage provider's accounts which
+          is used to approve use's createBucket/createObject request
       total_deposit:
         type: string
-        title: total_deposit define the deposit token
+        description: >-
+          total_deposit defines the number of tokens deposited by this storage
+          provider for staking.
       status:
-        title: >-
-          status is the status of sp, which can be
-          (in_service/read_only_service/graceful_exiting/out_of_service)
+        title: status defines the current service status of this storage provider
         type: string
         enum:
           - STATUS_IN_SERVICE
@@ -26448,9 +27666,9 @@ definitions:
         description: Status is the status of a storage provider.
       endpoint:
         type: string
-        title: endpoint is the service address of the storage provider
+        title: endpoint define the storage provider's network service address
       description:
-        description: description defines the description terms for the validator.
+        description: description defines the description terms for the storage provider.
         type: object
         properties:
           moniker:
@@ -26489,11 +27707,14 @@ definitions:
         type: boolean
         description: >-
           is_public define the highest permissions for bucket. When the bucket
-          is public, everyone can get the object in it.
+          is public, everyone can get storage objects in it.
       id:
         type: string
         description: id is the unique identification for bucket.
       source_type:
+        title: >-
+          source_type defines which chain the user should send the bucket
+          management transactions to
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
@@ -26540,6 +27761,56 @@ definitions:
             OutFlowInUSD defines the accumulative outflow stream rate in USD
             from a stream account or a bucket to a SP
         title: payment_out_flows
+  bnbchain.greenfield.storage.BucketMetaData:
+    type: object
+    properties:
+      description:
+        type: string
+        title: description
+      external_url:
+        type: string
+        title: externalUrl a link to external site to view NFT
+      bucket_name:
+        type: string
+        title: name of bucket NFT
+      image:
+        type: string
+        title: image is the link to image
+      attributes:
+        type: array
+        items:
+          type: object
+          properties:
+            trait_type:
+              type: string
+            value:
+              type: string
+        title: attributes
+  bnbchain.greenfield.storage.GroupMetaData:
+    type: object
+    properties:
+      description:
+        type: string
+        title: description
+      external_url:
+        type: string
+        title: externalUrl a link to external site to view NFT
+      group_name:
+        type: string
+        title: name of group NFT
+      image:
+        type: string
+        title: image is the link to image
+      attributes:
+        type: array
+        items:
+          type: object
+          properties:
+            trait_type:
+              type: string
+            value:
+              type: string
+        title: attributes
   bnbchain.greenfield.storage.ObjectInfo:
     type: object
     properties:
@@ -26576,9 +27847,9 @@ definitions:
         description: object_status define the upload status of the object.
         type: string
         enum:
-          - OBJECT_STATUS_INIT
-          - OBJECT_STATUS_IN_SERVICE
-        default: OBJECT_STATUS_INIT
+          - OBJECT_STATUS_CREATED
+          - OBJECT_STATUS_SEALED
+        default: OBJECT_STATUS_CREATED
       redundancy_type:
         description: >-
           redundancy_type define the type of the redundancy which can be
@@ -26587,15 +27858,14 @@ definitions:
         enum:
           - REDUNDANCY_REPLICA_TYPE
           - REDUNDANCY_EC_TYPE
-          - REDUNDANCY_INLINE_TYPE
         default: REDUNDANCY_REPLICA_TYPE
       source_type:
+        description: source_type define the source of the object.
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
           - SOURCE_TYPE_BSC_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
-        description: source_type define the source of the object.
       checksums:
         type: array
         items:
@@ -26607,15 +27877,40 @@ definitions:
         items:
           type: string
         title: secondary_sp_addresses define the addresses of secondary_sps
-      lockedBalance:
+      locked_balance:
         type: string
-        title: lockedBalance
+        title: 'lockedBalance TODO(Owen): refine the comments'
+  bnbchain.greenfield.storage.ObjectMetaData:
+    type: object
+    properties:
+      description:
+        type: string
+        title: description
+      external_url:
+        type: string
+        title: externalUrl a link to external site to view NFT
+      object_name:
+        type: string
+        title: name of object NFT
+      image:
+        type: string
+        title: image is the link to image
+      attributes:
+        type: array
+        items:
+          type: object
+          properties:
+            trait_type:
+              type: string
+            value:
+              type: string
+        title: attributes
   bnbchain.greenfield.storage.ObjectStatus:
     type: string
     enum:
-      - OBJECT_STATUS_INIT
-      - OBJECT_STATUS_IN_SERVICE
-    default: OBJECT_STATUS_INIT
+      - OBJECT_STATUS_CREATED
+      - OBJECT_STATUS_SEALED
+    default: OBJECT_STATUS_CREATED
   bnbchain.greenfield.storage.Params:
     type: object
     properties:
@@ -26640,7 +27935,63 @@ definitions:
         format: uint64
         title: 'max_payload_size is the maximum size of the payload, default: 2G'
     description: Params defines the parameters for the module.
-  bnbchain.greenfield.storage.QueryBucketResponse:
+  bnbchain.greenfield.storage.QueryBucketNFTResponse:
+    type: object
+    properties:
+      meta_data:
+        type: object
+        properties:
+          description:
+            type: string
+            title: description
+          external_url:
+            type: string
+            title: externalUrl a link to external site to view NFT
+          bucket_name:
+            type: string
+            title: name of bucket NFT
+          image:
+            type: string
+            title: image is the link to image
+          attributes:
+            type: array
+            items:
+              type: object
+              properties:
+                trait_type:
+                  type: string
+                value:
+                  type: string
+            title: attributes
+  bnbchain.greenfield.storage.QueryGroupNFTResponse:
+    type: object
+    properties:
+      meta_data:
+        type: object
+        properties:
+          description:
+            type: string
+            title: description
+          external_url:
+            type: string
+            title: externalUrl a link to external site to view NFT
+          group_name:
+            type: string
+            title: name of group NFT
+          image:
+            type: string
+            title: image is the link to image
+          attributes:
+            type: array
+            items:
+              type: object
+              properties:
+                trait_type:
+                  type: string
+                value:
+                  type: string
+            title: attributes
+  bnbchain.greenfield.storage.QueryHeadBucketResponse:
     type: object
     properties:
       bucket_info:
@@ -26658,11 +28009,14 @@ definitions:
             type: boolean
             description: >-
               is_public define the highest permissions for bucket. When the
-              bucket is public, everyone can get the object in it.
+              bucket is public, everyone can get storage objects in it.
           id:
             type: string
             description: id is the unique identification for bucket.
           source_type:
+            title: >-
+              source_type defines which chain the user should send the bucket
+              management transactions to
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
@@ -26709,7 +28063,7 @@ definitions:
                 OutFlowInUSD defines the accumulative outflow stream rate in USD
                 from a stream account or a bucket to a SP
             title: payment_out_flows
-  bnbchain.greenfield.storage.QueryObjectResponse:
+  bnbchain.greenfield.storage.QueryHeadObjectResponse:
     type: object
     properties:
       object_info:
@@ -26748,9 +28102,9 @@ definitions:
             description: object_status define the upload status of the object.
             type: string
             enum:
-              - OBJECT_STATUS_INIT
-              - OBJECT_STATUS_IN_SERVICE
-            default: OBJECT_STATUS_INIT
+              - OBJECT_STATUS_CREATED
+              - OBJECT_STATUS_SEALED
+            default: OBJECT_STATUS_CREATED
           redundancy_type:
             description: >-
               redundancy_type define the type of the redundancy which can be
@@ -26759,15 +28113,14 @@ definitions:
             enum:
               - REDUNDANCY_REPLICA_TYPE
               - REDUNDANCY_EC_TYPE
-              - REDUNDANCY_INLINE_TYPE
             default: REDUNDANCY_REPLICA_TYPE
           source_type:
+            description: source_type define the source of the object.
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
               - SOURCE_TYPE_BSC_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
-            description: source_type define the source of the object.
           checksums:
             type: array
             items:
@@ -26779,9 +28132,241 @@ definitions:
             items:
               type: string
             title: secondary_sp_addresses define the addresses of secondary_sps
-          lockedBalance:
+          locked_balance:
             type: string
-            title: lockedBalance
+            title: 'lockedBalance TODO(Owen): refine the comments'
+  bnbchain.greenfield.storage.QueryListBucketsResponse:
+    type: object
+    properties:
+      bucket_infos:
+        type: array
+        items:
+          type: object
+          properties:
+            owner:
+              type: string
+              description: >-
+                owner is the account address of bucket creator, it is also the
+                bucket owner.
+            bucket_name:
+              type: string
+              title: bucket_name is a globally unique name of bucket
+            is_public:
+              type: boolean
+              description: >-
+                is_public define the highest permissions for bucket. When the
+                bucket is public, everyone can get storage objects in it.
+            id:
+              type: string
+              description: id is the unique identification for bucket.
+            source_type:
+              title: >-
+                source_type defines which chain the user should send the bucket
+                management transactions to
+              type: string
+              enum:
+                - SOURCE_TYPE_ORIGIN
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+              default: SOURCE_TYPE_ORIGIN
+            create_at:
+              type: string
+              format: int64
+              description: create_at define the block number when the bucket created.
+            payment_address:
+              type: string
+              title: payment_address is the address of the payment account
+            primary_sp_address:
+              type: string
+              description: >-
+                primary_sp_address is the address of the primary sp. Objects
+                belongs to this bucket will never
+
+                leave this SP, unless you explicitly shift them to another SP.
+            read_quota:
+              title: read_quota defines the traffic quota for read
+              type: string
+              enum:
+                - READ_QUOTA_FREE
+                - READ_QUOTA_1G
+                - READ_QUOTA_10G
+              default: READ_QUOTA_FREE
+            payment_price_time:
+              type: string
+              format: int64
+              title: 'payment_price_time TODO(Owen): refine the comments'
+            payment_out_flows:
+              type: array
+              items:
+                type: object
+                properties:
+                  sp_address:
+                    type: string
+                    title: SP(service provider) stream account address
+                  rate:
+                    type: string
+                    title: flow rate in USD
+                title: >-
+                  OutFlowInUSD defines the accumulative outflow stream rate in
+                  USD
+
+                  from a stream account or a bucket to a SP
+              title: payment_out_flows
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  bnbchain.greenfield.storage.QueryListObjectsResponse:
+    type: object
+    properties:
+      object_infos:
+        type: array
+        items:
+          type: object
+          properties:
+            owner:
+              type: string
+            bucket_name:
+              type: string
+              title: bucket_name is the name of the bucket
+            object_name:
+              type: string
+              title: object_name is the name of object
+            id:
+              type: string
+              title: id is the unique identifier of object
+            payload_size:
+              type: string
+              format: uint64
+              title: payloadSize is the total size of the object payload
+            is_public:
+              type: boolean
+              description: >-
+                is_public define the highest permissions for object. When the
+                object is public, everyone can access it.
+            content_type:
+              type: string
+              description: >-
+                content_type define the format of the object which should be a
+                standard MIME type.
+            create_at:
+              type: string
+              format: int64
+              title: create_at define the block number when the object created
+            object_status:
+              description: object_status define the upload status of the object.
+              type: string
+              enum:
+                - OBJECT_STATUS_CREATED
+                - OBJECT_STATUS_SEALED
+              default: OBJECT_STATUS_CREATED
+            redundancy_type:
+              description: >-
+                redundancy_type define the type of the redundancy which can be
+                multi-replication or EC.
+              type: string
+              enum:
+                - REDUNDANCY_REPLICA_TYPE
+                - REDUNDANCY_EC_TYPE
+              default: REDUNDANCY_REPLICA_TYPE
+            source_type:
+              description: source_type define the source of the object.
+              type: string
+              enum:
+                - SOURCE_TYPE_ORIGIN
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+              default: SOURCE_TYPE_ORIGIN
+            checksums:
+              type: array
+              items:
+                type: string
+                format: byte
+              description: >-
+                checksums define the root hash of the pieces which stored in a
+                SP.
+            secondary_sp_addresses:
+              type: array
+              items:
+                type: string
+              title: secondary_sp_addresses define the addresses of secondary_sps
+            locked_balance:
+              type: string
+              title: 'lockedBalance TODO(Owen): refine the comments'
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  bnbchain.greenfield.storage.QueryObjectNFTResponse:
+    type: object
+    properties:
+      meta_data:
+        type: object
+        properties:
+          description:
+            type: string
+            title: description
+          external_url:
+            type: string
+            title: externalUrl a link to external site to view NFT
+          object_name:
+            type: string
+            title: name of object NFT
+          image:
+            type: string
+            title: image is the link to image
+          attributes:
+            type: array
+            items:
+              type: object
+              properties:
+                trait_type:
+                  type: string
+                value:
+                  type: string
+            title: attributes
   bnbchain.greenfield.storage.QueryParamsResponse:
     type: object
     properties:
@@ -26827,7 +28412,6 @@ definitions:
     enum:
       - REDUNDANCY_REPLICA_TYPE
       - REDUNDANCY_EC_TYPE
-      - REDUNDANCY_INLINE_TYPE
     default: REDUNDANCY_REPLICA_TYPE
   bnbchain.greenfield.storage.SourceType:
     type: string
@@ -26835,6 +28419,13 @@ definitions:
       - SOURCE_TYPE_ORIGIN
       - SOURCE_TYPE_BSC_CROSS_CHAIN
     default: SOURCE_TYPE_ORIGIN
+  bnbchain.greenfield.storage.Trait:
+    type: object
+    properties:
+      trait_type:
+        type: string
+      value:
+        type: string
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object
     properties:
@@ -41588,6 +43179,9 @@ definitions:
         type: string
         format: uint64
         description: GasUsed is the amount of gas actually consumed.
+      min_gas_price:
+        type: string
+        description: MinGasPrice are the min gas price.
     description: GasInfo defines tx execution gas context.
   cosmos.base.abci.v1beta1.Result:
     type: object
@@ -44391,6 +45985,9 @@ definitions:
             type: string
             format: uint64
             description: GasUsed is the amount of gas actually consumed.
+          min_gas_price:
+            type: string
+            description: MinGasPrice are the min gas price.
       result:
         description: result is the result of the simulation.
         type: object

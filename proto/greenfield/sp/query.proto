@@ -24,7 +24,7 @@ service Query {
 
   // Queries a list of GetStorageProviders items.
   rpc StorageProviders(QueryStorageProvidersRequest) returns (QueryStorageProvidersResponse) {
-    option (google.api.http).get = "/greenfield/sp/storage_providers";
+    option (google.api.http).get = "/greenfield/storage_providers";
   }
 
   rpc QueryGetSpStoragePriceByTime(QueryGetSpStoragePriceByTimeRequest) returns (QueryGetSpStoragePriceByTimeResponse) {
@@ -37,7 +37,7 @@ service Query {
 
   // Queries a storage provider with specify address
   rpc StorageProvider(QueryStorageProviderRequest) returns (QueryStorageProviderResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/sp/storage_provider/{spAddress}";
+    option (google.api.http).get = "/greenfield/storage_provider/{spAddress}";
   }
 }
 

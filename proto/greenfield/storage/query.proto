@@ -3,6 +3,7 @@ syntax = "proto3";
 package bnbchain.greenfield.storage;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/storage/params.proto";
@@ -26,9 +27,29 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_name}";
   }
 
+  // Queries a bucket by id
+  rpc HeadBucketById(QueryHeadBucketByIdRequest) returns (QueryHeadBucketResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_bucket_by_id/{bucket_id}";
+  }
+
+  // Queries a bucket with EIP712 standard metadata info
+  rpc HeadBucketNFT(QueryNFTRequest) returns (QueryBucketNFTResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_bucket_nft/{token_id}";
+  }
+
   // Queries a object with specify name.
   rpc HeadObject(QueryHeadObjectRequest) returns (QueryHeadObjectResponse) {
     option (google.api.http).get = "/greenfield/storage/head_object/{bucket_name}/{object_name}";
+  }
+
+  // Queries a object by id
+  rpc HeadObjectById(QueryHeadObjectByIdRequest) returns (QueryHeadObjectResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_object_by_id/{object_id}";
+  }
+
+  // Queries a object with EIP712 standard metadata info
+  rpc HeadObjectNFT(QueryNFTRequest) returns (QueryObjectNFTResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_object_nft/{token_id}";
   }
 
   // Queries a list of bucket items.
@@ -38,7 +59,17 @@ service Query {
 
   // Queries a list of object items under the bucket.
   rpc ListObjects(QueryListObjectsRequest) returns (QueryListObjectsResponse) {
-    option (google.api.http).get = "/greenfield/storage/list_objects/{bucketName}";
+    option (google.api.http).get = "/greenfield/storage/list_objects/{bucket_name}";
+  }
+
+  // Queries a list of object items under the bucket.
+  rpc ListObjectsByBucketId(QueryListObjectsByBucketIdRequest) returns (QueryListObjectsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_objects_by_bucket_id/{bucket_id}";
+  }
+
+  // Queries a group with EIP712 standard metadata info
+  rpc HeadGroupNFT(QueryNFTRequest) returns (QueryGroupNFTResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_group_nft/{token_id}";
   }
 }
 
@@ -56,6 +87,10 @@ message QueryHeadBucketRequest {
   string bucket_name = 1;
 }
 
+message QueryHeadBucketByIdRequest {
+  string bucket_id = 1;
+}
+
 message QueryHeadBucketResponse {
   BucketInfo bucket_info = 1;
 }
@@ -63,6 +98,10 @@ message QueryHeadBucketResponse {
 message QueryHeadObjectRequest {
   string bucket_name = 1;
   string object_name = 2;
+}
+
+message QueryHeadObjectByIdRequest {
+  string object_id = 1;
 }
 
 message QueryHeadObjectResponse {
@@ -80,10 +119,31 @@ message QueryListBucketsResponse {
 
 message QueryListObjectsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
-  string bucketName = 2;
+  string bucket_name = 2;
+}
+
+message QueryListObjectsByBucketIdRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string bucket_id = 2;
 }
 
 message QueryListObjectsResponse {
   repeated ObjectInfo object_infos = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryNFTRequest {
+  string token_id = 1;
+}
+
+message QueryBucketNFTResponse {
+  BucketMetaData meta_data = 1;
+}
+
+message QueryObjectNFTResponse {
+  ObjectMetaData meta_data = 1;
+}
+
+message QueryGroupNFTResponse {
+  GroupMetaData meta_data = 1;
 }

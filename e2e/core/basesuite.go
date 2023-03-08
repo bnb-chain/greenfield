@@ -55,10 +55,8 @@ func (s *BaseSuite) SetupSuite() {
 func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.TxResponse) {
 	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{
-		Mode:      &mode,
-		GasLimit:  1000000,
-		Memo:      "",
-		FeeAmount: sdk.Coins{{Denom: s.Config.Denom, Amount: types.NewIntFromInt64WithDecimal(1e6, types.DecimalGwei)}},
+		Mode: &mode,
+		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)

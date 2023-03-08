@@ -18,14 +18,13 @@ enum RedundancyType {
 
   REDUNDANCY_REPLICA_TYPE = 0;
   REDUNDANCY_EC_TYPE = 1;
-  REDUNDANCY_INLINE_TYPE = 2;
 }
 
 enum ObjectStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  OBJECT_STATUS_INIT = 0;
-  OBJECT_STATUS_IN_SERVICE = 1;
+  OBJECT_STATUS_CREATED = 0;
+  OBJECT_STATUS_SEALED = 1;
 }
 
 message Approval {

@@ -5,7 +5,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 )
 
 const (
@@ -38,25 +37,25 @@ func KeyPrefix(p string) []byte {
 // GetStorageProviderKey creates the key for the provider with address
 // VALUE: staking/Validator
 func GetStorageProviderKey(spAddr sdk.AccAddress) []byte {
-	return append(StorageProviderKey, address.MustLengthPrefix(spAddr.Bytes())...)
+	return append(StorageProviderKey, spAddr.Bytes()...)
 }
 
 // GetStorageProviderByFundingAddrKey creates the key for the storage provider with funding address
 // VALUE: storage provider operator address ([]byte)
 func GetStorageProviderByFundingAddrKey(spAddr sdk.AccAddress) []byte {
-	return append(StorageProviderByFundingAddrKey, address.MustLengthPrefix(spAddr.Bytes())...)
+	return append(StorageProviderByFundingAddrKey, spAddr.Bytes()...)
 }
 
 // GetStorageProviderBySealAddrKey creates the key for the storage provider with seal address
 // VALUE: storage provider operator address ([]byte)
 func GetStorageProviderBySealAddrKey(spAddr sdk.AccAddress) []byte {
-	return append(StorageProviderBySealAddrKey, address.MustLengthPrefix(spAddr.Bytes())...)
+	return append(StorageProviderBySealAddrKey, spAddr.Bytes()...)
 }
 
 // GetStorageProviderByApprovalAddrKey creates the key for the storage provider with approval address
 // VALUE: storage provider operator address ([]byte)
 func GetStorageProviderByApprovalAddrKey(spAddr sdk.AccAddress) []byte {
-	return append(StorageProviderByApprovalAddrKey, address.MustLengthPrefix(spAddr.Bytes())...)
+	return append(StorageProviderByApprovalAddrKey, spAddr.Bytes()...)
 }
 
 func UnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) (sp StorageProvider, err error) {

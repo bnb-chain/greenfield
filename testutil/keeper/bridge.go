@@ -172,14 +172,14 @@ func BridgeKeeper(t testing.TB) (*BridgeKeeperSuite, *keeper.Keeper, sdk.Context
 
 	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
+		Amount: sdk.NewInt(10000000000000000),
 	}})
 	if err != nil {
 		panic("mint coins error")
 	}
 	err = bankKeeper.MintCoins(ctx, crosschaintypes.ModuleName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
+		Amount: sdk.NewInt(10000000000000000),
 	}})
 	if err != nil {
 		panic("mint coins error")

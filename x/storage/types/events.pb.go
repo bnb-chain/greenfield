@@ -437,7 +437,7 @@ func (m *EventCreateObject) GetStatus() ObjectStatus {
 	if m != nil {
 		return m.Status
 	}
-	return OBJECT_STATUS_INIT
+	return OBJECT_STATUS_CREATED
 }
 
 func (m *EventCreateObject) GetRedundancyType() RedundancyType {
@@ -610,7 +610,7 @@ func (m *EventSealObject) GetStatus() ObjectStatus {
 	if m != nil {
 		return m.Status
 	}
-	return OBJECT_STATUS_INIT
+	return OBJECT_STATUS_CREATED
 }
 
 func (m *EventSealObject) GetSecondarySpAddress() []string {
