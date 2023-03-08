@@ -11,6 +11,12 @@ import (
 )
 
 func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
+	if streamRecord == nil {
+		panic("streamRecord is nil")
+	}
+	if len(streamRecord.Account) != sdk.EthAddressLength*2+2 {
+		panic(fmt.Sprintf("invalid streamRecord account %s", streamRecord.Account))
+	}
 	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_ACTIVE && streamRecord.Status != types.STREAM_ACCOUNT_STATUS_FROZEN {
 		panic(fmt.Sprintf("invalid streamRecord status %d", streamRecord.Status))
 	}
@@ -31,14 +37,14 @@ func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
 // SetStreamRecord set a specific streamRecord in the store from its index
 func (k Keeper) SetStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord) {
 	k.CheckStreamRecord(streamRecord)
-	account := sdk.MustAccAddressFromHex(streamRecord.Account)
+	account := streamRecord.Account
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
-	key := types.StreamRecordKey(account)
+	key := types.StreamRecordKey(sdk.MustAccAddressFromHex(account))
 	streamRecord.Account = ""
 	b := k.cdc.MustMarshal(streamRecord)
 	store.Set(key, b)
-	// add the field back, the streamRecord may be used after this function
-	streamRecord.Account = account.String()
+	// set the field back, the streamRecord may be used after this function
+	streamRecord.Account = account
 	event := &types.EventStreamRecordUpdate{
 		Account:         streamRecord.Account,
 		StaticBalance:   streamRecord.StaticBalance,
@@ -163,10 +169,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 }
 
 func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRecordChange) (ret *types.StreamRecord, err error) {
-	streamRecord, found := k.GetStreamRecord(ctx, change.Addr)
-	if !found {
-		streamRecord = types.NewStreamRecord(change.Addr, ctx.BlockTime().Unix())
-	}
+	streamRecord, _ := k.GetStreamRecord(ctx, change.Addr)
 	err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return

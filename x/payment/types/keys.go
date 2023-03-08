@@ -23,7 +23,7 @@ const (
 
 var (
 	// GovernanceAddress used to receive fee of storage system, and pay for the potential debt from late forced settlement
-	GovernanceAddress = sdk.AccAddress(address.Module(ModuleName, []byte("governance")))
+	GovernanceAddress = sdk.AccAddress(address.Module(ModuleName, []byte("governance"))[:sdk.EthAddressLength])
 
 	AutoSettleRecordKeyPrefix    = []byte{0x01}
 	StreamRecordKeyPrefix        = []byte{0x02}
