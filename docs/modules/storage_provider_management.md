@@ -192,5 +192,4 @@ message MsgDeposit {
 This message is expected to fail if:
 
 * the storage provider is not existed
-* the deposit tokens are of a denom not specified as the deposit denom of sp module 
-
+* the deposit tokens are of a denom not specified as the deposit denom of sp module

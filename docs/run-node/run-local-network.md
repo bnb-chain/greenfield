@@ -1,7 +1,7 @@
-## Local Network
+# Run Local Network
 This guide helps you create a validator node that runs the network locally for testing and other development-related purposes.
 
-### Prerequisites
+## Prerequisites
 
 A computer running a Unix-like operating system (e.g., macOS, Linux)
 Basic familiarity with the command line
@@ -21,7 +21,7 @@ cd greenfield
 make build
 ```
 
-### Create Genesis File and Start the Network
+## Create Genesis File and Start the Network
 
 Step 1: Initialize configuration files
 
@@ -87,7 +87,7 @@ Step 4: Launch your chain
 ./build/bin/gnfd start
 ```
 
-### Reference
+## Reference
 The Greenfield chain is built using the `cosmos-sdk` and `Tendermint` core. There are various official configuration documents that can be referred to. These include:
 
 1. [Quick scripts for running a local testnet](../../deployment/readme.md)

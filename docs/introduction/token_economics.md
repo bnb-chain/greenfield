@@ -33,11 +33,11 @@ total supply:
 2. The transfer-in blockchain will unlock the amount from module account or contract and send it to target addresses.
 3. Both networks will never mint BNB.
 
-Refer to [cross chain model](./07-cross-chain.md) to get more details about the mechanism.
+Refer to [cross chain model](../modules/cross-chain.md) to get more details about the mechanism.
 
 ## How to Participate in the Ecosystem
-- [Become A Validator](../tutorial/09-validator-staking.md): validators secure the Greenfield by validating and relaying transactions, 
+- [Become A Validator](../cli/validator-staking.md): validators secure the Greenfield by validating and relaying transactions, 
    proposing, verifying and finalizing blocks.
-- [Become A Storage Provider](../tutorial/07-storage-provider.md): SPs store the objects' real data, i.e. the payload data. and get paid 
+- [Become A Storage Provider](../cli/storage-provider.md): SPs store the objects' real data, i.e. the payload data. and get paid 
   by providing storage services.
-- [Store/Manage Data](../tutorial/06-storage.md): store and manage your data in a decentralized way, control and own it all by yourself.
+- [Store/Manage Data](../cli/storage.md): store and manage your data in a decentralized way, control and own it all by yourself.
