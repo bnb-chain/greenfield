@@ -216,8 +216,8 @@ github.com/blang/semver v3.5.1+incompatible h1:cQNTCjp13qL8KC3Nbxr/y2Bqb63oX6wdn
 github.com/blang/semver v3.5.1+incompatible/go.mod h1:kRBLl5iJ+tD4TcOOxsy/0fnwebNt5EWlYSAyrTnjyyk=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230228075616-68ac309b432c h1:+YSuQalvzdJbJIDlsIR6oaSewU9KUbY/TGGJn5ktjIE=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230228075616-68ac309b432c/go.mod h1:FrFE0FmMfUYySW5GdlV45b02SYUkNguECpVdZcUJVuU=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230309060234-a16dfc382563 h1:TSnMdnQfmYFLdUElquG7wZIKUScOheVyv7QSNC8pVwM=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230309060234-a16dfc382563/go.mod h1:FrFE0FmMfUYySW5GdlV45b02SYUkNguECpVdZcUJVuU=
 github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230228075616-68ac309b432c h1:BLmdYaj7Dx0YOhfk77+KPPJSMCwpQl6f4Y30+801bf0=
 github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230228075616-68ac309b432c/go.mod h1:u/MXvf8wbUbCsAEyQSSYXXMsczAsFX48e2D6JI86T4o=
 github.com/bnb-chain/greenfield-tendermint v0.0.2 h1:SNb3C9QhYklaLgY6onimLHR42IlB6NQJvQqwmj/1ybM=
