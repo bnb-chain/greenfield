@@ -67,3 +67,33 @@ func TestSimulateTx(t *testing.T) {
 	assert.NoError(t, err)
 	t.Log(simulateRes.GasInfo.String())
 }
+
+func TestSendTokenWithCustomizedNonce(t *testing.T) {
+	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
+	assert.NoError(t, err)
+	gnfdCli := NewGreenfieldClient(test.TEST_GRPC_ADDR, test.TEST_CHAIN_ID,
+		WithKeyManager(km),
+		WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
+	assert.NoError(t, err)
+	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
+	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
+	assert.NoError(t, err)
+	nonce, err := gnfdCli.GetNonce()
+	assert.NoError(t, err)
+
+	for i := 0; i < 50; i++ {
+		txOpt := &types.TxOption{
+			GasLimit: 123456,
+			Memo:     "test",
+			FeePayer: payerAddr,
+			Nonce:    nonce,
+		}
+		response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
+		assert.NoError(t, err)
+		nonce++
+		assert.Equal(t, uint32(0), response.TxResponse.Code)
+		t.Log(response.TxResponse.String())
+	}
+
+}
