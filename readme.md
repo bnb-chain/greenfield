@@ -76,7 +76,7 @@ $ bash ./deployment/localup/localup.sh stop
 bash ./deployment/localup/localup.sh start  3
 ```
 
-More advanced script and command line usage, please refer to the [Tutorial](docs/modules/tutorial/readme.md).
+More advanced script and command line usage, please refer to the [Tutorial](docs/cli/cli.md).
 
 ## Key Modules
 
@@ -94,7 +94,7 @@ And the following modules are in cosmos-sdk:
 - `x/staking`:  based on the Proof-of-Stake logic. The elected validators are responsible for the security of the Greenfield blockchain. 
 They get involved in the governance and staking of the blockchain.
 
-Refer to the [Architecture Design](swagger-docs/modules/readme.md) to dive deep into these modules.
+Refer to the [docs](docs/readme.md) to dive deep into these modules.
 
 ## Join Testnet && Mainnet (coming soon..)
 

@@ -87,7 +87,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/app/ante"
 	appparams "github.com/bnb-chain/greenfield/app/params"
-	"github.com/bnb-chain/greenfield/swagger-docs"
+	"github.com/bnb-chain/greenfield/swagger"
 	"github.com/bnb-chain/greenfield/version"
 	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
