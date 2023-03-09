@@ -1,4 +1,4 @@
-# gRPC, REST, and Tendermint Endpoints
+# GRPC, REST, and Tendermint Endpoints
 
 This document presents an overview of all the endpoints a node exposes: gRPC, REST as well as some other endpoints.
 
@@ -62,7 +62,7 @@ Enabling the `/swagger` endpoint is configurable inside `~/.gnfd/config/app.toml
 
 ## Tendermint RPC
 
-Independently from the Cosmos SDK, Tendermint also exposes a RPC server. This RPC server can be configured by tuning 
+Independently of the Cosmos SDK, Tendermint also exposes an RPC server. This RPC server can be configured by tuning 
 parameters under the `rpc` table in the `~/.gnfd/config/config.toml`, the default listening address is `tcp://0.0.0.0:26657`. 
 An OpenAPI specification of all Tendermint RPC endpoints is available [here](https://docs.tendermint.com/master/rpc/).
 
@@ -75,12 +75,12 @@ Some Tendermint RPC endpoints are directly related to the Cosmos SDK:
     * `/store/{path}`: this will query the store directly.
     * `/p2p/filter/addr/{port}`: this will return a filtered list of the node's P2P peers by address port.
     * `/p2p/filter/id/{id}`: this will return a filtered list of the node's P2P peers by ID.
-* `/broadcast_tx_{aync,async,commit}`: these 3 endpoint will broadcast a transaction to other peers. CLI, gRPC and REST expose a way to broadcast transations, but they all use these 3 Tendermint RPCs under the hood.
+* `/broadcast_tx_{aync,async,commit}`: these 3 endpoint will broadcast a transaction to other peers. CLI, gRPC and REST expose a way to broadcast transactions, but they all use these 3 Tendermint RPCs under the hood.
 
 ## Comparison Table
 
 | Name           | Advantages                                                                                                                                                            | Disadvantages                                                                                                 |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+|----------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
 | gRPC           | - can use code-generated stubs in various languages<br>- supports streaming and bidirectional communication (HTTP2)<br>- small wire binary sizes, faster transmission | - based on HTTP2, not available in browsers<br>- learning curve (mostly due to Protobuf)                      |
 | REST           | - ubiquitous<br>- client libraries in all languages, faster implementation<br>                                                                                        | - only supports unary request-response communication (HTTP1.1)<br>- bigger over-the-wire message sizes (JSON) |
 | Tendermint RPC | - easy to use                                                                                                                                                         | - bigger over-the-wire message sizes (JSON)                                                                   |

@@ -5,8 +5,8 @@ manage private keys for blockchain applications. The `Keyring` interface is used
 to implement to be used as a key storage backend. This document provides an overview of the different backend 
 options available and the supported sign algorithms.
 
-And to interact with BSC(BNB-smart-chain) more convinent and user-friendly, we add 
-[EIP-712](https://eips.ethereum.org/EIPS/eip-712) support. Any Etherrum wallet could connect to 
+And to interact with BSC(BNB-smart-chain) more convenient and user-friendly, we add 
+[EIP-712](https://eips.ethereum.org/EIPS/eip-712) support. Any Ethereum wallet could connect to 
 a greenfield node and sign an EIP-712 transaction directly.
 
 ## EIP-712 Support
@@ -16,7 +16,7 @@ infrastructure to interact with Greenfield at the beginning naturally.
 
 To achieve this, the following changes have been made.
 
-1. An Ethereum-compatible RPC backend. Be noted that we only support necessacry methods to connect a 
+1. An Ethereum-compatible RPC backend. Be noted that we only support necessary methods to connect a 
   wallet(`eth_chainId`, `eth_networkId`, `eth_blockNumber`, `eth_getBlockByNumber` and `eth_getBalance`). Other RPC methods are not implemented.
 2. Same signing algorithm(`eth_scep256k1`) as Ethereum.
 
@@ -59,7 +59,7 @@ instance is garbage collected.
 
 ## Supported Sign Algorithms
 
-The greenfield-cosmos-sdk supports as many sign algorithms as users want, but in Greenfield's context, we only 
+The greenfield-cosmos-sdk supports as many sign algorithms as users want, but in Greenfield context, we only 
 support `eth_secp256k1` and `ed25519`. These algorithms were chosen for their security and compatibility with the 
 Ethereum and Tendermint ecosystems.
 

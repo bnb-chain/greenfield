@@ -69,7 +69,7 @@ blockchain:
 Object metadata is stored with the bucket name as the prefix of the key. It is possible to iterate through all
 objects under the same bucket, but it may be a heavy-lifting job for a large bucket with lots of objects.
 
-The prototype definition of an objecy:
+The prototype definition of an object:
 
 ```protobuf
 

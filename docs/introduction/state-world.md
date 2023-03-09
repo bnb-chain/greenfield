@@ -22,7 +22,7 @@ The "storage metadata" includes size, ownership, checksum hashes, and distributi
 the basic unit of the storage is an "object", which can be a piece of binary data, text files, photos, videos, or any
 other format. Users can create their objects under their "bucket". A bucket is globally unique. The object can be referred
 to via the bucket name and the object ID. It can also be located by the bucket name, the prefix tag, and the object ID
-via off-chain facilitations.
+via off-chain facility.
 
 ## Permission Metadata
 Data resources on Greenfield, such as the data objects and the buckets, all have access control, such as which address

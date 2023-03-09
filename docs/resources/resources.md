@@ -1,4 +1,4 @@
-##  esources
+##  Resources
 
 As GNFD is fully compatible with Cosmos, most of the development tools in the Cosmos ecosystem are also applicable to
 Greenfield. Here are some reference libraries, for a complete list please refer to [awesome-cosmos](https://github.com/cosmos/awesome-cosmos).

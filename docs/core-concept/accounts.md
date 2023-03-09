@@ -19,9 +19,9 @@ In the node, all data is stored using Protocol Buffers serialization.
 
 Greenfield only supports `secp256k1` key schemes for creating digital signatures:
 
-|              | Address length in bytes | Public key length in bytes | Used for transaction authentication | Used for consensus (tendermint) |
-| :----------: | :---------------------: | :------------------------: | :---------------------------------: | :-----------------------------: |
-| `secp256k1`  |           20            |             33             |                 yes                 |               no                |
+|             | Address length in bytes | Public key length in bytes | Used for transaction authentication | Used for consensus (tendermint) |
+|:-----------:|:-----------------------:|:--------------------------:|:-----------------------------------:|:-------------------------------:|
+| `secp256k1` |           20            |             33             |                 yes                 |               no                |
 
 ## Addresses
 

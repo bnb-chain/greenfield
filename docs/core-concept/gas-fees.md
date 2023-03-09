@@ -9,7 +9,7 @@ In the Cosmos SDK, `gas` is a special unit that is used to track the consumption
 However, on application-specific blockchains like Greenfield, the primary factor determining the transaction fee 
 is no longer the computational cost of storage, but rather the incentive mechanism of Greenfield. For example, 
 creating and deleting a storage object consumes similar I/O and computational resources, but Greenfield 
-incentivizes users to delete unused storage objects to free up more storage space, resulting in much cheaper 
+incentives users to delete unused storage objects to free up more storage space, resulting in much cheaper 
 transaction fees for the latter.
 
 Therefore, we abandoned the gas meter design of cosmos-sdk and redesigned the gashub module to determine the gas 
