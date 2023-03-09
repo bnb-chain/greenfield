@@ -12,5 +12,5 @@ This section dives into the internals of the Greenfield Blockchain implementatio
 - [Cross Chain](./07-cross-chain.md)
 - [Consensus and Staking](./08-consensus_and_staking.md)
 - [Governance](./09-governance.md)
-- [Data Availability Challenge](./10-data-availability-challenge.md)
+- [Data Availability Challenge](./10-data_availability_challenge.md)
 - [Event and API](./11-events_and_api.md)
