@@ -33,7 +33,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	if !found {
 		return nil, types.ErrUnknownObject
 	}
-	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
+	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
 		return nil, types.ErrInvalidObjectStatus
 	}
 

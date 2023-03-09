@@ -118,7 +118,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_IN_SERVICE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
 	return bucketName, objectName, s.StorageProvider.OperatorKey.GetAddr(), secondarySPs
 }

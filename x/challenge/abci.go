@@ -50,7 +50,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			return
 		}
 
-		if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_IN_SERVICE {
+		if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
 			continue
 		}
 
