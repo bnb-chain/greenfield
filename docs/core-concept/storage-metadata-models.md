@@ -1,4 +1,4 @@
-# Storage MetaData Models
+# Storage Metadata Models
 
 The Greenfield is designed to be as compatible as possible with popular Web2 and Web3 standards.
 It provides developers with similar API primitives and models as the most popular Web2 cloud storage: AWS s3.

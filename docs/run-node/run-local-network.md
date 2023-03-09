@@ -9,9 +9,9 @@ Step 1: Install dependencies
 
 The first step is to install the necessary dependencies, which include `Golang`, `Git`. Here are the steps to install them:
 
-Install Golang by following the instructions for your operating system on the official Golang website (https://golang.org/dl/).
+Install Golang by following the instructions for your operating system on the [official Golang website](https://golang.org/dl/).
 
-Install Git by following the instructions for your operating system on the official Git website (https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
+Install Git by following the instructions for your operating system on the [official Git website](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 
 Build the Greenfield CLI tools by running the following command in your terminal:
 
