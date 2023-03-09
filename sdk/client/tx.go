@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -25,7 +24,6 @@ type TransactionClient interface {
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
 func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
-	fmt.Printf("current nonce is %d", txOpt.Nonce)
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 

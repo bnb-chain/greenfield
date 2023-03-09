@@ -1,13 +1,14 @@
 package client
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"testing"
 
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
@@ -81,17 +82,16 @@ func TestSendTokenWithCustomizedNonce(t *testing.T) {
 	nonce, err := gnfdCli.GetNonce()
 	assert.NoError(t, err)
 
-	newNonce := nonce
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 50; i++ {
 		txOpt := &types.TxOption{
 			GasLimit: 123456,
 			Memo:     "test",
 			FeePayer: payerAddr,
-			Nonce:    newNonce,
+			Nonce:    nonce,
 		}
 		response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
 		assert.NoError(t, err)
-		newNonce++
+		nonce++
 		assert.Equal(t, uint32(0), response.TxResponse.Code)
 		t.Log(response.TxResponse.String())
 	}
