@@ -11,6 +11,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -70,4 +71,7 @@ type (
 	MsgDeleteGroup       = storagetypes.MsgDeleteGroup
 	MsgUpdateGroupMember = storagetypes.MsgUpdateGroupMember
 	MsgLeaveGroup        = storagetypes.MsgLeaveGroup
+
+	MsgSubmit = challengetypes.MsgSubmit
+	MsgAttest = challengetypes.MsgAttest
 )

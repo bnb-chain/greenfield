@@ -1,0 +1,78 @@
+syntax = "proto3";
+package bnbchain.greenfield.challenge;
+
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "greenfield/challenge/types.proto";
+
+// this line is used by starport scaffolding # proto/tx/import
+
+option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
+
+// Msg defines the Msg service.
+service Msg {
+  rpc Submit(MsgSubmit) returns (MsgSubmitResponse);
+  rpc Attest(MsgAttest) returns (MsgAttestResponse);
+  // this line is used by starport scaffolding # proto/tx/rpc
+}
+
+message MsgSubmit {
+  option (cosmos.msg.v1.signer) = "challenger";
+
+  // The challenger address.
+  string challenger = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The storage provider to be challenged.
+  string sp_operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The bucket of the object info to be challenged.
+  string bucket_name = 3;
+
+  // The name of the object info to be challenged.
+  string object_name = 4;
+
+  // The index of segment/piece to challenge, start from zero.
+  uint32 segment_index = 5;
+
+  // Randomly pick a segment/piece to challenge or not.
+  bool random_index = 6;
+}
+
+message MsgSubmitResponse {}
+
+message MsgAttest {
+  option (cosmos.msg.v1.signer) = "submitter";
+
+  // The submitter address.
+  string submitter = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // The id of the challenge.
+  uint64 challenge_id = 2;
+
+  // The id of the object info.
+  string object_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+
+  // The storage provider to be challenged.
+  string sp_operator_address = 4;
+
+  // Vote result of the attestation.
+  VoteResult vote_result = 5;
+
+  // The challenger who submits the challenge, which can be empty.
+  string challenger_address = 6;
+
+  // The validators participated in the attestation.
+  repeated fixed64 vote_validator_set = 7;
+
+  // The aggregated BLS signature from the validators.
+  bytes vote_agg_signature = 8;
+}
+
+message MsgAttestResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message

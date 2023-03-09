@@ -24,7 +24,9 @@ type BaseSuite struct {
 	suite.Suite
 	Config          *Config
 	Client          *client.GreenfieldClient
+	TmClient        client.TendermintClient
 	Validator       keys.KeyManager
+	Relayer         keys.KeyManager
 	StorageProvider SPKeyManagers
 }
 
@@ -32,8 +34,11 @@ func (s *BaseSuite) SetupSuite() {
 	s.Config = InitConfig()
 	s.Client = client.NewGreenfieldClient(s.Config.GrpcAddr, s.Config.ChainId,
 		client.WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	s.TmClient = client.NewTendermintClient(s.Config.RpcAddr)
 	var err error
 	s.Validator, err = keys.NewMnemonicKeyManager(s.Config.ValidatorMnemonic)
+	s.Require().NoError(err)
+	s.Relayer, err = keys.NewBlsMnemonicKeyManager(s.Config.RelayerMnemonic)
 	s.Require().NoError(err)
 	s.StorageProvider.OperatorKey, err = keys.NewMnemonicKeyManager(s.Config.SPMnemonics.OperatorMnemonic)
 	s.Require().NoError(err)
@@ -54,7 +59,7 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
-	s.T().Logf("tx_hash: %s", response.TxResponse.TxHash)
+	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
 	return response.TxResponse
 }
