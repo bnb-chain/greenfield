@@ -2,7 +2,7 @@ package client
 
 import (
 	"context"
-
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,10 +20,12 @@ type TransactionClient interface {
 	BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error)
 	SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
 	SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
+	GetNonce() (uint64, error)
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
 func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
+	fmt.Printf("current nonce is %d", txOpt.Nonce)
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 
@@ -33,7 +35,7 @@ func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, op
 	}
 
 	// sign a tx
-	txSignedBytes, err := c.signTx(txConfig, txBuilder)
+	txSignedBytes, err := c.signTx(txConfig, txBuilder, txOpt)
 	if err != nil {
 		return nil, err
 	}
@@ -96,29 +98,35 @@ func (c *GreenfieldClient) SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte
 	if err := c.constructTxWithGasInfo(msgs, txOpt, txConfig, txBuilder); err != nil {
 		return nil, err
 	}
-	return c.signTx(txConfig, txBuilder)
+	return c.signTx(txConfig, txBuilder, txOpt)
 }
 
-func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxBuilder) ([]byte, error) {
+func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxBuilder, txOpt *types.TxOption) ([]byte, error) {
 	km, err := c.GetKeyManager()
 	if err != nil {
 		return nil, err
 	}
+	var nonce uint64
 	account, err := c.getAccount()
 	if err != nil {
 		return nil, err
 	}
+	nonce = account.GetSequence()
+	if txOpt != nil && txOpt.Nonce != 0 {
+		nonce = txOpt.Nonce
+	}
+
 	signerData := xauthsigning.SignerData{
 		ChainID:       c.chainId,
 		AccountNumber: account.GetAccountNumber(),
-		Sequence:      account.GetSequence(),
+		Sequence:      nonce,
 	}
 	sig, err := clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
 		km.GetPrivKey(),
 		txConfig,
-		account.GetSequence(),
+		nonce,
 	)
 	if err != nil {
 		return nil, err
@@ -135,21 +143,26 @@ func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxB
 }
 
 // setSingerInfo gathers the signer info by doing "empty signature" hack, and inject it into txBuilder
-func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder) error {
+func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *types.TxOption) error {
 	km, err := c.GetKeyManager()
 	if err != nil {
 		return err
 	}
+	var nonce uint64
 	account, err := c.getAccount()
 	if err != nil {
 		return err
+	}
+	nonce = account.GetSequence()
+	if txOpt != nil && txOpt.Nonce != 0 {
+		nonce = txOpt.Nonce
 	}
 	sig := signing.SignatureV2{
 		PubKey: km.GetPrivKey().PubKey(),
 		Data: &signing.SingleSignatureData{
 			SignMode: signing.SignMode_SIGN_MODE_EIP_712,
 		},
-		Sequence: account.GetSequence(),
+		Sequence: nonce,
 	}
 	if err := txBuilder.SetSignatures(sig); err != nil {
 		return err
@@ -176,7 +189,7 @@ func (c *GreenfieldClient) constructTx(msgs []sdk.Msg, txOpt *types.TxOption, tx
 		}
 	}
 	// inject signer info into txBuilder, it is needed for simulating and signing
-	return c.setSingerInfo(txBuilder)
+	return c.setSingerInfo(txBuilder, txOpt)
 }
 
 func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.TxOption, txConfig client.TxConfig, txBuilder client.TxBuilder) error {
@@ -213,6 +226,14 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 	txBuilder.SetGasLimit(gasLimit)
 	txBuilder.SetFeeAmount(feeAmount)
 	return nil
+}
+
+func (c *GreenfieldClient) GetNonce() (uint64, error) {
+	account, err := c.getAccount()
+	if err != nil {
+		return 0, err
+	}
+	return account.GetSequence(), nil
 }
 
 func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
