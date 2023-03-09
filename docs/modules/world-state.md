@@ -1,4 +1,4 @@
-# State World of Greenfield Blockchain
+# World State of Greenfield Blockchain
 All Greenfield validators have such active data in full (at least the latest state). Anyone can join the blockchain as
 full nodes to synchronize these data for free.
 

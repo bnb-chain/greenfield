@@ -15,7 +15,7 @@ This section dives into the internals of the Greenfield Blockchain implementatio
   - [Billing and Payment](core-concept/billing-payment.md)
   - [Transaction Lifecycle](core-concept/transaction-lifecycle.md)
 - Modules
-  - [State World](modules/state-world.md)
+  - [State World](modules/world-state.md)
   - [Storage Management](modules/storage-management.md)
   - [Storage Provider](modules/storage_provider_management.md)
   - [Billing and Payment](modules/billing_and_payment.md)
