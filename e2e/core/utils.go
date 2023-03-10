@@ -91,16 +91,3 @@ func YamlString(data interface{}) string {
 func RandInt64(min, max int64) int64 {
 	return min + rand.Int63n(max-min)
 }
-
-func YamlString(data interface{}) string {
-	bz, err := yaml.Marshal(data)
-	if err != nil {
-		panic(err)
-	}
-	return string(bz)
-}
-
-// RandInt64 generate random int64 between min and max
-func RandInt64(min, max int64) int64 {
-	return min + rand.Int63n(max-min)
-}

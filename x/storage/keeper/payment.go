@@ -190,6 +190,9 @@ func MergeSecondarySpObjectsSize(list []storagetypes.SecondarySpObjectsSize) []s
 	}
 	res := make([]storagetypes.SecondarySpObjectsSize, 0, len(helperMap))
 	for sp, size := range helperMap {
+		if size == 0 {
+			continue
+		}
 		res = append(res, storagetypes.SecondarySpObjectsSize{
 			SpAddress:       sp,
 			TotalChargeSize: size,
@@ -217,6 +220,9 @@ func SubSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, toBeS
 	// merge the result
 	res := make([]storagetypes.SecondarySpObjectsSize, 0, len(helperMap))
 	for sp, size := range helperMap {
+		if size == 0 {
+			continue
+		}
 		res = append(res, storagetypes.SecondarySpObjectsSize{
 			SpAddress:       sp,
 			TotalChargeSize: size,
