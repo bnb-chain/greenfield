@@ -1,33 +1,72 @@
 package types
 
 import (
+	"fmt"
+	"reflect"
+
 	sdkmath "cosmossdk.io/math"
 )
 
-// Type aliases to the SDK's math sub-module
-//
-// Deprecated: Functionality of this package has been moved to it's own module:
-// cosmossdk.io/math
-//
-// Please use the above module instead of this package.
+const (
+	SecondarySPNum = 6
+	// MinChargeSize is the minimum size to charge for a storage object
+	MinChargeSize = 1024
+)
+
 type (
 	Int  = sdkmath.Int
 	Uint = sdkmath.Uint
 )
 
-func MustMarshalUint(n sdkmath.Uint) []byte {
-	nb, err := n.Marshal()
-	if err != nil {
-		panic(err)
-	}
-	return nb
+const (
+	TagKeyTraits       = "traits"
+	TagValueOmit       = "omit"
+	MaxPaginationLimit = 200 // the default limit is 100 if pagination parameters is not provided
+)
+
+func EncodeSequence(u Uint) []byte {
+	return u.Bytes()
 }
 
-func MustUnmarshalUint(data []byte) sdkmath.Uint {
-	n := sdkmath.ZeroUint()
-	err := n.Unmarshal(data)
-	if err != nil {
-		panic(err)
+func DecodeSequence(bz []byte) Uint {
+	u := sdkmath.NewUint(0)
+	return u.SetBytes(bz)
+}
+
+func (m *BucketInfo) ToNFTMetadata() *BucketMetaData {
+	return &BucketMetaData{
+		BucketName: m.BucketName,
+		Attributes: getNFTAttributes(*m),
 	}
-	return n
+}
+
+func (m *ObjectInfo) ToNFTMetadata() *ObjectMetaData {
+	return &ObjectMetaData{
+		ObjectName: m.ObjectName,
+		Attributes: getNFTAttributes(*m),
+	}
+}
+
+func (m *GroupInfo) ToNFTMetadata() *GroupMetaData {
+	return &GroupMetaData{
+		GroupName:  m.GroupName,
+		Attributes: getNFTAttributes(*m),
+	}
+}
+
+func getNFTAttributes(m interface{}) []Trait {
+	attributes := make([]Trait, 0)
+	v := reflect.ValueOf(m)
+	typ := v.Type()
+	for i := 0; i < v.NumField(); i++ {
+		if typ.Field(i).Tag.Get(TagKeyTraits) == TagValueOmit {
+			continue
+		}
+		attributes = append(attributes,
+			Trait{
+				TraitType: typ.Field(i).Name,
+				Value:     fmt.Sprintf("%v", v.Field(i).Interface()),
+			})
+	}
+	return attributes
 }

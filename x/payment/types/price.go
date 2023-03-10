@@ -2,16 +2,17 @@ package types
 
 import (
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type StreamRecordChange struct {
-	Addr                string
+	Addr                sdk.AccAddress
 	RateChange          sdkmath.Int
 	StaticBalanceChange sdkmath.Int
 	LockBalanceChange   sdkmath.Int
 }
 
-func NewDefaultStreamRecordChangeWithAddr(addr string) *StreamRecordChange {
+func NewDefaultStreamRecordChangeWithAddr(addr sdk.AccAddress) *StreamRecordChange {
 	return &StreamRecordChange{
 		Addr:                addr,
 		RateChange:          sdkmath.ZeroInt(),
@@ -35,16 +36,18 @@ func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmat
 	return change
 }
 
-type StorePrice struct {
-	UserPayRate sdkmath.Int
-	Flows       []OutFlowInUSD
+type StoragePriceParams struct {
+	PrimarySp string
+	PriceTime int64
 }
 
-type BNBPrice struct {
-	Num       sdkmath.Int
-	Precision sdkmath.Int
+type StoragePrice struct {
+	ReadPrice           sdk.Dec
+	PrimaryStorePrice   sdk.Dec
+	SecondaryStorePrice sdk.Dec
 }
 
-func (price BNBPrice) Equal(other BNBPrice) bool {
-	return price.Num.Equal(other.Num) && price.Precision.Equal(other.Precision)
+type UserFlows struct {
+	From  sdk.AccAddress
+	Flows []OutFlow
 }

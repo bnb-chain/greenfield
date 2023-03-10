@@ -1,0 +1,27 @@
+syntax = "proto3";
+package bnbchain.greenfield.challenge;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
+
+enum VoteResult {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // The challenge failed, for further extension.
+  CHALLENGE_FAILED = 0;
+
+  // The challenge succeed.
+  CHALLENGE_SUCCEED = 1;
+}
+
+message Slash {
+  bytes sp_operator_address = 1;
+  string object_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  uint64 height = 3;
+}

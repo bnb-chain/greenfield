@@ -11,7 +11,8 @@ import (
 func (k msgServer) DisableRefund(goCtx context.Context, msg *types.MsgDisableRefund) (*types.MsgDisableRefundResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, msg.Addr)
+	addr := sdk.MustAccAddressFromHex(msg.Addr)
+	paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, addr)
 	if !found {
 		return nil, types.ErrPaymentAccountNotFound
 	}

@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -11,13 +12,14 @@ import (
 func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	// check stream record
-	streamRecord, found := k.Keeper.GetStreamRecord(ctx, msg.From)
+	from := sdk.MustAccAddressFromHex(msg.From)
+	streamRecord, found := k.Keeper.GetStreamRecord(ctx, from)
 	if !found {
 		return nil, types.ErrStreamRecordNotFound
 	}
 	// check whether creator can withdraw
 	if msg.Creator != msg.From {
-		paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, msg.From)
+		paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, from)
 		if !found {
 			return nil, types.ErrPaymentAccountNotFound
 		}
@@ -28,15 +30,27 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 			return nil, types.ErrPaymentAccountAlreadyNonRefundable
 		}
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(msg.From).WithStaticBalanceChange(msg.Amount.Neg())
-	err := k.UpdateStreamRecord(ctx, &streamRecord, change)
+	change := types.NewDefaultStreamRecordChangeWithAddr(from).WithStaticBalanceChange(msg.Amount.Neg())
+	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return nil, err
+	}
+	if streamRecord.StaticBalance.IsNegative() {
+		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}
 	// bank transfer
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	coins := sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, msg.Amount))
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
+	if err != nil {
+		return nil, err
+	}
+	// emit event
+	err = ctx.EventManager().EmitTypedEvents(&types.EventWithdraw{
+		From:   msg.From,
+		To:     msg.Creator,
+		Amount: msg.Amount,
+	})
 	if err != nil {
 		return nil, err
 	}

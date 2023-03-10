@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -16,6 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	types2 "github.com/bnb-chain/greenfield/types"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -35,17 +39,21 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateBucket())
 	cmd.AddCommand(CmdDeleteBucket())
+	cmd.AddCommand(CmdUpdateBucketInfo())
 	cmd.AddCommand(CmdCreateObject())
 	cmd.AddCommand(CmdSealObject())
 	cmd.AddCommand(CmdRejectSealObject())
 	cmd.AddCommand(CmdDeleteObject())
+	cmd.AddCommand(CmdCancelCreateObject())
 	cmd.AddCommand(CmdCreateGroup())
 	cmd.AddCommand(CmdDeleteGroup())
 	cmd.AddCommand(CmdUpdateGroupMember())
 	cmd.AddCommand(CmdLeaveGroup())
 	cmd.AddCommand(CmdCopyObject())
-	cmd.AddCommand(CmdUpdateBucketInfo())
-	cmd.AddCommand(CmdCancelCreateObject())
+
+	cmd.AddCommand(CmdPutPolicy())
+	cmd.AddCommand()
+	cmd.AddCommand(CmdDeletePolicy())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -151,11 +159,15 @@ func CmdDeleteBucket() *cobra.Command {
 
 func CmdUpdateBucketInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-read-quota [bucket-name]",
+		Use:   "update-bucket-info [bucket-name] [read-quota]",
 		Short: "Update the meta of bucket, E.g ReadQuota, PaymentAccount",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
+			argReadQuota, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -165,7 +177,7 @@ func CmdUpdateBucketInfo() *cobra.Command {
 			msg := types.NewMsgUpdateBucketInfo(
 				clientCtx.GetFromAddress(),
 				argBucketName,
-				types.READ_QUOTA_FREE,
+				argReadQuota,
 				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -261,6 +273,7 @@ func CmdCreateObject() *cobra.Command {
 				isPublic,
 				expectChecksum,
 				contentType,
+				types.REDUNDANCY_EC_TYPE,
 				math.MaxUint,
 				nil,
 				nil, // NOTE(fynn): Not specified here.
@@ -536,6 +549,65 @@ func CmdUpdateGroupMember() *cobra.Command {
 				argGroupName,
 				nil, // TODO: Refine the cli parameters
 				nil, // TODO: Refine the cli parameters
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdPutPolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "put-policy",
+		Short: "put a policy to bucket/object/group which can grant permission to others",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgPutPolicy(
+				clientCtx.GetFromAddress(),
+				"",
+				nil,
+				nil,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdDeletePolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete-policy",
+		Short: "Broadcast message delete-policy",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeletePolicy(
+				clientCtx.GetFromAddress().String(),
+				types2.NewBucketGRN("test-bucket").String(),
+				permtypes.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

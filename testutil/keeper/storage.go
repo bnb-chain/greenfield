@@ -4,8 +4,6 @@ import (
 	"testing"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,8 +37,11 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	"github.com/bnb-chain/greenfield/app"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	permissionmodulekeeper "github.com/bnb-chain/greenfield/x/permission/keeper"
+	permissionmoduletypes "github.com/bnb-chain/greenfield/x/permission/types"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
@@ -49,23 +50,34 @@ import (
 
 var (
 	storageMaccPerms = map[string][]string{
+		authtypes.Minter:               {authtypes.Minter},
 		authtypes.FeeCollectorName:     {authtypes.Minter, authtypes.Staking},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		sptypes.ModuleName:             {authtypes.Staking},
 		types.ModuleName:               {authtypes.Staking},
+		paymentmoduletypes.ModuleName:  {},
 	}
 )
 
-func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
+type StorageDepKeepers struct {
+	PaymentKeeper *paymentmodulekeeper.Keeper
+	SpKeeper      *spkeeper.Keeper
+	BankKeeper    *bankkeeper.BaseKeeper
+	AccountKeeper *authkeeper.AccountKeeper
+}
+
+func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context) {
 	storeKeys := sdk.NewKVStoreKeys(authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey, govtypes.StoreKey,
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
 		crosschaintypes.StoreKey,
+		sptypes.StoreKey,
 		paymentmoduletypes.StoreKey,
+		permissionmoduletypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
@@ -82,13 +94,15 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	stateStore.MountStoreWithDB(storeKeys[paramstypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[authtypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[banktypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[paymentmoduletypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[sptypes.StoreKey], storetypes.StoreTypeIAVL, db)
 
 	stateStore.MountStoreWithDB(tkeys[paramstypes.TStoreKey], storetypes.StoreTypeTransient, nil)
 
 	require.NoError(t, stateStore.LoadLatestVersion())
 
-	registry := codectypes.NewInterfaceRegistry()
-	cdc := codec.NewProtoCodec(registry)
+	cdcConfig := app.MakeEncodingConfig()
+	cdc := cdcConfig.Marshaler
 
 	paramKeeper := paramskeeper.NewKeeper(cdc, types.Amino, storeKeys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
 
@@ -96,6 +110,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
 	paramKeeper.Subspace(sptypes.ModuleName)
+	paramKeeper.Subspace(permissionmoduletypes.ModuleName)
 	paramKeeper.Subspace(paymentmoduletypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
@@ -127,15 +142,6 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
 	)
-	paymentKeeper := *paymentmodulekeeper.NewKeeper(
-		cdc,
-		storeKeys[paymentmoduletypes.StoreKey],
-		storeKeys[paymentmoduletypes.MemStoreKey],
-		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
-
-		bankKeeper,
-		accountKeeper,
-	)
 
 	spKeeper := spkeeper.NewKeeper(
 		cdc,
@@ -147,6 +153,25 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		authzKeeper,
 	)
 
+	paymentKeeper := paymentmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[paymentmoduletypes.StoreKey],
+		storeKeys[paymentmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
+
+		bankKeeper,
+		accountKeeper,
+		spKeeper,
+	)
+
+	permissionKeeper := permissionmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[permissionmoduletypes.ModuleName],
+		storeKeys[permissionmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, permissionmoduletypes.ModuleName),
+		accountKeeper,
+	)
+
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
@@ -155,23 +180,34 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		accountKeeper,
 		spKeeper,
 		paymentKeeper,
+		permissionKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
 
 	// Initialize params
 	k.SetParams(ctx, types.DefaultParams())
-
 	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	spKeeper.SetParams(ctx, sptypes.DefaultParams())
+	paymentKeeper.SetParams(ctx, paymentmoduletypes.DefaultParams())
 
-	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
-		Denom:  "stake",
-		Amount: sdk.NewInt(1000000000),
+	// Initialize module accounts
+	paymentModulePool := accountKeeper.GetModuleAccount(ctx, paymentmoduletypes.ModuleName)
+	accountKeeper.SetModuleAccount(ctx, paymentModulePool)
+
+	amount := sdk.NewIntFromUint64(1e19)
+	err := bankKeeper.MintCoins(ctx, authtypes.Minter, sdk.Coins{sdk.Coin{
+		Denom:  "BNB",
+		Amount: amount,
 	}})
 	if err != nil {
 		panic("mint coins error")
 	}
 
-	return k, ctx
+	return k, StorageDepKeepers{
+		SpKeeper:      spKeeper,
+		PaymentKeeper: paymentKeeper,
+		BankKeeper:    &bankKeeper,
+		AccountKeeper: &accountKeeper,
+	}, ctx
 }

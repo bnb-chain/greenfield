@@ -35,7 +35,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		senderPubKey := &ethsecp256k1.PubKey{Key: bz}
 		_ = suite.app.BankKeeper.SendCoins(suite.ctx, senderPubKey.Address().Bytes(), acc.GetAddress(), sdk.Coins{sdk.Coin{
 			Denom:  sdk.DefaultBondDenom,
-			Amount: sdk.NewInt(100000000000),
+			Amount: sdk.NewInt(100000000000000),
 		}})
 	}
 
@@ -51,7 +51,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"success - DeliverTx EIP712 signed Cosmos Tx with MsgSend",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
@@ -61,7 +61,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"success - DeliverTx EIP712 signed Cosmos Tx with MsgDelegate",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas)))
 				amount := sdk.NewCoins(coinAmount)
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgDelegate(from, privKey, "greenfield_9000-1", gas, amount)
@@ -74,7 +74,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				txBuilder := suite.CreateTestEIP712MsgCreateValidator(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
@@ -86,7 +86,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				grantee := sdk.AccAddress("_______grantee______")
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				gasAmount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				blockTime := time.Date(1, 1, 1, 1, 1, 1, 1, time.UTC)
 				expiresAt := blockTime.Add(time.Hour)
 				msg, err := authz.NewMsgGrant(
@@ -102,7 +102,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				gasAmount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				txBuilder := suite.CreateTestEIP712GrantAllowance(from, privKey, "greenfield_9000-1", gas, gasAmount)
 				return txBuilder.GetTx()
 			}, false, false, true,
@@ -113,7 +113,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				txBuilder := suite.CreateTestEIP712MsgEditValidator(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
@@ -124,7 +124,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				txBuilder := suite.CreateTestEIP712MsgEditValidator(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
@@ -135,7 +135,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSubmitProposalV1(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
@@ -146,7 +146,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 				from := acc.GetAddress()
 				coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 				amount := sdk.NewCoins(coinAmount)
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgGrant(from, privKey, "greenfield_9000-1", gas, amount)
 				return txBuilder.GetTx()
 			}, false, false, true,
@@ -158,7 +158,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 		//		from := acc.GetAddress()
 		//		coinAmount := sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))
 		//		gasAmount := sdk.NewCoins(coinAmount)
-		//		gas := uint64(200000)
+		//		gas := uint64(2000000000)
 		//		// reusing the gasAmount for deposit
 		//		deposit := sdk.NewCoins(coinAmount)
 		//		txBuilder := suite.CreateTestEIP712SubmitProposal(from, privKey, "greenfield_9000-1", gas, gasAmount, deposit)
@@ -169,7 +169,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"fails - DeliverTx EIP712 signed Cosmos Tx with wrong Chain ID",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "ethermint_9002-1", gas, amount)
 				return txBuilder.GetTx()
@@ -179,7 +179,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"fails - DeliverTx EIP712 signed Cosmos Tx with different gas fees",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "greenfield_9000-1", gas, amount)
 				txBuilder.SetGasLimit(uint64(300000))
@@ -191,7 +191,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"fails - DeliverTx EIP712 signed Cosmos Tx with empty signature",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "greenfield_9000-1", gas, amount)
 				sigsV2 := signing.SignatureV2{
@@ -206,7 +206,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"fails - DeliverTx EIP712 signed Cosmos Tx with invalid sequence",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "greenfield_9000-1", gas, amount)
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())
@@ -227,7 +227,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			"fails - DeliverTx EIP712 signed Cosmos Tx with invalid signMode",
 			func() sdk.Tx {
 				from := acc.GetAddress()
-				gas := uint64(200000)
+				gas := uint64(2000000000)
 				amount := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(100*int64(gas))))
 				txBuilder := suite.CreateTestEIP712TxBuilderMsgSend(from, privKey, "greenfield_9000-1", gas, amount)
 				nonce, err := suite.app.AccountKeeper.GetSequence(suite.ctx, acc.GetAddress())

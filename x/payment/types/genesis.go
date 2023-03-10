@@ -2,6 +2,8 @@ package types
 
 import (
 	"fmt"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // DefaultIndex is the default global index
@@ -14,7 +16,6 @@ func DefaultGenesis() *GenesisState {
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
-		BnbPriceList:            []BnbPrice{{0, 2e8}},
 		// this line is used by starport scaffolding # genesis/types/default
 		Params: DefaultParams(),
 	}
@@ -27,7 +28,7 @@ func (gs GenesisState) Validate() error {
 	streamRecordIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.StreamRecordList {
-		index := string(StreamRecordKey(elem.Account))
+		index := string(StreamRecordKey(sdk.MustAccAddressFromHex(elem.Account)))
 		if _, ok := streamRecordIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for streamRecord")
 		}
@@ -37,7 +38,7 @@ func (gs GenesisState) Validate() error {
 	paymentAccountCountIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.PaymentAccountCountList {
-		index := string(PaymentAccountCountKey(elem.Owner))
+		index := string(PaymentAccountCountKey(sdk.MustAccAddressFromHex(elem.Owner)))
 		if _, ok := paymentAccountCountIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for paymentAccountCount")
 		}
@@ -47,7 +48,7 @@ func (gs GenesisState) Validate() error {
 	paymentAccountIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.PaymentAccountList {
-		index := string(PaymentAccountKey(elem.Addr))
+		index := string(PaymentAccountKey(sdk.MustAccAddressFromHex(elem.Addr)))
 		if _, ok := paymentAccountIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for paymentAccount")
 		}
@@ -58,21 +59,11 @@ func (gs GenesisState) Validate() error {
 	autoSettleRecordIndexMap := make(map[string]struct{})
 
 	for _, elem := range gs.AutoSettleRecordList {
-		index := string(AutoSettleRecordKey(elem.Timestamp, elem.Addr))
+		index := string(AutoSettleRecordKey(elem.Timestamp, sdk.MustAccAddressFromHex(elem.Addr)))
 		if _, ok := autoSettleRecordIndexMap[index]; ok {
 			return fmt.Errorf("duplicated index for autoSettleRecord")
 		}
 		autoSettleRecordIndexMap[index] = struct{}{}
-	}
-	// Check for duplicated index in BnbPrice
-	BnbPriceIndexMap := make(map[string]struct{})
-
-	for _, elem := range gs.BnbPriceList {
-		index := string(BnbPriceKey(elem.Time))
-		if _, ok := BnbPriceIndexMap[index]; ok {
-			return fmt.Errorf("duplicated index for BnbPrice")
-		}
-		BnbPriceIndexMap[index] = struct{}{}
 	}
 	// this line is used by starport scaffolding # genesis/types/validate
 

@@ -32,7 +32,7 @@ func TestCrossTransferOut(t *testing.T) {
 
 	err = suite.BankKeeper.SendCoinsFromModuleToAccount(ctx, types2.FeeCollectorName, addr1, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
-		Amount: sdk.NewInt(1000),
+		Amount: sdk.NewInt(5000000000000000),
 	}})
 	require.Nil(t, err, "error should be nil")
 

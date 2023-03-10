@@ -40,6 +40,7 @@ import (
 	appparams "github.com/bnb-chain/greenfield/app/params"
 	"github.com/bnb-chain/greenfield/crypto/keyring"
 	"github.com/bnb-chain/greenfield/version"
+	gensputilcli "github.com/bnb-chain/greenfield/x/gensp/client/cli"
 )
 
 var (
@@ -168,6 +169,12 @@ func initRootCmd(
 		),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
+		gensputilcli.SPGenTxCmd(
+			app.ModuleBasics,
+			encodingConfig.TxConfig,
+			banktypes.GenesisBalancesIterator{},
+			app.DefaultNodeHome),
+		gensputilcli.CollectSPGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
 		config.Cmd(),

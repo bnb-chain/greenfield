@@ -18,4 +18,6 @@ message Params {
   uint32 redundant_parity_chunk_num = 3;
   // max_payload_size is the maximum size of the payload, default: 2G
   uint64 max_payload_size = 4;
+  // min_charge_size is the minimum charge size of the payload, objects smaller than this size will be charged as this size
+  uint64 min_charge_size = 5;
 }

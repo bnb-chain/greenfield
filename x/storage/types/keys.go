@@ -1,10 +1,10 @@
 package types
 
 import (
-	"regexp"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/internal/sequence"
 )
 
 const (
@@ -21,35 +21,56 @@ const (
 	MemStoreKey = "mem_storage"
 )
 
+type RawID math.Uint
+
 var (
-	BucketPrefix      = []byte{0x11}
-	ObjectPrefix      = []byte{0x12}
-	GroupPrefix       = []byte{0x13}
-	GroupMemberPrefix = []byte{0x14} // TODO(fynn): will be deprecated after permission module ready
+	BucketPrefix = []byte{0x11}
+	ObjectPrefix = []byte{0x12}
+	GroupPrefix  = []byte{0x13}
 
-	BucketSequencePrefix = []byte{0x21}
-	ObjectSequencePrefix = []byte{0x22}
-	GroupSequencePrefix  = []byte{0x23}
+	BucketByIDPrefix = []byte{0x21}
+	ObjectByIDPrefix = []byte{0x22}
+	GroupByIDPrefix  = []byte{0x23}
 
-	validBucketName = regexp.MustCompile(`^[a-z0-9][a-z0-9\.\-]{1,61}[a-z0-9]$`)
-	ipAddress       = regexp.MustCompile(`^(\d+\.){3}\d+$`)
+	BucketSequencePrefix = []byte{0x31}
+	ObjectSequencePrefix = []byte{0x32}
+	GroupSequencePrefix  = []byte{0x33}
 )
 
+// GetBucketKey return the bucket name store key
 func GetBucketKey(bucketName string) []byte {
-	return sdk.Keccak256([]byte(bucketName))
+	objectNameHash := sdk.Keccak256([]byte(bucketName))
+	return append(BucketPrefix, objectNameHash...)
 }
 
+// GetObjectKey return the object name store key
 func GetObjectKey(bucketName string, objectName string) []byte {
-	bucketKey := sdk.Keccak256([]byte(bucketName))
-	objectKey := sdk.Keccak256([]byte(objectName))
-	return append(bucketKey, objectKey...)
+	bucketNameHash := sdk.Keccak256([]byte(bucketName))
+	objectNameHash := sdk.Keccak256([]byte(objectName))
+	return append(ObjectPrefix, append(bucketNameHash, objectNameHash...)...)
 }
 
-func GetGroupKey(owner string, groupName string) []byte {
-	groupKey := sdk.Keccak256([]byte(groupName))
-	return append([]byte(owner), groupKey...)
+func GetObjectKeyOnlyBucketPrefix(bucketName string) []byte {
+	return append(ObjectPrefix, sdk.Keccak256([]byte(bucketName))...)
 }
 
-func GetGroupMemberKey(groupId math.Uint, memberAcc string) []byte {
-	return append(MustMarshalUint(groupId), []byte(memberAcc)...)
+// GetGroupKey return the group name store key
+func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
+	groupNameHash := sdk.Keccak256([]byte(groupName))
+	return append(GroupPrefix, append(owner.Bytes(), groupNameHash...)...)
+}
+
+// GetBucketByIDKey return the bucketID store key
+func GetBucketByIDKey(bucketId math.Uint) []byte {
+	return append(BucketByIDPrefix, sequence.EncodeSequence(bucketId)...)
+}
+
+// GetObjectByIDKey return the objectId store key
+func GetObjectByIDKey(objectId math.Uint) []byte {
+	return append(ObjectByIDPrefix, sequence.EncodeSequence(objectId)...)
+}
+
+// GetGroupByIDKey return the groupId store key
+func GetGroupByIDKey(groupId math.Uint) []byte {
+	return append(GroupByIDPrefix, sequence.EncodeSequence(groupId)...)
 }

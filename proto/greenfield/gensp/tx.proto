@@ -1,0 +1,7 @@
+syntax = "proto3";
+package bnbchain.greenfield.gensp;
+
+option go_package = "github.com/bnb-chain/greenfield/x/gensp/types";
+
+// Msg defines the Msg service.
+service Msg {}

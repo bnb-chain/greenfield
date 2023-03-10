@@ -20,6 +20,11 @@ const (
 	MaxDetailsLength  = 280
 )
 
+var (
+	// SecondarySpStorePriceRatio shows the ratio of the store price of the secondary sp to the primary sp, the default value is 80%
+	SecondarySpStorePriceRatio = sdk.NewDecFromIntWithPrec(sdk.NewInt(8), 1)
+)
+
 // NewStorageProvider constructs a new StorageProvider
 func NewStorageProvider(
 	operator sdk.AccAddress, fundingAddress sdk.AccAddress,
@@ -53,6 +58,28 @@ func (sp StorageProvider) GetFundingAccAddress() sdk.AccAddress {
 		return sdk.AccAddress{}
 	}
 	addr, err := sdk.AccAddressFromHexUnsafe(sp.FundingAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func (sp StorageProvider) GetSealAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr, err := sdk.AccAddressFromHexUnsafe(sp.SealAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+
+func (sp StorageProvider) GetApprovalAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
 	if err != nil {
 		panic(err)
 	}

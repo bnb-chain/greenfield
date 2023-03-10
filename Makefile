@@ -12,8 +12,6 @@ ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
 
-include .env
-
 format:
 	bash scripts/format.sh
 
@@ -21,7 +19,7 @@ tools:
 	curl https://get.ignite.com/cli! | bash
 
 proto-gen:
-	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x && rm -rf github.com
+	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  &&rm -rf github.com
 
 proto-swagger-gen:
 	sh ./scripts/protoc-swagger-gen.sh
@@ -40,13 +38,16 @@ docker-image:
 	docker build . -t ${IMAGE_NAME}
 
 test:
-	go test $$(go list ./... | grep -v e2e | grep -v sdk)
+	go test -failfast $$(go list ./... | grep -v e2e | grep -v sdk)
+
+e2e_start_localchain:
+	bash ./deployment/localup/localup.sh all 1 7
 
 e2e_test:
-	go test ./e2e/...
+	go test -p 1 -failfast -v ./e2e/...
 
 lint:
 	golangci-lint run --fix
 
-ci: proto-format-check build test e2e_test lint
+ci: proto-format-check build test e2e_start_localchain e2e_test lint
 	echo "ci passed"

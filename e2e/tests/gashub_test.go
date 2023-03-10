@@ -6,8 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -15,6 +13,9 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 type GashubTestSuite struct {
@@ -72,12 +73,13 @@ func (s *GashubTestSuite) TestUpdateParams() {
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	for {
-		time.Sleep(60 * time.Second)
 		proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 		s.Require().NoError(err)
 		if proposalRes.Proposal.Status == govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED {
 			break
 		}
+		s.T().Logf("waiting for proposal to be passed, now: %s", time.Now())
+		time.Sleep(time.Second)
 	}
 
 	// 4. query new gas params
