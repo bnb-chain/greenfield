@@ -362,6 +362,13 @@ func (k Keeper) CreateObject(
 	return objectInfo.Id, nil
 }
 
+func (k Keeper) GetObjectInfoCount(ctx sdk.Context) math.Uint {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.objectSeq.CurVal(store)
+	return seq
+}
+
 func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 

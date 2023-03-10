@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 	"math/rand"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -43,9 +44,14 @@ func GenRandomKeyManager() keys.KeyManager {
 	return keyManager
 }
 
-var src = rand.NewSource(time.Now().UnixNano())
+var mtx sync.Mutex
 
 func randString(n int) string {
+	mtx.Lock()
+	src := rand.NewSource(time.Now().UnixNano())
+	time.Sleep(1 * time.Millisecond)
+	mtx.Unlock()
+
 	b := make([]byte, n)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
 	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
@@ -65,12 +71,12 @@ func randString(n int) string {
 
 // GenRandomObjectName generate random object name.
 func GenRandomObjectName() string {
-	return randString(10)
+	return randString(20)
 }
 
 // GenRandomBucketName generate random bucket name.
 func GenRandomBucketName() string {
-	return randString(5)
+	return randString(10)
 }
 
 func YamlString(data interface{}) string {
