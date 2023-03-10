@@ -1,14 +1,4 @@
-# Storage MetaData Models
-
-## Abstract
-Below are the basic data models for Greenfield storage:
-
-- bucket
-- object
-- group
-- permission
-
-These metadata are stored as blockchain state into the persistent storage of the Greenfield blockchain.
+# Storage Management Module
 
 ## Concepts
 
@@ -49,11 +39,11 @@ permission check can be finished within a constant time.
 
 The storage module keeps state of the following primary objects:
 
-* BucketInfo 
+* BucketInfo
 * ObjectInfo
 * GroupInfo
 
-These primary objects should be primarily stored and accessed by the `ID` which is a auto-incremented sequence. An 
+These primary objects should be primarily stored and accessed by the `ID` which is a auto-incremented sequence. An
 additional indices are maintained per primary objects in order to compatibility with the S3 object storage.
 
 * BucketInfo: `0x11 | hash(bucketName) -> BigEndian(bucketId)`
@@ -64,126 +54,24 @@ additional indices are maintained per primary objects in order to compatibility 
 * ObjectInfoById: `0x22 | BigEndian(objectId) -> ProtoBuf(ObjectInfo)`
 * GroupInfoById: `0x23 | BigEndian(groupId) -> ProtoBuf(GroupInfo)`
 
-```protobuf
-message BucketInfo {
-  // owner is the account address of bucket creator, it is also the bucket owner.
-  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // bucket_name is a globally unique name of bucket
-  string bucket_name = 2;
-  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
-  bool is_public = 3;
-  // id is the unique identification for bucket.
-  string id = 4 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-  // source_type define the source of the bucket
-  SourceType source_type = 5;
-  // create_at define the block number when the bucket created.
-  int64 create_at = 6;
-  // payment_address is the address of the payment account
-  string payment_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // primary_sp_address is the address of the primary sp. Objects belongs to this bucket will never
-  // leave this SP, unless you explicitly shift them to another SP.
-  string primary_sp_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // read_quota defines the traffic quota for read
-  ReadQuota read_quota = 9;
-  // payment_price_time TODO(Owen): refine the comments
-  int64 payment_price_time = 10;
-  // payment_out_flows
-  repeated payment.OutFlowInUSD payment_out_flows = 11 [(gogoproto.nullable) = false];
-}
-
-message ObjectInfo {
-  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // bucket_name is the name of the bucket
-  string bucket_name = 2;
-  // object_name is the name of object
-  string object_name = 3;
-  // id is the unique identifier of object
-  string id = 4 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-  // payloadSize is the total size of the object payload
-  uint64 payload_size = 5;
-  // is_public define the highest permissions for object. When the object is public, everyone can access it.
-  bool is_public = 6;
-  // content_type define the format of the object which should be a standard MIME type.
-  string content_type = 7;
-  // create_at define the block number when the object created
-  int64 create_at = 8;
-  // object_status define the upload status of the object.
-  ObjectStatus object_status = 9;
-  // redundancy_type define the type of the redundancy which can be multi-replication or EC.
-  RedundancyType redundancy_type = 10;
-  // source_type define the source of the object.
-  SourceType source_type = 11;
-  // checksums define the root hash of the pieces which stored in a SP.
-  repeated bytes checksums = 12;
-  // secondary_sp_addresses define the addresses of secondary_sps
-  repeated string secondary_sp_addresses = 13 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // lockedBalance
-  string lockedBalance = 14 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-}
-
-message GroupInfo {
-  // owner is the owner of the group. It can not changed once created.
-  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // group_name is the name of group which is unique under an account.
-  string group_name = 2;
-  // source_type
-  SourceType source_type = 3;
-  // id is the unique identifier of group
-  string id = 4 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-}
-```
-
 ### Params
 
 The storage module contains the following parameters,
 they can be updated with governance.
 
-```protobuf
-// Params defines the parameters for the module.
-message Params {
-  // TODO: We should think more about the version-control of the storage params.
-  option (gogoproto.goproto_stringer) = false;
-
-  // max_segment_size is the maximum size of a segment. default: 16M
-  uint64 max_segment_size = 1;
-  // redundant_data_check_num is the num of data chunks of EC redundancy algorithm
-  uint32 redundant_data_chunk_num = 2;
-  // redundant_data_check_num is the num of parity chunks of EC redundancy algorithm
-  uint32 redundant_parity_chunk_num = 3;
-  // max_payload_size is the maximum size of the payload, default: 2G
-  uint64 max_payload_size = 4;
-}
-```
-
-* the max_segment_size/redundant_data_chunk_num/redundant_parity_chunk_num is for redundancy algorithm
-* the max_payload_size is a limit on the size of objects uploaded by users
-
-## Keepers
-
-The storage module keeper provides access to query the parameters, bucketInfo, objectInfo, groupInfo and several 
-interface for Create/Delete/Update the resources.
+| name                    | default value | meaning                                                                                                                                                                              |
+|-------------------------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| MaxSegmentSize          | 16M           | The maximum size of the segment. The payload data of an object will split into several segment. Only the size of the last segment can be less than MaxSegmentSize, others is equals. |
+| RedundantDataChunkNum   | 4             | The number of the data chunks in Erasure-Code algorithm.                                                                                                                             |
+| RedundantParityChunkNum | 2             | The number of the parity chunks in Erasure-Code algorithm.                                                                                                                           |
+| MaxPayloadSize          | 2G            | The maximum size of the payload data that allowed in greenfield storage network.                                                                                                     |
 
 
 ## Messages
 
 ### MsgCreateBucket
 
-Used to create bucket for user
+Used to create a bucket, a bucket is used to contain storage objects.
 
 ```protobuf
 message MsgCreateBucket {
@@ -209,7 +97,7 @@ message MsgCreateBucket {
 
 ### MsgDeleteBucket
 
-Used to delete bucket for user. It is important to note that you cannot delete a non-empty bucket.
+Used to delete bucket. It is important to note that you cannot delete a non-empty bucket.
 
 ```protobuf
 message MsgDeleteBucket {
@@ -224,7 +112,7 @@ message MsgDeleteBucket {
 ```
 
 ### MsgUpdateBucketInfo
-Used to update bucket info for user. 
+Used to update bucket info.
 
 ```protobuf
 message MsgUpdateBucketInfo {
@@ -246,7 +134,7 @@ message MsgUpdateBucketInfo {
 
 ### MsgCreateObject
 
-Used to create object under a bucket for user.
+Used to create an initial object under a bucket.
 
 ```protobuf
 message MsgCreateObject {
@@ -278,7 +166,7 @@ message MsgCreateObject {
 ```
 ### MsgDeleteObject
 
-Used to delete object for user.
+Used to delete object that is no longer useful, the deleted storage object is not recoverable.
 
 ```protobuf
 message MsgDeleteObject {
@@ -295,7 +183,7 @@ message MsgDeleteObject {
 ```
 ### MsgSealObject
 
-Used to seal object for storage provider.
+Storage provider seal an object once the underlying files are well saved by both primary and second SPs.
 
 ```protobuf
 message MsgSealObject {
@@ -317,7 +205,7 @@ message MsgSealObject {
 ```
 ### MsgCopyObject
 
-Used to copy object for user.
+Used to copy an exact same object to another user.
 
 ```protobuf
 message MsgCopyObject {
@@ -339,7 +227,7 @@ message MsgCopyObject {
 ```
 ### MsgRejectSealObject
 
-Used to reject seal object for sp.
+A storage provider may reject to seal an object if it refuses to, or it can not because of unexpect error.
 
 ```protobuf
 message MsgRejectSealObject {
@@ -354,7 +242,7 @@ message MsgRejectSealObject {
 ```
 ### MsgCancelCreateObject
 
-Used to cancel create object for user.
+User are able to cancel an initial object before it is sealed.
 
 ```protobuf
 message MsgCancelCreateObject {
@@ -369,7 +257,7 @@ message MsgCancelCreateObject {
 ```
 ### MsgCreateGroup
 
-Used to create group for user.
+Used to create group.
 
 ```protobuf
 message MsgCreateGroup {
@@ -385,7 +273,7 @@ message MsgCreateGroup {
 ```
 ### MsgDeleteGroup
 
-Used to delete group for user.
+Used to delete group that is no longer used. Please note that the underlying members are not deleted yet.
 
 ```protobuf
 message MsgDeleteGroup {
@@ -400,7 +288,7 @@ message MsgDeleteGroup {
 ```
 ### MsgLeaveGroup
 
-Used to leave a group for group member
+A group member can choose to leave a group. 
 
 ```protobuf
 message MsgLeaveGroup {
@@ -414,4 +302,3 @@ message MsgLeaveGroup {
   string group_name = 3;
 }
 ```
-

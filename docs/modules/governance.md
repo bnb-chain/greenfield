@@ -7,8 +7,8 @@ The Greenfield BlockChain utilizes on-chain governance, which is achieved by ste
 - Execution: After voting period, the votes are tallied and if proposal `passed`, the messages in the proposal will be executed
 
 There are various types of proposals. Include but not limited to:
-- Proposals for creating and editing validators, staking rewards distribution, details as described in [staking_model](./08-consensus_and_staking.md)
-- Proposals for creating and removing storage provider which specified in [storage_provider_model](./04-storage_provider_management.md)
+- Proposals for creating and editing validators, staking rewards distribution, details as described in [staking_model](consensus_and_staking.md)
+- Proposals for creating and removing storage provider which specified in [storage_provider_model](storage_provider_management.md)
 - Parameters change proposal for `Greenfield` modules
 - Parameters change and upgrade proposals for `BSC` smart contracts 
 

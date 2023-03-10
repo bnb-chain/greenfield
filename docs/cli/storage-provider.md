@@ -7,7 +7,7 @@ Start a local chain with 1 validator and 1 Storage provider
 $ bash ./deployment/localup/localup.sh all 1 1
 ```
 
-Export the accounts priv key of sp
+Export the accounts private key of sp
 
 ```shell
 $ bash ./deployment/localup/localup.sh export_sp_privkey 1 1

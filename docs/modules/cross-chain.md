@@ -30,7 +30,7 @@ The cross-chain model expects to achieve the following goals:
 The native cross-chain bridge is maintained and secured by the
 validators of Greenfield, via a new relayer system based on an
 aggregated multisig scheme (more details in the later sections).
-Greenfield validators will run the relayers to facilitate the high
+Validators will run the relayers to facilitate the high
 bandwidth and fast bridge.
 
 BNB will be transferred from BSC to Greenfield as the first cross-chain
@@ -90,7 +90,7 @@ The communication layer is composed of a set of **Greenfield Relayers**:
 ### Resource Entity Mirror
 
 The purposes of almost all the cross-chain packages are to change the
-state of the resource entities on the Greenfield blockchain. Thus the
+state of the resource entities on the Greenfield blockchain. Thus, the
 below resource entities should be able to be mirrored on BSC:
 
 1. Account
