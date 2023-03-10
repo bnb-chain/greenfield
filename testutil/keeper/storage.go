@@ -3,8 +3,6 @@ package keeper
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/app"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/store"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -39,6 +37,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmdb "github.com/tendermint/tm-db"
 
+	"github.com/bnb-chain/greenfield/app"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permissionmodulekeeper "github.com/bnb-chain/greenfield/x/permission/keeper"

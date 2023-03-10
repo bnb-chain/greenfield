@@ -95,6 +95,8 @@ import (
 	challengemodule "github.com/bnb-chain/greenfield/x/challenge"
 	challengemodulekeeper "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
+	"github.com/bnb-chain/greenfield/x/gensp"
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
@@ -146,6 +148,7 @@ var (
 		auth.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		genutil.AppModuleBasic{},
+		gensp.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -528,6 +531,8 @@ func New(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
+		gensp.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
+			encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
@@ -576,6 +581,7 @@ func New(
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
@@ -600,6 +606,7 @@ func New(
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
 
 		// this line is used by starport scaffolding # stargate/app/endBlockers
@@ -630,6 +637,7 @@ func New(
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)

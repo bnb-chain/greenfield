@@ -1,0 +1,16 @@
+syntax = "proto3";
+package bnbchain.greenfield.gensp;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/gensp/types";
+
+// GenesisState defines the gensp module's genesis state.
+// GenesisState defines the raw genesis transaction in JSON.
+message GenesisState {
+  // gen_txs defines the genesis transactions.
+  repeated bytes gensp_txs = 1 [
+    (gogoproto.casttype) = "encoding/json.RawMessage",
+    (gogoproto.jsontag) = "gensptxs"
+  ];
+}

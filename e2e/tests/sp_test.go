@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
@@ -18,6 +17,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
@@ -90,11 +90,13 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	}
 
 	endpoint := "http://127.0.0.1:9034"
+	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
+	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(), description,
-		endpoint, deposit)
+		endpoint, deposit, newReadPrice, 10000, newStorePrice)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
@@ -179,7 +181,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 			Identity: "",
 		},
 		Endpoint:     "http://127.0.0.1:9034",
-		TotalDeposit: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+		TotalDeposit: types.NewIntFromInt64WithDecimal(10000000, types.DecimalBNB),
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(

@@ -27,7 +27,7 @@ var (
 func NewMsgCreateStorageProvider(
 	creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress,
-	description Description, endpoint string, deposit sdk.Coin) (*MsgCreateStorageProvider, error) {
+	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
 		Creator:         creator.String(),
 		SpAddress:       SpAddress.String(),
@@ -37,6 +37,9 @@ func NewMsgCreateStorageProvider(
 		Description:     description,
 		Endpoint:        endpoint,
 		Deposit:         deposit,
+		ReadPrice:       readPrice,
+		FreeReadQuota:   freeReadQuota,
+		StorePrice:      storePrice,
 	}, nil
 }
 

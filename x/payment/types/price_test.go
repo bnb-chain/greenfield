@@ -3,9 +3,9 @@ package types
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-
 	sdkmath "cosmossdk.io/math"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
 func TestStreamRecordChange(t *testing.T) {
