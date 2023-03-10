@@ -28,6 +28,8 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	paymentkeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	permissionmodulekeeper "github.com/bnb-chain/greenfield/x/permission/keeper"
+	permissionmoduletypes "github.com/bnb-chain/greenfield/x/permission/types"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
@@ -73,6 +75,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(sptypes.ModuleName)
 	paramKeeper.Subspace(stakingtypes.ModuleName)
 	paramKeeper.Subspace(paymenttypes.ModuleName)
+	paramKeeper.Subspace(permissionmoduletypes.ModuleName)
 
 	paramsSubspace := paramstypes.NewSubspace(cdc,
 		types.Amino,
@@ -123,7 +126,13 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		accountKeeper,
 		spKeeper,
 	)
-
+	permissionKeeper := permissionmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[permissionmoduletypes.ModuleName],
+		storeKeys[permissionmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, permissionmoduletypes.ModuleName),
+		accountKeeper,
+	)
 	storageKeeper := storagekeeper.NewKeeper(
 		cdc,
 		storeKeys[storagetypes.StoreKey],
@@ -132,6 +141,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		accountKeeper,
 		spKeeper,
 		paymentKeeper,
+		permissionKeeper,
 	)
 
 	stakingKeeper := stakingkeeper.NewKeeper(

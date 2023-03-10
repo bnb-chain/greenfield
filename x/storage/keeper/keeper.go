@@ -13,6 +13,8 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/tendermint/tendermint/libs/log"
 
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	types2 "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -26,11 +28,12 @@ type (
 		spKeeper      types.SpKeeper
 		paymentKeeper types.PaymentKeeper
 		accountKeeper types.AccountKeeper
+		permKeeper    types.PermissionKeeper
 
 		// sequence
-		bucketSeq Sequence
-		objectSeq Sequence
-		groupSeq  Sequence
+		bucketSeq sequence.U256
+		objectSeq sequence.U256
+		groupSeq  sequence.U256
 	}
 )
 
@@ -42,6 +45,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	spKeeper types.SpKeeper,
 	paymentKeeper types.PaymentKeeper,
+	permKeeper types.PermissionKeeper,
 
 ) *Keeper {
 	// set KeyTable if it has not already been set
@@ -57,11 +61,12 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		spKeeper:      spKeeper,
 		paymentKeeper: paymentKeeper,
+		permKeeper:    permKeeper,
 	}
 
-	k.bucketSeq = NewSequence(types.BucketSequencePrefix)
-	k.objectSeq = NewSequence(types.ObjectSequencePrefix)
-	k.groupSeq = NewSequence(types.GroupSequencePrefix)
+	k.bucketSeq = sequence.NewSequence256(types.BucketSequencePrefix)
+	k.objectSeq = sequence.NewSequence256(types.ObjectSequencePrefix)
+	k.groupSeq = sequence.NewSequence256(types.GroupSequencePrefix)
 	return &k
 }
 
@@ -119,7 +124,7 @@ func (k Keeper) CreateBucket(
 
 	// store the bucket
 	bz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(bucketKey, types.EncodeSequence(bucketInfo.Id))
+	store.Set(bucketKey, sequence.EncodeSequence(bucketInfo.Id))
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	// emit CreateBucket Event
@@ -152,9 +157,10 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// check permission
-	OwnerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
-	if !OwnerAcc.Equals(operator) {
-		return types.ErrAccessDenied
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, types2.ACTION_DELETE_BUCKET, nil)
+	if effect != types2.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
+			operator.String(), bucketName)
 	}
 
 	// check if the bucket empty
@@ -163,7 +169,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// check bill is empty
-	bill, err := k.GetBucketBill(ctx, &bucketInfo)
+	bill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
 		return errors.Wrapf(err, "Get bucket bill failed.")
 	}
@@ -179,7 +185,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		Id:               bucketInfo.Id,
-		PrimarySpAddress: OwnerAcc.String(),
+		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 	}); err != nil {
 		return err
 	}
@@ -197,9 +203,10 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	// check permission
-	OwnerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
-	if !OwnerAcc.Equals(operator) {
-		return types.ErrAccessDenied
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, types2.ACTION_UPDATE_BUCKET_INFO, nil)
+	if effect != types2.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
+			operator.String(), bucketName)
 	}
 
 	// handle fields not changed
@@ -209,20 +216,21 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	var paymentAcc sdk.AccAddress
 	var err error
 	if opts.PaymentAddress != "" {
-		paymentAcc, err = k.VerifyPaymentAccount(ctx, opts.PaymentAddress, OwnerAcc)
+		ownerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		paymentAcc, err = k.VerifyPaymentAccount(ctx, opts.PaymentAddress, ownerAcc)
 		if err != nil {
 			return err
 		}
 	} else {
 		paymentAcc = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	}
-	err = k.UpdateBucketInfoAndCharge(ctx, &bucketInfo, paymentAcc.String(), opts.ReadQuota)
+	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, paymentAcc.String(), opts.ReadQuota)
 	if err != nil {
 		return err
 	}
 
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshal(&bucketInfo)
+	bz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
@@ -239,29 +247,30 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	return nil
 }
 
-func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (bucketInfo types.BucketInfo, found bool) {
+func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (*types.BucketInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bucketKey := types.GetBucketKey(bucketName)
 	bz := store.Get(bucketKey)
 	if bz == nil {
-		return bucketInfo, false
+		return nil, false
 	}
 
-	return k.GetBucketInfoById(ctx, types.DecodeSequence(bz))
+	return k.GetBucketInfoById(ctx, sequence.DecodeSequence(bz))
 }
 
-func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (bucketInfo types.BucketInfo, found bool) {
+func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*types.BucketInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetBucketByIDKey(bucketId))
 	if bz == nil {
-		return bucketInfo, false
+		return nil, false
 	}
 
+	var bucketInfo types.BucketInfo
 	k.cdc.MustUnmarshal(bz, &bucketInfo)
 
-	return bucketInfo, true
+	return &bucketInfo, true
 }
 
 func (k Keeper) CreateObject(
@@ -328,16 +337,16 @@ func (k Keeper) CreateObject(
 	}
 
 	// Lock Fee
-	err = k.LockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
 
-	bbz := k.cdc.MustMarshal(&bucketInfo)
+	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(objectKey, types.EncodeSequence(objectInfo.Id))
+	store.Set(objectKey, sequence.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
@@ -369,27 +378,28 @@ func (k Keeper) GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint {
 	return seq
 }
 
-func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo, found bool) {
+func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (*types.ObjectInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetObjectKey(bucketName, objectName))
 	if bz == nil {
-		return objectInfo, false
+		return nil, false
 	}
 
-	return k.GetObjectInfoById(ctx, types.DecodeSequence(bz))
+	return k.GetObjectInfoById(ctx, sequence.DecodeSequence(bz))
 }
 
-func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (objectInfo types.ObjectInfo, found bool) {
+func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*types.ObjectInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetObjectByIDKey(objectId))
 	if bz == nil {
-		return objectInfo, false
+		return nil, false
 	}
 
+	var objectInfo types.ObjectInfo
 	k.cdc.MustUnmarshal(bz, &objectInfo)
-	return objectInfo, true
+	return &objectInfo, true
 }
 
 type SealObjectOptions struct {
@@ -442,7 +452,7 @@ func (k Keeper) SealObject(
 	objectInfo.SecondarySpAddresses = secondarySps
 
 	// unlock and charge store fee
-	err := k.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
+	err := k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -451,10 +461,10 @@ func (k Keeper) SealObject(
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	store := ctx.KVStore(k.storeKey)
-	bbz := k.cdc.MustMarshal(&bucketInfo)
+	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
-	obz := k.cdc.MustMarshal(&objectInfo)
+	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
@@ -495,13 +505,13 @@ func (k Keeper) CancelCreateObject(
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
 	}
 
-	err := k.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
-	bbz := k.cdc.MustMarshal(&bucketInfo)
+	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	store.Delete(types.GetObjectKey(bucketName, objectName))
@@ -540,17 +550,20 @@ func (k Keeper) DeleteObject(
 		return types.ErrObjectNotInService
 	}
 
-	// Currently, only the owner is allowed to delete object
-	if !operator.Equals(sdk.MustAccAddressFromHex(objectInfo.Owner)) {
-		return errors.Wrapf(types.ErrAccessDenied, "no permission")
+	// check permission
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, types2.ACTION_DELETE_OBJECT)
+	if effect != types2.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no DeleteObject permission of the bucket(%s), object(%s)",
+			operator.String(), bucketName, objectName)
 	}
 
-	err := k.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
+	err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
 
-	bbz := k.cdc.MustMarshal(&bucketInfo)
+	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	store.Delete(types.GetObjectKey(bucketName, objectName))
@@ -575,7 +588,7 @@ func (k Keeper) CopyObject(
 
 	store := ctx.KVStore(k.storeKey)
 
-	_, found := k.GetBucketInfo(ctx, srcBucketName)
+	srcBucketInfo, found := k.GetBucketInfo(ctx, srcBucketName)
 	if !found {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrNoSuchBucket, "src bucket name (%s)", srcBucketName)
 	}
@@ -594,8 +607,12 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), types.ErrSourceTypeMismatch
 	}
 
-	if !operator.Equals(sdk.MustAccAddressFromHex(srcObjectInfo.Owner)) {
-		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrAccessDenied, "No permission")
+	// check permission
+	effect := k.VerifyObjectPermission(ctx, srcBucketInfo, srcObjectInfo, operator, types2.ACTION_COPY_OBJECT)
+	if effect != types2.EFFECT_ALLOW {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
+			"%s) has no CopyObject permission of the bucket(%s), object(%s)",
+			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
 	}
 
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
@@ -624,16 +641,16 @@ func (k Keeper) CopyObject(
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
-	err = k.LockStoreFee(ctx, &dstBucketInfo, &objectInfo)
+	err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
 
-	bbz := k.cdc.MustMarshal(&dstBucketInfo)
+	bbz := k.cdc.MustMarshal(dstBucketInfo)
 	store.Set(types.GetBucketByIDKey(dstBucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(types.GetObjectKey(dstBucketName, dstObjectName), types.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectKey(dstBucketName, dstObjectName), sequence.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
@@ -676,12 +693,13 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
 	}
 
-	err := k.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
 
-	bbz := k.cdc.MustMarshal(&bucketInfo)
+	bbz := k.cdc.MustMarshal(bucketInfo)
+
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	store.Delete(types.GetObjectKey(bucketName, objectName))
@@ -711,7 +729,7 @@ func (k Keeper) CreateGroup(
 	}
 
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(types.GetGroupKey(owner, groupName), types.EncodeSequence(groupInfo.Id))
+	store.Set(types.GetGroupKey(owner, groupName), sequence.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
@@ -720,13 +738,10 @@ func (k Keeper) CreateGroup(
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
-		groupMemberInfo := types.GroupMemberInfo{
-			Member:     memberAddress.String(),
-			Id:         groupInfo.Id,
-			ExpireTime: 0,
+		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAddress)
+		if err != nil {
+			return sdkmath.Uint{}, err
 		}
-		mbz := k.cdc.MustMarshal(&groupMemberInfo)
-		store.Set(types.GetGroupMemberKey(groupInfo.Id, memberAddress), mbz)
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
 		OwnerAddress: groupInfo.Owner,
@@ -740,45 +755,54 @@ func (k Keeper) CreateGroup(
 	return groupInfo.Id, nil
 }
 
-func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName string) (groupInfo types.GroupInfo, found bool) {
+func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress,
+	groupName string) (*types.GroupInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetGroupKey(ownerAddr, groupName))
 	if bz == nil {
-		return groupInfo, false
+		return nil, false
 	}
 
-	return k.GetGroupInfoById(ctx, types.DecodeSequence(bz))
+	return k.GetGroupInfoById(ctx, sequence.DecodeSequence(bz))
 }
 
-func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (groupInfo types.GroupInfo, found bool) {
+func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*types.GroupInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetGroupByIDKey(groupId))
 	if bz == nil {
-		return groupInfo, false
+		return nil, false
 	}
 
+	var groupInfo types.GroupInfo
 	k.cdc.MustUnmarshal(bz, &groupInfo)
-	return groupInfo, true
+	return &groupInfo, true
 }
 
 type DeleteGroupOptions struct {
 	types.SourceType
 }
 
-func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName string, opts DeleteGroupOptions) error {
+func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error {
 	store := ctx.KVStore(k.storeKey)
 
-	groupInfo, found := k.GetGroupInfo(ctx, ownerAddr, groupName)
+	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
 	if !found {
 		return types.ErrNoSuchGroup
 	}
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
+	// check permission
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, types2.ACTION_DELETE_GROUP)
+	if effect != types2.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no DeleteGroup permission of the group(%s), owner(%s)",
+			operator.String(), groupInfo.GroupName, groupInfo.Owner)
+	}
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	store.Delete(types.GetGroupKey(ownerAddr, groupName))
+	store.Delete(types.GetGroupKey(operator, groupName))
 	store.Delete(types.GetGroupByIDKey(groupInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
@@ -794,7 +818,6 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName
 func (k Keeper) LeaveGroup(
 	ctx sdk.Context, member sdk.AccAddress, owner sdk.AccAddress,
 	groupName string, opts LeaveGroupOptions) error {
-	store := ctx.KVStore(k.storeKey)
 
 	groupInfo, found := k.GetGroupInfo(ctx, owner, groupName)
 	if !found {
@@ -805,7 +828,7 @@ func (k Keeper) LeaveGroup(
 	}
 
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	store.Delete(types.GetGroupMemberKey(groupInfo.Id, member))
+	k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
@@ -817,9 +840,8 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, owner sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
-	store := ctx.KVStore(k.storeKey)
-	groupInfo, found := k.GetGroupInfo(ctx, owner, groupName)
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
+	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
 	if !found {
 		return types.ErrNoSuchGroup
 	}
@@ -827,19 +849,23 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, owner sdk.AccAddress, groupNa
 		return types.ErrSourceTypeMismatch
 	}
 
+	// check permission
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, types2.ACTION_DELETE_GROUP)
+	if effect != types2.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
+			operator.String(), groupInfo.GroupName, groupInfo.Owner)
+	}
+
 	for _, member := range opts.MembersToAdd {
 		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
 		if err != nil {
 			return err
 		}
-		memberInfo := types.GroupMemberInfo{
-			Member:     memberAcc.String(),
-			Id:         groupInfo.Id,
-			ExpireTime: 0,
+		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc)
+		if err != nil {
+			return err
 		}
-
-		mbz := k.cdc.MustMarshal(&memberInfo)
-		store.Set(types.GetGroupMemberKey(groupInfo.Id, memberAcc), mbz)
 	}
 
 	for _, member := range opts.MembersToDelete {
@@ -847,10 +873,11 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, owner sdk.AccAddress, groupNa
 		if err != nil {
 			return err
 		}
-		store.Delete(types.GetGroupMemberKey(groupInfo.Id, memberAcc))
+		k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{
-		OperatorAddress: owner.String(),
+		OperatorAddress: operator.String(),
 		OwnerAddress:    groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
 		Id:              groupInfo.Id,

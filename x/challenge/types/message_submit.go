@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/bnb-chain/greenfield/types/s3util"
 )
 
 const TypeMsgSubmit = "submit"
@@ -55,11 +55,11 @@ func (msg *MsgSubmit) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp operator address (%s)", err)
 	}
 
-	if err = storagetypes.CheckValidBucketName(msg.BucketName); err != nil {
+	if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
 		return err
 	}
 
-	if err = storagetypes.CheckValidObjectName(msg.ObjectName); err != nil {
+	if err = s3util.CheckValidObjectName(msg.ObjectName); err != nil {
 		return err
 	}
 

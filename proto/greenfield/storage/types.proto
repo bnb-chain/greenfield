@@ -101,16 +101,6 @@ message GroupInfo {
   ];
 }
 
-message GroupMemberInfo {
-  string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  string id = 2 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-  uint64 expire_time = 3;
-}
-
 message Trait {
   string trait_type = 1;
   string value = 2;

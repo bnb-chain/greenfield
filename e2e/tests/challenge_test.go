@@ -13,6 +13,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
+	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -42,7 +43,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	sp := s.StorageProviders[0]
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	bucketName := "ch" + core.GenRandomBucketName()
+	bucketName := "ch" + storagetestutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
@@ -60,7 +61,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 
 	// CreateObject
-	objectName := core.GenRandomObjectName()
+	objectName := storagetestutil.GenRandomObjectName()
 	// create test buffer
 	var buffer bytes.Buffer
 	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,

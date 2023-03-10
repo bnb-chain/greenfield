@@ -1,0 +1,14 @@
+syntax = "proto3";
+package bnbchain.greenfield.permission;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  uint64 maximum_statements_num = 1;
+  uint64 maximum_group_num = 2;
+}

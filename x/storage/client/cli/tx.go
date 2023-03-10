@@ -17,6 +17,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	types2 "github.com/bnb-chain/greenfield/types"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -36,17 +39,21 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdCreateBucket())
 	cmd.AddCommand(CmdDeleteBucket())
+	cmd.AddCommand(CmdUpdateBucketInfo())
 	cmd.AddCommand(CmdCreateObject())
 	cmd.AddCommand(CmdSealObject())
 	cmd.AddCommand(CmdRejectSealObject())
 	cmd.AddCommand(CmdDeleteObject())
+	cmd.AddCommand(CmdCancelCreateObject())
 	cmd.AddCommand(CmdCreateGroup())
 	cmd.AddCommand(CmdDeleteGroup())
 	cmd.AddCommand(CmdUpdateGroupMember())
 	cmd.AddCommand(CmdLeaveGroup())
 	cmd.AddCommand(CmdCopyObject())
-	cmd.AddCommand(CmdUpdateBucketInfo())
-	cmd.AddCommand(CmdCancelCreateObject())
+
+	cmd.AddCommand(CmdPutPolicy())
+	cmd.AddCommand()
+	cmd.AddCommand(CmdDeletePolicy())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -542,6 +549,65 @@ func CmdUpdateGroupMember() *cobra.Command {
 				argGroupName,
 				nil, // TODO: Refine the cli parameters
 				nil, // TODO: Refine the cli parameters
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdPutPolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "put-policy",
+		Short: "put a policy to bucket/object/group which can grant permission to others",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgPutPolicy(
+				clientCtx.GetFromAddress(),
+				"",
+				nil,
+				nil,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdDeletePolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "delete-policy",
+		Short: "Broadcast message delete-policy",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDeletePolicy(
+				clientCtx.GetFromAddress().String(),
+				types2.NewBucketGRN("test-bucket").String(),
+				permtypes.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
