@@ -181,7 +181,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 			Identity: "",
 		},
 		Endpoint:     "http://127.0.0.1:9034",
-		TotalDeposit: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+		TotalDeposit: types.NewIntFromInt64WithDecimal(10000000, types.DecimalBNB),
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
@@ -196,8 +196,6 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	// deposit may change
-	newSP.TotalDeposit = querySPResp.StorageProvider.TotalDeposit
 	s.Require().Equal(querySPResp.StorageProvider, newSP)
 
 	// 4. revert storage provider info

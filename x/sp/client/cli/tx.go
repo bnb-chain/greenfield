@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bnb-chain/greenfield/e2e/core"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -14,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
+	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 

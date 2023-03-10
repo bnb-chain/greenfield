@@ -13,12 +13,12 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
-	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
+	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
 	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
