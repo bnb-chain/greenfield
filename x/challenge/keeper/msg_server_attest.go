@@ -92,12 +92,8 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
 	sizeRate := k.SlashAmountSizeRate(ctx)
-	decSize := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize))
-	decRoot, err := decSize.ApproxSqrt()
-	if err != nil {
-		panic(err)
-	}
-	slashAmount := decRoot.MulMut(sizeRate).TruncateInt()
+	objectSizeInGB := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize)).QuoRoundUp(sdk.NewDec(1073741824))
+	slashAmount := objectSizeInGB.MulMut(sizeRate).MulMut(sdk.NewDec(1e18)).TruncateInt()
 
 	min := k.SlashAmountMin(ctx)
 	if slashAmount.LT(min) {

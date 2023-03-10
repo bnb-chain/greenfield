@@ -15,27 +15,27 @@ var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
 	KeyChallengeCountPerBlock            = []byte("ChallengeCountPerBlock")
-	DefaultChallengeCountPerBlock uint64 = 3
+	DefaultChallengeCountPerBlock uint64 = 1
 )
 
 var (
 	KeySlashCoolingOffPeriod            = []byte("SlashCoolingOffPeriod")
-	DefaultSlashCoolingOffPeriod uint64 = 100
+	DefaultSlashCoolingOffPeriod uint64 = 300
 )
 
 var (
 	KeySlashAmountSizeRate     = []byte("SlashAmountSizeRate")
-	DefaultSlashAmountSizeRate = sdk.NewDecWithPrec(5, 1)
+	DefaultSlashAmountSizeRate = sdk.NewDecWithPrec(85, 4)
 )
 
 var (
 	KeySlashAmountMin     = []byte("SlashAmountMin")
-	DefaultSlashAmountMin = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(10), big.NewInt(1e18)))
+	DefaultSlashAmountMin = math.NewIntFromBigInt(big.NewInt(1e16))
 )
 
 var (
 	KeySlashAmountMax     = []byte("SlashAmountMax")
-	DefaultSlashAmountMax = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(100), big.NewInt(1e18)))
+	DefaultSlashAmountMax = math.NewIntFromBigInt(big.NewInt(1e18))
 )
 
 var (
@@ -55,7 +55,7 @@ var (
 
 var (
 	KeyHeartbeatInterval            = []byte("HeartbeatInterval")
-	DefaultHeartbeatInterval uint64 = 100
+	DefaultHeartbeatInterval uint64 = 1000
 )
 
 // ParamKeyTable the param key table for launch module
