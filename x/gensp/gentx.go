@@ -4,15 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-
-	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
-
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	abci "github.com/tendermint/tendermint/abci/types"
+
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 )
 
 // SetGenTxsInAppGenesisState - sets the genesis transactions in the app genesis state

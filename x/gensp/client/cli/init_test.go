@@ -9,12 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/spf13/viper"
-	"github.com/stretchr/testify/require"
-	abci_server "github.com/tendermint/tendermint/abci/server"
-	"github.com/tendermint/tendermint/libs/cli"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
@@ -28,6 +22,11 @@ import (
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	genutiltest "github.com/cosmos/cosmos-sdk/x/genutil/client/testutil"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/spf13/viper"
+	"github.com/stretchr/testify/require"
+	abci_server "github.com/tendermint/tendermint/abci/server"
+	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 var testMbm = module.NewBasicManager(

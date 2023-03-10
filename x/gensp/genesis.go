@@ -1,10 +1,11 @@
 package gensp
 
 import (
-	"github.com/bnb-chain/greenfield/x/gensp/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	"github.com/bnb-chain/greenfield/x/gensp/types"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state and deliver genesis transactions.

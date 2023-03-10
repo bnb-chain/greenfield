@@ -8,9 +8,6 @@ import (
 	"os"
 	"path/filepath"
 
-	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
-
-	"github.com/bnb-chain/greenfield/x/gensp"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
@@ -98,6 +95,8 @@ import (
 	challengemodule "github.com/bnb-chain/greenfield/x/challenge"
 	challengemodulekeeper "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
+	"github.com/bnb-chain/greenfield/x/gensp"
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"

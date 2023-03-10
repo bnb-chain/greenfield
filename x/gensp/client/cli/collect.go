@@ -4,17 +4,16 @@ import (
 	"encoding/json"
 	"path/filepath"
 
-	"github.com/bnb-chain/greenfield/x/gensp"
-
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/bnb-chain/greenfield/x/gensp"
 )
 
 const flagGenTxDir = "gentx-dir"

@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bnb-chain/greenfield/sdk/types"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type GenStorageProviderTestSuite struct {

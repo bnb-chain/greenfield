@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -12,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
+
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

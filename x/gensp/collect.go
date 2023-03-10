@@ -1,7 +1,5 @@
 package gensp
 
-// DONTCOVER
-
 import (
 	"encoding/json"
 	"errors"
@@ -12,18 +10,17 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
-
+	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 	cfg "github.com/tendermint/tendermint/config"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
-	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
 // GenAppStateFromConfig gets the genesis app state from the config

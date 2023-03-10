@@ -9,12 +9,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/bnb-chain/greenfield/x/sp/client/cli"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -26,6 +20,12 @@ import (
 	authclient "github.com/cosmos/cosmos-sdk/x/auth/client"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	tmos "github.com/tendermint/tendermint/libs/os"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/bnb-chain/greenfield/x/sp/client/cli"
 )
 
 // SPGenTxCmd builds the application's gentx command.

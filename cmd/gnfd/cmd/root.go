@@ -7,7 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	gensputilcli "github.com/bnb-chain/greenfield/x/gensp/client/cli"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
@@ -41,6 +40,7 @@ import (
 	appparams "github.com/bnb-chain/greenfield/app/params"
 	"github.com/bnb-chain/greenfield/crypto/keyring"
 	"github.com/bnb-chain/greenfield/version"
+	gensputilcli "github.com/bnb-chain/greenfield/x/gensp/client/cli"
 )
 
 var (

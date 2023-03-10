@@ -8,12 +8,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-	"github.com/stretchr/testify/suite"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-
-	"github.com/bnb-chain/greenfield/x/gensp"
-	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
 	"github.com/cosmos/cosmos-sdk/simapp/helpers"
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
@@ -22,6 +16,12 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/stretchr/testify/suite"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+
+	"github.com/bnb-chain/greenfield/x/gensp"
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 )
 
 var (

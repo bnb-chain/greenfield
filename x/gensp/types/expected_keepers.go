@@ -1,15 +1,14 @@
 package types
 
 import (
+	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth/types"
+	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	abci "github.com/tendermint/tendermint/abci/types"
-
-	"encoding/json"
-
-	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
