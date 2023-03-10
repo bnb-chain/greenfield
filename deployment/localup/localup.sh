@@ -190,7 +190,7 @@ function generate_sp_genesis {
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
     # create bond storage provider tx
-    ${bin} spgentx sp${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} \
+    ${bin} spgentx sp${i} ${SP_MIN_DEPOSIT_AMOUNT}${STAKING_BOND_DENOM} \
       --home ${workspace}/.local/sp${i} \
       --creator=${spoperator_addr} \
       --operator-address=${spoperator_addr} \

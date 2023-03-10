@@ -90,11 +90,13 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	}
 
 	endpoint := "http://127.0.0.1:9034"
+	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
+	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(), description,
-		endpoint, deposit)
+		endpoint, deposit, newReadPrice, 10000, newStorePrice)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},

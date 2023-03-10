@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"github.com/bnb-chain/greenfield/e2e/core"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -246,8 +247,7 @@ type TxCreateStorageProviderConfig struct {
 	ApprovalAddress sdk.AccAddress
 
 	Endpoint string
-
-	Deposit string
+	Deposit  string
 }
 
 func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateStorageProviderConfig, error) {
@@ -368,10 +368,14 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 		config.Details,
 	)
 
+	// TODO may add new flags
+	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
+	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
+
 	msg, err := types.NewMsgCreateStorageProvider(
 		config.Creator, config.SpAddress, config.FundingAddress,
 		config.SealAddress, config.ApprovalAddress, description,
-		config.Endpoint, deposit,
+		config.Endpoint, deposit, newReadPrice, 10000, newStorePrice,
 	)
 	if err != nil {
 		return txBldr, msg, err

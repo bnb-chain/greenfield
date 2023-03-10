@@ -138,9 +138,10 @@ $ %s gentx sp0 10000000000000000000000000BNB --home ./deployment/localup/.local/
 			w := bytes.NewBuffer([]byte{})
 			clientCtx = clientCtx.WithOutput(w)
 
-			if err = msg.ValidateBasic(); err != nil {
-				return err
-			}
+			// TODO when Owen add default param:ReadPrice FreeReadQuota StorePrice
+			//if err = msg.ValidateBasic(); err != nil {
+			//	return err
+			//}
 
 			if err = txBldr.PrintUnsignedTx(clientCtx, msg); err != nil {
 				return errors.Wrap(err, "failed to print unsigned std tx")
