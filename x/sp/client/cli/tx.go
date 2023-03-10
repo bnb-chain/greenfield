@@ -2,8 +2,9 @@ package cli
 
 import (
 	"fmt"
-	"github.com/bnb-chain/greenfield/e2e/core"
 	"time"
+
+	"github.com/bnb-chain/greenfield/e2e/core"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"

@@ -23,11 +23,13 @@ func (s *GenStorageProviderTestSuite) SetupSuite() {
 func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 	ctx := context.Background()
 
+	sp := s.StorageProviders[0]
+
 	genSP := &sptypes.StorageProvider{
-		OperatorAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
-		FundingAddress:  s.StorageProvider.FundingKey.GetAddr().String(),
-		SealAddress:     s.StorageProvider.SealKey.GetAddr().String(),
-		ApprovalAddress: s.StorageProvider.ApprovalKey.GetAddr().String(),
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+		FundingAddress:  sp.FundingKey.GetAddr().String(),
+		SealAddress:     sp.SealKey.GetAddr().String(),
+		ApprovalAddress: sp.ApprovalKey.GetAddr().String(),
 		Description: sptypes.Description{
 			Moniker:  "sp0",
 			Identity: "",
@@ -38,7 +40,7 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 		TotalDeposit: types.NewIntFromInt64WithDecimal(10000000, types.DecimalBNB),
 	}
 	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
+		SpAddress: sp.OperatorKey.GetAddr().String(),
 	}
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
