@@ -2,11 +2,12 @@ package types
 
 import (
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewStreamRecord(account string, crudTimestamp int64) *StreamRecord {
+func NewStreamRecord(account sdk.AccAddress, crudTimestamp int64) *StreamRecord {
 	return &StreamRecord{
-		Account:       account,
+		Account:       account.String(),
 		CrudTimestamp: crudTimestamp,
 		StaticBalance: sdkmath.ZeroInt(),
 		BufferBalance: sdkmath.ZeroInt(),

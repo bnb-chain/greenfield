@@ -20,11 +20,11 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 	// change payment record
-	streamRecord, found := k.GetStreamRecord(ctx, msg.To)
+	streamRecord, found := k.GetStreamRecord(ctx, to)
 
 	if !found {
 		// if not found, check whether the account exists, if exists, create a new record, otherwise, return error
-		_, paymentAccountExists := k.GetPaymentAccount(ctx, to.String())
+		_, paymentAccountExists := k.GetPaymentAccount(ctx, to)
 		if !paymentAccountExists && !k.accountKeeper.HasAccount(ctx, to) {
 			return nil, types.ErrReceiveAccountNotExist
 		}
@@ -35,7 +35,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	} else {
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 			// add static balance
-			change := types.NewDefaultStreamRecordChangeWithAddr(msg.To).WithStaticBalanceChange(msg.Amount)
+			change := types.NewDefaultStreamRecordChangeWithAddr(to).WithStaticBalanceChange(msg.Amount)
 			err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
 			if err != nil {
 				return nil, err

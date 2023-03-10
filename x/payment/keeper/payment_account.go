@@ -10,7 +10,7 @@ import (
 // SetPaymentAccount set a specific paymentAccount in the store from its index
 func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount *types.PaymentAccount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
-	key := types.PaymentAccountKey(paymentAccount.Addr)
+	key := types.PaymentAccountKey(sdk.MustAccAddressFromHex(paymentAccount.Addr))
 	paymentAccount.Addr = ""
 	b := k.cdc.MustMarshal(paymentAccount)
 	store.Set(key, b)
@@ -24,7 +24,7 @@ func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount *types.Payment
 // GetPaymentAccount returns a paymentAccount from its index
 func (k Keeper) GetPaymentAccount(
 	ctx sdk.Context,
-	addr string,
+	addr sdk.AccAddress,
 ) (val *types.PaymentAccount, found bool) {
 	val = &types.PaymentAccount{}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
@@ -37,7 +37,7 @@ func (k Keeper) GetPaymentAccount(
 	}
 
 	k.cdc.MustUnmarshal(b, val)
-	val.Addr = addr
+	val.Addr = addr.String()
 	return val, true
 }
 
@@ -51,17 +51,17 @@ func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccou
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.PaymentAccount
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		val.Addr = string(iterator.Key())
+		val.Addr = sdk.AccAddress(iterator.Key()).String()
 		list = append(list, val)
 	}
 
 	return
 }
 
-func (k Keeper) IsPaymentAccountOwner(ctx sdk.Context, addr string, owner string) bool {
-	if addr == owner {
+func (k Keeper) IsPaymentAccountOwner(ctx sdk.Context, addr, owner sdk.AccAddress) bool {
+	if addr.Equals(owner) {
 		return true
 	}
 	paymentAccount, _ := k.GetPaymentAccount(ctx, addr)
-	return paymentAccount.Owner == owner
+	return paymentAccount.Owner == owner.String()
 }

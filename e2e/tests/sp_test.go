@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -232,7 +234,7 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 					Identity: "",
 				},
 				SpAddress:       newSP.OperatorKey.GetAddr().String(),
-				FundingAddress:  keepertest.GetRandomAddress(),
+				FundingAddress:  sample.AccAddress(),
 				SealAddress:     newSP.SealKey.GetAddr().String(),
 				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
 				Deposit: sdk.Coin{

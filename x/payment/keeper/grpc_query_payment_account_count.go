@@ -46,9 +46,13 @@ func (k Keeper) PaymentAccountCount(c context.Context, req *types.QueryGetPaymen
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	owner, err := sdk.AccAddressFromHexUnsafe(req.Owner)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid owner")
+	}
 	val, found := k.GetPaymentAccountCount(
 		ctx,
-		req.Owner,
+		owner,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")

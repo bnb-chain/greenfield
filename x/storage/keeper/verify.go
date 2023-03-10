@@ -14,7 +14,7 @@ func (k Keeper) VerifyPaymentAccount(ctx sdk.Context, paymentAddress string, own
 		return nil, err
 	}
 
-	if !k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAcc.String(), ownerAcc.String()) {
+	if !k.paymentKeeper.IsPaymentAccountOwner(ctx, paymentAcc, ownerAcc) {
 		return nil, paymenttypes.ErrNotPaymentAccountOwner
 	}
 	return paymentAcc, nil

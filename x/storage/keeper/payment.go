@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -40,7 +41,8 @@ func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInf
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(amount)
+	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
@@ -57,7 +59,8 @@ func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(bucketInfo.PaymentAddress).WithLockBalanceChange(lockedBalance.Neg())
+	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(lockedBalance.Neg())
 	_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
 		return fmt.Errorf("update stream record failed: %w", err)
@@ -74,12 +77,14 @@ func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetype
 	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize += chargeSize
+		secondarySpObjectsSize := bi.BillingInfo.SecondarySpObjectsSize
 		for _, sp := range objectInfo.SecondarySpAddresses {
-			bi.BillingInfo.SecondarySpObjectsSize = AddSecondarySpObjectsSize(bi.BillingInfo.SecondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
+			secondarySpObjectsSize = append(secondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
 				SpAddress:       sp,
 				TotalChargeSize: chargeSize,
 			})
 		}
+		bi.BillingInfo.SecondarySpObjectsSize = MergeSecondarySpObjectsSize(secondarySpObjectsSize)
 		return nil
 	})
 }
@@ -109,7 +114,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 }
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
-	userFlows.From = bucketInfo.PaymentAddress
+	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ReadQuota == 0 {
 		return userFlows, nil
 	}
@@ -155,16 +160,14 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize -= chargeSize
-		var err error
+		var toBeSub []storagetypes.SecondarySpObjectsSize
 		for _, sp := range objectInfo.SecondarySpAddresses {
-			bucketInfo.BillingInfo.SecondarySpObjectsSize, err = SubSecondarySpObjectsSize(bucketInfo.BillingInfo.SecondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
+			toBeSub = append(toBeSub, storagetypes.SecondarySpObjectsSize{
 				SpAddress:       sp,
 				TotalChargeSize: chargeSize,
 			})
-			if err != nil {
-				return errors.Wrapf(err, "sub secondary sp objects size")
-			}
 		}
+		bi.BillingInfo.SecondarySpObjectsSize = SubSecondarySpObjectsSize(bi.BillingInfo.SecondarySpObjectsSize, toBeSub)
 		return nil
 	})
 }
@@ -177,37 +180,58 @@ func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	return negFlows
 }
 
-func AddSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, new storagetypes.SecondarySpObjectsSize) []storagetypes.SecondarySpObjectsSize {
-	found := false
-	for i, spObjectsSize := range prev {
-		if spObjectsSize.SpAddress == new.SpAddress {
-			prev[i].TotalChargeSize += new.TotalChargeSize
-			found = true
-			break
+func MergeSecondarySpObjectsSize(list []storagetypes.SecondarySpObjectsSize) []storagetypes.SecondarySpObjectsSize {
+	if len(list) <= 1 {
+		return list
+	}
+	helperMap := make(map[string]uint64)
+	for _, spObjectsSize := range list {
+		helperMap[spObjectsSize.SpAddress] += spObjectsSize.TotalChargeSize
+	}
+	res := make([]storagetypes.SecondarySpObjectsSize, 0, len(helperMap))
+	for sp, size := range helperMap {
+		if size == 0 {
+			continue
 		}
+		res = append(res, storagetypes.SecondarySpObjectsSize{
+			SpAddress:       sp,
+			TotalChargeSize: size,
+		})
 	}
-	if !found {
-		prev = append(prev, new)
-	}
-	return prev
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].SpAddress < res[j].SpAddress
+	})
+	return res
 }
 
-func SubSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, toBeSub storagetypes.SecondarySpObjectsSize) ([]storagetypes.SecondarySpObjectsSize, error) {
-	found := false
-	for i, spObjectsSize := range prev {
-		if spObjectsSize.SpAddress == toBeSub.SpAddress {
-			if spObjectsSize.TotalChargeSize < toBeSub.TotalChargeSize {
-				return nil, fmt.Errorf("secondary sp %s total charge size %d is less than to be sub %d", toBeSub.SpAddress, spObjectsSize.TotalChargeSize, toBeSub.TotalChargeSize)
-			}
-			prev[i].TotalChargeSize -= toBeSub.TotalChargeSize
-			found = true
-			break
+func SubSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, toBeSub []storagetypes.SecondarySpObjectsSize) []storagetypes.SecondarySpObjectsSize {
+	if len(toBeSub) == 0 {
+		return prev
+	}
+	helperMap := make(map[string]uint64)
+	// merge prev
+	for _, spObjectsSize := range prev {
+		helperMap[spObjectsSize.SpAddress] += spObjectsSize.TotalChargeSize
+	}
+	// sub toBeSub
+	for _, spObjectsSize := range toBeSub {
+		helperMap[spObjectsSize.SpAddress] -= spObjectsSize.TotalChargeSize
+	}
+	// merge the result
+	res := make([]storagetypes.SecondarySpObjectsSize, 0, len(helperMap))
+	for sp, size := range helperMap {
+		if size == 0 {
+			continue
 		}
+		res = append(res, storagetypes.SecondarySpObjectsSize{
+			SpAddress:       sp,
+			TotalChargeSize: size,
+		})
 	}
-	if !found {
-		return nil, fmt.Errorf("secondary sp %s not found", toBeSub.SpAddress)
-	}
-	return prev, nil
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].SpAddress < res[j].SpAddress
+	})
+	return res
 }
 
 func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {

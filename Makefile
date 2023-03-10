@@ -38,7 +38,7 @@ docker-image:
 	docker build . -t ${IMAGE_NAME}
 
 test:
-	go test $$(go list ./... | grep -v e2e | grep -v sdk)
+	go test -failfast $$(go list ./... | grep -v e2e | grep -v sdk)
 
 e2e_start_localchain:
 	bash ./deployment/localup/localup.sh all 1 7

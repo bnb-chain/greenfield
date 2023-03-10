@@ -23,7 +23,7 @@ const (
 
 var (
 	// GovernanceAddress used to receive fee of storage system, and pay for the potential debt from late forced settlement
-	GovernanceAddress = sdk.AccAddress(address.Module(ModuleName, []byte("governance")))
+	GovernanceAddress = sdk.AccAddress(address.Module(ModuleName, []byte("governance"))[:sdk.EthAddressLength])
 
 	AutoSettleRecordKeyPrefix    = []byte{0x01}
 	StreamRecordKeyPrefix        = []byte{0x02}
@@ -34,7 +34,7 @@ var (
 // AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
 func AutoSettleRecordKey(
 	timestamp int64,
-	addr string,
+	addr sdk.AccAddress,
 ) []byte {
 	var key []byte
 
@@ -50,42 +50,27 @@ func AutoSettleRecordKey(
 
 func ParseAutoSettleRecordKey(key []byte) (res AutoSettleRecord) {
 	res.Timestamp = int64(binary.BigEndian.Uint64(key[0:8]))
-	res.Addr = string(key[8:])
+	res.Addr = sdk.AccAddress(key[8:]).String()
 	return
 }
 
 // PaymentAccountKey returns the store key to retrieve a PaymentAccount from the index fields
 func PaymentAccountKey(
-	addr string,
+	addr sdk.AccAddress,
 ) []byte {
-	var key []byte
-
-	addrBytes := []byte(addr)
-	key = append(key, addrBytes...)
-
-	return key
+	return addr
 }
 
 // PaymentAccountCountKey returns the store key to retrieve a PaymentAccountCount from the index fields
 func PaymentAccountCountKey(
-	owner string,
+	owner sdk.AccAddress,
 ) []byte {
-	var key []byte
-
-	ownerBytes := []byte(owner)
-	key = append(key, ownerBytes...)
-
-	return key
+	return owner
 }
 
 // StreamRecordKey returns the store key to retrieve a StreamRecord from the index fields
 func StreamRecordKey(
-	account string,
+	account sdk.AccAddress,
 ) []byte {
-	var key []byte
-
-	accountBytes := []byte(account)
-	key = append(key, accountBytes...)
-
-	return key
+	return account
 }

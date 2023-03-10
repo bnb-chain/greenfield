@@ -17,9 +17,13 @@ func (k Keeper) DynamicBalance(goCtx context.Context, req *types.QueryDynamicBal
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	account, err := sdk.AccAddressFromHexUnsafe(req.Account)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid account")
+	}
 	streamRecord, found := k.GetStreamRecord(
 		ctx,
-		req.Account,
+		account,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "payment account not found")
