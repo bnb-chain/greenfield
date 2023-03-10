@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -151,11 +152,15 @@ func CmdDeleteBucket() *cobra.Command {
 
 func CmdUpdateBucketInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-read-quota [bucket-name]",
+		Use:   "update-bucket-info [bucket-name] [read-quota]",
 		Short: "Update the meta of bucket, E.g ReadQuota, PaymentAccount",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
+			argReadQuota, err := strconv.ParseUint(args[1], 10, 64)
+			if err != nil {
+				return err
+			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -165,7 +170,7 @@ func CmdUpdateBucketInfo() *cobra.Command {
 			msg := types.NewMsgUpdateBucketInfo(
 				clientCtx.GetFromAddress(),
 				argBucketName,
-				types.READ_QUOTA_FREE,
+				argReadQuota,
 				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {

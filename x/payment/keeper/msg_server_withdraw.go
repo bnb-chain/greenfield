@@ -29,7 +29,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		}
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(msg.From).WithStaticBalanceChange(msg.Amount.Neg())
-	err := k.UpdateStreamRecord(ctx, &streamRecord, change)
+	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return nil, err
 	}
@@ -37,6 +37,15 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	coins := sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, msg.Amount))
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
+	if err != nil {
+		return nil, err
+	}
+	// emit event
+	err = ctx.EventManager().EmitTypedEvents(&types.EventWithdraw{
+		From:   msg.From,
+		To:     msg.Creator,
+		Amount: msg.Amount,
+	})
 	if err != nil {
 		return nil, err
 	}

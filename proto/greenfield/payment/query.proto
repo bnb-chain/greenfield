@@ -7,7 +7,6 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/payment/auto_settle_record.proto";
-import "greenfield/payment/bnb_price.proto";
 import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
@@ -64,22 +63,13 @@ service Query {
     option (google.api.http).get = "/greenfield/payment/get_payment_accounts_by_owner/{owner}";
   }
 
-  // this line is used by starport scaffolding # 2
-
   // Queries a list of AutoSettleRecord items.
   rpc AutoSettleRecord(QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/auto_settle_record/{timestamp}/{addr}";
   }
+
   rpc AutoSettleRecordAll(QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/auto_settle_record";
-  }
-
-  // Queries a list of BnbPrice items.
-  rpc BnbPrice(QueryGetBnbPriceRequest) returns (QueryGetBnbPriceResponse) {
-    option (google.api.http).get = "/greenfield/payment/bnb_price/{time}";
-  }
-  rpc BnbPriceAll(QueryAllBnbPriceRequest) returns (QueryAllBnbPriceResponse) {
-    option (google.api.http).get = "/greenfield/payment/bnb_price";
   }
 }
 
@@ -97,7 +87,7 @@ message QueryGetStreamRecordRequest {
 }
 
 message QueryGetStreamRecordResponse {
-  StreamRecord streamRecord = 1 [(gogoproto.nullable) = false];
+  StreamRecord stream_record = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryAllStreamRecordRequest {
@@ -105,7 +95,7 @@ message QueryAllStreamRecordRequest {
 }
 
 message QueryAllStreamRecordResponse {
-  repeated StreamRecord streamRecord = 1 [(gogoproto.nullable) = false];
+  repeated StreamRecord stream_record = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -114,7 +104,7 @@ message QueryGetPaymentAccountCountRequest {
 }
 
 message QueryGetPaymentAccountCountResponse {
-  PaymentAccountCount paymentAccountCount = 1 [(gogoproto.nullable) = false];
+  PaymentAccountCount payment_account_count = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryAllPaymentAccountCountRequest {
@@ -122,7 +112,7 @@ message QueryAllPaymentAccountCountRequest {
 }
 
 message QueryAllPaymentAccountCountResponse {
-  repeated PaymentAccountCount paymentAccountCount = 1 [(gogoproto.nullable) = false];
+  repeated PaymentAccountCount payment_account_count = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -131,7 +121,7 @@ message QueryGetPaymentAccountRequest {
 }
 
 message QueryGetPaymentAccountResponse {
-  PaymentAccount paymentAccount = 1 [(gogoproto.nullable) = false];
+  PaymentAccount payment_account = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryAllPaymentAccountRequest {
@@ -139,7 +129,7 @@ message QueryAllPaymentAccountRequest {
 }
 
 message QueryAllPaymentAccountResponse {
-  repeated PaymentAccount paymentAccount = 1 [(gogoproto.nullable) = false];
+  repeated PaymentAccount payment_account = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -148,13 +138,13 @@ message QueryDynamicBalanceRequest {
 }
 
 message QueryDynamicBalanceResponse {
-  string dynamicBalance = 1 [
+  string dynamic_balance = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
-  StreamRecord streamRecord = 2 [(gogoproto.nullable) = false];
-  int64 currentTimestamp = 3;
+  StreamRecord stream_record = 2 [(gogoproto.nullable) = false];
+  int64 current_timestamp = 3;
 }
 
 message QueryGetPaymentAccountsByOwnerRequest {
@@ -171,7 +161,7 @@ message QueryGetAutoSettleRecordRequest {
 }
 
 message QueryGetAutoSettleRecordResponse {
-  AutoSettleRecord autoSettleRecord = 1 [(gogoproto.nullable) = false];
+  AutoSettleRecord auto_settle_record = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryAllAutoSettleRecordRequest {
@@ -179,23 +169,6 @@ message QueryAllAutoSettleRecordRequest {
 }
 
 message QueryAllAutoSettleRecordResponse {
-  repeated AutoSettleRecord autoSettleRecord = 1 [(gogoproto.nullable) = false];
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
-message QueryGetBnbPriceRequest {
-  int64 time = 1;
-}
-
-message QueryGetBnbPriceResponse {
-  BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
-}
-
-message QueryAllBnbPriceRequest {
-  cosmos.base.query.v1beta1.PageRequest pagination = 1;
-}
-
-message QueryAllBnbPriceResponse {
-  repeated BnbPrice BnbPrice = 1 [(gogoproto.nullable) = false];
+  repeated AutoSettleRecord auto_settle_record = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

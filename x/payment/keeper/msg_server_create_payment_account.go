@@ -29,22 +29,14 @@ func (k msgServer) CreatePaymentAccount(goCtx context.Context, msg *types.MsgCre
 	binary.LittleEndian.PutUint64(b, count)
 	paymentAccountAddr := sdk.AccAddress(address.Derive(creator.Bytes(), b)).String()
 	newCount := count + 1
-	k.Keeper.SetPaymentAccountCount(ctx, types.PaymentAccountCount{
+	k.Keeper.SetPaymentAccountCount(ctx, &types.PaymentAccountCount{
 		Owner: msg.Creator,
 		Count: newCount,
 	})
-	k.Keeper.SetPaymentAccount(ctx, types.PaymentAccount{
+	k.Keeper.SetPaymentAccount(ctx, &types.PaymentAccount{
 		Addr:       paymentAccountAddr,
 		Owner:      msg.Creator,
 		Refundable: true,
 	})
-	err := ctx.EventManager().EmitTypedEvents(&types.EventCreatePaymentAccount{
-		Addr:  paymentAccountAddr,
-		Owner: msg.Creator,
-		Index: count,
-	})
-	if err != nil {
-		return nil, err
-	}
 	return &types.MsgCreatePaymentAccountResponse{}, nil
 }

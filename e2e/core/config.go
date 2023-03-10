@@ -8,20 +8,20 @@ import (
 )
 
 type SPMnemonics struct {
-	OperatorMnemonic string `yaml:"Mnemonic"` // operator account mnemonic with enough balance
-	SealMnemonic     string `yaml:"Mnemonic"` // seal account mnemonic with enough balance
-	FundingMnemonic  string `yaml:"Mnemonic"` // funding account mnemonic with enough balance
-	ApprovalMnemonic string `yaml:"Mnemonic"` // approval account mnemonic with enough balance
+	OperatorMnemonic string `yaml:"OperatorMnemonic"` // operator account mnemonic with enough balance
+	SealMnemonic     string `yaml:"SealMnemonic"`     // seal account mnemonic with enough balance
+	FundingMnemonic  string `yaml:"FundingMnemonic"`  // funding account mnemonic with enough balance
+	ApprovalMnemonic string `yaml:"ApprovalMnemonic"` // approval account mnemonic with enough balance
 }
 
 type Config struct {
-	RpcAddr           string      `yaml:"RpcAddr"`
-	GrpcAddr          string      `yaml:"GrpcAddr"`
-	ChainId           string      `yaml:"ChainId"`
-	ValidatorMnemonic string      `yaml:"Mnemonic"`        // validator operator account mnemonic with enough balance
-	RelayerMnemonic   string      `yaml:"RelayerMnemonic"` // relayer's mnemonic for bls key
-	SPMnemonics       SPMnemonics `yaml:"SPMnemonics"`
-	Denom             string      `yaml:"Denom"`
+	GrpcAddr          string        `yaml:"GrpcAddr"`
+	TendermintAddr    string        `yaml:"TendermintAddr"`
+	ChainId           string        `yaml:"ChainId"`
+	ValidatorMnemonic string        `yaml:"Mnemonic"`        // validator operator account mnemonic with enough balance
+	RelayerMnemonic   string        `yaml:"RelayerMnemonic"` // relayer's mnemonic for bls key
+	SPMnemonics       []SPMnemonics `yaml:"SPMnemonics"`
+	Denom             string        `yaml:"Denom"`
 }
 
 func InitConfig() *Config {
@@ -30,15 +30,18 @@ func InitConfig() *Config {
 }
 
 func InitE2eConfig() *Config {
-	return &Config{
-		RpcAddr:           "tcp://127.0.0.1:26750",
+	config := &Config{
 		GrpcAddr:          "localhost:9090",
+		TendermintAddr:    "http://127.0.0.1:26750",
 		ChainId:           "greenfield_9000-121",
 		Denom:             "BNB",
 		ValidatorMnemonic: ParseValidatorMnemonic(0),
 		RelayerMnemonic:   ParseRelayerMnemonic(0),
-		SPMnemonics:       ParseSPMnemonics(0),
 	}
+	for i := 0; i < 7; i++ {
+		config.SPMnemonics = append(config.SPMnemonics, ParseSPMnemonics(i))
+	}
+	return config
 }
 
 // ParseValidatorMnemonic read the validator mnemonic from file

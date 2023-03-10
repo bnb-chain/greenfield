@@ -9,6 +9,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	"sigs.k8s.io/yaml"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
 )
@@ -76,4 +77,17 @@ func GenRandomObjectName() string {
 // GenRandomBucketName generate random bucket name.
 func GenRandomBucketName() string {
 	return randString(10)
+}
+
+func YamlString(data interface{}) string {
+	bz, err := yaml.Marshal(data)
+	if err != nil {
+		panic(err)
+	}
+	return string(bz)
+}
+
+// RandInt64 generate random int64 between min and max
+func RandInt64(min, max int64) int64 {
+	return min + rand.Int63n(max-min)
 }

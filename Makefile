@@ -12,8 +12,6 @@ ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
           -X $(REPO)/version.GitCommitDate=$(GIT_COMMIT_DATE)
 
-include .env
-
 format:
 	bash scripts/format.sh
 
@@ -42,11 +40,15 @@ docker-image:
 test:
 	go test $$(go list ./... | grep -v e2e | grep -v sdk)
 
+e2e_start_localchain:
+	bash ./deployment/localup/localup.sh all 1 7
+	bash ./deployment/localup/localup.sh sp_check 1 7
+
 e2e_test:
-	go test ./e2e/...
+	go test -p 1 -failfast -v ./e2e/...
 
 lint:
 	golangci-lint run --fix
 
-ci: proto-format-check build test e2e_test lint
+ci: proto-format-check build test e2e_start_localchain e2e_test lint
 	echo "ci passed"

@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"fmt"
+	"math"
 
 	"cosmossdk.io/errors"
-	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -70,28 +71,28 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAcc sdk.AccAddress, opts CreateBucketOptions) (math.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
 	bucketKey := types.GetBucketKey(bucketName)
 	if store.Has(bucketKey) {
-		return math.ZeroUint(), types.ErrBucketAlreadyExists
+		return sdkmath.ZeroUint(), types.ErrBucketAlreadyExists
 	}
 
 	// check payment account
 	paymentAcc, err := k.VerifyPaymentAccount(ctx, opts.PaymentAddress, ownerAcc)
 	if err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 
 	// check primary sp approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return math.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 	err = k.VerifySPAndSignature(ctx, primarySpAcc, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 
 	bucketInfo := types.BucketInfo{
@@ -106,10 +107,10 @@ func (k Keeper) CreateBucket(
 	}
 
 	// charge by read quota
-	if opts.ReadQuota != types.READ_QUOTA_FREE {
-		err := k.paymentKeeper.ChargeInitialReadFee(ctx, &bucketInfo)
+	if opts.ReadQuota != 0 {
+		err := k.ChargeInitialReadFee(ctx, &bucketInfo)
 		if err != nil {
-			return math.ZeroUint(), err
+			return sdkmath.ZeroUint(), err
 		}
 	}
 
@@ -133,7 +134,7 @@ func (k Keeper) CreateBucket(
 		PaymentAddress:   bucketInfo.PaymentAddress,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 	}); err != nil {
-		return math.Uint{}, err
+		return sdkmath.Uint{}, err
 	}
 	return bucketInfo.Id, nil
 }
@@ -159,6 +160,15 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	// check if the bucket empty
 	if k.isNonEmptyBucket(ctx, bucketName) {
 		return types.ErrBucketNotEmpty
+	}
+
+	// check bill is empty
+	bill, err := k.GetBucketBill(ctx, &bucketInfo)
+	if err != nil {
+		return errors.Wrapf(err, "Get bucket bill failed.")
+	}
+	if len(bill.Flows) != 0 {
+		return types.ErrBucketBillNotEmpty
 	}
 
 	store.Delete(bucketKey)
@@ -192,23 +202,23 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrAccessDenied
 	}
 
-	// update charge
-	paymentAcc, err := k.VerifyPaymentAccount(ctx, opts.PaymentAddress, OwnerAcc)
-	if err != sdk.ErrEmptyHexAddress {
-		err := k.paymentKeeper.ChargeUpdatePaymentAccount(ctx, &bucketInfo, &opts.PaymentAddress)
-		if err != nil {
-			return err
-		}
-		bucketInfo.PaymentAddress = paymentAcc.String()
+	// handle fields not changed
+	if opts.ReadQuota == math.MaxUint64 {
+		opts.ReadQuota = bucketInfo.ReadQuota
 	}
-
-	// update quota
-	if opts.ReadQuota != bucketInfo.ReadQuota {
-		err := k.paymentKeeper.ChargeUpdateReadQuota(ctx, &bucketInfo, opts.ReadQuota)
+	var paymentAcc sdk.AccAddress
+	var err error
+	if opts.PaymentAddress != "" {
+		paymentAcc, err = k.VerifyPaymentAccount(ctx, opts.PaymentAddress, OwnerAcc)
 		if err != nil {
 			return err
 		}
-		bucketInfo.ReadQuota = opts.ReadQuota
+	} else {
+		paymentAcc = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+	}
+	err = k.UpdateBucketInfoAndCharge(ctx, &bucketInfo, paymentAcc.String(), opts.ReadQuota)
+	if err != nil {
+		return err
 	}
 
 	store := ctx.KVStore(k.storeKey)
@@ -241,7 +251,7 @@ func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (bucketInfo ty
 	return k.GetBucketInfoById(ctx, types.DecodeSequence(bz))
 }
 
-func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId math.Uint) (bucketInfo types.BucketInfo, found bool) {
+func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (bucketInfo types.BucketInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetBucketByIDKey(bucketId))
@@ -256,18 +266,18 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId math.Uint) (bucketIn
 
 func (k Keeper) CreateObject(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName, objectName string,
-	payloadSize uint64, opts CreateObjectOptions) (math.Uint, error) {
+	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check payload size
 	if payloadSize > k.MaxPayloadSize(ctx) {
-		return math.ZeroUint(), types.ErrTooLargeObject
+		return sdkmath.ZeroUint(), types.ErrTooLargeObject
 	}
 
 	// check bucket
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
-		return math.ZeroUint(), types.ErrNoSuchBucket
+		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
 	}
 
 	// check secondary sps
@@ -275,29 +285,29 @@ func (k Keeper) CreateObject(
 	for _, sp := range opts.SecondarySpAddresses {
 		spAcc, err := sdk.AccAddressFromHexUnsafe(sp)
 		if err != nil {
-			return math.ZeroUint(), err
+			return sdkmath.ZeroUint(), err
 		}
 		err = k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
 		if err != nil {
-			return math.ZeroUint(), err
+			return sdkmath.ZeroUint(), err
 		}
 		secondarySPs = append(secondarySPs, spAcc.String())
 	}
 
 	// check approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return math.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
 	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
 		opts.PrimarySpApproval.Sig)
 	if err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 
 	objectKey := types.GetObjectKey(bucketName, objectName)
 	if store.Has(objectKey) {
-		return math.ZeroUint(), types.ErrObjectAlreadyExists
+		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
 	}
 
 	// construct objectInfo
@@ -309,7 +319,7 @@ func (k Keeper) CreateObject(
 		IsPublic:             opts.IsPublic,
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
-		CreateAt:             ctx.BlockHeight(),
+		CreateAt:             ctx.BlockTime().Unix(),
 		ObjectStatus:         types.OBJECT_STATUS_CREATED,
 		RedundancyType:       opts.RedundancyType, // TODO: base on redundancy policy
 		SourceType:           opts.SourceType,
@@ -318,12 +328,11 @@ func (k Keeper) CreateObject(
 	}
 
 	// Lock Fee
-	err = k.paymentKeeper.LockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err = k.LockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
@@ -353,7 +362,7 @@ func (k Keeper) CreateObject(
 	return objectInfo.Id, nil
 }
 
-func (k Keeper) GetObjectInfoCount(ctx sdk.Context) math.Uint {
+func (k Keeper) GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.objectSeq.CurVal(store)
@@ -371,7 +380,7 @@ func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName str
 	return k.GetObjectInfoById(ctx, types.DecodeSequence(bz))
 }
 
-func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId math.Uint) (objectInfo types.ObjectInfo, found bool) {
+func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (objectInfo types.ObjectInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetObjectByIDKey(objectId))
@@ -430,16 +439,15 @@ func (k Keeper) SealObject(
 			return err
 		}
 	}
+	objectInfo.SecondarySpAddresses = secondarySps
 
-	// unlock fee
-	err := k.paymentKeeper.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
+	// unlock and charge store fee
+	err := k.UnlockAndChargeStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return err
 	}
 
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_SEALED
-	objectInfo.SecondarySpAddresses = secondarySps
-	objectInfo.LockedBalance = nil
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	store := ctx.KVStore(k.storeKey)
@@ -487,7 +495,7 @@ func (k Keeper) CancelCreateObject(
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
 	}
 
-	err := k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err := k.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return err
 	}
@@ -537,12 +545,11 @@ func (k Keeper) DeleteObject(
 		return errors.Wrapf(types.ErrAccessDenied, "no permission")
 	}
 
-	err := k.paymentKeeper.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
+	err := k.ChargeDeleteObject(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
@@ -564,42 +571,42 @@ func (k Keeper) DeleteObject(
 
 func (k Keeper) CopyObject(
 	ctx sdk.Context, operator sdk.AccAddress, srcBucketName, srcObjectName, dstBucketName, dstObjectName string,
-	opts CopyObjectOptions) (math.Uint, error) {
+	opts CopyObjectOptions) (sdkmath.Uint, error) {
 
 	store := ctx.KVStore(k.storeKey)
 
 	_, found := k.GetBucketInfo(ctx, srcBucketName)
 	if !found {
-		return math.ZeroUint(), errors.Wrapf(types.ErrNoSuchBucket, "src bucket name (%s)", srcBucketName)
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrNoSuchBucket, "src bucket name (%s)", srcBucketName)
 	}
 
 	dstBucketInfo, found := k.GetBucketInfo(ctx, dstBucketName)
 	if !found {
-		return math.ZeroUint(), errors.Wrapf(types.ErrNoSuchBucket, "dst bucket name (%s)", dstBucketName)
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrNoSuchBucket, "dst bucket name (%s)", dstBucketName)
 	}
 
 	srcObjectInfo, found := k.GetObjectInfo(ctx, srcBucketName, srcObjectName)
 	if !found {
-		return math.ZeroUint(), errors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", srcObjectName)
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrNoSuchObject, "src object name (%s)", srcObjectName)
 	}
 
 	if srcObjectInfo.SourceType != opts.SourceType {
-		return math.ZeroUint(), types.ErrSourceTypeMismatch
+		return sdkmath.ZeroUint(), types.ErrSourceTypeMismatch
 	}
 
 	if !operator.Equals(sdk.MustAccAddressFromHex(srcObjectInfo.Owner)) {
-		return math.ZeroUint(), errors.Wrapf(types.ErrAccessDenied, "No permission")
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrAccessDenied, "No permission")
 	}
 
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
-		return math.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
+		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
 	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(dstBucketInfo.PrimarySpAddress),
 		opts.ApprovalMsgBytes,
 		opts.PrimarySpApproval.Sig)
 	if err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 
 	objectInfo := types.ObjectInfo{
@@ -617,12 +624,11 @@ func (k Keeper) CopyObject(
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
-	err = k.paymentKeeper.LockStoreFee(ctx, &dstBucketInfo, &objectInfo)
+	err = k.LockStoreFee(ctx, &dstBucketInfo, &objectInfo)
 	if err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&dstBucketInfo)
 	store.Set(types.GetBucketByIDKey(dstBucketInfo.Id), bbz)
 
@@ -639,7 +645,7 @@ func (k Keeper) CopyObject(
 		SrcObjectId:     srcObjectInfo.Id,
 		DstObjectId:     objectInfo.Id,
 	}); err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 	return objectInfo.Id, nil
 }
@@ -670,12 +676,11 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
 	}
 
-	err := k.paymentKeeper.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
+	err := k.UnlockStoreFee(ctx, &bucketInfo, &objectInfo)
 	if err != nil {
 		return err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
@@ -695,7 +700,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 func (k Keeper) CreateGroup(
 	ctx sdk.Context, owner sdk.AccAddress,
-	groupName string, opts CreateGroupOptions) (math.Uint, error) {
+	groupName string, opts CreateGroupOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	groupInfo := types.GroupInfo{
@@ -713,7 +718,7 @@ func (k Keeper) CreateGroup(
 	for _, member := range opts.Members {
 		memberAddress, err := sdk.AccAddressFromHexUnsafe(member)
 		if err != nil {
-			return math.ZeroUint(), err
+			return sdkmath.ZeroUint(), err
 		}
 		groupMemberInfo := types.GroupMemberInfo{
 			Member:     memberAddress.String(),
@@ -730,7 +735,7 @@ func (k Keeper) CreateGroup(
 		SourceType:   groupInfo.SourceType,
 		Members:      opts.Members,
 	}); err != nil {
-		return math.ZeroUint(), err
+		return sdkmath.ZeroUint(), err
 	}
 	return groupInfo.Id, nil
 }
@@ -746,7 +751,7 @@ func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress, groupNam
 	return k.GetGroupInfoById(ctx, types.DecodeSequence(bz))
 }
 
-func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId math.Uint) (groupInfo types.GroupInfo, found bool) {
+func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (groupInfo types.GroupInfo, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := store.Get(types.GetGroupByIDKey(groupId))
@@ -878,21 +883,21 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigD
 	return nil
 }
 
-func (k Keeper) GenNextBucketId(ctx sdk.Context) math.Uint {
+func (k Keeper) GenNextBucketId(ctx sdk.Context) sdkmath.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.bucketSeq.NextVal(store)
 	return seq
 }
 
-func (k Keeper) GenNextObjectID(ctx sdk.Context) math.Uint {
+func (k Keeper) GenNextObjectID(ctx sdk.Context) sdkmath.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.objectSeq.NextVal(store)
 	return seq
 }
 
-func (k Keeper) GenNextGroupId(ctx sdk.Context) math.Uint {
+func (k Keeper) GenNextGroupId(ctx sdk.Context) sdkmath.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.groupSeq.NextVal(store)

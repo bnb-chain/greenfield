@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/binary"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -20,11 +22,12 @@ const (
 )
 
 var (
-	// Keys for store prefixes
 	StorageProviderKey               = []byte{0x21} // prefix for each key to a storage provider
 	StorageProviderByFundingAddrKey  = []byte{0x22} // prefix for each key to a storage provider index, by funding address
 	StorageProviderBySealAddrKey     = []byte{0x23} // prefix for each key to a storage provider index, by seal address
 	StorageProviderByApprovalAddrKey = []byte{0x24} // prefix for each key to a storage provider index, by approval address
+	SpStoragePriceKeyPrefix          = []byte{0x25}
+	SecondarySpStorePriceKeyPrefix   = []byte{0x26}
 )
 
 func KeyPrefix(p string) []byte {
@@ -71,4 +74,39 @@ func MustUnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) StoragePr
 
 func MustMarshalStorageProvider(cdc codec.BinaryCodec, sp *StorageProvider) []byte {
 	return cdc.MustMarshal(sp)
+}
+
+func SpStoragePriceKey(
+	sp string,
+	updateTime int64,
+) []byte {
+	timeBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+
+	var key []byte
+	spBytes := []byte(sp)
+	key = append(key, spBytes...)
+	key = append(key, timeBytes...)
+
+	return key
+}
+
+func ParseSpStoragePriceKey(key []byte) (spAddr string, updateTime int64) {
+	length := len(key)
+	spAddr = string(key[:length-8])
+	updateTime = int64(binary.BigEndian.Uint64(key[length-8 : length]))
+	return
+}
+
+func SecondarySpStorePriceKey(
+	updateTime int64,
+) []byte {
+	timeBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+	return timeBytes
+}
+
+func ParseSecondarySpStorePriceKey(key []byte) (updateTime int64) {
+	updateTime = int64(binary.BigEndian.Uint64(key))
+	return
 }

@@ -28,9 +28,7 @@ var (
 	AutoSettleRecordKeyPrefix    = []byte{0x01}
 	StreamRecordKeyPrefix        = []byte{0x02}
 	PaymentAccountCountKeyPrefix = []byte{0x03}
-	BnbPriceKeyPrefix            = []byte{0x04}
-	FlowKeyPrefix                = []byte{0x05}
-	PaymentAccountKeyPrefix      = []byte{0x06}
+	PaymentAccountKeyPrefix      = []byte{0x04}
 )
 
 // AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
@@ -54,31 +52,6 @@ func ParseAutoSettleRecordKey(key []byte) (res AutoSettleRecord) {
 	res.Timestamp = int64(binary.BigEndian.Uint64(key[0:8]))
 	res.Addr = string(key[8:])
 	return
-}
-
-// BnbPriceKey returns the store key to retrieve a BnbPrice from the index fields
-func BnbPriceKey(
-	time int64,
-) []byte {
-	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(time))
-	return timeBytes
-}
-
-// FlowKey returns the store key to retrieve a Flow from the index fields
-func FlowKey(
-	from string,
-	to string,
-) []byte {
-	var key []byte
-
-	fromBytes := []byte(from)
-	key = append(key, fromBytes...)
-
-	toBytes := []byte(to)
-	key = append(key, toBytes...)
-
-	return key
 }
 
 // PaymentAccountKey returns the store key to retrieve a PaymentAccount from the index fields

@@ -25,6 +25,7 @@ var (
 	ErrSourceTypeMismatch       = errors.Register(ModuleName, 1116, "object source type mismatch")
 	ErrTooLargeObject           = errors.Register(ModuleName, 1117, "object payload size is too large")
 	ErrInvalidApproval          = errors.Register(ModuleName, 1118, "Invalid approval of sp")
+	ErrBucketBillNotEmpty       = errors.Register(ModuleName, 1119, "bucket bill is not empty")
 
 	ErrInvalidBucketName  = errors.Register(ModuleName, 2000, "invalid bucket name")
 	ErrInvalidObjectName  = errors.Register(ModuleName, 2001, "invalid object name")

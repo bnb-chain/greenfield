@@ -49,6 +49,7 @@ import (
 
 var (
 	storageMaccPerms = map[string][]string{
+		authtypes.Minter:               {authtypes.Minter},
 		authtypes.FeeCollectorName:     {authtypes.Minter, authtypes.Staking},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
@@ -58,13 +59,21 @@ var (
 	}
 )
 
-func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
+type StorageDepKeepers struct {
+	PaymentKeeper *paymentmodulekeeper.Keeper
+	SpKeeper      *spkeeper.Keeper
+	BankKeeper    *bankkeeper.BaseKeeper
+	AccountKeeper *authkeeper.AccountKeeper
+}
+
+func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context) {
 	storeKeys := sdk.NewKVStoreKeys(authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey, govtypes.StoreKey,
 		paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		ibctransfertypes.StoreKey, icahosttypes.StoreKey, capabilitytypes.StoreKey, group.StoreKey,
 		icacontrollertypes.StoreKey,
 		crosschaintypes.StoreKey,
+		sptypes.StoreKey,
 		paymentmoduletypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
@@ -82,6 +91,8 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	stateStore.MountStoreWithDB(storeKeys[paramstypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[authtypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[banktypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[paymentmoduletypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[sptypes.StoreKey], storetypes.StoreTypeIAVL, db)
 
 	stateStore.MountStoreWithDB(tkeys[paramstypes.TStoreKey], storetypes.StoreTypeTransient, nil)
 
@@ -127,15 +138,6 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
 	)
-	paymentKeeper := *paymentmodulekeeper.NewKeeper(
-		cdc,
-		storeKeys[paymentmoduletypes.StoreKey],
-		storeKeys[paymentmoduletypes.MemStoreKey],
-		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
-
-		bankKeeper,
-		accountKeeper,
-	)
 
 	spKeeper := spkeeper.NewKeeper(
 		cdc,
@@ -145,6 +147,17 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		accountKeeper,
 		bankKeeper,
 		authzKeeper,
+	)
+
+	paymentKeeper := paymentmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[paymentmoduletypes.StoreKey],
+		storeKeys[paymentmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, paymentmoduletypes.ModuleName),
+
+		bankKeeper,
+		accountKeeper,
+		spKeeper,
 	)
 
 	k := keeper.NewKeeper(
@@ -161,9 +174,9 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	// Initialize params
 	k.SetParams(ctx, types.DefaultParams())
-
 	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
 	spKeeper.SetParams(ctx, sptypes.DefaultParams())
+	paymentKeeper.SetParams(ctx, paymentmoduletypes.DefaultParams())
 
 	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
@@ -173,5 +186,10 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		panic("mint coins error")
 	}
 
-	return k, ctx
+	return k, StorageDepKeepers{
+		SpKeeper:      spKeeper,
+		PaymentKeeper: paymentKeeper,
+		BankKeeper:    &bankKeeper,
+		AccountKeeper: &accountKeeper,
+	}, ctx
 }

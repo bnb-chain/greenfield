@@ -157,10 +157,11 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	ctx := context.Background()
+	sp := s.StorageProviders[0]
 
 	// 1. query previous storage provider
 	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
+		SpAddress: sp.OperatorKey.GetAddr().String(),
 	}
 
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
@@ -182,13 +183,13 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
-		s.StorageProvider.OperatorKey.GetAddr(), newSP.Endpoint, newSP.Description)
-	txRes := s.SendTxBlock(msgEditSP, s.StorageProvider.OperatorKey)
+		sp.OperatorKey.GetAddr(), newSP.Endpoint, newSP.Description)
+	txRes := s.SendTxBlock(msgEditSP, sp.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 3. query modifyed storage provider
 	querySPReq = sptypes.QueryStorageProviderRequest{
-		SpAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
+		SpAddress: sp.OperatorKey.GetAddr().String(),
 	}
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
@@ -197,13 +198,13 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
-		s.StorageProvider.OperatorKey.GetAddr(), prevSP.Endpoint, prevSP.Description)
-	txRes = s.SendTxBlock(msgEditSP, s.StorageProvider.OperatorKey)
+		sp.OperatorKey.GetAddr(), prevSP.Endpoint, prevSP.Description)
+	txRes = s.SendTxBlock(msgEditSP, sp.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 5. query revert storage provider again
 	querySPReq = sptypes.QueryStorageProviderRequest{
-		SpAddress: s.StorageProvider.OperatorKey.GetAddr().String(),
+		SpAddress: sp.OperatorKey.GetAddr().String(),
 	}
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
@@ -292,6 +293,66 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 
 	}
 
+}
+
+func (s *StorageProviderTestSuite) TestSpStoragePrice() {
+	ctx := context.Background()
+	s.CheckSecondarySpPrice()
+	sp := s.StorageProviders[0]
+	spAddr := sp.OperatorKey.GetAddr().String()
+	spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    spAddr,
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log(spStoragePrice)
+	// update storage price
+	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
+	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
+	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     spAddr,
+		ReadPrice:     newReadPrice,
+		StorePrice:    newStorePrice,
+		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
+	}
+	_ = s.SendTxBlock(msgUpdateSpStoragePrice, sp.OperatorKey)
+	// query and assert
+	spStoragePrice2, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    spAddr,
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log(spStoragePrice2)
+	// check price changed as expected
+	s.Require().Equal(newReadPrice, spStoragePrice2.SpStoragePrice.ReadPrice)
+	s.Require().Equal(newStorePrice, spStoragePrice2.SpStoragePrice.StorePrice)
+	s.CheckSecondarySpPrice()
+}
+
+func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
+	ctx := context.Background()
+	queryGetSecondarySpStorePriceByTimeResp, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Logf("Secondary SP store price: %s", core.YamlString(queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice))
+	// query all sps
+	sps, err := s.Client.StorageProviders(ctx, &sptypes.QueryStorageProvidersRequest{})
+	s.Require().NoError(err)
+	s.T().Logf("sps: %s", sps)
+	spNum := int64(sps.Pagination.Total)
+	total := sdk.ZeroDec()
+	for _, sp := range sps.Sps {
+		spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+			SpAddr:    sp.OperatorAddress,
+			Timestamp: 0,
+		})
+		s.Require().NoError(err)
+		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
+		total = total.Add(spStoragePrice.SpStoragePrice.StorePrice)
+	}
+	expectedSecondarySpStorePrice := sptypes.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
+	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
 }
 
 func TestStorageProviderTestSuite(t *testing.T) {

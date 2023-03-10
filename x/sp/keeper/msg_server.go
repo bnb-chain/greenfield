@@ -117,6 +117,20 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	k.SetStorageProviderByFundingAddr(ctx, &sp)
 	k.SetStorageProviderBySealAddr(ctx, &sp)
 
+	// set initial sp storage price
+	spStoragePrice := types.SpStoragePrice{
+		SpAddress:     spAcc.String(),
+		UpdateTime:    ctx.BlockTime().Unix(),
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
+	}
+	k.SetSpStoragePrice(ctx, spStoragePrice)
+	err = k.UpdateSecondarySpStorePrice(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
@@ -212,4 +226,22 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 	return &types.MsgDepositResponse{}, nil
+}
+
+func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpdateSpStoragePrice) (*types.MsgUpdateSpStoragePriceResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	current := ctx.BlockTime().Unix()
+	spStorePrice := types.SpStoragePrice{
+		UpdateTime:    current,
+		SpAddress:     msg.SpAddress,
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
+	}
+	k.SetSpStoragePrice(ctx, spStorePrice)
+	err := k.UpdateSecondarySpStorePrice(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "update secondary sp store price failed")
+	}
+	return &types.MsgUpdateSpStoragePriceResponse{}, nil
 }

@@ -27,6 +27,7 @@ func TestGenesisState_Validate(t *testing.T) {
 					RedundantDataChunkNum:   10,
 					RedundantParityChunkNum: 8,
 					MaxPayloadSize:          2000,
+					MinChargeSize:           100,
 				},
 
 				// this line is used by starport scaffolding # types/genesis/validField

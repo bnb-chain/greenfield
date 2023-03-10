@@ -13,6 +13,6 @@ import (
 
 // nolint: unused
 func setupMsgServer(t testing.TB) (types.MsgServer, context.Context) {
-	k, ctx := keepertest.StorageKeeper(t)
+	k, _, ctx := keepertest.StorageKeeper(t)
 	return keeper.NewMsgServerImpl(*k), sdk.WrapSDKContext(ctx)
 }

@@ -37,6 +37,8 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				SealAddress:     tt.sealAddress.String(),
 				ApprovalAddress: tt.approvalAddress.String(),
 				Endpoint:        "http://127.0.0.1:9033",
+				StorePrice:      sdk.ZeroDec(),
+				ReadPrice:       sdk.ZeroDec(),
 				Deposit:         coinPos,
 			}
 			err := msg.ValidateBasic()

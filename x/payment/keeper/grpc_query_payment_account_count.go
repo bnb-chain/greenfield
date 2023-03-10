@@ -54,5 +54,5 @@ func (k Keeper) PaymentAccountCount(c context.Context, req *types.QueryGetPaymen
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetPaymentAccountCountResponse{PaymentAccountCount: val}, nil
+	return &types.QueryGetPaymentAccountCountResponse{PaymentAccountCount: *val}, nil
 }

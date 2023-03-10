@@ -29,7 +29,7 @@ func (k Keeper) DynamicBalance(goCtx context.Context, req *types.QueryDynamicBal
 	dynamicBalance := streamRecord.StaticBalance.Add(flowDelta)
 	return &types.QueryDynamicBalanceResponse{
 		DynamicBalance:   dynamicBalance,
-		StreamRecord:     streamRecord,
+		StreamRecord:     *streamRecord,
 		CurrentTimestamp: currentTimestamp,
 	}, nil
 }

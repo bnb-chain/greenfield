@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
@@ -41,6 +42,12 @@ type MsgCreateStorageProvider struct {
 	ApprovalAddress string      `protobuf:"bytes,6,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
 	Endpoint        string      `protobuf:"bytes,7,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	Deposit         types.Coin  `protobuf:"bytes,8,opt,name=deposit,proto3" json:"deposit"`
+	// read price, in bnb wei per charge byte
+	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,9,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
+	// free read quota, in byte
+	FreeReadQuota uint64 `protobuf:"varint,10,opt,name=free_read_quota,json=freeReadQuota,proto3" json:"free_read_quota,omitempty"`
+	// store price, in bnb wei per charge byte
+	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,11,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
 }
 
 func (m *MsgCreateStorageProvider) Reset()         { *m = MsgCreateStorageProvider{} }
@@ -130,6 +137,13 @@ func (m *MsgCreateStorageProvider) GetDeposit() types.Coin {
 		return m.Deposit
 	}
 	return types.Coin{}
+}
+
+func (m *MsgCreateStorageProvider) GetFreeReadQuota() uint64 {
+	if m != nil {
+		return m.FreeReadQuota
+	}
+	return 0
 }
 
 // MsgCreateStorageProviderResponse defines the Msg/CreateStorageProvider response type.
@@ -368,6 +382,100 @@ func (m *MsgEditStorageProviderResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgEditStorageProviderResponse proto.InternalMessageInfo
 
+type MsgUpdateSpStoragePrice struct {
+	// sp address
+	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// read price, in bnb wei per charge byte
+	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
+	// free read quota, in byte
+	FreeReadQuota uint64 `protobuf:"varint,3,opt,name=free_read_quota,json=freeReadQuota,proto3" json:"free_read_quota,omitempty"`
+	// store price, in bnb wei per charge byte
+	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,4,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
+}
+
+func (m *MsgUpdateSpStoragePrice) Reset()         { *m = MsgUpdateSpStoragePrice{} }
+func (m *MsgUpdateSpStoragePrice) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateSpStoragePrice) ProtoMessage()    {}
+func (*MsgUpdateSpStoragePrice) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f630c2933caa1bce, []int{6}
+}
+func (m *MsgUpdateSpStoragePrice) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateSpStoragePrice) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateSpStoragePrice.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateSpStoragePrice) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateSpStoragePrice.Merge(m, src)
+}
+func (m *MsgUpdateSpStoragePrice) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateSpStoragePrice) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateSpStoragePrice.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateSpStoragePrice proto.InternalMessageInfo
+
+func (m *MsgUpdateSpStoragePrice) GetSpAddress() string {
+	if m != nil {
+		return m.SpAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateSpStoragePrice) GetFreeReadQuota() uint64 {
+	if m != nil {
+		return m.FreeReadQuota
+	}
+	return 0
+}
+
+type MsgUpdateSpStoragePriceResponse struct {
+}
+
+func (m *MsgUpdateSpStoragePriceResponse) Reset()         { *m = MsgUpdateSpStoragePriceResponse{} }
+func (m *MsgUpdateSpStoragePriceResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateSpStoragePriceResponse) ProtoMessage()    {}
+func (*MsgUpdateSpStoragePriceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f630c2933caa1bce, []int{7}
+}
+func (m *MsgUpdateSpStoragePriceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateSpStoragePriceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateSpStoragePriceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateSpStoragePriceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateSpStoragePriceResponse.Merge(m, src)
+}
+func (m *MsgUpdateSpStoragePriceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateSpStoragePriceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateSpStoragePriceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateSpStoragePriceResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateStorageProvider)(nil), "bnbchain.greenfield.sp.MsgCreateStorageProvider")
 	proto.RegisterType((*MsgCreateStorageProviderResponse)(nil), "bnbchain.greenfield.sp.MsgCreateStorageProviderResponse")
@@ -375,49 +483,61 @@ func init() {
 	proto.RegisterType((*MsgDepositResponse)(nil), "bnbchain.greenfield.sp.MsgDepositResponse")
 	proto.RegisterType((*MsgEditStorageProvider)(nil), "bnbchain.greenfield.sp.MsgEditStorageProvider")
 	proto.RegisterType((*MsgEditStorageProviderResponse)(nil), "bnbchain.greenfield.sp.MsgEditStorageProviderResponse")
+	proto.RegisterType((*MsgUpdateSpStoragePrice)(nil), "bnbchain.greenfield.sp.MsgUpdateSpStoragePrice")
+	proto.RegisterType((*MsgUpdateSpStoragePriceResponse)(nil), "bnbchain.greenfield.sp.MsgUpdateSpStoragePriceResponse")
 }
 
 func init() { proto.RegisterFile("greenfield/sp/tx.proto", fileDescriptor_f630c2933caa1bce) }
 
 var fileDescriptor_f630c2933caa1bce = []byte{
-	// 580 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0xcb, 0x6e, 0xd3, 0x40,
-	0x14, 0x8d, 0x93, 0xd2, 0xb4, 0xb7, 0x15, 0x41, 0x26, 0x04, 0xd7, 0x0b, 0x13, 0x99, 0x4d, 0x15,
-	0xa9, 0x36, 0x09, 0x12, 0x8f, 0xb2, 0x6a, 0x12, 0x56, 0x28, 0x12, 0x4a, 0x57, 0xb0, 0xa9, 0xfc,
-	0x98, 0x4e, 0x47, 0x6a, 0x66, 0x46, 0x9e, 0x69, 0x54, 0x16, 0x6c, 0xe0, 0x07, 0xf8, 0x14, 0x16,
-	0x7c, 0x01, 0xab, 0x4a, 0x6c, 0x2a, 0x56, 0xac, 0x10, 0x4a, 0x84, 0xf8, 0x0b, 0x84, 0x1c, 0x7b,
-	0x1c, 0x37, 0x4a, 0x9a, 0x96, 0xae, 0x92, 0xf1, 0x3d, 0xe7, 0xcc, 0x3d, 0x73, 0xee, 0x0c, 0xd4,
-	0x70, 0x84, 0x10, 0x3d, 0x24, 0xe8, 0x38, 0x74, 0x05, 0x77, 0xe5, 0xa9, 0xc3, 0x23, 0x26, 0x99,
-	0x5e, 0xf3, 0xa9, 0x1f, 0x1c, 0x79, 0x84, 0x3a, 0x53, 0x80, 0x23, 0xb8, 0x69, 0x05, 0x4c, 0x0c,
-	0x98, 0x70, 0x7d, 0x4f, 0x20, 0x77, 0xd8, 0xf4, 0x91, 0xf4, 0x9a, 0x6e, 0xc0, 0x08, 0x4d, 0x78,
-	0xe6, 0xfd, 0xb4, 0x3e, 0x10, 0xd8, 0x1d, 0x36, 0xe3, 0x9f, 0xb4, 0xb0, 0x95, 0x14, 0x0e, 0x26,
-	0x2b, 0x37, 0x59, 0xa4, 0xa5, 0x2a, 0x66, 0x98, 0x25, 0xdf, 0xe3, 0x7f, 0x8a, 0x30, 0xd3, 0xd9,
-	0x3b, 0x8e, 0x52, 0x82, 0xfd, 0xb7, 0x04, 0x46, 0x4f, 0xe0, 0x4e, 0x84, 0x3c, 0x89, 0xf6, 0x25,
-	0x8b, 0x3c, 0x8c, 0x5e, 0x47, 0x6c, 0x48, 0x42, 0x14, 0xe9, 0x2d, 0x28, 0x07, 0x71, 0x81, 0x45,
-	0x86, 0x56, 0xd7, 0xb6, 0xd7, 0xdb, 0xc6, 0xf7, 0x2f, 0x3b, 0xd5, 0x74, 0xc3, 0xbd, 0x30, 0x8c,
-	0x90, 0x10, 0xfb, 0x32, 0x22, 0x14, 0xf7, 0x15, 0x50, 0x7f, 0x05, 0x1b, 0x21, 0x12, 0x41, 0x44,
-	0xb8, 0x24, 0x8c, 0x1a, 0xc5, 0xba, 0xb6, 0xbd, 0xd1, 0x7a, 0xe8, 0xcc, 0x3f, 0x03, 0xa7, 0x3b,
-	0x85, 0xb6, 0x57, 0xce, 0x7e, 0x3e, 0x28, 0xf4, 0xf3, 0x6c, 0xfd, 0x29, 0x80, 0xe0, 0x07, 0x5e,
-	0xb2, 0x93, 0x51, 0x5a, 0xd2, 0xc3, 0xba, 0xe0, 0xe9, 0x07, 0x7d, 0x0f, 0x2a, 0x87, 0x27, 0x34,
-	0x24, 0x14, 0x67, 0xec, 0x95, 0x25, 0xec, 0xdb, 0x29, 0x41, 0x49, 0xbc, 0x80, 0x4d, 0x81, 0xbc,
-	0xe3, 0x8c, 0x7f, 0x6b, 0x09, 0x7f, 0x23, 0x46, 0x2b, 0x72, 0x07, 0xee, 0x78, 0x9c, 0x47, 0x6c,
-	0x98, 0x13, 0x58, 0x5d, 0x22, 0x50, 0x51, 0x0c, 0x25, 0x62, 0xc2, 0x1a, 0xa2, 0x21, 0x67, 0x84,
-	0x4a, 0xa3, 0x1c, 0x93, 0xfb, 0xd9, 0x5a, 0x7f, 0x0e, 0xe5, 0x10, 0x71, 0x26, 0x88, 0x34, 0xd6,
-	0x26, 0x47, 0xbc, 0xe5, 0xa4, 0xa2, 0xf1, 0x38, 0x39, 0xe9, 0x38, 0x39, 0x1d, 0x46, 0xd4, 0xc1,
-	0x2a, 0xfc, 0xee, 0xe6, 0x87, 0x3f, 0x9f, 0x1b, 0x2a, 0x2f, 0xdb, 0x86, 0xfa, 0xa2, 0xfc, 0xfb,
-	0x48, 0x70, 0x46, 0x05, 0xb2, 0xbf, 0x6a, 0x00, 0x3d, 0x81, 0xbb, 0x89, 0xc0, 0x7f, 0x8d, 0xc5,
-	0xc5, 0x24, 0x8b, 0x57, 0x4f, 0x32, 0x67, 0xb4, 0x74, 0x23, 0xa3, 0x55, 0xd0, 0xa7, 0x1e, 0x32,
-	0x6b, 0xdf, 0x34, 0xa8, 0xf5, 0x04, 0x7e, 0x19, 0x12, 0x39, 0x3b, 0xfd, 0x17, 0x5b, 0xd6, 0xae,
-	0xde, 0x72, 0x3e, 0xb7, 0xe2, 0x4c, 0x6e, 0x33, 0xd7, 0xa3, 0x74, 0x93, 0xeb, 0xb1, 0x5b, 0x89,
-	0x0d, 0xe6, 0x9a, 0xb4, 0xeb, 0x60, 0xcd, 0x37, 0xa3, 0xfc, 0xb6, 0x7e, 0x17, 0xa1, 0xd4, 0x13,
-	0x58, 0xff, 0xa8, 0xc1, 0xbd, 0xf9, 0x97, 0xfe, 0xd1, 0xa2, 0x66, 0x16, 0x8d, 0x89, 0xf9, 0xec,
-	0xba, 0x0c, 0xd5, 0x8d, 0xfe, 0x06, 0xca, 0x6a, 0xa8, 0xec, 0x4b, 0x44, 0x52, 0x8c, 0xd9, 0x58,
-	0x8e, 0xc9, 0xa4, 0xdf, 0xc3, 0xdd, 0x79, 0xa1, 0x3a, 0x97, 0x48, 0xcc, 0xc1, 0x9b, 0x4f, 0xae,
-	0x87, 0x57, 0xdb, 0xb7, 0xbb, 0x67, 0x23, 0x4b, 0x3b, 0x1f, 0x59, 0xda, 0xaf, 0x91, 0xa5, 0x7d,
-	0x1a, 0x5b, 0x85, 0xf3, 0xb1, 0x55, 0xf8, 0x31, 0xb6, 0x0a, 0x6f, 0x1b, 0x98, 0xc8, 0xa3, 0x13,
-	0xdf, 0x09, 0xd8, 0xc0, 0xf5, 0xa9, 0xbf, 0x33, 0x11, 0x77, 0x73, 0x2f, 0xf4, 0x69, 0xf6, 0x46,
-	0xfb, 0xab, 0x93, 0x47, 0xfa, 0xf1, 0xbf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x0c, 0x70, 0x89, 0x33,
-	0x5b, 0x06, 0x00, 0x00,
+	// 746 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xcd, 0x4e, 0xdb, 0x4a,
+	0x14, 0x8e, 0x93, 0x40, 0xc8, 0x09, 0xf7, 0xe6, 0xca, 0x37, 0x17, 0x4c, 0x16, 0x26, 0x37, 0x95,
+	0x10, 0x42, 0x8a, 0x5d, 0xa8, 0x54, 0x5a, 0xda, 0x0d, 0x90, 0xae, 0xaa, 0x48, 0x34, 0xa8, 0x8b,
+	0xb6, 0xaa, 0x22, 0xff, 0x0c, 0x66, 0x54, 0xf0, 0x4c, 0x67, 0x4c, 0x44, 0x17, 0x95, 0xaa, 0xf6,
+	0x05, 0xfa, 0x28, 0x5d, 0xf0, 0x04, 0xdd, 0x14, 0xa9, 0x1b, 0xc4, 0xaa, 0xea, 0x02, 0x55, 0x61,
+	0xd1, 0x3e, 0x46, 0x35, 0xce, 0xd8, 0x84, 0xd4, 0x21, 0x84, 0xd2, 0x95, 0xe3, 0x99, 0xf3, 0x7d,
+	0xe7, 0x3b, 0x67, 0xbe, 0xe3, 0x0c, 0x4c, 0x79, 0x0c, 0x21, 0x7f, 0x0b, 0xa3, 0x1d, 0xd7, 0xe4,
+	0xd4, 0x0c, 0xf6, 0x0d, 0xca, 0x48, 0x40, 0xd4, 0x29, 0xdb, 0xb7, 0x9d, 0x6d, 0x0b, 0xfb, 0xc6,
+	0x59, 0x80, 0xc1, 0x69, 0x59, 0x77, 0x08, 0xdf, 0x25, 0xdc, 0xb4, 0x2d, 0x8e, 0xcc, 0xf6, 0xa2,
+	0x8d, 0x02, 0x6b, 0xd1, 0x74, 0x08, 0xf6, 0xbb, 0xb8, 0xf2, 0xb4, 0xdc, 0xdf, 0xe5, 0x9e, 0xd9,
+	0x5e, 0x14, 0x0f, 0xb9, 0x31, 0xd3, 0xdd, 0x68, 0x85, 0x6f, 0x66, 0xf7, 0x45, 0x6e, 0x95, 0x3c,
+	0xe2, 0x91, 0xee, 0xba, 0xf8, 0x15, 0x01, 0xfa, 0x94, 0xbd, 0xa2, 0x48, 0x02, 0xaa, 0x9d, 0x31,
+	0xd0, 0x1a, 0xdc, 0x5b, 0x67, 0xc8, 0x0a, 0xd0, 0x66, 0x40, 0x98, 0xe5, 0xa1, 0x0d, 0x46, 0xda,
+	0xd8, 0x45, 0x4c, 0x5d, 0x82, 0x9c, 0x23, 0x36, 0x08, 0xd3, 0x94, 0x8a, 0x32, 0x9f, 0x5f, 0xd3,
+	0x8e, 0x0f, 0x6a, 0x25, 0x99, 0x70, 0xd5, 0x75, 0x19, 0xe2, 0x7c, 0x33, 0x60, 0xd8, 0xf7, 0x9a,
+	0x51, 0xa0, 0xfa, 0x10, 0x0a, 0x2e, 0xe2, 0x0e, 0xc3, 0x34, 0xc0, 0xc4, 0xd7, 0xd2, 0x15, 0x65,
+	0xbe, 0xb0, 0x74, 0xc3, 0x48, 0xee, 0x81, 0x51, 0x3f, 0x0b, 0x5d, 0xcb, 0x1e, 0x9e, 0xcc, 0xa6,
+	0x9a, 0xbd, 0x68, 0x75, 0x19, 0x80, 0xd3, 0x96, 0xd5, 0xcd, 0xa4, 0x65, 0x86, 0x68, 0xc8, 0x73,
+	0x2a, 0x17, 0xd4, 0x55, 0x28, 0x6e, 0xed, 0xf9, 0x2e, 0xf6, 0xbd, 0x18, 0x9d, 0x1d, 0x82, 0xfe,
+	0x5b, 0x02, 0x22, 0x8a, 0x7b, 0x30, 0xc9, 0x91, 0xb5, 0x13, 0xe3, 0xc7, 0x86, 0xe0, 0x0b, 0x22,
+	0x3a, 0x02, 0xaf, 0xc3, 0x3f, 0x16, 0xa5, 0x8c, 0xb4, 0x7b, 0x08, 0xc6, 0x87, 0x10, 0x14, 0x23,
+	0x44, 0x44, 0x52, 0x86, 0x09, 0xe4, 0xbb, 0x94, 0x60, 0x3f, 0xd0, 0x72, 0x02, 0xdc, 0x8c, 0xdf,
+	0xd5, 0xbb, 0x90, 0x73, 0x11, 0x25, 0x1c, 0x07, 0xda, 0x44, 0xd8, 0xe2, 0x19, 0x43, 0x92, 0x0a,
+	0x3b, 0x19, 0xd2, 0x4e, 0xc6, 0x3a, 0xc1, 0x51, 0x63, 0xa3, 0x78, 0xf5, 0x19, 0x00, 0x43, 0x96,
+	0xdb, 0xa2, 0x0c, 0x3b, 0x48, 0xcb, 0x87, 0xaa, 0xee, 0x8b, 0x90, 0xaf, 0x27, 0xb3, 0x73, 0x1e,
+	0x0e, 0xb6, 0xf7, 0x6c, 0xc3, 0x21, 0xbb, 0xd2, 0x58, 0xf2, 0x51, 0xe3, 0xee, 0x0b, 0x69, 0x9c,
+	0x3a, 0x72, 0x8e, 0x0f, 0x6a, 0x20, 0xd3, 0xd5, 0x91, 0xd3, 0xcc, 0x0b, 0xbe, 0x0d, 0x41, 0xa7,
+	0xce, 0x41, 0x71, 0x8b, 0x21, 0xd4, 0x0a, 0x33, 0xbc, 0xdc, 0x23, 0x81, 0xa5, 0x41, 0x45, 0x99,
+	0xcf, 0x36, 0xff, 0x12, 0xcb, 0x4d, 0x64, 0xb9, 0x8f, 0xc4, 0xa2, 0xfa, 0x1c, 0x0a, 0x3c, 0x20,
+	0x0c, 0x49, 0x15, 0x85, 0x6b, 0x50, 0x01, 0x21, 0x61, 0x28, 0x63, 0x65, 0xf2, 0xed, 0xf7, 0x0f,
+	0x0b, 0x91, 0x27, 0xab, 0x55, 0xa8, 0x0c, 0xf2, 0x78, 0x13, 0x71, 0x4a, 0x7c, 0x8e, 0xaa, 0x1f,
+	0x15, 0x80, 0x06, 0xf7, 0xea, 0xb2, 0x49, 0x57, 0xb1, 0xfe, 0x79, 0xb7, 0xa6, 0x2f, 0xef, 0xd6,
+	0x9e, 0xc3, 0xcc, 0x8c, 0x76, 0x98, 0x7d, 0x85, 0x96, 0x40, 0x3d, 0xab, 0x21, 0x2e, 0xed, 0xb3,
+	0x02, 0x53, 0x0d, 0xee, 0x3d, 0x70, 0x71, 0xd0, 0x3f, 0xe1, 0xe7, 0x25, 0x2b, 0x97, 0x97, 0xdc,
+	0xeb, 0xcd, 0x74, 0x9f, 0x37, 0xfb, 0x3e, 0x01, 0x99, 0xdf, 0xf9, 0x04, 0xac, 0x14, 0x45, 0x81,
+	0x3d, 0x22, 0xab, 0x15, 0xd0, 0x93, 0x8b, 0x89, 0xeb, 0xfd, 0x94, 0x86, 0xe9, 0x06, 0xf7, 0x1e,
+	0x53, 0x57, 0x9c, 0x37, 0x8d, 0xc3, 0x84, 0x3f, 0xaf, 0x5c, 0xf0, 0xf9, 0xa9, 0x49, 0xff, 0xf1,
+	0xa9, 0xc9, 0x5c, 0x62, 0x6a, 0xb2, 0xd7, 0x3c, 0x35, 0xbf, 0xf4, 0xfa, 0x7f, 0x98, 0x1d, 0xd0,
+	0xc8, 0xa8, 0xd9, 0x4b, 0x3f, 0x32, 0x90, 0x69, 0x70, 0x4f, 0x7d, 0xa7, 0xc0, 0x7f, 0xc9, 0xff,
+	0x22, 0x37, 0x07, 0x9d, 0xfc, 0xa0, 0x99, 0x2c, 0xdf, 0x19, 0x15, 0x11, 0xa9, 0x51, 0x9f, 0x40,
+	0x2e, 0x9a, 0xe0, 0xea, 0x05, 0x24, 0x32, 0xa6, 0xbc, 0x30, 0x3c, 0x26, 0xa6, 0x7e, 0x0d, 0xff,
+	0x26, 0x4d, 0x90, 0x71, 0x01, 0x45, 0x42, 0x7c, 0xf9, 0xf6, 0x68, 0xf1, 0x71, 0xfa, 0x37, 0x0a,
+	0x94, 0x12, 0x1d, 0x6d, 0x5e, 0x40, 0x98, 0x04, 0x28, 0x2f, 0x8f, 0x08, 0x88, 0x24, 0xac, 0xd5,
+	0x0f, 0x3b, 0xba, 0x72, 0xd4, 0xd1, 0x95, 0x6f, 0x1d, 0x5d, 0x79, 0x7f, 0xaa, 0xa7, 0x8e, 0x4e,
+	0xf5, 0xd4, 0x97, 0x53, 0x3d, 0xf5, 0x74, 0xa1, 0xc7, 0x7a, 0xb6, 0x6f, 0xd7, 0x42, 0x76, 0xb3,
+	0xe7, 0xd6, 0xb1, 0x1f, 0xdf, 0x3b, 0xec, 0xf1, 0xf0, 0xe2, 0x71, 0xeb, 0x67, 0x00, 0x00, 0x00,
+	0xff, 0xff, 0x74, 0x22, 0x94, 0xbe, 0x2f, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -435,6 +555,7 @@ type MsgClient interface {
 	CreateStorageProvider(ctx context.Context, in *MsgCreateStorageProvider, opts ...grpc.CallOption) (*MsgCreateStorageProviderResponse, error)
 	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
 	EditStorageProvider(ctx context.Context, in *MsgEditStorageProvider, opts ...grpc.CallOption) (*MsgEditStorageProviderResponse, error)
+	UpdateSpStoragePrice(ctx context.Context, in *MsgUpdateSpStoragePrice, opts ...grpc.CallOption) (*MsgUpdateSpStoragePriceResponse, error)
 }
 
 type msgClient struct {
@@ -472,11 +593,21 @@ func (c *msgClient) EditStorageProvider(ctx context.Context, in *MsgEditStorageP
 	return out, nil
 }
 
+func (c *msgClient) UpdateSpStoragePrice(ctx context.Context, in *MsgUpdateSpStoragePrice, opts ...grpc.CallOption) (*MsgUpdateSpStoragePriceResponse, error) {
+	out := new(MsgUpdateSpStoragePriceResponse)
+	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.sp.Msg/UpdateSpStoragePrice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	CreateStorageProvider(context.Context, *MsgCreateStorageProvider) (*MsgCreateStorageProviderResponse, error)
 	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
 	EditStorageProvider(context.Context, *MsgEditStorageProvider) (*MsgEditStorageProviderResponse, error)
+	UpdateSpStoragePrice(context.Context, *MsgUpdateSpStoragePrice) (*MsgUpdateSpStoragePriceResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -491,6 +622,9 @@ func (*UnimplementedMsgServer) Deposit(ctx context.Context, req *MsgDeposit) (*M
 }
 func (*UnimplementedMsgServer) EditStorageProvider(ctx context.Context, req *MsgEditStorageProvider) (*MsgEditStorageProviderResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EditStorageProvider not implemented")
+}
+func (*UnimplementedMsgServer) UpdateSpStoragePrice(ctx context.Context, req *MsgUpdateSpStoragePrice) (*MsgUpdateSpStoragePriceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateSpStoragePrice not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -551,6 +685,24 @@ func _Msg_EditStorageProvider_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateSpStoragePrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateSpStoragePrice)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateSpStoragePrice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/bnbchain.greenfield.sp.Msg/UpdateSpStoragePrice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateSpStoragePrice(ctx, req.(*MsgUpdateSpStoragePrice))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "bnbchain.greenfield.sp.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -566,6 +718,10 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EditStorageProvider",
 			Handler:    _Msg_EditStorageProvider_Handler,
+		},
+		{
+			MethodName: "UpdateSpStoragePrice",
+			Handler:    _Msg_UpdateSpStoragePrice_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -592,6 +748,31 @@ func (m *MsgCreateStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, error
 	_ = i
 	var l int
 	_ = l
+	{
+		size := m.StorePrice.Size()
+		i -= size
+		if _, err := m.StorePrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x5a
+	if m.FreeReadQuota != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.FreeReadQuota))
+		i--
+		dAtA[i] = 0x50
+	}
+	{
+		size := m.ReadPrice.Size()
+		i -= size
+		if _, err := m.ReadPrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x4a
 	{
 		size, err := m.Deposit.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -820,6 +1001,84 @@ func (m *MsgEditStorageProviderResponse) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgUpdateSpStoragePrice) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateSpStoragePrice) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateSpStoragePrice) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.StorePrice.Size()
+		i -= size
+		if _, err := m.StorePrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if m.FreeReadQuota != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.FreeReadQuota))
+		i--
+		dAtA[i] = 0x18
+	}
+	{
+		size := m.ReadPrice.Size()
+		i -= size
+		if _, err := m.ReadPrice.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.SpAddress) > 0 {
+		i -= len(m.SpAddress)
+		copy(dAtA[i:], m.SpAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.SpAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateSpStoragePriceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateSpStoragePriceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateSpStoragePriceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -864,6 +1123,13 @@ func (m *MsgCreateStorageProvider) Size() (n int) {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	l = m.Deposit.Size()
+	n += 1 + l + sovTx(uint64(l))
+	l = m.ReadPrice.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.FreeReadQuota != 0 {
+		n += 1 + sovTx(uint64(m.FreeReadQuota))
+	}
+	l = m.StorePrice.Size()
 	n += 1 + l + sovTx(uint64(l))
 	return n
 }
@@ -925,6 +1191,35 @@ func (m *MsgEditStorageProvider) Size() (n int) {
 }
 
 func (m *MsgEditStorageProviderResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateSpStoragePrice) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.SpAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.ReadPrice.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.FreeReadQuota != 0 {
+		n += 1 + sovTx(uint64(m.FreeReadQuota))
+	}
+	l = m.StorePrice.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgUpdateSpStoragePriceResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1223,6 +1518,93 @@ func (m *MsgCreateStorageProvider) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.Deposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReadPrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ReadPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FreeReadQuota", wireType)
+			}
+			m.FreeReadQuota = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FreeReadQuota |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StorePrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StorePrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1668,6 +2050,225 @@ func (m *MsgEditStorageProviderResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgEditStorageProviderResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateSpStoragePrice) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateSpStoragePrice: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateSpStoragePrice: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReadPrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ReadPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FreeReadQuota", wireType)
+			}
+			m.FreeReadQuota = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FreeReadQuota |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StorePrice", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.StorePrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateSpStoragePriceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateSpStoragePriceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateSpStoragePriceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

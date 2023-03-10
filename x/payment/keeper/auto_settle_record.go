@@ -8,7 +8,7 @@ import (
 )
 
 // SetAutoSettleRecord set a specific autoSettleRecord in the store from its index
-func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord types.AutoSettleRecord) {
+func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord *types.AutoSettleRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 	b := []byte{0x00}
 	store.Set(types.AutoSettleRecordKey(
@@ -22,7 +22,7 @@ func (k Keeper) GetAutoSettleRecord(
 	ctx sdk.Context,
 	timestamp int64,
 	addr string,
-) (val types.AutoSettleRecord, found bool) {
+) (val *types.AutoSettleRecord, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 
 	b := store.Get(types.AutoSettleRecordKey(
@@ -74,7 +74,7 @@ func (k Keeper) UpdateAutoSettleRecord(ctx sdk.Context, addr string, oldTime, ne
 		k.RemoveAutoSettleRecord(ctx, oldTime, addr)
 	}
 	if newTime != 0 {
-		k.SetAutoSettleRecord(ctx, types.AutoSettleRecord{
+		k.SetAutoSettleRecord(ctx, &types.AutoSettleRecord{
 			Timestamp: newTime,
 			Addr:      addr,
 		})

@@ -134,7 +134,7 @@ func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 				Operator:       sample.AccAddress(),
 				BucketName:     testBucketName,
 				PaymentAddress: sample.AccAddress(),
-				ReadQuota:      READ_QUOTA_FREE,
+				ReadQuota:      0,
 			},
 		},
 	}

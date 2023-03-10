@@ -16,7 +16,6 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
-  // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 message MsgCreatePaymentAccount {
@@ -72,59 +71,3 @@ message MsgDisableRefund {
 }
 
 message MsgDisableRefundResponse {}
-
-message MsgMockCreateBucket {
-  string operator = 1;
-  string bucketName = 2;
-  string readPaymentAccount = 3;
-  string storePaymentAccount = 4;
-  string spAddress = 5;
-  string readPacket = 6;
-}
-
-message MsgMockCreateBucketResponse {}
-
-message MsgMockPutObject {
-  string owner = 1;
-  string bucketName = 2;
-  string objectName = 3;
-  uint64 size = 4;
-}
-
-message MsgMockPutObjectResponse {}
-
-message MsgMockSealObject {
-  string operator = 1;
-  string bucketName = 2;
-  string objectName = 3;
-  repeated string secondarySPs = 4;
-}
-
-message MsgMockSealObjectResponse {}
-
-message MsgMockDeleteObject {
-  string operator = 1;
-  string bucketName = 2;
-  string objectName = 3;
-}
-
-message MsgMockDeleteObjectResponse {}
-
-message MsgMockSetBucketPaymentAccount {
-  string operator = 1;
-  string bucketName = 2;
-  string readPaymentAccount = 3;
-  string storePaymentAccount = 4;
-}
-
-message MsgMockSetBucketPaymentAccountResponse {}
-
-message MsgMockUpdateBucketReadPacket {
-  string operator = 1;
-  string bucketName = 2;
-  string readPacket = 3;
-}
-
-message MsgMockUpdateBucketReadPacketResponse {}
-
-// this line is used by starport scaffolding # proto/tx/message

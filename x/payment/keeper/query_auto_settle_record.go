@@ -55,5 +55,5 @@ func (k Keeper) AutoSettleRecord(c context.Context, req *types.QueryGetAutoSettl
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetAutoSettleRecordResponse{AutoSettleRecord: val}, nil
+	return &types.QueryGetAutoSettleRecordResponse{AutoSettleRecord: *val}, nil
 }

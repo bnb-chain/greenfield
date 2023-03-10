@@ -466,6 +466,7 @@ func New(
 
 		app.BankKeeper,
 		app.AccountKeeper,
+		app.SpKeeper,
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
 

@@ -26,13 +26,20 @@ func (k Keeper) MaxPayloadSize(ctx sdk.Context) (res uint64) {
 	return
 }
 
+func (k Keeper) MinChargeSize(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyMinChargeSize, &res)
+	return
+}
+
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.MaxSegmentSize(ctx),
 		k.RedundantDataChunkNum(ctx),
 		k.RedundantParityChunkNum(ctx),
-		k.MaxPayloadSize(ctx))
+		k.MaxPayloadSize(ctx),
+		k.MinChargeSize(ctx),
+	)
 }
 
 // SetParams set the params
