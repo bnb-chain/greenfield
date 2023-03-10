@@ -6,7 +6,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authz "github.com/cosmos/cosmos-sdk/x/authz"
@@ -18,6 +17,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
@@ -196,6 +196,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
+	// deposit may change
+	newSP.TotalDeposit = querySPResp.StorageProvider.TotalDeposit
 	s.Require().Equal(querySPResp.StorageProvider, newSP)
 
 	// 4. revert storage provider info
