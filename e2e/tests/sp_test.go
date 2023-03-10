@@ -6,6 +6,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+
 	"github.com/stretchr/testify/require"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -232,7 +234,7 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 					Identity: "",
 				},
 				SpAddress:       newSP.OperatorKey.GetAddr().String(),
-				FundingAddress:  keepertest.GetRandomAddress(),
+				FundingAddress:  sample.AccAddress(),
 				SealAddress:     newSP.SealKey.GetAddr().String(),
 				ApprovalAddress: newSP.ApprovalKey.GetAddr().String(),
 				Deposit: sdk.Coin{
@@ -293,66 +295,6 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 
 	}
 
-}
-
-func (s *StorageProviderTestSuite) TestSpStoragePrice() {
-	ctx := context.Background()
-	s.CheckSecondarySpPrice()
-	sp := s.StorageProviders[0]
-	spAddr := sp.OperatorKey.GetAddr().String()
-	spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    spAddr,
-		Timestamp: 0,
-	})
-	s.Require().NoError(err)
-	s.T().Log(spStoragePrice)
-	// update storage price
-	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
-	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
-	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     spAddr,
-		ReadPrice:     newReadPrice,
-		StorePrice:    newStorePrice,
-		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
-	}
-	_ = s.SendTxBlock(msgUpdateSpStoragePrice, sp.OperatorKey)
-	// query and assert
-	spStoragePrice2, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    spAddr,
-		Timestamp: 0,
-	})
-	s.Require().NoError(err)
-	s.T().Log(spStoragePrice2)
-	// check price changed as expected
-	s.Require().Equal(newReadPrice, spStoragePrice2.SpStoragePrice.ReadPrice)
-	s.Require().Equal(newStorePrice, spStoragePrice2.SpStoragePrice.StorePrice)
-	s.CheckSecondarySpPrice()
-}
-
-func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
-	ctx := context.Background()
-	queryGetSecondarySpStorePriceByTimeResp, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
-		Timestamp: 0,
-	})
-	s.Require().NoError(err)
-	s.T().Logf("Secondary SP store price: %s", core.YamlString(queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice))
-	// query all sps
-	sps, err := s.Client.StorageProviders(ctx, &sptypes.QueryStorageProvidersRequest{})
-	s.Require().NoError(err)
-	s.T().Logf("sps: %s", sps)
-	spNum := int64(sps.Pagination.Total)
-	total := sdk.ZeroDec()
-	for _, sp := range sps.Sps {
-		spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-			SpAddr:    sp.OperatorAddress,
-			Timestamp: 0,
-		})
-		s.Require().NoError(err)
-		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
-		total = total.Add(spStoragePrice.SpStoragePrice.StorePrice)
-	}
-	expectedSecondarySpStorePrice := sptypes.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
-	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
 }
 
 func (s *StorageProviderTestSuite) TestSpStoragePrice() {
