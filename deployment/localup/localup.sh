@@ -206,7 +206,7 @@ function sp_join() {
         sed -i -e "s/\"funding_address\":\".*\"/\"funding_address\":\"${spfund_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
         sed -i -e "s/\"seal_address\":\".*\"/\"seal_address\":\"${spseal_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
         sed -i -e "s/\"approval_address\":\".*\"/\"approval_address\":\"${spapproval_addr}\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
-        sed -i -e "s/\"endpoint\": \".*\"/\"endpoint\":\"sp${i}.greenfield.io\"/g" ${workspace}/.local/sp${i}/create_sp${i}.json
+        sed -i -e "s#\"endpoint\": \".*\"#\"endpoint\": \"http://127.0.0.1:$((${STOREAGE_PROVIDER_ADDRESS_PORT_START} + ${i}))\"#g" ${workspace}/.local/sp${i}/create_sp${i}.json
 
         sleep 6
         # submit-proposal
