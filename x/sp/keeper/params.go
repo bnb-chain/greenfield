@@ -25,7 +25,6 @@ func (k Keeper) MinDeposit(ctx sdk.Context) (res math.Int) {
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
-		k.MaxStorageProviders(ctx),
 		k.DepositDenomForSP(ctx),
 		k.MinDeposit(ctx),
 	)

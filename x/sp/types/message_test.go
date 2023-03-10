@@ -36,9 +36,9 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				FundingAddress:  tt.fundingAddress.String(),
 				SealAddress:     tt.sealAddress.String(),
 				ApprovalAddress: tt.approvalAddress.String(),
+				Endpoint:        "http://127.0.0.1:9033",
 				StorePrice:      sdk.ZeroDec(),
 				ReadPrice:       sdk.ZeroDec(),
-				Endpoint:        "sp0.greenfield.io",
 				Deposit:         coinPos,
 			}
 			err := msg.ValidateBasic()
@@ -66,7 +66,7 @@ func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := MsgEditStorageProvider{
 				SpAddress:   tt.spAddress.String(),
-				Endpoint:    "sp0.greenfield.io",
+				Endpoint:    "http://127.0.0.1:9033",
 				Description: NewDescription(tt.moniker, tt.identity, tt.website, tt.details),
 			}
 			err := msg.ValidateBasic()

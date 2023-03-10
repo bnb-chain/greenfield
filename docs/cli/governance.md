@@ -1,5 +1,6 @@
-## Quick Start
+# Using gnfd command to interact with governance module
 
+## Quick Start
 
 Start a local cluster:
 

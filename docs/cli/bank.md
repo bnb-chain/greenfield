@@ -9,7 +9,7 @@ supply of BNB in the application.
 
 ## Quick Start
 
-```
+```shell
 ## Start a local cluster
 $ bash ./deployment/localup/localup.sh all 3
 $ alias gnfd="./build/bin/gnfd"

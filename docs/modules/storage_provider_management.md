@@ -14,7 +14,7 @@ storage network.
 - Slash: The data stored on the SP will be challenged from time to time. When a challenge is successful, the SP will be
   slashed, and deducted some tokens.
 - Reputation: We will introduce a reputation system to evaluate SP's service quality. Users can choose one SP to store
-  data based on it's reputation score.
+  data based on its reputation score.
 - Exit: A SP can leave voluntarily by following some specific rules and get back the staked tokens. At the same time,
   Greenfield can force it to exit when it has insufficient staked tokens or its reputation score is too low to meet
   basic requirements as one SP.
@@ -23,8 +23,8 @@ storage network.
 
 ### Join the network
 
-SPs have to register themselves first by depositing on the Greenfield blockchain as their "Service Stake". Greenfield
-validators will go through a dedicated governance procedure to vote for the SPs of their election. SPs are encouraged to
+SPs have to register themselves first by depositing on the Greenfield blockchain as their "Service Stake". 
+Validators will go through a dedicated governance procedure to vote for the SPs of their election. SPs are encouraged to
 advertise their information and prove to the community their capability, as SPs have to provide a professional storage
 system with high-quality SLA.
 
@@ -74,13 +74,13 @@ message StorageProvider {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;
 
-  // operator_address defines the address of the sp's operator; It also is the unqiue index key of sp.
+  // operator_address defines the address of the sp's operator; It also is the unique index key of sp.
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // fund_address define the account address of the storage provider for deposit, remuneration.
   string funding_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // seal_address define the account address of the storage provider for sealObject
   string seal_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // approval_address define the account address of the storage provider for ack CreateBuclet/Object.
+  // approval_address define the account address of the storage provider for ack CreateBucket/Object.
   string approval_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // total_deposit define the deposit token
   string total_deposit = 5 [
@@ -192,5 +192,4 @@ message MsgDeposit {
 This message is expected to fail if:
 
 * the storage provider is not existed
-* the deposit tokens are of a denom not specified as the deposit denom of sp module 
-
+* the deposit tokens are of a denom not specified as the deposit denom of sp module

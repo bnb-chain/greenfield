@@ -26,7 +26,6 @@ var _ types.MsgServer = msgServer{}
 
 // CreateStorageProvider defines a method for creating a new storage provider
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
-	// TODO: check if a valid endpoint
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	signers := msg.GetSigners()
@@ -113,10 +112,10 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	k.SetStorageProvider(ctx, sp)
-	k.SetStorageProviderByApprovalAddr(ctx, sp)
-	k.SetStorageProviderByFundingAddr(ctx, sp)
-	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
+	k.SetStorageProviderByApprovalAddr(ctx, &sp)
+	k.SetStorageProviderByFundingAddr(ctx, &sp)
+	k.SetStorageProviderBySealAddr(ctx, &sp)
 
 	// set initial sp storage price
 	spStoragePrice := types.SpStoragePrice{
@@ -175,7 +174,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	sp.Description = description
 
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
 		OldEndpoint: oldEndpoint,
@@ -217,7 +216,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	// Add to storage provider's deposit tokens and update the storage provider.
 	sp.TotalDeposit = sp.TotalDeposit.Add(msg.Deposit.Amount)
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
 		SpAddress:    msg.SpAddress,

@@ -265,7 +265,7 @@ The payment accounts have the below traits:
 
 - The owner of a payment account is the user who creates it. The owner
   can set it non-refundable. It's a one-way setting and can not be
-  revoked. Thus users can set some objects as "public goods" which
+  revoked. Thus, users can set some objects as "public goods" which
   can receive donations for storage and bandwidth while preserving
   the ownership.
 

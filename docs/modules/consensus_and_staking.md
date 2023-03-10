@@ -58,3 +58,5 @@ The commission is calculated and incremented at every `BeginBlock` operation to 
 
 The rewards to a delegator are distributed when the delegation is changed or removed, or a withdrawal is requested.
 Before rewards are distributed, all slashes to the validator that occurred during the current delegation are applied.
+
+The detailed fee distribution rules is [described here](https://github.com/bnb-chain/greenfield-cosmos-sdk/blob/master/docs/spec/fee_distribution/f1_fee_distr.pdf)
