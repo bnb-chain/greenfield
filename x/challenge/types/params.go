@@ -25,7 +25,7 @@ var (
 
 var (
 	KeySlashAmountSizeRate     = []byte("SlashAmountSizeRate")
-	DefaultSlashAmountSizeRate = sdk.NewDecWithPrec(5, 1)
+	DefaultSlashAmountSizeRate = sdk.NewDecWithPrec(85, 4)
 )
 
 var (
