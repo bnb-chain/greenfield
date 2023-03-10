@@ -1,10 +1,10 @@
 package types
 
 import (
-	"regexp"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/internal/sequence"
 )
 
 const (
@@ -24,10 +24,9 @@ const (
 type RawID math.Uint
 
 var (
-	BucketPrefix      = []byte{0x11}
-	ObjectPrefix      = []byte{0x12}
-	GroupPrefix       = []byte{0x13}
-	GroupMemberPrefix = []byte{0x14} // TODO(fynn): will be deprecated after permission module ready
+	BucketPrefix = []byte{0x11}
+	ObjectPrefix = []byte{0x12}
+	GroupPrefix  = []byte{0x13}
 
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
@@ -36,9 +35,6 @@ var (
 	BucketSequencePrefix = []byte{0x31}
 	ObjectSequencePrefix = []byte{0x32}
 	GroupSequencePrefix  = []byte{0x33}
-
-	validBucketName = regexp.MustCompile(`^[a-z0-9][a-z0-9\.\-]{1,61}[a-z0-9]$`)
-	ipAddress       = regexp.MustCompile(`^(\d+\.){3}\d+$`)
 )
 
 // GetBucketKey return the bucket name store key
@@ -64,22 +60,17 @@ func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
 	return append(GroupPrefix, append(owner.Bytes(), groupNameHash...)...)
 }
 
-// GetGroupMemberKey return the group member name store key
-func GetGroupMemberKey(groupId math.Uint, memberAcc sdk.AccAddress) []byte {
-	return append(GroupMemberPrefix, append(groupId.Bytes(), memberAcc.Bytes()...)...)
-}
-
 // GetBucketByIDKey return the bucketID store key
 func GetBucketByIDKey(bucketId math.Uint) []byte {
-	return append(BucketByIDPrefix, EncodeSequence(bucketId)...)
+	return append(BucketByIDPrefix, sequence.EncodeSequence(bucketId)...)
 }
 
 // GetObjectByIDKey return the objectId store key
 func GetObjectByIDKey(objectId math.Uint) []byte {
-	return append(ObjectByIDPrefix, EncodeSequence(objectId)...)
+	return append(ObjectByIDPrefix, sequence.EncodeSequence(objectId)...)
 }
 
 // GetGroupByIDKey return the groupId store key
 func GetGroupByIDKey(groupId math.Uint) []byte {
-	return append(GroupByIDPrefix, EncodeSequence(groupId)...)
+	return append(GroupByIDPrefix, sequence.EncodeSequence(groupId)...)
 }

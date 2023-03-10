@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 func TestMsgSubmit_ValidateBasic(t *testing.T) {
@@ -29,7 +29,7 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 				SpOperatorAddress: sample.AccAddress(),
 				BucketName:        "1",
 			},
-			err: storagetypes.ErrInvalidBucketName,
+			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid object name",
 			msg: MsgSubmit{
@@ -38,7 +38,7 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 				BucketName:        "bucket",
 				ObjectName:        "",
 			},
-			err: storagetypes.ErrInvalidObjectName,
+			err: gnfderrors.ErrInvalidObjectName,
 		}, {
 			name: "valid message with random index",
 			msg: MsgSubmit{

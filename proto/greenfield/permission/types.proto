@@ -1,0 +1,42 @@
+syntax = "proto3";
+package bnbchain.greenfield.permission;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "greenfield/permission/common.proto";
+import "greenfield/resource/types.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
+
+message Policy {
+  string id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  permission.Principal principal = 2;
+  resource.ResourceType resource_type = 3;
+  string resource_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  repeated permission.Statement statements = 5;
+  permission.Statement member_statement = 6;
+}
+
+message PolicyGroup {
+  message Item {
+    string policy_id = 1 [
+      (cosmos_proto.scalar) = "cosmos.Uint",
+      (gogoproto.customtype) = "Uint",
+      (gogoproto.nullable) = false
+    ];
+    string group_id = 2 [
+      (cosmos_proto.scalar) = "cosmos.Uint",
+      (gogoproto.customtype) = "Uint",
+      (gogoproto.nullable) = false
+    ];
+  }
+  repeated Item items = 1;
+}

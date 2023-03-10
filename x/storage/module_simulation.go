@@ -77,6 +77,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgCancelCreateObject int = 100
 
+	opWeightMsgDeletePolicy = "op_weight_msg_delete_policy"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgDeletePolicy int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -252,6 +256,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 	operations = append(operations, simulation.NewWeightedOperation(
 		weightMsgCancelCreateObject,
 		storagesimulation.SimulateMsgCancelCreateObject(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgDeletePolicy int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgDeletePolicy, &weightMsgDeletePolicy, nil,
+		func(_ *rand.Rand) {
+			weightMsgDeletePolicy = defaultWeightMsgDeletePolicy
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgDeletePolicy,
+		storagesimulation.SimulateMsgDeletePolicy(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
 	// this line is used by starport scaffolding # simapp/module/operation

@@ -6,6 +6,12 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/gogo/protobuf/proto"
+
+	grn2 "github.com/bnb-chain/greenfield/types"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	"github.com/bnb-chain/greenfield/types/resource"
+	"github.com/bnb-chain/greenfield/types/s3util"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 const (
@@ -27,6 +33,12 @@ const (
 	TypeMsgDeleteGroup       = "delete_group"
 	TypeMsgLeaveGroup        = "leave_group"
 	TypeMsgUpdateGroupMember = "update_group_member"
+
+	// For permission policy
+	TypeMsgPutPolicy    = "put_policy"
+	TypeMsgDeletePolicy = "delete_policy"
+
+	MaxGroupMemberLimitOnce = 20
 )
 
 var (
@@ -47,6 +59,10 @@ var (
 	_ sdk.Msg = &MsgDeleteGroup{}
 	_ sdk.Msg = &MsgLeaveGroup{}
 	_ sdk.Msg = &MsgUpdateGroupMember{}
+
+	// For permission policy
+	_ sdk.Msg = &MsgPutPolicy{}
+	_ sdk.Msg = &MsgDeletePolicy{}
 )
 
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
@@ -98,11 +114,13 @@ func (msg *MsgCreateBucket) GetApprovalBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCreateBucket) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress); err != nil {
+	_, err = sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid primary sp address (%s)", err)
 	}
 
@@ -113,8 +131,9 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 		}
 	}
 
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -159,8 +178,9 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -203,8 +223,8 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	if err = s3util.CheckValidBucketName(msg.BucketName); err != nil {
+		return err
 	}
 
 	_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
@@ -267,24 +287,29 @@ func (msg *MsgCreateObject) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgCreateObject) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidExpectChecksums(msg.ExpectChecksums); err != nil {
-		return errors.Wrapf(ErrInvalidChcecksum, "invalid checksum (%s)", err)
+	err = s3util.CheckValidExpectChecksums(msg.ExpectChecksums)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidContentType(msg.ContentType); err != nil {
-		return errors.Wrapf(ErrInvalidContentType, "invalid checksum (%s)", err)
+	err = s3util.CheckValidContentType(msg.ContentType)
+	if err != nil {
+		return err
 	}
 
 	for _, spAddress := range msg.ExpectSecondarySpAddresses {
@@ -336,12 +361,14 @@ func (msg *MsgCancelCreateObject) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -387,12 +414,14 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -447,21 +476,20 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.Operator); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidBucketName(msg.BucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid bucket name (%s)", err)
-	}
-
-	if err := CheckValidObjectName(msg.ObjectName); err != nil {
-		return errors.Wrapf(ErrInvalidObjectName, "invalid object name (%s)", err)
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
 	}
 
 	// TODO: 6 hard code here.
 	if len(msg.SecondarySpAddresses) != 6 {
-		return errors.Wrapf(ErrInvalidSPAddress, "Missing SP expect: (%d), but (%d)", 6, len(msg.SecondarySpAddresses))
+		return errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect: (%d), but (%d)", 6,
+			len(msg.SecondarySpAddresses))
 	}
 
 	for _, addr := range msg.SecondarySpAddresses {
@@ -472,12 +500,12 @@ func (msg *MsgSealObject) ValidateBasic() error {
 	}
 
 	if len(msg.SecondarySpSignatures) != 6 {
-		return errors.Wrapf(ErrInvalidSPSignature, "Missing SP signatures")
+		return errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "Missing SP signatures")
 	}
 
 	for _, sig := range msg.SecondarySpSignatures {
 		if sig == nil && len(sig) != ethcrypto.SignatureLength {
-			return errors.Wrapf(ErrInvalidSPSignature, "invalid SP signatures")
+			return errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "invalid SP signatures")
 		}
 	}
 
@@ -535,20 +563,24 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidBucketName(msg.SrcBucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid src bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.SrcBucketName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidObjectName(msg.SrcObjectName); err != nil {
-		return errors.Wrapf(ErrInvalidObjectName, "invalid src object name (%s)", err)
+	err = s3util.CheckValidObjectName(msg.SrcObjectName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidBucketName(msg.DstBucketName); err != nil {
-		return errors.Wrapf(ErrInvalidBucketName, "invalid src bucket name (%s)", err)
+	err = s3util.CheckValidBucketName(msg.DstBucketName)
+	if err != nil {
+		return err
 	}
 
-	if err := CheckValidObjectName(msg.DstObjectName); err != nil {
-		return errors.Wrapf(ErrInvalidObjectName, "invalid src object name (%s)", err)
+	err = s3util.CheckValidObjectName(msg.DstObjectName)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -592,6 +624,16 @@ func (msg *MsgRejectSealObject) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -639,8 +681,12 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidGroupName(msg.GroupName); err != nil {
-		return errors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return gnfderrors.ErrInvalidGroupName.Wrapf("invalid groupName (%s)", err)
+	}
+	if len(msg.Members) > MaxGroupMemberLimitOnce {
+		return gnfderrors.ErrInvalidParameter.Wrapf("Once update group member limit exceeded")
 	}
 	return nil
 }
@@ -684,8 +730,9 @@ func (msg *MsgDeleteGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidGroupName(msg.GroupName); err != nil {
-		return errors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidGroupName, "invalid groupName (%s)", err)
 	}
 	return nil
 }
@@ -730,8 +777,9 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if err := CheckValidGroupName(msg.GroupName); err != nil {
-		return errors.Wrapf(ErrInvalidGroupName, "invalid groupName (%s)", err)
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -783,7 +831,141 @@ func (msg *MsgUpdateGroupMember) GetSignBytes() []byte {
 func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.MembersToAdd)+len(msg.MembersToDelete) > MaxGroupMemberLimitOnce {
+		return gnfderrors.ErrInvalidParameter.Wrapf("Once update group member limit exceeded")
+	}
+	for _, member := range msg.MembersToAdd {
+		_, err = sdk.AccAddressFromHexUnsafe(member)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
+		}
+	}
+	for _, member := range msg.MembersToDelete {
+		_, err = sdk.AccAddressFromHexUnsafe(member)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
+		}
+	}
+	return nil
+}
+
+func NewMsgPutPolicy(operator sdk.AccAddress, resource string,
+	principal *permtypes.Principal, statements []*permtypes.Statement) *MsgPutPolicy {
+	return &MsgPutPolicy{
+		Operator:   operator.String(),
+		Resource:   resource,
+		Principal:  principal,
+		Statements: statements,
+	}
+}
+
+func (msg *MsgPutPolicy) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgPutPolicy) Type() string {
+	return TypeMsgPutPolicy
+}
+
+func (msg *MsgPutPolicy) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgPutPolicy) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgPutPolicy) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	var grn grn2.GRN
+	err = grn.ParseFromString(msg.Resource, false)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
+	}
+
+	if msg.Principal.Type == permtypes.TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
+		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
+	}
+
+	err = msg.Principal.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
+	for _, s := range msg.Statements {
+		if s.Resources != nil {
+			for _, r := range s.Resources {
+				var grn grn2.GRN
+				err = grn.ParseFromString(r, true)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func NewMsgDeletePolicy(operator string, resource string, principal *permtypes.Principal) *MsgDeletePolicy {
+	return &MsgDeletePolicy{
+		Operator:  operator,
+		Resource:  resource,
+		Principal: principal,
+	}
+}
+
+func (msg *MsgDeletePolicy) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgDeletePolicy) Type() string {
+	return TypeMsgDeletePolicy
+}
+
+func (msg *MsgDeletePolicy) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgDeletePolicy) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgDeletePolicy) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	var grn grn2.GRN
+	err = grn.ParseFromString(msg.Resource, false)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
+	}
+
+	if msg.Principal.Type == permtypes.TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
+		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
 	return nil
 }

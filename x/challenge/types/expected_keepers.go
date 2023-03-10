@@ -22,10 +22,10 @@ type StakingKeeper interface {
 }
 
 type StorageKeeper interface {
-	GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (objectInfo storage.ObjectInfo, found bool)
-	GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (objectInfo storage.ObjectInfo, found bool)
+	GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (*storage.ObjectInfo, bool)
+	GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*storage.ObjectInfo, bool)
 	GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint
-	GetBucketInfo(ctx sdk.Context, bucketName string) (bucketInfo storage.BucketInfo, found bool)
+	GetBucketInfo(ctx sdk.Context, bucketName string) (*storage.BucketInfo, bool)
 	MaxSegmentSize(ctx sdk.Context) (res uint64)
 }
 

@@ -11,8 +11,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
+	"github.com/bnb-chain/greenfield/types/s3util"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 var _ = strconv.Itoa(0)
@@ -29,12 +29,12 @@ func CmdSubmit() *cobra.Command {
 			}
 
 			argBucketName := strings.TrimSpace(args[1])
-			if err := storagetypes.CheckValidBucketName(argBucketName); err != nil {
+			if err := s3util.CheckValidBucketName(argBucketName); err != nil {
 				return fmt.Errorf("bucket-name %s not a valid bucket name, please input a valid bucket-name", argBucketName)
 			}
 
 			argObjectName := strings.TrimSpace(args[2])
-			if err := storagetypes.CheckValidObjectName(argObjectName); err != nil {
+			if err := s3util.CheckValidObjectName(argObjectName); err != nil {
 				return fmt.Errorf("object-name %s not a valid object name, please input a valid object-name", argObjectName)
 			}
 

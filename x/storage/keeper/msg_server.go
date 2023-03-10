@@ -5,6 +5,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	types2 "github.com/bnb-chain/greenfield/types"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -264,12 +266,12 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdateGroupMember) (*types.MsgUpdateGroupMemberResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
 	}
 	// Now only allowed group owner to update member
-	err = k.Keeper.UpdateGroupMember(ctx, ownerAcc, msg.GroupName, UpdateGroupMemberOptions{
+	err = k.Keeper.UpdateGroupMember(ctx, operator, msg.GroupName, UpdateGroupMemberOptions{
 		SourceType:      types.SOURCE_TYPE_ORIGIN,
 		MembersToAdd:    msg.MembersToAdd,
 		MembersToDelete: msg.MembersToDelete,
@@ -279,4 +281,54 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil
+}
+
+func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*types.MsgPutPolicyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	var grn types2.GRN
+	err = grn.ParseFromString(msg.Resource, false)
+	if err != nil {
+		return nil, err
+	}
+
+	policy := &permtypes.Policy{
+		ResourceType: grn.ResourceType(),
+		Principal:    msg.Principal,
+		Statements:   msg.Statements,
+	}
+
+	policyID, err := k.Keeper.PutPolicy(ctx, operatorAddr, grn, policy)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgPutPolicyResponse{Id: policyID}, nil
+
+}
+
+func (k msgServer) DeletePolicy(goCtx context.Context, msg *types.MsgDeletePolicy) (*types.MsgDeletePolicyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	_ = ctx
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	var grn types2.GRN
+	err = grn.ParseFromString(msg.Resource, false)
+	if err != nil {
+		return nil, err
+	}
+
+	policyID, err := k.Keeper.DeletePolicy(ctx, operator, msg.Principal, grn)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgDeletePolicyResponse{Id: policyID}, nil
 }

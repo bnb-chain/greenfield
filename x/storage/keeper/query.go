@@ -3,13 +3,18 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -23,7 +28,7 @@ func (k Keeper) HeadBucket(goCtx context.Context, req *types.QueryHeadBucketRequ
 	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
 	if found {
 		return &types.QueryHeadBucketResponse{
-			BucketInfo: &bucketInfo,
+			BucketInfo: bucketInfo,
 		}, nil
 
 	}
@@ -43,7 +48,7 @@ func (k Keeper) HeadBucketById(goCtx context.Context, req *types.QueryHeadBucket
 	bucketInfo, found := k.GetBucketInfoById(ctx, id)
 	if found {
 		return &types.QueryHeadBucketResponse{
-			BucketInfo: &bucketInfo,
+			BucketInfo: bucketInfo,
 		}, nil
 
 	}
@@ -60,7 +65,7 @@ func (k Keeper) HeadObject(goCtx context.Context, req *types.QueryHeadObjectRequ
 	objectInfo, found := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
 	if found {
 		return &types.QueryHeadObjectResponse{
-			ObjectInfo: &objectInfo,
+			ObjectInfo: objectInfo,
 		}, nil
 	}
 	return nil, types.ErrNoSuchObject
@@ -80,7 +85,7 @@ func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObject
 	objectInfo, found := k.GetObjectInfoById(ctx, id)
 	if found {
 		return &types.QueryHeadObjectResponse{
-			ObjectInfo: &objectInfo,
+			ObjectInfo: objectInfo,
 		}, nil
 	}
 	return nil, types.ErrNoSuchObject
@@ -128,9 +133,9 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(req.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
-		objectInfo, found := k.GetObjectInfoById(ctx, types.DecodeSequence(value))
+		objectInfo, found := k.GetObjectInfoById(ctx, sequence.DecodeSequence(value))
 		if found {
-			objectInfos = append(objectInfos, objectInfo)
+			objectInfos = append(objectInfos, *objectInfo)
 		}
 		return nil
 	})
@@ -166,7 +171,7 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
 		objectInfo, found := k.GetObjectInfoById(ctx, types.DecodeSequence(value))
 		if found {
-			objectInfos = append(objectInfos, objectInfo)
+			objectInfos = append(objectInfos, *objectInfo)
 		}
 		return nil
 	})
@@ -231,4 +236,62 @@ func validateAndGetId(req *types.QueryNFTRequest) (math.Uint, error) {
 		return math.ZeroUint(), status.Error(codes.InvalidArgument, "invalid token id")
 	}
 	return id, nil
+}
+
+func (k Keeper) GetPolicy(goCtx context.Context, req *types.QueryGetPolicyRequest) (*types.QueryGetPolicyResponse,
+	error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	id, err := sdkmath.ParseUint(req.PolicyId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	policy, found := k.permKeeper.GetPolicyByID(ctx, id)
+	if !found {
+		return nil, types.ErrNoSuchPolicy.Wrapf("PolicyID: %s", id.String())
+	}
+
+	return &types.QueryGetPolicyResponse{Policy: policy}, nil
+}
+
+func (k Keeper) VerifyPermission(goCtx context.Context, req *types.QueryVerifyPermissionRequest) (*types.QueryVerifyPermissionResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator, err := sdk.AccAddressFromHexUnsafe(req.Operator)
+	if err != nil {
+		return nil, errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	if req.BucketName == "" {
+		return nil, errors.Wrapf(types.ErrInvalidParameter, "No bucket specified")
+	}
+
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	var effect permtypes.Effect
+	if req.ObjectName == "" {
+		effect = k.VerifyBucketPermission(ctx, bucketInfo, operator, req.ActionType, nil)
+	} else {
+		objectInfo, found := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
+		if !found {
+			return nil, types.ErrNoSuchObject
+		}
+		effect = k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, req.ActionType)
+	}
+
+	return &types.QueryVerifyPermissionResponse{
+		Effect: effect,
+	}, nil
 }

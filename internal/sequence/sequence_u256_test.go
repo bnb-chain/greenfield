@@ -1,4 +1,4 @@
-package keeper
+package sequence_test
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	dbm "github.com/tendermint/tm-db"
 
-	"github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/bnb-chain/greenfield/internal/sequence"
 )
 
 type MockContext struct {
@@ -43,17 +43,17 @@ func TestSequenceUniqueConstraint(t *testing.T) {
 	ctx := NewMockContext()
 	store := ctx.KVStore(sdk.NewKVStoreKey("test"))
 
-	seq := NewSequence([]byte{0x1})
+	seq := sequence.NewSequence256([]byte{0x1})
 	err := seq.InitVal(store, math.NewUint(0))
 	require.NoError(t, err)
 	err = seq.InitVal(store, math.NewUint(1))
-	require.True(t, types.ErrSequenceUniqueConstraint.Is(err))
+	require.True(t, sequence.ErrSequenceUniqueConstraint.Is(err))
 }
 
 func TestSequenceIncrements(t *testing.T) {
 	ctx := NewMockContext()
 	store := ctx.KVStore(sdk.NewKVStoreKey("test"))
-	seq := NewSequence([]byte{0x1})
+	seq := sequence.NewSequence256([]byte{0x1})
 	max := math.NewUint(10)
 	i := math.ZeroUint()
 	for i.LT(max) {

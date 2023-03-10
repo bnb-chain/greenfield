@@ -41,6 +41,8 @@ import (
 
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	permissionmodulekeeper "github.com/bnb-chain/greenfield/x/permission/keeper"
+	permissionmoduletypes "github.com/bnb-chain/greenfield/x/permission/types"
 	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
@@ -76,6 +78,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 		crosschaintypes.StoreKey,
 		sptypes.StoreKey,
 		paymentmoduletypes.StoreKey,
+		permissionmoduletypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
@@ -108,6 +111,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
 	paramKeeper.Subspace(sptypes.ModuleName)
+	paramKeeper.Subspace(permissionmoduletypes.ModuleName)
 	paramKeeper.Subspace(paymentmoduletypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
@@ -161,6 +165,14 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 		spKeeper,
 	)
 
+	permissionKeeper := permissionmodulekeeper.NewKeeper(
+		cdc,
+		storeKeys[permissionmoduletypes.ModuleName],
+		storeKeys[permissionmoduletypes.MemStoreKey],
+		GetSubspace(paramKeeper, permissionmoduletypes.ModuleName),
+		accountKeeper,
+	)
+
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
@@ -169,6 +181,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 		accountKeeper,
 		spKeeper,
 		paymentKeeper,
+		permissionKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())

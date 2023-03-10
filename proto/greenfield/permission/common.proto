@@ -1,0 +1,63 @@
+syntax = "proto3";
+package bnbchain.greenfield.permission;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
+
+// ActionType defines the operations you can execute in greenfield storage network
+enum ActionType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  ACTION_UPDATE_BUCKET_INFO = 0;
+  ACTION_DELETE_BUCKET = 1;
+
+  ACTION_CREATE_OBJECT = 2;
+  ACTION_DELETE_OBJECT = 3;
+  ACTION_COPY_OBJECT = 4;
+  ACTION_GET_OBJECT = 5;
+  ACTION_EXECUTE_OBJECT = 6;
+  ACTION_LIST_OBJECT = 7;
+
+  ACTION_UPDATE_GROUP_MEMBER = 8;
+  ACTION_DELETE_GROUP = 9;
+  ACTION_GROUP_MEMBER = 10;
+
+  ACTION_TYPE_ALL = 99;
+}
+
+// Effect define the effect of the operation permission, include Allow or deny
+enum Effect {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  EFFECT_ALLOW = 0;
+  EFFECT_DENY = 1;
+  // Use internally, means skipped. there is no explicit ALLOW or DENY, and further permission checks are required.
+  EFFECT_PASS = 2;
+}
+
+// TODO: add expiration time.
+message Statement {
+  // effect define the impact of permissions, which can be Allow/Deny
+  Effect effect = 1;
+  // action_type define the operation type you can act. greenfield defines a set of permission
+  // that you can specify in a permissionInfo. see ActionType enum for detail.
+  repeated ActionType actions = 2;
+  // resources define the resource list you can operate.
+  // CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
+  repeated string resources = 3;
+}
+
+enum PrincipalType {
+  option (gogoproto.goproto_enum_prefix) = false;
+  // Reserved for extended use
+  TYPE_GNFD_ACCOUNT = 0;
+  TYPE_GNFD_GROUP = 1;
+}
+
+// Principal define the roles that can grant permissions. Currently, it can be account or group.
+message Principal {
+  PrincipalType type = 1;
+  string value = 2;
+}
