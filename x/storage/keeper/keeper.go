@@ -71,7 +71,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAddress string, opts CreateBucketOptions) (sdkmath.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
@@ -90,7 +90,7 @@ func (k Keeper) CreateBucket(
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
-	err = k.VerifySPAndSignature(ctx, primarySpAddress, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, primarySpAcc, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -103,7 +103,7 @@ func (k Keeper) CreateBucket(
 		SourceType:       opts.SourceType,
 		ReadQuota:        opts.ReadQuota,
 		PaymentAddress:   paymentAcc.String(),
-		PrimarySpAddress: sdk.MustAccAddressFromHex(primarySpAddress).String(),
+		PrimarySpAddress: primarySpAcc.String(),
 	}
 
 	// charge by read quota
@@ -299,7 +299,8 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpAddress, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
+		opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -319,7 +320,7 @@ func (k Keeper) CreateObject(
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
-		ObjectStatus:         types.OBJECT_STATUS_INIT,
+		ObjectStatus:         types.OBJECT_STATUS_CREATED,
 		RedundancyType:       opts.RedundancyType, // TODO: base on redundancy policy
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,
@@ -359,6 +360,13 @@ func (k Keeper) CreateObject(
 		return objectInfo.Id, err
 	}
 	return objectInfo.Id, nil
+}
+
+func (k Keeper) GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.objectSeq.CurVal(store)
+	return seq
 }
 
 func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName string) (objectInfo types.ObjectInfo, found bool) {
@@ -412,7 +420,7 @@ func (k Keeper) SealObject(
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectAlreadyExists
 	}
 
@@ -426,7 +434,7 @@ func (k Keeper) SealObject(
 		}
 		secondarySps = append(secondarySps, spAcc.String())
 		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Checksums[i+1])
-		err = k.VerifySPAndSignature(ctx, spAcc.String(), sr.GetSignBytes(), opts.SecondarySpSignatures[i])
+		err = k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
 		if err != nil {
 			return err
 		}
@@ -439,7 +447,7 @@ func (k Keeper) SealObject(
 		return err
 	}
 
-	objectInfo.ObjectStatus = types.OBJECT_STATUS_IN_SERVICE
+	objectInfo.ObjectStatus = types.OBJECT_STATUS_SEALED
 
 	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	store := ctx.KVStore(k.storeKey)
@@ -475,7 +483,7 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectNotInit
 	}
 
@@ -528,7 +536,7 @@ func (k Keeper) DeleteObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_IN_SERVICE {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
 		return types.ErrObjectNotInService
 	}
 
@@ -594,7 +602,9 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpAddress, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(dstBucketInfo.PrimarySpAddress),
+		opts.ApprovalMsgBytes,
+		opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -608,7 +618,7 @@ func (k Keeper) CopyObject(
 		ContentType:    srcObjectInfo.ContentType,
 		CreateAt:       ctx.BlockHeight(),
 		Id:             k.GenNextObjectID(ctx),
-		ObjectStatus:   types.OBJECT_STATUS_INIT,
+		ObjectStatus:   types.OBJECT_STATUS_CREATED,
 		RedundancyType: srcObjectInfo.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      srcObjectInfo.Checksums,
@@ -651,7 +661,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_INIT {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectNotInit
 	}
 
@@ -852,11 +862,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, owner sdk.AccAddress, groupNa
 	return nil
 }
 
-func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAddr string, sigData []byte, signature []byte) error {
-	spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
-	if err != nil {
-		return err
-	}
+func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "spAddr: %s, status: %s", sp.OperatorAddress, sp.Status.String())

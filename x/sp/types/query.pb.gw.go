@@ -539,13 +539,13 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 var (
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "sp", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_StorageProviders_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "sp", "storage_providers"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_StorageProviders_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"greenfield", "storage_providers"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_QueryGetSpStoragePriceByTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "sp", "get_sp_storage_price_by_time", "sp_addr", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_QueryGetSecondarySpStorePriceByTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "sp", "get_secondary_sp_store_price_by_time", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_StorageProvider_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"bnb-chain", "greenfield", "sp", "storage_provider", "spAddress"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_StorageProvider_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"greenfield", "storage_provider", "spAddress"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

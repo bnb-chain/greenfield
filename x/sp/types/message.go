@@ -84,6 +84,11 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
+
+	err := IsValidEndpointURL(msg.Endpoint)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
+	}
 	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
 	}
@@ -134,6 +139,11 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
+	}
+
+	err = IsValidEndpointURL(msg.Endpoint)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
 	}
 	return nil
 }

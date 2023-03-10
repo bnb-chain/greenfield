@@ -26,6 +26,7 @@ type BaseSuite struct {
 	Client           *client.GreenfieldClient
 	TmClient         *client.TendermintClient
 	Validator        keys.KeyManager
+	Relayer          keys.KeyManager
 	StorageProviders []SPKeyManagers
 }
 
@@ -37,6 +38,8 @@ func (s *BaseSuite) SetupSuite() {
 	s.TmClient = &tmClient
 	var err error
 	s.Validator, err = keys.NewMnemonicKeyManager(s.Config.ValidatorMnemonic)
+	s.Require().NoError(err)
+	s.Relayer, err = keys.NewBlsMnemonicKeyManager(s.Config.RelayerMnemonic)
 	s.Require().NoError(err)
 	for _, spMnemonics := range s.Config.SPMnemonics {
 		sPKeyManagers := SPKeyManagers{}
@@ -55,15 +58,13 @@ func (s *BaseSuite) SetupSuite() {
 func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.TxResponse) {
 	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{
-		Mode:      &mode,
-		GasLimit:  1000000,
-		Memo:      "",
-		FeeAmount: sdk.Coins{{Denom: s.Config.Denom, Amount: types.NewIntFromInt64WithDecimal(1e6, types.DecimalGwei)}},
+		Mode: &mode,
+		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
-	s.T().Logf("tx_hash: %s", response.TxResponse.TxHash)
+	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
 	return response.TxResponse
 }

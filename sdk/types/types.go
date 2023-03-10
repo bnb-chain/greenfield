@@ -24,6 +24,7 @@ type TxOption struct {
 	Memo      string
 	FeeAmount sdk.Coins
 	FeePayer  sdk.AccAddress
+	Nonce     uint64
 }
 
 func NewIntFromInt64WithDecimal(amount int64, decimal int64) sdkmath.Int {

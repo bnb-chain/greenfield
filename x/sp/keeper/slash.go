@@ -13,7 +13,7 @@ func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types
 		return types.ErrStorageProviderNotFound
 	}
 
-	var totalAmount sdkmath.Int
+	totalAmount := sdkmath.NewInt(0)
 	for _, rewardInfo := range rewardInfos {
 		totalAmount.Add(rewardInfo.Amount.Amount)
 	}

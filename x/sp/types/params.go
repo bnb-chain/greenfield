@@ -2,7 +2,7 @@ package types
 
 import (
 	"errors"
-	fmt "fmt"
+	"fmt"
 	"math/big"
 	"strings"
 
@@ -14,8 +14,6 @@ import (
 
 // SP params default values
 const (
-	// Default maximum number of SP
-	DefaultMaxStorageProviders uint32 = 100
 	// Dafault deposit denom
 	DefaultDepositDenom = "BNB"
 )
@@ -37,23 +35,21 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(maxStorageProviders uint32, depositDenom string, minDeposit math.Int) Params {
+func NewParams(depositDenom string, minDeposit math.Int) Params {
 	return Params{
-		MaxStorageProviders: maxStorageProviders,
-		DepositDenom:        depositDenom,
-		MinDeposit:          minDeposit,
+		DepositDenom: depositDenom,
+		MinDeposit:   minDeposit,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultMaxStorageProviders, DefaultDepositDenom, DefaulMinDeposit)
+	return NewParams(DefaultDepositDenom, DefaulMinDeposit)
 }
 
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyMaxStorageProviders, &p.MaxStorageProviders, validateMaxStorageProviders),
 		paramtypes.NewParamSetPair(KeyDepostDenom, &p.DepositDenom, validateDepositDenom),
 		paramtypes.NewParamSetPair(KeyMinDeposit, &p.MinDeposit, validateMinDeposit),
 	}
@@ -61,10 +57,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	if err := validateMaxStorageProviders(p.MaxStorageProviders); err != nil {
-		return err
-	}
-
 	if err := validateDepositDenom(p.DepositDenom); err != nil {
 		return err
 	}
@@ -79,19 +71,6 @@ func (p Params) Validate() error {
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
-}
-
-func validateMaxStorageProviders(i interface{}) error {
-	v, ok := i.(uint32)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v == 0 {
-		return fmt.Errorf("max storage providers must be positive: %d", v)
-	}
-
-	return nil
 }
 
 func validateDepositDenom(i interface{}) error {

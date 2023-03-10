@@ -143,21 +143,21 @@ func (m *Description) GetDetails() string {
 // TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
 // TODO: add more account address for different role.
 type StorageProvider struct {
-	// operator_address defines the address of the sp's operator; It also is the unqiue index key of sp.
+	// operator_address defines the account address of the storage provider's operator; It also is the unique index key of sp.
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	// fund_address is the account address of the storage provider for deposit, remuneration.
+	// funding_address defines one of the storage provider's accounts which is used to deposit and reward.
 	FundingAddress string `protobuf:"bytes,2,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
-	// seal_address is the account address of the storage provider for sealObject
+	// seal_address defines one of the storage provider's accounts which is used to SealObject
 	SealAddress string `protobuf:"bytes,3,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
-	// approval_address is the account address of the storage provider for ack CreateBuclet/Object.
+	// approval_address defines one of the storage provider's accounts which is used to approve use's createBucket/createObject request
 	ApprovalAddress string `protobuf:"bytes,4,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
-	// total_deposit define the deposit token
+	// total_deposit defines the number of tokens deposited by this storage provider for staking.
 	TotalDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=total_deposit,json=totalDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_deposit"`
-	// status is the status of sp, which can be (in_service/read_only_service/graceful_exiting/out_of_service)
+	// status defines the current service status of this storage provider
 	Status Status `protobuf:"varint,6,opt,name=status,proto3,enum=bnbchain.greenfield.sp.Status" json:"status,omitempty"`
-	// endpoint is the service address of the storage provider
+	// endpoint define the storage provider's network service address
 	Endpoint string `protobuf:"bytes,7,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	// description defines the description terms for the validator.
+	// description defines the description terms for the storage provider.
 	Description Description `protobuf:"bytes,8,opt,name=description,proto3" json:"description"`
 }
 
