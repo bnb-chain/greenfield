@@ -4,8 +4,12 @@ go 1.18
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
+	cosmossdk.io/math v1.0.0-beta.3
+	github.com/bits-and-blooms/bitset v1.2.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.1
 	github.com/cosmos/cosmos-sdk v0.46.4
+	github.com/cosmos/go-bip39 v1.0.0
+	github.com/cosmos/gogoproto v1.4.6
 	github.com/cosmos/ibc-go/v5 v5.0.0
 	github.com/ethereum/go-ethereum v1.10.19
 	github.com/evmos/ethermint v0.6.1-0.20220919141022-34226aa7b1fa //TODO: update to ethermint v0.20.0 after it's released.
@@ -13,9 +17,14 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/ignite/cli v0.25.1
+	github.com/pkg/errors v0.9.1
+	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
+	github.com/rakyll/statik v0.1.7
+	github.com/samber/lo v1.37.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.6.0
 	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.13.0
 	github.com/stretchr/testify v1.8.1
 	github.com/tendermint/tendermint v0.34.22
 	github.com/tendermint/tm-db v0.6.7
@@ -23,19 +32,6 @@ require (
 	google.golang.org/grpc v1.53.0
 	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.3.0
-)
-
-require golang.org/x/text v0.7.0 // indirect
-
-require (
-	cosmossdk.io/math v1.0.0-beta.3
-	github.com/bits-and-blooms/bitset v1.2.0
-	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/gogoproto v1.4.6
-	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
-	github.com/rakyll/statik v0.1.7
-	github.com/samber/lo v1.37.0
-	github.com/spf13/viper v1.13.0
 )
 
 require (
@@ -169,7 +165,6 @@ require (
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
 	github.com/petermattis/goid v0.0.0-20180202154549-b0b1615b78e5 // indirect
-	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_golang v1.12.2 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -219,6 +214,7 @@ require (
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
+	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8 // indirect
@@ -232,7 +228,7 @@ require (
 replace (
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230228075616-68ac309b432c
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230309060234-a16dfc382563
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.9
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/tendermint/tendermint => github.com/bnb-chain/greenfield-tendermint v0.0.2
 )

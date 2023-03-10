@@ -1,5 +1,35 @@
 # Changelog
 
+## v0.0.7
+This release includes following features:
+1. Implement permission module;
+2. Implement challenge module;
+3. Refactor payment module;
+4. Storage module improvement;
+5. SP module improvement;
+
+* [\#70](https://github.com/bnb-chain/greenfield/pull/70) fix: Storage Provider account check
+* [\#81](https://github.com/bnb-chain/greenfield/pull/81) doc: add payment module doc
+* [\#80](https://github.com/bnb-chain/greenfield/pull/80) feat: add index by id for storage module
+* [\#82](https://github.com/bnb-chain/greenfield/pull/82) bugfix list object/bucket error
+* [\#85](https://github.com/bnb-chain/greenfield/pull/85) fix is non-empty bucket error
+* [\#79](https://github.com/bnb-chain/greenfield/pull/79) doc: add data availability challenge doc
+* [\#90](https://github.com/bnb-chain/greenfield/pull/90) feat: update default cross-chain transfer out fee
+* [\#83](https://github.com/bnb-chain/greenfield/pull/83) feat: enable querying bucket, object and group by id
+* [\#91](https://github.com/bnb-chain/greenfield/pull/91) complete acc address best practice
+* [\#92](https://github.com/bnb-chain/greenfield/pull/92) fix: update gas price and consensus params
+* [\#94](https://github.com/bnb-chain/greenfield/pull/94) feat: support customized nonce
+* [\#75](https://github.com/bnb-chain/greenfield/pull/75) doc: add SP and storage meta doc
+* [\#43](https://github.com/bnb-chain/greenfield/pull/43) feat: implement challenge module
+* [\#96](https://github.com/bnb-chain/greenfield/pull/96) docs: refine the document structure
+* [\#88](https://github.com/bnb-chain/greenfield/pull/88) feat: improve sp module
+* [\#95](https://github.com/bnb-chain/greenfield/pull/95) feat: update the crosschain keeper in bridge module
+* [\#87](https://github.com/bnb-chain/greenfield/pull/87) feat: refactor payment module
+* [\#97](https://github.com/bnb-chain/greenfield/pull/97) feat: update default parameters for challenge module
+* [\#93](https://github.com/bnb-chain/greenfield/pull/93) refactor: change addr in payment module from string to AccAccount
+* [\#68](https://github.com/bnb-chain/greenfield/pull/68) feat: Implement permission module
+* [\#89](https://github.com/bnb-chain/greenfield/pull/89) feat: Create storage provider in genesis by genesis transaction
+
 ## v0.0.6
 This release includes following features:
 1. Support cross chain governance;
