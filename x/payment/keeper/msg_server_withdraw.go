@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -33,6 +35,9 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return nil, err
+	}
+	if streamRecord.StaticBalance.IsNegative() {
+		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}
 	// bank transfer
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
