@@ -19,10 +19,10 @@ import (
 
 const flagGenTxDir = "gentx-dir"
 
-// CollectGenSPTxsCmd - return the cobra command to collect genesis transactions
-func CollectGenSPTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
+// CollectSPGenTxsCmd - return the cobra command to collect genesis transactions
+func CollectSPGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "collect-gensptxs",
+		Use:   "collect-spgentxs",
 		Short: "Collect genesis txs and output a genesis.json file",
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			serverCtx := server.GetServerContextFromCmd(cmd)

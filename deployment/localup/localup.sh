@@ -168,11 +168,11 @@ function generate_sp_genesis {
   fi
   for ((i=0;i<${sp_size};i++));do
     #create sp and sp fund account
-    sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spoperator_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
-    ${bin} add-genesis-account $sp_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
+    ${bin} add-genesis-account $spoperator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
@@ -184,19 +184,19 @@ function generate_sp_genesis {
     mkdir -p ${workspace}/.local/validator${i}/config/gensptx
 
     cp ${workspace}/.local/validator0/config/genesis.json ${workspace}/.local/sp${i}/config/
-    sp_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spoperator_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
     # create bond storage provider tx
-    ${bin} gensptx validator0 ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} \
-      --home ${workspace}/.local/validator0 \
-      --creator=${validator0Addr} \
-      --SPAddress=${sp_addr}\
-      --funding-address=${spfund_addr}\
-      --seal-address=${spseal_addr}\
-      --approval-address=${spapproval_addr}\
+    ${bin} spgentx sp${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} \
+      --home ${workspace}/.local/sp${i} \
+      --creator=${spoperator_addr} \
+      --operator-address=${spoperator_addr} \
+      --funding-address=${spfund_addr} \
+      --seal-address=${spseal_addr} \
+      --approval-address=${spapproval_addr} \
       --keyring-backend=test \
       --chain-id=${CHAIN_ID} \
       --moniker="sp${i}" \
@@ -208,14 +208,14 @@ function generate_sp_genesis {
       --ip 127.0.0.1 \
       --gas "" \
       --output-document=${workspace}/.local/gensptx/gentx-sp${i}.json \
-      --sequence=$((1+${i}))
+      --from sp${i}
   done
 
   node_ids=""
   # bond validator tx in genesis state
   for ((i=0;i<${size};i++));do
       cp ${workspace}/.local/gensptx/* ${workspace}/.local/validator${i}/config/gensptx/
-      ${bin} collect-gensptxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator${i}
+      ${bin} collect-spgentxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator${i}
       node_ids="$(${bin} tendermint show-node-id --home ${workspace}/.local/validator${i})@127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) ${node_ids}"
   done
 }

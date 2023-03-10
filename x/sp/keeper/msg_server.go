@@ -28,15 +28,6 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if ctx.BlockHeight() == 0 {
-		// TODO may add delegator address to check
-	} else {
-		signers := msg.GetSigners()
-		if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
-			return nil, types.ErrSignerNotGovModule
-		}
-	}
-
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
 		return nil, err
@@ -59,6 +50,18 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	approvalAcc, err := sdk.AccAddressFromHexUnsafe(msg.ApprovalAddress)
 	if err != nil {
 		return nil, err
+	}
+
+	if ctx.BlockHeight() == 0 {
+		signers := msg.GetSigners()
+		if len(signers) != 1 || !signers[0].Equals(spAcc) {
+			return nil, types.ErrSignerNotSPOperator
+		}
+	} else {
+		signers := msg.GetSigners()
+		if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
+			return nil, types.ErrSignerNotGovModule
+		}
 	}
 
 	if _, found := k.GetStorageProvider(ctx, spAcc); found {

@@ -3,7 +3,6 @@ package gensp
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -97,7 +96,6 @@ func DeliverGenTxs(
 	txEncodingConfig client.TxEncodingConfig,
 ) ([]abci.ValidatorUpdate, error) {
 	for _, genTx := range genTxs {
-		log.Println("xxx xx ------ DeliverGenTxs")
 		tx, err := txEncodingConfig.TxJSONDecoder()(genTx)
 		if err != nil {
 			return nil, fmt.Errorf("failed to decode GenTx '%s': %s", genTx, err)

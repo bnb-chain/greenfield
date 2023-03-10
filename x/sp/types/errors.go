@@ -20,4 +20,5 @@ var (
 	ErrSignerNotGovModule = errors.Register(ModuleName, 40, "signer is not gov module account")
 	ErrSignerEmpty        = errors.Register(ModuleName, 41, "signer is empty")
 	ErrInvalidEndpointURL = errors.Register(ModuleName, 42, "Invalid endpoint url")
+	ErrSignerNotSPOperator = errors.Register(ModuleName, 43, "signer is not sp operator account")
 )

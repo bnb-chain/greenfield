@@ -217,6 +217,7 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 
 	fsCreateStorageProvider.String(FlagCreator, "", "The creator address of storage provider")
 	fsCreateStorageProvider.String(FlagSpAddress, "", "The account address of storage provider")
+	fsCreateStorageProvider.String(FlagOperatorAddress, "", "The operator address of storage provider")
 	fsCreateStorageProvider.String(FlagFundingAddress, "", "The funding address of storage provider")
 	fsCreateStorageProvider.String(FlagSealAddress, "", "The seal address of storage provider")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
@@ -294,12 +295,12 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	c.Details = details
 
 	// spAddress
-	spAddress, err := flagSet.GetString(FlagSpAddress)
-	fmt.Println(spAddress)
+	operatorAddress, err := flagSet.GetString(FlagOperatorAddress)
+	fmt.Println(operatorAddress)
 	if err != nil {
 		return c, err
 	}
-	addr, err = sdk.AccAddressFromHexUnsafe(spAddress)
+	addr, err = sdk.AccAddressFromHexUnsafe(operatorAddress)
 	if err != nil {
 		return c, err
 	}

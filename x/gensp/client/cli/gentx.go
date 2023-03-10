@@ -28,13 +28,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 )
 
-// GenSPTxCmd builds the application's gentx command.
-func GenSPTxCmd(mbm module.BasicManager, txEncCfg client.TxEncodingConfig, genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
+// SPGenTxCmd builds the application's gentx command.
+func SPGenTxCmd(mbm module.BasicManager, txEncCfg client.TxEncodingConfig, genBalIterator types.GenesisBalancesIterator, defaultNodeHome string) *cobra.Command {
 	ipDefault, _ := server.ExternalIP()
 	fsCreateStorageProvider, defaultsDesc := cli.CreateStorageProviderMsgFlagSet(ipDefault)
 
 	cmd := &cobra.Command{
-		Use:   "gensptx [key_name] [amount]",
+		Use:   "spgentx [key_name] [amount]",
 		Short: "Generate a genesis tx that creates a storage provider",
 		Args:  cobra.ExactArgs(2),
 		Long: fmt.Sprintf(`Generate a genesis transaction that creates a storage provider,
@@ -44,15 +44,16 @@ file. The following default parameters are included:
     %s
 
 Example:
-$ %s gentx validator0 10000000000000000000000000BNB --home ./deployment/localup/.local/validator0 \
-	--creator=0x4b52ec14817A6C1B7733264e936D5D6Bf1d3fEC4 --SPAddress=0x76330E9C31D8B91a8247a9bbA2959815D3008417 \
+$ %s gentx sp0 10000000000000000000000000BNB --home ./deployment/localup/.local/sp0 \
+	--creator=0x76330E9C31D8B91a8247a9bbA2959815D3008417 \
+	--operator-address=0x76330E9C31D8B91a8247a9bbA2959815D3008417 \
 	--funding-address=0x52C30AA52788ec9C8F36C3774C1F50702BCa59b9 \
 	--seal-address=0x419D46b3aA67Dc9075c4FEC4c456fd29697CB897 \
 	--approval-address=0x68a60866C1e98e277a7389c9Ad90c10cb56debc9 \
 	--keyring-backend=test --chain-id=greenfield_9000-121 \
-	--moniker=sp2 --details=sp2 --website=http://website --endpoint="http://127.0.0.1:9033" \
-	--node tcp://localhost:26752 --node-id sp2 --ip 127.0.0.1 \
-	--gas '' --output-document=./deployment/localup/.local/gensptx/gentx-sp2.json --sequence=3
+	--moniker=sp0 --details=sp0 --website=http://website --endpoint="http://127.0.0.1:9033" \
+	--node tcp://localhost:26752 --node-id sp0 --ip 127.0.0.1 \
+	--gas '' --output-document=./deployment/localup/.local/gensptx/gentx-sp0.json --from sp0
 `, defaultsDesc, version.AppName,
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {

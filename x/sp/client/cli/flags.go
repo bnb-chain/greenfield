@@ -3,6 +3,7 @@ package cli
 const (
 	FlagSpendLimit      = "spend-limit"
 	FlagSpAddress       = "SPAddress"
+	FlagOperatorAddress = "operator-address"
 	FlagFundingAddress  = "funding-address"
 	FlagSealAddress     = "seal-address"
 	FlagApprovalAddress = "approval-address"
