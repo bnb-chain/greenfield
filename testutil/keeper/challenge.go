@@ -121,6 +121,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, paymenttypes.ModuleName),
 		bankKeeper,
 		accountKeeper,
+		spKeeper,
 	)
 
 	storageKeeper := storagekeeper.NewKeeper(

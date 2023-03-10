@@ -39,13 +39,14 @@ func TestChallengeTestSuite(t *testing.T) {
 
 func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []sdk.AccAddress) {
 	var err error
+	sp := s.StorageProviders[0]
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := "ch" + core.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, false, s.StorageProvider.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
-	msgCreateBucket.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
 
@@ -81,7 +82,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
-	msgCreateObject.PrimarySpApproval.Sig, err = s.StorageProvider.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
 
@@ -97,22 +98,22 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 
 	// SealObject
 	secondarySPs := []sdk.AccAddress{
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
-		s.StorageProvider.OperatorKey.GetAddr(), s.StorageProvider.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
-	msgSealObject := storagetypes.NewMsgSealObject(s.StorageProvider.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(s.StorageProvider.OperatorKey.GetAddr(), checksum)
-	secondarySig, err := s.StorageProvider.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProvider.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
 	s.Require().NoError(err)
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
-	s.SendTxBlock(msgSealObject, s.StorageProvider.SealKey)
+	s.SendTxBlock(msgSealObject, sp.SealKey)
 
 	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
 	s.Require().NoError(err)
@@ -120,7 +121,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
-	return bucketName, objectName, s.StorageProvider.OperatorKey.GetAddr(), secondarySPs
+	return bucketName, objectName, sp.OperatorKey.GetAddr(), secondarySPs
 }
 
 func (s *ChallengeTestSuite) TestSubmit() {

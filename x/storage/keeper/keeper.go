@@ -362,7 +362,7 @@ func (k Keeper) CreateObject(
 	return objectInfo.Id, nil
 }
 
-func (k Keeper) GetObjectInfoCount(ctx sdk.Context) math.Uint {
+func (k Keeper) GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint {
 	store := ctx.KVStore(k.storeKey)
 
 	seq := k.objectSeq.CurVal(store)
