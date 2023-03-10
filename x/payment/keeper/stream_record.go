@@ -246,7 +246,9 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		return fmt.Errorf("stream account %s status is not frozen", streamRecord.Account)
 	}
 	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(depositBalance)
-	reserveTime := k.GetParams(ctx).ReserveTime
+	params := k.GetParams(ctx)
+	reserveTime := params.ReserveTime
+	forcedSettleTime := params.ForcedSettleTime
 	totalRates := sdkmath.ZeroInt()
 	for _, flow := range streamRecord.OutFlows {
 		totalRates = totalRates.Add(flow.Rate)
@@ -260,11 +262,11 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	// resume
 	now := ctx.BlockTime().Unix()
 	streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
-	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRates).Int64()
+	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRates).Int64() - int64(forcedSettleTime)
 	streamRecord.NetflowRate = totalRates.Neg()
 	streamRecord.BufferBalance = expectedBalanceToResume
 	streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(expectedBalanceToResume)
-	streamRecord.CrudTimestamp = ctx.BlockTime().Unix()
+	streamRecord.CrudTimestamp = now
 	for _, flow := range streamRecord.OutFlows {
 		change := types.NewDefaultStreamRecordChangeWithAddr(flow.ToAddress).WithRateChange(flow.Rate)
 		_, err := k.UpdateStreamRecordByAddr(ctx, change)
