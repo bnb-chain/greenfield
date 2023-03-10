@@ -117,19 +117,6 @@ func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTx
 
 		appGenTxs = append(appGenTxs, genTx)
 
-		// the memo flag is used to store
-		// the ip and node-id, for example this may be:
-		// "528fd3df22b31f4969b05652bfe8f0fe921321d5@192.168.2.37:26656"
-
-		//memoTx, ok := genTx.(sdk.TxWithMemo)
-		//if !ok {
-		//	return appGenTxs, persistentPeers, fmt.Errorf("expected TxWithMemo, got %T", genTx)
-		//}
-		//nodeAddrIP := memoTx.GetMemo()
-		//if len(nodeAddrIP) == 0 {
-		//	return appGenTxs, persistentPeers, fmt.Errorf("failed to find node's address and IP in %s", fo.Name())
-		//}
-
 		// genesis transactions must be single-message
 		msgs := genTx.GetMsgs()
 
@@ -168,11 +155,6 @@ func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTx
 				delBal.GetAddress().String(), delBal.GetCoins().AmountOf(msg.Deposit.Denom), msg.Deposit.Amount,
 			)
 		}
-
-		// exclude itself from persistent peers
-		//if msg.Description.Moniker != moniker {
-		//	addressesIPs = append(addressesIPs, nodeAddrIP)
-		//}
 	}
 
 	sort.Strings(addressesIPs)

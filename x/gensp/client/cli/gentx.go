@@ -119,11 +119,7 @@ $ %s gentx sp0 10000000000000000000000000BNB --home ./deployment/localup/.local/
 
 			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
 
-			pub, err := key.GetAddress()
-			if err != nil {
-				return err
-			}
-			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(pub)
+			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(addr)
 
 			createSpCfg.Deposit = amount
 
