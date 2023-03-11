@@ -13,17 +13,21 @@ Export the accounts private key of sp
 $ bash ./deployment/localup/localup.sh export_sp_privkey 1 1
 ```
 
-check the status of sp
-
-```shell
-bash ./deployment/localup/localup.sh sp_check 1
-```
-
 ## Create Storage Provider
 
-* Authorize the Gov Module Account to debit tokens from the Funding account of SP
+### Prepare 4 account addresses in advance
+
+Each storage provide will hold 4 account which for different uses.
+
+* OperatorAddress: For edit the information of the StorageProvider
+* FundingAddress: For deposit staking tokens and receive earnings
+* SealAddress: For seal user's object
+* ApprovalAddress: For approve user's requests.
+
+### Authorize the Gov Module Account to debit tokens from the Funding account of SP
 
 ```shell
+# Gov module account is 0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2 by default
 ./build/bin/gnfd tx sp grant 0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2 --spend-limit 1000000bnb --SPAddress 0x78FeF615b06251ecfA9Ba01B7DB2BFA892722dDC --from sp0_fund --home ./deployment/localup/.local/sp0 --keyring-backend test --node http://localhost:26750
 ```
 
