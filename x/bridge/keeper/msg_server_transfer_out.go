@@ -52,7 +52,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 
 	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
-		encodedPackage, relayerFeeAmount, ackRelayerFeeAmount, big.NewInt(0))
+		encodedPackage, relayerFeeAmount, ackRelayerFeeAmount)
 	if err != nil {
 		return nil, err
 	}
