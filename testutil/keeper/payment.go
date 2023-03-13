@@ -1,9 +1,9 @@
 package keeper
 
 import (
-	"math/rand"
 	"testing"
 
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/store"
@@ -12,6 +12,7 @@ import (
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
@@ -24,6 +25,8 @@ import (
 
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
@@ -31,6 +34,8 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		banktypes.StoreKey,
 		authtypes.StoreKey,
 		paramstypes.StoreKey,
+		sptypes.StoreKey,
+		authz.ModuleName,
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
 	storeKey := sdk.NewKVStoreKey(types.StoreKey)
@@ -54,6 +59,7 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(authtypes.ModuleName)
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
+	paramKeeper.Subspace(sptypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
@@ -76,6 +82,21 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
 	)
+	authzKeeper := authzkeeper.NewKeeper(
+		storeKeys[authz.ModuleName],
+		cdc,
+		baseapp.NewMsgServiceRouter(),
+		accountKeeper,
+	)
+	spKeeper := spkeeper.NewKeeper(
+		cdc,
+		storeKeys[sptypes.ModuleName],
+		storeKeys[sptypes.MemStoreKey],
+		GetSubspace(paramKeeper, sptypes.ModuleName),
+		accountKeeper,
+		bankKeeper,
+		authzKeeper,
+	)
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
@@ -83,6 +104,7 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		paramsSubspace,
 		bankKeeper,
 		accountKeeper,
+		spKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
@@ -91,14 +113,4 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	k.SetParams(ctx, types.DefaultParams())
 
 	return k, ctx
-}
-
-func GetRandomAddress() string {
-	b := make([]byte, 20)
-	// #nosec
-	_, err := rand.Read(b)
-	if err != nil {
-		panic(err)
-	}
-	return sdk.AccAddress(b).String()
 }

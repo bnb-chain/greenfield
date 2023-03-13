@@ -1,0 +1,15 @@
+syntax = "proto3";
+package bnbchain.greenfield.resource;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/types/resource";
+
+enum ResourceType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  RESOURCE_TYPE_BUCKET = 0;
+  RESOURCE_TYPE_OBJECT = 1;
+  RESOURCE_TYPE_GROUP = 2;
+}

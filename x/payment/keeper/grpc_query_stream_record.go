@@ -46,13 +46,17 @@ func (k Keeper) StreamRecord(c context.Context, req *types.QueryGetStreamRecordR
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	account, err := sdk.AccAddressFromHexUnsafe(req.Account)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid account")
+	}
 	val, found := k.GetStreamRecord(
 		ctx,
-		req.Account,
+		account,
 	)
 	if !found {
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetStreamRecordResponse{StreamRecord: val}, nil
+	return &types.QueryGetStreamRecordResponse{StreamRecord: *val}, nil
 }

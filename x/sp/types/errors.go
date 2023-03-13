@@ -15,7 +15,10 @@ var (
 	ErrStorageProviderFundingAddrExists  = errors.Register(ModuleName, 7, "StorageProvider already exist for this funding address; must use new StorageProvider funding address.")
 	ErrStorageProviderSealAddrExists     = errors.Register(ModuleName, 8, "StorageProvider already exist for this seal address; must use new StorageProvider seal address.")
 	ErrStorageProviderApprovalAddrExists = errors.Register(ModuleName, 9, "StorageProvider already exist for this approval address; must use new StorageProvider approval address.")
+	ErrStorageProviderPriceExpired       = errors.Register(ModuleName, 10, "StorageProvider price expired")
 
-	ErrSignerNotGovModule = errors.Register(ModuleName, 40, "signer is not gov module account")
-	ErrSignerEmpty        = errors.Register(ModuleName, 41, "signer is empty")
+	ErrSignerNotGovModule  = errors.Register(ModuleName, 40, "signer is not gov module account")
+	ErrSignerEmpty         = errors.Register(ModuleName, 41, "signer is empty")
+	ErrInvalidEndpointURL  = errors.Register(ModuleName, 42, "Invalid endpoint url")
+	ErrSignerNotSPOperator = errors.Register(ModuleName, 43, "signer is not sp operator account")
 )

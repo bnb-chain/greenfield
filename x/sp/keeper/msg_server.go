@@ -26,13 +26,7 @@ var _ types.MsgServer = msgServer{}
 
 // CreateStorageProvider defines a method for creating a new storage provider
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
-	// TODO: check if a valid endpoint
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	signers := msg.GetSigners()
-	if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
-		return nil, types.ErrSignerNotGovModule
-	}
 
 	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
 	if err != nil {
@@ -56,6 +50,18 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	approvalAcc, err := sdk.AccAddressFromHexUnsafe(msg.ApprovalAddress)
 	if err != nil {
 		return nil, err
+	}
+
+	if ctx.BlockHeight() == 0 {
+		signers := msg.GetSigners()
+		if len(signers) != 1 || !signers[0].Equals(spAcc) {
+			return nil, types.ErrSignerNotSPOperator
+		}
+	} else {
+		signers := msg.GetSigners()
+		if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
+			return nil, types.ErrSignerNotGovModule
+		}
 	}
 
 	if _, found := k.GetStorageProvider(ctx, spAcc); found {
@@ -113,12 +119,26 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	k.SetStorageProvider(ctx, sp)
-	k.SetStorageProviderByApprovalAddr(ctx, sp)
-	k.SetStorageProviderByFundingAddr(ctx, sp)
-	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
+	k.SetStorageProviderByApprovalAddr(ctx, &sp)
+	k.SetStorageProviderByFundingAddr(ctx, &sp)
+	k.SetStorageProviderBySealAddr(ctx, &sp)
 
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
+	// set initial sp storage price
+	spStoragePrice := types.SpStoragePrice{
+		SpAddress:     spAcc.String(),
+		UpdateTime:    ctx.BlockTime().Unix(),
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
+	}
+	k.SetSpStoragePrice(ctx, spStoragePrice)
+	err = k.UpdateSecondarySpStorePrice(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpAddress:       spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
@@ -161,7 +181,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	sp.Description = description
 
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
 		OldEndpoint: oldEndpoint,
@@ -203,7 +223,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	// Add to storage provider's deposit tokens and update the storage provider.
 	sp.TotalDeposit = sp.TotalDeposit.Add(msg.Deposit.Amount)
-	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProvider(ctx, &sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
 		SpAddress:    msg.SpAddress,
@@ -213,4 +233,22 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, err
 	}
 	return &types.MsgDepositResponse{}, nil
+}
+
+func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpdateSpStoragePrice) (*types.MsgUpdateSpStoragePriceResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	current := ctx.BlockTime().Unix()
+	spStorePrice := types.SpStoragePrice{
+		UpdateTime:    current,
+		SpAddress:     msg.SpAddress,
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
+	}
+	k.SetSpStoragePrice(ctx, spStorePrice)
+	err := k.UpdateSecondarySpStorePrice(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "update secondary sp store price failed")
+	}
+	return &types.MsgUpdateSpStoragePriceResponse{}, nil
 }

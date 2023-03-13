@@ -87,14 +87,22 @@ import (
 
 	"github.com/bnb-chain/greenfield/app/ante"
 	appparams "github.com/bnb-chain/greenfield/app/params"
-	"github.com/bnb-chain/greenfield/docs"
+	docs "github.com/bnb-chain/greenfield/swagger"
 	"github.com/bnb-chain/greenfield/version"
 	bridgemodule "github.com/bnb-chain/greenfield/x/bridge"
 	bridgemodulekeeper "github.com/bnb-chain/greenfield/x/bridge/keeper"
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	challengemodule "github.com/bnb-chain/greenfield/x/challenge"
+	challengemodulekeeper "github.com/bnb-chain/greenfield/x/challenge/keeper"
+	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
+	"github.com/bnb-chain/greenfield/x/gensp"
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
 	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	permissionmodule "github.com/bnb-chain/greenfield/x/permission"
+	permissionmodulekeeper "github.com/bnb-chain/greenfield/x/permission/keeper"
+	permissionmoduletypes "github.com/bnb-chain/greenfield/x/permission/types"
 	spmodule "github.com/bnb-chain/greenfield/x/sp"
 	spmodulekeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
 	spmoduletypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -140,6 +148,7 @@ var (
 		auth.AppModuleBasic{},
 		authzmodule.AppModuleBasic{},
 		genutil.AppModuleBasic{},
+		gensp.AppModuleBasic{},
 		bank.AppModuleBasic{},
 		staking.AppModuleBasic{},
 		distr.AppModuleBasic{},
@@ -154,23 +163,26 @@ var (
 		gashub.AppModuleBasic{},
 		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
+		permissionmodule.AppModuleBasic{},
 		storagemodule.AppModuleBasic{},
+		challengemodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:     nil,
-		distrtypes.ModuleName:          nil,
-		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:            {authtypes.Burner},
-		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		paymentmoduletypes.ModuleName:  {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-		crosschaintypes.ModuleName:     {authtypes.Minter},
-		bridgemoduletypes.ModuleName:   nil,
+		authtypes.FeeCollectorName:       nil,
+		distrtypes.ModuleName:            nil,
+		stakingtypes.BondedPoolName:      {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:   {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:              {authtypes.Burner},
+		ibctransfertypes.ModuleName:      {authtypes.Minter, authtypes.Burner},
+		paymentmoduletypes.ModuleName:    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		crosschaintypes.ModuleName:       {authtypes.Minter},
+		permissionmoduletypes.ModuleName: nil,
+		bridgemoduletypes.ModuleName:     nil,
+		spmoduletypes.ModuleName:         {authtypes.Staking},
 		// this line is used by starport scaffolding # stargate/app/maccPerms
-		spmoduletypes.ModuleName: {authtypes.Staking},
 	}
 )
 
@@ -222,10 +234,12 @@ type App struct {
 	OracleKeeper     oraclekeeper.Keeper
 	GashubKeeper     gashubkeeper.Keeper
 
-	BridgeKeeper  bridgemodulekeeper.Keeper
-	SpKeeper      spmodulekeeper.Keeper
-	PaymentKeeper paymentmodulekeeper.Keeper
-	StorageKeeper storagemodulekeeper.Keeper
+	BridgeKeeper           bridgemodulekeeper.Keeper
+	SpKeeper               spmodulekeeper.Keeper
+	PaymentKeeper          paymentmodulekeeper.Keeper
+	ChallengeKeeper        challengemodulekeeper.Keeper
+	PermissionmoduleKeeper permissionmodulekeeper.Keeper
+	StorageKeeper          storagemodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
@@ -280,11 +294,13 @@ func New(
 		gashubtypes.StoreKey,
 		spmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
+		permissionmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
+		challengemoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
-	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
+	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, challengemoduletypes.TStoreKey)
+	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, challengemoduletypes.MemStoreKey)
 
 	app := &App{
 		BaseApp:           bApp,
@@ -460,8 +476,19 @@ func New(
 
 		app.BankKeeper,
 		app.AccountKeeper,
+		app.SpKeeper,
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
+
+	app.PermissionmoduleKeeper = *permissionmodulekeeper.NewKeeper(
+		appCodec,
+		keys[permissionmoduletypes.StoreKey],
+		keys[permissionmoduletypes.MemStoreKey],
+		app.GetSubspace(permissionmoduletypes.ModuleName),
+
+		app.AccountKeeper,
+	)
+	permissionModule := permissionmodule.NewAppModule(appCodec, app.PermissionmoduleKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
 		appCodec,
@@ -471,8 +498,23 @@ func New(
 		app.AccountKeeper,
 		app.SpKeeper,
 		app.PaymentKeeper,
+		app.PermissionmoduleKeeper,
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
+
+	app.ChallengeKeeper = *challengemodulekeeper.NewKeeper(
+		appCodec,
+		keys[challengemoduletypes.StoreKey],
+		memKeys[challengemoduletypes.MemStoreKey],
+		tkeys[challengemoduletypes.TStoreKey],
+		app.GetSubspace(challengemoduletypes.ModuleName),
+		app.BankKeeper,
+		app.StorageKeeper,
+		app.SpKeeper,
+		app.StakingKeeper,
+		app.PaymentKeeper,
+	)
+	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
@@ -489,6 +531,8 @@ func New(
 			app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig,
 		),
+		gensp.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
+			encodingConfig.TxConfig),
 		auth.NewAppModule(appCodec, app.AccountKeeper, nil),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
 		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper),
@@ -505,7 +549,10 @@ func New(
 		gashubModule,
 		spModule,
 		paymentModule,
+		permissionModule,
 		storageModule,
+		challengeModule,
+
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -532,7 +579,10 @@ func New(
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
+		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
+		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
@@ -554,7 +604,11 @@ func New(
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
+		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
+		challengemoduletypes.ModuleName,
+
 		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
@@ -581,7 +635,10 @@ func New(
 		bridgemoduletypes.ModuleName,
 		spmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
+		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
+		gensptypes.ModuleName,
+		challengemoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -610,7 +667,9 @@ func New(
 		gashubModule,
 		spModule,
 		paymentModule,
+		permissionModule,
 		storageModule,
+		challengeModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
@@ -845,7 +904,9 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(gashubtypes.ModuleName)
 	paramsKeeper.Subspace(spmoduletypes.ModuleName)
 	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
+	paramsKeeper.Subspace(permissionmoduletypes.ModuleName)
 	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
+	paramsKeeper.Subspace(challengemoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 	return paramsKeeper
 }

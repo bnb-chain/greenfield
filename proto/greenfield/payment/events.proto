@@ -3,17 +3,58 @@ package bnbchain.greenfield.payment;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "greenfield/payment/base.proto";
+import "greenfield/payment/stream_record.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
-// EventCreatePaymentAccount is emitted on MsgCreatePaymentAccount
-message EventCreatePaymentAccount {
+message EventPaymentAccountUpdate {
   // address of the payment account
   string addr = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // owner address of the payment account
   string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // index of the payment account of the owner
-  uint64 index = 3;
+  // whether the payment account is refundable
+  bool refundable = 3;
+}
+
+// Stream Payment Record of a stream account
+message EventStreamRecordUpdate {
+  // account address
+  string account = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // latest update timestamp of the stream record
+  int64 crud_timestamp = 2;
+  // The per-second rate that an account's balance is changing.
+  // It is the sum of the account's inbound and outbound flow rates.
+  string netflow_rate = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // The balance of the stream account at the latest CRUD timestamp.
+  string static_balance = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // reserved balance of the stream account
+  // If the netflow rate is negative, the reserved balance is `netflow_rate * reserve_time`
+  string buffer_balance = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // the locked balance of the stream account after it puts a new object and before the object is sealed
+  string lock_balance = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // the status of the stream account
+  StreamAccountStatus status = 7;
+  // the unix timestamp when the stream account will be settled
+  int64 settle_timestamp = 8;
+  // the accumulated outflow rates of the stream account
+  repeated OutFlow out_flows = 9 [(gogoproto.nullable) = false];
 }
 
 // EventForceSettle may be emitted on all Msgs and EndBlocker when a payment account's
@@ -25,6 +66,32 @@ message EventForceSettle {
   // if the balance is positive, it will go to the governance stream account
   // if the balance is negative, it's the debt of the system, which will be paid by the governance stream account
   string settled_balance = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventDeposit {
+  // from is the the address of the account to deposit from
+  string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // to is the address of the stream account to deposit to
+  string to = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // amount is the amount to deposit
+  string amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventWithdraw {
+  // to the address of the receive account
+  string to = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // from is the address of the stream account to withdraw from
+  string from = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // amount is the amount to withdraw
+  string amount = 3 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false

@@ -43,7 +43,7 @@ func (s *PaymentTestSuite) TestPaymentAccount() {
 	}
 	paymentAccount, err := s.Client.PaymentAccount(ctx, &queryGetPaymentAccountRequest)
 	s.Require().NoError(err)
-	s.T().Log(paymentAccount)
+	s.T().Logf("payment account: %s", core.YamlString(paymentAccount.PaymentAccount))
 	s.Require().Equal(user.GetAddr().String(), paymentAccount.PaymentAccount.Owner)
 	s.Require().Equal(true, paymentAccount.PaymentAccount.Refundable)
 	// set this payment account to non-refundable
@@ -55,7 +55,7 @@ func (s *PaymentTestSuite) TestPaymentAccount() {
 	// query this payment account
 	paymentAccount, err = s.Client.PaymentAccount(ctx, &queryGetPaymentAccountRequest)
 	s.Require().NoError(err)
-	s.T().Log(paymentAccount)
+	s.T().Logf("payment account: %s", core.YamlString(paymentAccount.PaymentAccount))
 	s.Require().Equal(false, paymentAccount.PaymentAccount.Refundable)
 }
 

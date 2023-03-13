@@ -10,12 +10,14 @@ const (
 	TypeMsgCreateStorageProvider = "create_storage_provider"
 	TypeMsgEditStorageProvider   = "edit_storage_provider"
 	TypeMsgDeposit               = "deposit"
+	TypeMsgUpdateSpStoragePrice  = "update_sp_storage_price"
 )
 
 var (
 	_ sdk.Msg = &MsgCreateStorageProvider{}
 	_ sdk.Msg = &MsgEditStorageProvider{}
 	_ sdk.Msg = &MsgDeposit{}
+	_ sdk.Msg = &MsgUpdateSpStoragePrice{}
 )
 
 // NewMsgCreateStorageProvider creates a new MsgCreateStorageProvider instance.
@@ -25,7 +27,7 @@ var (
 func NewMsgCreateStorageProvider(
 	creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress,
-	description Description, endpoint string, deposit sdk.Coin) (*MsgCreateStorageProvider, error) {
+	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
 		Creator:         creator.String(),
 		SpAddress:       SpAddress.String(),
@@ -35,6 +37,9 @@ func NewMsgCreateStorageProvider(
 		Description:     description,
 		Endpoint:        endpoint,
 		Deposit:         deposit,
+		ReadPrice:       readPrice,
+		FreeReadQuota:   freeReadQuota,
+		StorePrice:      storePrice,
 	}, nil
 }
 
@@ -81,6 +86,14 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
+	}
+
+	err := IsValidEndpointURL(msg.Endpoint)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
+	}
+	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
 	}
 	return nil
 }
@@ -130,6 +143,11 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
+
+	err = IsValidEndpointURL(msg.Endpoint)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
+	}
 	return nil
 }
 
@@ -177,5 +195,37 @@ func (msg *MsgDeposit) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
 
+	return nil
+}
+
+func (msg *MsgUpdateSpStoragePrice) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgUpdateSpStoragePrice) Type() string {
+	return TypeMsgUpdateSpStoragePrice
+}
+
+func (msg *MsgUpdateSpStoragePrice) GetSigners() []sdk.AccAddress {
+	spAddr, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{spAddr}
+}
+
+func (msg *MsgUpdateSpStoragePrice) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgUpdateSpStoragePrice) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
+	}
+	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
+	}
 	return nil
 }

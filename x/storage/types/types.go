@@ -7,6 +7,12 @@ import (
 	sdkmath "cosmossdk.io/math"
 )
 
+const (
+	SecondarySPNum = 6
+	// MinChargeSize is the minimum size to charge for a storage object
+	MinChargeSize = 1024
+)
+
 type (
 	Int  = sdkmath.Int
 	Uint = sdkmath.Uint

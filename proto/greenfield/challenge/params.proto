@@ -1,0 +1,63 @@
+syntax = "proto3";
+package bnbchain.greenfield.challenge;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.goproto_stringer) = false;
+
+  // Challenges which will be emitted in each block, including user triggered or randomly triggered.
+  uint64 challenge_count_per_block = 1 [(gogoproto.moretags) = "yaml:\"challenge_count_per_block\""];
+
+  // The count of blocks to stand for the period in which the same storage and object info cannot be slashed again.
+  uint64 slash_cooling_off_period = 2 [(gogoproto.moretags) = "yaml:\"slash_cooling_off_period\""];
+
+  // The slash coin amount will be calculated from the size of object info, and adjusted by this rate.
+  string slash_amount_size_rate = 3 [
+    (gogoproto.moretags) = "yaml:\"slash_amount_size_rate\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+
+  // The minimal slash amount.
+  string slash_amount_min = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // The maximum slash amount.
+  string slash_amount_max = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // The ratio of slash amount for all validator rewards.
+  string reward_validator_ratio = 6 [
+    (gogoproto.moretags) = "yaml:\"reward_validator_ratio\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+
+  // The ratio of reward amount for submitter rewards.
+  string reward_submitter_ratio = 7 [
+    (gogoproto.moretags) = "yaml:\"reward_challenger_ratio\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+
+  // The reward amount to submitter will be adjusted by the threshold.
+  string reward_submitter_threshold = 8 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // Heartbeat interval defines the frequency of heartbeat based on challenges.
+  uint64 heartbeat_interval = 9 [(gogoproto.moretags) = "yaml:\"heartbeat_interval\""];
+}

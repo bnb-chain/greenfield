@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
@@ -30,6 +31,10 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdHeadObject())
 	cmd.AddCommand(CmdListBuckets())
 	cmd.AddCommand(CmdListObjects())
+
+	cmd.AddCommand(CmdGetPolicy())
+
+	cmd.AddCommand(CmdVerifyPermission())
 
 	// this line is used by starport scaffolding # 1
 
@@ -156,6 +161,43 @@ func CmdListObjects() *cobra.Command {
 			}
 
 			res, err := queryClient.ListObjects(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdGetPolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "bucket-policy [policy-id]",
+		Short: "Query bucket-policy",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqPolicyId := args[0]
+
+			ID, err := math.ParseUint(reqPolicyId)
+			if err != nil {
+				return err
+			}
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryGetPolicyRequest{
+				PolicyId: ID.String(),
+			}
+
+			res, err := queryClient.GetPolicy(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

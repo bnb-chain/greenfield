@@ -1,0 +1,12 @@
+syntax = "proto3";
+package bnbchain.greenfield.permission;
+
+import "gogoproto/gogo.proto";
+import "greenfield/permission/params.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
+
+// GenesisState defines the permission module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+}

@@ -7,7 +7,7 @@ import (
 type CreateBucketOptions struct {
 	IsPublic          bool
 	SourceType        types.SourceType
-	ReadQuota         types.ReadQuota
+	ReadQuota         uint64
 	PaymentAddress    string
 	PrimarySpApproval *types.Approval
 	ApprovalMsgBytes  []byte
@@ -19,7 +19,7 @@ type DeleteBucketOptions struct {
 
 type UpdateBucketOptions struct {
 	SourceType     types.SourceType
-	ReadQuota      types.ReadQuota
+	ReadQuota      uint64
 	PaymentAddress string
 }
 

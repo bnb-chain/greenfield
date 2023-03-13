@@ -3,20 +3,12 @@ package core
 import (
 	"fmt"
 	"math/rand"
-	"time"
-	"unsafe"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
+	"sigs.k8s.io/yaml"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
-)
-
-const letterBytes = "abcdefghijklmnopqrstuvwxyz01234569"
-const (
-	letterIdxBits = 6                    // 6 bits to represent a letter index
-	letterIdxMask = 1<<letterIdxBits - 1 // All 1-bits, as many as letterIdxBits
-	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
 func GenRandomAddr() sdk.AccAddress {
@@ -42,32 +34,15 @@ func GenRandomKeyManager() keys.KeyManager {
 	return keyManager
 }
 
-var src = rand.NewSource(time.Now().UnixNano())
-
-func randString(n int) string {
-	b := make([]byte, n)
-	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
-	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
-		if remain == 0 {
-			cache, remain = src.Int63(), letterIdxMax
-		}
-		if idx := int(cache & letterIdxMask); idx < len(letterBytes) {
-			b[i] = letterBytes[idx]
-			i--
-		}
-		cache >>= letterIdxBits
-		remain--
+func YamlString(data interface{}) string {
+	bz, err := yaml.Marshal(data)
+	if err != nil {
+		panic(err)
 	}
-
-	return *(*string)(unsafe.Pointer(&b))
+	return string(bz)
 }
 
-// GenRandomObjectName generate random object name.
-func GenRandomObjectName() string {
-	return randString(10)
-}
-
-// GenRandomBucketName generate random bucket name.
-func GenRandomBucketName() string {
-	return randString(5)
+// RandInt64 generate random int64 between min and max
+func RandInt64(min, max int64) int64 {
+	return min + rand.Int63n(max-min)
 }

@@ -3,9 +3,13 @@ package types
 import (
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	types2 "github.com/bnb-chain/greenfield/types"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	"github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 var (
@@ -41,7 +45,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
 			},
-			err: ErrInvalidBucketName,
+			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
@@ -52,7 +56,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
 			},
-			err: ErrInvalidBucketName,
+			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
@@ -63,7 +67,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
 			},
-			err: ErrInvalidBucketName,
+			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
@@ -74,7 +78,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
 			},
-			err: ErrInvalidBucketName,
+			err: gnfderrors.ErrInvalidBucketName,
 		},
 	}
 	for _, tt := range tests {
@@ -107,7 +111,7 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 				Operator:   sample.AccAddress(),
 				BucketName: "testBucket",
 			},
-			err: ErrInvalidBucketName,
+			err: gnfderrors.ErrInvalidBucketName,
 		},
 	}
 	for _, tt := range tests {
@@ -134,7 +138,7 @@ func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 				Operator:       sample.AccAddress(),
 				BucketName:     testBucketName,
 				PaymentAddress: sample.AccAddress(),
-				ReadQuota:      READ_QUOTA_FREE,
+				ReadQuota:      0,
 			},
 		},
 	}
@@ -182,7 +186,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
-			err: ErrInvalidObjectName,
+			err: gnfderrors.ErrInvalidObjectName,
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
@@ -196,7 +200,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
-			err: ErrInvalidObjectName,
+			err: gnfderrors.ErrInvalidObjectName,
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
@@ -210,7 +214,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
 			},
-			err: ErrInvalidObjectName,
+			err: gnfderrors.ErrInvalidObjectName,
 		},
 	}
 	for _, tt := range tests {
@@ -457,6 +461,62 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 				GroupName:       testGroupName,
 				MembersToAdd:    []string{sample.AccAddress(), sample.AccAddress()},
 				MembersToDelete: []string{sample.AccAddress(), sample.AccAddress()},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgPutPolicy_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgPutPolicy
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgPutPolicy{
+				Operator:  sample.AccAddress(),
+				Resource:  types2.NewBucketGRN(testBucketName).String(),
+				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
+				Statements: []*types.Statement{{Effect: types.EFFECT_ALLOW,
+					Actions: []types.ActionType{types.ACTION_DELETE_BUCKET}}},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgDeletePolicy_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgDeletePolicy
+		err  error
+	}{
+		{
+			name: "valid address",
+			msg: MsgDeletePolicy{
+				Operator:  sample.AccAddress(),
+				Resource:  types2.NewBucketGRN(testBucketName).String(),
+				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
 			},
 		},
 	}

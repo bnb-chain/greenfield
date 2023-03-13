@@ -14,6 +14,12 @@ func AccAddress() string {
 	return sdk.AccAddress(addr).String()
 }
 
+func RandAccAddress() sdk.AccAddress {
+	pk := ed25519.GenPrivKey().PubKey()
+	addr := pk.Address()
+	return sdk.AccAddress(addr)
+}
+
 func Checksum() []byte {
 	return sdk.Keccak256(RandStr(256))
 }
