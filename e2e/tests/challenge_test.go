@@ -229,9 +229,9 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		}
 
 		if len(events) > 0 {
-			fmt.Println("Current challenge id", events[len(events)-1].ChallengeId)
+			s.T().Logf("current challenge id: %d", events[len(events)-1].ChallengeId)
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(1 * time.Second)
 	}
 
 	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())

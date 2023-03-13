@@ -231,5 +231,5 @@ replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.11
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/tendermint/tendermint => github.com/bnb-chain/greenfield-tendermint v0.0.2
+	github.com/tendermint/tendermint => github.com/bnb-chain/greenfield-tendermint v0.0.0-20230313062749-468c55f18729
 )
