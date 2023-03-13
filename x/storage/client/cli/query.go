@@ -13,7 +13,7 @@ import (
 )
 
 // TODO: Support List bucket/object/group with pagination.
-// TODO: Support GetGroup
+// TODO: Support HeadGroup
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
@@ -198,6 +198,36 @@ func CmdGetPolicy() *cobra.Command {
 			}
 
 			res, err := queryClient.GetPolicy(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdVerifyPermission() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "verify-permission",
+		Short: "Query verify-permission",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryVerifyPermissionRequest{}
+
+			res, err := queryClient.VerifyPermission(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
