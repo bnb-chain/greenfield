@@ -260,7 +260,7 @@ func (k Keeper) QueryPolicyForAccount(goCtx context.Context, req *types.QueryPol
 
 	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithAccount(principalAcc))
 	if err != nil {
-		return nil, types.ErrNoSuchPolicy
+		return nil, err
 	}
 
 	return &types.QueryPolicyForAccountResponse{Policy: policy}, nil
@@ -287,7 +287,7 @@ func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolic
 
 	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithGroup(id))
 	if err != nil {
-		return nil, types.ErrNoSuchPolicy
+		return nil, err
 	}
 	return &types.QueryPolicyForGroupResponse{Policy: policy}, nil
 }

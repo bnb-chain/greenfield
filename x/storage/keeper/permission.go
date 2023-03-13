@@ -141,8 +141,8 @@ func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes
 		return nil, permtypes.ErrInvalidPrincipal
 	}
 
-	if found {
-		return nil, types.ErrNoSuchPolicy
+	if !found {
+		return nil, types.ErrNoSuchPolicy.Wrapf("GRN: %s, principal:%s", grn.String(), principal.String())
 	}
 	return policy, nil
 }
