@@ -92,6 +92,61 @@ func (k Keeper) VerifyGroupPermission(ctx sdk.Context, groupInfo *types.GroupInf
 	return permtypes.EFFECT_DENY
 }
 
+func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes.Principal) (*permtypes.Policy, error) {
+	var resID math.Uint
+	switch grn.ResourceType() {
+	case gnfdresource.RESOURCE_TYPE_BUCKET:
+		bucketName, grnErr := grn.GetBucketName()
+		if grnErr != nil {
+			return nil, grnErr
+		}
+		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+		if !found {
+			return nil, types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+		}
+		resID = bucketInfo.Id
+	case gnfdresource.RESOURCE_TYPE_OBJECT:
+		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
+		if grnErr != nil {
+			return nil, grnErr
+		}
+		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+		if !found {
+			return nil, types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
+		}
+
+		resID = objectInfo.Id
+	case gnfdresource.RESOURCE_TYPE_GROUP:
+		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
+		if grnErr != nil {
+			return nil, grnErr
+		}
+		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
+		if !found {
+			return nil, types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
+		}
+		resID = groupInfo.Id
+	default:
+		return nil, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	}
+
+	var policy *permtypes.Policy
+	var found bool
+	if principal.Type == permtypes.TYPE_GNFD_ACCOUNT {
+		policy, found = k.permKeeper.GetPolicyForAccount(ctx, resID, grn.ResourceType(),
+			principal.MustGetAccountAddress())
+	} else if principal.Type == permtypes.TYPE_GNFD_GROUP {
+		policy, found = k.permKeeper.GetPolicyForGroup(ctx, resID, grn.ResourceType(), principal.MustGetGroupID())
+	} else {
+		return nil, permtypes.ErrInvalidPrincipal
+	}
+
+	if found {
+		return nil, types.ErrNoSuchPolicy
+	}
+	return policy, nil
+}
+
 func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 	policy *permtypes.Policy) (math.Uint, error) {
 

@@ -4,16 +4,12 @@ import (
 	"context"
 	"fmt"
 
-	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
-
-// TODO: Support List bucket/object/group with pagination.
-// TODO: Support HeadGroup
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
@@ -31,10 +27,10 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdHeadObject())
 	cmd.AddCommand(CmdListBuckets())
 	cmd.AddCommand(CmdListObjects())
-
-	cmd.AddCommand(CmdGetPolicy())
-
 	cmd.AddCommand(CmdVerifyPermission())
+	cmd.AddCommand(CmdHeadGroup())
+	cmd.AddCommand(CmdListGroup())
+	cmd.AddCommand(CmdHeadGroupMember())
 
 	// this line is used by starport scaffolding # 1
 
@@ -156,48 +152,10 @@ func CmdListObjects() *cobra.Command {
 			queryClient := types.NewQueryClient(clientCtx)
 
 			params := &types.QueryListObjectsRequest{
-
 				BucketName: reqBucketName,
 			}
 
 			res, err := queryClient.ListObjects(cmd.Context(), params)
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdGetPolicy() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "bucket-policy [policy-id]",
-		Short: "Query bucket-policy",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			reqPolicyId := args[0]
-
-			ID, err := math.ParseUint(reqPolicyId)
-			if err != nil {
-				return err
-			}
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			queryClient := types.NewQueryClient(clientCtx)
-
-			params := &types.QueryGetPolicyRequest{
-				PolicyId: ID.String(),
-			}
-
-			res, err := queryClient.GetPolicy(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
@@ -228,6 +186,96 @@ func CmdVerifyPermission() *cobra.Command {
 			params := &types.QueryVerifyPermissionRequest{}
 
 			res, err := queryClient.VerifyPermission(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdHeadGroup() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "head-group",
+		Short: "Query head-group",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryHeadGroupRequest{}
+
+			res, err := queryClient.HeadGroup(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdListGroup() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-group",
+		Short: "Query list-group",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryListGroupRequest{}
+
+			res, err := queryClient.ListGroup(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdHeadGroupMember() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "head-group-member",
+		Short: "Query head-group-member",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryHeadGroupMemberRequest{}
+
+			res, err := queryClient.HeadGroupMember(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

@@ -5,7 +5,7 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	sdkmath "cosmossdk.io/math"
+	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	"github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -101,14 +102,14 @@ func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRe
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var bucketInfos []types.BucketInfo
+	var bucketInfos []*types.BucketInfo
 	store := ctx.KVStore(k.storeKey)
 	bucketStore := prefix.NewStore(store, types.BucketByIDPrefix)
 
 	pageRes, err := query.Paginate(bucketStore, req.Pagination, func(key []byte, value []byte) error {
 		var bucketInfo types.BucketInfo
 		k.cdc.MustUnmarshal(value, &bucketInfo)
-		bucketInfos = append(bucketInfos, bucketInfo)
+		bucketInfos = append(bucketInfos, &bucketInfo)
 		return nil
 	})
 
@@ -128,14 +129,14 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	}
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var objectInfos []types.ObjectInfo
+	var objectInfos []*types.ObjectInfo
 	store := ctx.KVStore(k.storeKey)
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(req.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
 		objectInfo, found := k.GetObjectInfoById(ctx, sequence.DecodeSequence(value))
 		if found {
-			objectInfos = append(objectInfos, *objectInfo)
+			objectInfos = append(objectInfos, objectInfo)
 		}
 		return nil
 	})
@@ -156,7 +157,7 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	var objectInfos []types.ObjectInfo
+	var objectInfos []*types.ObjectInfo
 	store := ctx.KVStore(k.storeKey)
 	id, err := math.ParseUint(req.BucketId)
 	if err != nil {
@@ -171,7 +172,7 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
 		objectInfo, found := k.GetObjectInfoById(ctx, types.DecodeSequence(value))
 		if found {
-			objectInfos = append(objectInfos, *objectInfo)
+			objectInfos = append(objectInfos, objectInfo)
 		}
 		return nil
 	})
@@ -238,7 +239,8 @@ func validateAndGetId(req *types.QueryNFTRequest) (math.Uint, error) {
 	return id, nil
 }
 
-func (k Keeper) GetPolicy(goCtx context.Context, req *types.QueryGetPolicyRequest) (*types.QueryGetPolicyResponse,
+func (k Keeper) QueryPolicyForAccount(goCtx context.Context, req *types.QueryPolicyForAccountRequest) (*types.
+	QueryPolicyForAccountResponse,
 	error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -246,17 +248,48 @@ func (k Keeper) GetPolicy(goCtx context.Context, req *types.QueryGetPolicyReques
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	id, err := sdkmath.ParseUint(req.PolicyId)
+	principalAcc, err := sdk.AccAddressFromHexUnsafe(req.PrincipalAddress)
 	if err != nil {
+		return nil, err
+	}
+	var grn gnfd.GRN
+	err = grn.ParseFromString(req.Resource, false)
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithAccount(principalAcc))
+	if err != nil {
+		return nil, types.ErrNoSuchPolicy
+	}
+
+	return &types.QueryPolicyForAccountResponse{Policy: policy}, nil
+}
+
+func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolicyForGroupRequest) (*types.
+	QueryPolicyForGroupResponse, error) {
+	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	policy, found := k.permKeeper.GetPolicyByID(ctx, id)
-	if !found {
-		return nil, types.ErrNoSuchPolicy.Wrapf("PolicyID: %s", id.String())
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	id, err := math.ParseUint(req.PrincipalGroupId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid group id")
 	}
 
-	return &types.QueryGetPolicyResponse{Policy: policy}, nil
+	var grn gnfd.GRN
+	err = grn.ParseFromString(req.Resource, false)
+	if err != nil {
+		return nil, err
+	}
+
+	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithGroup(id))
+	if err != nil {
+		return nil, types.ErrNoSuchPolicy
+	}
+	return &types.QueryPolicyForGroupResponse{Policy: policy}, nil
 }
 
 func (k Keeper) VerifyPermission(goCtx context.Context, req *types.QueryVerifyPermissionRequest) (*types.QueryVerifyPermissionResponse, error) {
@@ -294,4 +327,82 @@ func (k Keeper) VerifyPermission(goCtx context.Context, req *types.QueryVerifyPe
 	return &types.QueryVerifyPermissionResponse{
 		Effect: effect,
 	}, nil
+}
+
+func (k Keeper) HeadGroup(goCtx context.Context, req *types.QueryHeadGroupRequest) (*types.QueryHeadGroupResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	owner, err := sdk.AccAddressFromHexUnsafe(req.GroupOwner)
+	if err != nil {
+		return nil, err
+	}
+	groupInfo, found := k.GetGroupInfo(ctx, owner, req.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+	return &types.QueryHeadGroupResponse{GroupInfo: groupInfo}, nil
+}
+
+func (k Keeper) ListGroup(goCtx context.Context, req *types.QueryListGroupRequest) (*types.QueryListGroupResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
+		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	owner, err := sdk.AccAddressFromHexUnsafe(req.GroupOwner)
+	if err != nil {
+		return nil, err
+	}
+
+	var groupInfos []*types.GroupInfo
+	store := ctx.KVStore(k.storeKey)
+	groupStore := prefix.NewStore(store, types.GetGroupKeyOnlyOwnerPrefix(owner))
+
+	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key []byte, value []byte) error {
+		var groupInfo types.GroupInfo
+		k.cdc.MustUnmarshal(value, &groupInfo)
+		groupInfos = append(groupInfos, &groupInfo)
+		return nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryListGroupResponse{GroupInfos: groupInfos, Pagination: pageRes}, nil
+}
+
+func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroupMemberRequest) (*types.QueryHeadGroupMemberResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	member, err := sdk.AccAddressFromHexUnsafe(req.Member)
+	if err != nil {
+		return nil, err
+	}
+	owner, err := sdk.AccAddressFromHexUnsafe(req.GroupOwner)
+	if err != nil {
+		return nil, err
+	}
+	groupInfo, found := k.GetGroupInfo(ctx, owner, req.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+	policy, found := k.permKeeper.GetPolicyForAccount(ctx, groupInfo.Id, resource.RESOURCE_TYPE_GROUP, member)
+	if !found || policy.MemberStatement == nil {
+		return nil, types.ErrNoSuchGroupMember
+	}
+	return &types.QueryHeadGroupMemberResponse{GroupInfo: groupInfo}, nil
 }

@@ -42,9 +42,11 @@ type PermissionKeeper interface {
 	DeletePolicy(ctx sdk.Context, principal *permtypes.Principal, resourceType resource.ResourceType,
 		resourceID math.Uint) (math.Uint, error)
 	VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, operator sdk.AccAddress,
-		action permtypes.ActionType,
-		resource *string) permtypes.Effect
+		action permtypes.ActionType, resource *string) permtypes.Effect
 	AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error
 	RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress)
 	GetPolicyByID(ctx sdk.Context, policyID math.Uint) (*permtypes.Policy, bool)
+	GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) (policy *permtypes.Policy, isFound bool)
+	GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
+		groupID math.Uint) (policy *permtypes.Policy, isFound bool)
 }

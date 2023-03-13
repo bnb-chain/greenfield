@@ -26,60 +26,60 @@ func KeyPrefix(p string) []byte {
 }
 
 var (
-	BucketPolicyToAccountPrefix = []byte{0x11}
-	ObjectPolicyToAccountPrefix = []byte{0x12}
-	GroupPolicyToAccountPrefix  = []byte{0x13}
+	BucketPolicyForAccountPrefix = []byte{0x11}
+	ObjectPolicyForAccountPrefix = []byte{0x12}
+	GroupPolicyForAccountPrefix  = []byte{0x13}
 
-	BucketPolicyToGroupPrefix = []byte{0x21}
-	ObjectPolicyToGroupPrefix = []byte{0x22}
+	BucketPolicyForGroupPrefix = []byte{0x21}
+	ObjectPolicyForGroupPrefix = []byte{0x22}
 
 	PolicyByIDPrefix = []byte{0x31}
 
 	PolicySequencePrefix = []byte{0x41}
 )
 
-func GetPolicyToAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
+func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
-		return GetBucketPolicyToAccountKey(resourceID, addr)
+		return GetBucketPolicyForAccountKey(resourceID, addr)
 	case resource.RESOURCE_TYPE_OBJECT:
-		return GetObjectPolicyToAccountKey(resourceID, addr)
+		return GetObjectPolicyForAccountKey(resourceID, addr)
 	case resource.RESOURCE_TYPE_GROUP:
-		return GetGroupPolicyToAccountKey(resourceID, addr)
+		return GetGroupPolicyForAccountKey(resourceID, addr)
 	default:
 		return nil
 	}
 }
 
-func GetBucketPolicyToAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(BucketPolicyToAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+func GetBucketPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
+	return append(BucketPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
 }
 
-func GetObjectPolicyToAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(ObjectPolicyToAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+func GetObjectPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
+	return append(ObjectPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
 }
 
-func GetGroupPolicyToAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(GroupPolicyToAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+func GetGroupPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
+	return append(GroupPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
 }
 
-func GetPolicyToGroupKey(resourceID math.Uint, resourceType resource.ResourceType) []byte {
+func GetPolicyForGroupKey(resourceID math.Uint, resourceType resource.ResourceType) []byte {
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
-		return GetBucketPolicyToGroupKey(resourceID)
+		return GetBucketPolicyForGroupKey(resourceID)
 	case resource.RESOURCE_TYPE_OBJECT:
-		return GetObjectPolicyToGroupKey(resourceID)
+		return GetObjectPolicyForGroupKey(resourceID)
 	default:
 		return nil
 	}
 }
 
-func GetBucketPolicyToGroupKey(resourceID math.Uint) []byte {
-	return append(BucketPolicyToGroupPrefix, resourceID.Bytes()...)
+func GetBucketPolicyForGroupKey(resourceID math.Uint) []byte {
+	return append(BucketPolicyForGroupPrefix, resourceID.Bytes()...)
 }
 
-func GetObjectPolicyToGroupKey(resourceID math.Uint) []byte {
-	return append(ObjectPolicyToGroupPrefix, resourceID.Bytes()...)
+func GetObjectPolicyForGroupKey(resourceID math.Uint) []byte {
+	return append(ObjectPolicyForGroupPrefix, resourceID.Bytes()...)
 }
 
 func GetPolicyByIDKey(policyID math.Uint) []byte {
