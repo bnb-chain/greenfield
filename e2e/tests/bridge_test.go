@@ -10,11 +10,9 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
 
-	types2 "github.com/bnb-chain/greenfield/sdk/types"
-
-	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
-
 	"github.com/bnb-chain/greenfield/e2e/core"
+	types2 "github.com/bnb-chain/greenfield/sdk/types"
+	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
 type BridgeTestSuite struct {
