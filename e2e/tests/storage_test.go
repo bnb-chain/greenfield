@@ -599,7 +599,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 		To:      paymentAddr,
 		Amount:  depositAmount2,
 	}
-	_ = s.SendTxBlock(msgDeposit2, user)
+	s.SendTxBlock(msgDeposit2, user)
 	// check payment account stream record
 	paymentAccountStreamRecordAfterDeposit2 := s.GetStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecordAfterDeposit2 %s", core.YamlString(paymentAccountStreamRecordAfterDeposit2))
