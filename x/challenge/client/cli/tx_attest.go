@@ -22,7 +22,7 @@ func CmdAttest() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "attest [challenge-id] [object-id] [sp-operator-address] [vote-result] [challenger-address] [vote-validator-set] [vote-agg-signature]",
 		Short: "Broadcast message attest",
-		Args:  cobra.ExactArgs(6),
+		Args:  cobra.ExactArgs(7),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argChallengeId, err := strconv.ParseUint(args[0], 10, 64)
 			if err != nil {
