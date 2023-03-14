@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.0.8
+
+This release includes following features:
+1. Add enhancements to storage module;
+2. Revert the related changes about the callbackGasprice;
+
+* [\#100](https://github.com/bnb-chain/greenfield/pull/100) revert: revert the related changes about the callbackGasprice
+* [\#102](https://github.com/bnb-chain/greenfield/pull/102) feat: Enhancement storage module
+
 ## v0.0.7
 This release includes following features:
 1. Implement permission module;

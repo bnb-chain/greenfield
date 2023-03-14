@@ -59,7 +59,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
-	policy, found := k.getPolicyToAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member)
+	policy, found := k.GetPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member)
 	if !found {
 		policy = types.NewDefaultPolicyForGroupMember(groupID, member)
 		policy.Id = k.policySeq.NextVal(store)
@@ -77,11 +77,11 @@ func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 
-	policy, found := k.getPolicyToAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member)
+	policy, found := k.GetPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member)
 	if found {
 		if policy.Statements == nil {
 			store.Delete(types.GetPolicyByIDKey(policy.Id))
-			store.Delete(types.GetPolicyToAccountKey(groupID, resource.RESOURCE_TYPE_GROUP, member))
+			store.Delete(types.GetPolicyForAccountKey(groupID, resource.RESOURCE_TYPE_GROUP, member))
 		} else {
 			policy.MemberStatement = nil
 			store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
@@ -99,7 +99,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 	store := ctx.KVStore(k.storeKey)
 
 	if policy.Principal.Type == types.TYPE_GNFD_ACCOUNT {
-		policyKey := types.GetPolicyToAccountKey(policy.ResourceId, policy.ResourceType,
+		policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
 			policy.Principal.MustGetAccountAddress())
 		bz := store.Get(policyKey)
 		if bz != nil {
@@ -112,7 +112,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 			store.Set(types.GetPolicyByIDKey(policy.Id), bz)
 		}
 	} else if policy.Principal.Type == types.TYPE_GNFD_GROUP {
-		policyGroupKey := types.GetPolicyToGroupKey(policy.ResourceId, policy.ResourceType)
+		policyGroupKey := types.GetPolicyForGroupKey(policy.ResourceId, policy.ResourceType)
 		bz := store.Get(policyGroupKey)
 		if bz != nil {
 			policyGroup := types.PolicyGroup{}
@@ -173,11 +173,11 @@ func (k Keeper) MustGetPolicyByID(ctx sdk.Context, policyID math.Uint) *types.Po
 	return policy
 }
 
-func (k Keeper) getPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
+func (k Keeper) GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	resourceType resource.ResourceType, addr sdk.AccAddress) (policy *types.Policy,
 	isFound bool) {
 	store := ctx.KVStore(k.storeKey)
-	policyKey := types.GetPolicyToAccountKey(resourceID, resourceType, addr)
+	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
 
 	bz := store.Get(policyKey)
 	if bz == nil {
@@ -187,10 +187,31 @@ func (k Keeper) getPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
 	return k.GetPolicyByID(ctx, sequence.DecodeSequence(bz))
 }
 
+func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
+	resourceType resource.ResourceType, groupID math.Uint) (policy *types.Policy,
+	isFound bool) {
+	store := ctx.KVStore(k.storeKey)
+	policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+
+	bz := store.Get(policyGroupKey)
+	if bz == nil {
+		return policy, false
+	}
+
+	var policyGroup types.PolicyGroup
+	k.cdc.MustUnmarshal(bz, &policyGroup)
+	for _, item := range policyGroup.Items {
+		if item.GroupId == groupID {
+			return k.GetPolicyByID(ctx, item.PolicyId)
+		}
+	}
+	return nil, false
+}
+
 func (k Keeper) setPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
 	resourceType resource.ResourceType, addr sdk.AccAddress, policy *types.Policy) {
 	store := ctx.KVStore(k.storeKey)
-	policyKey := types.GetPolicyToAccountKey(resourceID, resourceType, addr)
+	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
 
 	store.Set(policyKey, sequence.EncodeSequence(policy.Id))
 	store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
@@ -199,7 +220,7 @@ func (k Keeper) setPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
 func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
 	operator sdk.AccAddress, action types.ActionType, resource *string) types.Effect {
 	// verify policy which grant permission to account
-	policy, found := k.getPolicyToAccount(ctx, resourceID, resourceType, operator)
+	policy, found := k.GetPolicyForAccount(ctx, resourceID, resourceType, operator)
 	if found {
 		effect := policy.Eval(action, resource)
 		if effect != types.EFFECT_PASS {
@@ -209,7 +230,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 
 	// verify policy which grant permission to group
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetPolicyToGroupKey(resourceID, resourceType))
+	bz := store.Get(types.GetPolicyForGroupKey(resourceID, resourceType))
 	policyGroup := types.PolicyGroup{}
 	k.cdc.MustUnmarshal(bz, &policyGroup)
 
@@ -220,7 +241,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 		effect := p.Eval(action, resource)
 		if effect != types.EFFECT_PASS {
 			// check the operator is the member of this group
-			groupPolicy, found := k.getPolicyToAccount(ctx, item.GroupId, resourceType, operator)
+			groupPolicy, found := k.GetPolicyForAccount(ctx, item.GroupId, resourceType, operator)
 			if found {
 				memberEffect := groupPolicy.Eval(types.ACTION_GROUP_MEMBER, nil)
 				if memberEffect != types.EFFECT_PASS {
@@ -247,7 +268,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 	var policyID math.Uint
 	if principal.Type == types.TYPE_GNFD_ACCOUNT {
 		accAddr := sdk.MustAccAddressFromHex(principal.Value)
-		policyKey := types.GetPolicyToAccountKey(resourceID, resourceType, accAddr)
+		policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, accAddr)
 		bz := store.Get(policyKey)
 		policyID = sequence.DecodeSequence(bz)
 		if bz != nil {
@@ -259,7 +280,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		if err != nil {
 			return math.ZeroUint(), err
 		}
-		bz := store.Get(types.GetPolicyToGroupKey(resourceID, resourceType))
+		bz := store.Get(types.GetPolicyForGroupKey(resourceID, resourceType))
 		if bz != nil {
 			policyGroup := types.PolicyGroup{}
 			k.cdc.MustUnmarshal(bz, &policyGroup)
