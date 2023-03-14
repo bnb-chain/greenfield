@@ -19,6 +19,7 @@ const (
 	TypeMsgCreateBucket     = "create_bucket"
 	TypeMsgDeleteBucket     = "delete_bucket"
 	TypeMsgUpdateBucketInfo = "update_bucket_info"
+	TypeMsgMirrorBucket     = "mirror_bucket"
 
 	// For object
 	TypeMsgCopyObject         = "copy_object"
@@ -27,12 +28,14 @@ const (
 	TypeMsgSealObject         = "seal_object"
 	TypeMsgRejectSealObject   = "reject_seal_object"
 	TypeMsgCancelCreateObject = "cancel_create_object"
+	TypeMsgMirrorObject       = "mirror_object"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
 	TypeMsgDeleteGroup       = "delete_group"
 	TypeMsgLeaveGroup        = "leave_group"
 	TypeMsgUpdateGroupMember = "update_group_member"
+	TypeMsgMirrorGroup       = "mirror_group"
 
 	// For permission policy
 	TypeMsgPutPolicy    = "put_policy"
@@ -46,6 +49,8 @@ var (
 	_ sdk.Msg = &MsgCreateBucket{}
 	_ sdk.Msg = &MsgDeleteBucket{}
 	_ sdk.Msg = &MsgUpdateBucketInfo{}
+	_ sdk.Msg = &MsgMirrorBucket{}
+
 	// For object
 	_ sdk.Msg = &MsgCreateObject{}
 	_ sdk.Msg = &MsgDeleteObject{}
@@ -53,12 +58,14 @@ var (
 	_ sdk.Msg = &MsgCopyObject{}
 	_ sdk.Msg = &MsgRejectSealObject{}
 	_ sdk.Msg = &MsgCancelCreateObject{}
+	_ sdk.Msg = &MsgMirrorObject{}
 
 	// For group
 	_ sdk.Msg = &MsgCreateGroup{}
 	_ sdk.Msg = &MsgDeleteGroup{}
 	_ sdk.Msg = &MsgLeaveGroup{}
 	_ sdk.Msg = &MsgUpdateGroupMember{}
+	_ sdk.Msg = &MsgMirrorGroup{}
 
 	// For permission policy
 	_ sdk.Msg = &MsgPutPolicy{}
@@ -957,5 +964,134 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 	if msg.Principal.Type == permtypes.TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
+	return nil
+}
+
+// NewMsgMirrorBucket creates a new MsgMirrorBucket instance
+func NewMsgMirrorBucket(operator sdk.AccAddress, id Uint) *MsgMirrorBucket {
+	return &MsgMirrorBucket{
+		Operator: operator.String(),
+		Id:       id,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgMirrorBucket) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgMirrorBucket) Type() string {
+	return TypeMsgMirrorBucket
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgMirrorBucket) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg *MsgMirrorBucket) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgMirrorBucket) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	return nil
+}
+
+// NewMsgMirrorObject creates a new MsgMirrorObject instance
+func NewMsgMirrorObject(operator sdk.AccAddress, id Uint) *MsgMirrorObject {
+	return &MsgMirrorObject{
+		Operator: operator.String(),
+		Id:       id,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgMirrorObject) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgMirrorObject) Type() string {
+	return TypeMsgMirrorObject
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgMirrorObject) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgMirrorObject) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgMirrorObject) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	return nil
+}
+
+// NewMsgMirrorGroup creates a new MsgMirrorGroup instance
+func NewMsgMirrorGroup(operator sdk.AccAddress, id Uint) *MsgMirrorGroup {
+	return &MsgMirrorGroup{
+		Operator: operator.String(),
+		Id:       id,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgMirrorGroup) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgMirrorGroup) Type() string {
+	return TypeMsgMirrorGroup
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgMirrorGroup) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgMirrorGroup) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgMirrorGroup) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
 	return nil
 }

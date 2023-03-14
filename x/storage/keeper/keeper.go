@@ -21,14 +21,15 @@ import (
 
 type (
 	Keeper struct {
-		cdc           codec.BinaryCodec
-		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		paramStore    paramtypes.Subspace
-		spKeeper      types.SpKeeper
-		paymentKeeper types.PaymentKeeper
-		accountKeeper types.AccountKeeper
-		permKeeper    types.PermissionKeeper
+		cdc              codec.BinaryCodec
+		storeKey         storetypes.StoreKey
+		memKey           storetypes.StoreKey
+		paramStore       paramtypes.Subspace
+		spKeeper         types.SpKeeper
+		paymentKeeper    types.PaymentKeeper
+		accountKeeper    types.AccountKeeper
+		permKeeper       types.PermissionKeeper
+		crossChainKeeper types.CrossChainKeeper
 
 		// sequence
 		bucketSeq sequence.U256
@@ -46,7 +47,7 @@ func NewKeeper(
 	spKeeper types.SpKeeper,
 	paymentKeeper types.PaymentKeeper,
 	permKeeper types.PermissionKeeper,
-
+	crossChainKeeper types.CrossChainKeeper,
 ) *Keeper {
 	// set KeyTable if it has not already been set
 	if !ps.HasKeyTable() {
@@ -54,14 +55,15 @@ func NewKeeper(
 	}
 
 	k := Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramStore:    ps,
-		accountKeeper: accountKeeper,
-		spKeeper:      spKeeper,
-		paymentKeeper: paymentKeeper,
-		permKeeper:    permKeeper,
+		cdc:              cdc,
+		storeKey:         storeKey,
+		memKey:           memKey,
+		paramStore:       ps,
+		accountKeeper:    accountKeeper,
+		spKeeper:         spKeeper,
+		paymentKeeper:    paymentKeeper,
+		permKeeper:       permKeeper,
+		crossChainKeeper: crossChainKeeper,
 	}
 
 	k.bucketSeq = sequence.NewSequence256(types.BucketSequencePrefix)
@@ -247,6 +249,13 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	return nil
 }
 
+func (k Keeper) SetBucketInfo(ctx sdk.Context, bucketInfo *types.BucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(bucketInfo)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+}
+
 func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (*types.BucketInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -369,6 +378,13 @@ func (k Keeper) CreateObject(
 		return objectInfo.Id, err
 	}
 	return objectInfo.Id, nil
+}
+
+func (k Keeper) SetObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	obz := k.cdc.MustMarshal(objectInfo)
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 }
 
 func (k Keeper) GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint {
@@ -753,6 +769,13 @@ func (k Keeper) CreateGroup(
 	return groupInfo.Id, nil
 }
 
+func (k Keeper) SetGroupInfo(ctx sdk.Context, groupInfo *types.GroupInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	gbz := k.cdc.MustMarshal(groupInfo)
+	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
+}
+
 func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress,
 	groupName string) (*types.GroupInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
@@ -779,7 +802,7 @@ func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*types.
 }
 
 type DeleteGroupOptions struct {
-	types.SourceType
+	SourceType types.SourceType
 }
 
 func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error {

@@ -282,3 +282,91 @@ message EventUpdateGroupMember {
   // members_to_add defines all the members to be deleted from the group
   repeated string members_to_delete = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
+
+// EventMirrorBucket is emitted on MirrorBucket
+message EventMirrorBucket {
+  // operator_address define the account address of operator who mirror the bucket
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket
+  string bucket_name = 2;
+  // id define an u256 id for bucket
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventMirrorBucketResult is emitted on receiving ack package from destination chain
+message EventMirrorBucketResult {
+  // status define the status of the result
+  uint32 status = 1;
+  // bucket_name defines the name of the bucket
+  string bucket_name = 2;
+  // id define an u256 id for bucket
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventMirrorObject is emitted on MirrorObject
+message EventMirrorObject {
+  // operator_address define the account address of operator who delete the object
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
+  string bucket_name = 2;
+  // object_name define the name of the object
+  string object_name = 3;
+  // id define an u256 id for object
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventMirrorObjectResult is emitted on receiving ack package from destination chain
+message EventMirrorObjectResult {
+  // status define the status of the result
+  uint32 status = 1;
+  // bucket_name define the name of the bucket
+  string bucket_name = 2;
+  // object_name define the name of the object
+  string object_name = 3;
+  // id define an u256 id for object
+  string id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventMirrorGroup is emitted on MirrorGroup
+message EventMirrorGroup {
+  // owner_address define the account address of group owner
+  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
+  string group_name = 2;
+  // id define an u256 id for group
+  string id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+// EventMirrorGroupResult is emitted on receiving ack package from destination chain
+message EventMirrorGroupResult {
+  // status define the status of the result
+  uint32 status = 1;
+  // group_name define the name of the group
+  string group_name = 2;
+  // id define an u256 id for group
+  string id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}

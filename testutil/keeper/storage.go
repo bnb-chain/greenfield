@@ -14,6 +14,7 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
+	crosschainkeeper "github.com/cosmos/cosmos-sdk/x/crosschain/keeper"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	evidencetypes "github.com/cosmos/cosmos-sdk/x/evidence/types"
@@ -96,6 +97,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	stateStore.MountStoreWithDB(storeKeys[banktypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[paymentmoduletypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[sptypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[crosschaintypes.StoreKey], storetypes.StoreTypeIAVL, db)
 
 	stateStore.MountStoreWithDB(tkeys[paramstypes.TStoreKey], storetypes.StoreTypeTransient, nil)
 
@@ -112,6 +114,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	paramKeeper.Subspace(sptypes.ModuleName)
 	paramKeeper.Subspace(permissionmoduletypes.ModuleName)
 	paramKeeper.Subspace(paymentmoduletypes.ModuleName)
+	paramKeeper.Subspace(crosschaintypes.ModuleName)
 
 	paramsSubspace := typesparams.NewSubspace(cdc,
 		types.Amino,
@@ -163,6 +166,11 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 		accountKeeper,
 		spKeeper,
 	)
+	crossChainKeeper := crosschainkeeper.NewKeeper(
+		cdc,
+		storeKeys[crosschaintypes.StoreKey],
+		GetSubspace(paramKeeper, crosschaintypes.ModuleName),
+	)
 
 	permissionKeeper := permissionmodulekeeper.NewKeeper(
 		cdc,
@@ -181,6 +189,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 		spKeeper,
 		paymentKeeper,
 		permissionKeeper,
+		crossChainKeeper,
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())

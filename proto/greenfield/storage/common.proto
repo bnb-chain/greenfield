@@ -11,6 +11,7 @@ enum SourceType {
 
   SOURCE_TYPE_ORIGIN = 0;
   SOURCE_TYPE_BSC_CROSS_CHAIN = 1;
+  SOURCE_TYPE_MIRROR_PENDING = 2;
 }
 
 enum RedundancyType {
