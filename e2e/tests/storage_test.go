@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strings"
 	"testing"
 	"time"
 
@@ -185,6 +186,63 @@ func (s *StorageTestSuite) TestCreateObject() {
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	s.SendTxBlock(msgDeleteBucket, user)
+}
+
+func (s *StorageTestSuite) TestCreateGroup() {
+	ctx := context.Background()
+
+	owner := s.GenAndChargeAccounts(1, 1000000)[0]
+	member := s.GenAndChargeAccounts(1, 1000000)[0]
+	groupName := storageutils.GenRandomGroupName()
+
+	// 1. CreateGroup
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	s.SendTxBlock(msgCreateGroup, owner)
+	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
+
+	// 2. HeadGroup
+	queryHeadGroupReq := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: groupName}
+	queryHeadGroupResp, err := s.Client.HeadGroup(ctx, &queryHeadGroupReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadGroupResp.GroupInfo.GroupName, groupName)
+	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
+
+	// 3. HeadGroupMember
+	queryHeadGroupMemberReq := storagetypes.QueryHeadGroupMemberRequest{
+		Member:     member.GetAddr().String(),
+		GroupName:  groupName,
+		GroupOwner: owner.GetAddr().String(),
+	}
+	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadGroupMemberResp.GroupInfo.GroupName, groupName)
+	s.Require().Equal(queryHeadGroupMemberResp.GroupInfo.Owner, owner.GetAddr().String())
+
+	// 4. UpdateGroupMember
+	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
+	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
+	membersToDelete := []sdk.AccAddress{member.GetAddr()}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(msgUpdateGroupMember, owner)
+
+	// 5. HeadGroupMember (delete)
+	queryHeadGroupMemberReqDelete := storagetypes.QueryHeadGroupMemberRequest{
+		Member:     member.GetAddr().String(),
+		GroupName:  groupName,
+		GroupOwner: owner.GetAddr().String(),
+	}
+	_, err = s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqDelete)
+	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchGroupMember.Error()))
+	// 5. HeadGroupMember (add)
+	queryHeadGroupMemberReqAdd := storagetypes.QueryHeadGroupMemberRequest{
+		Member:     member2.GetAddr().String(),
+		GroupName:  groupName,
+		GroupOwner: owner.GetAddr().String(),
+	}
+	queryHeadGroupMemberRespAdd, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqAdd)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupInfo.GroupName, groupName)
+	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupInfo.Owner, owner.GetAddr().String())
 }
 
 func (s *StorageTestSuite) TestDeleteBucket() {

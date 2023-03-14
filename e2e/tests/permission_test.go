@@ -7,6 +7,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	storageutil "github.com/bnb-chain/greenfield/testutil/storage"
 	types2 "github.com/bnb-chain/greenfield/types"
+	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -81,7 +82,18 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
 	s.Require().NoError(err)
 	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_ALLOW)
+
+	// Query bucket policy
+	grn := types2.NewBucketGRN(bucketName)
+	queryPolicyForAccountReq := storagetypes.QueryPolicyForAccountRequest{Resource: grn.String(),
+		PrincipalAddress: user[1].GetAddr().String()}
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
+	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceId, queryHeadBucketResponse.BucketInfo.Id)
+
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user[1].GetAddr(), bucketName)
 	s.SendTxBlock(msgDeleteBucket, user[1])
+
 }

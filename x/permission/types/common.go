@@ -12,6 +12,13 @@ func NewPrincipalWithAccount(addr sdk.AccAddress) *Principal {
 	}
 }
 
+func NewPrincipalWithGroup(groupID sdkmath.Uint) *Principal {
+	return &Principal{
+		Type:  TYPE_GNFD_GROUP,
+		Value: groupID.String(),
+	}
+}
+
 func (p *Principal) ValidateBasic() error {
 	switch p.Type {
 	case TYPE_GNFD_ACCOUNT:

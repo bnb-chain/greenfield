@@ -3,9 +3,11 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	types2 "github.com/bnb-chain/greenfield/types"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -90,7 +92,6 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	// TODO: check bucket and object permission
 	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return nil, err
@@ -118,10 +119,20 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// TODO: check permission when permission module ready
 	spSealAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return nil, err
+	}
+
+	expectSecondarySPNum := k.Keeper.RedundantDataChunkNum(ctx) + k.Keeper.RedundantParityChunkNum(ctx)
+	if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
+		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect (%d), but (%d)", expectSecondarySPNum,
+			len(msg.SecondarySpAddresses))
+	}
+
+	if len(msg.SecondarySpSignatures) != (int)(expectSecondarySPNum) {
+		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "Missing SP signatures, expect (%d), but (%d)",
+			expectSecondarySPNum, len(msg.SecondarySpSignatures))
 	}
 
 	err = k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{

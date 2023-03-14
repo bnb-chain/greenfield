@@ -330,7 +330,7 @@ func (k Keeper) CreateObject(
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
 		ObjectStatus:         types.OBJECT_STATUS_CREATED,
-		RedundancyType:       opts.RedundancyType, // TODO: base on redundancy policy
+		RedundancyType:       opts.RedundancyType,
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,
 		SecondarySpAddresses: secondarySPs,
@@ -459,7 +459,6 @@ func (k Keeper) SealObject(
 
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_SEALED
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	store := ctx.KVStore(k.storeKey)
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
@@ -510,7 +509,6 @@ func (k Keeper) CancelCreateObject(
 		return err
 	}
 
-	// TODO(fynn): consider remove the lock fee meta from bucketInfo
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 

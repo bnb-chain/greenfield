@@ -1,16 +1,14 @@
 package cli
 
 import (
-	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
-	"io"
 	"math"
-	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -41,8 +39,6 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdDeleteBucket())
 	cmd.AddCommand(CmdUpdateBucketInfo())
 	cmd.AddCommand(CmdCreateObject())
-	cmd.AddCommand(CmdSealObject())
-	cmd.AddCommand(CmdRejectSealObject())
 	cmd.AddCommand(CmdDeleteObject())
 	cmd.AddCommand(CmdCancelCreateObject())
 	cmd.AddCommand(CmdCreateGroup())
@@ -90,27 +86,22 @@ func CmdCreateBucket() *cobra.Command {
 				return err
 			}
 
-			approver, _ := cmd.Flags().GetString(FlagApprover)
-			_, approverName, _, err := GetApproverField(clientCtx.Keyring, approver)
+			approveSignature, _ := cmd.Flags().GetString(FlagApproveSignature)
+			approveTimeoutHeight, _ := cmd.Flags().GetUint64(FlagApproveTimeoutHeight)
+
+			approveSignatureBytes, err := hex.DecodeString(approveSignature)
 			if err != nil {
 				return err
 			}
-
 			msg := types.NewMsgCreateBucket(
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				isPublic,
 				primarySPAcc,
 				paymentAcc,
-				math.MaxUint,
-				nil,
+				approveTimeoutHeight,
+				approveSignatureBytes,
 			)
-			sig, _, err := clientCtx.Keyring.Sign(approverName, msg.GetApprovalBytes())
-			if err != nil {
-				return err
-			}
-
-			msg.PrimarySpApproval.Sig = sig
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -122,7 +113,8 @@ func CmdCreateBucket() *cobra.Command {
 	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
-	cmd.Flags().String(FlagApprover, "", "The approval account address of primarySp")
+	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
+	cmd.Flags().Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -225,58 +217,70 @@ func CmdCancelCreateObject() *cobra.Command {
 
 func CmdCreateObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-object [bucket-name] [object-name]",
-		Short: "create a new object in the bucket",
+		Use:   "create-object [bucket-name] [object-name] [payload-size] [content-type] [redundancy-type]",
+		Short: "create a new object in the bucket, checksums split by ','",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
 			argObjectName := args[1]
-			argObjectPath := args[2]
+			argPayloadSize := args[2]
+			argContentType := args[3]
+
+			payloadSize, err := strconv.ParseUint(argPayloadSize, 10, 64)
 			if err != nil {
 				return err
 			}
-
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// read file
-			f, err := os.OpenFile(filepath.Clean(argObjectPath), os.O_RDONLY, 0600)
+			isPublic, _ := cmd.Flags().GetBool(FlagPublic)
+
+			checksums, _ := cmd.Flags().GetString(FlagExpectChecksums)
+			redundancyTypeFlag, _ := cmd.Flags().GetString(FlagRedundancyType)
+			approveSignature, _ := cmd.Flags().GetString(FlagApproveSignature)
+			approveTimeoutHeight, _ := cmd.Flags().GetUint64(FlagApproveTimeoutHeight)
+
+			approveSignatureBytes, err := hex.DecodeString(approveSignature)
 			if err != nil {
 				return err
 			}
 
-			// TODO(fynn): calc redundancy hashes. hard code here.
-			expectChecksum := make([][]byte, 7)
-			buf, _ := io.ReadAll(f)
-			h := sha256.New()
-			h.Write(buf)
-			sum := h.Sum(nil)
-			expectChecksum[0] = sum
-			expectChecksum[1] = sum
-			expectChecksum[2] = sum
-			expectChecksum[3] = sum
-			expectChecksum[4] = sum
-			expectChecksum[5] = sum
-			expectChecksum[6] = sum
+			checksumsStr := strings.Split(checksums, ",")
+			if checksumsStr == nil {
+				return gnfderrors.ErrInvalidChecksum
+			}
+			var expectChecksums [][]byte
+			for _, checksum := range checksumsStr {
+				tmp, err := hex.DecodeString(checksum)
+				if err != nil {
+					return err
+				}
+				expectChecksums = append(expectChecksums, tmp)
+			}
 
-			contentType := http.DetectContentType(buf)
-
-			isPublic, _ := cmd.Flags().GetBool(FlagPublic)
+			var redundancyType types.RedundancyType
+			if redundancyTypeFlag == "EC" {
+				redundancyType = types.REDUNDANCY_EC_TYPE
+			} else if redundancyTypeFlag == "Replica" {
+				redundancyType = types.REDUNDANCY_REPLICA_TYPE
+			} else {
+				return types.ErrInvalidRedundancyType
+			}
 
 			msg := types.NewMsgCreateObject(
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				argObjectName,
-				uint64(len(buf)),
+				payloadSize,
 				isPublic,
-				expectChecksum,
-				contentType,
-				types.REDUNDANCY_EC_TYPE,
-				math.MaxUint,
+				expectChecksums,
+				argContentType,
+				redundancyType,
+				approveTimeoutHeight,
+				approveSignatureBytes,
 				nil,
-				nil, // NOTE(fynn): Not specified here.
 			)
 			primarySP, err := cmd.Flags().GetString(FlagPrimarySP)
 			if err != nil {
@@ -302,6 +306,10 @@ func CmdCreateObject() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Bool(FlagPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
+	cmd.Flags().String(FlagExpectChecksums, "", "The checksums that calculate by redundancy algorithm")
+	cmd.Flags().String(FlagRedundancyType, "", "The redundancy type, EC or Replica ")
+	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
+	cmd.Flags().Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	return cmd
 }
 
@@ -321,14 +329,21 @@ func CmdCopyObject() *cobra.Command {
 				return err
 			}
 
+			approveSignature, _ := cmd.Flags().GetString(FlagApproveSignature)
+			approveTimeoutHeight, _ := cmd.Flags().GetUint64(FlagApproveTimeoutHeight)
+
+			approveSignatureBytes, err := hex.DecodeString(approveSignature)
+			if err != nil {
+				return err
+			}
 			msg := types.NewMsgCopyObject(
 				clientCtx.GetFromAddress(),
 				argSrcBucketName,
 				argDstBucketName,
 				argSrcObjectName,
 				argDstObjectName,
-				math.MaxUint,
-				nil, // TODO: Refine the cli parameters
+				approveTimeoutHeight,
+				approveSignatureBytes,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -338,75 +353,8 @@ func CmdCopyObject() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdSealObject() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "seal-object [bucket-name] [object-name]",
-		Short: "Seal the object",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argBucketName := args[0]
-			argObjectName := args[1]
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			// TODO(fynn): hardcode here, impl after signature ready
-			spSignatures := make([][]byte, 7)
-			for i := 0; i < len(spSignatures); i++ {
-				spSignatures[i] = []byte("for-test")
-			}
-			msg := types.NewMsgSealObject(
-				clientCtx.GetFromAddress(),
-				argBucketName,
-				argObjectName,
-				nil,
-				spSignatures,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdRejectSealObject() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "reject-seal-object [bucket-name] [object-name]",
-		Short: "Reject to seal the object",
-		Args:  cobra.ExactArgs(2),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argBucketName := args[0]
-			argObjectName := args[1]
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgRejectUnsealedObject(
-				clientCtx.GetFromAddress(),
-				argBucketName,
-				argObjectName,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
+	cmd.Flags().Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 
 	return cmd
 }
@@ -444,21 +392,31 @@ func CmdDeleteObject() *cobra.Command {
 
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-group [group-name]",
-		Short: "Create a new group",
-		Args:  cobra.ExactArgs(1),
+		Use:   "create-group [group-name] [member-list]",
+		Short: "Create a new group with several initial members, split member addresses by ','",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
+			argMemberList := args[1]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			var memberAddrs []sdk.AccAddress
+			members := strings.Split(argMemberList, ",")
+			for _, member := range members {
+				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+				if err != nil {
+					return err
+				}
+				memberAddrs = append(memberAddrs, memberAddr)
+			}
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-				nil, // TODO: Refine the cli parameters
+				memberAddrs,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -503,20 +461,26 @@ func CmdDeleteGroup() *cobra.Command {
 
 func CmdLeaveGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "leave-group [group-name]",
+		Use:   "leave-group [group-owner] [group-name]",
 		Short: "Leave the group you're a member of",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argGroupName := args[0]
+			argGroupOwner := args[0]
+			argGroupName := args[1]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			groupOwner, err := sdk.AccAddressFromHexUnsafe(argGroupOwner)
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgLeaveGroup(
 				clientCtx.GetFromAddress(),
-				sdk.AccAddress{}, // TODO: add group owner acc
+				groupOwner,
 				argGroupName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -533,22 +497,41 @@ func CmdLeaveGroup() *cobra.Command {
 
 func CmdUpdateGroupMember() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-group-member [group-name]",
-		Short: "Update the member of the group you own",
+		Use:   "update-group-member [group-name] [member-to-add] [member-to-delete]",
+		Short: "Update the member of the group you own, split member addresses by ,",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
+			argMemberToAdd := args[1]
+			argMemberToDelete := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-
+			var memberAddrsToAdd []sdk.AccAddress
+			membersToAdd := strings.Split(argMemberToAdd, ",")
+			for _, member := range membersToAdd {
+				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+				if err != nil {
+					return err
+				}
+				memberAddrsToAdd = append(memberAddrsToAdd, memberAddr)
+			}
+			var memberAddrsToDelete []sdk.AccAddress
+			membersToDelete := strings.Split(argMemberToDelete, ",")
+			for _, member := range membersToDelete {
+				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+				if err != nil {
+					return err
+				}
+				memberAddrsToDelete = append(memberAddrsToDelete, memberAddr)
+			}
 			msg := types.NewMsgUpdateGroupMember(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-				nil, // TODO: Refine the cli parameters
-				nil, // TODO: Refine the cli parameters
+				memberAddrsToAdd,
+				memberAddrsToDelete,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
