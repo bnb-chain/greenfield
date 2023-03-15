@@ -315,17 +315,28 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 		return nil, err
 	}
 
+	if msg.ExpirationTime != nil && msg.ExpirationTime.Before(ctx.BlockTime()) {
+		return nil, permtypes.ErrPermissionExpired.Wrapf("The specified policy expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
+	}
+
+	for _, s := range msg.Statements {
+		if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
+			return nil, permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
+		}
+	}
+
 	policy := &permtypes.Policy{
-		ResourceType: grn.ResourceType(),
-		Principal:    msg.Principal,
-		Statements:   msg.Statements,
+		ResourceType:   grn.ResourceType(),
+		Principal:      msg.Principal,
+		Statements:     msg.Statements,
+		ExpirationTime: msg.ExpirationTime,
 	}
 
 	policyID, err := k.Keeper.PutPolicy(ctx, operatorAddr, grn, policy)
 	if err != nil {
 		return nil, err
 	}
-	return &types.MsgPutPolicyResponse{Id: policyID}, nil
+	return &types.MsgPutPolicyResponse{PolicyId: policyID}, nil
 
 }
 
@@ -348,7 +359,7 @@ func (k msgServer) DeletePolicy(goCtx context.Context, msg *types.MsgDeletePolic
 		return nil, err
 	}
 
-	return &types.MsgDeletePolicyResponse{Id: policyID}, nil
+	return &types.MsgDeletePolicyResponse{PolicyId: policyID}, nil
 }
 
 func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObject) (*types.MsgMirrorObjectResponse, error) {

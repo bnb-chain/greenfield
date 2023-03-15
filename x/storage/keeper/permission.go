@@ -28,17 +28,18 @@ var (
 )
 
 func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, operator sdk.AccAddress,
-	action permtypes.ActionType, resource *string) permtypes.Effect {
+	action permtypes.ActionType, options *permtypes.VerifyOptions) permtypes.Effect {
 	// if bucket is public, anyone can read but can not write it.
 	if bucketInfo.IsPublic && PublicBucketAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
-	if strings.EqualFold(bucketInfo.Owner, operator.String()) {
+	ownerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
+	if ownerAcc.Equals(operator) {
 		return permtypes.EFFECT_ALLOW
 	}
 	// verify policy
-	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, resource)
+	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
 	if effect == permtypes.EFFECT_ALLOW {
 		return permtypes.EFFECT_ALLOW
 	}
@@ -52,14 +53,16 @@ func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.Bucket
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
-	if strings.EqualFold(objectInfo.Owner, operator.String()) {
+	ownerAcc := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if ownerAcc.Equals(operator) {
 		return permtypes.EFFECT_ALLOW
 	}
 
 	// verify policy
-	grn := types2.NewObjectGRN(objectInfo.BucketName, objectInfo.ObjectName)
-	grnString := grn.String()
-	bucketEffect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, &grnString)
+	opts := &permtypes.VerifyOptions{
+		Resource: types2.NewObjectGRN(objectInfo.BucketName, objectInfo.ObjectName).String(),
+	}
+	bucketEffect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, opts)
 	if bucketEffect == permtypes.EFFECT_DENY {
 		return permtypes.EFFECT_DENY
 	}

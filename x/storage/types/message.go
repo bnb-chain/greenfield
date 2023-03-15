@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -854,12 +856,13 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 }
 
 func NewMsgPutPolicy(operator sdk.AccAddress, resource string,
-	principal *permtypes.Principal, statements []*permtypes.Statement) *MsgPutPolicy {
+	principal *permtypes.Principal, statements []*permtypes.Statement, expirationTime *time.Time) *MsgPutPolicy {
 	return &MsgPutPolicy{
-		Operator:   operator.String(),
-		Resource:   resource,
-		Principal:  principal,
-		Statements: statements,
+		Operator:       operator.String(),
+		Resource:       resource,
+		Principal:      principal,
+		Statements:     statements,
+		ExpirationTime: expirationTime,
 	}
 }
 
@@ -906,14 +909,9 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 	}
 
 	for _, s := range msg.Statements {
-		if s.Resources != nil {
-			for _, r := range s.Resources {
-				var grn grn2.GRN
-				err = grn.ParseFromString(r, true)
-				if err != nil {
-					return err
-				}
-			}
+		err = s.ValidateBasic(grn.ResourceType())
+		if err != nil {
+			return err
 		}
 	}
 

@@ -565,6 +565,7 @@ func CmdPutPolicy() *cobra.Command {
 				"",
 				nil,
 				nil,
+				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
