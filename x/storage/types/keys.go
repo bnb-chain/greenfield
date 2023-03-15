@@ -60,6 +60,11 @@ func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
 	return append(GroupPrefix, append(owner.Bytes(), groupNameHash...)...)
 }
 
+// GetGroupKeyOnlyOwnerPrefix return the group name store key
+func GetGroupKeyOnlyOwnerPrefix(owner sdk.AccAddress) []byte {
+	return append(GroupPrefix, owner.Bytes()...)
+}
+
 // GetBucketByIDKey return the bucketID store key
 func GetBucketByIDKey(bucketId math.Uint) []byte {
 	return append(BucketByIDPrefix, sequence.EncodeSequence(bucketId)...)

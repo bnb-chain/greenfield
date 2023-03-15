@@ -44,7 +44,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/head_object/{bucket_name}/{object_name}";
   }
 
-  // Queries a object by id
+  // Queries an object by id
   rpc HeadObjectById(QueryHeadObjectByIdRequest) returns (QueryHeadObjectResponse) {
     option (google.api.http).get = "/greenfield/storage/head_object_by_id/{object_id}";
   }
@@ -73,14 +73,35 @@ service Query {
   rpc HeadGroupNFT(QueryNFTRequest) returns (QueryGroupNFTResponse) {
     option (google.api.http).get = "/greenfield/storage/head_group_nft/{token_id}";
   }
-  // Queries policy by policyID
-  rpc GetPolicy(QueryGetPolicyRequest) returns (QueryGetPolicyResponse) {
-    option (google.api.http).get = "/greenfield/storage/get_policy/{policy_id}";
+
+  // Queries a policy which grants permission to account
+  rpc QueryPolicyForAccount(QueryPolicyForAccountRequest) returns (QueryPolicyForAccountResponse) {
+    option (google.api.http).get = "/greenfield/storage/policy_for_account/{resource}/{principal_address}";
   }
 
   // Queries a list of VerifyPermission items.
   rpc VerifyPermission(QueryVerifyPermissionRequest) returns (QueryVerifyPermissionResponse) {
     option (google.api.http).get = "/greenfield/storage/verify_permission/{operator}/{bucket_name}/{object_name}/{action_type}";
+  }
+
+  // Queries a group with specify owner and name .
+  rpc HeadGroup(QueryHeadGroupRequest) returns (QueryHeadGroupResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_group/{group_owner}/{group_name}";
+  }
+
+  // Queries a list of ListGroup items.
+  rpc ListGroup(QueryListGroupRequest) returns (QueryListGroupResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/storage/list_group";
+  }
+
+  // Queries a list of HeadGroupMember items.
+  rpc HeadGroupMember(QueryHeadGroupMemberRequest) returns (QueryHeadGroupMemberResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/storage/head_group_member";
+  }
+
+  // Queries a policy that grants permission to a group
+  rpc QueryPolicyForGroup(QueryPolicyForGroupRequest) returns (QueryPolicyForGroupResponse) {
+    option (google.api.http).get = "/bnb-chain/greenfield/storage/policy_for_group/{resource}/{principal_group_id}";
   }
 }
 
@@ -124,7 +145,7 @@ message QueryListBucketsRequest {
 }
 
 message QueryListBucketsResponse {
-  repeated BucketInfo bucket_infos = 1 [(gogoproto.nullable) = false];
+  repeated BucketInfo bucket_infos = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -139,7 +160,7 @@ message QueryListObjectsByBucketIdRequest {
 }
 
 message QueryListObjectsResponse {
-  repeated ObjectInfo object_infos = 1 [(gogoproto.nullable) = false];
+  repeated ObjectInfo object_infos = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -159,11 +180,12 @@ message QueryGroupNFTResponse {
   GroupMetaData meta_data = 1;
 }
 
-message QueryGetPolicyRequest {
-  string policy_id = 1;
+message QueryPolicyForAccountRequest {
+  string resource = 1;
+  string principal_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message QueryGetPolicyResponse {
+message QueryPolicyForAccountResponse {
   permission.Policy policy = 1;
 }
 
@@ -176,4 +198,42 @@ message QueryVerifyPermissionRequest {
 
 message QueryVerifyPermissionResponse {
   permission.Effect effect = 1;
+}
+
+message QueryHeadGroupRequest {
+  string group_owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 2;
+}
+
+message QueryHeadGroupResponse {
+  GroupInfo group_info = 1;
+}
+
+message QueryListGroupRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+  string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message QueryListGroupResponse {
+  cosmos.base.query.v1beta1.PageResponse pagination = 1;
+  repeated GroupInfo group_infos = 2;
+}
+
+message QueryHeadGroupMemberRequest {
+  string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string group_name = 3;
+}
+
+message QueryHeadGroupMemberResponse {
+  GroupInfo group_info = 1;
+}
+
+message QueryPolicyForGroupRequest {
+  string resource = 1;
+  string principal_group_id = 2;
+}
+
+message QueryPolicyForGroupResponse {
+  permission.Policy policy = 1;
 }

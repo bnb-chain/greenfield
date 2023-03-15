@@ -486,21 +486,11 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return err
 	}
 
-	// TODO: 6 hard code here.
-	if len(msg.SecondarySpAddresses) != 6 {
-		return errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect: (%d), but (%d)", 6,
-			len(msg.SecondarySpAddresses))
-	}
-
 	for _, addr := range msg.SecondarySpAddresses {
 		_, err := sdk.AccAddressFromHexUnsafe(addr)
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid secondary sp address (%s)", err)
 		}
-	}
-
-	if len(msg.SecondarySpSignatures) != 6 {
-		return errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "Missing SP signatures")
 	}
 
 	for _, sig := range msg.SecondarySpSignatures {
@@ -923,9 +913,9 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeletePolicy(operator string, resource string, principal *permtypes.Principal) *MsgDeletePolicy {
+func NewMsgDeletePolicy(operator sdk.AccAddress, resource string, principal *permtypes.Principal) *MsgDeletePolicy {
 	return &MsgDeletePolicy{
-		Operator:  operator,
+		Operator:  operator.String(),
 		Resource:  resource,
 		Principal: principal,
 	}

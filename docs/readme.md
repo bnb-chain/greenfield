@@ -18,6 +18,7 @@ This section dives into the internals of the Greenfield Blockchain implementatio
   - [State World](modules/world-state.md)
   - [Storage Management](modules/storage-management.md)
   - [Storage Provider](modules/storage_provider_management.md)
+  - [Permission](modules/permission.md)
   - [Billing and Payment](modules/billing_and_payment.md)
   - [Cross Chain](modules/cross-chain.md)
   - [Data Availability](modules/data_availability_challenge.md)
