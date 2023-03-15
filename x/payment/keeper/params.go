@@ -17,3 +17,8 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 	k.paramstore.SetParamSet(ctx, &params)
 }
+
+// GetFeeDenom returns the fee denom. It is exported for other module's usage.
+func (k Keeper) GetFeeDenom(ctx sdk.Context) string {
+	return k.GetParams(ctx).FeeDenom
+}

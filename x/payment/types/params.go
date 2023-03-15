@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -15,12 +16,16 @@ var (
 	KeyPaymentAccountCountLimit = []byte("PaymentAccountCountLimit")
 	KeyMaxAutoForceSettleNum    = []byte("MaxAutoForceSettleNum")
 	KeyFeeDenom                 = []byte("FeeDenom")
+	KeyValidatorFeeRate         = []byte("ValidatorFeeRate")
+	KeyAutoWithdrawalInterval   = []byte("AutoWithdrawalInterval")
 
-	DefaultReserveTime              uint64 = 180 * 24 * 60 * 60 // 180 days
-	DefaultForcedSettleTime         uint64 = 24 * 60 * 60       // 1 day
-	DefaultPaymentAccountCountLimit uint64 = 200
-	DefaultMaxAutoForceSettleNum    uint64 = 100
-	DefaultFeeDenom                 string = "BNB"
+	DefaultReserveTime              uint64  = 180 * 24 * 60 * 60 // 180 days
+	DefaultForcedSettleTime         uint64  = 24 * 60 * 60       // 1 day
+	DefaultPaymentAccountCountLimit uint64  = 200
+	DefaultMaxAutoForceSettleNum    uint64  = 100
+	DefaultFeeDenom                 string  = "BNB"
+	DefaultValidatorFeeRate         sdk.Dec = sdk.NewDecWithPrec(1, 2)
+	DefaultAutoWithdrawalInterval   uint64  = 1000
 )
 
 // ParamKeyTable the param key table for launch module
@@ -35,6 +40,8 @@ func NewParams(
 	paymentAccountCountLimit uint64,
 	maxAutoForceSettleNum uint64,
 	feeDenom string,
+	validatorFeeRate sdk.Dec,
+	autoWithdrawalInterval uint64,
 ) Params {
 	return Params{
 		ReserveTime:              reserveTime,
@@ -42,6 +49,8 @@ func NewParams(
 		PaymentAccountCountLimit: paymentAccountCountLimit,
 		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
 		FeeDenom:                 feeDenom,
+		ValidatorFeeRate:         validatorFeeRate,
+		AutoWithdrawalInterval:   autoWithdrawalInterval,
 	}
 }
 
@@ -53,6 +62,8 @@ func DefaultParams() Params {
 		DefaultPaymentAccountCountLimit,
 		DefaultMaxAutoForceSettleNum,
 		DefaultFeeDenom,
+		DefaultValidatorFeeRate,
+		DefaultAutoWithdrawalInterval,
 	)
 }
 
@@ -64,6 +75,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
 		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
 		paramtypes.NewParamSetPair(KeyFeeDenom, &p.FeeDenom, validateFeeDenom),
+		paramtypes.NewParamSetPair(KeyValidatorFeeRate, &p.ValidatorFeeRate, validateValidatorFeeRate),
+		paramtypes.NewParamSetPair(KeyAutoWithdrawalInterval, &p.AutoWithdrawalInterval, validateAutoWithdrawalInterval),
 	}
 }
 
@@ -86,6 +99,14 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateFeeDenom(p.FeeDenom); err != nil {
+		return err
+	}
+
+	if err := validateValidatorFeeRate(p.ValidatorFeeRate); err != nil {
+		return err
+	}
+
+	if err := validateAutoWithdrawalInterval(p.AutoWithdrawalInterval); err != nil {
 		return err
 	}
 	return nil
@@ -159,5 +180,29 @@ func validateFeeDenom(v interface{}) error {
 	// TODO implement validation
 	_ = feeDenom
 
+	return nil
+}
+
+func validateValidatorFeeRate(v interface{}) error {
+	validatorFeeRate, ok := v.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if validatorFeeRate.LT(sdk.ZeroDec()) {
+		return fmt.Errorf("validator fee rate cannot be lower than zero")
+	}
+	return nil
+}
+
+func validateAutoWithdrawalInterval(v interface{}) error {
+	autoWithdrawalInterval, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if autoWithdrawalInterval == 0 {
+		return fmt.Errorf("auto withdrawal interval should be greater than zero")
+	}
 	return nil
 }

@@ -22,10 +22,12 @@ type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
+	SendCoinsFromModuleToModule(ctx sdk.Context, senderModule string, recipientModule string, amt sdk.Coins) error
 }
 
 // SpKeeper defines the expected interface needed to retrieve storage provider.
 type SpKeeper interface {
 	GetSpStoragePriceByTime(ctx sdk.Context, spAddr string, time int64) (val sptypes.SpStoragePrice, err error)
 	GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val sptypes.SecondarySpStorePrice, err error)
+	GetAllStorageProviders(ctx sdk.Context) (sps []sptypes.StorageProvider)
 }

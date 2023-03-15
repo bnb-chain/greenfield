@@ -189,30 +189,28 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 	return ctx.EventManager().EmitTypedEvents(&event)
 }
 
-func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
+func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) sdkmath.Int {
 	threshold := k.RewardSubmitterThreshold(ctx)
 	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
 	if submitterReward.GT(threshold) {
 		submitterReward = threshold
 	}
 
-	return total.Sub(submitterReward), submitterReward
+	return submitterReward
 }
 
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
 	spOperator, submitter, challenger sdk.AccAddress) error {
-	totalAmount := k.paymentKeeper.QueryValidatorRewards(ctx)
+	feeDenom := k.paymentKeeper.GetFeeDenom(ctx)
+	distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
+	total := k.bankKeeper.GetBalance(ctx, distModuleAcc, feeDenom)
 
-	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
-	if !totalAmount.IsZero() {
-		validatorReward, submitterReward = k.calculateHeartbeatRewards(ctx, totalAmount)
-		if validatorReward.IsPositive() && submitterReward.IsPositive() {
-			distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
-			err := k.paymentKeeper.TransferValidatorRewards(ctx, distModuleAcc, validatorReward)
-			if err != nil {
-				return err
-			}
-			err = k.paymentKeeper.TransferValidatorRewards(ctx, submitter, submitterReward)
+	submitterReward := sdkmath.NewInt(0)
+	if !total.IsZero() {
+		submitterReward = k.calculateHeartbeatRewards(ctx, total.Amount)
+		if submitterReward.IsPositive() {
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, distributiontypes.ModuleName, submitter,
+				sdk.NewCoins(sdk.NewCoin(feeDenom, submitterReward)))
 			if err != nil {
 				return err
 			}
@@ -227,6 +225,6 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, vo
 		ChallengerRewardAmount: "",
 		SubmitterAddress:       submitter.String(),
 		SubmitterRewardAmount:  submitterReward.String(),
-		ValidatorRewardAmount:  validatorReward.String(),
+		ValidatorRewardAmount:  "",
 	})
 }

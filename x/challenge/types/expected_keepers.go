@@ -30,8 +30,7 @@ type StorageKeeper interface {
 }
 
 type PaymentKeeper interface {
-	QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int)
-	TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error
+	GetFeeDenom(ctx sdk.Context) string
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -41,5 +40,6 @@ type AccountKeeper interface {
 
 // BankKeeper defines the expected interface needed to retrieve account balances.
 type BankKeeper interface {
-	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
+	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
+	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 }
