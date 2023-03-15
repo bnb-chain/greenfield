@@ -19,7 +19,7 @@ However, a privacy mode utilizing Zero Knowledge Proof technology is planned for
 
 Notably, permission operations can be directly executed from BSC, whether through smart contracts or an EOA, further enhancing their convenience.
 
-Overall, the interface semantics of the permission module closely resemble those found in S3.
+Overall, the interface semantics of the permission module are similar to S3.
 
 ## Concepts
 
