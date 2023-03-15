@@ -21,6 +21,10 @@ func (k Keeper) RedundantParityChunkNum(ctx sdk.Context) (res uint32) {
 	return
 }
 
+func (k Keeper) GetExpectSecondarySPNumForECObject(ctx sdk.Context) (res uint32) {
+	return k.RedundantDataChunkNum(ctx) + k.RedundantParityChunkNum(ctx)
+}
+
 func (k Keeper) MaxPayloadSize(ctx sdk.Context) (res uint64) {
 	k.paramStore.Get(ctx, types.KeyMaxPayloadSize, &res)
 	return

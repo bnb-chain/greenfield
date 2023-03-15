@@ -89,27 +89,31 @@ func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk
 	}
 }
 
-func (k Keeper) updatePolicy(ctx sdk.Context, policy *types.Policy, newPolicy *types.Policy) {
+func (k Keeper) updatePolicy(ctx sdk.Context, policy *types.Policy, newPolicy *types.Policy) *types.Policy {
 	store := ctx.KVStore(k.storeKey)
 	policy.Statements = newPolicy.Statements
 	store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
+	return policy
 }
 
 func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
+	var newPolicy *types.Policy
 	if policy.Principal.Type == types.TYPE_GNFD_ACCOUNT {
 		policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
 			policy.Principal.MustGetAccountAddress())
 		bz := store.Get(policyKey)
 		if bz != nil {
 			id := sequence.DecodeSequence(bz)
-			k.updatePolicy(ctx, k.MustGetPolicyByID(ctx, id), policy)
+			// override write
+			newPolicy = k.updatePolicy(ctx, k.MustGetPolicyByID(ctx, id), policy)
 		} else {
 			policy.Id = k.policySeq.NextVal(store)
 			store.Set(policyKey, sequence.EncodeSequence(policy.Id))
 			bz := k.cdc.MustMarshal(policy)
 			store.Set(types.GetPolicyByIDKey(policy.Id), bz)
+			newPolicy = policy
 		}
 	} else if policy.Principal.Type == types.TYPE_GNFD_GROUP {
 		policyGroupKey := types.GetPolicyForGroupKey(policy.ResourceId, policy.ResourceType)
@@ -126,7 +130,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 			for i := 0; i < len(policyGroup.Items); i++ {
 				if policyGroup.Items[i].GroupId.Equal(policy.Principal.MustGetGroupID()) {
 					// override write
-					k.updatePolicy(ctx, k.MustGetPolicyByID(ctx, policyGroup.Items[i].PolicyId), policy)
+					newPolicy = k.updatePolicy(ctx, k.MustGetPolicyByID(ctx, policyGroup.Items[i].PolicyId), policy)
 					isFound = true
 				}
 			}
@@ -136,6 +140,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 					GroupId: policy.Principal.MustGetGroupID()})
 				store.Set(policyGroupKey, k.cdc.MustMarshal(&policyGroup))
 				store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
+				newPolicy = policy
 			}
 		} else {
 			policy.Id = k.policySeq.NextVal(store)
@@ -144,9 +149,21 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 				GroupId: policy.Principal.MustGetGroupID()})
 			store.Set(policyGroupKey, k.cdc.MustMarshal(&policyGroup))
 			store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
+			newPolicy = policy
 		}
 	} else {
 		return math.ZeroUint(), types.ErrInvalidPrincipal.Wrap("Unknown principal type.")
+	}
+
+	// emit PutPolicy Event
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventPutPolicy{
+		PolicyId:     newPolicy.Id,
+		Principal:    newPolicy.Principal,
+		ResourceType: newPolicy.ResourceType,
+		ResourceId:   newPolicy.ResourceId,
+		Statements:   newPolicy.Statements,
+	}); err != nil {
+		return math.ZeroUint(), err
 	}
 	return policy.Id, nil
 }
@@ -294,6 +311,12 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		}
 	} else {
 		return math.ZeroUint(), types.ErrInvalidPrincipal.Wrap("Unknown principal type.")
+	}
+	// emit DeletePolicy Event
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{
+		PolicyId: policyID,
+	}); err != nil {
+		return math.ZeroUint(), err
 	}
 	return policyID, nil
 }

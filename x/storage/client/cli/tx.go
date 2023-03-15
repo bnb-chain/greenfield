@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -17,6 +16,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	types2 "github.com/bnb-chain/greenfield/types"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -588,7 +588,7 @@ func CmdDeletePolicy() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeletePolicy(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				types2.NewBucketGRN("test-bucket").String(),
 				permtypes.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
 			)

@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -14,6 +13,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"

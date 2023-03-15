@@ -133,7 +133,7 @@ func (k Keeper) CreateBucket(
 		BucketName:       bucketInfo.BucketName,
 		IsPublic:         bucketInfo.IsPublic,
 		CreateAt:         bucketInfo.CreateAt,
-		Id:               bucketInfo.Id,
+		BucketId:         bucketInfo.Id,
 		SourceType:       bucketInfo.SourceType,
 		ReadQuota:        bucketInfo.ReadQuota,
 		PaymentAddress:   bucketInfo.PaymentAddress,
@@ -184,7 +184,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		OperatorAddress:  operator.String(),
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
-		Id:               bucketInfo.Id,
+		BucketId:         bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 	}); err != nil {
 		return err
@@ -236,7 +236,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
 		OperatorAddress:      operator.String(),
 		BucketName:           bucketName,
-		Id:                   bucketInfo.Id,
+		BucketId:             bucketInfo.Id,
 		ReadQuotaBefore:      bucketInfo.ReadQuota,
 		ReadQuotaAfter:       opts.ReadQuota,
 		PaymentAddressBefore: bucketInfo.PaymentAddress,
@@ -467,12 +467,12 @@ func (k Keeper) SealObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
-		OperatorAddress:    spSealAcc.String(),
-		BucketName:         bucketInfo.BucketName,
-		ObjectName:         objectInfo.ObjectName,
-		Id:                 objectInfo.Id,
-		Status:             objectInfo.ObjectStatus,
-		SecondarySpAddress: objectInfo.SecondarySpAddresses,
+		OperatorAddress:      spSealAcc.String(),
+		BucketName:           bucketInfo.BucketName,
+		ObjectName:           objectInfo.ObjectName,
+		ObjectId:             objectInfo.Id,
+		Status:               objectInfo.ObjectStatus,
+		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
 	}); err != nil {
 		return err
 	}
@@ -520,7 +520,7 @@ func (k Keeper) CancelCreateObject(
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
-		Id:               objectInfo.Id,
+		ObjectId:         objectInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -571,7 +571,7 @@ func (k Keeper) DeleteObject(
 		OperatorAddress:      operator.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,
-		Id:                   objectInfo.Id,
+		ObjectId:             objectInfo.Id,
 		PrimarySpAddress:     bucketInfo.PrimarySpAddress,
 		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
 	}); err != nil {
@@ -707,7 +707,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		OperatorAddress: operator.String(),
 		BucketName:      bucketInfo.BucketName,
 		ObjectName:      objectInfo.ObjectName,
-		Id:              objectInfo.Id,
+		ObjectId:        objectInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -744,7 +744,7 @@ func (k Keeper) CreateGroup(
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
 		OwnerAddress: groupInfo.Owner,
 		GroupName:    groupInfo.GroupName,
-		Id:           groupInfo.Id,
+		GroupId:      groupInfo.Id,
 		SourceType:   groupInfo.SourceType,
 		Members:      opts.Members,
 	}); err != nil {
@@ -806,7 +806,7 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
 		GroupName:    groupInfo.GroupName,
-		Id:           groupInfo.Id,
+		GroupId:      groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -831,7 +831,7 @@ func (k Keeper) LeaveGroup(
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
 		GroupName:    groupInfo.GroupName,
-		Id:           groupInfo.Id,
+		GroupId:      groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -878,7 +878,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		OperatorAddress: operator.String(),
 		OwnerAddress:    groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
-		Id:              groupInfo.Id,
+		GroupId:         groupInfo.Id,
 		MembersToAdd:    opts.MembersToAdd,
 		MembersToDelete: opts.MembersToDelete,
 	}); err != nil {
