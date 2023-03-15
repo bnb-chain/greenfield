@@ -116,13 +116,13 @@ matter how small the fix. We welcome contributions from anyone on the internet, 
 
 If you're interested in contributing to Greenfield, please follow these steps:
 
-1. Fork the project on Github.
+1. Fork the project on GitHub.
 2. Fix the issue.
 3. Commit the changes.
 4. Send a pull request for the maintainers to review and merge into the main codebase.
 
 If you're planning to submit more complex changes, we kindly suggest that you reach out to the core developers first.
-This could be done through a Github issue or our upcoming Discord channel. By doing so, you could ensure that your
+This could be done through a GitHub issue or our upcoming Discord channel. By doing so, you could ensure that your
 changes are aligned with the project's general philosophy, and you can receive valuable feedback that will make your
 efforts lighter as well as our review and merge procedures quick and simple.
 
@@ -130,10 +130,10 @@ Once again, thank you for your willingness to contribute to the Greenfield proje
 
 ## Licence
 
-The greenfield library (i.e. all code outside of the `cmd` directory) is licensed under the
+The greenfield library (i.e. all code outside the `cmd` directory) is licensed under the
 [GNU Lesser General Public License v3.0](https://www.gnu.org/licenses/lgpl-3.0.en.html),
 also included in our repository in the `COPYING.LESSER` file.
 
-The greenfield binaries (i.e. all code inside of the `cmd` directory) is licensed under the
+The greenfield binaries (i.e. all code inside the `cmd` directory) is licensed under the
 [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
 included in our repository in the `COPYING` file.
