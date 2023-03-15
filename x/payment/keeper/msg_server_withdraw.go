@@ -5,6 +5,8 @@ import (
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
@@ -39,9 +41,20 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}
 	// bank transfer
+	feeDenom := k.GetParams(ctx).FeeDenom
+	validatorFeeRate := k.GetParams(ctx).ValidatorFeeRate
+	toValidators := validatorFeeRate.MulInt(msg.Amount).TruncateInt()
+	toCreator := msg.Amount.Sub(toValidators)
+
+	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, distributiontypes.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(feeDenom, toValidators)))
+	if err != nil {
+		return nil, err
+	}
+
 	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	coins := sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, msg.Amount))
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator,
+		sdk.NewCoins(sdk.NewCoin(feeDenom, toCreator)))
 	if err != nil {
 		return nil, err
 	}
@@ -49,7 +62,11 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	err = ctx.EventManager().EmitTypedEvents(&types.EventWithdraw{
 		From:   msg.From,
 		To:     msg.Creator,
-		Amount: msg.Amount,
+		Amount: toCreator,
+	}, &types.EventWithdraw{
+		From:   msg.From,
+		To:     authtypes.NewModuleAddress(distributiontypes.ModuleName).String(),
+		Amount: toValidators,
 	})
 	if err != nil {
 		return nil, err
