@@ -230,7 +230,7 @@ type CreateBucketSynPackage struct {
 	PrimarySpAddress               sdk.AccAddress
 	PrimarySpApprovalExpiredHeight uint64
 	PrimarySpApprovalSignature     []byte
-	ReadQuota                      uint64
+	ChargedReadQuota               uint64
 	ExtraData                      []byte
 }
 
@@ -245,7 +245,7 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
-		ReadQuota: p.ReadQuota,
+		ChargedReadQuota: p.ChargedReadQuota,
 	}
 
 	return msg.ValidateBasic()
@@ -262,7 +262,7 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
-		ReadQuota: p.ReadQuota,
+		ChargedReadQuota: p.ChargedReadQuota,
 	}
 	return msg.GetApprovalBytes()
 }

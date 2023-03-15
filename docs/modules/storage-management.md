@@ -91,7 +91,7 @@ message MsgCreateBucket {
   // primary_sp_approval is the approval info of the primary SP which indicates that primary sp confirm the user's request.
   Approval primary_sp_approval = 7;
   // read_quota
-  ReadQuota read_quota = 8;
+  uint64 charged_read_quota = 8;
 }
 ```
 
@@ -124,8 +124,8 @@ message MsgUpdateBucketInfo {
   // bucket_name is the name of bucket which you'll update
   string bucket_name = 2;
 
-  // read_quota is the traffic quota that you read from primary sp
-  ReadQuota read_quota = 3;
+  // charged_read_quota is the traffic quota that you read from primary sp
+  uint64 charged_read_quota = 3;
 
   // payment_address is the account address of the payment account
   string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];

@@ -17,6 +17,7 @@ const (
 	FlagRedundancyType       = "redundancy-type"
 	FlagApproveSignature     = "approve-signature"
 	FlagApproveTimeoutHeight = "approve-timeout-height"
+	FlagChargedReadQuota     = "charged-read-quota"
 )
 
 func GetVisibilityType(str string) (storagetypes.VisibilityType, error) {

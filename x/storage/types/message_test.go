@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/types/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
@@ -137,10 +138,10 @@ func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "basic",
 			msg: MsgUpdateBucketInfo{
-				Operator:       sample.AccAddress(),
-				BucketName:     testBucketName,
-				PaymentAddress: sample.AccAddress(),
-				ReadQuota:      0,
+				Operator:         sample.AccAddress(),
+				BucketName:       testBucketName,
+				PaymentAddress:   sample.AccAddress(),
+				ChargedReadQuota: &common.UInt64Value{Value: 10000},
 			},
 		},
 	}

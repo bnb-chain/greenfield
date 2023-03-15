@@ -46,7 +46,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	bucketName := "ch" + storagetestutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)

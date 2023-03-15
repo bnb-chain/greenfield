@@ -38,7 +38,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user[0])
@@ -113,7 +113,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user[0])
@@ -174,7 +174,8 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceId, queryHeadBucketResponse.BucketInfo.Id)
 
 	// update read quota
-	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(user[1].GetAddr(), bucketName, 10000000,
+	chargedReadQuota := uint64(100000)
+	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(user[1].GetAddr(), bucketName, &chargedReadQuota,
 		sdk.MustAccAddressFromHex(queryHeadBucketResponse.BucketInfo.PaymentAddress), storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.SendTxBlock(msgUpdateBucketInfo, user[1])
 
@@ -186,7 +187,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.ReadQuota, uint64(10000000))
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.ChargedReadQuota, uint64(100000))
 	// Delete bucket Policy
 	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(user[0].GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
 	s.SendTxBlock(msgDeletePolicy, user[0])
@@ -212,7 +213,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user[0])
@@ -345,7 +346,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user[0])
@@ -462,7 +463,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user[0])
@@ -586,7 +587,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user[0])
@@ -697,7 +698,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 	for _, bucket := range buckets {
 		msgCreateBucket := storagetypes.NewMsgCreateBucket(
 			user[0].GetAddr(), bucket.BucketName, bucket.PublicType, sp.OperatorKey.GetAddr(),
-			nil, math.MaxUint, nil)
+			nil, math.MaxUint, nil, 0)
 		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 		s.Require().NoError(err)
 		s.SendTxBlock(msgCreateBucket, user[0])

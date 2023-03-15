@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"math"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -78,7 +77,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAcc sdk.AccAddress, opts CreateBucketOptions) (sdkmath.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
@@ -94,6 +93,7 @@ func (k Keeper) CreateBucket(
 	}
 
 	// check primary sp approval
+	// PrimarySpApproval might be nil, so we need to check it first(which can be done in Msg.ValidateBasic)
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
@@ -106,16 +106,16 @@ func (k Keeper) CreateBucket(
 		Owner:            ownerAcc.String(),
 		BucketName:       bucketName,
 		Visibility:       opts.Visibility,
-		CreateAt:         ctx.BlockHeight(),
+		CreateAt:         ctx.BlockTime().Unix(),
 		SourceType:       opts.SourceType,
-		ReadQuota:        opts.ReadQuota,
+		ChargedReadQuota: opts.ChargedReadQuota,
 		PaymentAddress:   paymentAcc.String(),
 		PrimarySpAddress: primarySpAcc.String(),
 	}
 
 	// charge by read quota
-	if opts.ReadQuota != 0 {
-		err := k.ChargeInitialReadFee(ctx, &bucketInfo)
+	if opts.ChargedReadQuota != 0 {
+		err = k.ChargeInitialReadFee(ctx, &bucketInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -130,14 +130,14 @@ func (k Keeper) CreateBucket(
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	// emit CreateBucket Event
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		Visibility:       bucketInfo.Visibility,
 		CreateAt:         bucketInfo.CreateAt,
 		BucketId:         bucketInfo.Id,
 		SourceType:       bucketInfo.SourceType,
-		ReadQuota:        bucketInfo.ReadQuota,
+		ChargedReadQuota: bucketInfo.ChargedReadQuota,
 		PaymentAddress:   bucketInfo.PaymentAddress,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 	}); err != nil {
@@ -207,13 +207,13 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	// check permission
 	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_UPDATE_BUCKET_INFO, nil)
 	if effect != permtypes.EFFECT_ALLOW {
-		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
+		return types.ErrAccessDenied.Wrapf("The operator(%s) has no UpdateBucketInfo permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
 
 	// handle fields not changed
-	if opts.ReadQuota == math.MaxUint64 {
-		opts.ReadQuota = bucketInfo.ReadQuota
+	if opts.ChargedReadQuota == nil {
+		opts.ChargedReadQuota = &bucketInfo.ChargedReadQuota
 	}
 	bucketInfo.Visibility = opts.Visibility
 
@@ -228,7 +228,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	} else {
 		paymentAcc = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	}
-	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, paymentAcc.String(), opts.ReadQuota)
+	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, paymentAcc.String(), *opts.ChargedReadQuota)
 	if err != nil {
 		return err
 	}
@@ -238,14 +238,14 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
-		OperatorAddress:      operator.String(),
-		BucketName:           bucketName,
-		BucketId:             bucketInfo.Id,
-		ReadQuotaBefore:      bucketInfo.ReadQuota,
-		ReadQuotaAfter:       opts.ReadQuota,
-		PaymentAddressBefore: bucketInfo.PaymentAddress,
-		PaymentAddressAfter:  paymentAcc.String(),
-		Visibility:           bucketInfo.Visibility,
+		OperatorAddress:        operator.String(),
+		BucketName:             bucketName,
+		BucketId:               bucketInfo.Id,
+		ChargedReadQuotaBefore: bucketInfo.ChargedReadQuota,
+		ChargedReadQuotaAfter:  *opts.ChargedReadQuota,
+		PaymentAddressBefore:   bucketInfo.PaymentAddress,
+		PaymentAddressAfter:    paymentAcc.String(),
+		Visibility:             bucketInfo.Visibility,
 	}); err != nil {
 		return err
 	}
@@ -314,11 +314,8 @@ func (k Keeper) CreateObject(
 	// check secondary sps
 	var secondarySPs []string
 	for _, sp := range opts.SecondarySpAddresses {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(sp)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-		err = k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
+		spAcc := sdk.MustAccAddressFromHex(sp)
+		err := k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -929,6 +926,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 }
 
 func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
+	// the check below is same with IsStorageProviderExistAndInService
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "spAddr: %s, status: %s", sp.OperatorAddress, sp.Status.String())

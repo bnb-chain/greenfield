@@ -80,6 +80,11 @@ func CmdCreateBucket() *cobra.Command {
 				return err
 			}
 
+			chargedReadQuota, err := cmd.Flags().GetUint64(FlagChargedReadQuota)
+			if err != nil {
+				return err
+			}
+
 			payment, _ := cmd.Flags().GetString(FlagPaymentAccount)
 			paymentAcc, _, _, err := GetPaymentAccountField(clientCtx.Keyring, payment)
 			if err != nil {
@@ -107,6 +112,7 @@ func CmdCreateBucket() *cobra.Command {
 				paymentAcc,
 				approveTimeoutHeight,
 				approveSignatureBytes,
+				chargedReadQuota,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -157,12 +163,12 @@ func CmdDeleteBucket() *cobra.Command {
 
 func CmdUpdateBucketInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-bucket-info [bucket-name] [read-quota]",
-		Short: "Update the meta of bucket, E.g ReadQuota, PaymentAccount",
+		Use:   "update-bucket-info [bucket-name] [charged-read-quota]",
+		Short: "Update the meta of bucket, E.g ChargedReadQuota, PaymentAccount",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
-			argReadQuota, err := strconv.ParseUint(args[1], 10, 64)
+			argChargedReadQuota, err := strconv.ParseUint(args[1], 10, 64)
 			if err != nil {
 				return err
 			}
@@ -184,7 +190,7 @@ func CmdUpdateBucketInfo() *cobra.Command {
 			msg := types.NewMsgUpdateBucketInfo(
 				clientCtx.GetFromAddress(),
 				argBucketName,
-				argReadQuota,
+				&argChargedReadQuota,
 				nil,
 				visibilityType,
 			)

@@ -39,7 +39,7 @@ Buckets, objects, and groups are all considered resources, and each has its own 
 
 Bucket subresources consist of the following:
 
-- **BucketInfo**: Allows for modification of specific fields in a bucket, such as `Visibility`, `ReadQuota`, `paymentAccount`, etc.
+- **BucketInfo**: Allows for modification of specific fields in a bucket, such as `Visibility`, `ChargedReadQuota`, `paymentAccount`, etc.
 - **Policy**: Stores permissions information for the bucket.
 - **Objects**: Every object must be stored within a bucket.
 - **Object ownership**: Newly uploaded objects are automatically transferred to the bucket owner, regardless of who uploaded them.
