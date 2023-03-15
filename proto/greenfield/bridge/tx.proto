@@ -2,6 +2,8 @@ syntax = "proto3";
 package bnbchain.greenfield.bridge;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+import "cosmos_proto/cosmos.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -15,8 +17,13 @@ service Msg {
 
 // MsgTransferOut is the Msg/TransferOut request type.
 message MsgTransferOut {
-  string from = 1;
+  option (cosmos.msg.v1.signer) = "from";
+
+  // from address
+  string from = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // to address
   string to = 2;
+  // transfer token amount
   cosmos.base.v1beta1.Coin amount = 3;
 }
 
