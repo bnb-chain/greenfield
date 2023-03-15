@@ -97,6 +97,12 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		return nil, err
 	}
 
+	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx)) {
+		return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
+			1+k.Keeper.RedundantParityChunkNum(ctx)+k.Keeper.RedundantParityChunkNum(ctx),
+			len(msg.ExpectChecksums))
+	}
+
 	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, CreateObjectOptions{
 		SourceType:           types.SOURCE_TYPE_ORIGIN,
 		IsPublic:             msg.IsPublic,
@@ -124,7 +130,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		return nil, err
 	}
 
-	expectSecondarySPNum := k.Keeper.RedundantDataChunkNum(ctx) + k.Keeper.RedundantParityChunkNum(ctx)
+	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx)
 	if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
 		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect (%d), but (%d)", expectSecondarySPNum,
 			len(msg.SecondarySpAddresses))

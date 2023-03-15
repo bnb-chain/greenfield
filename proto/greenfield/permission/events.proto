@@ -1,0 +1,40 @@
+syntax = "proto3";
+package bnbchain.greenfield.permission;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "greenfield/permission/common.proto";
+import "greenfield/permission/types.proto";
+import "greenfield/resource/types.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
+
+message EventPutPolicy {
+  // policy_id is an unique u256 sequence for each policy. It also be used as NFT tokenID
+  string policy_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // principal defines the accounts/group which the permission grants to
+  permission.Principal principal = 2;
+  // resource_type defines the type of resource that grants permission for
+  resource.ResourceType resource_type = 3;
+  // resource_id defines the bucket/object/group id of the resource that grants permission for
+  string resource_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // statements defines the details content of the permission, include effect/actions/sub-resources
+  repeated permission.Statement statements = 5;
+}
+
+message EventDeletePolicy {
+  // policy_id is an unique u256 sequence for each policy. It also be used as NFT tokenID
+  string policy_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}

@@ -913,9 +913,9 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeletePolicy(operator string, resource string, principal *permtypes.Principal) *MsgDeletePolicy {
+func NewMsgDeletePolicy(operator sdk.AccAddress, resource string, principal *permtypes.Principal) *MsgDeletePolicy {
 	return &MsgDeletePolicy{
-		Operator:  operator,
+		Operator:  operator.String(),
 		Resource:  resource,
 		Principal: principal,
 	}
