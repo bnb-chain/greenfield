@@ -30,4 +30,5 @@ type SpKeeper interface {
 	GetSpStoragePriceByTime(ctx sdk.Context, spAddr string, time int64) (val sptypes.SpStoragePrice, err error)
 	GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val sptypes.SecondarySpStorePrice, err error)
 	GetAllStorageProviders(ctx sdk.Context) (sps []sptypes.StorageProvider)
+	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp sptypes.StorageProvider, found bool)
 }

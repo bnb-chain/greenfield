@@ -291,8 +291,10 @@ func (k Keeper) AutoWithdrawForSps(ctx sdk.Context) {
 		return
 	}
 
-	feeDenom := k.GetParams(ctx).FeeDenom
-	validatorFeeRate := k.GetParams(ctx).ValidatorFeeRate
+	params := k.GetParams(ctx)
+	feeDenom := params.FeeDenom
+	validatorFeeRate := params.ValidatorFeeRate
+	toValidatorsTotal := sdkmath.ZeroInt()
 	sps := k.spKeeper.GetAllStorageProviders(ctx)
 	for _, sp := range sps {
 		// if a storage provider's status changed before auto withdrawal, manual withdraw can be taken later
@@ -304,21 +306,19 @@ func (k Keeper) AutoWithdrawForSps(ctx sdk.Context) {
 			continue
 		}
 
-		balance := record.StaticBalance
-		change := types.NewDefaultStreamRecordChangeWithAddr(sp.GetOperator()).WithStaticBalanceChange(balance.Neg())
-		err := k.UpdateStreamRecord(ctx, record, change, true)
+		change := types.NewDefaultStreamRecordChangeWithAddr(sp.GetOperator())
+		// update the static balance first
+		err := k.UpdateStreamRecord(ctx, record, change, false)
 		if err != nil {
 			ctx.Logger().Error("auto withdrawal failed, fail to update stream record", "addr", sp.GetOperator(), "err", err)
 			panic("auto withdrawal - fail to update stream record")
 		}
+		balance := record.StaticBalance
+		record.StaticBalance = sdkmath.ZeroInt()
+		k.SetStreamRecord(ctx, record)
 
 		toValidators := validatorFeeRate.MulInt(balance).TruncateInt()
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, distributiontypes.ModuleName,
-			sdk.NewCoins(sdk.NewCoin(feeDenom, toValidators)))
-		if err != nil {
-			ctx.Logger().Error("auto withdrawal failed, fail to transfer to distribution account", "addr", sp.GetOperator(), "err", err)
-			panic("auto withdrawal - fail to transfer")
-		}
+		toValidatorsTotal = toValidatorsTotal.Add(toValidators)
 
 		toSp := balance.Sub(toValidators)
 		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sp.GetOperator(),
@@ -327,5 +327,12 @@ func (k Keeper) AutoWithdrawForSps(ctx sdk.Context) {
 			ctx.Logger().Error("auto withdrawal failed, fail to transfer to sp", "addr", sp.GetOperator(), "err", err)
 			panic("auto withdrawal - fail to transfer")
 		}
+	}
+
+	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, distributiontypes.ModuleName,
+		sdk.NewCoins(sdk.NewCoin(feeDenom, toValidatorsTotal)))
+	if err != nil {
+		ctx.Logger().Error("auto withdrawal failed, fail to transfer to distribution account", "err", err)
+		panic("auto withdrawal - fail to transfer")
 	}
 }

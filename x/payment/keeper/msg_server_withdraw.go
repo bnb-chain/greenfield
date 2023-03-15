@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
@@ -40,34 +41,57 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	if streamRecord.StaticBalance.IsNegative() {
 		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}
-	// bank transfer
-	feeDenom := k.GetParams(ctx).FeeDenom
-	validatorFeeRate := k.GetParams(ctx).ValidatorFeeRate
-	toValidators := validatorFeeRate.MulInt(msg.Amount).TruncateInt()
-	toCreator := msg.Amount.Sub(toValidators)
+	k.SetStreamRecord(ctx, streamRecord)
 
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, distributiontypes.ModuleName,
-		sdk.NewCoins(sdk.NewCoin(feeDenom, toValidators)))
-	if err != nil {
-		return nil, err
+	events := make([]proto.Message, 0)
+	params := k.GetParams(ctx)
+	feeDenom := params.FeeDenom
+
+	_, found = k.spKeeper.GetStorageProvider(ctx, from)
+	if !found {
+		creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator,
+			sdk.NewCoins(sdk.NewCoin(feeDenom, msg.Amount)))
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, &types.EventWithdraw{
+			From:   msg.From,
+			To:     msg.Creator,
+			Amount: msg.Amount,
+		})
+	} else {
+		validatorFeeRate := params.ValidatorFeeRate
+		toValidators := validatorFeeRate.MulInt(msg.Amount).TruncateInt()
+		toCreator := msg.Amount.Sub(toValidators)
+
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ModuleName, distributiontypes.ModuleName,
+			sdk.NewCoins(sdk.NewCoin(feeDenom, toValidators)))
+		if err != nil {
+			return nil, err
+		}
+
+		creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator,
+			sdk.NewCoins(sdk.NewCoin(feeDenom, toCreator)))
+		if err != nil {
+			return nil, err
+		}
+
+		events = append(events, &types.EventWithdraw{
+			From:   msg.From,
+			To:     msg.Creator,
+			Amount: toCreator,
+		}, &types.EventWithdraw{
+			From:   msg.From,
+			To:     authtypes.NewModuleAddress(distributiontypes.ModuleName).String(),
+			Amount: toValidators,
+		})
 	}
 
-	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator,
-		sdk.NewCoins(sdk.NewCoin(feeDenom, toCreator)))
-	if err != nil {
-		return nil, err
-	}
 	// emit event
-	err = ctx.EventManager().EmitTypedEvents(&types.EventWithdraw{
-		From:   msg.From,
-		To:     msg.Creator,
-		Amount: toCreator,
-	}, &types.EventWithdraw{
-		From:   msg.From,
-		To:     authtypes.NewModuleAddress(distributiontypes.ModuleName).String(),
-		Amount: toValidators,
-	})
+	err = ctx.EventManager().EmitTypedEvents(events...)
 	if err != nil {
 		return nil, err
 	}
