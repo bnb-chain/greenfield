@@ -39,15 +39,15 @@ jobs:
 
       - name: Install Libraries
         run: |
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/
-          npm install -g swagger-combine  
-
-      - run: |
-          export PATH=$PATH:$(go env GOPATH)/bin
+          npm install -g swagger-combine
+          make proto-swagger-gen
+#          export PATH=$PATH:$(go env GOPATH)/bin
 #          which protoc-gen-swagger
 
-      - name: Generate swagger.yaml
-        run: make proto-swagger-gen
+#      - name: Generate swagger.yaml
+#        run: make proto-swagger-gen
 
       - name: Check if swagger.yaml is updated
         run: |
