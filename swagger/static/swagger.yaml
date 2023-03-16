@@ -6,7 +6,7 @@ info:
 paths:
   /greenfield/bridge/params:
     get:
-      summary: Parameters queries the parameters of the module.
+      summary: Parameters queries the parameters of the modul
       operationId: BridgeParams
       responses:
         '200':
