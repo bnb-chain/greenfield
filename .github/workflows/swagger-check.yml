@@ -24,8 +24,6 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
-      - run: go mod download  
-
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
@@ -41,6 +39,7 @@ jobs:
 
       - name: Install Libraries
         run: |
+          go mod download  
           go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
           echo "$(go env GOPATH)/bin" >> $PATH    
           npm install -g swagger-combine  
