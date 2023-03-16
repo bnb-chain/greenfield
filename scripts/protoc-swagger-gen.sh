@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 mkdir -p ./tmp-swagger-gen
 cd proto
