@@ -1,0 +1,41 @@
+name: Check Swagger Files
+
+on:
+  pull_request:
+    branches:
+      - master
+      - develop
+    permissions:
+      contents: read
+
+jobs:
+  check-swagger-files:
+    strategy:
+      matrix:
+        go-version: [ 1.18.x ]
+        os: [ ubuntu-latest, macos-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - uses: bufbuild/buf-setup-action@v1.15.1
+      - run: buf --version
+
+      - name: Generate swagger.yaml
+        run: make proto-swagger-gen
+
+      - name: Check if swagger.yaml is updated
+        run: |
+            git diff --exit-code --quiet swagger/static/swagger.yaml
+            diff_status=$?
+            if [ $diff_status -ne 0 ]; then
+              echo "Error: Swagger file is not updated. Please run "make proto-swagger-gen" to update it."
+              git diff swagger/static/swagger.yaml
+              exit 1
+            else
+              echo "Swagger file is updated. Checks passed."
+            fi
+
+      - name: Discard changes in the working directory
+        run: git restore --staged swagger/static/swagger.yaml && git restore swagger/static/swagger.yaml
