@@ -1,4 +1,4 @@
-name: Check Swagger Files
+name: Swagger Check
 
 on:
   pull_request:
