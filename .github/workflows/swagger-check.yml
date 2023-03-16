@@ -43,7 +43,7 @@ jobs:
           npm install -g swagger-combine  
 
       - run: |
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          export PATH=$PATH:$(go env GOPATH)/bin
 #          which protoc-gen-swagger
 
       - name: Generate swagger.yaml
