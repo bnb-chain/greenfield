@@ -41,11 +41,12 @@ jobs:
         run: |
           go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger/
           npm install -g swagger-combine
+          echo "$(go env GOPATH)/bin"
+          echo "$PATH"  
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-          command -v protoc-gen-swagger
           make proto-swagger-gen
 #          export PATH=$PATH:$(go env GOPATH)/bin
-
+#          command -v protoc-gen-swagger
 #          which protoc-gen-swagger
 
 #      - name: Generate swagger.yaml
