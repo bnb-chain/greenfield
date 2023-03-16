@@ -51,7 +51,7 @@ jobs:
             git diff --exit-code --quiet swagger/static/swagger.yaml
             diff_status=$?
             if [ $diff_status -ne 0 ]; then
-              echo "Error: Swagger file is not updated. Please run "make proto-swagger-gen" to update it."
+              echo "Error: Swagger file is not updated. Please run 'make proto-swagger-gen' to update it."  
               git diff swagger/static/swagger.yaml
               exit 1
             else
