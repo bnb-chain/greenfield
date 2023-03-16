@@ -26,8 +26,8 @@ func NewBucketApp(keeper Keeper) *BucketApp {
 func (app *BucketApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.AckCrossChainPackageType)
 	if err != nil {
-		app.storageKeeper.Logger(ctx).Error("deserialize object cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
-		panic("deserialize object cross chain package error")
+		app.storageKeeper.Logger(ctx).Error("deserialize bucket cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
+		panic("deserialize bucket cross chain package error")
 	}
 
 	var operationType uint8
@@ -64,8 +64,8 @@ func (app *BucketApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 func (app *BucketApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
 	if err != nil {
-		app.storageKeeper.Logger(ctx).Error("deserialize object cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
-		panic("deserialize object cross chain package error")
+		app.storageKeeper.Logger(ctx).Error("deserialize bucket cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
+		panic("deserialize bucket cross chain package error")
 	}
 
 	var operationType uint8
@@ -102,8 +102,8 @@ func (app *BucketApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 func (app *BucketApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.SynCrossChainPackageType)
 	if err != nil {
-		app.storageKeeper.Logger(ctx).Error("deserialize object cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
-		panic("deserialize object cross chain package error")
+		app.storageKeeper.Logger(ctx).Error("deserialize bucket cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
+		panic("deserialize bucket cross chain package error")
 	}
 
 	var operationType uint8

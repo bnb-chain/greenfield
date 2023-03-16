@@ -33,7 +33,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/cosmos/gogoproto v1.4.6
+require (
+	github.com/cosmos/gogoproto v1.4.6
+	github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969
+)
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect

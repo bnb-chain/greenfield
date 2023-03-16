@@ -115,12 +115,16 @@ func (app *GroupApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAp
 	var result sdk.ExecuteResult
 	switch p := pack.(type) {
 	case *types.MirrorGroupSynPackage:
+		operationType = types.OperationMirrorGroup
 		result = app.handleMirrorGroupSynPackage(ctx, appCtx, p)
 	case *types.CreateGroupSynPackage:
+		operationType = types.OperationCreateGroup
 		result = app.handleCreateGroupSynPackage(ctx, appCtx, p)
 	case *types.DeleteGroupSynPackage:
+		operationType = types.OperationDeleteGroup
 		result = app.handleDeleteGroupSynPackage(ctx, appCtx, p)
 	case *types.UpdateGroupMemberSynPackage:
+		operationType = types.OperationUpdateGroupMember
 		result = app.handleUpdateGroupMemberSynPackage(ctx, appCtx, p)
 	default:
 		return sdk.ExecuteResult{
@@ -267,7 +271,6 @@ func (app *GroupApp) handleMirrorGroupAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 		}
 	}
 
-	// update object
 	if ackPackage.Status == types.StatusSuccess {
 		groupInfo.SourceType = types.SOURCE_TYPE_BSC_CROSS_CHAIN
 
