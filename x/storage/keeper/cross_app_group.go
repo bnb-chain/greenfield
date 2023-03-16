@@ -228,6 +228,7 @@ func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 		return sdk.ExecuteResult{
 			Payload: types.CreateGroupAckPackage{
 				Status:    types.StatusFail,
+				Creator:   createGroupPackage.Creator,
 				ExtraData: createGroupPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
@@ -246,6 +247,7 @@ func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 		return sdk.ExecuteResult{
 			Payload: types.CreateGroupAckPackage{
 				Status:    types.StatusFail,
+				Creator:   createGroupPackage.Creator,
 				ExtraData: createGroupPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
@@ -326,6 +328,7 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 		return sdk.ExecuteResult{
 			Payload: types.UpdateGroupMemberAckPackage{
 				Status:    types.StatusFail,
+				Operator:  updateGroupPackage.Operator,
 				ExtraData: updateGroupPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
@@ -337,6 +340,7 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 		return sdk.ExecuteResult{
 			Payload: types.UpdateGroupMemberAckPackage{
 				Status:    types.StatusFail,
+				Operator:  updateGroupPackage.Operator,
 				ExtraData: updateGroupPackage.ExtraData,
 			}.MustSerialize(),
 			Err: types.ErrNoSuchGroup,
@@ -362,6 +366,7 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 		return sdk.ExecuteResult{
 			Payload: types.UpdateGroupMemberAckPackage{
 				Status:    types.StatusFail,
+				Operator:  updateGroupPackage.Operator,
 				ExtraData: updateGroupPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
