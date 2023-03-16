@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -244,7 +243,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 				Status:    types.StatusFail,
 				ExtraData: createBucketPackage.ExtraData,
 			}.MustSerialize(),
-			Err: paymenttypes.ErrNotPaymentAccountOwner,
+			Err: err,
 		}
 	}
 
