@@ -32,6 +32,9 @@ jobs:
       - uses: bufbuild/buf-setup-action@v1.15.1
       - run: buf --version
 
+      - name: Setup GitHub Token
+        run: git config --global url.https://${{ secrets.GH_ACCESS_SECRET }}@github.com/.insteadOf https://github.com/
+
       - name: Install Libraries
         run: |
           go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
