@@ -19,6 +19,7 @@ message EventCreateStorageProvider {
   // endpoint is the domain name address used by SP to provide storage services
   string endpoint = 5;
   // total_deposit is the token coin that the storage provider deposit to the storage module
+  // todo(quality): should this be cosmos.base.v1beta1.Coin?
   string total_deposit = 6;
 }
 

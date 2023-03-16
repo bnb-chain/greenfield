@@ -13,10 +13,16 @@ message Params {
 
   // deposit_denom defines the staking coin denomination.
   string deposit_denom = 1;
-  // min_deposit_amount defines the minimum deposit amount for storage providers.
+  // min_deposit defines the minimum deposit amount for storage providers.
   string min_deposit = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // the ratio of the store price of the secondary sp to the primary sp, the default value is 80%
+  string secondary_sp_store_price_ratio = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
 }

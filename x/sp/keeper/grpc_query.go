@@ -31,12 +31,7 @@ func (k Keeper) StorageProviders(goCtx context.Context, req *types.QueryStorageP
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	SPs := types.StorageProviders{}
-	for _, sp := range sps {
-		SPs = append(SPs, *sp)
-	}
-
-	return &types.QueryStorageProvidersResponse{Sps: SPs, Pagination: pageRes}, nil
+	return &types.QueryStorageProvidersResponse{Sps: sps, Pagination: pageRes}, nil
 }
 
 func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.QueryGetSpStoragePriceByTimeRequest) (*types.QueryGetSpStoragePriceByTimeResponse, error) {
@@ -50,11 +45,11 @@ func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.Q
 	if req.Timestamp == 0 {
 		req.Timestamp = ctx.BlockTime().Unix()
 	}
-	_, err := sdk.AccAddressFromHexUnsafe(req.SpAddr)
+	spAddr, err := sdk.AccAddressFromHexUnsafe(req.SpAddr)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid sp address")
 	}
-	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, req.SpAddr, req.Timestamp)
+	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, spAddr, req.Timestamp)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "not found, err: %s", err)
 	}
@@ -95,5 +90,5 @@ func (k Keeper) StorageProvider(goCtx context.Context, req *types.QueryStoragePr
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}
-	return &types.QueryStorageProviderResponse{StorageProvider: &sp}, nil
+	return &types.QueryStorageProviderResponse{StorageProvider: sp}, nil
 }

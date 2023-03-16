@@ -79,7 +79,12 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid fund address (%s)", err)
 	}
-
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.SealAddress); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid seal address (%s)", err)
+	}
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.ApprovalAddress); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid approval address (%s)", err)
+	}
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
@@ -99,7 +104,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 }
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
-func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description Description) *MsgEditStorageProvider {
+func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description *Description) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
 		SpAddress:   spAddress.String(),
 		Endpoint:    endpoint,
@@ -139,13 +144,15 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Description == (Description{}) {
+	if msg.Description != nil && *msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 
-	err = IsValidEndpointURL(msg.Endpoint)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
+	if len(msg.Endpoint) != 0 {
+		err = IsValidEndpointURL(msg.Endpoint)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
+		}
 	}
 	return nil
 }
@@ -190,6 +197,10 @@ func (msg *MsgDeposit) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
+	}
+
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
@@ -223,8 +234,11 @@ func (msg *MsgUpdateSpStoragePrice) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
 	}
-	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
+	if msg.ReadPrice.IsNil() || msg.ReadPrice.IsNegative() {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid read price (%s)", msg.ReadPrice)
+	}
+	if msg.StorePrice.IsNil() || msg.StorePrice.IsNegative() {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid store price (%s)", msg.StorePrice)
 	}
 	return nil
 }

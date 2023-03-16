@@ -62,7 +62,7 @@ func CmdEditStorageProvider() *cobra.Command {
 			msg := types.NewMsgEditStorageProvider(
 				spAddress,
 				endpoint,
-				description,
+				&description,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
@@ -14,15 +16,16 @@ import (
 func TestGetSpStoragePriceByTime(t *testing.T) {
 	keeper, ctx := keepertest.SpKeeper(t)
 	ctx = ctx.WithBlockTime(time.Unix(100, 0))
+	spAddr := sample.RandAccAddress()
 	spStoragePrice := types.SpStoragePrice{
-		SpAddress:  "sp",
+		SpAddress:  spAddr.String(),
 		UpdateTime: 1,
 		ReadPrice:  sdk.NewDec(100),
 		StorePrice: sdk.NewDec(100),
 	}
 	keeper.SetSpStoragePrice(ctx, spStoragePrice)
 	spStoragePrice2 := types.SpStoragePrice{
-		SpAddress:  "sp",
+		SpAddress:  spAddr.String(),
 		UpdateTime: 100,
 		ReadPrice:  sdk.NewDec(200),
 		StorePrice: sdk.NewDec(200),
@@ -45,7 +48,7 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotVal, err := keeper.GetSpStoragePriceByTime(ctx, "sp", tt.args.time)
+			gotVal, err := keeper.GetSpStoragePriceByTime(ctx, spAddr, tt.args.time)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetSpStoragePriceByTime() error = %v, wantErr %v", err, tt.wantErr)
 				return

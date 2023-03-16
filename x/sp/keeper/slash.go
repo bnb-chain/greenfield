@@ -28,6 +28,9 @@ func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types
 			return err
 		}
 
+		// todo(quality): rewardInfo.Amount is a Coin, but we just use its Amount here and uses the denom
+		// from parameter. It will be a problem if they are different.
+		// suggest to assert the denom are the same and use the Coin directly
 		coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), rewardInfo.GetAmount().Amount))
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, rewardAcc, coins); err != nil {
 			// TODO: need consider rollback

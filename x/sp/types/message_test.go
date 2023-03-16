@@ -64,10 +64,11 @@ func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			desc := NewDescription(tt.moniker, tt.identity, tt.website, tt.details)
 			msg := MsgEditStorageProvider{
 				SpAddress:   tt.spAddress.String(),
 				Endpoint:    "http://127.0.0.1:9033",
-				Description: NewDescription(tt.moniker, tt.identity, tt.website, tt.details),
+				Description: &desc,
 			}
 			err := msg.ValidateBasic()
 			if tt.err != nil {

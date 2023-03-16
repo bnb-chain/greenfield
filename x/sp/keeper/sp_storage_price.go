@@ -20,7 +20,7 @@ func (k Keeper) SetSpStoragePrice(ctx sdk.Context, SpStoragePrice types.SpStorag
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
 	key := types.SpStoragePriceKey(
-		SpStoragePrice.SpAddress,
+		SpStoragePrice.GetSpAccAddress(),
 		SpStoragePrice.UpdateTime,
 	)
 	SpStoragePrice.UpdateTime = 0
@@ -33,7 +33,7 @@ func (k Keeper) SetSpStoragePrice(ctx sdk.Context, SpStoragePrice types.SpStorag
 // GetSpStoragePrice returns a SpStoragePrice from its index
 func (k Keeper) GetSpStoragePrice(
 	ctx sdk.Context,
-	spAddr string,
+	spAddr sdk.AccAddress,
 	updateTime int64,
 ) (val types.SpStoragePrice, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
@@ -47,7 +47,7 @@ func (k Keeper) GetSpStoragePrice(
 	}
 
 	k.cdc.MustUnmarshal(b, &val)
-	val.SpAddress = spAddr
+	val.SpAddress = spAddr.String()
 	val.UpdateTime = updateTime
 	return val, true
 }
@@ -63,7 +63,7 @@ func (k Keeper) GetAllSpStoragePrice(ctx sdk.Context) (list []types.SpStoragePri
 		var val types.SpStoragePrice
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
 		spAddr, updateTime := types.ParseSpStoragePriceKey(iterator.Key())
-		val.SpAddress = spAddr
+		val.SpAddress = spAddr.String()
 		val.UpdateTime = updateTime
 		list = append(list, val)
 	}
@@ -74,7 +74,7 @@ func (k Keeper) GetAllSpStoragePrice(ctx sdk.Context) (list []types.SpStoragePri
 // GetSpStoragePriceByTime find the latest price before the given time
 func (k Keeper) GetSpStoragePriceByTime(
 	ctx sdk.Context,
-	spAddr string,
+	spAddr sdk.AccAddress,
 	time int64,
 ) (val types.SpStoragePrice, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
@@ -91,7 +91,7 @@ func (k Keeper) GetSpStoragePriceByTime(
 
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
 	_, updateTime := types.ParseSpStoragePriceKey(iterator.Key())
-	val.SpAddress = spAddr
+	val.SpAddress = spAddr.String()
 	val.UpdateTime = updateTime
 
 	return val, nil
@@ -122,7 +122,7 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 		if sp.Status != types.STATUS_IN_SERVICE {
 			continue
 		}
-		price, err := k.GetSpStoragePriceByTime(ctx, sp.OperatorAddress, current)
+		price, err := k.GetSpStoragePriceByTime(ctx, sp.GetOperator(), current)
 		if err != nil {
 			return err
 		}
@@ -132,7 +132,7 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 	if spNumInService == 0 {
 		return nil
 	}
-	price := types.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNumInService)
+	price := k.SecondarySpStorePriceRatio(ctx).Mul(total).QuoInt64(spNumInService)
 	secondarySpStorePrice := types.SecondarySpStorePrice{
 		StorePrice: price,
 		UpdateTime: current,

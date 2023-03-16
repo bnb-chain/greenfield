@@ -21,6 +21,8 @@ service Msg {
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 
+// todo(quality): add comments
+
 // MsgCreateStorageProvider defines message for creating a new storage provider.
 message MsgCreateStorageProvider {
   option (cosmos.msg.v1.signer) = "creator";
@@ -73,7 +75,7 @@ message MsgEditStorageProvider {
 
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string endpoint = 2;
-  Description description = 3 [(gogoproto.nullable) = false];
+  Description description = 3;
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.

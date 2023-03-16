@@ -14,14 +14,14 @@ import (
 
 func TestSetGetStorageProvider(t *testing.T) {
 	k, ctx := keepertest.SpKeeper(t)
-	sp := types.StorageProvider{}
+	sp := &types.StorageProvider{}
 	spAccStr := sample.AccAddress()
 	spAcc := sdk.MustAccAddressFromHex(spAccStr)
 
 	sp.OperatorAddress = spAcc.String()
 
-	k.SetStorageProvider(ctx, &sp)
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+	k.SetStorageProvider(ctx, sp)
+	_, found := k.GetStorageProvider(ctx, spAcc)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}

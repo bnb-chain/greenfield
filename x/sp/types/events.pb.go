@@ -38,6 +38,7 @@ type EventCreateStorageProvider struct {
 	// endpoint is the domain name address used by SP to provide storage services
 	Endpoint string `protobuf:"bytes,5,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// total_deposit is the token coin that the storage provider deposit to the storage module
+	// todo(quality): should this be cosmos.base.v1beta1.Coin?
 	TotalDeposit string `protobuf:"bytes,6,opt,name=total_deposit,json=totalDeposit,proto3" json:"total_deposit,omitempty"`
 }
 

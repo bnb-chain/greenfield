@@ -18,13 +18,18 @@ const (
 	DefaultDepositDenom = "BNB"
 )
 
-// DefaultMinDeposit defines the minimum deposit amount for all storage provider
-var DefaulMinDeposit = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
+var (
+	// DefaultMinDeposit defines the minimum deposit amount for all storage provider
+	DefaultMinDeposit = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
+	// DefaultSecondarySpStorePriceRatio is 80%
+	DefaultSecondarySpStorePriceRatio = sdk.NewDecFromIntWithPrec(sdk.NewInt(8), 1)
+)
 
 var (
-	KeyMaxStorageProviders = []byte("MaxStorageProviders")
-	KeyDepostDenom         = []byte("DepositDenom")
-	KeyMinDeposit          = []byte("MinDeposit")
+	KeyMaxStorageProviders        = []byte("MaxStorageProviders")
+	KeyDepostDenom                = []byte("DepositDenom")
+	KeyMinDeposit                 = []byte("MinDeposit")
+	KeySecondarySpStorePriceRatio = []byte("SecondarySpStorePriceRatio")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -35,16 +40,17 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(depositDenom string, minDeposit math.Int) Params {
+func NewParams(depositDenom string, minDeposit math.Int, secondarySpStorePriceRatio sdk.Dec) Params {
 	return Params{
-		DepositDenom: depositDenom,
-		MinDeposit:   minDeposit,
+		DepositDenom:               depositDenom,
+		MinDeposit:                 minDeposit,
+		SecondarySpStorePriceRatio: secondarySpStorePriceRatio,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDepositDenom, DefaulMinDeposit)
+	return NewParams(DefaultDepositDenom, DefaultMinDeposit, DefaultSecondarySpStorePriceRatio)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -52,6 +58,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDepostDenom, &p.DepositDenom, validateDepositDenom),
 		paramtypes.NewParamSetPair(KeyMinDeposit, &p.MinDeposit, validateMinDeposit),
+		paramtypes.NewParamSetPair(KeySecondarySpStorePriceRatio, &p.SecondarySpStorePriceRatio, validateSecondarySpStorePriceRatio),
 	}
 }
 
@@ -62,6 +69,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateMinDeposit(p.MinDeposit); err != nil {
+		return err
+	}
+
+	if err := validateSecondarySpStorePriceRatio(p.SecondarySpStorePriceRatio); err != nil {
 		return err
 	}
 	return nil
@@ -96,9 +107,24 @@ func validateMinDeposit(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v.LT(sdk.NewInt(0)) {
+	if v.IsNil() {
+		return fmt.Errorf("minimum deposit amount cannot be nil")
+	}
+
+	if v.IsNegative() {
 		return fmt.Errorf("minimum deposit amount cannot be lower than 0")
 	}
 
+	return nil
+}
+
+func validateSecondarySpStorePriceRatio(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNil() || !v.IsPositive() || v.GT(sdk.OneDec()) {
+		return fmt.Errorf("invalid secondary sp store price ratio")
+	}
 	return nil
 }

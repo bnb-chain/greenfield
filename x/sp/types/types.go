@@ -1,16 +1,10 @@
 package types
 
 import (
-	"bytes"
-	"sort"
-	"strings"
-
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"sigs.k8s.io/yaml"
 )
 
 const (
@@ -18,11 +12,6 @@ const (
 	MaxIdentityLength = 3000
 	MaxWebsiteLength  = 140
 	MaxDetailsLength  = 280
-)
-
-var (
-	// SecondarySpStorePriceRatio shows the ratio of the store price of the secondary sp to the primary sp, the default value is 80%
-	SecondarySpStorePriceRatio = sdk.NewDecFromIntWithPrec(sdk.NewInt(8), 1)
 )
 
 // NewStorageProvider constructs a new StorageProvider
@@ -42,70 +31,44 @@ func NewStorageProvider(
 	}, nil
 }
 
-func (sp StorageProvider) GetOperator() sdk.AccAddress {
+func (sp *StorageProvider) GetOperator() sdk.AccAddress {
+	// todo(quality): can this be empty?
 	if sp.OperatorAddress == "" {
 		return sdk.AccAddress{}
 	}
-	addr, err := sdk.AccAddressFromHexUnsafe(sp.OperatorAddress)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromHex(sp.OperatorAddress)
 	return addr
 }
 
-func (sp StorageProvider) GetFundingAccAddress() sdk.AccAddress {
+func (sp *StorageProvider) GetFundingAccAddress() sdk.AccAddress {
 	if sp.OperatorAddress == "" {
 		return sdk.AccAddress{}
 	}
-	addr, err := sdk.AccAddressFromHexUnsafe(sp.FundingAddress)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromHex(sp.FundingAddress)
 	return addr
 }
 
-func (sp StorageProvider) GetSealAccAddress() sdk.AccAddress {
+func (sp *StorageProvider) GetSealAccAddress() sdk.AccAddress {
 	if sp.OperatorAddress == "" {
 		return sdk.AccAddress{}
 	}
-	addr, err := sdk.AccAddressFromHexUnsafe(sp.SealAddress)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromHex(sp.SealAddress)
 	return addr
 }
 
-func (sp StorageProvider) GetApprovalAccAddress() sdk.AccAddress {
+func (sp *StorageProvider) GetApprovalAccAddress() sdk.AccAddress {
 	if sp.OperatorAddress == "" {
 		return sdk.AccAddress{}
 	}
-	addr, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
-	if err != nil {
-		panic(err)
-	}
+	addr := sdk.MustAccAddressFromHex(sp.ApprovalAddress)
 	return addr
 }
 
-func (sp StorageProvider) IsInService() bool {
+func (sp *StorageProvider) IsInService() bool {
 	return sp.GetStatus() == STATUS_IN_SERVICE
 }
 
-func (sp StorageProvider) GetTotalDeposit() math.Int { return sp.TotalDeposit }
-
-// String implements the Stringer interface for a Validator object.
-func (sp StorageProvider) String() string {
-	bz, err := codec.ProtoMarshalJSON(&sp, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	out, err := yaml.JSONToYAML(bz)
-	if err != nil {
-		panic(err)
-	}
-
-	return string(out)
-}
+func (sp *StorageProvider) GetTotalDeposit() math.Int { return sp.TotalDeposit }
 
 // constant used in flags to indicate that description field should not be updated
 const DoNotModifyDesc = "[do-not-modify]"
@@ -120,32 +83,27 @@ func NewDescription(moniker, identity, website, details string) Description {
 }
 
 // EnsureLength ensures the length of a validator's description.
-func (d Description) EnsureLength() (Description, error) {
+func (d *Description) EnsureLength() error {
 	if len(d.Moniker) > MaxMonikerLength {
-		return d, errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
 	}
 
 	if len(d.Identity) > MaxIdentityLength {
-		return d, errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid identity length; got: %d, max: %d", len(d.Identity), MaxIdentityLength)
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid identity length; got: %d, max: %d", len(d.Identity), MaxIdentityLength)
 	}
 
 	if len(d.Website) > MaxWebsiteLength {
-		return d, errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid website length; got: %d, max: %d", len(d.Website), MaxWebsiteLength)
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid website length; got: %d, max: %d", len(d.Website), MaxWebsiteLength)
 	}
 
 	if len(d.Details) > MaxDetailsLength {
-		return d, errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid details length; got: %d, max: %d", len(d.Details), MaxDetailsLength)
 	}
 
-	return d, nil
+	return nil
 }
 
-func (d Description) String() string {
-	out, _ := yaml.Marshal(d)
-	return string(out)
-}
-
-func (d Description) UpdateDescription(d2 Description) (Description, error) {
+func (d *Description) UpdateDescription(d2 *Description) (*Description, error) {
 	if d2.Moniker == DoNotModifyDesc {
 		d2.Moniker = d.Moniker
 	}
@@ -162,50 +120,13 @@ func (d Description) UpdateDescription(d2 Description) (Description, error) {
 		d2.Details = d.Details
 	}
 
-	return NewDescription(
-		d2.Moniker,
-		d2.Identity,
-		d2.Website,
-		d2.Details,
-	).EnsureLength()
-}
-
-// Validators is a collection of Validator
-type StorageProviders []StorageProvider
-
-func (v StorageProviders) String() (out string) {
-	for _, val := range v {
-		out += val.String() + "\n"
+	if err := d2.EnsureLength(); err != nil {
+		return d2, err
 	}
 
-	return strings.TrimSpace(out)
+	return d2, nil
 }
 
-// ToSDKValidators -  convenience function convert []Validator to []sdk.ValidatorI
-func (v StorageProviders) ToSDKValidators() (sps []StorageProvider) {
-	for _, val := range v {
-		sps = append(sps, val)
-	}
-
-	return sps
-}
-
-// Sort Validators sorts validator array in ascending operator address order
-func (v StorageProviders) Sort() {
-	sort.Sort(v)
-}
-
-// Implements sort interface
-func (v StorageProviders) Len() int {
-	return len(v)
-}
-
-// Implements sort interface
-func (v StorageProviders) Less(i, j int) bool {
-	return bytes.Compare(v[i].GetOperator().Bytes(), v[j].GetOperator().Bytes()) == -1
-}
-
-// Implements sort interface
-func (v StorageProviders) Swap(i, j int) {
-	v[i], v[j] = v[j], v[i]
+func (s *SpStoragePrice) GetSpAccAddress() sdk.AccAddress {
+	return sdk.MustAccAddressFromHex(s.SpAddress)
 }

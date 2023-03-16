@@ -22,6 +22,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 
 	// this line is used by starport scaffolding # genesis/module/export
 	genesis.StorageProviders = k.GetAllStorageProviders(ctx)
+	genesis.SpStoragePriceList = k.GetAllSpStoragePrice(ctx)
 
 	return genesis
 }

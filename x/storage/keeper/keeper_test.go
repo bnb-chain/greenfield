@@ -110,7 +110,7 @@ func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	s.T().Logf("spStreamRecordSealObject: %+v", spStreamRecordSealObject)
 
 	// check
-	primaryStorePriceRes, err := s.depKeepers.SpKeeper.GetSpStoragePriceByTime(ctx, s.PrimarySpAddr.String(), t2)
+	primaryStorePriceRes, err := s.depKeepers.SpKeeper.GetSpStoragePriceByTime(ctx, s.PrimarySpAddr, t2)
 	s.Require().NoError(err)
 	s.T().Logf("primaryStorePriceRes: %+v", primaryStorePriceRes)
 	primarySpRateDiff := spStreamRecordSealObject.NetflowRate.Sub(spStreamRecordCreateBucket.NetflowRate)
