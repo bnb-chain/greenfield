@@ -24,6 +24,8 @@ jobs:
         with:
           go-version: ${{ matrix.go-version }}
 
+      - run: go mod download  
+
       - name: Install NodeJS
         uses: actions/setup-node@v2
         with:
