@@ -9,7 +9,7 @@ on:
       contents: read
 
 jobs:
-  check-swagger-files:
+  swagger-check:
     strategy:
       matrix:
         go-version: [ 1.18.x ]
@@ -17,7 +17,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
 
       - uses: bufbuild/buf-setup-action@v1.15.1
       - run: buf --version
