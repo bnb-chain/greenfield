@@ -459,7 +459,7 @@ func (k Keeper) SealObject(
 			return err
 		}
 		secondarySps = append(secondarySps, spAcc.String())
-		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Checksums[i+1])
+		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Id, objectInfo.Checksums[i+1])
 		err = k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
 		if err != nil {
 			return err
