@@ -44,7 +44,7 @@ jobs:
 
       - run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
-          which protoc-gen-swagger
+#          which protoc-gen-swagger
 
       - name: Generate swagger.yaml
         run: make proto-swagger-gen
