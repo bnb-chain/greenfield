@@ -214,6 +214,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 		return sdk.ExecuteResult{
 			Payload: types.CreateBucketAckPackage{
 				Status:    types.StatusFail,
+				Creator:   createBucketPackage.Creator,
 				ExtraData: createBucketPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
@@ -241,6 +242,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 		return sdk.ExecuteResult{
 			Payload: types.CreateBucketAckPackage{
 				Status:    types.StatusFail,
+				Creator:   createBucketPackage.Creator,
 				ExtraData: createBucketPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
