@@ -30,6 +30,8 @@ jobs:
           node-version: 16
 
       - uses: bufbuild/buf-setup-action@v1.15.1
+        with:
+          github_token: ${{ github.token }}
       - run: buf --version
 
       - name: Setup GitHub Token
