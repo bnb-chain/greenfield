@@ -17,10 +17,25 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+
+      - name: Install NodeJS
+        uses: action/setup-node@v2
+        with:
+          node-version: 16
 
       - uses: bufbuild/buf-setup-action@v1.15.1
       - run: buf --version
+
+      - name: Install Libraries
+        run: |
+          go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+          npm install -g swagger-combine  
 
       - name: Generate swagger.yaml
         run: make proto-swagger-gen
