@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	types2 "github.com/bnb-chain/greenfield/types"
@@ -348,4 +349,203 @@ func (k msgServer) DeletePolicy(goCtx context.Context, msg *types.MsgDeletePolic
 	}
 
 	return &types.MsgDeletePolicyResponse{Id: policyID}, nil
+}
+
+func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObject) (*types.MsgMirrorObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	objectInfo, found := k.Keeper.GetObjectInfoById(ctx, msg.Id)
+	if !found {
+		return nil, types.ErrNoSuchObject
+	}
+
+	if objectInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+		return nil, types.ErrAlreadyMirrored
+	}
+
+	if operator.String() != objectInfo.Owner {
+		return nil, types.ErrAccessDenied
+	}
+
+	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+
+	mirrorPackage := types.MirrorObjectSynPackage{
+		Id:    objectInfo.Id.BigInt(),
+		Owner: owner,
+	}
+
+	encodedPackage, err := rlp.EncodeToBytes(mirrorPackage)
+	if err != nil {
+		return nil, types.ErrInvalidCrossChainPackage
+	}
+
+	wrapPackage := types.CrossChainPackage{
+		OperationType: types.OperationMirrorObject,
+		Package:       encodedPackage,
+	}
+	encodedWrapPackage, err := rlp.EncodeToBytes(wrapPackage)
+	if err != nil {
+		return nil, types.ErrInvalidCrossChainPackage
+	}
+
+	relayerFee := k.Keeper.MirrorObjectRelayerFee(ctx)
+	ackRelayerFee := k.Keeper.MirrorObjectAckRelayerFee(ctx)
+
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.ObjectChannelId, sdk.SynCrossChainPackageType,
+		encodedWrapPackage, relayerFee, ackRelayerFee)
+	if err != nil {
+		return nil, err
+	}
+
+	// update source type to pending
+	objectInfo.SourceType = types.SOURCE_TYPE_MIRROR_PENDING
+	k.Keeper.SetObjectInfo(ctx, objectInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObject{
+		OperatorAddress: objectInfo.Owner,
+		BucketName:      objectInfo.BucketName,
+		ObjectName:      objectInfo.ObjectName,
+		ObjectId:        objectInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+	return nil, nil
+}
+
+func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucket) (*types.MsgMirrorBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketInfo, found := k.Keeper.GetBucketInfoById(ctx, msg.Id)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	if bucketInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+		return nil, types.ErrAlreadyMirrored
+	}
+
+	if operator.String() != bucketInfo.Owner {
+		return nil, types.ErrAccessDenied
+	}
+
+	owner, err := sdk.AccAddressFromHexUnsafe(bucketInfo.Owner)
+	if err != nil {
+		return nil, err
+	}
+
+	mirrorPackage := types.MirrorBucketSynPackage{
+		Id:    bucketInfo.Id.BigInt(),
+		Owner: owner,
+	}
+
+	encodedPackage, err := rlp.EncodeToBytes(mirrorPackage)
+	if err != nil {
+		return nil, types.ErrInvalidCrossChainPackage
+	}
+
+	wrapPackage := types.CrossChainPackage{
+		OperationType: types.OperationMirrorBucket,
+		Package:       encodedPackage,
+	}
+	encodedWrapPackage, err := rlp.EncodeToBytes(wrapPackage)
+	if err != nil {
+		return nil, types.ErrInvalidCrossChainPackage
+	}
+
+	relayerFee := k.Keeper.MirrorBucketRelayerFee(ctx)
+	ackRelayerFee := k.Keeper.MirrorBucketAckRelayerFee(ctx)
+
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.BucketChannelId, sdk.SynCrossChainPackageType,
+		encodedWrapPackage, relayerFee, ackRelayerFee)
+	if err != nil {
+		return nil, err
+	}
+
+	// update status to pending
+	bucketInfo.SourceType = types.SOURCE_TYPE_MIRROR_PENDING
+	k.Keeper.SetBucketInfo(ctx, bucketInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucket{
+		OperatorAddress: bucketInfo.Owner,
+		BucketName:      bucketInfo.BucketName,
+		BucketId:        bucketInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup) (*types.MsgMirrorGroupResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	groupInfo, found := k.Keeper.GetGroupInfoById(ctx, msg.Id)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+
+	if groupInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
+		return nil, types.ErrAlreadyMirrored
+	}
+
+	if operator.String() != groupInfo.Owner {
+		return nil, types.ErrAccessDenied
+	}
+
+	mirrorPackage := types.MirrorGroupSynPackage{
+		Id:    groupInfo.Id.BigInt(),
+		Owner: operator,
+	}
+
+	encodedPackage, err := rlp.EncodeToBytes(mirrorPackage)
+	if err != nil {
+		return nil, types.ErrInvalidCrossChainPackage
+	}
+
+	wrapPackage := types.CrossChainPackage{
+		OperationType: types.OperationMirrorGroup,
+		Package:       encodedPackage,
+	}
+	encodedWrapPackage, err := rlp.EncodeToBytes(wrapPackage)
+	if err != nil {
+		return nil, types.ErrInvalidCrossChainPackage
+	}
+
+	relayerFee := k.Keeper.MirrorGroupRelayerFee(ctx)
+	ackRelayerFee := k.Keeper.MirrorGroupAckRelayerFee(ctx)
+
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.GroupChannelId, sdk.SynCrossChainPackageType,
+		encodedWrapPackage, relayerFee, ackRelayerFee)
+	if err != nil {
+		return nil, err
+	}
+
+	// update source type to pending
+	groupInfo.SourceType = types.SOURCE_TYPE_MIRROR_PENDING
+	k.Keeper.SetGroupInfo(ctx, groupInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroup{
+		OwnerAddress: groupInfo.Owner,
+		GroupName:    groupInfo.GroupName,
+		GroupId:      groupInfo.Id,
+	}); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }

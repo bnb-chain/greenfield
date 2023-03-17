@@ -499,6 +499,7 @@ func New(
 		app.SpKeeper,
 		app.PaymentKeeper,
 		app.PermissionmoduleKeeper,
+		app.CrossChainKeeper,
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
@@ -723,9 +724,10 @@ func New(
 }
 
 func (app *App) initModules(ctx sdk.Context) {
-	app.initBridge()
 	app.initCrossChain()
 
+	app.initBridge()
+	app.initStorage()
 	app.initGashub(ctx)
 }
 
@@ -742,6 +744,10 @@ func (app *App) initGashub(ctx sdk.Context) {
 	if app.LastBlockHeight() > 0 {
 		app.GashubKeeper.RegisterGasCalculators(ctx)
 	}
+}
+
+func (app *App) initStorage() {
+	storagemodulekeeper.RegisterCrossApps(app.StorageKeeper)
 }
 
 // Name returns the name of the App
@@ -769,6 +775,9 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
 	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), storagemoduletypes.BucketChannelId, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }

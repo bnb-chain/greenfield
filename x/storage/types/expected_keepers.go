@@ -1,6 +1,8 @@
 package types
 
 import (
+	"math/big"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -49,4 +51,12 @@ type PermissionKeeper interface {
 	GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) (policy *permtypes.Policy, isFound bool)
 	GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
 		groupID math.Uint) (policy *permtypes.Policy, isFound bool)
+}
+
+type CrossChainKeeper interface {
+	CreateRawIBCPackageWithFee(ctx sdk.Context, channelID sdk.ChannelID, packageType sdk.CrossChainPackageType,
+		packageLoad []byte, relayerFee *big.Int, ackRelayerFee *big.Int,
+	) (uint64, error)
+
+	RegisterChannel(name string, id sdk.ChannelID, app sdk.CrossChainApplication) error
 }
