@@ -27,6 +27,12 @@ var (
 	}
 )
 
+// VerifyBucketPermission Bucket permissions checks are divided into three steps:
+// First, if the bucket is a public bucket and the action is a read-only action, it returns "allow".
+// Second, if the operator is the owner of the bucket, it returns "allow", as the owner has the highest permission.
+// Third, verify the policy corresponding to the bucket and the operator.
+//  1. If the policy is evaluated as "allow", return "allow" to the user.
+//  2. If it is evaluated as "deny" or "pass", return "deny".
 func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, operator sdk.AccAddress,
 	action permtypes.ActionType, options *permtypes.VerifyOptions) permtypes.Effect {
 	// if bucket is public, anyone can read but can not write it.
@@ -46,6 +52,18 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	return permtypes.EFFECT_DENY
 }
 
+// VerifyObjectPermission Object permission checks are divided into four steps:
+// First, if the object is a public object and the action is a read-only action, it returns "allow".
+// Second, if the operator is the owner of the bucket, it returns "allow"
+// Third, verify the policy corresponding to the bucket and the operator
+//  1. If it is evaluated as "deny", return "deny"
+//  2. If it is evaluated as "allow" or "pass", go ahead (Noted as EffectBucket)
+//
+// Four, verify the policy corresponding to the object and the operator
+//  1. If it is evaluated as "deny", return "deny".
+//  2. If it is evaluated as "allow", return "allow".
+//  3. If it is evaluated as "pass", then if the EffectBucket is "allow", return allow
+//  4. If it is evaluated as "pass", then if the EffectBucket is "pass", return deny
 func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo,
 	operator sdk.AccAddress, action permtypes.ActionType) permtypes.Effect {
 	// if object is public, anyone can read but can not write it.

@@ -59,6 +59,9 @@ message Statement {
   common.UInt64Value limit_size = 5 [(gogoproto.nullable) = true];
 }
 
+
+// PrincipalType refers to the identity type of system users or entities.
+// In Greenfield, it usually refers to accounts or groups.
 enum PrincipalType {
   option (gogoproto.goproto_enum_prefix) = false;
   // Reserved for extended use
@@ -69,5 +72,7 @@ enum PrincipalType {
 // Principal define the roles that can grant permissions. Currently, it can be account or group.
 message Principal {
   PrincipalType type = 1;
+  // When the type is an account, its value is sdk.AccAddress().String();
+  // when the type is a group, its value is math.Uint().String()
   string value = 2;
 }
