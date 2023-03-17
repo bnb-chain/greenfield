@@ -7,12 +7,6 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-// todo(quality): this field is not in params, is it expected?
-func (k Keeper) MaxStorageProviders(ctx sdk.Context) (res uint32) {
-	k.paramstore.Get(ctx, types.KeyMaxStorageProviders, &res)
-	return
-}
-
 func (k Keeper) DepositDenomForSP(ctx sdk.Context) (res string) {
 	k.paramstore.Get(ctx, types.KeyDepostDenom, &res)
 	return

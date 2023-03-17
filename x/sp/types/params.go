@@ -26,7 +26,6 @@ var (
 )
 
 var (
-	KeyMaxStorageProviders        = []byte("MaxStorageProviders")
 	KeyDepostDenom                = []byte("DepositDenom")
 	KeyMinDeposit                 = []byte("MinDeposit")
 	KeySecondarySpStorePriceRatio = []byte("SecondarySpStorePriceRatio")

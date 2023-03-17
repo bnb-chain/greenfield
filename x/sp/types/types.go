@@ -32,10 +32,6 @@ func NewStorageProvider(
 }
 
 func (sp *StorageProvider) GetOperator() sdk.AccAddress {
-	// todo(quality): can this be empty?
-	if sp.OperatorAddress == "" {
-		return sdk.AccAddress{}
-	}
 	addr := sdk.MustAccAddressFromHex(sp.OperatorAddress)
 	return addr
 }
