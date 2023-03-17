@@ -85,6 +85,11 @@ var DeserializeFuncMap = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
 			DeserializeMirrorObjectAckPackage,
 			DeserializeMirrorObjectSynPackage,
 		},
+		OperationDeleteObject: {
+			DeserializeDeleteObjectSynPackage,
+			DeserializeDeleteObjectAckPackage,
+			DeserializeDeleteObjectSynPackage,
+		},
 	},
 	GroupChannelId: {
 		OperationMirrorGroup: {
