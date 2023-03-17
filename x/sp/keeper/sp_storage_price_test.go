@@ -5,11 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 

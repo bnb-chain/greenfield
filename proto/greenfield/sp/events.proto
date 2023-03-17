@@ -1,9 +1,9 @@
 syntax = "proto3";
 package bnbchain.greenfield.sp;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
