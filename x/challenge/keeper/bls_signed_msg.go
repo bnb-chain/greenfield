@@ -11,12 +11,19 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
+// BlsSignedMsg defined the interface of a bls signed message.
 type BlsSignedMsg interface {
+	// GetBlsSignBytes returns the bls signed message in bytes.
 	GetBlsSignBytes() [32]byte
+
+	// GetVoteValidatorSet returns the validators who signed the message.
 	GetVoteValidatorSet() []uint64
+
+	// GetVoteAggSignature returns the aggregated bls signature.
 	GetVoteAggSignature() []byte
 }
 
+// verifySignature verifies whether the signature is valid or not.
 func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]string, error) {
 	historicalInfo, ok := k.stakingKeeper.GetHistoricalInfo(ctx, ctx.BlockHeight())
 	if !ok {
@@ -36,6 +43,7 @@ func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]stri
 			continue
 		}
 
+		// TODO: use `challenger` instead of `relayer` later
 		signedRelayers = append(signedRelayers, val.RelayerAddress)
 		votePubKey, err := bls.PublicKeyFromBytes(val.RelayerBlsKey)
 		if err != nil {

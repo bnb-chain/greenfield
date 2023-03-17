@@ -95,8 +95,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 		objectMap[mapKey] = struct{}{}
 
-		challengeId := keeper.GetOngoingChallengeId(ctx)
-		keeper.SetOngoingChallengeId(ctx, challengeId+1)
+		challengeId := keeper.GetChallengeId(ctx)
+		keeper.SetChallengeId(ctx, challengeId+1)
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,

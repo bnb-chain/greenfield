@@ -14,26 +14,22 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
+// Attest handles user's request for attesting a challenge.
+// The attestation can include a valid challenge or is only for heartbeat purpose.
+// If the challenge is valid, the related storage provider will be slashed.
+// For heartbeat attestation, the challenge is invalid and the storage provider will not be slashed.
 func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.MsgAttestResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	submitter, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
-	if err != nil {
-		return nil, err
-	}
-	spOperator, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
-	if err != nil {
-		return nil, err
-	}
+	submitter := sdk.MustAccAddressFromHex(msg.Submitter)
+	spOperator := sdk.MustAccAddressFromHex(msg.SpOperatorAddress)
+
 	challenger := sdk.AccAddress{}
 	if msg.ChallengerAddress != "" {
-		challenger, err = sdk.AccAddressFromHexUnsafe(msg.ChallengerAddress)
-		if err != nil {
-			return nil, err
-		}
+		challenger = sdk.MustAccAddressFromHex(msg.ChallengerAddress)
 	}
 
-	ongoingId := k.GetOngoingChallengeId(ctx)
+	ongoingId := k.GetChallengeId(ctx)
 	attestedId := k.GetAttestChallengeId(ctx)
 
 	if msg.ChallengeId <= attestedId || msg.ChallengeId > ongoingId {
@@ -75,7 +71,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		// check whether it is a heartbeat attest
 		heartbeatInterval := k.HeartbeatInterval(ctx)
 		if msg.ChallengeId%heartbeatInterval != 0 {
-			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heart challenge should be submitted at interval %d", heartbeatInterval)
+			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heartbeat attestation should be submitted at interval %d", heartbeatInterval)
 		}
 
 		// reward validators & tx submitter

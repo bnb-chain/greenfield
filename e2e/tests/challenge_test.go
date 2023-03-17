@@ -212,7 +212,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		s.Require().NoError(err)
 		height = statusRes.SyncInfo.LatestBlockHeight
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 		s.Require().NoError(err)
 		events := filterEventFromBlock(blockRes)
@@ -229,9 +229,9 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		}
 
 		if len(events) > 0 {
-			fmt.Println("Current challenge id", events[len(events)-1].ChallengeId)
+			s.T().Logf("current challenge id: %d", events[len(events)-1].ChallengeId)
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 	}
 
 	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
