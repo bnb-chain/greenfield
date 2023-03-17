@@ -168,6 +168,9 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 }
 
 func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
+	if s.Effect == EFFECT_PASS {
+		return ErrInvalidStatement.Wrap("Not allowed to set EFFECT_PASS.")
+	}
 	switch resType {
 	case resource.RESOURCE_TYPE_BUCKET:
 		containsCreateObject := false
