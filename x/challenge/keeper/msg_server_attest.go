@@ -86,6 +86,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	return &types.MsgAttestResponse{}, nil
 }
 
+// calculateSlashAmount calculates the slash amount based on object size. There are also bounds of the amount.
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
 	sizeRate := k.SlashAmountSizeRate(ctx)
 	objectSizeInGB := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize)).QuoRoundUp(sdk.NewDec(1073741824))
@@ -102,6 +103,7 @@ func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkm
 	return slashAmount
 }
 
+// calculateSlashRewards calculates the rewards to challenger, submitter and validators when the total slash amount.
 func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, challenger sdk.AccAddress, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	challengerReward := sdkmath.ZeroInt()
 	var eachValidatorReward sdkmath.Int
@@ -132,6 +134,7 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 	return challengerReward, eachValidatorReward, submitterReward
 }
 
+// doSlashAndRewards will execute the slash, transfer the rewards and emit events.
 func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, objectSize uint64,
 	spOperator, submitter, challenger sdk.AccAddress, validators []string) error {
 
@@ -185,6 +188,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 	return ctx.EventManager().EmitTypedEvents(&event)
 }
 
+// calculateHeartbeatRewards calculates the rewards to all validators and submitter.
 func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
 	threshold := k.RewardSubmitterThreshold(ctx)
 	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
@@ -195,6 +199,7 @@ func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int)
 	return total.Sub(submitterReward), submitterReward
 }
 
+// doHeartbeatAndRewards will transfer the tax to distribution account and rewards to submitter.
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
 	spOperator, submitter, challenger sdk.AccAddress) error {
 	totalAmount := k.paymentKeeper.QueryValidatorRewards(ctx)

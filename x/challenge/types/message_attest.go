@@ -87,12 +87,18 @@ func (msg *MsgAttest) GetBlsSignBytes() [32]byte {
 	resultBz := make([]byte, 8)
 	binary.BigEndian.PutUint64(resultBz, uint64(msg.VoteResult))
 
+	spOperatorBz := sdk.MustAccAddressFromHex(msg.SpOperatorAddress).Bytes()
+	challengerBz := make([]byte, 0)
+	if msg.ChallengerAddress != "" {
+		challengerBz = sdk.MustAccAddressFromHex(msg.ChallengerAddress).Bytes()
+	}
+
 	bs := make([]byte, 0)
 	bs = append(bs, challengeIdBz...)
 	bs = append(bs, objectIdBz...)
 	bs = append(bs, resultBz...)
-	bs = append(bs, []byte(msg.SpOperatorAddress)...)
-	bs = append(bs, []byte(msg.ChallengerAddress)...)
+	bs = append(bs, spOperatorBz...)
+	bs = append(bs, challengerBz...)
 	hash := sdk.Keccak256Hash(bs)
 	return hash
 }
