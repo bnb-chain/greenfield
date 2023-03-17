@@ -3,8 +3,7 @@ package keeper
 import (
 	"fmt"
 
-	errors "cosmossdk.io/errors"
-
+	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"

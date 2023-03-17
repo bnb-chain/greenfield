@@ -15,11 +15,10 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
-
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
