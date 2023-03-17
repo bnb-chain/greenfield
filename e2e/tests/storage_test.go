@@ -545,8 +545,11 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
-	paymentAccountBNBNeeded := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota * reserveTime)).TruncateInt()
-	expectedRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota)).TruncateInt()
+	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota)).TruncateInt()
+	taxRateParam := paymentParams.Params.ValidatorTaxRate
+	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
+	expectedRate := totalUserRate.Add(taxStreamRate)
+	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
 
 	// create payment account and deposit
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
