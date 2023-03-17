@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"math/big"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -14,6 +15,13 @@ const (
 	DefaultRedundantParityChunkNum uint32 = 2
 	DefaultMaxPayloadSize          uint64 = 2 * 1024 * 1024 * 1024
 	DefaultMinChargeSize           uint64 = 1 * 1024 * 1024 // 1M
+
+	DefaultMirrorBucketRelayerFee    = "1000000000000000" // 0.01
+	DefaultMirrorBucketAckRelayerFee = "0"
+	DefaultMirrorObjectRelayerFee    = "1000000000000000" // 0.01
+	DefaultMirrorObjectAckRelayerFee = "0"
+	DefaultMirrorGroupRelayerFee     = "1000000000000000" // 0.01
+	DefaultMirrorGroupAckRelayerFee  = "0"
 )
 
 var (
@@ -22,6 +30,13 @@ var (
 	KeyRedundantParityChunkNum = []byte("RedundantParityChunkNum")
 	KeyMaxPayloadSize          = []byte("MaxPayloadSize")
 	KeyMinChargeSize           = []byte("MinChargeSize")
+
+	KeyMirrorBucketRelayerFee    = []byte("MirrorBucketRelayerFee")
+	KeyMirrorBucketAckRelayerFee = []byte("MirrorBucketAckRelayerFee")
+	KeyMirrorObjectRelayerFee    = []byte("MirrorObjectRelayerFee")
+	KeyMirrorObjectAckRelayerFee = []byte("MirrorObjectAckRelayerFee")
+	KeyMirrorGroupRelayerFee     = []byte("MirrorGroupRelayerFee")
+	KeyMirrorGroupAckRelayerFee  = []byte("MirrorGroupAckRelayerFee")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -36,20 +51,34 @@ func NewParams(
 	maxSegmentSize uint64, redundantDataChunkNum uint32,
 	redundantParityChunkNum uint32, maxPayloadSize uint64,
 	minChargeSize uint64,
+	mirrorBucketRelayerFee, mirrorBucketAckRelayerFee string,
+	mirrorObjectRelayerFee, mirrorObjectAckRelayerFee string,
+	mirrorGroupRelayerFee, mirrorGroupAckRelayerFee string,
 ) Params {
 	return Params{
-		MaxSegmentSize:          maxSegmentSize,
-		RedundantDataChunkNum:   redundantDataChunkNum,
-		RedundantParityChunkNum: redundantParityChunkNum,
-		MaxPayloadSize:          maxPayloadSize,
-		MinChargeSize:           minChargeSize,
+		MaxSegmentSize:            maxSegmentSize,
+		RedundantDataChunkNum:     redundantDataChunkNum,
+		RedundantParityChunkNum:   redundantParityChunkNum,
+		MaxPayloadSize:            maxPayloadSize,
+		MinChargeSize:             minChargeSize,
+		MirrorBucketRelayerFee:    mirrorBucketRelayerFee,
+		MirrorBucketAckRelayerFee: mirrorBucketAckRelayerFee,
+		MirrorObjectRelayerFee:    mirrorObjectRelayerFee,
+		MirrorObjectAckRelayerFee: mirrorObjectAckRelayerFee,
+		MirrorGroupRelayerFee:     mirrorGroupRelayerFee,
+		MirrorGroupAckRelayerFee:  mirrorGroupAckRelayerFee,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultMaxSegmentSize, DefaultRedundantDataChunkNum,
-		DefaultRedundantParityChunkNum, DefaultMaxPayloadSize, DefaultMinChargeSize)
+	return NewParams(
+		DefaultMaxSegmentSize, DefaultRedundantDataChunkNum,
+		DefaultRedundantParityChunkNum, DefaultMaxPayloadSize, DefaultMinChargeSize,
+		DefaultMirrorBucketRelayerFee, DefaultMirrorBucketAckRelayerFee,
+		DefaultMirrorObjectRelayerFee, DefaultMirrorObjectAckRelayerFee,
+		DefaultMirrorGroupRelayerFee, DefaultMirrorGroupAckRelayerFee,
+	)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -60,6 +89,12 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyRedundantParityChunkNum, &p.RedundantParityChunkNum, validateRedundantParityChunkNum),
 		paramtypes.NewParamSetPair(KeyMaxPayloadSize, &p.MaxPayloadSize, validateMaxPayloadSize),
 		paramtypes.NewParamSetPair(KeyMinChargeSize, &p.MinChargeSize, validateMinChargeSize),
+		paramtypes.NewParamSetPair(KeyMirrorBucketRelayerFee, &p.MirrorBucketRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyMirrorBucketAckRelayerFee, &p.MirrorBucketAckRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyMirrorObjectRelayerFee, &p.MirrorObjectRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyMirrorObjectAckRelayerFee, &p.MirrorObjectAckRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyMirrorGroupRelayerFee, &p.MirrorGroupRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyMirrorGroupAckRelayerFee, &p.MirrorGroupAckRelayerFee, validateRelayerFee),
 	}
 }
 
@@ -147,6 +182,26 @@ func validateRedundantParityChunkNum(i interface{}) error {
 
 	if v == 0 {
 		return fmt.Errorf("redundant parity size chunk num must be positive: %d", v)
+	}
+
+	return nil
+}
+
+func validateRelayerFee(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	relayerFee := big.NewInt(0)
+	relayerFee, valid := relayerFee.SetString(v, 10)
+
+	if !valid {
+		return fmt.Errorf("invalid transfer out relayer fee, %s", v)
+	}
+
+	if relayerFee.Cmp(big.NewInt(0)) < 0 {
+		return fmt.Errorf("invalid transfer out relayer fee, %s", v)
 	}
 
 	return nil

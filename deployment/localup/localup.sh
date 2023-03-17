@@ -130,6 +130,7 @@ function generate_genesis() {
         sed -i -e "s/\"max_bytes\": \"22020096\"/\"max_bytes\": \"1048576\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"challenge_count_per_block\": \"1\"/\"challenge_count_per_block\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"time_iota_ms\": \"1000\"/\"time_iota_ms\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
 
     # enable swagger API for validator0
@@ -178,11 +179,9 @@ function generate_sp_genesis {
     ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
   done
 
+  rm -rf ${workspace}/.local/gensptx
   mkdir -p ${workspace}/.local/gensptx
   for ((i = 0; i < ${sp_size}; i++)); do
-    rm -rf ${workspace}/.local/validator${i}/config/gensptx/
-    mkdir -p ${workspace}/.local/validator${i}/config/gensptx
-
     cp ${workspace}/.local/validator0/config/genesis.json ${workspace}/.local/sp${i}/config/
     spoperator_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
@@ -211,13 +210,10 @@ function generate_sp_genesis {
       --from sp${i}
   done
 
-  node_ids=""
-  # bond validator tx in genesis state
-  for ((i=0;i<${size};i++));do
-      cp ${workspace}/.local/gensptx/* ${workspace}/.local/validator${i}/config/gensptx/
-      ${bin} collect-spgentxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator${i}
-      node_ids="$(${bin} tendermint show-node-id --home ${workspace}/.local/validator${i})@127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) ${node_ids}"
-  done
+  rm -rf ${workspace}/.local/validator0/config/gensptx/
+  mkdir -p ${workspace}/.local/validator0/config/gensptx
+  cp ${workspace}/.local/gensptx/* ${workspace}/.local/validator0/config/gensptx/
+  ${bin} collect-spgentxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator0
 }
 
 CMD=$1

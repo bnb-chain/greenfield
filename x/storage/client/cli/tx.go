@@ -4,25 +4,23 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
+	"math/big"
 	"strconv"
 	"strings"
-	"time"
 
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	cmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	types2 "github.com/bnb-chain/greenfield/types"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
-	"github.com/bnb-chain/greenfield/x/storage/types"
-)
 
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -38,14 +36,19 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdCreateBucket())
 	cmd.AddCommand(CmdDeleteBucket())
 	cmd.AddCommand(CmdUpdateBucketInfo())
+	cmd.AddCommand(CmdMirrorBucket())
+
 	cmd.AddCommand(CmdCreateObject())
 	cmd.AddCommand(CmdDeleteObject())
 	cmd.AddCommand(CmdCancelCreateObject())
+	cmd.AddCommand(CmdCopyObject())
+	cmd.AddCommand(CmdMirrorObject())
+
 	cmd.AddCommand(CmdCreateGroup())
 	cmd.AddCommand(CmdDeleteGroup())
 	cmd.AddCommand(CmdUpdateGroupMember())
 	cmd.AddCommand(CmdLeaveGroup())
-	cmd.AddCommand(CmdCopyObject())
+	cmd.AddCommand(CmdMirrorGroup())
 
 	cmd.AddCommand(CmdPutPolicy())
 	cmd.AddCommand()
@@ -588,9 +591,119 @@ func CmdDeletePolicy() *cobra.Command {
 			}
 
 			msg := types.NewMsgDeletePolicy(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 				types2.NewBucketGRN("test-bucket").String(),
 				permtypes.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdMirrorBucket() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mirror-bucket [bucket-id]",
+		Short: "Mirror an existing bucket to the destination chain",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketId := args[0]
+
+			bucketId, ok := big.NewInt(0).SetString(argBucketId, 10)
+			if !ok {
+				return fmt.Errorf("invalid bucket id: %s", argBucketId)
+			}
+			if bucketId.Cmp(big.NewInt(0)) < 0 {
+				return fmt.Errorf("bucket id should not be negative")
+			}
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMirrorBucket(
+				clientCtx.GetFromAddress(),
+				cmath.NewUintFromBigInt(bucketId),
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdMirrorObject() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mirror-object [object-id]",
+		Short: "Mirror the object to the destination chain",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argObjectId := args[0]
+
+			objectId, ok := big.NewInt(0).SetString(argObjectId, 10)
+			if !ok {
+				return fmt.Errorf("invalid object id: %s", argObjectId)
+			}
+			if objectId.Cmp(big.NewInt(0)) < 0 {
+				return fmt.Errorf("object id should not be negative")
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMirrorObject(
+				clientCtx.GetFromAddress(),
+				cmath.NewUintFromBigInt(objectId),
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdMirrorGroup() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mirror-group [group-id]",
+		Short: "Mirror an existing group to the destination chain",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argGroupId := args[0]
+
+			groupId, ok := big.NewInt(0).SetString(argGroupId, 10)
+			if !ok {
+				return fmt.Errorf("invalid groupd id: %s", argGroupId)
+			}
+			if groupId.Cmp(big.NewInt(0)) < 0 {
+				return fmt.Errorf("groupd id should not be negative")
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMirrorGroup(
+				clientCtx.GetFromAddress(),
+				cmath.NewUintFromBigInt(groupId),
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

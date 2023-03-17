@@ -113,9 +113,6 @@ func hasBadPathComponent(path string) bool {
 
 // CheckValidExpectChecksums checks if the MSG have a valid SHA256 checksum.
 func CheckValidExpectChecksums(expectChecksums [][]byte) error {
-	if len(expectChecksums) != 7 {
-		return gnfderrors.ErrInvalidChecksum
-	}
 	for _, checksum := range expectChecksums {
 		if len(checksum) != sha256.Size {
 			return errors.Wrap(gnfderrors.ErrInvalidChecksum, "Invalid SHA256 checksum size.")
