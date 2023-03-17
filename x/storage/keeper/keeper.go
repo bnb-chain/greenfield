@@ -454,13 +454,10 @@ func (k Keeper) SealObject(
 	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
 	var secondarySps []string
 	for i, spAddr := range opts.SecondarySpAddresses {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
-		if err != nil {
-			return err
-		}
+		spAcc := sdk.MustAccAddressFromHex(spAddr)
 		secondarySps = append(secondarySps, spAcc.String())
 		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Id, objectInfo.Checksums[i+1])
-		err = k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
+		err := k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
 		if err != nil {
 			return err
 		}
@@ -871,7 +868,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	}
 
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
 	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",

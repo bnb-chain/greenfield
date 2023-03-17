@@ -259,7 +259,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket1, user)
 
-	// 2. CreateBucket1
+	// 2. CreateBucket2
 	bucketName2 := storageutils.GenRandomBucketName()
 	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName2, false, sp.OperatorKey.GetAddr(),
@@ -298,12 +298,15 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
 
+	// head object
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName1,
 		ObjectName: objectName,
 	}
 	queryHeadObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
 	s.T().Logf("queryHeadObjectResponse %s, err: %v", queryHeadObjectResponse, err)
+	s.Require().NoError(err)
+
 	// SealObject
 	secondarySPs := []sdk.AccAddress{
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),

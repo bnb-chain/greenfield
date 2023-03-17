@@ -299,6 +299,10 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 				SrcObjectName: testObjectName,
 				DstBucketName: "dst" + testBucketName,
 				DstObjectName: "dst" + testObjectName,
+				DstPrimarySpApproval: &Approval{
+					ExpiredHeight: 100,
+					Sig:           []byte("xxx"),
+				},
 			},
 		},
 	}
