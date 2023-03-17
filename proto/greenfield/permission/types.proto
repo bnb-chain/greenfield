@@ -26,7 +26,7 @@ message Policy {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // statements defines the details content of the permission, include effect/actions/sub-resources
+  // statements defines the details content of the permission, including effect/actions/sub-resources
   repeated permission.Statement statements = 5;
   // expiration_time defines the whole expiration time of all the statements.
   // Notices: Its priority is higher than the expiration time inside the Statement
@@ -34,7 +34,7 @@ message Policy {
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = true
   ];
-  // member_statement define a special policy which indicates that the principal is a member of the group
+  // member_statement defines a special policy which indicates that the principal is a member of the group
   permission.Statement member_statement = 7;
 }
 

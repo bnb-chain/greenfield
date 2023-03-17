@@ -260,8 +260,10 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 		policyGroup := types.PolicyGroup{}
 		k.cdc.MustUnmarshal(bz, &policyGroup)
 		allowed := false
-		var newPolicy *types.Policy
-		var effect types.Effect
+		var (
+			newPolicy *types.Policy
+			effect    types.Effect
+		)
 		for _, item := range policyGroup.Items {
 			// check the group has the right permission of this resource
 			p := k.MustGetPolicyByID(ctx, item.PolicyId)
@@ -283,12 +285,11 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 		}
 		if allowed {
 			if action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
-				if newPolicy.Statements == nil {
-					_, err := k.DeletePolicy(ctx, newPolicy.Principal, newPolicy.ResourceType, newPolicy.ResourceId)
-					panic(err)
-				} else {
+				if effect == types.EFFECT_ALLOW && action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
 					_, err := k.PutPolicy(ctx, newPolicy)
-					panic(err)
+					if err != nil {
+						panic(fmt.Sprintf("Update policy error, %s", err))
+					}
 				}
 			}
 			return types.EFFECT_ALLOW
