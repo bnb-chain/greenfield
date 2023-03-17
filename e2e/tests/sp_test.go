@@ -58,8 +58,7 @@ func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
 
 	// 2. grant deposit authorization of sp to gov module account
 	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
-	authorization, err := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
-	s.Require().NoError(err)
+	authorization := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
 
 	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
 	now := time.Now().Add(24 * time.Hour)

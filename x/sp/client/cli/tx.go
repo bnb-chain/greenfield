@@ -166,10 +166,7 @@ func CmdGrantDepositAuthorization() *cobra.Command {
 			}
 			depositLimit = &spendLimit
 
-			authorization, err = types.NewDepositAuthorization(spAddress, depositLimit)
-			if err != nil {
-				return err
-			}
+			authorization = types.NewDepositAuthorization(spAddress, depositLimit)
 
 			expire, err := getExpireTime(cmd)
 			if err != nil {

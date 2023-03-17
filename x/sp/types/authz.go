@@ -10,13 +10,12 @@ import (
 var _ authz.Authorization = &DepositAuthorization{}
 
 // NewDepositAuthorization creates a new DepositAuthorization object.
-// todo(quality): the return value `error` is redundant
-func NewDepositAuthorization(spAddress sdk.AccAddress, amount *sdk.Coin) (*DepositAuthorization, error) {
+func NewDepositAuthorization(spAddress sdk.AccAddress, amount *sdk.Coin) *DepositAuthorization {
 	a := DepositAuthorization{}
 	a.SpAddress = spAddress.String()
 	a.MaxDeposit = amount
 
-	return &a, nil
+	return &a
 }
 
 // MsgTypeURL implements Authorization.MsgTypeURL.

@@ -11,7 +11,7 @@ var (
 	ErrStorageProviderOwnerExists        = errors.Register(ModuleName, 3, "StorageProvider already exist for this operator address; must use new StorageProvider operator address")
 	ErrInsufficientDepositAmount         = errors.Register(ModuleName, 4, "insufficient deposit amount")
 	ErrDepositAccountNotAllowed          = errors.Register(ModuleName, 5, "the deposit address must be the sp address or the fund address of sp.")
-	ErrInvalidDepositDenom               = errors.Register(ModuleName, 6, "the deposit address must be the sp address or the fund address of sp.")
+	ErrInvalidDenom                      = errors.Register(ModuleName, 6, "Invalid denom.")
 	ErrStorageProviderFundingAddrExists  = errors.Register(ModuleName, 7, "StorageProvider already exist for this funding address; must use new StorageProvider funding address.")
 	ErrStorageProviderSealAddrExists     = errors.Register(ModuleName, 8, "StorageProvider already exist for this seal address; must use new StorageProvider seal address.")
 	ErrStorageProviderApprovalAddrExists = errors.Register(ModuleName, 9, "StorageProvider already exist for this approval address; must use new StorageProvider approval address.")
