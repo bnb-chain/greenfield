@@ -282,7 +282,7 @@ func (app *GroupApp) handleMirrorGroupAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroupResult{
 		Status:    uint32(ackPackage.Status),
 		GroupName: groupInfo.GroupName,
-		Id:        groupInfo.Id,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
@@ -307,7 +307,7 @@ func (app *GroupApp) handleMirrorGroupFailAckPackage(ctx sdk.Context, appCtx *sd
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroupResult{
 		Status:    uint32(types.StatusFail),
 		GroupName: groupInfo.GroupName,
-		Id:        groupInfo.Id,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,

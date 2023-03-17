@@ -410,7 +410,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 		OperatorAddress: objectInfo.Owner,
 		BucketName:      objectInfo.BucketName,
 		ObjectName:      objectInfo.ObjectName,
-		Id:              objectInfo.Id,
+		ObjectId:        objectInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -478,7 +478,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucket{
 		OperatorAddress: bucketInfo.Owner,
 		BucketName:      bucketInfo.BucketName,
-		Id:              bucketInfo.Id,
+		BucketId:        bucketInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -542,7 +542,7 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroup{
 		OwnerAddress: groupInfo.Owner,
 		GroupName:    groupInfo.GroupName,
-		Id:           groupInfo.Id,
+		GroupId:      groupInfo.Id,
 	}); err != nil {
 		return nil, err
 	}

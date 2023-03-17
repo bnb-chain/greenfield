@@ -151,7 +151,7 @@ func (app *ObjectApp) handleMirrorObjectAckPackage(ctx sdk.Context, appCtx *sdk.
 		Status:     uint32(ackPackage.Status),
 		BucketName: objectInfo.BucketName,
 		ObjectName: objectInfo.ObjectName,
-		Id:         objectInfo.Id,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
@@ -179,7 +179,7 @@ func (app *ObjectApp) handleMirrorObjectFailAckPackage(ctx sdk.Context, appCtx *
 		Status:     uint32(types.StatusFail),
 		BucketName: objectInfo.BucketName,
 		ObjectName: objectInfo.ObjectName,
-		Id:         objectInfo.Id,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
