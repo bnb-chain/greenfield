@@ -868,7 +868,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	}
 
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
 	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",

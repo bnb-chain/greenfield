@@ -30,10 +30,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	var primarySPAcc sdk.AccAddress
-	if msg.PrimarySpAddress != "" {
-		primarySPAcc = sdk.MustAccAddressFromHex(msg.PrimarySpAddress)
-	}
+	primarySPAcc := sdk.MustAccAddressFromHex(msg.PrimarySpAddress)
 
 	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
@@ -245,7 +242,7 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
-	// Now only allowed group owner to update member
+
 	err := k.Keeper.UpdateGroupMember(ctx, operator, msg.GroupName, UpdateGroupMemberOptions{
 		SourceType:      types.SOURCE_TYPE_ORIGIN,
 		MembersToAdd:    msg.MembersToAdd,
