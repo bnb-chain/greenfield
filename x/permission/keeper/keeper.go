@@ -121,9 +121,9 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 		if bz != nil {
 			policyGroup := types.PolicyGroup{}
 			k.cdc.MustUnmarshal(bz, &policyGroup)
-			if (uint64)(len(policyGroup.Items)) >= k.MaximumGroupNum(ctx) {
+			if (uint64)(len(policyGroup.Items)) >= k.MaximumPolicyGroupSize(ctx) {
 				return math.ZeroUint(), types.ErrLimitExceeded.Wrapf("group number limit to %d, actual %d",
-					k.MaximumGroupNum(ctx),
+					k.MaximumPolicyGroupSize(ctx),
 					len(policyGroup.Items))
 			}
 			isFound := false

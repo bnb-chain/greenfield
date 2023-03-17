@@ -217,7 +217,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			}
 		case 2:
 			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MaximumGroupNum", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MaximumPolicyGroupSize", wireType)
 			}
 			m.MaximumGroupNum = 0
 			for shift := uint(0); ; shift += 7 {

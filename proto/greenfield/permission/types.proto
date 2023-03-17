@@ -30,14 +30,17 @@ message Policy {
   repeated permission.Statement statements = 5;
   // expiration_time defines the whole expiration time of all the statements.
   // Notices: Its priority is higher than the expiration time inside the Statement
-  google.protobuf.Timestamp expiration_time = 7 [
+  google.protobuf.Timestamp expiration_time = 6 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = true
   ];
   // member_statement define a special policy which indicates that the principal is a member of the group
-  permission.Statement member_statement = 6;
+  permission.Statement member_statement = 7;
 }
 
+// PolicyGroup refers to a group of policies which grant permission to Group, which is limited to MaxGroupNum (default 10).
+// This means that a single resource can only grant permission to 10 groups. The reason for
+// this is to enable on-chain determination of whether an operator has permission within a limited time.
 message PolicyGroup {
   message Item {
     string policy_id = 1 [
