@@ -131,6 +131,10 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid primary sp address (%s)", err)
 	}
 
+	if msg.PrimarySpApproval == nil {
+		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
+	}
+
 	// PaymentAddress is optional, use creator by default if not set.
 	if msg.PaymentAddress != "" {
 		if _, err := sdk.AccAddressFromHexUnsafe(msg.PaymentAddress); err != nil {
@@ -193,7 +197,7 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgBucketReadQuota creates a new MsgBucketReadQuota instance.
+// NewMsgUpdateBucketInfo creates a new MsgBucketReadQuota instance.
 func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota uint64, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
 	return &MsgUpdateBucketInfo{
 		Operator:       operator.String(),
@@ -297,6 +301,10 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if msg.PrimarySpApproval == nil {
+		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
 	}
 
 	err = s3util.CheckValidBucketName(msg.BucketName)
@@ -558,6 +566,10 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if msg.DstPrimarySpApproval == nil {
+		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
 	}
 
 	err = s3util.CheckValidBucketName(msg.SrcBucketName)
