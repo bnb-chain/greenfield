@@ -55,7 +55,7 @@ const (
 //
 //	http://docs.aws.amazon.com/AmazonS3/latest/dev/UsingMetadata.html
 func CheckValidObjectName(objectName string) error {
-	// check the length of objectname
+	// check the length of objectName
 	if len(objectName) == 0 || strings.TrimSpace(objectName) == "" {
 		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name cannot be empty")
 	}

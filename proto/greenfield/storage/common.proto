@@ -6,6 +6,8 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
+// SourceType represents the source of resource creation, which can
+// from Greenfield native or from a cross-chain transfer from BSC
 enum SourceType {
   option (gogoproto.goproto_enum_prefix) = false;
 
@@ -14,6 +16,8 @@ enum SourceType {
   SOURCE_TYPE_MIRROR_PENDING = 2;
 }
 
+// RedundancyType represents the redundancy algorithm type for object data,
+// which can be either multi-replica or erasure coding.
 enum RedundancyType {
   option (gogoproto.goproto_enum_prefix) = false;
 
@@ -21,6 +25,10 @@ enum RedundancyType {
   REDUNDANCY_EC_TYPE = 1;
 }
 
+// ObjectStatus represents the creation status of an object. After a user successfully
+// sends a CreateObject transaction onto the chain, the status is set to 'Created'.
+// After the Primary Service Provider successfully sends a Seal Object transaction onto
+// the chain, the status is set to 'Sealed'.
 enum ObjectStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
