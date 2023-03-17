@@ -29,6 +29,9 @@ jobs:
         with:
           node-version: 16
 
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v1
+
       - uses: bufbuild/buf-setup-action@v1.15.1
         with:
           github_token: ${{ github.token }}
