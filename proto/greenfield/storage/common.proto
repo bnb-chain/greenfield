@@ -36,8 +36,13 @@ enum ObjectStatus {
   OBJECT_STATUS_SEALED = 1;
 }
 
+// Approval is the signature information returned by the Primary Storage Provider (SP) to the user
+// after allowing them to create a bucket or object, which is then used for verification on the chain
+// to ensure agreement between the Primary SP and the user."
 message Approval {
+  // expired_height is the block height at which the signature expires.
   uint64 expired_height = 1;
+  // The signature needs to conform to the EIP 712 specification.
   bytes sig = 2;
 }
 
