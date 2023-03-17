@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	errors "cosmossdk.io/errors"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -55,13 +57,32 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int) {
-	//TODO implement me
-	return sdkmath.NewInt(0)
-
+func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int, err error) {
+	validatorTaxPoolStreamRecord, found := k.GetStreamRecord(ctx, types.ValidatorTaxPoolAddress)
+	if !found {
+		return sdkmath.ZeroInt(), nil
+	}
+	change := types.NewDefaultStreamRecordChangeWithAddr(types.ValidatorTaxPoolAddress)
+	err = k.UpdateStreamRecord(ctx, validatorTaxPoolStreamRecord, change, false)
+	if err != nil {
+		return sdkmath.ZeroInt(), errors.Wrapf(err, "update stream record failed")
+	}
+	return validatorTaxPoolStreamRecord.StaticBalance, nil
 }
 
 func (k Keeper) TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error {
-	//TODO implement me
+	validatorTaxPoolStreamRecord, found := k.GetStreamRecord(ctx, types.ValidatorTaxPoolAddress)
+	if !found {
+		return errors.Wrapf(types.ErrStreamRecordNotFound, "validator tax pool stream record not found")
+	}
+	change := types.NewDefaultStreamRecordChangeWithAddr(types.ValidatorTaxPoolAddress).WithStaticBalanceChange(amount.Neg())
+	err := k.UpdateStreamRecord(ctx, validatorTaxPoolStreamRecord, change, false)
+	if err != nil {
+		return errors.Wrapf(err, "update stream record failed")
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, amount)))
+	if err != nil {
+		return errors.Wrapf(err, "send coins from module to account failed")
+	}
 	return nil
 }

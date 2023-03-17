@@ -30,7 +30,7 @@ type StorageKeeper interface {
 }
 
 type PaymentKeeper interface {
-	QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int)
+	QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int, err error)
 	TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error
 }
 

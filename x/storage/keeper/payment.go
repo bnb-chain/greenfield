@@ -125,6 +125,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
+	totalUserOutRate := sdkmath.ZeroInt()
 	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ReadQuota)).TruncateInt()
 	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
 	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
@@ -133,6 +134,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 			ToAddress: bucketInfo.PrimarySpAddress,
 			Rate:      primarySpRate,
 		})
+		totalUserOutRate = totalUserOutRate.Add(primarySpRate)
 	}
 	for _, spObjectsSize := range bucketInfo.BillingInfo.SecondarySpObjectsSize {
 		rate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(spObjectsSize.TotalChargeSize)).TruncateInt()
@@ -142,6 +144,15 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: spObjectsSize.SpAddress,
 			Rate:      rate,
+		})
+		totalUserOutRate = totalUserOutRate.Add(rate)
+	}
+	params := k.paymentKeeper.GetParams(ctx)
+	validatorTaxRate := params.ValidatorTaxRate.MulInt(totalUserOutRate).TruncateInt()
+	if validatorTaxRate.IsPositive() {
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: types.ValidatorTaxPoolAddress.String(),
+			Rate:      validatorTaxRate,
 		})
 	}
 	return userFlows, nil

@@ -1,6 +1,7 @@
 syntax = "proto3";
 package bnbchain.greenfield.payment;
 
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
@@ -20,4 +21,10 @@ message Params {
   uint64 max_auto_force_settle_num = 4 [(gogoproto.moretags) = "yaml:\"max_auto_force_settle_num\""];
   // The denom of fee charged in payment module
   string fee_denom = 5 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
+  // The tax rate to pay for validators in storage payment. The default value is 1%(0.01)
+  string validator_tax_rate = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
 }

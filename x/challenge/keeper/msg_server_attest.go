@@ -201,7 +201,10 @@ func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int)
 
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
 	spOperator, submitter, challenger sdk.AccAddress) error {
-	totalAmount := k.paymentKeeper.QueryValidatorRewards(ctx)
+	totalAmount, err := k.paymentKeeper.QueryValidatorRewards(ctx)
+	if err != nil {
+		return err
+	}
 
 	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
 	if !totalAmount.IsZero() {
