@@ -14,7 +14,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
-	types2 "github.com/bnb-chain/greenfield/x/permission/types"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -159,8 +159,8 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// check permission
-	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, types2.ACTION_DELETE_BUCKET, nil)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_DELETE_BUCKET, nil)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
@@ -205,8 +205,8 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	// check permission
-	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, types2.ACTION_UPDATE_BUCKET_INFO, nil)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_UPDATE_BUCKET_INFO, nil)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
@@ -565,8 +565,8 @@ func (k Keeper) DeleteObject(
 	}
 
 	// check permission
-	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, types2.ACTION_DELETE_OBJECT)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_DELETE_OBJECT)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no DeleteObject permission of the bucket(%s), object(%s)",
 			operator.String(), bucketName, objectName)
@@ -622,8 +622,8 @@ func (k Keeper) CopyObject(
 	}
 
 	// check permission
-	effect := k.VerifyObjectPermission(ctx, srcBucketInfo, srcObjectInfo, operator, types2.ACTION_COPY_OBJECT)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyObjectPermission(ctx, srcBucketInfo, srcObjectInfo, operator, permtypes.ACTION_COPY_OBJECT)
+	if effect != permtypes.EFFECT_ALLOW {
 		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
 			"%s) has no CopyObject permission of the bucket(%s), object(%s)",
 			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
@@ -816,8 +816,8 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 		return types.ErrSourceTypeMismatch
 	}
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, types2.ACTION_DELETE_GROUP)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no DeleteGroup permission of the group(%s), owner(%s)",
 			operator.String(), groupInfo.GroupName, groupInfo.Owner)
@@ -871,8 +871,8 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	}
 
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, types2.ACTION_DELETE_GROUP)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
 			operator.String(), groupInfo.GroupName, groupInfo.Owner)
