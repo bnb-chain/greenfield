@@ -26,6 +26,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Params defines the parameters for the module.
 type Params struct {
 	// Relayer fee for the cross chain transfer out tx
+	// todo(quality): is it better to use `cosmos.Int` instead of `string`?
 	TransferOutRelayerFee string `protobuf:"bytes,1,opt,name=transfer_out_relayer_fee,json=transferOutRelayerFee,proto3" json:"transfer_out_relayer_fee,omitempty"`
 	// Relayer fee for the ACK or FAIL_ACK package of the cross chain transfer out tx
 	TransferOutAckRelayerFee string `protobuf:"bytes,2,opt,name=transfer_out_ack_relayer_fee,json=transferOutAckRelayerFee,proto3" json:"transfer_out_ack_relayer_fee,omitempty"`

@@ -18,6 +18,7 @@ const (
 	SyncParamsChannelID                = paramsproposal.SyncParamsChannelID
 )
 
+// todo(quality): better to define this as Enum in proto files
 type RefundReason uint32
 
 const (
@@ -42,6 +43,7 @@ func DeserializeTransferOutSynPackage(serializedPackage []byte) (*TransferOutSyn
 }
 
 type TransferOutRefundPackage struct {
+	// todo(quality): is it better to use sdk.Int?
 	RefundAmount *big.Int
 	RefundAddr   sdk.AccAddress
 	RefundReason RefundReason

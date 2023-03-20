@@ -36,12 +36,14 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, &p.TransferOutRelayerFee, validateTransferOutRelayerFee),
+		// todo(quality): forget to use a new function after copy `validateTransferOutRelayerFee`?
 		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, &p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	// todo(quality): could reuse the function `validateTransferOutRelayerFee` and `validateTransferOutAckRelayerFee`
 	relayerFee, valid := big.NewInt(0).SetString(p.TransferOutRelayerFee, 10)
 	if !valid {
 		return fmt.Errorf("invalid transfer out relayer fee, is %s", p.TransferOutRelayerFee)

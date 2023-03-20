@@ -29,19 +29,16 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 	transferAmount := sdk.Coins{*msg.Amount}.Add(relayerFee)
 
-	fromAddress := msg.GetSigners()[0]
+	fromAddress := sdk.MustAccAddressFromHex(msg.From)
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAddress, crosschaintypes.ModuleName, transferAmount)
 	if err != nil {
 		return nil, err
 	}
 
-	toAddress, err := sdk.AccAddressFromHexUnsafe(msg.To)
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidAddress, "to address is not invalid")
-	}
+	toAddress := sdk.MustAccAddressFromHex(msg.To)
 
 	transferPackage := types.TransferOutSynPackage{
-		RefundAddress: fromAddress.Bytes(),
+		RefundAddress: fromAddress,
 		Recipient:     toAddress,
 		Amount:        msg.Amount.Amount.BigInt(),
 	}

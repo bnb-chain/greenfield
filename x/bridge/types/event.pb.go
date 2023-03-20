@@ -112,6 +112,7 @@ type EventCrossTransferOutRefund struct {
 	// Amount of the failed cross chain transfer tx
 	Amount *types.Coin `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
 	// Refund reason of the failed cross chain transfer tx
+	// todo(quality): shall we use enum for this?
 	RefundReason uint32 `protobuf:"varint,3,opt,name=refund_reason,json=refundReason,proto3" json:"refund_reason,omitempty"`
 	// Sequence of the corresponding cross chain package
 	Sequence uint64 `protobuf:"varint,4,opt,name=sequence,proto3" json:"sequence,omitempty"`

@@ -99,6 +99,8 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossC
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
+		// todo(quality): should we return error here?
+		// The error should never happen. I suggest to return error to make the problem exposed as soon as possible.
 	}
 
 	return sdk.ExecuteResult{}
@@ -148,6 +150,7 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 }
 
 func (app *TransferOutApp) ExecuteSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
+	// todo(quality): it seems not an Error log, should we change it to Info?
 	app.bridgeKeeper.Logger(ctx).Error("received transfer out syn package ")
 	return sdk.ExecuteResult{}
 }

@@ -28,6 +28,7 @@ message EventCrossTransferOutRefund {
   // Amount of the failed cross chain transfer tx
   cosmos.base.v1beta1.Coin amount = 2;
   // Refund reason of the failed cross chain transfer tx
+  // todo(quality): shall we use enum for this?
   uint32 refund_reason = 3;
   // Sequence of the corresponding cross chain package
   uint64 sequence = 4;
