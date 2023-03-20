@@ -22,11 +22,12 @@ func TestGenesisState_Validate(t *testing.T) {
 		{
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
-				types.Params{
+				Params: types.Params{
 					MaxSegmentSize:          20,
 					RedundantDataChunkNum:   10,
 					RedundantParityChunkNum: 8,
 					MaxPayloadSize:          2000,
+					MaxBucketsPerAccount:    100,
 					MinChargeSize:           100,
 				},
 
