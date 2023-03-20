@@ -238,14 +238,14 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 
 	sigHash, err := suite.clientCtx.TxConfig.SignModeHandler().GetSignBytes(signingtypes.SignMode_SIGN_MODE_EIP_712, signerData, txBuilder.GetTx())
 	suite.Require().NoError(err)
-	fmt.Println("SigHash:", hex.EncodeToString(sigHash))
+	fmt.Printf("SigHash: %x\n", sigHash)
 
 	// Sign typedData
 	keyringSigner := tests.NewSigner(priv)
 	signature, pubkey, err := keyringSigner.SignByAddress(from, sigHash)
 	suite.Require().NoError(err)
 	signature[crypto.RecoveryIDOffset] += 27 // Transform V from 0/1 to 27/28 according to the yellow paper
-	fmt.Println("Signature:", hex.EncodeToString(signature))
+	fmt.Printf("Signature: %x\n", signature)
 
 	sigsV2 := signingtypes.SignatureV2{
 		PubKey: pubkey,

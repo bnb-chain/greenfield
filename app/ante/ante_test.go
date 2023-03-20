@@ -17,9 +17,9 @@ import (
 func (suite *AnteTestSuite) TestAnteHandler() {
 	var acc authtypes.AccountI
 	addr, privKey := tests.NewAddrKey()
-	fmt.Println("Sender Private Key:", hex.EncodeToString(privKey.Bytes()))
-	fmt.Println("Sender Public Key:", hex.EncodeToString(privKey.PubKey().Bytes()))
-	fmt.Println("Sender Address:", addr.String())
+	fmt.Printf("Sender Private Key: %x\n", privKey.Bytes())
+	fmt.Printf("Sender Public Key: %x\n", privKey.PubKey().Bytes())
+	fmt.Printf("Sender Address: %s\n", addr.String())
 
 	setup := func() {
 		suite.SetupTest()
@@ -69,7 +69,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
-			"success- DeliverTx EIP712 signed Cosmos Tx MsgCreateValidator",
+			"success - DeliverTx EIP712 signed Cosmos Tx MsgCreateValidator",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(2e8)
@@ -79,7 +79,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
-			"success- DeliverTx EIP712 signed Cosmos Tx MsgGrantAllowance",
+			"success - DeliverTx EIP712 signed Cosmos Tx MsgGrantAllowance",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(16e3)
@@ -89,7 +89,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
-			"success- DeliverTx EIP712 signed Cosmos Tx MsgEditValidator",
+			"success - DeliverTx EIP712 signed Cosmos Tx MsgEditValidator",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(2e7)
@@ -99,7 +99,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
-			"success- DeliverTx EIP712 signed Cosmos Tx MsgSubmitProposalV1",
+			"success - DeliverTx EIP712 signed Cosmos Tx MsgSubmitProposalV1",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(2e8)
@@ -109,7 +109,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
-			"success- DeliverTx EIP712 signed Cosmos Tx MsgGrant",
+			"success - DeliverTx EIP712 signed Cosmos Tx MsgGrant",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(16e3)
@@ -119,7 +119,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
-			"fails- DeliverTx legacy msg MsgSubmitProposal v1beta",
+			"fails - DeliverTx legacy msg MsgSubmitProposal v1beta",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(2000000000)
@@ -130,7 +130,7 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, false,
 		},
 		{
-			"fails- DeliverTx unregistered msg type MsgSubmitEvidence",
+			"fails - DeliverTx unregistered msg type MsgSubmitEvidence",
 			func() sdk.Tx {
 				from := acc.GetAddress()
 				gas := uint64(2000000000)
