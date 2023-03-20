@@ -11,6 +11,7 @@ import (
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type msgServer struct {
@@ -34,7 +35,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 
 	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
-		IsPublic:          msg.IsPublic,
+		Visibility:        msg.Visibility,
 		ReadQuota:         msg.ReadQuota,
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		PrimarySpApproval: msg.PrimarySpApproval,
@@ -72,6 +73,7 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 		SourceType:     types.SOURCE_TYPE_ORIGIN,
 		ReadQuota:      msg.ReadQuota,
 		PaymentAddress: msg.PaymentAddress,
+		Visibility:     msg.Visibility,
 	})
 	if err != nil {
 		return nil, err
@@ -92,7 +94,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 
 	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, CreateObjectOptions{
 		SourceType:           types.SOURCE_TYPE_ORIGIN,
-		IsPublic:             msg.IsPublic,
+		Visibility:           msg.Visibility,
 		ContentType:          msg.ContentType,
 		RedundancyType:       msg.RedundancyType,
 		Checksums:            msg.ExpectChecksums,
@@ -157,7 +159,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 
 	id, err := k.Keeper.CopyObject(ctx, ownerAcc, msg.SrcBucketName, msg.SrcObjectName, msg.DstBucketName, msg.DstObjectName, CopyObjectOptions{
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
-		IsPublic:          false,
+		Visibility:        storagetypes.VISIBILITY_TYPE_PRIVATE,
 		PrimarySpApproval: msg.DstPrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
 	})

@@ -36,6 +36,16 @@ enum ObjectStatus {
   OBJECT_STATUS_SEALED = 1;
 }
 
+// VisibilityType is the resources public status.
+enum VisibilityType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  VISIBILITY_TYPE_PUBLIC = 0;
+  VISIBILITY_TYPE_PRIVATE = 1;
+  // If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
+  VISIBILITY_TYPE_DEFAULT = 2;
+}
+
 // Approval is the signature information returned by the Primary Storage Provider (SP) to the user
 // after allowing them to create a bucket or object, which is then used for verification on the chain
 // to ensure agreement between the Primary SP and the user."

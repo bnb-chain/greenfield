@@ -37,7 +37,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	// CreateBucket
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -54,7 +54,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
 	// verify permission
@@ -112,7 +112,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	// CreateBucket
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -129,7 +129,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
 	// verify permission
@@ -174,7 +174,8 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceId, queryHeadBucketResponse.BucketInfo.Id)
 
 	// update read quota
-	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(user[1].GetAddr(), bucketName, 10000000, sdk.MustAccAddressFromHex(queryHeadBucketResponse.BucketInfo.PaymentAddress))
+	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(user[1].GetAddr(), bucketName, 10000000,
+		sdk.MustAccAddressFromHex(queryHeadBucketResponse.BucketInfo.PaymentAddress), storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.SendTxBlock(msgUpdateBucketInfo, user[1])
 
 	// Query BucketInfo
@@ -210,7 +211,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	// CreateBucket
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -227,7 +228,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 	s.T().Logf("BucketInfo: %s", queryHeadBucketResponse.BucketInfo.String())
 
@@ -294,7 +295,8 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize),
+		storagetypes.VISIBILITY_TYPE_PUBLIC, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user[1])
@@ -310,7 +312,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.IsPublic, false)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
@@ -342,7 +344,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	// CreateBucket
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -359,7 +361,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 	s.T().Logf("BucketInfo: %s", queryHeadBucketResponse.BucketInfo.String())
 
@@ -429,7 +431,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PUBLIC, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.T().Logf("Message: %s", msgCreateObject.String())
@@ -459,7 +461,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	// CreateBucket
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -476,7 +478,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 	s.T().Logf("BucketInfo: %s", queryHeadBucketResponse.BucketInfo.String())
 
@@ -546,14 +548,14 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PUBLIC, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.T().Logf("Message: %s", msgCreateObject.String())
 	s.SendTxBlock(msgCreateObject, user[1])
 
 	objectName2 := storageutil.GenRandomObjectName()
-	msgCreateObject = storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName2, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject = storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName2, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PUBLIC, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.T().Logf("Message: %s", msgCreateObject.String())
@@ -583,7 +585,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	// CreateBucket
 	bucketName := storageutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -600,7 +602,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
 	// verify deny permission
@@ -663,4 +665,148 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
 	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceId, queryHeadBucketResponse.BucketInfo.Id)
 	s.Require().Equal(queryPolicyForGroupResp.Policy.Statements[0].Effect, types.EFFECT_ALLOW)
+}
+
+func (s *StorageTestSuite) TestVisibilityPermission() {
+	var err error
+	user := s.GenAndChargeAccounts(2, 1000000)
+
+	sp := s.StorageProviders[0]
+	// CreateBucket bucket0:public bucket1:private bucket2:default
+	bucketName0 := storageutil.GenRandomBucketName()
+	bucketName1 := storageutil.GenRandomBucketName()
+	bucketName2 := storageutil.GenRandomBucketName()
+	buckets := []struct {
+		BucketName string
+		PublicType storagetypes.VisibilityType
+	}{
+		{
+			BucketName: bucketName0,
+			PublicType: storagetypes.VISIBILITY_TYPE_PUBLIC,
+		},
+		{
+			BucketName: bucketName1,
+			PublicType: storagetypes.VISIBILITY_TYPE_PRIVATE,
+		},
+		{
+			BucketName: bucketName2,
+			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+		},
+	}
+
+	for _, bucket := range buckets {
+		msgCreateBucket := storagetypes.NewMsgCreateBucket(
+			user[0].GetAddr(), bucket.BucketName, bucket.PublicType, sp.OperatorKey.GetAddr(),
+			nil, math.MaxUint, nil)
+		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+		s.Require().NoError(err)
+		s.SendTxBlock(msgCreateBucket, user[0])
+	}
+
+	// object0:public object1:private object2:default
+	objectName0 := storageutil.GenRandomObjectName()
+	objectName1 := storageutil.GenRandomObjectName()
+	objectName2 := storageutil.GenRandomObjectName()
+
+	objects := []struct {
+		BucketName string
+		ObjectName string
+		PublicType storagetypes.VisibilityType
+		Effect     types.Effect
+	}{
+		{
+			BucketName: bucketName0,
+			ObjectName: objectName0,
+			PublicType: storagetypes.VISIBILITY_TYPE_PUBLIC,
+			Effect:     types.EFFECT_ALLOW,
+		},
+		{
+			BucketName: bucketName0,
+			ObjectName: objectName1,
+			PublicType: storagetypes.VISIBILITY_TYPE_PRIVATE,
+			Effect:     types.EFFECT_DENY,
+		},
+		{
+			BucketName: bucketName0,
+			ObjectName: objectName2,
+			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			Effect:     types.EFFECT_ALLOW,
+		},
+		{
+			BucketName: bucketName1,
+			ObjectName: objectName0,
+			PublicType: storagetypes.VISIBILITY_TYPE_PUBLIC,
+			Effect:     types.EFFECT_ALLOW,
+		},
+		{
+			BucketName: bucketName1,
+			ObjectName: objectName1,
+			PublicType: storagetypes.VISIBILITY_TYPE_PRIVATE,
+			Effect:     types.EFFECT_DENY,
+		},
+		{
+			BucketName: bucketName1,
+			ObjectName: objectName2,
+			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			Effect:     types.EFFECT_DENY,
+		},
+		{
+			BucketName: bucketName2,
+			ObjectName: objectName0,
+			PublicType: storagetypes.VISIBILITY_TYPE_PUBLIC,
+			Effect:     types.EFFECT_ALLOW,
+		},
+		{
+			BucketName: bucketName2,
+			ObjectName: objectName1,
+			PublicType: storagetypes.VISIBILITY_TYPE_PRIVATE,
+			Effect:     types.EFFECT_DENY,
+		},
+		{
+			BucketName: bucketName2,
+			ObjectName: objectName2,
+			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			Effect:     types.EFFECT_DENY,
+		},
+	}
+
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+
+	// Create content contains 1024 characters.
+	buffer.WriteString(line)
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+
+	ctx := context.Background()
+
+	for _, object := range objects {
+		msgCreateObject0 := storagetypes.NewMsgCreateObject(user[0].GetAddr(), object.BucketName, object.ObjectName, uint64(payloadSize), object.PublicType, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+		msgCreateObject0.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject0.GetApprovalBytes())
+		s.Require().NoError(err)
+		s.SendTxBlock(msgCreateObject0, user[0])
+
+		// verify permission
+		verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
+			Operator:   user[1].GetAddr().String(),
+			BucketName: object.BucketName,
+			ObjectName: object.ObjectName,
+			ActionType: types.ACTION_GET_OBJECT,
+		}
+		verifyPermResp, err := s.Client.VerifyPermission(ctx, &verifyPermReq)
+		s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
+		s.Require().NoError(err)
+		s.Require().Equal(verifyPermResp.Effect, object.Effect)
+	}
 }

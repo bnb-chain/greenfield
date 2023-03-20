@@ -11,6 +11,7 @@ import (
 	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 var (
@@ -36,7 +37,7 @@ var (
 func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, operator sdk.AccAddress,
 	action permtypes.ActionType, options *permtypes.VerifyOptions) permtypes.Effect {
 	// if bucket is public, anyone can read but can not write it.
-	if bucketInfo.IsPublic && PublicBucketAllowedActions[action] {
+	if bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC && PublicBucketAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
@@ -44,6 +45,7 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	if ownerAcc.Equals(operator) {
 		return permtypes.EFFECT_ALLOW
 	}
+
 	// verify policy
 	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
 	if effect == permtypes.EFFECT_ALLOW {
@@ -66,8 +68,13 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 //  4. If it is evaluated as "unspecified", then if the EffectBucket is "unspecified", return deny
 func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo,
 	operator sdk.AccAddress, action permtypes.ActionType) permtypes.Effect {
-	// if object is public, anyone can read but can not write it.
-	if objectInfo.IsPublic && PublicObjectAllowedActions[action] {
+	// anyone can read but can not write it when the following case: 1) object is public 2) object is default, only when bucket is public
+	visibility := false
+	if objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC ||
+		(objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_DEFAULT && bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC) {
+		visibility = true
+	}
+	if visibility && PublicObjectAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions

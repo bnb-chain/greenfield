@@ -3,10 +3,14 @@ package cli
 import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	flag "github.com/spf13/pflag"
+
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 const (
-	FlagPublic               = "public"
+	FlagVisibility           = "visibility"
 	FlagPaymentAccount       = "payment-account"
 	FlagPrimarySP            = "primary-sp"
 	FlagExpectChecksums      = "expect-checksums"
@@ -14,6 +18,16 @@ const (
 	FlagApproveSignature     = "approve-signature"
 	FlagApproveTimeoutHeight = "approve-timeout-height"
 )
+
+func GetVisibilityType(str string) (storagetypes.VisibilityType, error) {
+	v, ok := storagetypes.VisibilityType_value[str]
+	if !ok {
+		return storagetypes.VISIBILITY_TYPE_PRIVATE, gnfderrors.ErrInvalidVisibilityType
+	}
+	visibility := storagetypes.VisibilityType(v)
+
+	return visibility, nil
+}
 
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
 func GetPrimarySPField(kr keyring.Keyring, primarySP string) (sdk.AccAddress, string, keyring.KeyType, error) {
@@ -71,4 +85,12 @@ func GetPaymentAccountField(kr keyring.Keyring, paymentAcc string) (sdk.AccAddre
 	}
 
 	return addr, k.Name, k.GetType(), nil
+}
+
+// FlagSetVisibility Returns the flagset for set visibility related operations.
+func FlagSetVisibility() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(FlagVisibility, "VISIBILITY_TYPE_PRIVATE", "If private(by default), only owner and grantee can access it. Otherwise,"+
+		"every one has permission to access it. Select visibility's type (VISIBILITY_TYPE_PRIVATE|VISIBILITY_TYPE_PUBLIC|VISIBILITY_TYPE_DEFAULT)")
+	return fs
 }

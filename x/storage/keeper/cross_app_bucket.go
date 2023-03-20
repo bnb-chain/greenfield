@@ -227,7 +227,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 		createBucketPackage.BucketName,
 		createBucketPackage.PrimarySpAddress,
 		CreateBucketOptions{
-			IsPublic:       createBucketPackage.IsPublic,
+			Visibility:     createBucketPackage.Visibility,
 			SourceType:     types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 			ReadQuota:      createBucketPackage.ReadQuota,
 			PaymentAddress: createBucketPackage.PaymentAddress.String(),

@@ -105,7 +105,7 @@ func (k Keeper) CreateBucket(
 	bucketInfo := types.BucketInfo{
 		Owner:            ownerAcc.String(),
 		BucketName:       bucketName,
-		IsPublic:         opts.IsPublic,
+		Visibility:       opts.Visibility,
 		CreateAt:         ctx.BlockHeight(),
 		SourceType:       opts.SourceType,
 		ReadQuota:        opts.ReadQuota,
@@ -133,7 +133,7 @@ func (k Keeper) CreateBucket(
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
-		IsPublic:         bucketInfo.IsPublic,
+		Visibility:       bucketInfo.Visibility,
 		CreateAt:         bucketInfo.CreateAt,
 		BucketId:         bucketInfo.Id,
 		SourceType:       bucketInfo.SourceType,
@@ -215,6 +215,8 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	if opts.ReadQuota == math.MaxUint64 {
 		opts.ReadQuota = bucketInfo.ReadQuota
 	}
+	bucketInfo.Visibility = opts.Visibility
+
 	var paymentAcc sdk.AccAddress
 	var err error
 	if opts.PaymentAddress != "" {
@@ -243,6 +245,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		ReadQuotaAfter:       opts.ReadQuota,
 		PaymentAddressBefore: bucketInfo.PaymentAddress,
 		PaymentAddressAfter:  paymentAcc.String(),
+		Visibility:           bucketInfo.Visibility,
 	}); err != nil {
 		return err
 	}
@@ -344,7 +347,7 @@ func (k Keeper) CreateObject(
 		BucketName:           bucketName,
 		ObjectName:           objectName,
 		PayloadSize:          payloadSize,
-		IsPublic:             opts.IsPublic,
+		Visibility:           opts.Visibility,
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
@@ -377,7 +380,7 @@ func (k Keeper) CreateObject(
 		ObjectId:         objectInfo.Id,
 		CreateAt:         bucketInfo.CreateAt,
 		PayloadSize:      objectInfo.PayloadSize,
-		IsPublic:         objectInfo.IsPublic,
+		Visibility:       objectInfo.Visibility,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 		ContentType:      objectInfo.ContentType,
 		Status:           objectInfo.ObjectStatus,
@@ -652,7 +655,7 @@ func (k Keeper) CopyObject(
 		BucketName:     dstBucketInfo.BucketName,
 		ObjectName:     dstObjectName,
 		PayloadSize:    srcObjectInfo.PayloadSize,
-		IsPublic:       opts.IsPublic,
+		Visibility:     opts.Visibility,
 		ContentType:    srcObjectInfo.ContentType,
 		CreateAt:       ctx.BlockHeight(),
 		Id:             k.GenNextObjectID(ctx),

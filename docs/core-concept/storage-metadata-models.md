@@ -31,8 +31,8 @@ message BucketInfo {
   string owner;
   // bucket_name is a globally unique name of bucket
   string bucket_name;
-  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
-  bool is_public;
+  // visibility defines the highest permissions for bucket. When a bucket is public, everyone can get the object under it.
+  VisibilityType visibility;
   // id is the unique identification for bucket.
   string id;
   // source_type define the source of the bucket
@@ -83,8 +83,8 @@ message ObjectInfo {
   string id;
   // payloadSize is the total size of the object payload
   uint64 payload_size;
-  // is_public define the highest permissions for object. When the object is public, everyone can access it.
-  bool is_public;
+  // visibility defines the highest permissions for object. When an object is public, everyone can access it.
+  VisibilityType visibility;
   // content_type define the format of the object which should be a standard MIME type.
   string content_type;
   // create_at define the block number when the object created
