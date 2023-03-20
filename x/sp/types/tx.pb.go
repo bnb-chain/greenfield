@@ -34,14 +34,22 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgCreateStorageProvider defines message for creating a new storage provider.
 type MsgCreateStorageProvider struct {
-	Creator         string      `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	Description     Description `protobuf:"bytes,2,opt,name=description,proto3" json:"description"`
-	SpAddress       string      `protobuf:"bytes,3,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
-	FundingAddress  string      `protobuf:"bytes,4,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
-	SealAddress     string      `protobuf:"bytes,5,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
-	ApprovalAddress string      `protobuf:"bytes,6,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
-	Endpoint        string      `protobuf:"bytes,7,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
-	Deposit         types.Coin  `protobuf:"bytes,8,opt,name=deposit,proto3" json:"deposit"`
+	// creator is the msg signer
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// description defines the description terms for the validator.
+	Description Description `protobuf:"bytes,2,opt,name=description,proto3" json:"description"`
+	// sp_address defines the address of the sp's operator; It also is the unqiue index key of sp.
+	SpAddress string `protobuf:"bytes,3,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// fund_address is the account address of the storage provider for deposit, remuneration.
+	FundingAddress string `protobuf:"bytes,4,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
+	// seal_address is the account address of the storage provider for sealObject
+	SealAddress string `protobuf:"bytes,5,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
+	// approval_address is the account address of the storage provider for ack CreateBuclet/Object.
+	ApprovalAddress string `protobuf:"bytes,6,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
+	// endpoint is the service address of the storage provider
+	Endpoint string `protobuf:"bytes,7,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	// deposit define the deposit token
+	Deposit types.Coin `protobuf:"bytes,8,opt,name=deposit,proto3" json:"deposit"`
 	// read price, in bnb wei per charge byte
 	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,9,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
 	// free read quota, in byte

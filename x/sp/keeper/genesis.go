@@ -29,8 +29,8 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		panic(fmt.Sprintf("%s module account has not been set", types.ModuleName))
 	}
 
+	// if account has zero balance it probably means it's not set, so we set it
 	depositBalance := k.bankKeeper.GetAllBalances(ctx, spDepositPool.GetAddress())
-	// todo(quality): what's this for?
 	if depositBalance.IsZero() {
 		k.accountKeeper.SetModuleAccount(ctx, spDepositPool)
 	}
