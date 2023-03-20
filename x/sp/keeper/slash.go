@@ -16,7 +16,7 @@ func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types
 	totalAmount := sdkmath.NewInt(0)
 	for _, rewardInfo := range rewardInfos {
 		totalAmount.Add(rewardInfo.Amount.Amount)
-		if k.DepositDenomForSP(ctx) == rewardInfo.GetAmount().Denom {
+		if k.DepositDenomForSP(ctx) != rewardInfo.GetAmount().Denom {
 			return types.ErrInvalidDenom.Wrapf("Expect: %s, actual: %s", k.DepositDenomForSP(ctx), rewardInfo.GetAmount().Denom)
 		}
 	}
