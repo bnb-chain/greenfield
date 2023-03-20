@@ -24,6 +24,8 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// SourceType represents the source of resource creation, which can
+// from Greenfield native or from a cross-chain transfer from BSC
 type SourceType int32
 
 const (
@@ -52,6 +54,8 @@ func (SourceType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_4eff6c0fa4aaf4c9, []int{0}
 }
 
+// RedundancyType represents the redundancy algorithm type for object data,
+// which can be either multi-replica or erasure coding.
 type RedundancyType int32
 
 const (
@@ -77,6 +81,10 @@ func (RedundancyType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_4eff6c0fa4aaf4c9, []int{1}
 }
 
+// ObjectStatus represents the creation status of an object. After a user successfully
+// sends a CreateObject transaction onto the chain, the status is set to 'Created'.
+// After the Primary Service Provider successfully sends a Seal Object transaction onto
+// the chain, the status is set to 'Sealed'.
 type ObjectStatus int32
 
 const (
@@ -102,9 +110,14 @@ func (ObjectStatus) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_4eff6c0fa4aaf4c9, []int{2}
 }
 
+// Approval is the signature information returned by the Primary Storage Provider (SP) to the user
+// after allowing them to create a bucket or object, which is then used for verification on the chain
+// to ensure agreement between the Primary SP and the user."
 type Approval struct {
+	// expired_height is the block height at which the signature expires.
 	ExpiredHeight uint64 `protobuf:"varint,1,opt,name=expired_height,json=expiredHeight,proto3" json:"expired_height,omitempty"`
-	Sig           []byte `protobuf:"bytes,2,opt,name=sig,proto3" json:"sig,omitempty"`
+	// The signature needs to conform to the EIP 712 specification.
+	Sig []byte `protobuf:"bytes,2,opt,name=sig,proto3" json:"sig,omitempty"`
 }
 
 func (m *Approval) Reset()         { *m = Approval{} }
