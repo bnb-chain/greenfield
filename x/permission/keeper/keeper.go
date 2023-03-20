@@ -111,6 +111,7 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 
 func (k Keeper) updatePolicy(ctx sdk.Context, policy *types.Policy, newPolicy *types.Policy) *types.Policy {
 	store := ctx.KVStore(k.storeKey)
+	// todo(quality): only Statements can be updated?
 	policy.Statements = newPolicy.Statements
 	store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
 	return policy

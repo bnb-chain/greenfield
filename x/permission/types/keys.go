@@ -21,10 +21,6 @@ const (
 	MemStoreKey = "mem_permission"
 )
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
-
 var (
 	BucketPolicyForAccountPrefix = []byte{0x11}
 	ObjectPolicyForAccountPrefix = []byte{0x12}
@@ -51,11 +47,48 @@ func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.Resource
 	case resource.RESOURCE_TYPE_GROUP:
 		key = GroupPolicyForAccountPrefix
 	default:
+		// todo(quality): better to return error explicitly
 		return nil
 	}
+<<<<<<< HEAD
 	key = append(key, resourceID.Bytes()...)
 	key = append(key, addr.Bytes()...)
 	return key
+=======
+}
+
+// todo(quality): The only usage of `GetBucketPolicyForAccountKey` is in `GetPolicyForAccountKey`,
+// and the patterns are the same. Recommend to delete these functions and implement them in `GetPolicyForAccountKey`.
+
+//func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
+//	var key []byte
+//	switch resourceType {
+//	case resource.RESOURCE_TYPE_BUCKET:
+//		key = BucketPolicyForAccountPrefix
+//	case resource.RESOURCE_TYPE_OBJECT:
+//		key = ObjectPolicyForAccountPrefix
+//	case resource.RESOURCE_TYPE_GROUP:
+//		key = GroupPolicyForAccountPrefix
+//	default:
+//		// todo(quality): better to return error explicitly
+//		return nil
+//	}
+//	key = append(key, resourceID.Bytes()...)
+//	key = append(key, addr.Bytes()...)
+//	return key
+//}
+
+func GetBucketPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
+	return append(BucketPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+}
+
+func GetObjectPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
+	return append(ObjectPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+}
+
+func GetGroupPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
+	return append(GroupPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+>>>>>>> 7384bc55 (chore: refine permission module)
 }
 
 func GetPolicyForGroupKey(resourceID math.Uint, resourceType resource.ResourceType) []byte {

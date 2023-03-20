@@ -57,6 +57,7 @@ func (p Params) Validate() error {
 }
 
 // String implements the Stringer interface.
+// todo(quality): why do you specify `option (gogoproto.goproto_stringer) = false;` in the proto and implement the Stringer interface manually here?
 func (p Params) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)

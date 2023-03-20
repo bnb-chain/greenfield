@@ -53,8 +53,24 @@ var (
 	}
 )
 
+<<<<<<< HEAD
 func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
 	// 1. check if the policy is expired
+=======
+func NewDefaultPolicyForGroupMember(groupID math.Uint, member sdk.AccAddress) *Policy {
+	return &Policy{
+		Principal:       NewPrincipalWithAccount(member),
+		ResourceType:    resource.RESOURCE_TYPE_GROUP,
+		ResourceId:      groupID,
+		MemberStatement: NewMemberStatement(),
+	}
+}
+
+// todo(quality): The logic is quite complicated. Recommend to add comments to explain the logic.
+func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
+	// 1. the policy is expired, need delete
+	// todo(quality): Does nil ExpirationTime mean no expiration? If so, should comment in the proto file.
+>>>>>>> 7384bc55 (chore: refine permission module)
 	if p.ExpirationTime != nil && p.ExpirationTime.Before(blockTime) {
 		// Notice: We do not actively delete policies that expire for users.
 		return EFFECT_UNSPECIFIED, nil
@@ -107,6 +123,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 	if opts != nil && opts.Resource != "" && s.Resources != nil {
 		isMatch := false
 		for _, res := range s.Resources {
+			// todo(quality): regexp is too heavy, is <https://pkg.go.dev/path/filepath#Match> enough?
 			reg := regexp.MustCompile(res)
 			if reg == nil {
 				continue
@@ -129,7 +146,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 				return EFFECT_DENY, nil
 			}
 			// There is special handling for ACTION_CREATE_OBJECT.
-			// userA grant CreateObject permission to userB, but only allows he to create a limit size of object.
+			// userA grant CreateObject permission to userB, but only allows him to create a limit size of object.
 			// If exceeded, rejected
 			if action == ACTION_CREATE_OBJECT && s.LimitSize != nil && opts != nil && opts.WantedSize != nil {
 				if s.LimitSize.GetValue() >= *opts.WantedSize {
@@ -196,5 +213,6 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 		return ErrInvalidStatement.Wrap("unknown resource type.")
 	}
 
+	// todo(quality): should return error for invalid resource
 	return nil
 }

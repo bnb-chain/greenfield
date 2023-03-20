@@ -66,6 +66,7 @@ func (p *Principal) GetGroupID() (sdkmath.Uint, error) {
 	return groupID, nil
 }
 
+// todo(quality): duplicated code, should reuse GetAccountAddress, panic if error and return the result
 func (p *Principal) MustGetAccountAddress() sdk.AccAddress {
 	address, err := p.GetAccountAddress()
 	if err != nil {
@@ -74,6 +75,7 @@ func (p *Principal) MustGetAccountAddress() sdk.AccAddress {
 	return address
 }
 
+// todo(quality): duplicated code, should reuse GetGroupID, panic if error and return the result
 func (p *Principal) MustGetGroupID() sdkmath.Uint {
 	groupID, err := p.GetGroupID()
 	if err != nil {
