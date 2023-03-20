@@ -59,7 +59,6 @@ message Statement {
   common.UInt64Value limit_size = 5 [(gogoproto.nullable) = true];
 }
 
-
 // PrincipalType refers to the identity type of system users or entities.
 // In Greenfield, it usually refers to accounts or groups.
 enum PrincipalType {
