@@ -114,7 +114,8 @@ valset:
     min_self_delegation: "1"
     operator_address: 0x3D1c0E4aEdA87e0779E895307Eb3dFF6432a3cDa
     relayer_address: 0xebd48ceed75B8e8174F6143394BD74fd2cf102d4
-    relayer_bls_key: lBsWg+/1/3Q/mJFE97PDBkPSNF631enVSUin/u+DEeUmttGbArKHYyXdtvP20iOw
+    challenger_address: 0xebd48ceed75B8e8174F6143394BD74fd2cf102d4
+    bls_key: lBsWg+/1/3Q/mJFE97PDBkPSNF631enVSUin/u+DEeUmttGbArKHYyXdtvP20iOw
     self_del_address: 0x3D1c0E4aEdA87e0779E895307Eb3dFF6432a3cDa
     status: BOND_STATUS_BONDED
     tokens: "10000000000000000000000000"
@@ -140,7 +141,8 @@ valset:
     min_self_delegation: "1"
     operator_address: 0xe7374890fc6c8811Ab6eac3A30D9e5391C1077D5
     relayer_address: 0x3D4da133bDb0443917Cf29b06E3Bd18a9Cd5dc73
-    relayer_bls_key: t+wJJfvKxjgKDam3L+TgEWIaDpTZOOASwI0qC0lAgtQY4ow9RxJKjROFjxD9x9iR
+    challenger_address: 0x3D4da133bDb0443917Cf29b06E3Bd18a9Cd5dc73
+    bls_key: t+wJJfvKxjgKDam3L+TgEWIaDpTZOOASwI0qC0lAgtQY4ow9RxJKjROFjxD9x9iR
     self_del_address: 0xe7374890fc6c8811Ab6eac3A30D9e5391C1077D5
     status: BOND_STATUS_BONDED
     tokens: "10000000000000000000000000"
@@ -166,7 +168,8 @@ valset:
     min_self_delegation: "1"
     operator_address: 0xCd6D1332a09c29A8a5Fe5Ea4b485F63881f26999
     relayer_address: 0xBefD69cb71403DF7BA20310FB216e1Fb7bAC6321
-    relayer_bls_key: qt3VpcjybvsWdR8smO0eCoaD+4IkAczpl+mcBJOKnXQro2g3TUXWCZPU7VvI01KJ
+    challenger_address: 0xBefD69cb71403DF7BA20310FB216e1Fb7bAC6321
+    bls_key: qt3VpcjybvsWdR8smO0eCoaD+4IkAczpl+mcBJOKnXQro2g3TUXWCZPU7VvI01KJ
     self_del_address: 0xCd6D1332a09c29A8a5Fe5Ea4b485F63881f26999
     status: BOND_STATUS_BONDED
     tokens: "10000000000000000000000000"
@@ -284,7 +287,8 @@ jailed: false
 min_self_delegation: "1"
 operator_address: 0xCd6D1332a09c29A8a5Fe5Ea4b485F63881f26999
 relayer_address: 0xBefD69cb71403DF7BA20310FB216e1Fb7bAC6321
-relayer_bls_key: qt3VpcjybvsWdR8smO0eCoaD+4IkAczpl+mcBJOKnXQro2g3TUXWCZPU7VvI01KJ
+challenger_address: 0xBefD69cb71403DF7BA20310FB216e1Fb7bAC6321
+bls_key: qt3VpcjybvsWdR8smO0eCoaD+4IkAczpl+mcBJOKnXQro2g3TUXWCZPU7VvI01KJ
 self_del_address: 0xCd6D1332a09c29A8a5Fe5Ea4b485F63881f26999
 status: BOND_STATUS_BONDED
 tokens: "10000000000000000000000000"
@@ -333,7 +337,8 @@ validators:
     min_self_delegation: "1"
     operator_address: 0x3D1c0E4aEdA87e0779E895307Eb3dFF6432a3cDa
     relayer_address: 0xebd48ceed75B8e8174F6143394BD74fd2cf102d4
-    relayer_bls_key: lBsWg+/1/3Q/mJFE97PDBkPSNF631enVSUin/u+DEeUmttGbArKHYyXdtvP20iOw
+    challenger_address: 0xebd48ceed75B8e8174F6143394BD74fd2cf102d4
+    bls_key: lBsWg+/1/3Q/mJFE97PDBkPSNF631enVSUin/u+DEeUmttGbArKHYyXdtvP20iOw
     self_del_address: 0x3D1c0E4aEdA87e0779E895307Eb3dFF6432a3cDa
     status: BOND_STATUS_BONDED
     tokens: "10000000000000000000000000"
@@ -359,7 +364,8 @@ validators:
     min_self_delegation: "1"
     operator_address: 0xCd6D1332a09c29A8a5Fe5Ea4b485F63881f26999
     relayer_address: 0xBefD69cb71403DF7BA20310FB216e1Fb7bAC6321
-    relayer_bls_key: qt3VpcjybvsWdR8smO0eCoaD+4IkAczpl+mcBJOKnXQro2g3TUXWCZPU7VvI01KJ
+    challenger_address: 0xBefD69cb71403DF7BA20310FB216e1Fb7bAC6321
+    bls_key: qt3VpcjybvsWdR8smO0eCoaD+4IkAczpl+mcBJOKnXQro2g3TUXWCZPU7VvI01KJ
     self_del_address: 0xCd6D1332a09c29A8a5Fe5Ea4b485F63881f26999
     status: BOND_STATUS_BONDED
     tokens: "10000000000000000000000000"
@@ -385,7 +391,8 @@ validators:
     min_self_delegation: "1"
     operator_address: 0xe7374890fc6c8811Ab6eac3A30D9e5391C1077D5
     relayer_address: 0x3D4da133bDb0443917Cf29b06E3Bd18a9Cd5dc73
-    relayer_bls_key: t+wJJfvKxjgKDam3L+TgEWIaDpTZOOASwI0qC0lAgtQY4ow9RxJKjROFjxD9x9iR
+    challenger_address: 0x3D4da133bDb0443917Cf29b06E3Bd18a9Cd5dc73
+    bls_key: t+wJJfvKxjgKDam3L+TgEWIaDpTZOOASwI0qC0lAgtQY4ow9RxJKjROFjxD9x9iR
     self_del_address: 0xe7374890fc6c8811Ab6eac3A30D9e5391C1077D5
     status: BOND_STATUS_BONDED
     tokens: "10000000000000000000000000"
