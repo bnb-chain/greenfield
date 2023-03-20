@@ -282,10 +282,12 @@ func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolic
 	var grn gnfd.GRN
 	err = grn.ParseFromString(req.Resource, false)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "failed to parse GRN %s: %v", req.Resource, err)
 	}
 
-	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithGroup(id))
+	policy, err := k.GetPolicy(
+		ctx, &grn, permtypes.NewPrincipalWithGroup(id),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -404,5 +406,5 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	if !found || policy.MemberStatement == nil {
 		return nil, types.ErrNoSuchGroupMember
 	}
-	return &types.QueryHeadGroupMemberResponse{GroupInfo: groupInfo}, nil
+	return &types.QueryHeadGroupMemberResponse{GroupId: groupInfo.Id.String()}, nil
 }

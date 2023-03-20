@@ -82,3 +82,12 @@ func TestGRNWildcard(t *testing.T) {
 	require.Equal(t, bucketName, testBucketName)
 	require.Equal(t, objectName, "test*")
 }
+
+func TestGRNBasicNew(t *testing.T) {
+	ownerAcc := sample.RandAccAddress()
+
+	require.Equal(t, "grn:b::testbucket", types3.NewBucketGRN("testbucket").String())
+	require.Equal(t, "grn:o::testbucket/testobject", types3.NewObjectGRN("testbucket", "testobject").String())
+	groupGRNString := "grn:g:" + ownerAcc.String() + ":testgroup"
+	require.Equal(t, groupGRNString, types3.NewGroupGRN(ownerAcc, "testgroup").String())
+}
