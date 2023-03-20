@@ -3,7 +3,9 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
@@ -297,6 +299,10 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 				SrcObjectName: testObjectName,
 				DstBucketName: "dst" + testBucketName,
 				DstObjectName: "dst" + testObjectName,
+				DstPrimarySpApproval: &Approval{
+					ExpiredHeight: 100,
+					Sig:           []byte("xxx"),
+				},
 			},
 		},
 	}
@@ -518,6 +524,107 @@ func TestMsgDeletePolicy_ValidateBasic(t *testing.T) {
 				Resource:  types2.NewBucketGRN(testBucketName).String(),
 				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
 			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgMirrorBucket_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgMirrorBucket
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgMirrorBucket{
+				Operator: sample.AccAddress(),
+				Id:       math.NewUint(1),
+			},
+		}, {
+			name: "invalid account name",
+			msg: MsgMirrorBucket{
+				Operator: "wrong address",
+				Id:       math.NewUint(1),
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgMirrorObject_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgMirrorObject
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgMirrorObject{
+				Operator: sample.AccAddress(),
+				Id:       math.NewUint(1),
+			},
+		},
+		{
+			name: "invalid address",
+			msg: MsgMirrorObject{
+				Operator: "wrong address",
+				Id:       math.NewUint(1),
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgMirrorGroup_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgMirrorGroup
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgMirrorGroup{
+				Operator: sample.AccAddress(),
+				Id:       math.NewUint(1),
+			},
+		},
+		{
+			name: "invalid address",
+			msg: MsgMirrorGroup{
+				Operator: "wrong address",
+				Id:       math.NewUint(1),
+			},
+			err: sdkerrors.ErrInvalidAddress,
 		},
 	}
 	for _, tt := range tests {

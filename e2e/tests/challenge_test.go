@@ -104,7 +104,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
 	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
@@ -145,7 +145,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	s.Require().Equal(event.SpOperatorAddress, secondarySps[0].String())
 }
 
-func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, relayerKey string) *bitset.BitSet {
+func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, blsKey string) *bitset.BitSet {
 	valBitSet := bitset.New(256)
 
 	page := 1
@@ -156,7 +156,7 @@ func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, relayerKey s
 	}
 
 	for idx, val := range valRes.Validators {
-		if strings.EqualFold(relayerKey, hex.EncodeToString(val.RelayerBlsKey[:])) {
+		if strings.EqualFold(blsKey, hex.EncodeToString(val.BlsKey[:])) {
 			valBitSet.Set(uint(idx))
 		}
 	}
@@ -176,13 +176,13 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	s.Require().NoError(err)
 	height := statusRes.SyncInfo.LatestBlockHeight
 
-	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
@@ -234,13 +234,13 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId,
 		event.SpOperatorAddress, challengetypes.CHALLENGE_FAILED, "", valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.0.9
+The resource mirror is introduced in this release.
+
+* [\#109](https://github.com/bnb-chain/greenfield/pull/109) feat: add events for permission module
+* [\#107](https://github.com/bnb-chain/greenfield/pull/107) fix: update license and readme
+* [\#104](https://github.com/bnb-chain/greenfield/pull/104) fix: refine the bridge module
+* [\#101](https://github.com/bnb-chain/greenfield/pull/101) doc: add detail doc for permission module
+* [\#50](https://github.com/bnb-chain/greenfield/pull/50) feat: add cross chain txs for storage resources
+* [\#114](https://github.com/bnb-chain/greenfield/pull/114) fix: potential attack risks in storage module
+
+
 ## v0.0.8
 
 This release includes following features:

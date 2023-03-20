@@ -1,6 +1,8 @@
 package core
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -26,7 +28,9 @@ type BaseSuite struct {
 	Client           *client.GreenfieldClient
 	TmClient         *client.TendermintClient
 	Validator        keys.KeyManager
+	ValidatorBLS     keys.KeyManager
 	Relayer          keys.KeyManager
+	Challenger       keys.KeyManager
 	StorageProviders []SPKeyManagers
 }
 
@@ -39,7 +43,11 @@ func (s *BaseSuite) SetupSuite() {
 	var err error
 	s.Validator, err = keys.NewMnemonicKeyManager(s.Config.ValidatorMnemonic)
 	s.Require().NoError(err)
-	s.Relayer, err = keys.NewBlsMnemonicKeyManager(s.Config.RelayerMnemonic)
+	s.ValidatorBLS, err = keys.NewBlsMnemonicKeyManager(s.Config.ValidatorBlsMnemonic)
+	s.Require().NoError(err)
+	s.Relayer, err = keys.NewMnemonicKeyManager(s.Config.RelayerMnemonic)
+	s.Require().NoError(err)
+	s.Challenger, err = keys.NewMnemonicKeyManager(s.Config.ChallengerMnemonic)
 	s.Require().NoError(err)
 	for _, spMnemonics := range s.Config.SPMnemonics {
 		sPKeyManagers := SPKeyManagers{}
@@ -67,6 +75,18 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
 	return response.TxResponse
+}
+
+func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyManager, expectErrorString string) {
+	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	txOpt := &types.TxOption{
+		Mode: &mode,
+		Memo: "",
+	}
+	s.Client.SetKeyManager(from)
+	_, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	s.Require().Error(err)
+	s.Require().True(strings.Contains(err.Error(), expectErrorString))
 }
 
 func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.KeyManager) {

@@ -15,6 +15,8 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	crosschainkeeper "github.com/cosmos/cosmos-sdk/x/crosschain/keeper"
+	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
@@ -38,7 +40,7 @@ import (
 
 func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	storeKeys := sdk.NewKVStoreKeys(paramstypes.StoreKey, authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey,
-		stakingtypes.StoreKey, storagetypes.StoreKey, paymenttypes.StoreKey)
+		stakingtypes.StoreKey, storagetypes.StoreKey, paymenttypes.StoreKey, crosschaintypes.StoreKey)
 
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, types.TStoreKey)
 
@@ -57,6 +59,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	stateStore.MountStoreWithDB(storeKeys[stakingtypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[storagetypes.StoreKey], storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(storeKeys[paymenttypes.StoreKey], storetypes.StoreTypeIAVL, db)
+	stateStore.MountStoreWithDB(storeKeys[crosschaintypes.StoreKey], storetypes.StoreTypeIAVL, db)
 
 	stateStore.MountStoreWithDB(tkeys[paramstypes.TStoreKey], storetypes.StoreTypeTransient, nil)
 
@@ -76,6 +79,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(stakingtypes.ModuleName)
 	paramKeeper.Subspace(paymenttypes.ModuleName)
 	paramKeeper.Subspace(permissionmoduletypes.ModuleName)
+	paramKeeper.Subspace(crosschaintypes.ModuleName)
 
 	paramsSubspace := paramstypes.NewSubspace(cdc,
 		types.Amino,
@@ -133,6 +137,12 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		GetSubspace(paramKeeper, permissionmoduletypes.ModuleName),
 		accountKeeper,
 	)
+	crossChainKeeper := crosschainkeeper.NewKeeper(
+		cdc,
+		storeKeys[crosschaintypes.StoreKey],
+		GetSubspace(paramKeeper, crosschaintypes.ModuleName),
+	)
+
 	storageKeeper := storagekeeper.NewKeeper(
 		cdc,
 		storeKeys[storagetypes.StoreKey],
@@ -142,6 +152,7 @@ func ChallengeKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		spKeeper,
 		paymentKeeper,
 		permissionKeeper,
+		crossChainKeeper,
 	)
 
 	stakingKeeper := stakingkeeper.NewKeeper(

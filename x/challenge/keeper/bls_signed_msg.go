@@ -36,16 +36,15 @@ func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]stri
 		return nil, errors.Wrap(types.ErrInvalidVoteValidatorSet, "number of validator set is larger than validators")
 	}
 
-	signedRelayers := make([]string, 0, validatorsBitSet.Count())
+	signedChallengers := make([]string, 0, validatorsBitSet.Count())
 	votedPubKeys := make([]bls.PublicKey, 0, validatorsBitSet.Count())
 	for index, val := range validators {
 		if !validatorsBitSet.Test(uint(index)) {
 			continue
 		}
 
-		// TODO: use `challenger` instead of `relayer` later
-		signedRelayers = append(signedRelayers, val.RelayerAddress)
-		votePubKey, err := bls.PublicKeyFromBytes(val.RelayerBlsKey)
+		signedChallengers = append(signedChallengers, val.ChallengerAddress)
+		votePubKey, err := bls.PublicKeyFromBytes(val.BlsKey)
 		if err != nil {
 			return nil, errors.Wrapf(types.ErrInvalidBlsPubKey, fmt.Sprintf("BLS public key converts failed: %v", err))
 		}
@@ -65,5 +64,5 @@ func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]stri
 		return nil, errors.Wrap(types.ErrInvalidVoteAggSignature, "Signature verify failed")
 	}
 
-	return signedRelayers, nil
+	return signedChallengers, nil
 }
