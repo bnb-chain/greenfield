@@ -26,7 +26,9 @@ type BaseSuite struct {
 	Client           *client.GreenfieldClient
 	TmClient         *client.TendermintClient
 	Validator        keys.KeyManager
+	ValidatorBLS     keys.KeyManager
 	Relayer          keys.KeyManager
+	Challenger       keys.KeyManager
 	StorageProviders []SPKeyManagers
 }
 
@@ -39,7 +41,11 @@ func (s *BaseSuite) SetupSuite() {
 	var err error
 	s.Validator, err = keys.NewMnemonicKeyManager(s.Config.ValidatorMnemonic)
 	s.Require().NoError(err)
-	s.Relayer, err = keys.NewBlsMnemonicKeyManager(s.Config.RelayerMnemonic)
+	s.ValidatorBLS, err = keys.NewBlsMnemonicKeyManager(s.Config.ValidatorBlsMnemonic)
+	s.Require().NoError(err)
+	s.Relayer, err = keys.NewMnemonicKeyManager(s.Config.RelayerMnemonic)
+	s.Require().NoError(err)
+	s.Challenger, err = keys.NewMnemonicKeyManager(s.Config.ChallengerMnemonic)
 	s.Require().NoError(err)
 	for _, spMnemonics := range s.Config.SPMnemonics {
 		sPKeyManagers := SPKeyManagers{}

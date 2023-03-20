@@ -30,8 +30,9 @@ The ~/.gnfd folder has the following structure:
 ```bash
 # new key
 ./build/bin/gnfd keys add validator --keyring-backend test
-./build/bin/gnfd keys add relayer --keyring-backend test --algo eth_bls
-./build/bin/gnfd keys add challenger --keyring-backend test --algo eth_bls
+./build/bin/gnfd keys add relayer --keyring-backend test
+./build/bin/gnfd keys add challenger --keyring-backend test
+./build/bin/gnfd keys add bls --keyring-backend test --algo eth_bls
 
 # list accounts
 ./build/bin/gnfd keys list --keyring-backend test
@@ -46,15 +47,15 @@ Before starting the chain, you need to populate the state with at least one acco
 ```bash
 VALIDATOR=$(./build/bin/gnfd keys show validator -a --keyring-backend test)
 RELAYER=$(./build/bin/gnfd keys show relayer -a --keyring-backend test)
-RELAYER_BLS=$(./build/bin/gnfd keys show relayer --keyring-backend test --output json | jq -r .pubkey_hex)
 CHALLENGER=$(./build/bin/gnfd keys show challenger -a --keyring-backend test)
+BLS=$(./build/bin/gnfd keys show bls --keyring-backend test --output json | jq -r .pubkey_hex)
 ./build/bin/gnfd add-genesis-account $VALIDATOR 100000000000000000000000000BNB
 ```
 
 5. Create validator in genesis state
 ```bash
 # create a gentx.
-./build/bin/gnfd gentx validator 10000000000000000000000000BNB $VALIDATOR $RELAYER $RELAYER_BLS $CHALLENGER --keyring-backend=test --chain-id=greenfield_9000-121 \
+./build/bin/gnfd gentx validator 10000000000000000000000000BNB $VALIDATOR $RELAYER $CHALLENGER $BLS --keyring-backend=test --chain-id=greenfield_9000-121 \
     --moniker="validator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=1.0 \
