@@ -42,6 +42,7 @@ jobs:
 
       - name: Install Libraries
         run: |
+          sudo apt install protobuf-compiler
           go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
           go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
           go get -u google.golang.org/grpc/cmd/protoc-gen-go-grpc
