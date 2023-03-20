@@ -215,8 +215,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberResp.GroupInfo.GroupName, groupName)
-	s.Require().Equal(queryHeadGroupMemberResp.GroupInfo.Owner, owner.GetAddr().String())
+	s.Require().Equal(queryHeadGroupMemberResp.GroupId, queryHeadGroupResp.GroupInfo.Id.String())
 
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -241,8 +240,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberRespAdd, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqAdd)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupInfo.GroupName, groupName)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupInfo.Owner, owner.GetAddr().String())
+	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupId, queryHeadGroupResp.GroupInfo.Id.String())
 }
 
 func (s *StorageTestSuite) TestDeleteBucket() {

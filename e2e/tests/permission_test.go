@@ -7,6 +7,7 @@ import (
 	"math"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
@@ -573,4 +574,96 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
 	s.Require().NoError(err)
 	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_DENY)
+}
+
+func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
+	var err error
+	user := s.GenAndChargeAccounts(2, 1000000)
+
+	sp := s.StorageProviders[0]
+	// CreateBucket
+	bucketName := storageutil.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user[0].GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user[0])
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.IsPublic, false)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// verify deny permission
+	verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user[1].GetAddr().String(),
+		BucketName: bucketName,
+		ActionType: types.ACTION_UPDATE_BUCKET_INFO,
+	}
+	verifyPermResp, err := s.Client.VerifyPermission(ctx, &verifyPermReq)
+	s.Require().NoError(err)
+	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_DENY)
+	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()})
+	s.SendTxBlock(msgCreateGroup, user[0])
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(user[0].GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Head Group member
+	headGroupMemberRequest := storagetypes.QueryHeadGroupMemberRequest{Member: user[1].GetAddr().String(), GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
+	headGroupMemberResponse, err := s.Client.HeadGroupMember(ctx, &headGroupMemberRequest)
+	s.Require().NoError(err)
+	resGroupId, err := sdkmath.ParseUint(headGroupMemberResponse.GroupId)
+	s.Require().NoError(err)
+	s.Require().Equal(resGroupId, headGroupResponse.GetGroupInfo().Id)
+
+	// Put bucket policy
+	statement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_BUCKET_INFO, types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	principal := types.NewPrincipalWithGroup(headGroupResponse.GroupInfo.Id)
+	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{statement}, nil)
+	s.SendTxBlock(msgPutPolicy, user[0])
+
+	// verify allow permission
+	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user[1].GetAddr().String(),
+		BucketName: bucketName,
+		ActionType: types.ACTION_UPDATE_BUCKET_INFO,
+	}
+	verifyPermResp, err = s.Client.VerifyPermission(ctx, &verifyPermReq)
+	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_ALLOW)
+
+	// Query policy for group
+	grn := types2.NewBucketGRN(bucketName)
+	queryPolicyForGroupReq := storagetypes.QueryPolicyForGroupRequest{Resource: grn.String(),
+		PrincipalGroupId: headGroupResponse.GroupInfo.Id.String()}
+	queryPolicyForGroupResp, err := s.Client.QueryPolicyForGroup(ctx, &queryPolicyForGroupReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceId, queryHeadBucketResponse.BucketInfo.Id)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.Statements[0].Effect, types.EFFECT_ALLOW)
 }

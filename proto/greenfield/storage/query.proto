@@ -226,7 +226,7 @@ message QueryHeadGroupMemberRequest {
 }
 
 message QueryHeadGroupMemberResponse {
-  GroupInfo group_info = 1;
+  string group_id = 1;
 }
 
 message QueryPolicyForGroupRequest {

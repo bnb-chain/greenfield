@@ -38,13 +38,13 @@ type Policy struct {
 	ResourceType resource.ResourceType `protobuf:"varint,3,opt,name=resource_type,json=resourceType,proto3,enum=bnbchain.greenfield.resource.ResourceType" json:"resource_type,omitempty"`
 	// resource_id defines the bucket/object/group id of the resource that grants permission for
 	ResourceId Uint `protobuf:"bytes,4,opt,name=resource_id,json=resourceId,proto3,customtype=Uint" json:"resource_id"`
-	// statements defines the details content of the permission, include effect/actions/sub-resources
+	// statements defines the details content of the permission, including effect/actions/sub-resources
 	Statements []*Statement `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
 	// expiration_time defines the whole expiration time of all the statements.
 	// Notices: Its priority is higher than the expiration time inside the Statement
-	ExpirationTime *time.Time `protobuf:"bytes,7,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
-	// member_statement define a special policy which indicates that the principal is a member of the group
-	MemberStatement *Statement `protobuf:"bytes,6,opt,name=member_statement,json=memberStatement,proto3" json:"member_statement,omitempty"`
+	ExpirationTime *time.Time `protobuf:"bytes,6,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
+	// member_statement defines a special policy which indicates that the principal is a member of the group
+	MemberStatement *Statement `protobuf:"bytes,7,opt,name=member_statement,json=memberStatement,proto3" json:"member_statement,omitempty"`
 }
 
 func (m *Policy) Reset()         { *m = Policy{} }
@@ -115,6 +115,9 @@ func (m *Policy) GetMemberStatement() *Statement {
 	return nil
 }
 
+// PolicyGroup refers to a group of policies which grant permission to Group, which is limited to MaxGroupNum (default 10).
+// This means that a single resource can only grant permission to 10 groups. The reason for
+// this is to enable on-chain determination of whether an operator has permission within a limited time.
 type PolicyGroup struct {
 	// items define a pair of policy_id and group_id. Each resource can only grant its own permissions to a limited number of groups
 	Items []*PolicyGroup_Item `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
@@ -228,9 +231,9 @@ var fileDescriptor_0d2afeea9f743f03 = []byte{
 	0x24, 0xfe, 0x7f, 0x6a, 0xaf, 0x42, 0x6f, 0x60, 0x77, 0x27, 0x48, 0x13, 0xab, 0x79, 0x78, 0x1e,
 	0x58, 0xe2, 0xbd, 0x04, 0x79, 0x10, 0x6a, 0x13, 0x1a, 0xc2, 0x08, 0x37, 0xda, 0x3a, 0xe9, 0x37,
 	0x8e, 0x19, 0xec, 0x63, 0xc9, 0xf0, 0xf7, 0xc8, 0xe8, 0x3d, 0x3c, 0x27, 0x73, 0x49, 0x55, 0x68,
-	0xa8, 0xe0, 0x41, 0x96, 0x9e, 0x75, 0x9a, 0x2f, 0xaa, 0x87, 0x8b, 0x68, 0x71, 0x19, 0x2d, 0x9e,
-	0x94, 0xd1, 0x8e, 0xdb, 0xcb, 0x95, 0x03, 0x6e, 0x7f, 0x3a, 0xc0, 0x3f, 0xab, 0xc8, 0xd9, 0x67,
-	0x34, 0x81, 0x0f, 0x18, 0x61, 0x11, 0x51, 0xc1, 0xee, 0x1f, 0x56, 0xeb, 0xb8, 0xc5, 0x57, 0xfe,
+	0xa8, 0xe0, 0x41, 0x96, 0x9e, 0xd5, 0xca, 0x17, 0xd5, 0xc3, 0x45, 0xb4, 0xb8, 0x8c, 0x16, 0x4f,
+	0xca, 0x68, 0xc7, 0xed, 0xe5, 0xca, 0x01, 0xb7, 0x3f, 0x1d, 0xe0, 0x9f, 0x55, 0xe4, 0xec, 0x33,
+	0x9a, 0xc0, 0x07, 0x8c, 0xb0, 0x88, 0xa8, 0x60, 0xf7, 0x0f, 0xeb, 0xf4, 0xb8, 0xc5, 0x57, 0xfe,
 	0xce, 0x0b, 0x89, 0x5d, 0x63, 0xf0, 0x15, 0xc0, 0x6e, 0x91, 0xff, 0xa5, 0x12, 0x33, 0x89, 0xde,
 	0xc2, 0x13, 0x6a, 0x08, 0xd3, 0x16, 0xc8, 0x47, 0x7f, 0x71, 0x30, 0xd3, 0x8a, 0x8b, 0x3d, 0x43,
 	0x98, 0x5f, 0xd0, 0x7b, 0x73, 0xd8, 0xcc, 0x4a, 0xf4, 0x1a, 0x76, 0x64, 0x0e, 0x09, 0x8e, 0xbb,
@@ -238,7 +241,7 @@ var fileDescriptor_0d2afeea9f743f03 = []byte{
 	0xe6, 0x60, 0x2f, 0x19, 0xbf, 0x5b, 0xae, 0x6d, 0x70, 0xb7, 0xb6, 0xc1, 0xaf, 0xb5, 0x0d, 0x6e,
 	0x37, 0x76, 0xed, 0x6e, 0x63, 0xd7, 0xbe, 0x6f, 0xec, 0xda, 0xe7, 0x51, 0x4a, 0xcd, 0xcd, 0x2c,
 	0xc2, 0xb1, 0x60, 0x6e, 0xc4, 0xa3, 0x8b, 0x7c, 0x2e, 0x77, 0xef, 0x85, 0xcc, 0xff, 0x7a, 0xdc,
-	0x51, 0x2b, 0xcf, 0xe8, 0xe5, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x21, 0x4e, 0xc9, 0x30, 0x02,
+	0x51, 0x2b, 0xcf, 0xe8, 0xe5, 0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0x24, 0x20, 0x90, 0xc0, 0x02,
 	0x04, 0x00, 0x00,
 }
 
@@ -262,16 +265,6 @@ func (m *Policy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.ExpirationTime != nil {
-		n1, err1 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.ExpirationTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.ExpirationTime):])
-		if err1 != nil {
-			return 0, err1
-		}
-		i -= n1
-		i = encodeVarintTypes(dAtA, i, uint64(n1))
-		i--
-		dAtA[i] = 0x3a
-	}
 	if m.MemberStatement != nil {
 		{
 			size, err := m.MemberStatement.MarshalToSizedBuffer(dAtA[:i])
@@ -281,6 +274,16 @@ func (m *Policy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i -= size
 			i = encodeVarintTypes(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if m.ExpirationTime != nil {
+		n2, err2 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.ExpirationTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.ExpirationTime):])
+		if err2 != nil {
+			return 0, err2
+		}
+		i -= n2
+		i = encodeVarintTypes(dAtA, i, uint64(n2))
 		i--
 		dAtA[i] = 0x32
 	}
@@ -452,12 +455,12 @@ func (m *Policy) Size() (n int) {
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
-	if m.MemberStatement != nil {
-		l = m.MemberStatement.Size()
-		n += 1 + l + sovTypes(uint64(l))
-	}
 	if m.ExpirationTime != nil {
 		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.ExpirationTime)
+		n += 1 + l + sovTypes(uint64(l))
+	}
+	if m.MemberStatement != nil {
+		l = m.MemberStatement.Size()
 		n += 1 + l + sovTypes(uint64(l))
 	}
 	return n
@@ -685,42 +688,6 @@ func (m *Policy) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MemberStatement", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTypes
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthTypes
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthTypes
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.MemberStatement == nil {
-				m.MemberStatement = &Statement{}
-			}
-			if err := m.MemberStatement.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 7:
-			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ExpirationTime", wireType)
 			}
 			var msglen int
@@ -752,6 +719,42 @@ func (m *Policy) Unmarshal(dAtA []byte) error {
 				m.ExpirationTime = new(time.Time)
 			}
 			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(m.ExpirationTime, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MemberStatement", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MemberStatement == nil {
+				m.MemberStatement = &Statement{}
+			}
+			if err := m.MemberStatement.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

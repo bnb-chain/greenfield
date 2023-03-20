@@ -70,7 +70,7 @@ func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 		policy.MemberStatement = types.NewMemberStatement()
 	}
 
-	k.setPolicyToAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member, policy)
+	k.setPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member, policy)
 	return nil
 }
 
@@ -172,7 +172,6 @@ func (k Keeper) GetPolicyByID(ctx sdk.Context, policyID math.Uint) (*types.Polic
 	store := ctx.KVStore(k.storeKey)
 
 	policy := types.Policy{}
-
 	bz := store.Get(types.GetPolicyByIDKey(policyID))
 	if bz == nil {
 		return &policy, false
@@ -209,6 +208,7 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	isFound bool) {
 	store := ctx.KVStore(k.storeKey)
 	policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+	k.Logger(ctx).Info(fmt.Sprintf("GetPolicy, resourceID: %s, groupID: %s", resourceID.String(), groupID.String()))
 
 	bz := store.Get(policyGroupKey)
 	if bz == nil {
@@ -218,14 +218,15 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	var policyGroup types.PolicyGroup
 	k.cdc.MustUnmarshal(bz, &policyGroup)
 	for _, item := range policyGroup.Items {
-		if item.GroupId == groupID {
-			return k.GetPolicyByID(ctx, item.PolicyId)
+		k.Logger(ctx).Info(fmt.Sprintf("GetPolicy, policyID: %s, groupID: %s", item.PolicyId.String(), item.GroupId.String()))
+		if item.GroupId.Equal(groupID) {
+			return k.MustGetPolicyByID(ctx, item.PolicyId), true
 		}
 	}
 	return nil, false
 }
 
-func (k Keeper) setPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
+func (k Keeper) setPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	resourceType resource.ResourceType, addr sdk.AccAddress, policy *types.Policy) {
 	store := ctx.KVStore(k.storeKey)
 	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
@@ -270,13 +271,12 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
 			if effect != types.EFFECT_PASS {
 				// check the operator is the member of this group
-				groupPolicy, memberFound := k.GetPolicyForAccount(ctx, item.GroupId, resourceType, operator)
+				memberPolicy, memberFound := k.GetPolicyForAccount(ctx, item.GroupId, resource.RESOURCE_TYPE_GROUP, operator)
 				if memberFound {
-					memberEffect, _ := groupPolicy.Eval(types.ACTION_GROUP_MEMBER, ctx.BlockTime(), opts)
-					if memberEffect != types.EFFECT_PASS {
-						if effect == types.EFFECT_ALLOW && memberEffect == types.EFFECT_ALLOW {
+					if memberPolicy.MemberStatement.Effect != types.EFFECT_PASS {
+						if effect == types.EFFECT_ALLOW && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
 							allowed = true
-						} else if effect == types.EFFECT_DENY && memberEffect == types.EFFECT_ALLOW {
+						} else if effect == types.EFFECT_DENY && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
 							return types.EFFECT_DENY
 						}
 					}
