@@ -796,7 +796,7 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 }
 
 func NewMsgUpdateGroupMember(
-	operator sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
+	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
 	membersToDelete []sdk.AccAddress) *MsgUpdateGroupMember {
 	var membersAddrToAdd, membersAddrToDelete []string
 	for _, member := range membersToAdd {
@@ -807,6 +807,7 @@ func NewMsgUpdateGroupMember(
 	}
 	return &MsgUpdateGroupMember{
 		Operator:        operator.String(),
+		GroupOwner:      groupOwner.String(),
 		GroupName:       groupName,
 		MembersToAdd:    membersAddrToAdd,
 		MembersToDelete: membersAddrToDelete,
@@ -844,6 +845,12 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
 	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
+	}
+
 	err = s3util.CheckValidGroupName(msg.GroupName)
 	if err != nil {
 		return err

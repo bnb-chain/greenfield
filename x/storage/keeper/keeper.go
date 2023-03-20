@@ -868,11 +868,7 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
-	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
-	if !found {
-		return types.ErrNoSuchGroup
-	}
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts UpdateGroupMemberOptions) error {
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}

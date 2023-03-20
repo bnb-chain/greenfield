@@ -115,6 +115,8 @@ func (Effect) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_33a4d646aee30990, []int{1}
 }
 
+// PrincipalType refers to the identity type of system users or entities.
+// In Greenfield, it usually refers to accounts or groups.
 type PrincipalType int32
 
 const (
@@ -147,8 +149,10 @@ type Statement struct {
 	// action_type define the operation type you can act. greenfield defines a set of permission
 	// that you can specify in a permissionInfo. see ActionType enum for detail.
 	Actions []ActionType `protobuf:"varint,2,rep,packed,name=actions,proto3,enum=bnbchain.greenfield.permission.ActionType" json:"actions,omitempty"`
-	// resources define the resource list you can operate.
 	// CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
+	// If no sub-resource is specified in a statement, then all objects in the bucket are accessible by the principal.
+	// However, if the sub-resource is defined as 'bucket/test_*,' in the statement, then only objects with a 'test_'
+	// prefix can be accessed by the principal.
 	Resources []string `protobuf:"bytes,3,rep,name=resources,proto3" json:"resources,omitempty"`
 	// expiration_time defines how long the permission is valid
 	ExpirationTime *time.Time `protobuf:"bytes,4,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
@@ -226,8 +230,10 @@ func (m *Statement) GetLimitSize() *common.UInt64Value {
 
 // Principal define the roles that can grant permissions. Currently, it can be account or group.
 type Principal struct {
-	Type  PrincipalType `protobuf:"varint,1,opt,name=type,proto3,enum=bnbchain.greenfield.permission.PrincipalType" json:"type,omitempty"`
-	Value string        `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
+	Type PrincipalType `protobuf:"varint,1,opt,name=type,proto3,enum=bnbchain.greenfield.permission.PrincipalType" json:"type,omitempty"`
+	// When the type is an account, its value is sdk.AccAddress().String();
+	// when the type is a group, its value is math.Uint().String()
+	Value string `protobuf:"bytes,2,opt,name=value,proto3" json:"value,omitempty"`
 }
 
 func (m *Principal) Reset()         { *m = Principal{} }

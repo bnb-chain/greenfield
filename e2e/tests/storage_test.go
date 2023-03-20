@@ -221,7 +221,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
 	membersToDelete := []sdk.AccAddress{member.GetAddr()}
-	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(msgUpdateGroupMember, owner)
 
 	// 5. HeadGroupMember (delete)
