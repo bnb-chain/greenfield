@@ -36,6 +36,8 @@ var (
 	PolicyByIDPrefix = []byte{0x31}
 
 	PolicySequencePrefix = []byte{0x41}
+
+	GroupMemberPolicyPrefix = []byte{0x51}
 )
 
 func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
@@ -84,4 +86,8 @@ func GetObjectPolicyForGroupKey(resourceID math.Uint) []byte {
 
 func GetPolicyByIDKey(policyID math.Uint) []byte {
 	return append(PolicyByIDPrefix, policyID.Bytes()...)
+}
+
+func GetGroupMemberPolicyPrefix(groupID math.Uint, member sdk.AccAddress) []byte {
+	return append(GroupMemberPolicyPrefix, append(groupID.Bytes(), member.Bytes()...)...)
 }
