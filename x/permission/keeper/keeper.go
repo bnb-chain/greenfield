@@ -70,7 +70,7 @@ func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 		policy.MemberStatement = types.NewMemberStatement()
 	}
 
-	k.setPolicyToAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member, policy)
+	k.setPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member, policy)
 	return nil
 }
 
@@ -121,9 +121,9 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 		if bz != nil {
 			policyGroup := types.PolicyGroup{}
 			k.cdc.MustUnmarshal(bz, &policyGroup)
-			if (uint64)(len(policyGroup.Items)) >= k.MaximumGroupNum(ctx) {
+			if (uint64)(len(policyGroup.Items)) >= k.MaximumPolicyGroupSize(ctx) {
 				return math.ZeroUint(), types.ErrLimitExceeded.Wrapf("group number limit to %d, actual %d",
-					k.MaximumGroupNum(ctx),
+					k.MaximumPolicyGroupSize(ctx),
 					len(policyGroup.Items))
 			}
 			isFound := false
@@ -172,7 +172,6 @@ func (k Keeper) GetPolicyByID(ctx sdk.Context, policyID math.Uint) (*types.Polic
 	store := ctx.KVStore(k.storeKey)
 
 	policy := types.Policy{}
-
 	bz := store.Get(types.GetPolicyByIDKey(policyID))
 	if bz == nil {
 		return &policy, false
@@ -209,6 +208,7 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	isFound bool) {
 	store := ctx.KVStore(k.storeKey)
 	policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+	k.Logger(ctx).Info(fmt.Sprintf("GetPolicy, resourceID: %s, groupID: %s", resourceID.String(), groupID.String()))
 
 	bz := store.Get(policyGroupKey)
 	if bz == nil {
@@ -218,14 +218,15 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	var policyGroup types.PolicyGroup
 	k.cdc.MustUnmarshal(bz, &policyGroup)
 	for _, item := range policyGroup.Items {
-		if item.GroupId == groupID {
-			return k.GetPolicyByID(ctx, item.PolicyId)
+		k.Logger(ctx).Info(fmt.Sprintf("GetPolicy, policyID: %s, groupID: %s", item.PolicyId.String(), item.GroupId.String()))
+		if item.GroupId.Equal(groupID) {
+			return k.MustGetPolicyByID(ctx, item.PolicyId), true
 		}
 	}
 	return nil, false
 }
 
-func (k Keeper) setPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
+func (k Keeper) setPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	resourceType resource.ResourceType, addr sdk.AccAddress, policy *types.Policy) {
 	store := ctx.KVStore(k.storeKey)
 	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
@@ -235,12 +236,20 @@ func (k Keeper) setPolicyToAccount(ctx sdk.Context, resourceID math.Uint,
 }
 
 func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
-	operator sdk.AccAddress, action types.ActionType, resource *string) types.Effect {
+	operator sdk.AccAddress, action types.ActionType, opts *types.VerifyOptions) types.Effect {
 	// verify policy which grant permission to account
 	policy, found := k.GetPolicyForAccount(ctx, resourceID, resourceType, operator)
 	if found {
-		effect := policy.Eval(action, resource)
+		effect, newPolicy := policy.Eval(action, ctx.BlockTime(), opts)
+		k.Logger(ctx).Info(fmt.Sprintf("CreateObject LimitSize update: %s, effect: %s, ctx.TxBytes : %d",
+			newPolicy.String(), effect, ctx.TxSize()))
 		if effect != types.EFFECT_PASS {
+			if effect == types.EFFECT_ALLOW && action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
+				_, err := k.PutPolicy(ctx, newPolicy)
+				if err != nil {
+					panic(fmt.Sprintf("Update policy error, %s", err))
+				}
+			}
 			return effect
 		}
 	}
@@ -248,33 +257,45 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 	// verify policy which grant permission to group
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetPolicyForGroupKey(resourceID, resourceType))
-	policyGroup := types.PolicyGroup{}
-	k.cdc.MustUnmarshal(bz, &policyGroup)
-
-	allowed := false
-	for _, item := range policyGroup.Items {
-		// check the group has the right permission of this resource
-		p := k.MustGetPolicyByID(ctx, item.PolicyId)
-		effect := p.Eval(action, resource)
-		if effect != types.EFFECT_PASS {
-			// check the operator is the member of this group
-			groupPolicy, found := k.GetPolicyForAccount(ctx, item.GroupId, resourceType, operator)
-			if found {
-				memberEffect := groupPolicy.Eval(types.ACTION_GROUP_MEMBER, nil)
-				if memberEffect != types.EFFECT_PASS {
-					if effect == types.EFFECT_ALLOW && memberEffect == types.EFFECT_ALLOW {
-						allowed = true
-					} else if effect == types.EFFECT_DENY && memberEffect == types.EFFECT_ALLOW {
-						return types.EFFECT_DENY
+	if bz != nil {
+		policyGroup := types.PolicyGroup{}
+		k.cdc.MustUnmarshal(bz, &policyGroup)
+		allowed := false
+		var (
+			newPolicy *types.Policy
+			effect    types.Effect
+		)
+		for _, item := range policyGroup.Items {
+			// check the group has the right permission of this resource
+			p := k.MustGetPolicyByID(ctx, item.PolicyId)
+			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
+			if effect != types.EFFECT_PASS {
+				// check the operator is the member of this group
+				memberPolicy, memberFound := k.GetPolicyForAccount(ctx, item.GroupId, resource.RESOURCE_TYPE_GROUP, operator)
+				if memberFound {
+					if memberPolicy.MemberStatement.Effect != types.EFFECT_PASS {
+						if effect == types.EFFECT_ALLOW && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
+							allowed = true
+						} else if effect == types.EFFECT_DENY && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
+							return types.EFFECT_DENY
+						}
 					}
 				}
-
 			}
 		}
+		if allowed {
+			if action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
+				if effect == types.EFFECT_ALLOW && action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
+					_, err := k.PutPolicy(ctx, newPolicy)
+					if err != nil {
+						panic(fmt.Sprintf("Update policy error, %s", err))
+					}
+				}
+			}
+			return types.EFFECT_ALLOW
+		}
 	}
-	if allowed {
-		return types.EFFECT_ALLOW
-	}
+
 	return types.EFFECT_PASS
 }
 

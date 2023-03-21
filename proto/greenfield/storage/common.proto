@@ -21,8 +21,8 @@ enum SourceType {
 enum RedundancyType {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  REDUNDANCY_REPLICA_TYPE = 0;
-  REDUNDANCY_EC_TYPE = 1;
+  REDUNDANCY_EC_TYPE = 0;
+  REDUNDANCY_REPLICA_TYPE = 1;
 }
 
 // ObjectStatus represents the creation status of an object. After a user successfully

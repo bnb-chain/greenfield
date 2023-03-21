@@ -444,7 +444,7 @@ func (m *EventCreateObject) GetRedundancyType() RedundancyType {
 	if m != nil {
 		return m.RedundancyType
 	}
-	return REDUNDANCY_REPLICA_TYPE
+	return REDUNDANCY_EC_TYPE
 }
 
 func (m *EventCreateObject) GetSourceType() SourceType {

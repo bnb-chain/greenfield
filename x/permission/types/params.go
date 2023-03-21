@@ -13,8 +13,8 @@ const (
 )
 
 var (
-	KeyMaxStatementsNum  = []byte("MaxStatementsNum")
-	KeyMaxPolicyGroupNum = []byte("MaxPolicyGroupNum")
+	KeyMaxStatementsNum   = []byte("MaxStatementsNum")
+	KeyMaxPolicyGroupSIze = []byte("MaxPolicyGroupSize")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -41,7 +41,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMaxStatementsNum, &p.MaximumStatementsNum, validateMaximumStatementsNum),
-		paramtypes.NewParamSetPair(KeyMaxPolicyGroupNum, &p.MaximumGroupNum, validateMaximumGroupNum),
+		paramtypes.NewParamSetPair(KeyMaxPolicyGroupSIze, &p.MaximumGroupNum, validateMaximumGroupNum),
 	}
 }
 

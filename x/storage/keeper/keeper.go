@@ -283,7 +283,7 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*type
 }
 
 func (k Keeper) CreateObject(
-	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName, objectName string,
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string,
 	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -296,6 +296,16 @@ func (k Keeper) CreateObject(
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
+	}
+
+	// verify permission
+	verifyOpts := &permtypes.VerifyOptions{
+		WantedSize: &payloadSize,
+	}
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+	if effect != permtypes.EFFECT_ALLOW {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator(%s) has no CreateObject permission of the bucket(%s)",
+			operator.String(), bucketName)
 	}
 
 	// check secondary sps
@@ -330,7 +340,7 @@ func (k Keeper) CreateObject(
 
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
-		Owner:                ownerAcc.String(),
+		Owner:                bucketInfo.Owner,
 		BucketName:           bucketName,
 		ObjectName:           objectName,
 		PayloadSize:          payloadSize,
@@ -359,7 +369,7 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		CreatorAddress:   ownerAcc.String(),
+		CreatorAddress:   operator.String(),
 		OwnerAddress:     objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,

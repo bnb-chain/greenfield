@@ -3,6 +3,8 @@ package bnbchain.greenfield.permission;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
+import "greenfield/common/wrapper.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
 
@@ -37,16 +39,24 @@ enum Effect {
   EFFECT_PASS = 2;
 }
 
-// TODO: add expiration time.
 message Statement {
   // effect define the impact of permissions, which can be Allow/Deny
   Effect effect = 1;
   // action_type define the operation type you can act. greenfield defines a set of permission
   // that you can specify in a permissionInfo. see ActionType enum for detail.
   repeated ActionType actions = 2;
-  // resources define the resource list you can operate.
   // CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
+  // If no sub-resource is specified in a statement, then all objects in the bucket are accessible by the principal.
+  // However, if the sub-resource is defined as 'bucket/test_*,' in the statement, then only objects with a 'test_'
+  // prefix can be accessed by the principal.
   repeated string resources = 3;
+  // expiration_time defines how long the permission is valid
+  google.protobuf.Timestamp expiration_time = 4 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = true
+  ];
+  // limit_size defines the total data size that is allowed to operate
+  common.UInt64Value limit_size = 5 [(gogoproto.nullable) = true];
 }
 
 enum PrincipalType {
