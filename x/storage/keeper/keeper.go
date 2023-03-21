@@ -749,8 +749,14 @@ func (k Keeper) CreateGroup(
 		GroupName:  groupName,
 	}
 
+	// Can not create a group with the same name.
+	groupKey := types.GetGroupKey(owner, groupName)
+	if store.Has(groupKey) {
+		return sdkmath.ZeroUint(), types.ErrGroupAlreadyExists
+	}
+
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(types.GetGroupKey(owner, groupName), sequence.EncodeSequence(groupInfo.Id))
+	store.Set(groupKey, sequence.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
