@@ -113,7 +113,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// set initial sp storage price
 	spStoragePrice := types.SpStoragePrice{
 		SpAddress:     spAcc.String(),
-		UpdateTime:    ctx.BlockTime().Unix(),
+		UpdateTimeSec: ctx.BlockTime().Unix(),
 		ReadPrice:     msg.ReadPrice,
 		StorePrice:    msg.StorePrice,
 		FreeReadQuota: msg.FreeReadQuota,
@@ -230,7 +230,7 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 
 	current := ctx.BlockTime().Unix()
 	spStorePrice := types.SpStoragePrice{
-		UpdateTime:    current,
+		UpdateTimeSec: current,
 		SpAddress:     spAcc.String(),
 		ReadPrice:     msg.ReadPrice,
 		StorePrice:    msg.StorePrice,

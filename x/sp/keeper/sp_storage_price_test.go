@@ -17,17 +17,17 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 	ctx = ctx.WithBlockTime(time.Unix(100, 0))
 	spAddr := sample.RandAccAddress()
 	spStoragePrice := types.SpStoragePrice{
-		SpAddress:  spAddr.String(),
-		UpdateTime: 1,
-		ReadPrice:  sdk.NewDec(100),
-		StorePrice: sdk.NewDec(100),
+		SpAddress:     spAddr.String(),
+		UpdateTimeSec: 1,
+		ReadPrice:     sdk.NewDec(100),
+		StorePrice:    sdk.NewDec(100),
 	}
 	keeper.SetSpStoragePrice(ctx, spStoragePrice)
 	spStoragePrice2 := types.SpStoragePrice{
-		SpAddress:  spAddr.String(),
-		UpdateTime: 100,
-		ReadPrice:  sdk.NewDec(200),
-		StorePrice: sdk.NewDec(200),
+		SpAddress:     spAddr.String(),
+		UpdateTimeSec: 100,
+		ReadPrice:     sdk.NewDec(200),
+		StorePrice:    sdk.NewDec(200),
 	}
 	keeper.SetSpStoragePrice(ctx, spStoragePrice2)
 	type args struct {
@@ -62,13 +62,13 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 func TestKeeper_GetSecondarySpStorePriceByTime(t *testing.T) {
 	keeper, ctx := keepertest.SpKeeper(t)
 	secondarySpStorePrice := types.SecondarySpStorePrice{
-		UpdateTime: 1,
-		StorePrice: sdk.NewDec(100),
+		UpdateTimeSec: 1,
+		StorePrice:    sdk.NewDec(100),
 	}
 	keeper.SetSecondarySpStorePrice(ctx, secondarySpStorePrice)
 	secondarySpStorePrice2 := types.SecondarySpStorePrice{
-		UpdateTime: 100,
-		StorePrice: sdk.NewDec(200),
+		UpdateTimeSec: 100,
+		StorePrice:    sdk.NewDec(200),
 	}
 	keeper.SetSecondarySpStorePrice(ctx, secondarySpStorePrice2)
 	type args struct {

@@ -75,10 +75,10 @@ func MustMarshalStorageProvider(cdc codec.BinaryCodec, sp *StorageProvider) []by
 
 func SpStoragePriceKey(
 	sp sdk.AccAddress,
-	updateTime int64,
+	UpdateTimeSec int64,
 ) []byte {
 	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+	binary.BigEndian.PutUint64(timeBytes, uint64(UpdateTimeSec))
 
 	var key []byte
 	key = append(key, sp...)
@@ -87,22 +87,22 @@ func SpStoragePriceKey(
 	return key
 }
 
-func ParseSpStoragePriceKey(key []byte) (spAddr sdk.AccAddress, updateTime int64) {
+func ParseSpStoragePriceKey(key []byte) (spAddr sdk.AccAddress, UpdateTimeSec int64) {
 	length := len(key)
 	spAddr = key[:length-8]
-	updateTime = int64(binary.BigEndian.Uint64(key[length-8 : length]))
+	UpdateTimeSec = int64(binary.BigEndian.Uint64(key[length-8 : length]))
 	return
 }
 
 func SecondarySpStorePriceKey(
-	updateTime int64,
+	UpdateTimeSec int64,
 ) []byte {
 	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+	binary.BigEndian.PutUint64(timeBytes, uint64(UpdateTimeSec))
 	return timeBytes
 }
 
-func ParseSecondarySpStorePriceKey(key []byte) (updateTime int64) {
-	updateTime = int64(binary.BigEndian.Uint64(key))
+func ParseSecondarySpStorePriceKey(key []byte) (UpdateTimeSec int64) {
+	UpdateTimeSec = int64(binary.BigEndian.Uint64(key))
 	return
 }
