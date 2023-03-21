@@ -27,7 +27,8 @@ const (
 	// object operation types
 
 	OperationMirrorObject uint8 = 1
-	OperationDeleteObject uint8 = 2
+	// OperationCreateObject uint8 = 2 // not used
+	OperationDeleteObject uint8 = 3
 
 	// group operation types
 
