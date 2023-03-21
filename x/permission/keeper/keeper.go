@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,7 +14,6 @@ import (
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/x/permission/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type (
@@ -25,7 +25,8 @@ type (
 		accountKeeper types.AccountKeeper
 
 		// policy sequence
-		policySeq sequence.U256
+		policySeq      sequence.U256
+		groupMemberSeq sequence.U256
 	}
 )
 
@@ -50,6 +51,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 	}
 	k.policySeq = sequence.NewSequence256(types.PolicySequencePrefix)
+	k.groupMemberSeq = sequence.NewSequence256(types.GroupMemberByIDPrefix)
 	return k
 }
 
@@ -59,34 +61,51 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
-	policy, found := k.GetPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member)
-	if !found {
-		policy = types.NewDefaultPolicyForGroupMember(groupID, member)
-		policy.Id = k.policySeq.NextVal(store)
-	} else {
-		if policy.MemberStatement != nil {
-			return storagetypes.ErrGroupMemberAlreadyExists
-		}
-		policy.MemberStatement = types.NewMemberStatement()
+	memberKey := types.GetGroupMemberKey(groupID, member)
+	if store.Has(memberKey) {
+		return storagetypes.ErrGroupMemberAlreadyExists
 	}
-
-	k.setPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member, policy)
+	groupMember := types.GroupMember{
+		GroupId: groupID,
+		Member:  member.String(),
+	}
+	id := k.groupMemberSeq.NextVal(store)
+	store.Set(memberKey, id.Bytes())
+	store.Set(types.GetGroupMemberByIDKey(id), k.cdc.MustMarshal(&groupMember))
 	return nil
 }
 
 func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-
-	policy, found := k.GetPolicyForAccount(ctx, groupID, resource.RESOURCE_TYPE_GROUP, member)
-	if found {
-		if policy.Statements == nil {
-			store.Delete(types.GetPolicyByIDKey(policy.Id))
-			store.Delete(types.GetPolicyForAccountKey(groupID, resource.RESOURCE_TYPE_GROUP, member))
-		} else {
-			policy.MemberStatement = nil
-			store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
-		}
+	memberKey := types.GetGroupMemberKey(groupID, member)
+	bz := store.Get(memberKey)
+	if bz == nil {
+		return
 	}
+	store.Delete(memberKey)
+	store.Delete(types.GetGroupMemberByIDKey(sequence.DecodeSequence(bz)))
+}
+
+func (k Keeper) GetGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*types.GroupMember, bool) {
+	store := ctx.KVStore(k.storeKey)
+	memberKey := types.GetGroupMemberKey(groupID, member)
+	bz := store.Get(memberKey)
+	if bz == nil {
+		return nil, false
+	}
+
+	return k.GetGroupMemberByID(ctx, sequence.DecodeSequence(bz))
+}
+
+func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*types.GroupMember, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetGroupMemberByIDKey(groupMemberID))
+	if bz == nil {
+		return nil, false
+	}
+	var groupMember types.GroupMember
+	k.cdc.MustUnmarshal(bz, &groupMember)
+	return &groupMember, true
 }
 
 func (k Keeper) updatePolicy(ctx sdk.Context, policy *types.Policy, newPolicy *types.Policy) *types.Policy {
@@ -226,15 +245,6 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	return nil, false
 }
 
-func (k Keeper) setPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
-	resourceType resource.ResourceType, addr sdk.AccAddress, policy *types.Policy) {
-	store := ctx.KVStore(k.storeKey)
-	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
-
-	store.Set(policyKey, sequence.EncodeSequence(policy.Id))
-	store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
-}
-
 func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
 	operator sdk.AccAddress, action types.ActionType, opts *types.VerifyOptions) types.Effect {
 	// verify policy which grant permission to account
@@ -271,14 +281,12 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
 			if effect != types.EFFECT_UNSPECIFIED {
 				// check the operator is the member of this group
-				memberPolicy, memberFound := k.GetPolicyForAccount(ctx, item.GroupId, resource.RESOURCE_TYPE_GROUP, operator)
+				_, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
 				if memberFound {
-					if memberPolicy.MemberStatement.Effect != types.EFFECT_UNSPECIFIED {
-						if effect == types.EFFECT_ALLOW && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
-							allowed = true
-						} else if effect == types.EFFECT_DENY && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
-							return types.EFFECT_DENY
-						}
+					if effect == types.EFFECT_ALLOW {
+						allowed = true
+					} else if effect == types.EFFECT_DENY {
+						return types.EFFECT_DENY
 					}
 				}
 			}

@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -53,17 +51,6 @@ var (
 		ACTION_TYPE_ALL: true,
 	}
 )
-
-func NewDefaultPolicyForGroupMember(groupID math.Uint, member sdk.AccAddress) *Policy {
-	return &Policy{
-		Principal:       NewPrincipalWithAccount(member),
-		ResourceType:    resource.RESOURCE_TYPE_GROUP,
-		ResourceId:      groupID,
-		MemberStatement: NewMemberStatement(),
-	}
-}
-
-//
 
 func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
 	// 1. check if the policy is expired

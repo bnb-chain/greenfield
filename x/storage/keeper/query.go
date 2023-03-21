@@ -14,7 +14,6 @@ import (
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfd "github.com/bnb-chain/greenfield/types"
-	"github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -402,9 +401,9 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
-	policy, found := k.permKeeper.GetPolicyForAccount(ctx, groupInfo.Id, resource.RESOURCE_TYPE_GROUP, member)
-	if !found || policy.MemberStatement == nil {
+	groupMember, found := k.permKeeper.GetGroupMember(ctx, groupInfo.Id, member)
+	if !found {
 		return nil, types.ErrNoSuchGroupMember
 	}
-	return &types.QueryHeadGroupMemberResponse{GroupId: groupInfo.Id.String()}, nil
+	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
 }
