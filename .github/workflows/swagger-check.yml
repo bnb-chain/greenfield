@@ -36,6 +36,8 @@ jobs:
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v1
+        with:
+          github_token: ${{ github.token }}
 
       - uses: bufbuild/buf-setup-action@v1.15.1
         with:
