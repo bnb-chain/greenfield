@@ -60,8 +60,9 @@ jobs:
           npm install -g swagger-combine
           ls "$(go env GOPATH)/bin"
           echo "pkgtest"    
-          ls "$(go env GOPATH)/pkg/mod"
-          echo "$(go env GOPATH)/pkg/mod" >> $GITHUB_PATH
+          ls "$(go env GOPATH)/pkg/mod/google.golang.org"
+          ls "$(go env GOPATH)/pkg/mod/golang.org"
+          echo "$(go env GOPATH)/pkg/mod/google.golang.org" >> $GITHUB_PATH
           make proto-swagger-gen
 #          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 #          export PATH=$PATH:$(go env GOPATH)/bin
