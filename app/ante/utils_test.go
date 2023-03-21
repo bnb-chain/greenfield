@@ -109,11 +109,11 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 		sdk.OneInt(),
-    from,
-    from,
-    from,
-    from,
-    blsPubkey,
+		from,
+		from,
+		from,
+		from,
+		blsPubkey,
 	)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgCreate)
@@ -143,7 +143,7 @@ func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, 
 
 func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress, priv cryptotypes.PrivKey, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	newRelayerAddr := core.GenRandomAddr()
-  newChallengerAddr := core.GenRandomAddr()
+	newChallengerAddr := core.GenRandomAddr()
 	blsSecretKey, _ := bls.RandKey()
 	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
 	msgEdit := stakingtypes.NewMsgEditValidator(
@@ -152,8 +152,8 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress
 		nil,
 		nil,
 		newRelayerAddr,
-    newChallengerAddr,
-    blsPk,
+		newChallengerAddr,
+		blsPk,
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
 }
@@ -180,11 +180,11 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sd
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 		sdk.OneInt(),
-    from,
-    from,
-    from,
-    from,
-    "test",
+		from,
+		from,
+		from,
+		from,
+		"test",
 	)
 	suite.Require().NoError(err)
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
