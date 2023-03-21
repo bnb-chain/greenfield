@@ -23,6 +23,11 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+            ~/Library/Caches/go-build
+            %LocalAppData%\go-build
 
       - name: Install NodeJS
         uses: actions/setup-node@v2
@@ -42,6 +47,7 @@ jobs:
 
       - name: Install Libraries
         run: |
+          go mod tidy  
           sudo apt install protobuf-compiler
           go get -u github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
           go get -u github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
