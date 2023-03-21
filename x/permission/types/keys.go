@@ -39,47 +39,34 @@ var (
 )
 
 func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
+	var key []byte
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
-		return GetBucketPolicyForAccountKey(resourceID, addr)
+		key = BucketPolicyForAccountPrefix
 	case resource.RESOURCE_TYPE_OBJECT:
-		return GetObjectPolicyForAccountKey(resourceID, addr)
+		key = ObjectPolicyForAccountPrefix
 	case resource.RESOURCE_TYPE_GROUP:
-		return GetGroupPolicyForAccountKey(resourceID, addr)
+		key = GroupPolicyForAccountPrefix
 	default:
 		return nil
 	}
-}
-
-func GetBucketPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(BucketPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
-}
-
-func GetObjectPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(ObjectPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
-}
-
-func GetGroupPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(GroupPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+	key = append(key, resourceID.Bytes()...)
+	key = append(key, addr.Bytes()...)
+	return key
 }
 
 func GetPolicyForGroupKey(resourceID math.Uint, resourceType resource.ResourceType) []byte {
+	var key []byte
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
-		return GetBucketPolicyForGroupKey(resourceID)
+		key = BucketPolicyForGroupPrefix
 	case resource.RESOURCE_TYPE_OBJECT:
-		return GetObjectPolicyForGroupKey(resourceID)
+		key = ObjectPolicyForGroupPrefix
 	default:
 		return nil
 	}
-}
-
-func GetBucketPolicyForGroupKey(resourceID math.Uint) []byte {
-	return append(BucketPolicyForGroupPrefix, resourceID.Bytes()...)
-}
-
-func GetObjectPolicyForGroupKey(resourceID math.Uint) []byte {
-	return append(ObjectPolicyForGroupPrefix, resourceID.Bytes()...)
+	key = append(key, resourceID.Bytes()...)
+	return key
 }
 
 func GetPolicyByIDKey(policyID math.Uint) []byte {

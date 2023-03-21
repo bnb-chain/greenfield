@@ -67,23 +67,15 @@ func (p *Principal) GetGroupID() (sdkmath.Uint, error) {
 }
 
 func (p *Principal) MustGetAccountAddress() sdk.AccAddress {
-	if p.Type != PRINCIPAL_TYPE_GNFD_ACCOUNT {
-		panic("principal type mismatch.")
-	}
-
-	accAddr, err := sdk.AccAddressFromHexUnsafe(p.Value)
+	address, err := p.GetAccountAddress()
 	if err != nil {
 		panic(ErrInvalidPrincipal.Wrapf("Invalid account, principal: %s, err: %s", p.String(), err))
 	}
-	return accAddr
+	return address
 }
 
 func (p *Principal) MustGetGroupID() sdkmath.Uint {
-	if p.Type != PRINCIPAL_TYPE_GNFD_GROUP {
-		panic("principal type mismatch.")
-	}
-
-	groupID, err := sdkmath.ParseUint(p.Value)
+	groupID, err := p.GetGroupID()
 	if err != nil {
 		panic(ErrInvalidPrincipal.Wrapf("Invalid groupID, principal: %s, err: %s", p.String(), err))
 	}

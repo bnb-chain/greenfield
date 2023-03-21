@@ -49,12 +49,12 @@ message Statement {
   // However, if the sub-resource is defined as 'bucket/test_*,' in the statement, then only objects with a 'test_'
   // prefix can be accessed by the principal.
   repeated string resources = 3;
-  // expiration_time defines how long the permission is valid
+  // expiration_time defines how long the permission is valid. If not explicitly specified, it means it will not expire.
   google.protobuf.Timestamp expiration_time = 4 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = true
   ];
-  // limit_size defines the total data size that is allowed to operate
+  // limit_size defines the total data size that is allowed to operate. If not explicitly specified, it means it will not limit.
   common.UInt64Value limit_size = 5 [(gogoproto.nullable) = true];
 }
 
@@ -62,7 +62,6 @@ message Statement {
 // In Greenfield, it usually refers to accounts or groups.
 enum PrincipalType {
   option (gogoproto.goproto_enum_prefix) = false;
-  // Reserved for extended use
   PRINCIPAL_TYPE_UNSPECIFIED = 0;
   PRINCIPAL_TYPE_GNFD_ACCOUNT = 1;
   PRINCIPAL_TYPE_GNFD_GROUP = 2;

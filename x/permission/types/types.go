@@ -63,8 +63,10 @@ func NewDefaultPolicyForGroupMember(groupID math.Uint, member sdk.AccAddress) *P
 	}
 }
 
+//
+
 func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
-	// 1. the policy is expired, need delete
+	// 1. check if the policy is expired
 	if p.ExpirationTime != nil && p.ExpirationTime.Before(blockTime) {
 		// Notice: We do not actively delete policies that expire for users.
 		return EFFECT_UNSPECIFIED, nil

@@ -119,7 +119,6 @@ func (Effect) EnumDescriptor() ([]byte, []int) {
 type PrincipalType int32
 
 const (
-	// Reserved for extended use
 	PRINCIPAL_TYPE_UNSPECIFIED  PrincipalType = 0
 	PRINCIPAL_TYPE_GNFD_ACCOUNT PrincipalType = 1
 	PRINCIPAL_TYPE_GNFD_GROUP   PrincipalType = 2
@@ -156,9 +155,9 @@ type Statement struct {
 	// However, if the sub-resource is defined as 'bucket/test_*,' in the statement, then only objects with a 'test_'
 	// prefix can be accessed by the principal.
 	Resources []string `protobuf:"bytes,3,rep,name=resources,proto3" json:"resources,omitempty"`
-	// expiration_time defines how long the permission is valid
+	// expiration_time defines how long the permission is valid. If not explicitly specified, it means it will not expire.
 	ExpirationTime *time.Time `protobuf:"bytes,4,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
-	// limit_size defines the total data size that is allowed to operate
+	// limit_size defines the total data size that is allowed to operate. If not explicitly specified, it means it will not limit.
 	LimitSize *common.UInt64Value `protobuf:"bytes,5,opt,name=limit_size,json=limitSize,proto3" json:"limit_size,omitempty"`
 }
 
