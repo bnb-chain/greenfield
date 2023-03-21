@@ -9,6 +9,10 @@ option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
 message Params {
   option (gogoproto.goproto_stringer) = false;
 
+  // maximum_statements_num defines the maximum number of statements allowed in a policy
   uint64 maximum_statements_num = 1;
+  // maximum_group_num used to set the upper limit on the number of groups to which a resource can grant access permissions.
+  // By placing a cap on the number of group permissions, permission control policies can be made more robust and better
+  // enforced, thereby reducing the chances of DDos and other security incidents.
   uint64 maximum_group_num = 2;
 }

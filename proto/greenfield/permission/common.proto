@@ -12,19 +12,19 @@ option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
 enum ActionType {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  ACTION_UPDATE_BUCKET_INFO = 0;
-  ACTION_DELETE_BUCKET = 1;
+  ACTION_UNSPECIFIED = 0;
+  ACTION_UPDATE_BUCKET_INFO = 1;
+  ACTION_DELETE_BUCKET = 2;
 
-  ACTION_CREATE_OBJECT = 2;
-  ACTION_DELETE_OBJECT = 3;
-  ACTION_COPY_OBJECT = 4;
-  ACTION_GET_OBJECT = 5;
-  ACTION_EXECUTE_OBJECT = 6;
-  ACTION_LIST_OBJECT = 7;
+  ACTION_CREATE_OBJECT = 3;
+  ACTION_DELETE_OBJECT = 4;
+  ACTION_COPY_OBJECT = 5;
+  ACTION_GET_OBJECT = 6;
+  ACTION_EXECUTE_OBJECT = 7;
+  ACTION_LIST_OBJECT = 8;
 
-  ACTION_UPDATE_GROUP_MEMBER = 8;
-  ACTION_DELETE_GROUP = 9;
-  ACTION_GROUP_MEMBER = 10;
+  ACTION_UPDATE_GROUP_MEMBER = 9;
+  ACTION_DELETE_GROUP = 10;
 
   ACTION_TYPE_ALL = 99;
 }
@@ -33,10 +33,9 @@ enum ActionType {
 enum Effect {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  EFFECT_ALLOW = 0;
-  EFFECT_DENY = 1;
-  // Use internally, means skipped. there is no explicit ALLOW or DENY, and further permission checks are required.
-  EFFECT_PASS = 2;
+  EFFECT_UNSPECIFIED = 0;
+  EFFECT_ALLOW = 1;
+  EFFECT_DENY = 2;
 }
 
 message Statement {
@@ -64,8 +63,9 @@ message Statement {
 enum PrincipalType {
   option (gogoproto.goproto_enum_prefix) = false;
   // Reserved for extended use
-  TYPE_GNFD_ACCOUNT = 0;
-  TYPE_GNFD_GROUP = 1;
+  PRINCIPAL_TYPE_UNSPECIFIED = 0;
+  PRINCIPAL_TYPE_GNFD_ACCOUNT = 1;
+  PRINCIPAL_TYPE_GNFD_GROUP = 2;
 }
 
 // Principal define the roles that can grant permissions. Currently, it can be account or group.

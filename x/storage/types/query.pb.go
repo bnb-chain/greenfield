@@ -977,7 +977,7 @@ func (m *QueryVerifyPermissionRequest) GetActionType() types.ActionType {
 	if m != nil {
 		return m.ActionType
 	}
-	return types.ACTION_UPDATE_BUCKET_INFO
+	return types.ACTION_UNSPECIFIED
 }
 
 type QueryVerifyPermissionResponse struct {
@@ -1021,7 +1021,7 @@ func (m *QueryVerifyPermissionResponse) GetEffect() types.Effect {
 	if m != nil {
 		return m.Effect
 	}
-	return types.EFFECT_ALLOW
+	return types.EFFECT_UNSPECIFIED
 }
 
 type QueryHeadGroupRequest struct {

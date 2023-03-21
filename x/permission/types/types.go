@@ -67,7 +67,7 @@ func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOption
 	// 1. the policy is expired, need delete
 	if p.ExpirationTime != nil && p.ExpirationTime.Before(blockTime) {
 		// Notice: We do not actively delete policies that expire for users.
-		return EFFECT_PASS, nil
+		return EFFECT_UNSPECIFIED, nil
 	}
 	allowed := false
 	updated := false
@@ -95,25 +95,14 @@ func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOption
 			return EFFECT_ALLOW, nil
 		}
 	}
-	return EFFECT_PASS, nil
-}
-
-func (p *Policy) GetGroupMemberStatement() (*Statement, bool) {
-	for _, s := range p.Statements {
-		for _, act := range s.Actions {
-			if act == ACTION_GROUP_MEMBER {
-				return s, true
-			}
-		}
-	}
-	return nil, false
+	return EFFECT_UNSPECIFIED, nil
 }
 
 func NewMemberStatement() *Statement {
 	return &Statement{
 		Effect:    EFFECT_ALLOW,
 		Resources: nil,
-		Actions:   []ActionType{ACTION_GROUP_MEMBER},
+		Actions:   nil,
 	}
 
 }
@@ -121,7 +110,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 	// If 'resource' is not nil, it implies that the user intends to access a sub-resource, which would
 	// be specified in 's.Resources'. Therefore, if the sub-resource in the statement is nil, we will ignore this statement.
 	if opts != nil && opts.Resource != "" && s.Resources == nil {
-		return EFFECT_PASS, nil
+		return EFFECT_UNSPECIFIED, nil
 	}
 	// If 'resource' is not nil, and 's.Resource' is also not nil, it indicates that we should verify whether
 	// the resource that the user intends to access matches any items in 's.Resource'
@@ -139,7 +128,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 			}
 		}
 		if !isMatch {
-			return EFFECT_PASS, nil
+			return EFFECT_UNSPECIFIED, nil
 		}
 	}
 
@@ -164,12 +153,12 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 		}
 	}
 
-	return EFFECT_PASS, nil
+	return EFFECT_UNSPECIFIED, nil
 }
 
 func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
-	if s.Effect == EFFECT_PASS {
-		return ErrInvalidStatement.Wrap("Not allowed to set EFFECT_PASS.")
+	if s.Effect == EFFECT_UNSPECIFIED {
+		return ErrInvalidStatement.Wrap("Not allowed to set EFFECT_UNSPECIFIED.")
 	}
 	switch resType {
 	case resource.RESOURCE_TYPE_BUCKET:

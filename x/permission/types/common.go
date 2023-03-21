@@ -7,26 +7,28 @@ import (
 
 func NewPrincipalWithAccount(addr sdk.AccAddress) *Principal {
 	return &Principal{
-		Type:  TYPE_GNFD_ACCOUNT,
+		Type:  PRINCIPAL_TYPE_GNFD_ACCOUNT,
 		Value: addr.String(),
 	}
 }
 
 func NewPrincipalWithGroup(groupID sdkmath.Uint) *Principal {
 	return &Principal{
-		Type:  TYPE_GNFD_GROUP,
+		Type:  PRINCIPAL_TYPE_GNFD_GROUP,
 		Value: groupID.String(),
 	}
 }
 
 func (p *Principal) ValidateBasic() error {
 	switch p.Type {
-	case TYPE_GNFD_ACCOUNT:
+	case PRINCIPAL_TYPE_UNSPECIFIED:
+		return ErrInvalidPrincipal.Wrapf("Not allowed empty principal type.")
+	case PRINCIPAL_TYPE_GNFD_ACCOUNT:
 		_, err := sdk.AccAddressFromHexUnsafe(p.Value)
 		if err != nil {
 			return ErrInvalidPrincipal.Wrapf("Invalid account, principal: %s, err: %s", p.String(), err)
 		}
-	case TYPE_GNFD_GROUP:
+	case PRINCIPAL_TYPE_GNFD_GROUP:
 		groupID, err := sdkmath.ParseUint(p.Value)
 		if err != nil {
 			return ErrInvalidPrincipal.Wrapf("Invalid groupID, principal: %s, err: %s", p.String(), err)
@@ -41,7 +43,7 @@ func (p *Principal) ValidateBasic() error {
 }
 
 func (p *Principal) GetAccountAddress() (sdk.AccAddress, error) {
-	if p.Type != TYPE_GNFD_ACCOUNT {
+	if p.Type != PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		panic("principal type mismatch.")
 	}
 
@@ -53,7 +55,7 @@ func (p *Principal) GetAccountAddress() (sdk.AccAddress, error) {
 }
 
 func (p *Principal) GetGroupID() (sdkmath.Uint, error) {
-	if p.Type != TYPE_GNFD_GROUP {
+	if p.Type != PRINCIPAL_TYPE_GNFD_GROUP {
 		panic("principal type mismatch.")
 	}
 
@@ -65,7 +67,7 @@ func (p *Principal) GetGroupID() (sdkmath.Uint, error) {
 }
 
 func (p *Principal) MustGetAccountAddress() sdk.AccAddress {
-	if p.Type != TYPE_GNFD_ACCOUNT {
+	if p.Type != PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		panic("principal type mismatch.")
 	}
 
@@ -77,7 +79,7 @@ func (p *Principal) MustGetAccountAddress() sdk.AccAddress {
 }
 
 func (p *Principal) MustGetGroupID() sdkmath.Uint {
-	if p.Type != TYPE_GNFD_GROUP {
+	if p.Type != PRINCIPAL_TYPE_GNFD_GROUP {
 		panic("principal type mismatch.")
 	}
 

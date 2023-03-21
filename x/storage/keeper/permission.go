@@ -153,10 +153,10 @@ func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes
 
 	var policy *permtypes.Policy
 	var found bool
-	if principal.Type == permtypes.TYPE_GNFD_ACCOUNT {
+	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		policy, found = k.permKeeper.GetPolicyForAccount(ctx, resID, grn.ResourceType(),
 			principal.MustGetAccountAddress())
-	} else if principal.Type == permtypes.TYPE_GNFD_GROUP {
+	} else if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 		policy, found = k.permKeeper.GetPolicyForGroup(ctx, resID, grn.ResourceType(), principal.MustGetGroupID())
 	} else {
 		return nil, permtypes.ErrInvalidPrincipal
@@ -212,7 +212,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
 		resID = groupInfo.Id
 
-		if policy.Principal.Type == permtypes.TYPE_GNFD_GROUP {
+		if policy.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 			return math.ZeroUint(), permtypes.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 		}
 	default:
@@ -287,7 +287,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal
 }
 
 func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {
-	if principal.Type == permtypes.TYPE_GNFD_ACCOUNT {
+	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		principalAccAddress, err := principal.GetAccountAddress()
 		if err != nil {
 			return err
@@ -295,7 +295,7 @@ func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, prin
 		if principalAccAddress.Equals(resOwner) {
 			return gnfderrors.ErrInvalidPrincipal.Wrapf("principal account can not be the bucket owner")
 		}
-	} else if principal.Type == permtypes.TYPE_GNFD_GROUP {
+	} else if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 		groupID, err := math.ParseUint(principal.Value)
 		if err != nil {
 			return err

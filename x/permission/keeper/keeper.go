@@ -100,7 +100,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 	store := ctx.KVStore(k.storeKey)
 
 	var newPolicy *types.Policy
-	if policy.Principal.Type == types.TYPE_GNFD_ACCOUNT {
+	if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
 			policy.Principal.MustGetAccountAddress())
 		bz := store.Get(policyKey)
@@ -115,7 +115,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 			store.Set(types.GetPolicyByIDKey(policy.Id), bz)
 			newPolicy = policy
 		}
-	} else if policy.Principal.Type == types.TYPE_GNFD_GROUP {
+	} else if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_GROUP {
 		policyGroupKey := types.GetPolicyForGroupKey(policy.ResourceId, policy.ResourceType)
 		bz := store.Get(policyGroupKey)
 		if bz != nil {
@@ -243,7 +243,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 		effect, newPolicy := policy.Eval(action, ctx.BlockTime(), opts)
 		k.Logger(ctx).Info(fmt.Sprintf("CreateObject LimitSize update: %s, effect: %s, ctx.TxBytes : %d",
 			newPolicy.String(), effect, ctx.TxSize()))
-		if effect != types.EFFECT_PASS {
+		if effect != types.EFFECT_UNSPECIFIED {
 			if effect == types.EFFECT_ALLOW && action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
 				_, err := k.PutPolicy(ctx, newPolicy)
 				if err != nil {
@@ -269,11 +269,11 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			// check the group has the right permission of this resource
 			p := k.MustGetPolicyByID(ctx, item.PolicyId)
 			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
-			if effect != types.EFFECT_PASS {
+			if effect != types.EFFECT_UNSPECIFIED {
 				// check the operator is the member of this group
 				memberPolicy, memberFound := k.GetPolicyForAccount(ctx, item.GroupId, resource.RESOURCE_TYPE_GROUP, operator)
 				if memberFound {
-					if memberPolicy.MemberStatement.Effect != types.EFFECT_PASS {
+					if memberPolicy.MemberStatement.Effect != types.EFFECT_UNSPECIFIED {
 						if effect == types.EFFECT_ALLOW && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
 							allowed = true
 						} else if effect == types.EFFECT_DENY && memberPolicy.MemberStatement.Effect == types.EFFECT_ALLOW {
@@ -296,7 +296,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 		}
 	}
 
-	return types.EFFECT_PASS
+	return types.EFFECT_UNSPECIFIED
 }
 
 func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resourceType resource.ResourceType,
@@ -304,7 +304,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 	store := ctx.KVStore(k.storeKey)
 
 	var policyID math.Uint
-	if principal.Type == types.TYPE_GNFD_ACCOUNT {
+	if principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		accAddr := sdk.MustAccAddressFromHex(principal.Value)
 		policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, accAddr)
 		bz := store.Get(policyKey)
@@ -313,7 +313,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 			store.Delete(policyKey)
 			store.Delete(types.GetPolicyByIDKey(policyID))
 		}
-	} else if principal.Type == types.TYPE_GNFD_GROUP {
+	} else if principal.Type == types.PRINCIPAL_TYPE_GNFD_GROUP {
 		groupID, err := principal.GetGroupID()
 		if err != nil {
 			return math.ZeroUint(), err

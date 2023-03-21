@@ -25,8 +25,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
+	// maximum_statements_num defines the maximum number of statements allowed in a policy
 	MaximumStatementsNum uint64 `protobuf:"varint,1,opt,name=maximum_statements_num,json=maximumStatementsNum,proto3" json:"maximum_statements_num,omitempty"`
-	MaximumGroupNum      uint64 `protobuf:"varint,2,opt,name=maximum_group_num,json=maximumGroupNum,proto3" json:"maximum_group_num,omitempty"`
+	// maximum_group_num used to set the upper limit on the number of groups to which a resource can grant access permissions.
+	// By placing a cap on the number of group permissions, permission control policies can be made more robust and better
+	// enforced, thereby reducing the chances of DDos and other security incidents.
+	MaximumGroupNum uint64 `protobuf:"varint,2,opt,name=maximum_group_num,json=maximumGroupNum,proto3" json:"maximum_group_num,omitempty"`
 }
 
 func (m *Params) Reset()      { *m = Params{} }
