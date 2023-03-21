@@ -158,9 +158,11 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 
 func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	if s.Effect == EFFECT_UNSPECIFIED {
-		return ErrInvalidStatement.Wrap("Not allowed to set EFFECT_UNSPECIFIED.")
+		return ErrInvalidStatement.Wrap("Please specify the Effect explicitly. Not allowed set EFFECT_UNSPECIFIED")
 	}
 	switch resType {
+	case resource.RESOURCE_TYPE_UNSPECIFIED:
+		return ErrInvalidStatement.Wrap("Please specify the ResourceType explicitly. Not allowed set RESOURCE_TYPE_UNSPECIFIED")
 	case resource.RESOURCE_TYPE_BUCKET:
 		containsCreateObject := false
 		for _, a := range s.Actions {
@@ -200,6 +202,8 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 		if s.LimitSize != nil {
 			return ErrInvalidStatement.Wrap("The LimitSize option can only be used with CreateObject actions at the bucket level. ")
 		}
+	default:
+		return ErrInvalidStatement.Wrap("unknown resource type.")
 	}
 
 	return nil
