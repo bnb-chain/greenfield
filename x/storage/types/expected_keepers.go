@@ -46,7 +46,7 @@ type PermissionKeeper interface {
 	VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, operator sdk.AccAddress,
 		action permtypes.ActionType, opts *permtypes.VerifyOptions) permtypes.Effect
 	AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error
-	RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress)
+	RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error
 	GetPolicyByID(ctx sdk.Context, policyID math.Uint) (*permtypes.Policy, bool)
 	GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) (policy *permtypes.Policy, isFound bool)
 	GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,

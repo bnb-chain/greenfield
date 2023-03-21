@@ -457,7 +457,7 @@ func (k Keeper) SealObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectAlreadyExists
+		return types.ErrObjectAlreadySealed
 	}
 
 	// check the signature of secondary sps
@@ -516,7 +516,7 @@ func (k Keeper) CancelCreateObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	if objectInfo.SourceType != opts.SourceType {
@@ -568,7 +568,7 @@ func (k Keeper) DeleteObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
-		return types.ErrObjectNotInService
+		return types.ErrObjectNotSealed
 	}
 
 	// check permission
@@ -700,7 +700,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
@@ -903,7 +903,10 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		if err != nil {
 			return err
 		}
-		k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		err = k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		if err != nil {
+			return err
+		}
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{

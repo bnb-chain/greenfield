@@ -75,15 +75,16 @@ func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 	return nil
 }
 
-func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) {
+func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	bz := store.Get(memberKey)
 	if bz == nil {
-		return
+		return storagetypes.ErrNoSuchGroup
 	}
 	store.Delete(memberKey)
 	store.Delete(types.GetGroupMemberByIDKey(sequence.DecodeSequence(bz)))
+	return nil
 }
 
 func (k Keeper) GetGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*types.GroupMember, bool) {
