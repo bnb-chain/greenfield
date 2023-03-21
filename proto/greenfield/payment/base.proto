@@ -7,7 +7,7 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // OutFlow defines the accumulative outflow stream rate in BNB
-// from a stream account or a bucket to a SP
+// from a stream account to a Storage Provider
 message OutFlow {
   // stream account address who receives the flow, usually SP(service provider)
   string to_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -19,9 +19,14 @@ message OutFlow {
   ];
 }
 
+// StreamAccountStatus defines the status of a stream account
 enum StreamAccountStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
+  // STREAM_ACCOUNT_STATUS_ACTIVE defines the active status of a stream account.
   STREAM_ACCOUNT_STATUS_ACTIVE = 0;
+  // STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+  // A frozen stream account cannot be used as payment address for buckets.
+  // It can be unfrozen by depositing more BNB to the stream account.
   STREAM_ACCOUNT_STATUS_FROZEN = 1;
 }

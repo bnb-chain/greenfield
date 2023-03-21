@@ -1,8 +1,11 @@
 package keeper
 
 import (
+	"encoding/binary"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
@@ -64,4 +67,10 @@ func (k Keeper) IsPaymentAccountOwner(ctx sdk.Context, addr, owner sdk.AccAddres
 	}
 	paymentAccount, _ := k.GetPaymentAccount(ctx, addr)
 	return paymentAccount.Owner == owner.String()
+}
+
+func (k Keeper) DerivePaymentAccountAddress(owner sdk.AccAddress, index uint64) sdk.AccAddress {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, index)
+	return address.Derive(owner.Bytes(), b)[:sdk.EthAddressLength]
 }

@@ -147,8 +147,10 @@ type Statement struct {
 	// action_type define the operation type you can act. greenfield defines a set of permission
 	// that you can specify in a permissionInfo. see ActionType enum for detail.
 	Actions []ActionType `protobuf:"varint,2,rep,packed,name=actions,proto3,enum=bnbchain.greenfield.permission.ActionType" json:"actions,omitempty"`
-	// resources define the resource list you can operate.
 	// CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
+	// If no sub-resource is specified in a statement, then all objects in the bucket are accessible by the principal.
+	// However, if the sub-resource is defined as 'bucket/test_*,' in the statement, then only objects with a 'test_'
+	// prefix can be accessed by the principal.
 	Resources []string `protobuf:"bytes,3,rep,name=resources,proto3" json:"resources,omitempty"`
 	// expiration_time defines how long the permission is valid
 	ExpirationTime *time.Time `protobuf:"bytes,4,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`

@@ -45,5 +45,12 @@ func (msg *MsgWithdraw) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	_, err = sdk.AccAddressFromHexUnsafe(msg.From)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid from address (%s)", err)
+	}
+	if msg.Amount.IsNil() || !msg.Amount.IsPositive() {
+		return errors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid amount (%s)", msg.Amount)
+	}
 	return nil
 }

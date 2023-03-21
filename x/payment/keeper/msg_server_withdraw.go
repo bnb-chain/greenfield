@@ -32,6 +32,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(from).WithStaticBalanceChange(msg.Amount.Neg())
 	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
+	k.SetStreamRecord(ctx, streamRecord)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +40,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}
 	// bank transfer
-	creator, _ := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	creator := sdk.MustAccAddressFromHex(msg.Creator)
 	coins := sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, msg.Amount))
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
 	if err != nil {
