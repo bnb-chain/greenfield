@@ -862,7 +862,10 @@ func (k Keeper) LeaveGroup(
 	}
 
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	err := k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	if err != nil {
+		return err
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
