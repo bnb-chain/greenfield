@@ -58,7 +58,7 @@ jobs:
           go get google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
           go get google.golang.org/protobuf
           npm install -g swagger-combine
-          ls "$(go env GOPATH)/bin"
+          ls "$(go env GOPATH)"
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
           make proto-swagger-gen
 #          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
