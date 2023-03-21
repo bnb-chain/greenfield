@@ -20,7 +20,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
           path: |
@@ -59,9 +59,9 @@ jobs:
           go get google.golang.org/protobuf
           npm install -g swagger-combine
           ls "$(go env GOPATH)/bin"
-          echo "pkg"    
-          ls "$(go env GOPATH)/pkg"
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          echo "pkgtest"    
+          ls "$(go env GOPATH)/pkg/mod"
+          echo "$(go env GOPATH)/pkg/mod" >> $GITHUB_PATH
           make proto-swagger-gen
 #          export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 #          export PATH=$PATH:$(go env GOPATH)/bin
