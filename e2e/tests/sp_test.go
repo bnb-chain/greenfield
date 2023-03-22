@@ -296,6 +296,20 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 
 }
 
+func (s *StorageProviderTestSuite) TestDeposit() {
+	sp := s.StorageProviders[0]
+
+	deposit := sdk.Coin{
+		Denom:  s.Config.Denom,
+		Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+	}
+
+	msgDeposit := sptypes.NewMsgDeposit(
+		sp.FundingKey.GetAddr(), deposit)
+	txRes := s.SendTxBlock(msgDeposit, sp.FundingKey)
+	s.Require().Equal(txRes.Code, uint32(0))
+}
+
 func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	ctx := context.Background()
 	s.CheckSecondarySpPrice()

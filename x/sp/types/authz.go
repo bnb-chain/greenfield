@@ -39,8 +39,8 @@ func (a DepositAuthorization) Accept(_ctx sdk.Context, msg sdk.Msg) (authz.Accep
 	}
 
 	sp := a.GetSpAddress()
-	if sp != mDeposit.SpAddress {
-		return authz.AcceptResponse{}, sdkerrors.ErrUnauthorized.Wrapf("cannot deposit to %s storage provider", mDeposit.SpAddress)
+	if sp != mDeposit.FundingAddress {
+		return authz.AcceptResponse{}, sdkerrors.ErrUnauthorized.Wrapf("cannot deposit to %s storage provider", mDeposit.FundingAddress)
 	}
 
 	if a.MaxDeposit == nil {

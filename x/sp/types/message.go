@@ -158,11 +158,10 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 }
 
 // NewMsgDeposit creates a new MsgDeposit instance
-func NewMsgDeposit(creator sdk.AccAddress, spAddress sdk.AccAddress, deposit sdk.Coin) *MsgDeposit {
+func NewMsgDeposit(fundAddress sdk.AccAddress, deposit sdk.Coin) *MsgDeposit {
 	return &MsgDeposit{
-		Creator:   creator.String(),
-		SpAddress: spAddress.String(),
-		Deposit:   deposit,
+		FundingAddress: fundAddress.String(),
+		Deposit:        deposit,
 	}
 }
 
@@ -178,11 +177,11 @@ func (msg *MsgDeposit) Type() string {
 
 // GetSigners implements the sdk.Msg interface.
 func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
+	fundingAddress, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{creator}
+	return []sdk.AccAddress{fundingAddress}
 }
 
 // GetSignBytes returns the message bytes to sign over.
@@ -193,12 +192,8 @@ func (msg *MsgDeposit) GetSignBytes() []byte {
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg *MsgDeposit) ValidateBasic() error {
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
-	}
-
-	if _, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress); err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
 	}
 
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {

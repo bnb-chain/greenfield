@@ -62,14 +62,12 @@ message MsgCreateStorageProviderResponse {}
 
 // MsgDeposit defines a SDK message for deposit token for sp.
 message MsgDeposit {
-  option (cosmos.msg.v1.signer) = "creator";
+  option (cosmos.msg.v1.signer) = "funding_address";
 
-  // creator is the msg signer, it should be sp address or sp's fund address
-  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // sp_address is the operator address of sp
-  string sp_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // funding_address is the msg signer, it should be sp's fund address
+  string funding_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // deposit is a mount of token which used to deposit for SP
-  cosmos.base.v1beta1.Coin deposit = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin deposit = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgDepositResponse defines the Msg/Deposit response type.

@@ -88,7 +88,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 			ctx,
 			k.accountKeeper.GetModuleAddress(gov.ModuleName),
 			fundingAcc,
-			types.NewMsgDeposit(fundingAcc, spAcc, msg.Deposit))
+			types.NewMsgDeposit(fundingAcc, msg.Deposit))
 		if err != nil {
 			return nil, err
 		}
@@ -185,16 +185,11 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
+	fundAcc := sdk.MustAccAddressFromHex(msg.FundingAddress)
 
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+	sp, found := k.GetStorageProviderByFundingAddr(ctx, fundAcc)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
-	}
-
-	// Only funding address has permission to deposit tokens for SP
-	if msg.Creator != sp.FundingAddress {
-		return nil, types.ErrDepositAccountNotAllowed
 	}
 
 	depositDenom := k.DepositDenomForSP(ctx)
@@ -212,9 +207,9 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	k.SetStorageProvider(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
-		SpAddress:    spAcc.String(),
-		Deposit:      msg.Deposit.String(),
-		TotalDeposit: sp.TotalDeposit.String(),
+		FundingAddress: msg.FundingAddress,
+		Deposit:        msg.Deposit.String(),
+		TotalDeposit:   sp.TotalDeposit.String(),
 	}); err != nil {
 		return nil, err
 	}

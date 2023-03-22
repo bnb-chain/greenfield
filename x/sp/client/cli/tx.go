@@ -84,22 +84,28 @@ func CmdEditStorageProvider() *cobra.Command {
 
 func CmdDeposit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit [sp-address] [value]",
+		Use:   "deposit [fund-address] [value]",
 		Short: "Broadcast message deposit",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argValue := args[0]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// TODO:impl later
-			coin := sdk.Coin{Denom: argValue}
+			fundAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
+			if err != nil {
+				return err
+			}
+
+			coin, err := sdk.ParseCoinNormalized(args[1])
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgDeposit(
-				clientCtx.GetFromAddress(),
-				clientCtx.GetFromAddress(),
+				fundAddress,
 				coin,
 			)
 			if err := msg.ValidateBasic(); err != nil {
