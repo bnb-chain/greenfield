@@ -464,6 +464,7 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 			name: "normal",
 			msg: MsgUpdateGroupMember{
 				Operator:        sample.AccAddress(),
+				GroupOwner:      sample.AccAddress(),
 				GroupName:       testGroupName,
 				MembersToAdd:    []string{sample.AccAddress(), sample.AccAddress()},
 				MembersToDelete: []string{sample.AccAddress(), sample.AccAddress()},

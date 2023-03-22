@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,26 +16,22 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
+// Attest handles user's request for attesting a challenge.
+// The attestation can include a valid challenge or is only for heartbeat purpose.
+// If the challenge is valid, the related storage provider will be slashed.
+// For heartbeat attestation, the challenge is invalid and the storage provider will not be slashed.
 func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.MsgAttestResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	submitter, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
-	if err != nil {
-		return nil, err
-	}
-	spOperator, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
-	if err != nil {
-		return nil, err
-	}
+	submitter := sdk.MustAccAddressFromHex(msg.Submitter)
+	spOperator := sdk.MustAccAddressFromHex(msg.SpOperatorAddress)
+
 	challenger := sdk.AccAddress{}
 	if msg.ChallengerAddress != "" {
-		challenger, err = sdk.AccAddressFromHexUnsafe(msg.ChallengerAddress)
-		if err != nil {
-			return nil, err
-		}
+		challenger = sdk.MustAccAddressFromHex(msg.ChallengerAddress)
 	}
 
-	ongoingId := k.GetOngoingChallengeId(ctx)
+	ongoingId := k.GetChallengeId(ctx)
 	attestedId := k.GetAttestChallengeId(ctx)
 
 	if msg.ChallengeId <= attestedId || msg.ChallengeId > ongoingId {
@@ -75,7 +73,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		// check whether it is a heartbeat attest
 		heartbeatInterval := k.HeartbeatInterval(ctx)
 		if msg.ChallengeId%heartbeatInterval != 0 {
-			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heart challenge should be submitted at interval %d", heartbeatInterval)
+			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heartbeat attestation should be submitted at interval %d", heartbeatInterval)
 		}
 
 		// reward validators & tx submitter
@@ -90,6 +88,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	return &types.MsgAttestResponse{}, nil
 }
 
+// calculateSlashAmount calculates the slash amount based on object size. There are also bounds of the amount.
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
 	sizeRate := k.SlashAmountSizeRate(ctx)
 	objectSizeInGB := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize)).QuoRoundUp(sdk.NewDec(1073741824))
@@ -106,6 +105,7 @@ func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkm
 	return slashAmount
 }
 
+// calculateSlashRewards calculates the rewards to challenger, submitter and validators when the total slash amount.
 func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, challenger sdk.AccAddress, validators int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	challengerReward := sdkmath.ZeroInt()
 	var eachValidatorReward sdkmath.Int
@@ -136,6 +136,7 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 	return challengerReward, eachValidatorReward, submitterReward
 }
 
+// doSlashAndRewards will execute the slash, transfer the rewards and emit events.
 func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, objectSize uint64,
 	spOperator, submitter, challenger sdk.AccAddress, validators []string) error {
 
@@ -189,6 +190,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 	return ctx.EventManager().EmitTypedEvents(&event)
 }
 
+// calculateHeartbeatRewards calculates the rewards to all validators and submitter.
 func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
 	threshold := k.RewardSubmitterThreshold(ctx)
 	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
@@ -199,20 +201,24 @@ func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int)
 	return total.Sub(submitterReward), submitterReward
 }
 
+// doHeartbeatAndRewards will transfer the tax to distribution account and rewards to submitter.
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
 	spOperator, submitter, challenger sdk.AccAddress) error {
-	totalAmount := k.paymentKeeper.QueryValidatorRewards(ctx)
+	totalAmount, err := k.paymentKeeper.QueryDynamicBalance(ctx, paymentmoduletypes.ValidatorTaxPoolAddress)
+	if err != nil {
+		return err
+	}
 
 	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
 	if !totalAmount.IsZero() {
 		validatorReward, submitterReward = k.calculateHeartbeatRewards(ctx, totalAmount)
 		if validatorReward.IsPositive() && submitterReward.IsPositive() {
 			distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
-			err := k.paymentKeeper.TransferValidatorRewards(ctx, distModuleAcc, validatorReward)
+			err = k.paymentKeeper.Withdraw(ctx, paymentmoduletypes.ValidatorTaxPoolAddress, distModuleAcc, validatorReward)
 			if err != nil {
 				return err
 			}
-			err = k.paymentKeeper.TransferValidatorRewards(ctx, submitter, submitterReward)
+			err = k.paymentKeeper.Withdraw(ctx, paymentmoduletypes.ValidatorTaxPoolAddress, submitter, submitterReward)
 			if err != nil {
 				return err
 			}

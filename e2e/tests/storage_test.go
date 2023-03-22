@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -31,6 +32,7 @@ type StorageTestSuite struct {
 type StreamRecords struct {
 	User paymenttypes.StreamRecord
 	SPs  []paymenttypes.StreamRecord
+	Tax  paymenttypes.StreamRecord
 }
 
 func (s *StorageTestSuite) SetupSuite() {
@@ -215,13 +217,13 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberResp.GroupId, queryHeadGroupResp.GroupInfo.Id.String())
+	s.Require().Equal(queryHeadGroupMemberResp.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
 
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
 	membersToDelete := []sdk.AccAddress{member.GetAddr()}
-	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(msgUpdateGroupMember, owner)
 
 	// 5. HeadGroupMember (delete)
@@ -240,7 +242,11 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberRespAdd, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqAdd)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupId, queryHeadGroupResp.GroupInfo.Id.String())
+	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
+
+	// 6. Create a group with the same name
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	s.SendTxBlockWithExpectErrorString(msgCreateGroup, owner, "exists")
 }
 
 func (s *StorageTestSuite) TestDeleteBucket() {
@@ -362,6 +368,7 @@ func (s *StorageTestSuite) GetStreamRecords() (streamRecords StreamRecords) {
 		sr := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
 		streamRecords.SPs = append(streamRecords.SPs, sr)
 	}
+	streamRecords.Tax = s.GetStreamRecord(paymenttypes.ValidatorTaxPoolAddress.String())
 	return streamRecords
 }
 
@@ -373,6 +380,9 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 
 	streamRecordsBeforeCreateBucket := s.GetStreamRecords()
 	s.T().Logf("streamRecordsBeforeCreateBucket: %s", core.YamlString(streamRecordsBeforeCreateBucket))
+	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
+	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
+	s.Require().NoError(err)
 
 	// create bucket
 	bucketName := storageutils.GenRandomBucketName()
@@ -394,13 +404,9 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.T().Logf("user bank account %s", userBankAccount)
 	streamRecordsAfterCreateBucket := s.GetStreamRecords()
 	usr := streamRecordsAfterCreateBucket.User
-	ssr0 := streamRecordsBeforeCreateBucket.SPs[0]
 	ssr1 := streamRecordsAfterCreateBucket.SPs[0]
 	s.Require().Equal(usr.StaticBalance, sdkmath.ZeroInt())
-	s.Require().Len(usr.OutFlows, 1)
-	s.Require().Equal(usr.OutFlows[0].Rate, usr.NetflowRate.Neg())
-	s.Require().Equal(usr.OutFlows[0].ToAddress, ssr1.Account)
-	s.Require().Equal(usr.NetflowRate, ssr0.NetflowRate.Sub(ssr1.NetflowRate))
+	s.Require().Len(usr.OutFlows, 2)
 	// check price and rate calculation
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
@@ -416,7 +422,20 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ReadQuota)).TruncateInt()
 	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
-	s.Require().Equal(usr.NetflowRate.Abs(), readChargeRate)
+	userTaxRate := paymentParams.Params.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
+	userTotalRate := readChargeRate.Add(userTaxRate)
+	s.Require().Equal(usr.NetflowRate.Abs(), userTotalRate)
+	expectedOutFlows := []paymenttypes.OutFlow{
+		{ToAddress: ssr1.Account, Rate: readChargeRate},
+		{ToAddress: paymenttypes.ValidatorTaxPoolAddress.String(), Rate: userTaxRate},
+	}
+	sort.Slice(usr.OutFlows, func(i, j int) bool {
+		return usr.OutFlows[i].ToAddress < usr.OutFlows[j].ToAddress
+	})
+	sort.Slice(expectedOutFlows, func(i, j int) bool {
+		return expectedOutFlows[i].ToAddress < expectedOutFlows[j].ToAddress
+	})
+	s.Require().Equal(usr.OutFlows, expectedOutFlows)
 
 	// CreateObject
 	objectName := storageutils.GenRandomObjectName()
@@ -464,9 +483,6 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	})
 	s.T().Logf("queryGetSecondarySpStorePriceByTime %s, err: %v", queryGetSecondarySpStorePriceByTime, err)
 	s.Require().NoError(err)
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
 	primaryStorePrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice
 	secondaryStorePrice := queryGetSecondarySpStorePriceByTime.SecondarySpStorePrice.StorePrice
 	chargeSize := s.GetChargeSize(queryHeadObjectResponse.ObjectInfo.PayloadSize)
@@ -497,13 +513,14 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.T().Logf("streamRecordsAfterSeal %s", core.YamlString(streamRecordsAfterSeal))
 	s.Require().Equal(sdkmath.ZeroInt(), streamRecordsAfterSeal.User.LockBalance)
 	userRateDiff := streamRecordsAfterSeal.User.NetflowRate.Sub(streamRecordsAfterCreateObject.User.NetflowRate)
+	taxRateDiff := streamRecordsAfterSeal.Tax.NetflowRate.Sub(streamRecordsAfterCreateObject.Tax.NetflowRate)
 	spRateDiffs := lo.Map(streamRecordsAfterSeal.SPs, func(sp paymenttypes.StreamRecord, i int) sdkmath.Int {
 		return sp.NetflowRate.Sub(streamRecordsAfterCreateObject.SPs[i].NetflowRate)
 	})
 	spRateDiffsSum := lo.Reduce(spRateDiffs, func(sum sdkmath.Int, rate sdkmath.Int, i int) sdkmath.Int {
 		return sum.Add(rate)
 	}, sdkmath.ZeroInt())
-	s.Require().Equal(userRateDiff, spRateDiffsSum.Neg())
+	s.Require().Equal(userRateDiff, spRateDiffsSum.Add(taxRateDiff).Neg())
 	spRateDiffMap := lo.Reduce(spRateDiffs, func(m map[string]sdkmath.Int, rate sdkmath.Int, i int) map[string]sdkmath.Int {
 		m[streamRecordsAfterSeal.SPs[i].Account] = rate
 		return m
@@ -553,8 +570,11 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
-	paymentAccountBNBNeeded := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota * reserveTime)).TruncateInt()
-	expectedRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota)).TruncateInt()
+	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota)).TruncateInt()
+	taxRateParam := paymentParams.Params.ValidatorTaxRate
+	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
+	expectedRate := totalUserRate.Add(taxStreamRate)
+	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
 
 	// create payment account and deposit
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{

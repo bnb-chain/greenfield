@@ -35,8 +35,6 @@ enum Status {
 }
 
 // StorageProvider defines the meta info of storage provider
-// TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
-// TODO: add more account address for different role.
 message StorageProvider {
   option (gogoproto.equal) = false;
   option (gogoproto.goproto_stringer) = false;

@@ -99,7 +99,6 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 }
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
-// TODO(fynn): add morer modifiable items if needed.
 func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description Description) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
 		SpAddress:   spAddress.String(),

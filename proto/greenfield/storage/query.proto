@@ -91,7 +91,7 @@ service Query {
 
   // Queries a list of ListGroup items.
   rpc ListGroup(QueryListGroupRequest) returns (QueryListGroupResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/storage/list_group";
+    option (google.api.http).get = "/greenfield/storage/list_group/{group_owner}";
   }
 
   // Queries a list of HeadGroupMember items.
@@ -226,7 +226,7 @@ message QueryHeadGroupMemberRequest {
 }
 
 message QueryHeadGroupMemberResponse {
-  string group_id = 1;
+  permission.GroupMember group_member = 1;
 }
 
 message QueryPolicyForGroupRequest {
