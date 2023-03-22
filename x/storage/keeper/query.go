@@ -14,7 +14,6 @@ import (
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfd "github.com/bnb-chain/greenfield/types"
-	"github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -282,10 +281,12 @@ func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolic
 	var grn gnfd.GRN
 	err = grn.ParseFromString(req.Resource, false)
 	if err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.InvalidArgument, "failed to parse GRN %s: %v", req.Resource, err)
 	}
 
-	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithGroup(id))
+	policy, err := k.GetPolicy(
+		ctx, &grn, permtypes.NewPrincipalWithGroup(id),
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -400,9 +401,9 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
-	policy, found := k.permKeeper.GetPolicyForAccount(ctx, groupInfo.Id, resource.RESOURCE_TYPE_GROUP, member)
-	if !found || policy.MemberStatement == nil {
+	groupMember, found := k.permKeeper.GetGroupMember(ctx, groupInfo.Id, member)
+	if !found {
 		return nil, types.ErrNoSuchGroupMember
 	}
-	return &types.QueryHeadGroupMemberResponse{GroupInfo: groupInfo}, nil
+	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
 }

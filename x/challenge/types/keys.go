@@ -22,8 +22,8 @@ func KeyPrefix(p string) []byte {
 }
 
 var (
-	// OngoingChallengeIdKey is the key to retrieve the max id of challenge.
-	OngoingChallengeIdKey = []byte{0x11}
+	// ChallengeIdKey is the key to retrieve the id of challenge.
+	ChallengeIdKey = []byte{0x11}
 
 	// AttestChallengeIdKey is the key to record the latest attest challenge id.
 	AttestChallengeIdKey = []byte{0x12}

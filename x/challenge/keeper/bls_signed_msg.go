@@ -11,12 +11,19 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
+// BlsSignedMsg defined the interface of a bls signed message.
 type BlsSignedMsg interface {
+	// GetBlsSignBytes returns the bls signed message in bytes.
 	GetBlsSignBytes() [32]byte
+
+	// GetVoteValidatorSet returns the validators who signed the message.
 	GetVoteValidatorSet() []uint64
+
+	// GetVoteAggSignature returns the aggregated bls signature.
 	GetVoteAggSignature() []byte
 }
 
+// verifySignature verifies whether the signature is valid or not.
 func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]string, error) {
 	historicalInfo, ok := k.stakingKeeper.GetHistoricalInfo(ctx, ctx.BlockHeight())
 	if !ok {
@@ -29,15 +36,15 @@ func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]stri
 		return nil, errors.Wrap(types.ErrInvalidVoteValidatorSet, "number of validator set is larger than validators")
 	}
 
-	signedRelayers := make([]string, 0, validatorsBitSet.Count())
+	signedChallengers := make([]string, 0, validatorsBitSet.Count())
 	votedPubKeys := make([]bls.PublicKey, 0, validatorsBitSet.Count())
 	for index, val := range validators {
 		if !validatorsBitSet.Test(uint(index)) {
 			continue
 		}
 
-		signedRelayers = append(signedRelayers, val.RelayerAddress)
-		votePubKey, err := bls.PublicKeyFromBytes(val.RelayerBlsKey)
+		signedChallengers = append(signedChallengers, val.ChallengerAddress)
+		votePubKey, err := bls.PublicKeyFromBytes(val.BlsKey)
 		if err != nil {
 			return nil, errors.Wrapf(types.ErrInvalidBlsPubKey, fmt.Sprintf("BLS public key converts failed: %v", err))
 		}
@@ -57,5 +64,5 @@ func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg) ([]stri
 		return nil, errors.Wrap(types.ErrInvalidVoteAggSignature, "Signature verify failed")
 	}
 
-	return signedRelayers, nil
+	return signedChallengers, nil
 }

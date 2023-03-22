@@ -359,7 +359,7 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 	err = app.storageKeeper.UpdateGroupMember(
 		ctx,
 		updateGroupPackage.Operator,
-		groupInfo.GroupName,
+		groupInfo,
 		options,
 	)
 	if err != nil {

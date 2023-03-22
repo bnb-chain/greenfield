@@ -25,16 +25,18 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 }
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
-	objectCount := keeper.StorageKeeper.GetObjectInfoCount(ctx)
-	if objectCount.IsZero() {
-		return
-	}
-
 	count := keeper.GetChallengeCountCurrentBlock(ctx)
 	needed := keeper.ChallengeCountPerBlock(ctx)
 	if count >= needed {
 		return
 	}
+
+	objectCount := keeper.StorageKeeper.GetObjectInfoCount(ctx)
+	if objectCount.IsZero() {
+		return
+	}
+
+	segmentSize := keeper.StorageKeeper.MaxSegmentSize(ctx)
 
 	events := make([]proto.Message, 0)                      // for events
 	objectMap := make(map[string]struct{})                  // for de-duplication
@@ -46,11 +48,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		// random object info
 		objectId := k.RandomObjectId(seed, objectCount)
 		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, objectId)
-		if !found { // there is no object info yet, cannot generate challenges
-			return
-		}
-
-		if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
+		if !found || objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
 			continue
 		}
 
@@ -58,13 +56,12 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		var spOperatorAddress string
 		secondarySpAddresses := objectInfo.SecondarySpAddresses
 
-		bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
-		if !found {
-			continue
-		}
-
 		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(secondarySpAddresses)+1))
 		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
+			bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
+			if !found {
+				continue
+			}
 			spOperatorAddress = bucket.PrimarySpAddress
 		} else {
 			spOperatorAddress = objectInfo.SecondarySpAddresses[redundancyIndex]
@@ -90,13 +87,13 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// random segment/piece index
-		segments := k.CalculateSegments(objectInfo.PayloadSize, keeper.StorageKeeper.MaxSegmentSize(ctx))
+		segments := k.CalculateSegments(objectInfo.PayloadSize, segmentSize)
 		segmentIndex := k.RandomSegmentIndex(seed, segments)
 
 		objectMap[mapKey] = struct{}{}
 
-		challengeId := keeper.GetOngoingChallengeId(ctx)
-		keeper.SetOngoingChallengeId(ctx, challengeId+1)
+		challengeId := keeper.GetChallengeId(ctx)
+		keeper.SetChallengeId(ctx, challengeId+1)
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,
@@ -108,5 +105,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 		count++
 	}
-	_ = ctx.EventManager().EmitTypedEvents(events...)
+	err := ctx.EventManager().EmitTypedEvents(events...)
+	if err != nil {
+		ctx.Logger().Error("failed to emit challenge events", "err", err.Error())
+	}
 }

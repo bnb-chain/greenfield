@@ -15,13 +15,15 @@ type SPMnemonics struct {
 }
 
 type Config struct {
-	GrpcAddr          string        `yaml:"GrpcAddr"`
-	TendermintAddr    string        `yaml:"TendermintAddr"`
-	ChainId           string        `yaml:"ChainId"`
-	ValidatorMnemonic string        `yaml:"Mnemonic"`        // validator operator account mnemonic with enough balance
-	RelayerMnemonic   string        `yaml:"RelayerMnemonic"` // relayer's mnemonic for bls key
-	SPMnemonics       []SPMnemonics `yaml:"SPMnemonics"`
-	Denom             string        `yaml:"Denom"`
+	GrpcAddr             string        `yaml:"GrpcAddr"`
+	TendermintAddr       string        `yaml:"TendermintAddr"`
+	ChainId              string        `yaml:"ChainId"`
+	ValidatorMnemonic    string        `yaml:"Mnemonic"`           // validator operator account mnemonic with enough balance
+	ValidatorBlsMnemonic string        `yaml:"BLSMnemonic"`        // validator's mnemonic for bls key
+	RelayerMnemonic      string        `yaml:"RelayerMnemonic"`    // relayer mnemonic
+	ChallengerMnemonic   string        `yaml:"ChallengerMnemonic"` // challenger mnemonic
+	SPMnemonics          []SPMnemonics `yaml:"SPMnemonics"`
+	Denom                string        `yaml:"Denom"`
 }
 
 func InitConfig() *Config {
@@ -31,12 +33,14 @@ func InitConfig() *Config {
 
 func InitE2eConfig() *Config {
 	config := &Config{
-		GrpcAddr:          "localhost:9090",
-		TendermintAddr:    "http://127.0.0.1:26750",
-		ChainId:           "greenfield_9000-121",
-		Denom:             "BNB",
-		ValidatorMnemonic: ParseValidatorMnemonic(0),
-		RelayerMnemonic:   ParseRelayerMnemonic(0),
+		GrpcAddr:             "localhost:9090",
+		TendermintAddr:       "http://127.0.0.1:26750",
+		ChainId:              "greenfield_9000-121",
+		Denom:                "BNB",
+		ValidatorMnemonic:    ParseValidatorMnemonic(0),
+		ValidatorBlsMnemonic: ParseValidatorBlsMnemonic(0),
+		RelayerMnemonic:      ParseRelayerMnemonic(0),
+		ChallengerMnemonic:   ParseChallengerMnemonic(0),
 	}
 	for i := 0; i < 7; i++ {
 		config.SPMnemonics = append(config.SPMnemonics, ParseSPMnemonics(i))
@@ -49,9 +53,19 @@ func ParseValidatorMnemonic(i int) string {
 	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/validator%d/info", i))
 }
 
+// ParseValidatorBlsMnemonic read the validator mnemonic of bls from file
+func ParseValidatorBlsMnemonic(i int) string {
+	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/validator%d/bls_info", i))
+}
+
 // ParseRelayerMnemonic read the relayer mnemonic from file
 func ParseRelayerMnemonic(i int) string {
-	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/relayer%d/relayer_bls_info", i))
+	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/relayer%d/relayer_info", i))
+}
+
+// ParseChallengerMnemonic read the challenger mnemonic from file
+func ParseChallengerMnemonic(i int) string {
+	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/challenger%d/challenger_info", i))
 }
 
 // ParseSPMnemonics read the sp mnemonics from file

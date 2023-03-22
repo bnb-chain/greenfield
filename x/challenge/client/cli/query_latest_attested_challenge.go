@@ -15,7 +15,7 @@ var _ = strconv.Itoa(0)
 func CmdLatestAttestedChallenge() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "latest-attested-challenge",
-		Short: "Query latestAttestedChallenge",
+		Short: "Query latest attested challenge",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 

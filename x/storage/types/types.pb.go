@@ -385,7 +385,7 @@ func (m *ObjectInfo) GetRedundancyType() RedundancyType {
 	if m != nil {
 		return m.RedundancyType
 	}
-	return REDUNDANCY_REPLICA_TYPE
+	return REDUNDANCY_EC_TYPE
 }
 
 func (m *ObjectInfo) GetSourceType() SourceType {

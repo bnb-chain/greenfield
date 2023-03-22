@@ -62,7 +62,7 @@ paths:
           schema:
             type: object
             properties:
-              autoSettleRecord:
+              auto_settle_record:
                 type: array
                 items:
                   type: object
@@ -204,7 +204,7 @@ paths:
           schema:
             type: object
             properties:
-              autoSettleRecord:
+              auto_settle_record:
                 type: object
                 properties:
                   timestamp:
@@ -259,202 +259,6 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/payment/bnb_price:
-    get:
-      operationId: BnbPriceAll
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              BnbPrice:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    time:
-                      type: string
-                      format: int64
-                      title: time is the submit time of the price
-                    price:
-                      type: string
-                      format: uint64
-                      description: >-
-                        price is the price of BNB in USD.
-
-                        It is multiplied by 10^8.
-
-                        For example, if the price is 278.34 USD, the price is
-                        27834000000.
-                  title: BNBPrice is the price of BNB in USD at a given time
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
-  /greenfield/payment/bnb_price/{time}:
-    get:
-      summary: Queries a list of BnbPrice items.
-      operationId: BnbPrice
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              BnbPrice:
-                type: object
-                properties:
-                  time:
-                    type: string
-                    format: int64
-                    title: time is the submit time of the price
-                  price:
-                    type: string
-                    format: uint64
-                    description: >-
-                      price is the price of BNB in USD.
-
-                      It is multiplied by 10^8.
-
-                      For example, if the price is 278.34 USD, the price is
-                      27834000000.
-                title: BNBPrice is the price of BNB in USD at a given time
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: time
-          in: path
-          required: true
-          type: string
-          format: int64
-      tags:
-        - Query
   /greenfield/payment/dynamic_balance/{account}:
     get:
       summary: Queries a list of DynamicBalance items.
@@ -465,9 +269,9 @@ paths:
           schema:
             type: object
             properties:
-              dynamicBalance:
+              dynamic_balance:
                 type: string
-              streamRecord:
+              stream_record:
                 type: object
                 properties:
                   account:
@@ -484,50 +288,55 @@ paths:
 
                       It is the sum of the account's inbound and outbound flow
                       rates.
-                  staticBalance:
+                  static_balance:
                     type: string
                     description: >-
                       The balance of the stream account at the latest CRUD
                       timestamp.
-                  bufferBalance:
+                  buffer_balance:
                     type: string
                     title: >-
                       reserved balance of the stream account
 
                       If the netflow rate is negative, the reserved balance is
                       `netflow_rate * reserve_time`
-                  lockBalance:
+                  lock_balance:
                     type: string
                     title: >-
                       the locked balance of the stream account after it puts a
                       new object and before the object is sealed
                   status:
-                    type: integer
-                    format: int32
                     title: the status of the stream account
-                  settleTimestamp:
+                    type: string
+                    enum:
+                      - STREAM_ACCOUNT_STATUS_ACTIVE
+                      - STREAM_ACCOUNT_STATUS_FROZEN
+                    default: STREAM_ACCOUNT_STATUS_ACTIVE
+                  settle_timestamp:
                     type: string
                     format: int64
                     title: the unix timestamp when the stream account will be settled
-                  outFlowsInUSD:
+                  out_flows:
                     type: array
                     items:
                       type: object
                       properties:
-                        sp_address:
+                        to_address:
                           type: string
-                          title: SP(service provider) stream account address
+                          title: >-
+                            stream account address who receives the flow,
+                            usually SP(service provider)
                         rate:
                           type: string
-                          title: flow rate in USD
+                          title: flow rate
                       title: >-
-                        OutFlowInUSD defines the accumulative outflow stream
-                        rate in USD
+                        OutFlow defines the accumulative outflow stream rate in
+                        BNB
 
                         from a stream account or a bucket to a SP
                     title: the accumulated outflow rates of the stream account
                 title: Stream Payment Record of a stream account
-              currentTimestamp:
+              current_timestamp:
                 type: string
                 format: int64
         default:
@@ -682,7 +491,7 @@ paths:
           schema:
             type: object
             properties:
-              paymentAccount:
+              payment_account:
                 type: array
                 items:
                   type: object
@@ -816,7 +625,7 @@ paths:
           schema:
             type: object
             properties:
-              paymentAccount:
+              payment_account:
                 type: object
                 properties:
                   addr:
@@ -868,7 +677,7 @@ paths:
           schema:
             type: object
             properties:
-              paymentAccountCount:
+              payment_account_count:
                 type: array
                 items:
                   type: object
@@ -1002,7 +811,7 @@ paths:
           schema:
             type: object
             properties:
-              paymentAccountCount:
+              payment_account_count:
                 type: object
                 properties:
                   owner:
@@ -1054,7 +863,7 @@ paths:
           schema:
             type: object
             properties:
-              streamRecord:
+              stream_record:
                 type: array
                 items:
                   type: object
@@ -1074,47 +883,52 @@ paths:
 
                         It is the sum of the account's inbound and outbound flow
                         rates.
-                    staticBalance:
+                    static_balance:
                       type: string
                       description: >-
                         The balance of the stream account at the latest CRUD
                         timestamp.
-                    bufferBalance:
+                    buffer_balance:
                       type: string
                       title: >-
                         reserved balance of the stream account
 
                         If the netflow rate is negative, the reserved balance is
                         `netflow_rate * reserve_time`
-                    lockBalance:
+                    lock_balance:
                       type: string
                       title: >-
                         the locked balance of the stream account after it puts a
                         new object and before the object is sealed
                     status:
-                      type: integer
-                      format: int32
                       title: the status of the stream account
-                    settleTimestamp:
+                      type: string
+                      enum:
+                        - STREAM_ACCOUNT_STATUS_ACTIVE
+                        - STREAM_ACCOUNT_STATUS_FROZEN
+                      default: STREAM_ACCOUNT_STATUS_ACTIVE
+                    settle_timestamp:
                       type: string
                       format: int64
                       title: >-
                         the unix timestamp when the stream account will be
                         settled
-                    outFlowsInUSD:
+                    out_flows:
                       type: array
                       items:
                         type: object
                         properties:
-                          sp_address:
+                          to_address:
                             type: string
-                            title: SP(service provider) stream account address
+                            title: >-
+                              stream account address who receives the flow,
+                              usually SP(service provider)
                           rate:
                             type: string
-                            title: flow rate in USD
+                            title: flow rate
                         title: >-
-                          OutFlowInUSD defines the accumulative outflow stream
-                          rate in USD
+                          OutFlow defines the accumulative outflow stream rate
+                          in BNB
 
                           from a stream account or a bucket to a SP
                       title: the accumulated outflow rates of the stream account
@@ -1238,7 +1052,7 @@ paths:
           schema:
             type: object
             properties:
-              streamRecord:
+              stream_record:
                 type: object
                 properties:
                   account:
@@ -1255,45 +1069,50 @@ paths:
 
                       It is the sum of the account's inbound and outbound flow
                       rates.
-                  staticBalance:
+                  static_balance:
                     type: string
                     description: >-
                       The balance of the stream account at the latest CRUD
                       timestamp.
-                  bufferBalance:
+                  buffer_balance:
                     type: string
                     title: >-
                       reserved balance of the stream account
 
                       If the netflow rate is negative, the reserved balance is
                       `netflow_rate * reserve_time`
-                  lockBalance:
+                  lock_balance:
                     type: string
                     title: >-
                       the locked balance of the stream account after it puts a
                       new object and before the object is sealed
                   status:
-                    type: integer
-                    format: int32
                     title: the status of the stream account
-                  settleTimestamp:
+                    type: string
+                    enum:
+                      - STREAM_ACCOUNT_STATUS_ACTIVE
+                      - STREAM_ACCOUNT_STATUS_FROZEN
+                    default: STREAM_ACCOUNT_STATUS_ACTIVE
+                  settle_timestamp:
                     type: string
                     format: int64
                     title: the unix timestamp when the stream account will be settled
-                  outFlowsInUSD:
+                  out_flows:
                     type: array
                     items:
                       type: object
                       properties:
-                        sp_address:
+                        to_address:
                           type: string
-                          title: SP(service provider) stream account address
+                          title: >-
+                            stream account address who receives the flow,
+                            usually SP(service provider)
                         rate:
                           type: string
-                          title: flow rate in USD
+                          title: flow rate
                       title: >-
-                        OutFlowInUSD defines the accumulative outflow stream
-                        rate in USD
+                        OutFlow defines the accumulative outflow stream rate in
+                        BNB
 
                         from a stream account or a bucket to a SP
                     title: the accumulated outflow rates of the stream account
@@ -1327,6 +1146,122 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}:
+    get:
+      operationId: QueryGetSecondarySpStorePriceByTime
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              secondary_sp_store_price:
+                type: object
+                properties:
+                  update_time:
+                    type: string
+                    format: int64
+                    title: update time, in unix timestamp
+                  store_price:
+                    type: string
+                    title: store price, in bnb wei per charge byte
+                title: |-
+                  global secondary sp store price
+                  this is the price for all secondary sps
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: timestamp
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - Query
+  /greenfield/sp/get_sp_storage_price_by_time/{sp_addr}/{timestamp}:
+    get:
+      operationId: QueryGetSpStoragePriceByTime
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              sp_storage_price:
+                type: object
+                properties:
+                  sp_address:
+                    type: string
+                    title: sp address
+                  update_time:
+                    type: string
+                    format: int64
+                    title: update time, in unix timestamp
+                  read_price:
+                    type: string
+                    title: read price, in bnb wei per charge byte
+                  free_read_quota:
+                    type: string
+                    format: uint64
+                    title: free read quota, in byte
+                  store_price:
+                    type: string
+                    title: store price, in bnb wei per charge byte
+                title: storage price of a specific sp
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: sp_addr
+          in: path
+          required: true
+          type: string
+        - name: timestamp
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - Query
   /greenfield/sp/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -1341,10 +1276,6 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  max_storage_providers:
-                    type: integer
-                    format: int64
-                    description: max_storage_providers is the maximum number of validators.
                   deposit_denom:
                     type: string
                     description: deposit_denom defines the staking coin denomination.
@@ -1687,6 +1618,402 @@ paths:
           type: boolean
       tags:
         - Query
+  /bnb-chain/greenfield/storage/head_group_member:
+    get:
+      summary: Queries a list of HeadGroupMember items.
+      operationId: HeadGroupMember
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              group_member:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    title: >-
+                      id is an unique u256 sequence for each group member. It
+                      also be used as NFT tokenID
+                  group_id:
+                    type: string
+                    title: group_id is the unique id of the group
+                  member:
+                    type: string
+                    title: member is the account address of the member
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: member
+          in: query
+          required: false
+          type: string
+        - name: group_owner
+          in: query
+          required: false
+          type: string
+        - name: group_name
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
+  /bnb-chain/greenfield/storage/list_group/{group_owner}:
+    get:
+      summary: Queries a list of ListGroup items.
+      operationId: ListGroup
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+              group_infos:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                      description: >-
+                        owner is the owner of the group. It can not changed once
+                        it created.
+                    group_name:
+                      type: string
+                      description: >-
+                        group_name is the name of group which is unique under an
+                        account.
+                    source_type:
+                      title: source_type
+                      type: string
+                      enum:
+                        - SOURCE_TYPE_ORIGIN
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_MIRROR_PENDING
+                      default: SOURCE_TYPE_ORIGIN
+                    id:
+                      type: string
+                      title: id is the unique identifier of group
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: group_owner
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /bnb-chain/greenfield/storage/policy_for_group/{resource}/{principal_group_id}:
+    get:
+      summary: Queries a policy that grants permission to a group
+      operationId: QueryPolicyForGroup
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              policy:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    title: >-
+                      id is an unique u256 sequence for each policy. It also be
+                      used as NFT tokenID
+                  principal:
+                    title: >-
+                      principal defines the accounts/group which the permission
+                      grants to
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - PRINCIPAL_TYPE_UNSPECIFIED
+                          - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                          - PRINCIPAL_TYPE_GNFD_GROUP
+                        default: PRINCIPAL_TYPE_UNSPECIFIED
+                        description: >-
+                          PrincipalType refers to the identity type of system
+                          users or entities.
+
+                          In Greenfield, it usually refers to accounts or
+                          groups.
+                      value:
+                        type: string
+                        title: >-
+                          When the type is an account, its value is
+                          sdk.AccAddress().String();
+
+                          when the type is a group, its value is
+                          math.Uint().String()
+                    description: >-
+                      Principal define the roles that can grant permissions.
+                      Currently, it can be account or group.
+                  resource_type:
+                    title: >-
+                      resource_type defines the type of resource that grants
+                      permission for
+                    type: string
+                    enum:
+                      - RESOURCE_TYPE_UNSPECIFIED
+                      - RESOURCE_TYPE_BUCKET
+                      - RESOURCE_TYPE_OBJECT
+                      - RESOURCE_TYPE_GROUP
+                    default: RESOURCE_TYPE_UNSPECIFIED
+                  resource_id:
+                    type: string
+                    title: >-
+                      resource_id defines the bucket/object/group id of the
+                      resource that grants permission for
+                  statements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        effect:
+                          title: >-
+                            effect define the impact of permissions, which can
+                            be Allow/Deny
+                          type: string
+                          enum:
+                            - EFFECT_UNSPECIFIED
+                            - EFFECT_ALLOW
+                            - EFFECT_DENY
+                          default: EFFECT_UNSPECIFIED
+                        actions:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - ACTION_UNSPECIFIED
+                              - ACTION_UPDATE_BUCKET_INFO
+                              - ACTION_DELETE_BUCKET
+                              - ACTION_CREATE_OBJECT
+                              - ACTION_DELETE_OBJECT
+                              - ACTION_COPY_OBJECT
+                              - ACTION_GET_OBJECT
+                              - ACTION_EXECUTE_OBJECT
+                              - ACTION_LIST_OBJECT
+                              - ACTION_UPDATE_GROUP_MEMBER
+                              - ACTION_DELETE_GROUP
+                              - ACTION_TYPE_ALL
+                            default: ACTION_UNSPECIFIED
+                            title: >-
+                              ActionType defines the operations you can execute
+                              in greenfield storage network
+                          description: >-
+                            action_type define the operation type you can act.
+                            greenfield defines a set of permission
+
+                            that you can specify in a permissionInfo. see
+                            ActionType enum for detail.
+                        resources:
+                          type: array
+                          items:
+                            type: string
+                          description: >-
+                            CAN ONLY USED IN bucket level. Support fuzzy match
+                            and limit to 5
+
+                            If no sub-resource is specified in a statement, then
+                            all objects in the bucket are accessible by the
+                            principal.
+
+                            However, if the sub-resource is defined as
+                            'bucket/test_*,' in the statement, then only objects
+                            with a 'test_'
+
+                            prefix can be accessed by the principal.
+                        expiration_time:
+                          type: string
+                          format: date-time
+                          description: >-
+                            expiration_time defines how long the permission is
+                            valid. If not explicitly specified, it means it will
+                            not expire.
+                        limit_size:
+                          description: >-
+                            limit_size defines the total data size that is
+                            allowed to operate. If not explicitly specified, it
+                            means it will not limit.
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                              format: uint64
+                              description: The uint64 value.
+                    title: >-
+                      statements defines the details content of the permission,
+                      including effect/actions/sub-resources
+                  expiration_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      expiration_time defines the whole expiration time of all
+                      the statements.
+
+                      Notices: Its priority is higher than the expiration time
+                      inside the Statement
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: resource
+          in: path
+          required: true
+          type: string
+        - name: principal_group_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/storage/head_bucket/{bucket_name}:
     get:
       summary: Queries a bucket with specify name.
@@ -1725,6 +2052,7 @@ paths:
                     enum:
                       - SOURCE_TYPE_ORIGIN
                       - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_MIRROR_PENDING
                     default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
@@ -1742,34 +2070,43 @@ paths:
                       leave this SP, unless you explicitly shift them to another
                       SP.
                   read_quota:
-                    title: read_quota defines the traffic quota for read
                     type: string
-                    enum:
-                      - READ_QUOTA_FREE
-                      - READ_QUOTA_1G
-                      - READ_QUOTA_10G
-                    default: READ_QUOTA_FREE
-                  payment_price_time:
-                    type: string
-                    format: int64
-                    title: 'payment_price_time TODO(Owen): refine the comments'
-                  payment_out_flows:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        sp_address:
-                          type: string
-                          title: SP(service provider) stream account address
-                        rate:
-                          type: string
-                          title: flow rate in USD
-                      title: >-
-                        OutFlowInUSD defines the accumulative outflow stream
-                        rate in USD
-
-                        from a stream account or a bucket to a SP
-                    title: payment_out_flows
+                    format: uint64
+                    title: >-
+                      read_quota defines the traffic quota for read in bytes per
+                      month
+                  billing_info:
+                    title: billing info of the bucket
+                    type: object
+                    properties:
+                      price_time:
+                        type: string
+                        format: int64
+                        title: >-
+                          the time of the payment price, used to calculate the
+                          charge rate of the bucket
+                      total_charge_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          the total size of the objects in the bucket, used to
+                          calculate the charge rate of the bucket
+                      secondary_sp_objects_size:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            sp_address:
+                              type: string
+                              title: address is the address of the secondary sp
+                            total_charge_size:
+                              type: string
+                              format: uint64
+                              title: >-
+                                size is the total size of the objects in the
+                                secondary sp
+                          title: secondary sp objects size statistics
+                        title: secondary sp objects size statistics
         default:
           description: An unexpected error response.
           schema:
@@ -1837,6 +2174,7 @@ paths:
                     enum:
                       - SOURCE_TYPE_ORIGIN
                       - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_MIRROR_PENDING
                     default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
@@ -1854,34 +2192,43 @@ paths:
                       leave this SP, unless you explicitly shift them to another
                       SP.
                   read_quota:
-                    title: read_quota defines the traffic quota for read
                     type: string
-                    enum:
-                      - READ_QUOTA_FREE
-                      - READ_QUOTA_1G
-                      - READ_QUOTA_10G
-                    default: READ_QUOTA_FREE
-                  payment_price_time:
-                    type: string
-                    format: int64
-                    title: 'payment_price_time TODO(Owen): refine the comments'
-                  payment_out_flows:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        sp_address:
-                          type: string
-                          title: SP(service provider) stream account address
-                        rate:
-                          type: string
-                          title: flow rate in USD
-                      title: >-
-                        OutFlowInUSD defines the accumulative outflow stream
-                        rate in USD
-
-                        from a stream account or a bucket to a SP
-                    title: payment_out_flows
+                    format: uint64
+                    title: >-
+                      read_quota defines the traffic quota for read in bytes per
+                      month
+                  billing_info:
+                    title: billing info of the bucket
+                    type: object
+                    properties:
+                      price_time:
+                        type: string
+                        format: int64
+                        title: >-
+                          the time of the payment price, used to calculate the
+                          charge rate of the bucket
+                      total_charge_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          the total size of the objects in the bucket, used to
+                          calculate the charge rate of the bucket
+                      secondary_sp_objects_size:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            sp_address:
+                              type: string
+                              title: address is the address of the secondary sp
+                            total_charge_size:
+                              type: string
+                              format: uint64
+                              title: >-
+                                size is the total size of the objects in the
+                                secondary sp
+                          title: secondary sp objects size statistics
+                        title: secondary sp objects size statistics
         default:
           description: An unexpected error response.
           schema:
@@ -1970,6 +2317,73 @@ paths:
                       format: byte
       parameters:
         - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_group/{group_owner}/{group_name}:
+    get:
+      summary: Queries a group with specify owner and name .
+      operationId: HeadGroup
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              group_info:
+                type: object
+                properties:
+                  owner:
+                    type: string
+                    description: >-
+                      owner is the owner of the group. It can not changed once
+                      it created.
+                  group_name:
+                    type: string
+                    description: >-
+                      group_name is the name of group which is unique under an
+                      account.
+                  source_type:
+                    title: source_type
+                    type: string
+                    enum:
+                      - SOURCE_TYPE_ORIGIN
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_MIRROR_PENDING
+                    default: SOURCE_TYPE_ORIGIN
+                  id:
+                    type: string
+                    title: id is the unique identifier of group
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: group_owner
+          in: path
+          required: true
+          type: string
+        - name: group_name
           in: path
           required: true
           type: string
@@ -2094,16 +2508,23 @@ paths:
                       can be multi-replication or EC.
                     type: string
                     enum:
-                      - REDUNDANCY_REPLICA_TYPE
                       - REDUNDANCY_EC_TYPE
-                    default: REDUNDANCY_REPLICA_TYPE
+                      - REDUNDANCY_REPLICA_TYPE
+                    default: REDUNDANCY_EC_TYPE
                   source_type:
                     description: source_type define the source of the object.
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
                       - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_MIRROR_PENDING
                     default: SOURCE_TYPE_ORIGIN
+                    title: >-
+                      SourceType represents the source of resource creation,
+                      which can
+
+                      from Greenfield native or from a cross-chain transfer from
+                      BSC
                   checksums:
                     type: array
                     items:
@@ -2119,9 +2540,6 @@ paths:
                     title: >-
                       secondary_sp_addresses define the addresses of
                       secondary_sps
-                  locked_balance:
-                    type: string
-                    title: 'lockedBalance TODO(Owen): refine the comments'
         default:
           description: An unexpected error response.
           schema:
@@ -2157,7 +2575,7 @@ paths:
         - Query
   /greenfield/storage/head_object_by_id/{object_id}:
     get:
-      summary: Queries a object by id
+      summary: Queries an object by id
       operationId: HeadObjectById
       responses:
         '200':
@@ -2210,16 +2628,23 @@ paths:
                       can be multi-replication or EC.
                     type: string
                     enum:
-                      - REDUNDANCY_REPLICA_TYPE
                       - REDUNDANCY_EC_TYPE
-                    default: REDUNDANCY_REPLICA_TYPE
+                      - REDUNDANCY_REPLICA_TYPE
+                    default: REDUNDANCY_EC_TYPE
                   source_type:
                     description: source_type define the source of the object.
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
                       - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_MIRROR_PENDING
                     default: SOURCE_TYPE_ORIGIN
+                    title: >-
+                      SourceType represents the source of resource creation,
+                      which can
+
+                      from Greenfield native or from a cross-chain transfer from
+                      BSC
                   checksums:
                     type: array
                     items:
@@ -2235,9 +2660,6 @@ paths:
                     title: >-
                       secondary_sp_addresses define the addresses of
                       secondary_sps
-                  locked_balance:
-                    type: string
-                    title: 'lockedBalance TODO(Owen): refine the comments'
         default:
           description: An unexpected error response.
           schema:
@@ -2371,6 +2793,7 @@ paths:
                       enum:
                         - SOURCE_TYPE_ORIGIN
                         - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_MIRROR_PENDING
                       default: SOURCE_TYPE_ORIGIN
                     create_at:
                       type: string
@@ -2390,34 +2813,43 @@ paths:
                         leave this SP, unless you explicitly shift them to
                         another SP.
                     read_quota:
-                      title: read_quota defines the traffic quota for read
                       type: string
-                      enum:
-                        - READ_QUOTA_FREE
-                        - READ_QUOTA_1G
-                        - READ_QUOTA_10G
-                      default: READ_QUOTA_FREE
-                    payment_price_time:
-                      type: string
-                      format: int64
-                      title: 'payment_price_time TODO(Owen): refine the comments'
-                    payment_out_flows:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          sp_address:
-                            type: string
-                            title: SP(service provider) stream account address
-                          rate:
-                            type: string
-                            title: flow rate in USD
-                        title: >-
-                          OutFlowInUSD defines the accumulative outflow stream
-                          rate in USD
-
-                          from a stream account or a bucket to a SP
-                      title: payment_out_flows
+                      format: uint64
+                      title: >-
+                        read_quota defines the traffic quota for read in bytes
+                        per month
+                    billing_info:
+                      title: billing info of the bucket
+                      type: object
+                      properties:
+                        price_time:
+                          type: string
+                          format: int64
+                          title: >-
+                            the time of the payment price, used to calculate the
+                            charge rate of the bucket
+                        total_charge_size:
+                          type: string
+                          format: uint64
+                          title: >-
+                            the total size of the objects in the bucket, used to
+                            calculate the charge rate of the bucket
+                        secondary_sp_objects_size:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              sp_address:
+                                type: string
+                                title: address is the address of the secondary sp
+                              total_charge_size:
+                                type: string
+                                format: uint64
+                                title: >-
+                                  size is the total size of the objects in the
+                                  secondary sp
+                            title: secondary sp objects size statistics
+                          title: secondary sp objects size statistics
               pagination:
                 type: object
                 properties:
@@ -2586,16 +3018,23 @@ paths:
                         can be multi-replication or EC.
                       type: string
                       enum:
-                        - REDUNDANCY_REPLICA_TYPE
                         - REDUNDANCY_EC_TYPE
-                      default: REDUNDANCY_REPLICA_TYPE
+                        - REDUNDANCY_REPLICA_TYPE
+                      default: REDUNDANCY_EC_TYPE
                     source_type:
                       description: source_type define the source of the object.
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
                         - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_MIRROR_PENDING
                       default: SOURCE_TYPE_ORIGIN
+                      title: >-
+                        SourceType represents the source of resource creation,
+                        which can
+
+                        from Greenfield native or from a cross-chain transfer
+                        from BSC
                     checksums:
                       type: array
                       items:
@@ -2611,9 +3050,6 @@ paths:
                       title: >-
                         secondary_sp_addresses define the addresses of
                         secondary_sps
-                    locked_balance:
-                      type: string
-                      title: 'lockedBalance TODO(Owen): refine the comments'
               pagination:
                 type: object
                 properties:
@@ -2786,16 +3222,23 @@ paths:
                         can be multi-replication or EC.
                       type: string
                       enum:
-                        - REDUNDANCY_REPLICA_TYPE
                         - REDUNDANCY_EC_TYPE
-                      default: REDUNDANCY_REPLICA_TYPE
+                        - REDUNDANCY_REPLICA_TYPE
+                      default: REDUNDANCY_EC_TYPE
                     source_type:
                       description: source_type define the source of the object.
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
                         - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_MIRROR_PENDING
                       default: SOURCE_TYPE_ORIGIN
+                      title: >-
+                        SourceType represents the source of resource creation,
+                        which can
+
+                        from Greenfield native or from a cross-chain transfer
+                        from BSC
                     checksums:
                       type: array
                       items:
@@ -2811,9 +3254,6 @@ paths:
                       title: >-
                         secondary_sp_addresses define the addresses of
                         secondary_sps
-                    locked_balance:
-                      type: string
-                      title: 'lockedBalance TODO(Owen): refine the comments'
               pagination:
                 type: object
                 properties:
@@ -2965,6 +3405,43 @@ paths:
                     title: >-
                       max_payload_size is the maximum size of the payload,
                       default: 2G
+                  min_charge_size:
+                    type: string
+                    format: uint64
+                    title: >-
+                      min_charge_size is the minimum charge size of the payload,
+                      objects smaller than this size will be charged as this
+                      size
+                  mirror_bucket_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror bucket tx
+                  mirror_bucket_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      relayer fee for the ACK or FAIL_ACK package of the mirror
+                      bucket tx
+                  mirror_object_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx
+                  mirror_object_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx
+                  mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx
+                  mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx
+                  max_buckets_per_account:
+                    type: integer
+                    format: int64
+                    title: >-
+                      The maximum number of buckets that can be created per
+                      account
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -2990,6 +3467,266 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Query
+  /greenfield/storage/policy_for_account/{resource}/{principal_address}:
+    get:
+      summary: Queries a policy which grants permission to account
+      operationId: QueryPolicyForAccount
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              policy:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    title: >-
+                      id is an unique u256 sequence for each policy. It also be
+                      used as NFT tokenID
+                  principal:
+                    title: >-
+                      principal defines the accounts/group which the permission
+                      grants to
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - PRINCIPAL_TYPE_UNSPECIFIED
+                          - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                          - PRINCIPAL_TYPE_GNFD_GROUP
+                        default: PRINCIPAL_TYPE_UNSPECIFIED
+                        description: >-
+                          PrincipalType refers to the identity type of system
+                          users or entities.
+
+                          In Greenfield, it usually refers to accounts or
+                          groups.
+                      value:
+                        type: string
+                        title: >-
+                          When the type is an account, its value is
+                          sdk.AccAddress().String();
+
+                          when the type is a group, its value is
+                          math.Uint().String()
+                    description: >-
+                      Principal define the roles that can grant permissions.
+                      Currently, it can be account or group.
+                  resource_type:
+                    title: >-
+                      resource_type defines the type of resource that grants
+                      permission for
+                    type: string
+                    enum:
+                      - RESOURCE_TYPE_UNSPECIFIED
+                      - RESOURCE_TYPE_BUCKET
+                      - RESOURCE_TYPE_OBJECT
+                      - RESOURCE_TYPE_GROUP
+                    default: RESOURCE_TYPE_UNSPECIFIED
+                  resource_id:
+                    type: string
+                    title: >-
+                      resource_id defines the bucket/object/group id of the
+                      resource that grants permission for
+                  statements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        effect:
+                          title: >-
+                            effect define the impact of permissions, which can
+                            be Allow/Deny
+                          type: string
+                          enum:
+                            - EFFECT_UNSPECIFIED
+                            - EFFECT_ALLOW
+                            - EFFECT_DENY
+                          default: EFFECT_UNSPECIFIED
+                        actions:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - ACTION_UNSPECIFIED
+                              - ACTION_UPDATE_BUCKET_INFO
+                              - ACTION_DELETE_BUCKET
+                              - ACTION_CREATE_OBJECT
+                              - ACTION_DELETE_OBJECT
+                              - ACTION_COPY_OBJECT
+                              - ACTION_GET_OBJECT
+                              - ACTION_EXECUTE_OBJECT
+                              - ACTION_LIST_OBJECT
+                              - ACTION_UPDATE_GROUP_MEMBER
+                              - ACTION_DELETE_GROUP
+                              - ACTION_TYPE_ALL
+                            default: ACTION_UNSPECIFIED
+                            title: >-
+                              ActionType defines the operations you can execute
+                              in greenfield storage network
+                          description: >-
+                            action_type define the operation type you can act.
+                            greenfield defines a set of permission
+
+                            that you can specify in a permissionInfo. see
+                            ActionType enum for detail.
+                        resources:
+                          type: array
+                          items:
+                            type: string
+                          description: >-
+                            CAN ONLY USED IN bucket level. Support fuzzy match
+                            and limit to 5
+
+                            If no sub-resource is specified in a statement, then
+                            all objects in the bucket are accessible by the
+                            principal.
+
+                            However, if the sub-resource is defined as
+                            'bucket/test_*,' in the statement, then only objects
+                            with a 'test_'
+
+                            prefix can be accessed by the principal.
+                        expiration_time:
+                          type: string
+                          format: date-time
+                          description: >-
+                            expiration_time defines how long the permission is
+                            valid. If not explicitly specified, it means it will
+                            not expire.
+                        limit_size:
+                          description: >-
+                            limit_size defines the total data size that is
+                            allowed to operate. If not explicitly specified, it
+                            means it will not limit.
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                              format: uint64
+                              description: The uint64 value.
+                    title: >-
+                      statements defines the details content of the permission,
+                      including effect/actions/sub-resources
+                  expiration_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      expiration_time defines the whole expiration time of all
+                      the statements.
+
+                      Notices: Its priority is higher than the expiration time
+                      inside the Statement
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: resource
+          in: path
+          required: true
+          type: string
+        - name: principal_address
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/verify_permission/{operator}/{bucket_name}/{object_name}/{action_type}:
+    get:
+      summary: Queries a list of VerifyPermission items.
+      operationId: VerifyPermission
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              effect:
+                type: string
+                enum:
+                  - EFFECT_UNSPECIFIED
+                  - EFFECT_ALLOW
+                  - EFFECT_DENY
+                default: EFFECT_UNSPECIFIED
+                title: >-
+                  Effect define the effect of the operation permission, include
+                  Allow or deny
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: operator
+          in: path
+          required: true
+          type: string
+        - name: bucket_name
+          in: path
+          required: true
+          type: string
+        - name: object_name
+          in: path
+          required: true
+          type: string
+        - name: action_type
+          in: path
+          required: true
+          type: string
+          enum:
+            - ACTION_UNSPECIFIED
+            - ACTION_UPDATE_BUCKET_INFO
+            - ACTION_DELETE_BUCKET
+            - ACTION_CREATE_OBJECT
+            - ACTION_DELETE_OBJECT
+            - ACTION_COPY_OBJECT
+            - ACTION_GET_OBJECT
+            - ACTION_EXECUTE_OBJECT
+            - ACTION_LIST_OBJECT
+            - ACTION_UPDATE_GROUP_MEMBER
+            - ACTION_DELETE_GROUP
+            - ACTION_TYPE_ALL
       tags:
         - Query
   /cosmos/auth/v1beta1/accounts:
@@ -12407,6 +13144,7 @@ paths:
               package:
                 type: string
                 format: byte
+                title: content of the cross chain package
             description: >-
               QueryCrossChainPackageResponse is the response type for the
               Query/CrossChainPackage RPC method.
@@ -12434,11 +13172,13 @@ paths:
                       format: byte
       parameters:
         - name: channel_id
+          description: channel id of the cross chain package.
           in: query
           required: false
           type: integer
           format: int64
         - name: sequence
+          description: sequence of the cross chain package.
           in: query
           required: false
           type: string
@@ -12461,6 +13201,9 @@ paths:
                 properties:
                   init_module_balance:
                     type: string
+                    title: >-
+                      initial balance to mint for crosschain module when the
+                      chain starts
             description: >-
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
@@ -12501,6 +13244,7 @@ paths:
               sequence:
                 type: string
                 format: uint64
+                title: sequence of the cross chain package
             description: >-
               QuerySendSequenceResponse is the response type for the
               Query/ReceiveSequence RPC method.
@@ -12528,6 +13272,7 @@ paths:
                       format: byte
       parameters:
         - name: channel_id
+          description: channel id of the cross chain package.
           in: query
           required: false
           type: integer
@@ -12547,6 +13292,7 @@ paths:
               sequence:
                 type: string
                 format: uint64
+                title: sequence of the cross chain package
             description: >-
               QuerySendSequenceResponse is the response type for the
               Query/SendSequence RPC method.
@@ -12574,6 +13320,7 @@ paths:
                       format: byte
       parameters:
         - name: channel_id
+          description: channel id of the cross chain package.
           in: query
           required: false
           type: integer
@@ -18021,6 +18768,59 @@ paths:
                       format: byte
       tags:
         - Query
+  /cosmos/oracle/v1/inturn_relayer:
+    get:
+      summary: >-
+        InturnRelayer returns the inturn relayer bls pub key and its relay
+        interval
+      operationId: InturnRelayer
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              bls_pub_key:
+                type: string
+              relay_interval:
+                type: object
+                properties:
+                  start:
+                    type: string
+                    format: uint64
+                  end:
+                    type: string
+                    format: uint64
+                title: >-
+                  RelayInterval holds start and end(exclusive) time of in-turn
+                  relayer, [start, end)
+            description: >-
+              QueryInturnRelayerResponse is the response type for the Query
+              In-turn relayer RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /cosmos/oracle/v1/params:
     get:
       summary: Params returns the total set of cross chain parameters.
@@ -18039,10 +18839,10 @@ paths:
                     type: string
                     format: uint64
                     title: Timeout for the in turn relayer
-                  relayer_backoff_time:
+                  relayer_interval:
                     type: string
                     format: uint64
-                    title: Backoff time for the other relayers
+                    title: RelayInterval is for in-turn relayer
                   relayer_reward_share:
                     type: integer
                     format: int64
@@ -19939,13 +20739,18 @@ paths:
                       type: string
                       description: >-
                         relayer_address defines the address of the validator's
-                        authorized relayer/operator;.
-                    relayer_bls_key:
+                        authorized relayer;.
+                    challenger_address:
+                      type: string
+                      description: >-
+                        challenger_address defines the address of the
+                        validator's authorized challenger;.
+                    bls_key:
                       type: string
                       format: byte
                       title: >-
-                        relayer_bls_key defines the bls pubkey of the
-                        validator's authorized relayer/operator;
+                        bls_key defines the bls pubkey of the validator's
+                        authorized relayer/challenger/operator;
                   description: >-
                     Validator defines a validator, together with the total
                     amount of the
@@ -20553,13 +21358,18 @@ paths:
                     type: string
                     description: >-
                       relayer_address defines the address of the validator's
-                      authorized relayer/operator;.
-                  relayer_bls_key:
+                      authorized relayer;.
+                  challenger_address:
+                    type: string
+                    description: >-
+                      challenger_address defines the address of the validator's
+                      authorized challenger;.
+                  bls_key:
                     type: string
                     format: byte
                     title: >-
-                      relayer_bls_key defines the bls pubkey of the validator's
-                      authorized relayer/operator;
+                      bls_key defines the bls pubkey of the validator's
+                      authorized relayer/challenger/operator;
                 description: >-
                   Validator defines a validator, together with the total amount
                   of the
@@ -21182,13 +21992,18 @@ paths:
                           type: string
                           description: >-
                             relayer_address defines the address of the
-                            validator's authorized relayer/operator;.
-                        relayer_bls_key:
+                            validator's authorized relayer;.
+                        challenger_address:
+                          type: string
+                          description: >-
+                            challenger_address defines the address of the
+                            validator's authorized challenger;.
+                        bls_key:
                           type: string
                           format: byte
                           title: >-
-                            relayer_bls_key defines the bls pubkey of the
-                            validator's authorized relayer/operator;
+                            bls_key defines the bls pubkey of the validator's
+                            authorized relayer/challenger/operator;
                       description: >-
                         Validator defines a validator, together with the total
                         amount of the
@@ -22176,13 +22991,18 @@ paths:
                       type: string
                       description: >-
                         relayer_address defines the address of the validator's
-                        authorized relayer/operator;.
-                    relayer_bls_key:
+                        authorized relayer;.
+                    challenger_address:
+                      type: string
+                      description: >-
+                        challenger_address defines the address of the
+                        validator's authorized challenger;.
+                    bls_key:
                       type: string
                       format: byte
                       title: >-
-                        relayer_bls_key defines the bls pubkey of the
-                        validator's authorized relayer/operator;
+                        bls_key defines the bls pubkey of the validator's
+                        authorized relayer/challenger/operator;
                   description: >-
                     Validator defines a validator, together with the total
                     amount of the
@@ -22788,13 +23608,18 @@ paths:
                     type: string
                     description: >-
                       relayer_address defines the address of the validator's
-                      authorized relayer/operator;.
-                  relayer_bls_key:
+                      authorized relayer;.
+                  challenger_address:
+                    type: string
+                    description: >-
+                      challenger_address defines the address of the validator's
+                      authorized challenger;.
+                  bls_key:
                     type: string
                     format: byte
                     title: >-
-                      relayer_bls_key defines the bls pubkey of the validator's
-                      authorized relayer/operator;
+                      bls_key defines the bls pubkey of the validator's
+                      authorized relayer/challenger/operator;
                 description: >-
                   Validator defines a validator, together with the total amount
                   of the
@@ -26663,32 +27488,19 @@ definitions:
 
       and settle the stream account if the timestamp is less than the current
       time.
-  bnbchain.greenfield.payment.BnbPrice:
+  bnbchain.greenfield.payment.OutFlow:
     type: object
     properties:
-      time:
+      to_address:
         type: string
-        format: int64
-        title: time is the submit time of the price
-      price:
-        type: string
-        format: uint64
-        description: |-
-          price is the price of BNB in USD.
-          It is multiplied by 10^8.
-          For example, if the price is 278.34 USD, the price is 27834000000.
-    title: BNBPrice is the price of BNB in USD at a given time
-  bnbchain.greenfield.payment.OutFlowInUSD:
-    type: object
-    properties:
-      sp_address:
-        type: string
-        title: SP(service provider) stream account address
+        title: >-
+          stream account address who receives the flow, usually SP(service
+          provider)
       rate:
         type: string
-        title: flow rate in USD
+        title: flow rate
     title: |-
-      OutFlowInUSD defines the accumulative outflow stream rate in USD
+      OutFlow defines the accumulative outflow stream rate in BNB
       from a stream account or a bucket to a SP
   bnbchain.greenfield.payment.Params:
     type: object
@@ -26750,7 +27562,7 @@ definitions:
   bnbchain.greenfield.payment.QueryAllAutoSettleRecordResponse:
     type: object
     properties:
-      autoSettleRecord:
+      auto_settle_record:
         type: array
         items:
           type: object
@@ -26798,59 +27610,10 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  bnbchain.greenfield.payment.QueryAllBnbPriceResponse:
-    type: object
-    properties:
-      BnbPrice:
-        type: array
-        items:
-          type: object
-          properties:
-            time:
-              type: string
-              format: int64
-              title: time is the submit time of the price
-            price:
-              type: string
-              format: uint64
-              description: >-
-                price is the price of BNB in USD.
-
-                It is multiplied by 10^8.
-
-                For example, if the price is 278.34 USD, the price is
-                27834000000.
-          title: BNBPrice is the price of BNB in USD at a given time
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
   bnbchain.greenfield.payment.QueryAllPaymentAccountCountResponse:
     type: object
     properties:
-      paymentAccountCount:
+      payment_account_count:
         type: array
         items:
           type: object
@@ -26894,7 +27657,7 @@ definitions:
   bnbchain.greenfield.payment.QueryAllPaymentAccountResponse:
     type: object
     properties:
-      paymentAccount:
+      payment_account:
         type: array
         items:
           type: object
@@ -26938,7 +27701,7 @@ definitions:
   bnbchain.greenfield.payment.QueryAllStreamRecordResponse:
     type: object
     properties:
-      streamRecord:
+      stream_record:
         type: array
         items:
           type: object
@@ -26955,44 +27718,47 @@ definitions:
               description: |-
                 The per-second rate that an account's balance is changing.
                 It is the sum of the account's inbound and outbound flow rates.
-            staticBalance:
+            static_balance:
               type: string
               description: The balance of the stream account at the latest CRUD timestamp.
-            bufferBalance:
+            buffer_balance:
               type: string
               title: >-
                 reserved balance of the stream account
 
                 If the netflow rate is negative, the reserved balance is
                 `netflow_rate * reserve_time`
-            lockBalance:
+            lock_balance:
               type: string
               title: >-
                 the locked balance of the stream account after it puts a new
                 object and before the object is sealed
             status:
-              type: integer
-              format: int32
               title: the status of the stream account
-            settleTimestamp:
+              type: string
+              enum:
+                - STREAM_ACCOUNT_STATUS_ACTIVE
+                - STREAM_ACCOUNT_STATUS_FROZEN
+              default: STREAM_ACCOUNT_STATUS_ACTIVE
+            settle_timestamp:
               type: string
               format: int64
               title: the unix timestamp when the stream account will be settled
-            outFlowsInUSD:
+            out_flows:
               type: array
               items:
                 type: object
                 properties:
-                  sp_address:
+                  to_address:
                     type: string
-                    title: SP(service provider) stream account address
+                    title: >-
+                      stream account address who receives the flow, usually
+                      SP(service provider)
                   rate:
                     type: string
-                    title: flow rate in USD
-                title: >-
-                  OutFlowInUSD defines the accumulative outflow stream rate in
-                  USD
-
+                    title: flow rate
+                title: |-
+                  OutFlow defines the accumulative outflow stream rate in BNB
                   from a stream account or a bucket to a SP
               title: the accumulated outflow rates of the stream account
           title: Stream Payment Record of a stream account
@@ -27025,9 +27791,9 @@ definitions:
   bnbchain.greenfield.payment.QueryDynamicBalanceResponse:
     type: object
     properties:
-      dynamicBalance:
+      dynamic_balance:
         type: string
-      streamRecord:
+      stream_record:
         type: object
         properties:
           account:
@@ -27042,52 +27808,57 @@ definitions:
             description: |-
               The per-second rate that an account's balance is changing.
               It is the sum of the account's inbound and outbound flow rates.
-          staticBalance:
+          static_balance:
             type: string
             description: The balance of the stream account at the latest CRUD timestamp.
-          bufferBalance:
+          buffer_balance:
             type: string
             title: >-
               reserved balance of the stream account
 
               If the netflow rate is negative, the reserved balance is
               `netflow_rate * reserve_time`
-          lockBalance:
+          lock_balance:
             type: string
             title: >-
               the locked balance of the stream account after it puts a new
               object and before the object is sealed
           status:
-            type: integer
-            format: int32
             title: the status of the stream account
-          settleTimestamp:
+            type: string
+            enum:
+              - STREAM_ACCOUNT_STATUS_ACTIVE
+              - STREAM_ACCOUNT_STATUS_FROZEN
+            default: STREAM_ACCOUNT_STATUS_ACTIVE
+          settle_timestamp:
             type: string
             format: int64
             title: the unix timestamp when the stream account will be settled
-          outFlowsInUSD:
+          out_flows:
             type: array
             items:
               type: object
               properties:
-                sp_address:
+                to_address:
                   type: string
-                  title: SP(service provider) stream account address
+                  title: >-
+                    stream account address who receives the flow, usually
+                    SP(service provider)
                 rate:
                   type: string
-                  title: flow rate in USD
+                  title: flow rate
               title: |-
-                OutFlowInUSD defines the accumulative outflow stream rate in USD
+                OutFlow defines the accumulative outflow stream rate in BNB
                 from a stream account or a bucket to a SP
             title: the accumulated outflow rates of the stream account
         title: Stream Payment Record of a stream account
-      currentTimestamp:
+      current_timestamp:
         type: string
         format: int64
   bnbchain.greenfield.payment.QueryGetAutoSettleRecordResponse:
     type: object
     properties:
-      autoSettleRecord:
+      auto_settle_record:
         type: object
         properties:
           timestamp:
@@ -27107,28 +27878,10 @@ definitions:
 
           and settle the stream account if the timestamp is less than the
           current time.
-  bnbchain.greenfield.payment.QueryGetBnbPriceResponse:
-    type: object
-    properties:
-      BnbPrice:
-        type: object
-        properties:
-          time:
-            type: string
-            format: int64
-            title: time is the submit time of the price
-          price:
-            type: string
-            format: uint64
-            description: |-
-              price is the price of BNB in USD.
-              It is multiplied by 10^8.
-              For example, if the price is 278.34 USD, the price is 27834000000.
-        title: BNBPrice is the price of BNB in USD at a given time
   bnbchain.greenfield.payment.QueryGetPaymentAccountCountResponse:
     type: object
     properties:
-      paymentAccountCount:
+      payment_account_count:
         type: object
         properties:
           owner:
@@ -27144,7 +27897,7 @@ definitions:
   bnbchain.greenfield.payment.QueryGetPaymentAccountResponse:
     type: object
     properties:
-      paymentAccount:
+      payment_account:
         type: object
         properties:
           addr:
@@ -27167,7 +27920,7 @@ definitions:
   bnbchain.greenfield.payment.QueryGetStreamRecordResponse:
     type: object
     properties:
-      streamRecord:
+      stream_record:
         type: object
         properties:
           account:
@@ -27182,42 +27935,47 @@ definitions:
             description: |-
               The per-second rate that an account's balance is changing.
               It is the sum of the account's inbound and outbound flow rates.
-          staticBalance:
+          static_balance:
             type: string
             description: The balance of the stream account at the latest CRUD timestamp.
-          bufferBalance:
+          buffer_balance:
             type: string
             title: >-
               reserved balance of the stream account
 
               If the netflow rate is negative, the reserved balance is
               `netflow_rate * reserve_time`
-          lockBalance:
+          lock_balance:
             type: string
             title: >-
               the locked balance of the stream account after it puts a new
               object and before the object is sealed
           status:
-            type: integer
-            format: int32
             title: the status of the stream account
-          settleTimestamp:
+            type: string
+            enum:
+              - STREAM_ACCOUNT_STATUS_ACTIVE
+              - STREAM_ACCOUNT_STATUS_FROZEN
+            default: STREAM_ACCOUNT_STATUS_ACTIVE
+          settle_timestamp:
             type: string
             format: int64
             title: the unix timestamp when the stream account will be settled
-          outFlowsInUSD:
+          out_flows:
             type: array
             items:
               type: object
               properties:
-                sp_address:
+                to_address:
                   type: string
-                  title: SP(service provider) stream account address
+                  title: >-
+                    stream account address who receives the flow, usually
+                    SP(service provider)
                 rate:
                   type: string
-                  title: flow rate in USD
+                  title: flow rate
               title: |-
-                OutFlowInUSD defines the accumulative outflow stream rate in USD
+                OutFlow defines the accumulative outflow stream rate in BNB
                 from a stream account or a bucket to a SP
             title: the accumulated outflow rates of the stream account
         title: Stream Payment Record of a stream account
@@ -27258,6 +28016,12 @@ definitions:
             type: string
             title: The denom of fee charged in payment module
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  bnbchain.greenfield.payment.StreamAccountStatus:
+    type: string
+    enum:
+      - STREAM_ACCOUNT_STATUS_ACTIVE
+      - STREAM_ACCOUNT_STATUS_FROZEN
+    default: STREAM_ACCOUNT_STATUS_ACTIVE
   bnbchain.greenfield.payment.StreamRecord:
     type: object
     properties:
@@ -27273,42 +28037,47 @@ definitions:
         description: |-
           The per-second rate that an account's balance is changing.
           It is the sum of the account's inbound and outbound flow rates.
-      staticBalance:
+      static_balance:
         type: string
         description: The balance of the stream account at the latest CRUD timestamp.
-      bufferBalance:
+      buffer_balance:
         type: string
         title: >-
           reserved balance of the stream account
 
           If the netflow rate is negative, the reserved balance is `netflow_rate
           * reserve_time`
-      lockBalance:
+      lock_balance:
         type: string
         title: >-
           the locked balance of the stream account after it puts a new object
           and before the object is sealed
       status:
-        type: integer
-        format: int32
         title: the status of the stream account
-      settleTimestamp:
+        type: string
+        enum:
+          - STREAM_ACCOUNT_STATUS_ACTIVE
+          - STREAM_ACCOUNT_STATUS_FROZEN
+        default: STREAM_ACCOUNT_STATUS_ACTIVE
+      settle_timestamp:
         type: string
         format: int64
         title: the unix timestamp when the stream account will be settled
-      outFlowsInUSD:
+      out_flows:
         type: array
         items:
           type: object
           properties:
-            sp_address:
+            to_address:
               type: string
-              title: SP(service provider) stream account address
+              title: >-
+                stream account address who receives the flow, usually SP(service
+                provider)
             rate:
               type: string
-              title: flow rate in USD
+              title: flow rate
           title: |-
-            OutFlowInUSD defines the accumulative outflow stream rate in USD
+            OutFlow defines the accumulative outflow stream rate in BNB
             from a stream account or a bucket to a SP
         title: the accumulated outflow rates of the stream account
     title: Stream Payment Record of a stream account
@@ -27413,10 +28182,6 @@ definitions:
   bnbchain.greenfield.sp.Params:
     type: object
     properties:
-      max_storage_providers:
-        type: integer
-        format: int64
-        description: max_storage_providers is the maximum number of validators.
       deposit_denom:
         type: string
         description: deposit_denom defines the staking coin denomination.
@@ -27426,6 +28191,46 @@ definitions:
           min_deposit_amount defines the minimum deposit amount for storage
           providers.
     description: Params defines the parameters for the module.
+  bnbchain.greenfield.sp.QueryGetSecondarySpStorePriceByTimeResponse:
+    type: object
+    properties:
+      secondary_sp_store_price:
+        type: object
+        properties:
+          update_time:
+            type: string
+            format: int64
+            title: update time, in unix timestamp
+          store_price:
+            type: string
+            title: store price, in bnb wei per charge byte
+        title: |-
+          global secondary sp store price
+          this is the price for all secondary sps
+  bnbchain.greenfield.sp.QueryGetSpStoragePriceByTimeResponse:
+    type: object
+    properties:
+      sp_storage_price:
+        type: object
+        properties:
+          sp_address:
+            type: string
+            title: sp address
+          update_time:
+            type: string
+            format: int64
+            title: update time, in unix timestamp
+          read_price:
+            type: string
+            title: read price, in bnb wei per charge byte
+          free_read_quota:
+            type: string
+            format: uint64
+            title: free read quota, in byte
+          store_price:
+            type: string
+            title: store price, in bnb wei per charge byte
+        title: storage price of a specific sp
   bnbchain.greenfield.sp.QueryParamsResponse:
     type: object
     properties:
@@ -27433,10 +28238,6 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          max_storage_providers:
-            type: integer
-            format: int64
-            description: max_storage_providers is the maximum number of validators.
           deposit_denom:
             type: string
             description: deposit_denom defines the staking coin denomination.
@@ -27617,6 +28418,40 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
+  bnbchain.greenfield.sp.SecondarySpStorePrice:
+    type: object
+    properties:
+      update_time:
+        type: string
+        format: int64
+        title: update time, in unix timestamp
+      store_price:
+        type: string
+        title: store price, in bnb wei per charge byte
+    title: |-
+      global secondary sp store price
+      this is the price for all secondary sps
+  bnbchain.greenfield.sp.SpStoragePrice:
+    type: object
+    properties:
+      sp_address:
+        type: string
+        title: sp address
+      update_time:
+        type: string
+        format: int64
+        title: update time, in unix timestamp
+      read_price:
+        type: string
+        title: read price, in bnb wei per charge byte
+      free_read_quota:
+        type: string
+        format: uint64
+        title: free read quota, in byte
+      store_price:
+        type: string
+        title: store price, in bnb wei per charge byte
+    title: storage price of a specific sp
   bnbchain.greenfield.sp.Status:
     type: string
     enum:
@@ -27692,6 +28527,329 @@ definitions:
       StorageProvider defines the meta info of storage provider
       TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
       TODO: add more account address for different role.
+  bnbchain.greenfield.common.UInt64Value:
+    type: object
+    properties:
+      value:
+        type: string
+        format: uint64
+        description: The uint64 value.
+    description: |-
+      Wrapper message for `uint64`.
+
+      The JSON representation for `UInt64Value` is JSON string.
+  bnbchain.greenfield.permission.ActionType:
+    type: string
+    enum:
+      - ACTION_UNSPECIFIED
+      - ACTION_UPDATE_BUCKET_INFO
+      - ACTION_DELETE_BUCKET
+      - ACTION_CREATE_OBJECT
+      - ACTION_DELETE_OBJECT
+      - ACTION_COPY_OBJECT
+      - ACTION_GET_OBJECT
+      - ACTION_EXECUTE_OBJECT
+      - ACTION_LIST_OBJECT
+      - ACTION_UPDATE_GROUP_MEMBER
+      - ACTION_DELETE_GROUP
+      - ACTION_TYPE_ALL
+    default: ACTION_UNSPECIFIED
+    title: >-
+      ActionType defines the operations you can execute in greenfield storage
+      network
+  bnbchain.greenfield.permission.Effect:
+    type: string
+    enum:
+      - EFFECT_UNSPECIFIED
+      - EFFECT_ALLOW
+      - EFFECT_DENY
+    default: EFFECT_UNSPECIFIED
+    title: >-
+      Effect define the effect of the operation permission, include Allow or
+      deny
+  bnbchain.greenfield.permission.GroupMember:
+    type: object
+    properties:
+      id:
+        type: string
+        title: >-
+          id is an unique u256 sequence for each group member. It also be used
+          as NFT tokenID
+      group_id:
+        type: string
+        title: group_id is the unique id of the group
+      member:
+        type: string
+        title: member is the account address of the member
+  bnbchain.greenfield.permission.Policy:
+    type: object
+    properties:
+      id:
+        type: string
+        title: >-
+          id is an unique u256 sequence for each policy. It also be used as NFT
+          tokenID
+      principal:
+        title: principal defines the accounts/group which the permission grants to
+        type: object
+        properties:
+          type:
+            type: string
+            enum:
+              - PRINCIPAL_TYPE_UNSPECIFIED
+              - PRINCIPAL_TYPE_GNFD_ACCOUNT
+              - PRINCIPAL_TYPE_GNFD_GROUP
+            default: PRINCIPAL_TYPE_UNSPECIFIED
+            description: >-
+              PrincipalType refers to the identity type of system users or
+              entities.
+
+              In Greenfield, it usually refers to accounts or groups.
+          value:
+            type: string
+            title: >-
+              When the type is an account, its value is
+              sdk.AccAddress().String();
+
+              when the type is a group, its value is math.Uint().String()
+        description: >-
+          Principal define the roles that can grant permissions. Currently, it
+          can be account or group.
+      resource_type:
+        title: resource_type defines the type of resource that grants permission for
+        type: string
+        enum:
+          - RESOURCE_TYPE_UNSPECIFIED
+          - RESOURCE_TYPE_BUCKET
+          - RESOURCE_TYPE_OBJECT
+          - RESOURCE_TYPE_GROUP
+        default: RESOURCE_TYPE_UNSPECIFIED
+      resource_id:
+        type: string
+        title: >-
+          resource_id defines the bucket/object/group id of the resource that
+          grants permission for
+      statements:
+        type: array
+        items:
+          type: object
+          properties:
+            effect:
+              title: effect define the impact of permissions, which can be Allow/Deny
+              type: string
+              enum:
+                - EFFECT_UNSPECIFIED
+                - EFFECT_ALLOW
+                - EFFECT_DENY
+              default: EFFECT_UNSPECIFIED
+            actions:
+              type: array
+              items:
+                type: string
+                enum:
+                  - ACTION_UNSPECIFIED
+                  - ACTION_UPDATE_BUCKET_INFO
+                  - ACTION_DELETE_BUCKET
+                  - ACTION_CREATE_OBJECT
+                  - ACTION_DELETE_OBJECT
+                  - ACTION_COPY_OBJECT
+                  - ACTION_GET_OBJECT
+                  - ACTION_EXECUTE_OBJECT
+                  - ACTION_LIST_OBJECT
+                  - ACTION_UPDATE_GROUP_MEMBER
+                  - ACTION_DELETE_GROUP
+                  - ACTION_TYPE_ALL
+                default: ACTION_UNSPECIFIED
+                title: >-
+                  ActionType defines the operations you can execute in
+                  greenfield storage network
+              description: >-
+                action_type define the operation type you can act. greenfield
+                defines a set of permission
+
+                that you can specify in a permissionInfo. see ActionType enum
+                for detail.
+            resources:
+              type: array
+              items:
+                type: string
+              description: >-
+                CAN ONLY USED IN bucket level. Support fuzzy match and limit to
+                5
+
+                If no sub-resource is specified in a statement, then all objects
+                in the bucket are accessible by the principal.
+
+                However, if the sub-resource is defined as 'bucket/test_*,' in
+                the statement, then only objects with a 'test_'
+
+                prefix can be accessed by the principal.
+            expiration_time:
+              type: string
+              format: date-time
+              description: >-
+                expiration_time defines how long the permission is valid. If not
+                explicitly specified, it means it will not expire.
+            limit_size:
+              description: >-
+                limit_size defines the total data size that is allowed to
+                operate. If not explicitly specified, it means it will not
+                limit.
+              type: object
+              properties:
+                value:
+                  type: string
+                  format: uint64
+                  description: The uint64 value.
+        title: >-
+          statements defines the details content of the permission, including
+          effect/actions/sub-resources
+      expiration_time:
+        type: string
+        format: date-time
+        title: >-
+          expiration_time defines the whole expiration time of all the
+          statements.
+
+          Notices: Its priority is higher than the expiration time inside the
+          Statement
+  bnbchain.greenfield.permission.Principal:
+    type: object
+    properties:
+      type:
+        type: string
+        enum:
+          - PRINCIPAL_TYPE_UNSPECIFIED
+          - PRINCIPAL_TYPE_GNFD_ACCOUNT
+          - PRINCIPAL_TYPE_GNFD_GROUP
+        default: PRINCIPAL_TYPE_UNSPECIFIED
+        description: |-
+          PrincipalType refers to the identity type of system users or entities.
+          In Greenfield, it usually refers to accounts or groups.
+      value:
+        type: string
+        title: |-
+          When the type is an account, its value is sdk.AccAddress().String();
+          when the type is a group, its value is math.Uint().String()
+    description: >-
+      Principal define the roles that can grant permissions. Currently, it can
+      be account or group.
+  bnbchain.greenfield.permission.PrincipalType:
+    type: string
+    enum:
+      - PRINCIPAL_TYPE_UNSPECIFIED
+      - PRINCIPAL_TYPE_GNFD_ACCOUNT
+      - PRINCIPAL_TYPE_GNFD_GROUP
+    default: PRINCIPAL_TYPE_UNSPECIFIED
+    description: |-
+      PrincipalType refers to the identity type of system users or entities.
+      In Greenfield, it usually refers to accounts or groups.
+  bnbchain.greenfield.permission.Statement:
+    type: object
+    properties:
+      effect:
+        title: effect define the impact of permissions, which can be Allow/Deny
+        type: string
+        enum:
+          - EFFECT_UNSPECIFIED
+          - EFFECT_ALLOW
+          - EFFECT_DENY
+        default: EFFECT_UNSPECIFIED
+      actions:
+        type: array
+        items:
+          type: string
+          enum:
+            - ACTION_UNSPECIFIED
+            - ACTION_UPDATE_BUCKET_INFO
+            - ACTION_DELETE_BUCKET
+            - ACTION_CREATE_OBJECT
+            - ACTION_DELETE_OBJECT
+            - ACTION_COPY_OBJECT
+            - ACTION_GET_OBJECT
+            - ACTION_EXECUTE_OBJECT
+            - ACTION_LIST_OBJECT
+            - ACTION_UPDATE_GROUP_MEMBER
+            - ACTION_DELETE_GROUP
+            - ACTION_TYPE_ALL
+          default: ACTION_UNSPECIFIED
+          title: >-
+            ActionType defines the operations you can execute in greenfield
+            storage network
+        description: >-
+          action_type define the operation type you can act. greenfield defines
+          a set of permission
+
+          that you can specify in a permissionInfo. see ActionType enum for
+          detail.
+      resources:
+        type: array
+        items:
+          type: string
+        description: >-
+          CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
+
+          If no sub-resource is specified in a statement, then all objects in
+          the bucket are accessible by the principal.
+
+          However, if the sub-resource is defined as 'bucket/test_*,' in the
+          statement, then only objects with a 'test_'
+
+          prefix can be accessed by the principal.
+      expiration_time:
+        type: string
+        format: date-time
+        description: >-
+          expiration_time defines how long the permission is valid. If not
+          explicitly specified, it means it will not expire.
+      limit_size:
+        description: >-
+          limit_size defines the total data size that is allowed to operate. If
+          not explicitly specified, it means it will not limit.
+        type: object
+        properties:
+          value:
+            type: string
+            format: uint64
+            description: The uint64 value.
+  bnbchain.greenfield.resource.ResourceType:
+    type: string
+    enum:
+      - RESOURCE_TYPE_UNSPECIFIED
+      - RESOURCE_TYPE_BUCKET
+      - RESOURCE_TYPE_OBJECT
+      - RESOURCE_TYPE_GROUP
+    default: RESOURCE_TYPE_UNSPECIFIED
+  bnbchain.greenfield.storage.BillingInfo:
+    type: object
+    properties:
+      price_time:
+        type: string
+        format: int64
+        title: >-
+          the time of the payment price, used to calculate the charge rate of
+          the bucket
+      total_charge_size:
+        type: string
+        format: uint64
+        title: >-
+          the total size of the objects in the bucket, used to calculate the
+          charge rate of the bucket
+      secondary_sp_objects_size:
+        type: array
+        items:
+          type: object
+          properties:
+            sp_address:
+              type: string
+              title: address is the address of the secondary sp
+            total_charge_size:
+              type: string
+              format: uint64
+              title: size is the total size of the objects in the secondary sp
+          title: secondary sp objects size statistics
+        title: secondary sp objects size statistics
+    title: BillingInfo is the billing information of the bucket
   bnbchain.greenfield.storage.BucketInfo:
     type: object
     properties:
@@ -27719,6 +28877,7 @@ definitions:
         enum:
           - SOURCE_TYPE_ORIGIN
           - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_MIRROR_PENDING
         default: SOURCE_TYPE_ORIGIN
       create_at:
         type: string
@@ -27735,32 +28894,39 @@ definitions:
 
           leave this SP, unless you explicitly shift them to another SP.
       read_quota:
-        title: read_quota defines the traffic quota for read
         type: string
-        enum:
-          - READ_QUOTA_FREE
-          - READ_QUOTA_1G
-          - READ_QUOTA_10G
-        default: READ_QUOTA_FREE
-      payment_price_time:
-        type: string
-        format: int64
-        title: 'payment_price_time TODO(Owen): refine the comments'
-      payment_out_flows:
-        type: array
-        items:
-          type: object
-          properties:
-            sp_address:
-              type: string
-              title: SP(service provider) stream account address
-            rate:
-              type: string
-              title: flow rate in USD
-          title: |-
-            OutFlowInUSD defines the accumulative outflow stream rate in USD
-            from a stream account or a bucket to a SP
-        title: payment_out_flows
+        format: uint64
+        title: read_quota defines the traffic quota for read in bytes per month
+      billing_info:
+        title: billing info of the bucket
+        type: object
+        properties:
+          price_time:
+            type: string
+            format: int64
+            title: >-
+              the time of the payment price, used to calculate the charge rate
+              of the bucket
+          total_charge_size:
+            type: string
+            format: uint64
+            title: >-
+              the total size of the objects in the bucket, used to calculate the
+              charge rate of the bucket
+          secondary_sp_objects_size:
+            type: array
+            items:
+              type: object
+              properties:
+                sp_address:
+                  type: string
+                  title: address is the address of the secondary sp
+                total_charge_size:
+                  type: string
+                  format: uint64
+                  title: size is the total size of the objects in the secondary sp
+              title: secondary sp objects size statistics
+            title: secondary sp objects size statistics
   bnbchain.greenfield.storage.BucketMetaData:
     type: object
     properties:
@@ -27786,6 +28952,26 @@ definitions:
             value:
               type: string
         title: attributes
+  bnbchain.greenfield.storage.GroupInfo:
+    type: object
+    properties:
+      owner:
+        type: string
+        description: owner is the owner of the group. It can not changed once it created.
+      group_name:
+        type: string
+        description: group_name is the name of group which is unique under an account.
+      source_type:
+        title: source_type
+        type: string
+        enum:
+          - SOURCE_TYPE_ORIGIN
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_MIRROR_PENDING
+        default: SOURCE_TYPE_ORIGIN
+      id:
+        type: string
+        title: id is the unique identifier of group
   bnbchain.greenfield.storage.GroupMetaData:
     type: object
     properties:
@@ -27856,16 +29042,20 @@ definitions:
           multi-replication or EC.
         type: string
         enum:
-          - REDUNDANCY_REPLICA_TYPE
           - REDUNDANCY_EC_TYPE
-        default: REDUNDANCY_REPLICA_TYPE
+          - REDUNDANCY_REPLICA_TYPE
+        default: REDUNDANCY_EC_TYPE
       source_type:
         description: source_type define the source of the object.
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
           - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_MIRROR_PENDING
         default: SOURCE_TYPE_ORIGIN
+        title: |-
+          SourceType represents the source of resource creation, which can
+          from Greenfield native or from a cross-chain transfer from BSC
       checksums:
         type: array
         items:
@@ -27877,9 +29067,6 @@ definitions:
         items:
           type: string
         title: secondary_sp_addresses define the addresses of secondary_sps
-      locked_balance:
-        type: string
-        title: 'lockedBalance TODO(Owen): refine the comments'
   bnbchain.greenfield.storage.ObjectMetaData:
     type: object
     properties:
@@ -27911,6 +29098,17 @@ definitions:
       - OBJECT_STATUS_CREATED
       - OBJECT_STATUS_SEALED
     default: OBJECT_STATUS_CREATED
+    description: >-
+      ObjectStatus represents the creation status of an object. After a user
+      successfully
+
+      sends a CreateObject transaction onto the chain, the status is set to
+      'Created'.
+
+      After the Primary Service Provider successfully sends a Seal Object
+      transaction onto
+
+      the chain, the status is set to 'Sealed'.
   bnbchain.greenfield.storage.Params:
     type: object
     properties:
@@ -27934,6 +29132,34 @@ definitions:
         type: string
         format: uint64
         title: 'max_payload_size is the maximum size of the payload, default: 2G'
+      min_charge_size:
+        type: string
+        format: uint64
+        title: >-
+          min_charge_size is the minimum charge size of the payload, objects
+          smaller than this size will be charged as this size
+      mirror_bucket_relayer_fee:
+        type: string
+        title: relayer fee for the mirror bucket tx
+      mirror_bucket_ack_relayer_fee:
+        type: string
+        title: relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx
+      mirror_object_relayer_fee:
+        type: string
+        title: relayer fee for the mirror object tx
+      mirror_object_ack_relayer_fee:
+        type: string
+        title: Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
+      mirror_group_relayer_fee:
+        type: string
+        title: relayer fee for the mirror object tx
+      mirror_group_ack_relayer_fee:
+        type: string
+        title: Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
+      max_buckets_per_account:
+        type: integer
+        format: int64
+        title: The maximum number of buckets that can be created per account
     description: Params defines the parameters for the module.
   bnbchain.greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -28021,6 +29247,7 @@ definitions:
             enum:
               - SOURCE_TYPE_ORIGIN
               - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_MIRROR_PENDING
             default: SOURCE_TYPE_ORIGIN
           create_at:
             type: string
@@ -28037,32 +29264,83 @@ definitions:
 
               leave this SP, unless you explicitly shift them to another SP.
           read_quota:
-            title: read_quota defines the traffic quota for read
+            type: string
+            format: uint64
+            title: read_quota defines the traffic quota for read in bytes per month
+          billing_info:
+            title: billing info of the bucket
+            type: object
+            properties:
+              price_time:
+                type: string
+                format: int64
+                title: >-
+                  the time of the payment price, used to calculate the charge
+                  rate of the bucket
+              total_charge_size:
+                type: string
+                format: uint64
+                title: >-
+                  the total size of the objects in the bucket, used to calculate
+                  the charge rate of the bucket
+              secondary_sp_objects_size:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    sp_address:
+                      type: string
+                      title: address is the address of the secondary sp
+                    total_charge_size:
+                      type: string
+                      format: uint64
+                      title: >-
+                        size is the total size of the objects in the secondary
+                        sp
+                  title: secondary sp objects size statistics
+                title: secondary sp objects size statistics
+  bnbchain.greenfield.storage.QueryHeadGroupMemberResponse:
+    type: object
+    properties:
+      group_member:
+        type: object
+        properties:
+          id:
+            type: string
+            title: >-
+              id is an unique u256 sequence for each group member. It also be
+              used as NFT tokenID
+          group_id:
+            type: string
+            title: group_id is the unique id of the group
+          member:
+            type: string
+            title: member is the account address of the member
+  bnbchain.greenfield.storage.QueryHeadGroupResponse:
+    type: object
+    properties:
+      group_info:
+        type: object
+        properties:
+          owner:
+            type: string
+            description: >-
+              owner is the owner of the group. It can not changed once it
+              created.
+          group_name:
+            type: string
+            description: group_name is the name of group which is unique under an account.
+          source_type:
+            title: source_type
             type: string
             enum:
-              - READ_QUOTA_FREE
-              - READ_QUOTA_1G
-              - READ_QUOTA_10G
-            default: READ_QUOTA_FREE
-          payment_price_time:
+              - SOURCE_TYPE_ORIGIN
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_MIRROR_PENDING
+            default: SOURCE_TYPE_ORIGIN
+          id:
             type: string
-            format: int64
-            title: 'payment_price_time TODO(Owen): refine the comments'
-          payment_out_flows:
-            type: array
-            items:
-              type: object
-              properties:
-                sp_address:
-                  type: string
-                  title: SP(service provider) stream account address
-                rate:
-                  type: string
-                  title: flow rate in USD
-              title: |-
-                OutFlowInUSD defines the accumulative outflow stream rate in USD
-                from a stream account or a bucket to a SP
-            title: payment_out_flows
+            title: id is the unique identifier of group
   bnbchain.greenfield.storage.QueryHeadObjectResponse:
     type: object
     properties:
@@ -28111,16 +29389,20 @@ definitions:
               multi-replication or EC.
             type: string
             enum:
-              - REDUNDANCY_REPLICA_TYPE
               - REDUNDANCY_EC_TYPE
-            default: REDUNDANCY_REPLICA_TYPE
+              - REDUNDANCY_REPLICA_TYPE
+            default: REDUNDANCY_EC_TYPE
           source_type:
             description: source_type define the source of the object.
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
               - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_MIRROR_PENDING
             default: SOURCE_TYPE_ORIGIN
+            title: |-
+              SourceType represents the source of resource creation, which can
+              from Greenfield native or from a cross-chain transfer from BSC
           checksums:
             type: array
             items:
@@ -28132,9 +29414,6 @@ definitions:
             items:
               type: string
             title: secondary_sp_addresses define the addresses of secondary_sps
-          locked_balance:
-            type: string
-            title: 'lockedBalance TODO(Owen): refine the comments'
   bnbchain.greenfield.storage.QueryListBucketsResponse:
     type: object
     properties:
@@ -28167,6 +29446,7 @@ definitions:
               enum:
                 - SOURCE_TYPE_ORIGIN
                 - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_MIRROR_PENDING
               default: SOURCE_TYPE_ORIGIN
             create_at:
               type: string
@@ -28183,34 +29463,41 @@ definitions:
 
                 leave this SP, unless you explicitly shift them to another SP.
             read_quota:
-              title: read_quota defines the traffic quota for read
               type: string
-              enum:
-                - READ_QUOTA_FREE
-                - READ_QUOTA_1G
-                - READ_QUOTA_10G
-              default: READ_QUOTA_FREE
-            payment_price_time:
-              type: string
-              format: int64
-              title: 'payment_price_time TODO(Owen): refine the comments'
-            payment_out_flows:
-              type: array
-              items:
-                type: object
-                properties:
-                  sp_address:
-                    type: string
-                    title: SP(service provider) stream account address
-                  rate:
-                    type: string
-                    title: flow rate in USD
-                title: >-
-                  OutFlowInUSD defines the accumulative outflow stream rate in
-                  USD
-
-                  from a stream account or a bucket to a SP
-              title: payment_out_flows
+              format: uint64
+              title: read_quota defines the traffic quota for read in bytes per month
+            billing_info:
+              title: billing info of the bucket
+              type: object
+              properties:
+                price_time:
+                  type: string
+                  format: int64
+                  title: >-
+                    the time of the payment price, used to calculate the charge
+                    rate of the bucket
+                total_charge_size:
+                  type: string
+                  format: uint64
+                  title: >-
+                    the total size of the objects in the bucket, used to
+                    calculate the charge rate of the bucket
+                secondary_sp_objects_size:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      sp_address:
+                        type: string
+                        title: address is the address of the secondary sp
+                      total_charge_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          size is the total size of the objects in the secondary
+                          sp
+                    title: secondary sp objects size statistics
+                  title: secondary sp objects size statistics
       pagination:
         type: object
         properties:
@@ -28237,6 +29524,61 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  bnbchain.greenfield.storage.QueryListGroupResponse:
+    type: object
+    properties:
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+      group_infos:
+        type: array
+        items:
+          type: object
+          properties:
+            owner:
+              type: string
+              description: >-
+                owner is the owner of the group. It can not changed once it
+                created.
+            group_name:
+              type: string
+              description: >-
+                group_name is the name of group which is unique under an
+                account.
+            source_type:
+              title: source_type
+              type: string
+              enum:
+                - SOURCE_TYPE_ORIGIN
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_MIRROR_PENDING
+              default: SOURCE_TYPE_ORIGIN
+            id:
+              type: string
+              title: id is the unique identifier of group
   bnbchain.greenfield.storage.QueryListObjectsResponse:
     type: object
     properties:
@@ -28287,16 +29629,20 @@ definitions:
                 multi-replication or EC.
               type: string
               enum:
-                - REDUNDANCY_REPLICA_TYPE
                 - REDUNDANCY_EC_TYPE
-              default: REDUNDANCY_REPLICA_TYPE
+                - REDUNDANCY_REPLICA_TYPE
+              default: REDUNDANCY_EC_TYPE
             source_type:
               description: source_type define the source of the object.
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
                 - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_MIRROR_PENDING
               default: SOURCE_TYPE_ORIGIN
+              title: |-
+                SourceType represents the source of resource creation, which can
+                from Greenfield native or from a cross-chain transfer from BSC
             checksums:
               type: array
               items:
@@ -28310,9 +29656,6 @@ definitions:
               items:
                 type: string
               title: secondary_sp_addresses define the addresses of secondary_sps
-            locked_balance:
-              type: string
-              title: 'lockedBalance TODO(Owen): refine the comments'
       pagination:
         type: object
         properties:
@@ -28394,31 +29737,366 @@ definitions:
             type: string
             format: uint64
             title: 'max_payload_size is the maximum size of the payload, default: 2G'
+          min_charge_size:
+            type: string
+            format: uint64
+            title: >-
+              min_charge_size is the minimum charge size of the payload, objects
+              smaller than this size will be charged as this size
+          mirror_bucket_relayer_fee:
+            type: string
+            title: relayer fee for the mirror bucket tx
+          mirror_bucket_ack_relayer_fee:
+            type: string
+            title: >-
+              relayer fee for the ACK or FAIL_ACK package of the mirror bucket
+              tx
+          mirror_object_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx
+          mirror_object_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx
+          mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx
+          mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx
+          max_buckets_per_account:
+            type: integer
+            format: int64
+            title: The maximum number of buckets that can be created per account
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  bnbchain.greenfield.storage.ReadQuota:
-    type: string
-    enum:
-      - READ_QUOTA_FREE
-      - READ_QUOTA_1G
-      - READ_QUOTA_10G
-    default: READ_QUOTA_FREE
-    title: >-
-      TODO: Need to confirm the read quota enum which determined by payment
-      module
+  bnbchain.greenfield.storage.QueryPolicyForAccountResponse:
+    type: object
+    properties:
+      policy:
+        type: object
+        properties:
+          id:
+            type: string
+            title: >-
+              id is an unique u256 sequence for each policy. It also be used as
+              NFT tokenID
+          principal:
+            title: >-
+              principal defines the accounts/group which the permission grants
+              to
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - PRINCIPAL_TYPE_UNSPECIFIED
+                  - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                  - PRINCIPAL_TYPE_GNFD_GROUP
+                default: PRINCIPAL_TYPE_UNSPECIFIED
+                description: >-
+                  PrincipalType refers to the identity type of system users or
+                  entities.
 
-      TODO: Make this field be configured through governance
+                  In Greenfield, it usually refers to accounts or groups.
+              value:
+                type: string
+                title: >-
+                  When the type is an account, its value is
+                  sdk.AccAddress().String();
+
+                  when the type is a group, its value is math.Uint().String()
+            description: >-
+              Principal define the roles that can grant permissions. Currently,
+              it can be account or group.
+          resource_type:
+            title: >-
+              resource_type defines the type of resource that grants permission
+              for
+            type: string
+            enum:
+              - RESOURCE_TYPE_UNSPECIFIED
+              - RESOURCE_TYPE_BUCKET
+              - RESOURCE_TYPE_OBJECT
+              - RESOURCE_TYPE_GROUP
+            default: RESOURCE_TYPE_UNSPECIFIED
+          resource_id:
+            type: string
+            title: >-
+              resource_id defines the bucket/object/group id of the resource
+              that grants permission for
+          statements:
+            type: array
+            items:
+              type: object
+              properties:
+                effect:
+                  title: >-
+                    effect define the impact of permissions, which can be
+                    Allow/Deny
+                  type: string
+                  enum:
+                    - EFFECT_UNSPECIFIED
+                    - EFFECT_ALLOW
+                    - EFFECT_DENY
+                  default: EFFECT_UNSPECIFIED
+                actions:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - ACTION_UNSPECIFIED
+                      - ACTION_UPDATE_BUCKET_INFO
+                      - ACTION_DELETE_BUCKET
+                      - ACTION_CREATE_OBJECT
+                      - ACTION_DELETE_OBJECT
+                      - ACTION_COPY_OBJECT
+                      - ACTION_GET_OBJECT
+                      - ACTION_EXECUTE_OBJECT
+                      - ACTION_LIST_OBJECT
+                      - ACTION_UPDATE_GROUP_MEMBER
+                      - ACTION_DELETE_GROUP
+                      - ACTION_TYPE_ALL
+                    default: ACTION_UNSPECIFIED
+                    title: >-
+                      ActionType defines the operations you can execute in
+                      greenfield storage network
+                  description: >-
+                    action_type define the operation type you can act.
+                    greenfield defines a set of permission
+
+                    that you can specify in a permissionInfo. see ActionType
+                    enum for detail.
+                resources:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    CAN ONLY USED IN bucket level. Support fuzzy match and limit
+                    to 5
+
+                    If no sub-resource is specified in a statement, then all
+                    objects in the bucket are accessible by the principal.
+
+                    However, if the sub-resource is defined as 'bucket/test_*,'
+                    in the statement, then only objects with a 'test_'
+
+                    prefix can be accessed by the principal.
+                expiration_time:
+                  type: string
+                  format: date-time
+                  description: >-
+                    expiration_time defines how long the permission is valid. If
+                    not explicitly specified, it means it will not expire.
+                limit_size:
+                  description: >-
+                    limit_size defines the total data size that is allowed to
+                    operate. If not explicitly specified, it means it will not
+                    limit.
+                  type: object
+                  properties:
+                    value:
+                      type: string
+                      format: uint64
+                      description: The uint64 value.
+            title: >-
+              statements defines the details content of the permission,
+              including effect/actions/sub-resources
+          expiration_time:
+            type: string
+            format: date-time
+            title: >-
+              expiration_time defines the whole expiration time of all the
+              statements.
+
+              Notices: Its priority is higher than the expiration time inside
+              the Statement
+  bnbchain.greenfield.storage.QueryPolicyForGroupResponse:
+    type: object
+    properties:
+      policy:
+        type: object
+        properties:
+          id:
+            type: string
+            title: >-
+              id is an unique u256 sequence for each policy. It also be used as
+              NFT tokenID
+          principal:
+            title: >-
+              principal defines the accounts/group which the permission grants
+              to
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - PRINCIPAL_TYPE_UNSPECIFIED
+                  - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                  - PRINCIPAL_TYPE_GNFD_GROUP
+                default: PRINCIPAL_TYPE_UNSPECIFIED
+                description: >-
+                  PrincipalType refers to the identity type of system users or
+                  entities.
+
+                  In Greenfield, it usually refers to accounts or groups.
+              value:
+                type: string
+                title: >-
+                  When the type is an account, its value is
+                  sdk.AccAddress().String();
+
+                  when the type is a group, its value is math.Uint().String()
+            description: >-
+              Principal define the roles that can grant permissions. Currently,
+              it can be account or group.
+          resource_type:
+            title: >-
+              resource_type defines the type of resource that grants permission
+              for
+            type: string
+            enum:
+              - RESOURCE_TYPE_UNSPECIFIED
+              - RESOURCE_TYPE_BUCKET
+              - RESOURCE_TYPE_OBJECT
+              - RESOURCE_TYPE_GROUP
+            default: RESOURCE_TYPE_UNSPECIFIED
+          resource_id:
+            type: string
+            title: >-
+              resource_id defines the bucket/object/group id of the resource
+              that grants permission for
+          statements:
+            type: array
+            items:
+              type: object
+              properties:
+                effect:
+                  title: >-
+                    effect define the impact of permissions, which can be
+                    Allow/Deny
+                  type: string
+                  enum:
+                    - EFFECT_UNSPECIFIED
+                    - EFFECT_ALLOW
+                    - EFFECT_DENY
+                  default: EFFECT_UNSPECIFIED
+                actions:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - ACTION_UNSPECIFIED
+                      - ACTION_UPDATE_BUCKET_INFO
+                      - ACTION_DELETE_BUCKET
+                      - ACTION_CREATE_OBJECT
+                      - ACTION_DELETE_OBJECT
+                      - ACTION_COPY_OBJECT
+                      - ACTION_GET_OBJECT
+                      - ACTION_EXECUTE_OBJECT
+                      - ACTION_LIST_OBJECT
+                      - ACTION_UPDATE_GROUP_MEMBER
+                      - ACTION_DELETE_GROUP
+                      - ACTION_TYPE_ALL
+                    default: ACTION_UNSPECIFIED
+                    title: >-
+                      ActionType defines the operations you can execute in
+                      greenfield storage network
+                  description: >-
+                    action_type define the operation type you can act.
+                    greenfield defines a set of permission
+
+                    that you can specify in a permissionInfo. see ActionType
+                    enum for detail.
+                resources:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    CAN ONLY USED IN bucket level. Support fuzzy match and limit
+                    to 5
+
+                    If no sub-resource is specified in a statement, then all
+                    objects in the bucket are accessible by the principal.
+
+                    However, if the sub-resource is defined as 'bucket/test_*,'
+                    in the statement, then only objects with a 'test_'
+
+                    prefix can be accessed by the principal.
+                expiration_time:
+                  type: string
+                  format: date-time
+                  description: >-
+                    expiration_time defines how long the permission is valid. If
+                    not explicitly specified, it means it will not expire.
+                limit_size:
+                  description: >-
+                    limit_size defines the total data size that is allowed to
+                    operate. If not explicitly specified, it means it will not
+                    limit.
+                  type: object
+                  properties:
+                    value:
+                      type: string
+                      format: uint64
+                      description: The uint64 value.
+            title: >-
+              statements defines the details content of the permission,
+              including effect/actions/sub-resources
+          expiration_time:
+            type: string
+            format: date-time
+            title: >-
+              expiration_time defines the whole expiration time of all the
+              statements.
+
+              Notices: Its priority is higher than the expiration time inside
+              the Statement
+  bnbchain.greenfield.storage.QueryVerifyPermissionResponse:
+    type: object
+    properties:
+      effect:
+        type: string
+        enum:
+          - EFFECT_UNSPECIFIED
+          - EFFECT_ALLOW
+          - EFFECT_DENY
+        default: EFFECT_UNSPECIFIED
+        title: >-
+          Effect define the effect of the operation permission, include Allow or
+          deny
   bnbchain.greenfield.storage.RedundancyType:
     type: string
     enum:
-      - REDUNDANCY_REPLICA_TYPE
       - REDUNDANCY_EC_TYPE
-    default: REDUNDANCY_REPLICA_TYPE
+      - REDUNDANCY_REPLICA_TYPE
+    default: REDUNDANCY_EC_TYPE
+    description: |-
+      RedundancyType represents the redundancy algorithm type for object data,
+      which can be either multi-replica or erasure coding.
+  bnbchain.greenfield.storage.SecondarySpObjectsSize:
+    type: object
+    properties:
+      sp_address:
+        type: string
+        title: address is the address of the secondary sp
+      total_charge_size:
+        type: string
+        format: uint64
+        title: size is the total size of the objects in the secondary sp
+    title: secondary sp objects size statistics
   bnbchain.greenfield.storage.SourceType:
     type: string
     enum:
       - SOURCE_TYPE_ORIGIN
       - SOURCE_TYPE_BSC_CROSS_CHAIN
+      - SOURCE_TYPE_MIRROR_PENDING
     default: SOURCE_TYPE_ORIGIN
+    title: |-
+      SourceType represents the source of resource creation, which can
+      from Greenfield native or from a cross-chain transfer from BSC
   bnbchain.greenfield.storage.Trait:
     type: object
     properties:
@@ -36878,6 +38556,7 @@ definitions:
     properties:
       init_module_balance:
         type: string
+        title: initial balance to mint for crosschain module when the chain starts
     description: Params holds parameters for the cross chain module.
   cosmos.crosschain.v1.QueryCrossChainPackageResponse:
     type: object
@@ -36885,6 +38564,7 @@ definitions:
       package:
         type: string
         format: byte
+        title: content of the cross chain package
     description: >-
       QueryCrossChainPackageResponse is the response type for the
       Query/CrossChainPackage RPC method.
@@ -36897,6 +38577,9 @@ definitions:
         properties:
           init_module_balance:
             type: string
+            title: >-
+              initial balance to mint for crosschain module when the chain
+              starts
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
   cosmos.crosschain.v1.QueryReceiveSequenceResponse:
     type: object
@@ -36904,6 +38587,7 @@ definitions:
       sequence:
         type: string
         format: uint64
+        title: sequence of the cross chain package
     description: >-
       QuerySendSequenceResponse is the response type for the
       Query/ReceiveSequence RPC method.
@@ -36913,6 +38597,7 @@ definitions:
       sequence:
         type: string
         format: uint64
+        title: sequence of the cross chain package
     description: >-
       QuerySendSequenceResponse is the response type for the Query/SendSequence
       RPC method.
@@ -39354,10 +41039,10 @@ definitions:
         type: string
         format: uint64
         title: Timeout for the in turn relayer
-      relayer_backoff_time:
+      relayer_interval:
         type: string
         format: uint64
-        title: Backoff time for the other relayers
+        title: RelayInterval is for in-turn relayer
       relayer_reward_share:
         type: integer
         format: int64
@@ -39367,6 +41052,26 @@ definitions:
           the other relayers signed the bls message will share the reward
           evenly.
     description: Params holds parameters for the oracle module.
+  cosmos.oracle.v1.QueryInturnRelayerResponse:
+    type: object
+    properties:
+      bls_pub_key:
+        type: string
+      relay_interval:
+        type: object
+        properties:
+          start:
+            type: string
+            format: uint64
+          end:
+            type: string
+            format: uint64
+        title: >-
+          RelayInterval holds start and end(exclusive) time of in-turn relayer,
+          [start, end)
+    description: >-
+      QueryInturnRelayerResponse is the response type for the Query In-turn
+      relayer RPC method.
   cosmos.oracle.v1.QueryParamsResponse:
     type: object
     properties:
@@ -39378,10 +41083,10 @@ definitions:
             type: string
             format: uint64
             title: Timeout for the in turn relayer
-          relayer_backoff_time:
+          relayer_interval:
             type: string
             format: uint64
-            title: Backoff time for the other relayers
+            title: RelayInterval is for in-turn relayer
           relayer_reward_share:
             type: integer
             format: int64
@@ -39391,6 +41096,18 @@ definitions:
               the other relayers signed the bls message will share the reward
               evenly.
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  cosmos.oracle.v1.RelayInterval:
+    type: object
+    properties:
+      start:
+        type: string
+        format: uint64
+      end:
+        type: string
+        format: uint64
+    title: >-
+      RelayInterval holds start and end(exclusive) time of in-turn relayer,
+      [start, end)
   cosmos.params.v1beta1.ParamChange:
     type: object
     properties:
@@ -40183,13 +41900,18 @@ definitions:
               type: string
               description: >-
                 relayer_address defines the address of the validator's
-                authorized relayer/operator;.
-            relayer_bls_key:
+                authorized relayer;.
+            challenger_address:
+              type: string
+              description: >-
+                challenger_address defines the address of the validator's
+                authorized challenger;.
+            bls_key:
               type: string
               format: byte
               title: >-
-                relayer_bls_key defines the bls pubkey of the validator's
-                authorized relayer/operator;
+                bls_key defines the bls pubkey of the validator's authorized
+                relayer/challenger/operator;
           description: >-
             Validator defines a validator, together with the total amount of the
 
@@ -40746,13 +42468,18 @@ definitions:
             type: string
             description: >-
               relayer_address defines the address of the validator's authorized
-              relayer/operator;.
-          relayer_bls_key:
+              relayer;.
+          challenger_address:
+            type: string
+            description: >-
+              challenger_address defines the address of the validator's
+              authorized challenger;.
+          bls_key:
             type: string
             format: byte
             title: >-
-              relayer_bls_key defines the bls pubkey of the validator's
-              authorized relayer/operator;
+              bls_key defines the bls pubkey of the validator's authorized
+              relayer/challenger/operator;
         description: >-
           Validator defines a validator, together with the total amount of the
 
@@ -41064,13 +42791,18 @@ definitions:
               type: string
               description: >-
                 relayer_address defines the address of the validator's
-                authorized relayer/operator;.
-            relayer_bls_key:
+                authorized relayer;.
+            challenger_address:
+              type: string
+              description: >-
+                challenger_address defines the address of the validator's
+                authorized challenger;.
+            bls_key:
               type: string
               format: byte
               title: >-
-                relayer_bls_key defines the bls pubkey of the validator's
-                authorized relayer/operator;
+                bls_key defines the bls pubkey of the validator's authorized
+                relayer/challenger/operator;
           description: >-
             Validator defines a validator, together with the total amount of the
 
@@ -41489,13 +43221,18 @@ definitions:
                   type: string
                   description: >-
                     relayer_address defines the address of the validator's
-                    authorized relayer/operator;.
-                relayer_bls_key:
+                    authorized relayer;.
+                challenger_address:
+                  type: string
+                  description: >-
+                    challenger_address defines the address of the validator's
+                    authorized challenger;.
+                bls_key:
                   type: string
                   format: byte
                   title: >-
-                    relayer_bls_key defines the bls pubkey of the validator's
-                    authorized relayer/operator;
+                    bls_key defines the bls pubkey of the validator's authorized
+                    relayer/challenger/operator;
               description: >-
                 Validator defines a validator, together with the total amount of
                 the
@@ -42111,13 +43848,18 @@ definitions:
             type: string
             description: >-
               relayer_address defines the address of the validator's authorized
-              relayer/operator;.
-          relayer_bls_key:
+              relayer;.
+          challenger_address:
+            type: string
+            description: >-
+              challenger_address defines the address of the validator's
+              authorized challenger;.
+          bls_key:
             type: string
             format: byte
             title: >-
-              relayer_bls_key defines the bls pubkey of the validator's
-              authorized relayer/operator;
+              bls_key defines the bls pubkey of the validator's authorized
+              relayer/challenger/operator;
         description: >-
           Validator defines a validator, together with the total amount of the
 
@@ -42499,13 +44241,18 @@ definitions:
               type: string
               description: >-
                 relayer_address defines the address of the validator's
-                authorized relayer/operator;.
-            relayer_bls_key:
+                authorized relayer;.
+            challenger_address:
+              type: string
+              description: >-
+                challenger_address defines the address of the validator's
+                authorized challenger;.
+            bls_key:
               type: string
               format: byte
               title: >-
-                relayer_bls_key defines the bls pubkey of the validator's
-                authorized relayer/operator;
+                bls_key defines the bls pubkey of the validator's authorized
+                relayer/challenger/operator;
           description: >-
             Validator defines a validator, together with the total amount of the
 
@@ -43093,13 +44840,18 @@ definitions:
         type: string
         description: >-
           relayer_address defines the address of the validator's authorized
-          relayer/operator;.
-      relayer_bls_key:
+          relayer;.
+      challenger_address:
+        type: string
+        description: >-
+          challenger_address defines the address of the validator's authorized
+          challenger;.
+      bls_key:
         type: string
         format: byte
         title: >-
-          relayer_bls_key defines the bls pubkey of the validator's authorized
-          relayer/operator;
+          bls_key defines the bls pubkey of the validator's authorized
+          relayer/challenger/operator;
     description: >-
       Validator defines a validator, together with the total amount of the
 

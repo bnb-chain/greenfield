@@ -154,7 +154,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
 	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
@@ -217,14 +217,13 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberResp.GroupInfo.GroupName, groupName)
-	s.Require().Equal(queryHeadGroupMemberResp.GroupInfo.Owner, owner.GetAddr().String())
+	s.Require().Equal(queryHeadGroupMemberResp.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
 
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
 	membersToDelete := []sdk.AccAddress{member.GetAddr()}
-	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(msgUpdateGroupMember, owner)
 
 	// 5. HeadGroupMember (delete)
@@ -243,8 +242,11 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberRespAdd, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqAdd)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupInfo.GroupName, groupName)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupInfo.Owner, owner.GetAddr().String())
+	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
+
+	// 6. Create a group with the same name
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	s.SendTxBlockWithExpectErrorString(msgCreateGroup, owner, "exists")
 }
 
 func (s *StorageTestSuite) TestDeleteBucket() {
@@ -261,7 +263,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket1, user)
 
-	// 2. CreateBucket1
+	// 2. CreateBucket2
 	bucketName2 := storageutils.GenRandomBucketName()
 	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName2, false, sp.OperatorKey.GetAddr(),
@@ -300,15 +302,25 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
 
+	// head object
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName1,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	s.T().Logf("queryHeadObjectResponse %s, err: %v", queryHeadObjectResponse, err)
+	s.Require().NoError(err)
+
 	// SealObject
 	secondarySPs := []sdk.AccAddress{
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
+
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName1, objectName,
 		secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
 	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
@@ -485,7 +497,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	})
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
 	secondarySigs := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) []byte {
-		sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+		sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
 		secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 		s.Require().NoError(err)
 		err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
@@ -805,7 +817,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
 	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),

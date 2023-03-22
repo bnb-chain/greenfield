@@ -14,7 +14,7 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
-	types2 "github.com/bnb-chain/greenfield/x/permission/types"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -159,8 +159,8 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// check permission
-	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, types2.ACTION_DELETE_BUCKET, nil)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_DELETE_BUCKET, nil)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
@@ -205,8 +205,8 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	// check permission
-	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, types2.ACTION_UPDATE_BUCKET_INFO, nil)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_UPDATE_BUCKET_INFO, nil)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
@@ -283,7 +283,7 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*type
 }
 
 func (k Keeper) CreateObject(
-	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName, objectName string,
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string,
 	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -296,6 +296,16 @@ func (k Keeper) CreateObject(
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
+	}
+
+	// verify permission
+	verifyOpts := &permtypes.VerifyOptions{
+		WantedSize: &payloadSize,
+	}
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+	if effect != permtypes.EFFECT_ALLOW {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator(%s) has no CreateObject permission of the bucket(%s)",
+			operator.String(), bucketName)
 	}
 
 	// check secondary sps
@@ -330,7 +340,7 @@ func (k Keeper) CreateObject(
 
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
-		Owner:                ownerAcc.String(),
+		Owner:                bucketInfo.Owner,
 		BucketName:           bucketName,
 		ObjectName:           objectName,
 		PayloadSize:          payloadSize,
@@ -359,7 +369,7 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		CreatorAddress:   ownerAcc.String(),
+		CreatorAddress:   operator.String(),
 		OwnerAddress:     objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
@@ -447,20 +457,17 @@ func (k Keeper) SealObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectAlreadyExists
+		return types.ErrObjectAlreadySealed
 	}
 
 	// check the signature of secondary sps
 	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
 	var secondarySps []string
 	for i, spAddr := range opts.SecondarySpAddresses {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
-		if err != nil {
-			return err
-		}
+		spAcc := sdk.MustAccAddressFromHex(spAddr)
 		secondarySps = append(secondarySps, spAcc.String())
-		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Checksums[i+1])
-		err = k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
+		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Id, objectInfo.Checksums[i+1])
+		err := k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
 		if err != nil {
 			return err
 		}
@@ -509,7 +516,7 @@ func (k Keeper) CancelCreateObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	if objectInfo.SourceType != opts.SourceType {
@@ -561,12 +568,12 @@ func (k Keeper) DeleteObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
-		return types.ErrObjectNotInService
+		return types.ErrObjectNotSealed
 	}
 
 	// check permission
-	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, types2.ACTION_DELETE_OBJECT)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_DELETE_OBJECT)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no DeleteObject permission of the bucket(%s), object(%s)",
 			operator.String(), bucketName, objectName)
@@ -622,8 +629,8 @@ func (k Keeper) CopyObject(
 	}
 
 	// check permission
-	effect := k.VerifyObjectPermission(ctx, srcBucketInfo, srcObjectInfo, operator, types2.ACTION_COPY_OBJECT)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyObjectPermission(ctx, srcBucketInfo, srcObjectInfo, operator, permtypes.ACTION_COPY_OBJECT)
+	if effect != permtypes.EFFECT_ALLOW {
 		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator("+
 			"%s) has no CopyObject permission of the bucket(%s), object(%s)",
 			operator.String(), srcObjectInfo.BucketName, srcObjectInfo.ObjectName)
@@ -693,7 +700,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
@@ -742,8 +749,14 @@ func (k Keeper) CreateGroup(
 		GroupName:  groupName,
 	}
 
+	// Can not create a group with the same name.
+	groupKey := types.GetGroupKey(owner, groupName)
+	if store.Has(groupKey) {
+		return sdkmath.ZeroUint(), types.ErrGroupAlreadyExists
+	}
+
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(types.GetGroupKey(owner, groupName), sequence.EncodeSequence(groupInfo.Id))
+	store.Set(groupKey, sequence.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
@@ -816,8 +829,8 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 		return types.ErrSourceTypeMismatch
 	}
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, types2.ACTION_DELETE_GROUP)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no DeleteGroup permission of the group(%s), owner(%s)",
 			operator.String(), groupInfo.GroupName, groupInfo.Owner)
@@ -849,7 +862,10 @@ func (k Keeper) LeaveGroup(
 	}
 
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	err := k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	if err != nil {
+		return err
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
@@ -861,18 +877,14 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
-	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
-	if !found {
-		return types.ErrNoSuchGroup
-	}
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts UpdateGroupMemberOptions) error {
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
 
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, types2.ACTION_DELETE_GROUP)
-	if effect != types2.EFFECT_ALLOW {
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
+	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
 			operator.String(), groupInfo.GroupName, groupInfo.Owner)
@@ -894,7 +906,10 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		if err != nil {
 			return err
 		}
-		k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		err = k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		if err != nil {
+			return err
+		}
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{

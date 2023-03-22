@@ -33,7 +33,10 @@ require (
 	sigs.k8s.io/yaml v1.3.0
 )
 
-require github.com/cosmos/gogoproto v1.4.6
+require (
+	github.com/cosmos/gogoproto v1.4.6
+	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8
+)
 
 require (
 	filippo.io/edwards25519 v1.0.0-rc.1 // indirect
@@ -218,7 +221,6 @@ require (
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/tools v0.6.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
-	google.golang.org/protobuf v1.28.2-0.20220831092852-f930b1dc76e8 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/natefinch/npipe.v2 v2.0.0-20160621034901-c1b8fa8bdcce // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
@@ -229,7 +231,7 @@ require (
 replace (
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230228075616-68ac309b432c
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230316090342-debd6c0c82a7
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.2-0.20230320074759-0df1525c4090
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
-	github.com/tendermint/tendermint => github.com/bnb-chain/greenfield-tendermint v0.0.2
+	github.com/tendermint/tendermint => github.com/bnb-chain/greenfield-tendermint v0.0.3
 )

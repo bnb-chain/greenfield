@@ -42,6 +42,7 @@ The data availability challenge workflow is as below:
 8. The cooling-off period is set for the validator to regain, recover, or shift this piece of data, once the cooling off
    period time expires, this data availability can be challenged again, if this piece of data is still unavailable, the
    validator would be slashed again.
+
 <div align="center"><img src="https://raw.githubusercontent.com/bnb-chain/greenfield-whitepaper/main/assets/19.2%20Data%20Availability%20Challenge.jpg"  height="80%" width="80%"></div>
 <div align="center"><i>Data Availability Challenge Workflow</i></div>
 
@@ -59,7 +60,7 @@ succeeds later.
 
 ### Random Challenges
 
-In each block, challenges will be automatically created, to challenge different objects which are stored on different 
+In each block, challenges will be automatically created, to challenge different objects which are stored on different
 storage providers. The count of random challenges in each block is governed, and can be changed by submitting proposals.
 To support randomness, a *RANDAO* mechanism is introduced in Greenfield blockchain. For more information about *RANDAO*,
 please refer to the following section.
@@ -67,17 +68,14 @@ please refer to the following section.
 ## Attest Challenge
 
 Each validator will listen to the events of challenge creations, and vote the challenge by using its own BLS key.
-When there are more than 2/3 votes are collected, an attestation message `MsgAttest` will be submitted to slash the 
-challenged storage provider. And the voted validators, the attestation submitter, and the challenger (if there is) will 
+When there are more than 2/3 votes are collected, an attestation message `MsgAttest` will be submitted to slash the
+challenged storage provider. And the voted validators, the attestation submitter, and the challenger (if there is) will
 be rewarded accordingly.
 
-
-## Challenge Heartbeat
-
-To indicate the off-chain challenge detect module is running correctly, validators have to vote and submit 
-`MsgHeartbeat` messages periodically to the blockchain. During processing this kind of messages, the income for securing 
-stored objects will be transferred from payment account to distribution account,
-and income can be withdrawn by validators and their delegators later.
+Meanwhile, to indicate the off-chain challenge detect module is running correctly, validators have to vote and submit
+heartbeat `MsgAttest` messages periodically to the blockchain. During processing this kind of messages, the income
+for securing stored objects will be transferred from payment account to distribution account,
+and it can be withdrawn by validators and their delegators later.
 
 ## Challenge Events
 
@@ -90,14 +88,10 @@ This kind of events indicates that a data availability challenge is triggered on
 monitor the events, asking the according storage prover for data, compute hashes and do the comparison, and submit
 an attestation if needed.
 
-### Complete Event
+### Attestation Event
 
 When an attestation is received and accepted, then this kind of events will be emitted. In the events, the slash
-and rewards amounts are also recorded.
-
-### Heartbeat Event
-
-Heartbeat only includes the necessary information for liveness-check purpose. 
+and rewards amounts are also recorded or only necessary information are included for liveness-check purpose.
 
 ## RANDAO
 
@@ -105,16 +99,16 @@ To support random challenges, a RANDAO mechanism is introduced like the followin
 Overall, the idea is very similar to the RANDAO in Ethereum beacon chain, you can refer to
 [here](https://eth2book.info/altair/part2/building_blocks/randomness) for more information.
 
-When proposing a new block, the proposer, i.e. a validator, needs to sign the current block number to get 
-a `randao reveal`, and mixes the reveal into randao result `randao mix` by using `xor` operation. 
-The other validators will verify the `randao reveal` and `randao mix` by following steps: 
-1. The signature is verified using the proposer's public key. It means that the proposer has almost no choice 
-about what it contributes to the RANDAO. It either contributes the correct signature over the block number, 
-or it gives up the right for proposing the current block. If the validator does propose the current block, 
-it still cannot predict the reveal from other validators, and even be slashed for stopping proposing blocks.
+When proposing a new block, the proposer, i.e. a validator, needs to sign the current block number to get
+a `randao reveal`, and mixes the reveal into randao result `randao mix` by using `xor` operation.
+The other validators will verify the `randao reveal` and `randao mix` by following steps:
+
+1. The signature is verified using the proposer's public key. It means that the proposer has almost no choice
+   about what it contributes to the RANDAO. It either contributes the correct signature over the block number,
+   or it gives up the right for proposing the current block. If the validator does propose the current block,
+   it still cannot predict the reveal from other validators, and even be slashed for stopping proposing blocks.
 2. The `randao mix` is correctly updated by using `xor` operation.
 
-
 The implementation is conducted in Tendermint layer - a new field called `randao_mix` is added into block header.
-Greenfield blockchain then uses the field as a seed to randomly pick objects and storage providers to challenge 
+Greenfield blockchain then uses the field as a seed to randomly pick objects and storage providers to challenge
 in each block.

@@ -10,7 +10,7 @@ import (
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.MaximumStatementsNum(ctx),
-		k.MaximumGroupNum(ctx))
+		k.MaximumPolicyGroupSize(ctx))
 }
 
 // SetParams set the params
@@ -23,7 +23,7 @@ func (k Keeper) MaximumStatementsNum(ctx sdk.Context) (res uint64) {
 	return
 }
 
-func (k Keeper) MaximumGroupNum(ctx sdk.Context) (res uint64) {
-	k.paramstore.Get(ctx, types.KeyMaxPolicyGroupNum, &res)
+func (k Keeper) MaximumPolicyGroupSize(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyMaxPolicyGroupSIze, &res)
 	return
 }

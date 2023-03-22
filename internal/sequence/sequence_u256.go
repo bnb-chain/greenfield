@@ -3,66 +3,58 @@ package sequence
 import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// sequenceKey a fix key to read/ write data on the storage layer
 var (
-	sequenceKey                 = []byte{0x1}
 	ErrSequenceUniqueConstraint = errors.Register("sequence_u256", 1, "sequence already initialized")
 )
 
-// SequenceU256 is a persistent unique key generator based on a counter.
+// U256 is a persistent unique key generator based on a counter.
 type U256 struct {
-	prefix []byte
+	storeKey []byte
 }
 
 func NewSequence256(prefix []byte) U256 {
 	return U256{
-		prefix: prefix,
+		storeKey: prefix,
 	}
 }
 
 // NextVal increments and persists the counter by one and returns the value.
 func (s U256) NextVal(store sdk.KVStore) math.Uint {
-	pStore := prefix.NewStore(store, s.prefix)
-	v := pStore.Get(sequenceKey)
+	v := store.Get(s.storeKey)
 	seq := DecodeSequence(v)
 	seq = seq.Incr()
-	pStore.Set(sequenceKey, EncodeSequence(seq))
+	store.Set(s.storeKey, EncodeSequence(seq))
 	return seq
 }
 
 // CurVal returns the last value used. 0 if none.
 func (s U256) CurVal(store sdk.KVStore) math.Uint {
-	pStore := prefix.NewStore(store, s.prefix)
-	v := pStore.Get(sequenceKey)
+	v := store.Get(s.storeKey)
 	return DecodeSequence(v)
 }
 
 // PeekNextVal returns the CurVal + increment step. Not persistent.
 func (s U256) PeekNextVal(store sdk.KVStore) math.Uint {
-	pStore := prefix.NewStore(store, s.prefix)
-	v := pStore.Get(sequenceKey)
+	v := store.Get(s.storeKey)
 	seq := DecodeSequence(v)
 	seq = seq.Incr()
 	return seq
 }
 
-// InitVal sets the start value for the sequence. It must be called only once on an empty DB.
-// Otherwise an error is returned when the key exists. The given start value is stored as current
-// value.
-//
-// It is recommended to call this method only for a sequence start value other than `1` as the
-// method consumes unnecessary gas otherwise. A scenario would be an import from genesis.
+// InitVal this function sets the starting value for a sequence and can only be called once
+// on an empty database. If the key already exists, an error will be returned. The provided
+// start value will be stored as the current value. It is advised to use this function only
+// when the sequence start value is not '1', as calling it unnecessarily will consume
+// unnecessary gas. An example scenario would be importing from genesis.
 func (s U256) InitVal(store sdk.KVStore, seq math.Uint) error {
-	pStore := prefix.NewStore(store, s.prefix)
-	if pStore.Has(sequenceKey) {
+	if store.Has(s.storeKey) {
 		return ErrSequenceUniqueConstraint
 	}
 
-	pStore.Set(sequenceKey, EncodeSequence(seq))
+	store.Set(s.storeKey, EncodeSequence(seq))
 	return nil
 }
 

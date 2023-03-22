@@ -31,6 +31,7 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// MsgSubmit defines the message for submitting challenges.
 type MsgSubmit struct {
 	// The challenger address.
 	Challenger string `protobuf:"bytes,1,opt,name=challenger,proto3" json:"challenger,omitempty"`
@@ -121,6 +122,7 @@ func (m *MsgSubmit) GetRandomIndex() bool {
 	return false
 }
 
+// MsgSubmitResponse defines the response of MsgSubmit.
 type MsgSubmitResponse struct {
 }
 
@@ -157,6 +159,7 @@ func (m *MsgSubmitResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSubmitResponse proto.InternalMessageInfo
 
+// MsgSubmit defines the message for attesting challenges.
 type MsgAttest struct {
 	// The submitter address.
 	Submitter string `protobuf:"bytes,1,opt,name=submitter,proto3" json:"submitter,omitempty"`
@@ -258,6 +261,7 @@ func (m *MsgAttest) GetVoteAggSignature() []byte {
 	return nil
 }
 
+// MsgAttest defines the response of MsgAttestResponse.
 type MsgAttestResponse struct {
 }
 

@@ -24,10 +24,11 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// VoteResult defines the result attestation for a challenge.
 type VoteResult int32
 
 const (
-	// The challenge failed, for further extension.
+	// The challenge failed.
 	CHALLENGE_FAILED VoteResult = 0
 	// The challenge succeed.
 	CHALLENGE_SUCCEED VoteResult = 1
@@ -51,10 +52,14 @@ func (VoteResult) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_9c297f0764c47d40, []int{0}
 }
 
+// Slash records the storage provider slashes, which will be pruned periodically.
 type Slash struct {
+	// The slashed storage provider.
 	SpOperatorAddress []byte `protobuf:"bytes,1,opt,name=sp_operator_address,json=spOperatorAddress,proto3" json:"sp_operator_address,omitempty"`
-	ObjectId          Uint   `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
-	Height            uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
+	// The slashed object info.
+	ObjectId Uint `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
+	// The height when the slash happened, which is used for prune purpose.
+	Height uint64 `protobuf:"varint,3,opt,name=height,proto3" json:"height,omitempty"`
 }
 
 func (m *Slash) Reset()         { *m = Slash{} }

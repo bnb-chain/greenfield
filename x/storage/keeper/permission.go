@@ -27,24 +27,43 @@ var (
 	}
 )
 
+// VerifyBucketPermission Bucket permissions checks are divided into three steps:
+// First, if the bucket is a public bucket and the action is a read-only action, it returns "allow".
+// Second, if the operator is the owner of the bucket, it returns "allow", as the owner has the highest permission.
+// Third, verify the policy corresponding to the bucket and the operator.
+//  1. If the policy is evaluated as "allow", return "allow" to the user.
+//  2. If it is evaluated as "deny" or "unspecified", return "deny".
 func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, operator sdk.AccAddress,
-	action permtypes.ActionType, resource *string) permtypes.Effect {
+	action permtypes.ActionType, options *permtypes.VerifyOptions) permtypes.Effect {
 	// if bucket is public, anyone can read but can not write it.
 	if bucketInfo.IsPublic && PublicBucketAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
-	if strings.EqualFold(bucketInfo.Owner, operator.String()) {
+	ownerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
+	if ownerAcc.Equals(operator) {
 		return permtypes.EFFECT_ALLOW
 	}
 	// verify policy
-	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, resource)
+	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
 	if effect == permtypes.EFFECT_ALLOW {
 		return permtypes.EFFECT_ALLOW
 	}
 	return permtypes.EFFECT_DENY
 }
 
+// VerifyObjectPermission Object permission checks are divided into four steps:
+// First, if the object is a public object and the action is a read-only action, it returns "allow".
+// Second, if the operator is the owner of the bucket, it returns "allow"
+// Third, verify the policy corresponding to the bucket and the operator
+//  1. If it is evaluated as "deny", return "deny"
+//  2. If it is evaluated as "allow" or "unspecified", go ahead (Noted as EffectBucket)
+//
+// Four, verify the policy corresponding to the object and the operator
+//  1. If it is evaluated as "deny", return "deny".
+//  2. If it is evaluated as "allow", return "allow".
+//  3. If it is evaluated as "unspecified", then if the EffectBucket is "allow", return allow
+//  4. If it is evaluated as "unspecified", then if the EffectBucket is "unspecified", return deny
 func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo,
 	operator sdk.AccAddress, action permtypes.ActionType) permtypes.Effect {
 	// if object is public, anyone can read but can not write it.
@@ -52,14 +71,16 @@ func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.Bucket
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
-	if strings.EqualFold(objectInfo.Owner, operator.String()) {
+	ownerAcc := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if ownerAcc.Equals(operator) {
 		return permtypes.EFFECT_ALLOW
 	}
 
 	// verify policy
-	grn := types2.NewObjectGRN(objectInfo.BucketName, objectInfo.ObjectName)
-	grnString := grn.String()
-	bucketEffect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, &grnString)
+	opts := &permtypes.VerifyOptions{
+		Resource: types2.NewObjectGRN(objectInfo.BucketName, objectInfo.ObjectName).String(),
+	}
+	bucketEffect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, opts)
 	if bucketEffect == permtypes.EFFECT_DENY {
 		return permtypes.EFFECT_DENY
 	}
@@ -132,10 +153,10 @@ func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes
 
 	var policy *permtypes.Policy
 	var found bool
-	if principal.Type == permtypes.TYPE_GNFD_ACCOUNT {
+	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		policy, found = k.permKeeper.GetPolicyForAccount(ctx, resID, grn.ResourceType(),
 			principal.MustGetAccountAddress())
-	} else if principal.Type == permtypes.TYPE_GNFD_GROUP {
+	} else if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 		policy, found = k.permKeeper.GetPolicyForGroup(ctx, resID, grn.ResourceType(), principal.MustGetGroupID())
 	} else {
 		return nil, permtypes.ErrInvalidPrincipal
@@ -189,7 +210,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
 		resID = groupInfo.Id
 
-		if policy.Principal.Type == permtypes.TYPE_GNFD_GROUP {
+		if policy.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 			return math.ZeroUint(), permtypes.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 		}
 	default:
@@ -264,7 +285,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal
 }
 
 func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {
-	if principal.Type == permtypes.TYPE_GNFD_ACCOUNT {
+	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		principalAccAddress, err := principal.GetAccountAddress()
 		if err != nil {
 			return err
@@ -272,7 +293,7 @@ func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, prin
 		if principalAccAddress.Equals(resOwner) {
 			return gnfderrors.ErrInvalidPrincipal.Wrapf("principal account can not be the bucket owner")
 		}
-	} else if principal.Type == permtypes.TYPE_GNFD_GROUP {
+	} else if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 		groupID, err := math.ParseUint(principal.Value)
 		if err != nil {
 			return err

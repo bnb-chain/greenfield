@@ -531,6 +531,7 @@ func CmdUpdateGroupMember() *cobra.Command {
 			}
 			msg := types.NewMsgUpdateGroupMember(
 				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
 				argGroupName,
 				memberAddrsToAdd,
 				memberAddrsToDelete,
@@ -562,6 +563,7 @@ func CmdPutPolicy() *cobra.Command {
 			msg := types.NewMsgPutPolicy(
 				clientCtx.GetFromAddress(),
 				"",
+				nil,
 				nil,
 				nil,
 			)
