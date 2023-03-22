@@ -56,29 +56,30 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int, err error) {
-	validatorTaxPoolStreamRecord, found := k.GetStreamRecord(ctx, types.ValidatorTaxPoolAddress)
+func (k Keeper) QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amount sdkmath.Int, err error) {
+	streamRecord, found := k.GetStreamRecord(ctx, addr)
 	if !found {
 		return sdkmath.ZeroInt(), nil
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(types.ValidatorTaxPoolAddress)
-	err = k.UpdateStreamRecord(ctx, validatorTaxPoolStreamRecord, change, false)
+	change := types.NewDefaultStreamRecordChangeWithAddr(addr)
+	err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return sdkmath.ZeroInt(), errors.Wrapf(err, "update stream record failed")
 	}
-	return validatorTaxPoolStreamRecord.StaticBalance, nil
+	return streamRecord.StaticBalance, nil
 }
 
-func (k Keeper) TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error {
-	validatorTaxPoolStreamRecord, found := k.GetStreamRecord(ctx, types.ValidatorTaxPoolAddress)
+func (k Keeper) Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount sdkmath.Int) error {
+	streamRecord, found := k.GetStreamRecord(ctx, fromAddr)
 	if !found {
 		return errors.Wrapf(types.ErrStreamRecordNotFound, "validator tax pool stream record not found")
 	}
-	change := types.NewDefaultStreamRecordChangeWithAddr(types.ValidatorTaxPoolAddress).WithStaticBalanceChange(amount.Neg())
-	err := k.UpdateStreamRecord(ctx, validatorTaxPoolStreamRecord, change, false)
+	change := types.NewDefaultStreamRecordChangeWithAddr(fromAddr).WithStaticBalanceChange(amount.Neg())
+	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
 	if err != nil {
 		return errors.Wrapf(err, "update stream record failed")
 	}
+	k.SetStreamRecord(ctx, streamRecord)
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, amount)))
 	if err != nil {
 		return errors.Wrapf(err, "send coins from module to account failed")
