@@ -240,7 +240,7 @@ type EventSpStoragePriceUpdate struct {
 	// sp address
 	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	// update time, in unix timestamp
-	UpdateTimeSec int64 `protobuf:"varint,2,opt,name=update_time_sec,json=UpdateTimeSec,proto3" json:"update_time_sec,omitempty"`
+	UpdateTimeSec int64 `protobuf:"varint,2,opt,name=update_time_sec,json=updateTimeSec,proto3" json:"update_time_sec,omitempty"`
 	// read price, in bnb wei per charge byte
 	ReadPrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=read_price,json=readPrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"read_price"`
 	// free read quota, in byte
@@ -305,7 +305,7 @@ func (m *EventSpStoragePriceUpdate) GetFreeReadQuota() uint64 {
 
 type EventSecondarySpStorePriceUpdate struct {
 	// update time, in unix timestamp
-	UpdateTimeSec int64 `protobuf:"varint,1,opt,name=update_time_sec,json=UpdateTimeSec,proto3" json:"update_time_sec,omitempty"`
+	UpdateTimeSec int64 `protobuf:"varint,1,opt,name=update_time_sec,json=updateTimeSec,proto3" json:"update_time_sec,omitempty"`
 	// store price, in bnb wei per charge byte
 	StorePrice github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,2,opt,name=store_price,json=storePrice,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"store_price"`
 }
