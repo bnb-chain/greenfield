@@ -49,7 +49,7 @@ func TestPolicy_BucketBasic(t *testing.T) {
 			policyAction:  types.ACTION_UPDATE_BUCKET_INFO,
 			policyEffect:  types.EFFECT_ALLOW,
 			operateAction: types.ACTION_DELETE_BUCKET,
-			expectEffect:  types.EFFECT_PASS,
+			expectEffect:  types.EFFECT_UNSPECIFIED,
 		},
 		{
 			name:          "basic_create_object",
@@ -70,7 +70,7 @@ func TestPolicy_BucketBasic(t *testing.T) {
 			policyAction:  types.ACTION_COPY_OBJECT,
 			policyEffect:  types.EFFECT_ALLOW,
 			operateAction: types.ACTION_CREATE_OBJECT,
-			expectEffect:  types.EFFECT_PASS,
+			expectEffect:  types.EFFECT_UNSPECIFIED,
 		},
 		{
 			name:          "basic_delete_object",
@@ -126,7 +126,7 @@ func TestPolicy_BucketExpirationBasic(t *testing.T) {
 			policyEffect:         types.EFFECT_ALLOW,
 			policyExpirationTime: &now,
 			operateAction:        types.ACTION_UPDATE_BUCKET_INFO,
-			expectEffect:         types.EFFECT_PASS,
+			expectEffect:         types.EFFECT_UNSPECIFIED,
 			operateTime:          time.Now().Add(time.Duration(1 * time.Second)),
 		},
 		{
@@ -144,7 +144,7 @@ func TestPolicy_BucketExpirationBasic(t *testing.T) {
 			policyEffect:            types.EFFECT_ALLOW,
 			statementExpirationTime: &now,
 			operateAction:           types.ACTION_UPDATE_BUCKET_INFO,
-			expectEffect:            types.EFFECT_PASS,
+			expectEffect:            types.EFFECT_UNSPECIFIED,
 			operateTime:             time.Now().Add(time.Duration(1 * time.Second)),
 		},
 		{
@@ -261,7 +261,7 @@ func TestPolicy_SubResource(t *testing.T) {
 			policyResource:  types2.NewObjectGRN(bucketName, "xxx").String(),
 			operateAction:   types.ACTION_GET_OBJECT,
 			operateResource: types2.NewObjectGRN(bucketName, "1111").String(),
-			expectEffect:    types.EFFECT_PASS,
+			expectEffect:    types.EFFECT_UNSPECIFIED,
 		},
 	}
 

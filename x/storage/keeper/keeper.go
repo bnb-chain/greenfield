@@ -457,7 +457,7 @@ func (k Keeper) SealObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectAlreadyExists
+		return types.ErrObjectAlreadySealed
 	}
 
 	// check the signature of secondary sps
@@ -516,7 +516,7 @@ func (k Keeper) CancelCreateObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	if objectInfo.SourceType != opts.SourceType {
@@ -568,7 +568,7 @@ func (k Keeper) DeleteObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
-		return types.ErrObjectNotInService
+		return types.ErrObjectNotSealed
 	}
 
 	// check permission
@@ -700,7 +700,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
@@ -749,8 +749,14 @@ func (k Keeper) CreateGroup(
 		GroupName:  groupName,
 	}
 
+	// Can not create a group with the same name.
+	groupKey := types.GetGroupKey(owner, groupName)
+	if store.Has(groupKey) {
+		return sdkmath.ZeroUint(), types.ErrGroupAlreadyExists
+	}
+
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(types.GetGroupKey(owner, groupName), sequence.EncodeSequence(groupInfo.Id))
+	store.Set(groupKey, sequence.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
@@ -856,7 +862,10 @@ func (k Keeper) LeaveGroup(
 	}
 
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	err := k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	if err != nil {
+		return err
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
@@ -868,11 +877,7 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
-	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
-	if !found {
-		return types.ErrNoSuchGroup
-	}
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts UpdateGroupMemberOptions) error {
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
@@ -901,7 +906,10 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		if err != nil {
 			return err
 		}
-		k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		err = k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		if err != nil {
+			return err
+		}
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{

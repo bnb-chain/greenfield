@@ -5,8 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -54,20 +52,11 @@ var (
 	}
 )
 
-func NewDefaultPolicyForGroupMember(groupID math.Uint, member sdk.AccAddress) *Policy {
-	return &Policy{
-		Principal:       NewPrincipalWithAccount(member),
-		ResourceType:    resource.RESOURCE_TYPE_GROUP,
-		ResourceId:      groupID,
-		MemberStatement: NewMemberStatement(),
-	}
-}
-
 func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
-	// 1. the policy is expired, need delete
+	// 1. check if the policy is expired
 	if p.ExpirationTime != nil && p.ExpirationTime.Before(blockTime) {
 		// Notice: We do not actively delete policies that expire for users.
-		return EFFECT_PASS, nil
+		return EFFECT_UNSPECIFIED, nil
 	}
 	allowed := false
 	updated := false
@@ -95,25 +84,14 @@ func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOption
 			return EFFECT_ALLOW, nil
 		}
 	}
-	return EFFECT_PASS, nil
-}
-
-func (p *Policy) GetGroupMemberStatement() (*Statement, bool) {
-	for _, s := range p.Statements {
-		for _, act := range s.Actions {
-			if act == ACTION_GROUP_MEMBER {
-				return s, true
-			}
-		}
-	}
-	return nil, false
+	return EFFECT_UNSPECIFIED, nil
 }
 
 func NewMemberStatement() *Statement {
 	return &Statement{
 		Effect:    EFFECT_ALLOW,
 		Resources: nil,
-		Actions:   []ActionType{ACTION_GROUP_MEMBER},
+		Actions:   nil,
 	}
 
 }
@@ -121,7 +99,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 	// If 'resource' is not nil, it implies that the user intends to access a sub-resource, which would
 	// be specified in 's.Resources'. Therefore, if the sub-resource in the statement is nil, we will ignore this statement.
 	if opts != nil && opts.Resource != "" && s.Resources == nil {
-		return EFFECT_PASS, nil
+		return EFFECT_UNSPECIFIED, nil
 	}
 	// If 'resource' is not nil, and 's.Resource' is also not nil, it indicates that we should verify whether
 	// the resource that the user intends to access matches any items in 's.Resource'
@@ -139,7 +117,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 			}
 		}
 		if !isMatch {
-			return EFFECT_PASS, nil
+			return EFFECT_UNSPECIFIED, nil
 		}
 	}
 
@@ -164,14 +142,16 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 		}
 	}
 
-	return EFFECT_PASS, nil
+	return EFFECT_UNSPECIFIED, nil
 }
 
 func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
-	if s.Effect == EFFECT_PASS {
-		return ErrInvalidStatement.Wrap("Not allowed to set EFFECT_PASS.")
+	if s.Effect == EFFECT_UNSPECIFIED {
+		return ErrInvalidStatement.Wrap("Please specify the Effect explicitly. Not allowed set EFFECT_UNSPECIFIED")
 	}
 	switch resType {
+	case resource.RESOURCE_TYPE_UNSPECIFIED:
+		return ErrInvalidStatement.Wrap("Please specify the ResourceType explicitly. Not allowed set RESOURCE_TYPE_UNSPECIFIED")
 	case resource.RESOURCE_TYPE_BUCKET:
 		containsCreateObject := false
 		for _, a := range s.Actions {
@@ -211,6 +191,8 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 		if s.LimitSize != nil {
 			return ErrInvalidStatement.Wrap("The LimitSize option can only be used with CreateObject actions at the bucket level. ")
 		}
+	default:
+		return ErrInvalidStatement.Wrap("unknown resource type.")
 	}
 
 	return nil

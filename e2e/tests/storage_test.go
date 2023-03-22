@@ -215,13 +215,13 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberResp.GroupId, queryHeadGroupResp.GroupInfo.Id.String())
+	s.Require().Equal(queryHeadGroupMemberResp.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
 
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
 	membersToDelete := []sdk.AccAddress{member.GetAddr()}
-	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(msgUpdateGroupMember, owner)
 
 	// 5. HeadGroupMember (delete)
@@ -240,7 +240,11 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	queryHeadGroupMemberRespAdd, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqAdd)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupId, queryHeadGroupResp.GroupInfo.Id.String())
+	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
+
+	// 6. Create a group with the same name
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	s.SendTxBlockWithExpectErrorString(msgCreateGroup, owner, "exists")
 }
 
 func (s *StorageTestSuite) TestDeleteBucket() {

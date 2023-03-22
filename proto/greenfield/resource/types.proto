@@ -9,7 +9,8 @@ option go_package = "github.com/bnb-chain/greenfield/types/resource";
 enum ResourceType {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  RESOURCE_TYPE_BUCKET = 0;
-  RESOURCE_TYPE_OBJECT = 1;
-  RESOURCE_TYPE_GROUP = 2;
+  RESOURCE_TYPE_UNSPECIFIED = 0;
+  RESOURCE_TYPE_BUCKET = 1;
+  RESOURCE_TYPE_OBJECT = 2;
+  RESOURCE_TYPE_GROUP = 3;
 }

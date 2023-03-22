@@ -7,7 +7,6 @@ import (
 	"math"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
@@ -632,9 +631,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	headGroupMemberRequest := storagetypes.QueryHeadGroupMemberRequest{Member: user[1].GetAddr().String(), GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
 	headGroupMemberResponse, err := s.Client.HeadGroupMember(ctx, &headGroupMemberRequest)
 	s.Require().NoError(err)
-	resGroupId, err := sdkmath.ParseUint(headGroupMemberResponse.GroupId)
-	s.Require().NoError(err)
-	s.Require().Equal(resGroupId, headGroupResponse.GetGroupInfo().Id)
+	s.Require().Equal(headGroupMemberResponse.GroupMember.GroupId, headGroupResponse.GetGroupInfo().Id)
 
 	// Put bucket policy
 	statement := &types.Statement{

@@ -531,6 +531,7 @@ func CmdUpdateGroupMember() *cobra.Command {
 			}
 			msg := types.NewMsgUpdateGroupMember(
 				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
 				argGroupName,
 				memberAddrsToAdd,
 				memberAddrsToDelete,

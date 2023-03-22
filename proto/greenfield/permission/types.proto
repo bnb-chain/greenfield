@@ -34,8 +34,6 @@ message Policy {
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = true
   ];
-  // member_statement defines a special policy which indicates that the principal is a member of the group
-  permission.Statement member_statement = 7;
 }
 
 // PolicyGroup refers to a group of policies which grant permission to Group, which is limited to MaxGroupNum (default 10).
@@ -56,4 +54,21 @@ message PolicyGroup {
   }
   // items define a pair of policy_id and group_id. Each resource can only grant its own permissions to a limited number of groups
   repeated Item items = 1;
+}
+
+message GroupMember {
+  // id is an unique u256 sequence for each group member. It also be used as NFT tokenID
+  string id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // group_id is the unique id of the group
+  string group_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // member is the account address of the member
+  string member = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }

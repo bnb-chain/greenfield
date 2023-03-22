@@ -85,6 +85,7 @@ func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyM
 	}
 	s.Client.SetKeyManager(from)
 	_, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	s.T().Logf("tx failed, err: %s, expect error string: %s", err, expectErrorString)
 	s.Require().Error(err)
 	s.Require().True(strings.Contains(err.Error(), expectErrorString))
 }

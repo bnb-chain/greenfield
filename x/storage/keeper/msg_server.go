@@ -243,7 +243,13 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err := k.Keeper.UpdateGroupMember(ctx, operator, msg.GroupName, UpdateGroupMemberOptions{
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+	err := k.Keeper.UpdateGroupMember(ctx, operator, groupInfo, UpdateGroupMemberOptions{
 		SourceType:      types.SOURCE_TYPE_ORIGIN,
 		MembersToAdd:    msg.MembersToAdd,
 		MembersToDelete: msg.MembersToDelete,
