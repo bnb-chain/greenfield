@@ -20,9 +20,9 @@ const (
 	FlagNodeID = "node-id"
 	FlagIP     = "ip"
 
-	FlagReadPrice      = "read-price"
-	FlagStorePrice     = "store-price"
-	FlagRFreeReadQuota = "free-read-quota"
+	FlagReadPrice     = "read-price"
+	FlagStorePrice    = "store-price"
+	FlagFreeReadQuota = "free-read-quota"
 
 	FlagSecurityContact = "security-contact"
 )

@@ -305,7 +305,7 @@ func (s *StorageProviderTestSuite) TestDeposit() {
 	}
 
 	msgDeposit := sptypes.NewMsgDeposit(
-		sp.FundingKey.GetAddr(), deposit)
+		sp.FundingKey.GetAddr(), sp.OperatorKey.GetAddr(), deposit)
 	txRes := s.SendTxBlock(msgDeposit, sp.FundingKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 }

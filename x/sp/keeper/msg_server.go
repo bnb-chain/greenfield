@@ -88,7 +88,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 			ctx,
 			k.accountKeeper.GetModuleAddress(gov.ModuleName),
 			fundingAcc,
-			types.NewMsgDeposit(fundingAcc, msg.Deposit))
+			types.NewMsgDeposit(fundingAcc, spAcc, msg.Deposit))
 		if err != nil {
 			return nil, err
 		}
@@ -185,7 +185,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	fundAcc := sdk.MustAccAddressFromHex(msg.FundingAddress)
+	fundAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
 	sp, found := k.GetStorageProviderByFundingAddr(ctx, fundAcc)
 	if !found {
@@ -207,7 +207,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 	k.SetStorageProvider(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
-		FundingAddress: msg.FundingAddress,
+		FundingAddress: msg.Creator,
 		Deposit:        msg.Deposit.String(),
 		TotalDeposit:   sp.TotalDeposit.String(),
 	}); err != nil {
