@@ -14,6 +14,6 @@ var _ = strconv.IntSize
 
 func TestOngoingChallengeId(t *testing.T) {
 	keeper, ctx := keepertest.ChallengeKeeper(t)
-	keeper.SetOngoingChallengeId(ctx, 100)
-	require.True(t, keeper.GetOngoingChallengeId(ctx) == 100)
+	keeper.SetChallengeId(ctx, 100)
+	require.True(t, keeper.GetChallengeId(ctx) == 100)
 }

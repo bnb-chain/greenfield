@@ -17,6 +17,7 @@ service Msg {
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 
+// MsgSubmit defines the message for submitting challenges.
 message MsgSubmit {
   option (cosmos.msg.v1.signer) = "challenger";
 
@@ -39,8 +40,10 @@ message MsgSubmit {
   bool random_index = 6;
 }
 
+// MsgSubmitResponse defines the response of MsgSubmit.
 message MsgSubmitResponse {}
 
+// MsgSubmit defines the message for attesting challenges.
 message MsgAttest {
   option (cosmos.msg.v1.signer) = "submitter";
 
@@ -73,6 +76,7 @@ message MsgAttest {
   bytes vote_agg_signature = 8;
 }
 
+// MsgAttest defines the response of MsgAttestResponse.
 message MsgAttestResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message

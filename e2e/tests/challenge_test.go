@@ -212,7 +212,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		s.Require().NoError(err)
 		height = statusRes.SyncInfo.LatestBlockHeight
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 		s.Require().NoError(err)
 		events := filterEventFromBlock(blockRes)

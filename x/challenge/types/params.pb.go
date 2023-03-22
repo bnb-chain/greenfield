@@ -27,7 +27,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Params defines the parameters for the module.
 type Params struct {
-	// Challenges which will be emitted in each block, including user triggered or randomly triggered.
+	// Challenges which will be emitted in each block, including user submitted or randomly triggered.
 	ChallengeCountPerBlock uint64 `protobuf:"varint,1,opt,name=challenge_count_per_block,json=challengeCountPerBlock,proto3" json:"challenge_count_per_block,omitempty" yaml:"challenge_count_per_block"`
 	// The count of blocks to stand for the period in which the same storage and object info cannot be slashed again.
 	SlashCoolingOffPeriod uint64 `protobuf:"varint,2,opt,name=slash_cooling_off_period,json=slashCoolingOffPeriod,proto3" json:"slash_cooling_off_period,omitempty" yaml:"slash_cooling_off_period"`
@@ -37,13 +37,13 @@ type Params struct {
 	SlashAmountMin github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=slash_amount_min,json=slashAmountMin,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"slash_amount_min"`
 	// The maximum slash amount.
 	SlashAmountMax github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=slash_amount_max,json=slashAmountMax,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"slash_amount_max"`
-	// The ratio of slash amount for all validator rewards.
+	// The ratio of slash amount to reward all current validators.
 	RewardValidatorRatio github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,6,opt,name=reward_validator_ratio,json=rewardValidatorRatio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"reward_validator_ratio" yaml:"reward_validator_ratio"`
-	// The ratio of reward amount for submitter rewards.
+	// The ratio of reward amount to reward attestation submitter.
 	RewardSubmitterRatio github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,7,opt,name=reward_submitter_ratio,json=rewardSubmitterRatio,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"reward_submitter_ratio" yaml:"reward_challenger_ratio"`
 	// The reward amount to submitter will be adjusted by the threshold.
 	RewardSubmitterThreshold github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,8,opt,name=reward_submitter_threshold,json=rewardSubmitterThreshold,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"reward_submitter_threshold"`
-	// Heartbeat interval defines the frequency of heartbeat based on challenges.
+	// Heartbeat interval, based on challenge id, defines the frequency of heartbeat attestation.
 	HeartbeatInterval uint64 `protobuf:"varint,9,opt,name=heartbeat_interval,json=heartbeatInterval,proto3" json:"heartbeat_interval,omitempty" yaml:"heartbeat_interval"`
 }
 
