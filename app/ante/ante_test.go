@@ -5,13 +5,13 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-
-	"github.com/bnb-chain/greenfield/sdk/client/test"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/evmos/ethermint/crypto/ethsecp256k1"
 	"github.com/evmos/ethermint/tests"
+
+	"github.com/bnb-chain/greenfield/sdk/client/test"
 )
 
 func (suite *AnteTestSuite) TestAnteHandler() {

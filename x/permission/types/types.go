@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
