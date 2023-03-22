@@ -15,13 +15,13 @@ import (
 )
 
 var (
-	PublicBucketAllowedActions = map[permtypes.ActionType]bool{
+	PublicReadBucketAllowedActions = map[permtypes.ActionType]bool{
 		permtypes.ACTION_GET_OBJECT:     true,
 		permtypes.ACTION_COPY_OBJECT:    true,
 		permtypes.ACTION_EXECUTE_OBJECT: true,
 		permtypes.ACTION_LIST_OBJECT:    true,
 	}
-	PublicObjectAllowedActions = map[permtypes.ActionType]bool{
+	PublicReadObjectAllowedActions = map[permtypes.ActionType]bool{
 		permtypes.ACTION_GET_OBJECT:     true,
 		permtypes.ACTION_COPY_OBJECT:    true,
 		permtypes.ACTION_EXECUTE_OBJECT: true,
@@ -37,7 +37,7 @@ var (
 func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, operator sdk.AccAddress,
 	action permtypes.ActionType, options *permtypes.VerifyOptions) permtypes.Effect {
 	// if bucket is public, anyone can read but can not write it.
-	if bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC && PublicBucketAllowedActions[action] {
+	if bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ && PublicReadBucketAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
@@ -70,11 +70,11 @@ func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	operator sdk.AccAddress, action permtypes.ActionType) permtypes.Effect {
 	// anyone can read but can not write it when the following case: 1) object is public 2) object is default, only when bucket is public
 	visibility := false
-	if objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC ||
-		(objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_DEFAULT && bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC) {
+	if objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ ||
+		(objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_DEFAULT && bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ) {
 		visibility = true
 	}
-	if visibility && PublicObjectAllowedActions[action] {
+	if visibility && PublicReadObjectAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions

@@ -40,7 +40,7 @@ enum ObjectStatus {
 enum VisibilityType {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  VISIBILITY_TYPE_PUBLIC = 0;
+  VISIBILITY_TYPE_PUBLIC_READ = 0;
   VISIBILITY_TYPE_PRIVATE = 1;
   // If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
   VISIBILITY_TYPE_DEFAULT = 2;

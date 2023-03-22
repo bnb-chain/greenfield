@@ -32,7 +32,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        testBucketName,
-				Visibility:        VISIBILITY_TYPE_PUBLIC,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -42,7 +42,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        "TestBucket",
-				Visibility:        VISIBILITY_TYPE_PUBLIC,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -53,7 +53,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        "Test-Bucket",
-				Visibility:        VISIBILITY_TYPE_PUBLIC,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -64,7 +64,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        "ss",
-				Visibility:        VISIBILITY_TYPE_PUBLIC,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -75,7 +75,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        string(testInvalidBucketNameWithLongLength[:]),
-				Visibility:        VISIBILITY_TYPE_PUBLIC,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},

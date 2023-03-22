@@ -104,7 +104,7 @@ func (m *MsgCreateBucket) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC
+	return VISIBILITY_TYPE_PUBLIC_READ
 }
 
 func (m *MsgCreateBucket) GetPaymentAddress() string {
@@ -351,7 +351,7 @@ func (m *MsgCreateObject) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC
+	return VISIBILITY_TYPE_PUBLIC_READ
 }
 
 func (m *MsgCreateObject) GetContentType() string {
@@ -1354,7 +1354,7 @@ func (m *MsgUpdateBucketInfo) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC
+	return VISIBILITY_TYPE_PUBLIC_READ
 }
 
 type MsgUpdateBucketInfoResponse struct {

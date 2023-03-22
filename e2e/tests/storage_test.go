@@ -48,7 +48,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	// CreateBucket
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
@@ -65,7 +65,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
 	// UpdateBucketInfo
@@ -593,7 +593,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	// create bucket from payment account
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC, sp.OperatorKey.GetAddr(),
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil)
 	msgCreateBucket.ReadQuota = bucketReadQuota
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())

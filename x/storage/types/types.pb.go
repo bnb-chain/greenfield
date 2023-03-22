@@ -100,7 +100,7 @@ func (m *BucketInfo) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC
+	return VISIBILITY_TYPE_PUBLIC_READ
 }
 
 func (m *BucketInfo) GetSourceType() SourceType {
@@ -357,7 +357,7 @@ func (m *ObjectInfo) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC
+	return VISIBILITY_TYPE_PUBLIC_READ
 }
 
 func (m *ObjectInfo) GetContentType() string {

@@ -91,6 +91,6 @@ func GetPaymentAccountField(kr keyring.Keyring, paymentAcc string) (sdk.AccAddre
 func FlagSetVisibility() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	fs.String(FlagVisibility, "VISIBILITY_TYPE_PRIVATE", "If private(by default), only owner and grantee can access it. Otherwise,"+
-		"every one has permission to access it. Select visibility's type (VISIBILITY_TYPE_PRIVATE|VISIBILITY_TYPE_PUBLIC|VISIBILITY_TYPE_DEFAULT)")
+		"every one has permission to access it. Select visibility's type (VISIBILITY_TYPE_PRIVATE|VISIBILITY_TYPE_PUBLIC_READ|VISIBILITY_TYPE_DEFAULT)")
 	return fs
 }
