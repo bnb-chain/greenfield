@@ -82,18 +82,18 @@ func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 
 func TestMsgDeposit_ValidateBasic(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
-	spAddr := sdk.AccAddress(pk1.Address())
+	fundAddr := sdk.AccAddress(pk1.Address())
 	tests := []struct {
-		name               string
-		creator, spAddress sdk.AccAddress
-		deposit            sdk.Coin
-		err                error
+		name        string
+		fundAddress sdk.AccAddress
+		deposit     sdk.Coin
+		err         error
 	}{
-		{"basic", spAddr, spAddr, coinPos, nil},
+		{"basic", fundAddr, coinPos, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			msg := MsgDeposit{Creator: tt.creator.String(), SpAddress: tt.spAddress.String(), Deposit: tt.deposit}
+			msg := MsgDeposit{FundingAddress: tt.fundAddress.String(), Deposit: tt.deposit}
 			err := msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)
