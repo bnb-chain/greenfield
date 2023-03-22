@@ -180,7 +180,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 			Identity: "",
 		},
 		Endpoint:     "http://127.0.0.1:9034",
-		TotalDeposit: types.NewIntFromInt64WithDecimal(10000000, types.DecimalBNB),
+		TotalDeposit: prevSP.TotalDeposit,
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
