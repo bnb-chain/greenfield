@@ -329,6 +329,10 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 		return nil, types.ErrAlreadyMirrored
 	}
 
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
+		return nil, types.ErrObjectNotSealed
+	}
+
 	if operator.String() != objectInfo.Owner {
 		return nil, types.ErrAccessDenied
 	}
