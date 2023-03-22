@@ -30,8 +30,8 @@ type StorageKeeper interface {
 }
 
 type PaymentKeeper interface {
-	QueryValidatorRewards(ctx sdk.Context) (amount sdkmath.Int)
-	TransferValidatorRewards(ctx sdk.Context, toAddr sdk.AccAddress, amount sdkmath.Int) error
+	QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amount sdkmath.Int, err error)
+	Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount sdkmath.Int) error
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

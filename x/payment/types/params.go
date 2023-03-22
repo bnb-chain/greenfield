@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
 )
@@ -15,12 +16,14 @@ var (
 	KeyPaymentAccountCountLimit = []byte("PaymentAccountCountLimit")
 	KeyMaxAutoForceSettleNum    = []byte("MaxAutoForceSettleNum")
 	KeyFeeDenom                 = []byte("FeeDenom")
+	KeyValidatorTaxRate         = []byte("ValidatorTaxRate")
 
-	DefaultReserveTime              uint64 = 180 * 24 * 60 * 60 // 180 days
-	DefaultForcedSettleTime         uint64 = 24 * 60 * 60       // 1 day
-	DefaultPaymentAccountCountLimit uint64 = 200
-	DefaultMaxAutoForceSettleNum    uint64 = 100
-	DefaultFeeDenom                 string = "BNB"
+	DefaultReserveTime              uint64  = 180 * 24 * 60 * 60 // 180 days
+	DefaultForcedSettleTime         uint64  = 24 * 60 * 60       // 1 day
+	DefaultPaymentAccountCountLimit uint64  = 200
+	DefaultMaxAutoForceSettleNum    uint64  = 100
+	DefaultFeeDenom                 string  = "BNB"
+	DefaultValidatorTaxRate         sdk.Dec = sdk.NewDecWithPrec(1, 2) // 1%
 )
 
 // ParamKeyTable the param key table for launch module
@@ -35,6 +38,7 @@ func NewParams(
 	paymentAccountCountLimit uint64,
 	maxAutoForceSettleNum uint64,
 	feeDenom string,
+	validatorTaxRate sdk.Dec,
 ) Params {
 	return Params{
 		ReserveTime:              reserveTime,
@@ -42,6 +46,7 @@ func NewParams(
 		PaymentAccountCountLimit: paymentAccountCountLimit,
 		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
 		FeeDenom:                 feeDenom,
+		ValidatorTaxRate:         validatorTaxRate,
 	}
 }
 
@@ -53,6 +58,7 @@ func DefaultParams() Params {
 		DefaultPaymentAccountCountLimit,
 		DefaultMaxAutoForceSettleNum,
 		DefaultFeeDenom,
+		DefaultValidatorTaxRate,
 	)
 }
 
@@ -64,6 +70,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
 		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
 		paramtypes.NewParamSetPair(KeyFeeDenom, &p.FeeDenom, validateFeeDenom),
+		paramtypes.NewParamSetPair(KeyValidatorTaxRate, &p.ValidatorTaxRate, validateValidatorTaxRate),
 	}
 }
 
@@ -86,6 +93,10 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateFeeDenom(p.FeeDenom); err != nil {
+		return err
+	}
+
+	if err := validateValidatorTaxRate(p.ValidatorTaxRate); err != nil {
 		return err
 	}
 	return nil
@@ -158,6 +169,20 @@ func validateFeeDenom(v interface{}) error {
 
 	// TODO implement validation
 	_ = feeDenom
+
+	return nil
+}
+
+// validateValidatorTaxRate validates the ValidatorTaxRate param
+func validateValidatorTaxRate(v interface{}) error {
+	validatorTaxRate, ok := v.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if validatorTaxRate.IsNil() || validatorTaxRate.IsNegative() || validatorTaxRate.GT(sdk.OneDec()) {
+		return fmt.Errorf("validator tax ratio should be between 0 and 1, is %s", validatorTaxRate)
+	}
 
 	return nil
 }

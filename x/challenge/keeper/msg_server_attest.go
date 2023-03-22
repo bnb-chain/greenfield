@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -202,18 +204,21 @@ func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int)
 // doHeartbeatAndRewards will transfer the tax to distribution account and rewards to submitter.
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
 	spOperator, submitter, challenger sdk.AccAddress) error {
-	totalAmount := k.paymentKeeper.QueryValidatorRewards(ctx)
+	totalAmount, err := k.paymentKeeper.QueryDynamicBalance(ctx, paymentmoduletypes.ValidatorTaxPoolAddress)
+	if err != nil {
+		return err
+	}
 
 	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
 	if !totalAmount.IsZero() {
 		validatorReward, submitterReward = k.calculateHeartbeatRewards(ctx, totalAmount)
 		if validatorReward.IsPositive() && submitterReward.IsPositive() {
 			distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
-			err := k.paymentKeeper.TransferValidatorRewards(ctx, distModuleAcc, validatorReward)
+			err = k.paymentKeeper.Withdraw(ctx, paymentmoduletypes.ValidatorTaxPoolAddress, distModuleAcc, validatorReward)
 			if err != nil {
 				return err
 			}
-			err = k.paymentKeeper.TransferValidatorRewards(ctx, submitter, submitterReward)
+			err = k.paymentKeeper.Withdraw(ctx, paymentmoduletypes.ValidatorTaxPoolAddress, submitter, submitterReward)
 			if err != nil {
 				return err
 			}
