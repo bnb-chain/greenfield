@@ -155,6 +155,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		oldEndpoint := sp.Endpoint
 		sp.Endpoint = msg.Endpoint
 		changed = true
+		// TODO(chris): when we need more fields to EventEditStorageProvider, it should be put before calling the SetStorageProvider method.
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
 			OldEndpoint: oldEndpoint,
 			NewEndpoint: sp.Endpoint,
