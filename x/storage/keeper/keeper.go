@@ -93,7 +93,6 @@ func (k Keeper) CreateBucket(
 	}
 
 	// check primary sp approval
-	// PrimarySpApproval might be nil, so we need to check it first(which can be done in Msg.ValidateBasic)
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
@@ -926,7 +925,6 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 }
 
 func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
-	// the check below is same with IsStorageProviderExistAndInService
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "spAddr: %s, status: %s", sp.OperatorAddress, sp.Status.String())

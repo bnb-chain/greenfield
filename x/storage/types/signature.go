@@ -32,7 +32,6 @@ func VerifySignature(sigAccAddress sdk.AccAddress, sigHash []byte, sig []byte) e
 		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "pubkey %s is different from approval pubkey %s", pubKeyAddr, sigAccAddress)
 	}
 
-	// seems the check below is redundant
 	recoveredSignerAcc := sdk.AccAddress(pubKeyAddr.Bytes())
 
 	if !recoveredSignerAcc.Equals(sigAccAddress) {
