@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -53,8 +52,19 @@ var (
 	}
 )
 
+// Eval is used to evaluate the execution results of permission policies.
+// First, each policy has an expiration time. If it has expired, EFFECT_UNSPECIFIED will be returned, indicating that it cannot be evaluated and further verification is required.
+// Next, each statement in the policy needs to be checked, which includes verifying:
+// 1. Whether the statement has expired,
+// 2. Whether the limit size has been exceeded,
+// 3. Whether the resource in the statement matches the input resource name,
+// 4. Whether the action in the statement matches the input action.
+// Finally, in the verification process, based on the effect check
+// 1. if there is an explicit Deny, return EFFECT_DENY;
+// 2. if there is an explicit Allowed, record the flag and continue execution;
+// 3. after all statements have been checked, if the flag is true, return EFFECT_ALLOW; otherwise return EFFECT_UNSPECIFIED.
 func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
-	// 1. check if the policy is expired
+	// 1. the policy is expired, need delete
 	if p.ExpirationTime != nil && p.ExpirationTime.Before(blockTime) {
 		// Notice: We do not actively delete policies that expire for users.
 		return EFFECT_UNSPECIFIED, nil
@@ -129,7 +139,7 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 				return EFFECT_DENY, nil
 			}
 			// There is special handling for ACTION_CREATE_OBJECT.
-			// userA grant CreateObject permission to userB, but only allows he to create a limit size of object.
+			// userA grant CreateObject permission to userB, but only allows him to create a limit size of object.
 			// If exceeded, rejected
 			if action == ACTION_CREATE_OBJECT && s.LimitSize != nil && opts != nil && opts.WantedSize != nil {
 				if s.LimitSize.GetValue() >= *opts.WantedSize {
@@ -195,6 +205,5 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	default:
 		return ErrInvalidStatement.Wrap("unknown resource type.")
 	}
-
 	return nil
 }

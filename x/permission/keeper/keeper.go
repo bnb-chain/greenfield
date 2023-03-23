@@ -51,7 +51,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 	}
 	k.policySeq = sequence.NewSequence256(types.PolicySequencePrefix)
-	k.groupMemberSeq = sequence.NewSequence256(types.GroupMemberByIDPrefix)
+	k.groupMemberSeq = sequence.NewSequence256(types.GroupMemberSequencePrefix)
 	return k
 }
 
@@ -112,6 +112,7 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 func (k Keeper) updatePolicy(ctx sdk.Context, policy *types.Policy, newPolicy *types.Policy) *types.Policy {
 	store := ctx.KVStore(k.storeKey)
 	policy.Statements = newPolicy.Statements
+	policy.ExpirationTime = newPolicy.ExpirationTime
 	store.Set(types.GetPolicyByIDKey(policy.Id), k.cdc.MustMarshal(policy))
 	return policy
 }

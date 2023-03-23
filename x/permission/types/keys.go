@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -20,10 +22,6 @@ const (
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_permission"
 )
-
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
 
 var (
 	BucketPolicyForAccountPrefix = []byte{0x11}
@@ -51,7 +49,7 @@ func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.Resource
 	case resource.RESOURCE_TYPE_GROUP:
 		key = GroupPolicyForAccountPrefix
 	default:
-		return nil
+		panic(fmt.Sprintf("GetPolicyForAccountKey Invalid Resource Type, %s", resourceType.String()))
 	}
 	key = append(key, resourceID.Bytes()...)
 	key = append(key, addr.Bytes()...)
@@ -66,7 +64,7 @@ func GetPolicyForGroupKey(resourceID math.Uint, resourceType resource.ResourceTy
 	case resource.RESOURCE_TYPE_OBJECT:
 		key = ObjectPolicyForGroupPrefix
 	default:
-		return nil
+		panic(fmt.Sprintf("GetPolicyForGroupKey Invalid Resource Type, %s", resourceType.String()))
 	}
 	key = append(key, resourceID.Bytes()...)
 	return key

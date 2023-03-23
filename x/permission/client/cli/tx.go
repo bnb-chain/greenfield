@@ -1,17 +1,12 @@
 package cli
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
-	"github.com/bnb-chain/greenfield/x/permission/types"
-)
+	"fmt"
 
-var (
-	DefaultRelativePacketTimeoutTimestamp = uint64((time.Duration(10) * time.Minute).Nanoseconds())
+	"github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 // GetTxCmd returns the transaction commands for this module
