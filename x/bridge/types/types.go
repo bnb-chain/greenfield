@@ -18,14 +18,6 @@ const (
 	SyncParamsChannelID                = paramsproposal.SyncParamsChannelID
 )
 
-type RefundReason uint32
-
-const (
-	RefundReasonInsufficientBalance RefundReason = 1
-	RefundReasonFailAck             RefundReason = 2
-	Unknown                         RefundReason = 3
-)
-
 type TransferOutSynPackage struct {
 	Amount        *big.Int
 	Recipient     sdk.AccAddress
@@ -44,7 +36,7 @@ func DeserializeTransferOutSynPackage(serializedPackage []byte) (*TransferOutSyn
 type TransferOutRefundPackage struct {
 	RefundAmount *big.Int
 	RefundAddr   sdk.AccAddress
-	RefundReason RefundReason
+	RefundReason uint32
 }
 
 func DeserializeTransferOutRefundPackage(serializedPackage []byte) (*TransferOutRefundPackage, error) {
@@ -75,5 +67,5 @@ func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPa
 type TransferInRefundPackage struct {
 	RefundAmount  *big.Int
 	RefundAddress sdk.AccAddress
-	RefundReason  RefundReason
+	RefundReason  uint32
 }
