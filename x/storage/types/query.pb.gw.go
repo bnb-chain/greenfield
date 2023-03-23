@@ -1906,9 +1906,9 @@ var (
 
 	pattern_Query_ListGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_group", "group_owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadGroupMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"bnb-chain", "greenfield", "storage", "head_group_member"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_HeadGroupMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "head_group_member"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryPolicyForGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"bnb-chain", "greenfield", "storage", "policy_for_group", "resource", "principal_group_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_QueryPolicyForGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "policy_for_group", "resource", "principal_group_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

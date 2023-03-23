@@ -41,8 +41,8 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 		return permtypes.EFFECT_ALLOW
 	}
 	// The owner has full permissions
-	ownerAcc := sdk.MustAccAddressFromHex(bucketInfo.Owner)
-	if ownerAcc.Equals(operator) {
+
+	if operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
 		return permtypes.EFFECT_ALLOW
 	}
 

@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"cosmossdk.io/errors"
+	"github.com/bnb-chain/greenfield/types/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
@@ -77,7 +78,7 @@ var (
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
 	creator sdk.AccAddress, bucketName string, Visibility VisibilityType,
-	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte) *MsgCreateBucket {
+	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte, chargedReadQuota uint64) *MsgCreateBucket {
 	return &MsgCreateBucket{
 		Creator:           creator.String(),
 		BucketName:        bucketName,
@@ -85,6 +86,7 @@ func NewMsgCreateBucket(
 		PaymentAddress:    paymentAddress.String(),
 		PrimarySpAddress:  primarySPAddress.String(),
 		PrimarySpApproval: &Approval{timeoutHeight, sig},
+		ChargedReadQuota:  chargedReadQuota,
 	}
 }
 
@@ -200,14 +202,20 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 }
 
 // NewMsgUpdateBucketInfo creates a new MsgBucketReadQuota instance.
-func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota uint64, paymentAcc sdk.AccAddress, Visibility VisibilityType) *MsgUpdateBucketInfo {
-	return &MsgUpdateBucketInfo{
-		Operator:       operator.String(),
-		BucketName:     bucketName,
-		ReadQuota:      readQuota,
-		PaymentAddress: paymentAcc.String(),
-		Visibility:     Visibility,
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, chargedReadQuota *uint64, paymentAcc sdk.AccAddress, Visibility VisibilityType) *MsgUpdateBucketInfo {
+	msgUpdateBucketInfo := &MsgUpdateBucketInfo{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		Visibility: Visibility,
 	}
+	if paymentAcc != nil {
+		msgUpdateBucketInfo.PaymentAddress = paymentAcc.String()
+	}
+	if chargedReadQuota != nil {
+		msgUpdateBucketInfo.ChargedReadQuota = &common.UInt64Value{Value: *chargedReadQuota}
+	}
+
+	return msgUpdateBucketInfo
 }
 
 func (msg *MsgUpdateBucketInfo) Route() string {
@@ -241,9 +249,11 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 		return err
 	}
 
-	_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
+	if msg.PaymentAddress != "" {
+		_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
+		}
 	}
 
 	return nil
@@ -331,7 +341,7 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	}
 
 	for _, spAddress := range msg.ExpectSecondarySpAddresses {
-		if _, err := sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
+		if _, err = sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
 		}
 	}

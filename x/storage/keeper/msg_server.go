@@ -33,10 +33,10 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 
 	primarySPAcc := sdk.MustAccAddressFromHex(msg.PrimarySpAddress)
 
-	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, CreateBucketOptions{
+	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, &CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
 		Visibility:        msg.Visibility,
-		ReadQuota:         msg.ReadQuota,
+		ChargedReadQuota:  msg.ChargedReadQuota,
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		PrimarySpApproval: msg.PrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
@@ -69,11 +69,15 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
+	var chargedReadQuota *uint64
+	if msg.ChargedReadQuota != nil {
+		chargedReadQuota = &msg.ChargedReadQuota.Value
+	}
 	err := k.Keeper.UpdateBucketInfo(ctx, operatorAcc, msg.BucketName, UpdateBucketOptions{
-		SourceType:     types.SOURCE_TYPE_ORIGIN,
-		ReadQuota:      msg.ReadQuota,
-		PaymentAddress: msg.PaymentAddress,
-		Visibility:     msg.Visibility,
+		SourceType:       types.SOURCE_TYPE_ORIGIN,
+		PaymentAddress:   msg.PaymentAddress,
+		Visibility:       msg.Visibility,
+		ChargedReadQuota: chargedReadQuota,
 	})
 	if err != nil {
 		return nil, err

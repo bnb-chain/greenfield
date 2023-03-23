@@ -7,7 +7,7 @@ import (
 type CreateBucketOptions struct {
 	Visibility        types.VisibilityType
 	SourceType        types.SourceType
-	ReadQuota         uint64
+	ChargedReadQuota  uint64
 	PaymentAddress    string
 	PrimarySpApproval *types.Approval
 	ApprovalMsgBytes  []byte
@@ -18,10 +18,10 @@ type DeleteBucketOptions struct {
 }
 
 type UpdateBucketOptions struct {
-	Visibility     types.VisibilityType
-	SourceType     types.SourceType
-	ReadQuota      uint64
-	PaymentAddress string
+	Visibility       types.VisibilityType
+	SourceType       types.SourceType
+	PaymentAddress   string
+	ChargedReadQuota *uint64
 }
 
 type CreateObjectOptions struct {

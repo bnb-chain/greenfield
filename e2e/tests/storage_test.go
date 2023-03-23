@@ -51,7 +51,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -72,7 +72,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 
 	// UpdateBucketInfo
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
-		user.GetAddr(), bucketName, math.MaxUint64, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
+		user.GetAddr(), bucketName, nil, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().NoError(err)
 	s.SendTxBlock(msgUpdateBucketInfo, user)
 	s.Require().NoError(err)
@@ -95,7 +95,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -269,7 +269,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	bucketName1 := storageutils.GenRandomBucketName()
 	msgCreateBucket1 := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName1, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket1.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket1.
 		GetApprovalBytes())
 	s.Require().NoError(err)
@@ -279,7 +279,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	bucketName2 := storageutils.GenRandomBucketName()
 	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName2, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket2.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket2.
 		GetApprovalBytes())
 	s.Require().NoError(err)
@@ -398,11 +398,11 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 
 	// create bucket
 	bucketName := storageutils.GenRandomBucketName()
-	bucketReadQuota := uint64(1000)
+	bucketChargedReadQuota := uint64(1000)
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
-	msgCreateBucket.ReadQuota = bucketReadQuota
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.ChargedReadQuota = bucketChargedReadQuota
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -432,7 +432,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
-	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ReadQuota)).TruncateInt()
+	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
 	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
 	userTaxRate := paymentParams.Params.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
 	userTotalRate := readChargeRate.Add(userTaxRate)
@@ -570,7 +570,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	userAddr := user.GetAddr().String()
 	var err error
 
-	bucketReadQuota := uint64(1000)
+	bucketChargedReadQuota := uint64(1000)
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
@@ -582,7 +582,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
-	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketReadQuota)).TruncateInt()
+	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := paymentParams.Params.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
@@ -610,8 +610,8 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil)
-	msgCreateBucket.ReadQuota = bucketReadQuota
+		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, 0)
+	msgCreateBucket.ChargedReadQuota = bucketChargedReadQuota
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -726,7 +726,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -758,7 +758,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)

@@ -57,6 +57,10 @@ message Approval {
 }
 
 // SecondarySpSignDoc used to generate seal signature of secondary SP
+// If the secondary SP only signs the checksum to declare the object pieces are saved,
+// it might be reused by the primary SP to fake it's declaration.
+// Then the primary SP can challenge and slash the secondary SP.
+// So the id of the object is needed to prevent this.
 message SecondarySpSignDoc {
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string object_id = 2 [

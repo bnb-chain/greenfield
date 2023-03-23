@@ -65,15 +65,17 @@ func CheckValidObjectName(objectName string) error {
 
 	// check bad path component
 	if hasBadPathComponent(objectName) {
-		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name with a bad path component are not supported")
+		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name with a bad path component is not supported")
 	}
 	// check UTF-8 strings
 	if !utf8.ValidString(objectName) {
-		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name with non UTF-8 strings are not supported")
+		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name with non UTF-8 strings is not supported")
 	}
 
 	if strings.Contains(objectName, `//`) {
-		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name with a \"//\" prefix are not supported")
+		// the error description and the judgement condition are not consistent
+		// `Contains` is not the same as `HasPrefix`
+		return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name contains a \"//\" is not supported")
 	}
 
 	return nil
@@ -90,7 +92,7 @@ func CheckValidGroupName(groupName string) error {
 		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name cannot be longer than 63 characters")
 	}
 	if !utf8.ValidString(groupName) {
-		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name with non UTF-8 strings are not supported")
+		return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name with non UTF-8 strings is not supported")
 	}
 
 	return nil

@@ -58,9 +58,9 @@ func (s *IntegrationTestSuite) SetupTest() {
 func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	ctx := s.ctx.WithBlockTime(time.Now())
 	// mock create bucket
-	readQuota := uint64(1000)
+	ChargedReadQuota := uint64(1000)
 	bucket := types.BucketInfo{
-		ReadQuota:        readQuota,
+		ChargedReadQuota: ChargedReadQuota,
 		PaymentAddress:   s.UserAddr.String(),
 		PrimarySpAddress: s.PrimarySpAddr.String(),
 	}
@@ -115,7 +115,7 @@ func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	s.T().Logf("primaryStorePriceRes: %+v", primaryStorePriceRes)
 	primarySpRateDiff := spStreamRecordSealObject.NetflowRate.Sub(spStreamRecordCreateBucket.NetflowRate)
 	expectedRate := primaryStorePriceRes.StorePrice.MulInt(sdk.NewIntFromUint64(bucket.BillingInfo.TotalChargeSize)).TruncateInt()
-	readRate := primaryStorePriceRes.ReadPrice.MulInt(sdk.NewIntFromUint64(readQuota)).TruncateInt()
+	readRate := primaryStorePriceRes.ReadPrice.MulInt(sdk.NewIntFromUint64(ChargedReadQuota)).TruncateInt()
 	s.T().Logf("primarySpRateDiff: %s, expectedRate: %s, readRate: %s", primarySpRateDiff, expectedRate, readRate)
 	s.Require().Equal(expectedRate.String(), primarySpRateDiff.String())
 }

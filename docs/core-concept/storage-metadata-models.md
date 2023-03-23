@@ -44,8 +44,8 @@ message BucketInfo {
   // primary_sp_address is the address of the primary sp. Objects belongs to this bucket will never
   // leave this SP, unless you explicitly shift them to another SP.
   string primary_sp_address;
-  // read_quota defines the traffic quota for read
-  ReadQuota read_quota;
+  // charged_read_quota defines the traffic quota for read
+  uint64 charged_read_quota;
   int64 payment_price_time;
   // payment_out_flows, for billing;
   repeated payment.OutFlowInUSD payment_out_flows;

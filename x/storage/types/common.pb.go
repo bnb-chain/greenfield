@@ -198,6 +198,10 @@ func (m *Approval) GetSig() []byte {
 }
 
 // SecondarySpSignDoc used to generate seal signature of secondary SP
+// If the secondary SP only signs the checksum to declare the object pieces are saved,
+// it might be reused by the primary SP to fake it's declaration.
+// Then the primary SP can challenge and slash the secondary SP.
+// So the id of the object is needed to prevent this.
 type SecondarySpSignDoc struct {
 	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	ObjectId  Uint   `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`

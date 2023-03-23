@@ -13,7 +13,7 @@ import (
 )
 
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
-	if bucketInfo.ReadQuota == 0 {
+	if bucketInfo.ChargedReadQuota == 0 {
 		return nil
 	}
 	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
@@ -25,12 +25,12 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 }
 
 func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newPaymentAddr string, newReadQuota uint64) error {
-	if bucketInfo.PaymentAddress != newPaymentAddr && bucketInfo.ReadQuota != newReadQuota {
+	if bucketInfo.PaymentAddress != newPaymentAddr && bucketInfo.ChargedReadQuota != newReadQuota {
 		return fmt.Errorf("payment address and read quota can not be changed at the same time")
 	}
 	err := k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.PaymentAddress = newPaymentAddr
-		bi.ReadQuota = newReadQuota
+		bi.ChargedReadQuota = newReadQuota
 		return nil
 	})
 	return err
@@ -115,7 +115,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
 	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ReadQuota == 0 {
+	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
 	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
@@ -126,7 +126,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
 	totalUserOutRate := sdkmath.ZeroInt()
-	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ReadQuota)).TruncateInt()
+	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
 	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
 	if primarySpRate.IsPositive() {
