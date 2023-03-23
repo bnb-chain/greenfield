@@ -312,6 +312,16 @@ paths:
                       - STREAM_ACCOUNT_STATUS_ACTIVE
                       - STREAM_ACCOUNT_STATUS_FROZEN
                     default: STREAM_ACCOUNT_STATUS_ACTIVE
+                    description: >-
+                      - STREAM_ACCOUNT_STATUS_ACTIVE:
+                      STREAM_ACCOUNT_STATUS_ACTIVE defines the active status of
+                      a stream account.
+                       - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+                      A frozen stream account cannot be used as payment address
+                      for buckets.
+
+                      It can be unfrozen by depositing more BNB to the stream
+                      account.
                   settle_timestamp:
                     type: string
                     format: int64
@@ -333,7 +343,7 @@ paths:
                         OutFlow defines the accumulative outflow stream rate in
                         BNB
 
-                        from a stream account or a bucket to a SP
+                        from a stream account to a Storage Provider
                     title: the accumulated outflow rates of the stream account
                 title: Stream Payment Record of a stream account
               current_timestamp:
@@ -454,6 +464,11 @@ paths:
                   fee_denom:
                     type: string
                     title: The denom of fee charged in payment module
+                  validator_tax_rate:
+                    type: string
+                    title: >-
+                      The tax rate to pay for validators in storage payment. The
+                      default value is 1%(0.01)
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -907,6 +922,16 @@ paths:
                         - STREAM_ACCOUNT_STATUS_ACTIVE
                         - STREAM_ACCOUNT_STATUS_FROZEN
                       default: STREAM_ACCOUNT_STATUS_ACTIVE
+                      description: >-
+                        - STREAM_ACCOUNT_STATUS_ACTIVE:
+                        STREAM_ACCOUNT_STATUS_ACTIVE defines the active status
+                        of a stream account.
+                         - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+                        A frozen stream account cannot be used as payment
+                        address for buckets.
+
+                        It can be unfrozen by depositing more BNB to the stream
+                        account.
                     settle_timestamp:
                       type: string
                       format: int64
@@ -930,7 +955,7 @@ paths:
                           OutFlow defines the accumulative outflow stream rate
                           in BNB
 
-                          from a stream account or a bucket to a SP
+                          from a stream account to a Storage Provider
                       title: the accumulated outflow rates of the stream account
                   title: Stream Payment Record of a stream account
               pagination:
@@ -1093,6 +1118,16 @@ paths:
                       - STREAM_ACCOUNT_STATUS_ACTIVE
                       - STREAM_ACCOUNT_STATUS_FROZEN
                     default: STREAM_ACCOUNT_STATUS_ACTIVE
+                    description: >-
+                      - STREAM_ACCOUNT_STATUS_ACTIVE:
+                      STREAM_ACCOUNT_STATUS_ACTIVE defines the active status of
+                      a stream account.
+                       - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+                      A frozen stream account cannot be used as payment address
+                      for buckets.
+
+                      It can be unfrozen by depositing more BNB to the stream
+                      account.
                   settle_timestamp:
                     type: string
                     format: int64
@@ -1114,7 +1149,7 @@ paths:
                         OutFlow defines the accumulative outflow stream rate in
                         BNB
 
-                        from a stream account or a bucket to a SP
+                        from a stream account to a Storage Provider
                     title: the accumulated outflow rates of the stream account
                 title: Stream Payment Record of a stream account
         default:
@@ -1148,6 +1183,7 @@ paths:
         - Query
   /greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}:
     get:
+      summary: get secondary store price by time
       operationId: QueryGetSecondarySpStorePriceByTime
       responses:
         '200':
@@ -1158,16 +1194,16 @@ paths:
               secondary_sp_store_price:
                 type: object
                 properties:
-                  update_time:
+                  update_time_sec:
                     type: string
                     format: int64
-                    title: update time, in unix timestamp
+                    title: update time, unix timestamp in seconds
                   store_price:
                     type: string
                     title: store price, in bnb wei per charge byte
-                title: |-
-                  global secondary sp store price
-                  this is the price for all secondary sps
+                title: >-
+                  global secondary sp store price, the price for all secondary
+                  sps
         default:
           description: An unexpected error response.
           schema:
@@ -1192,6 +1228,9 @@ paths:
                       format: byte
       parameters:
         - name: timestamp
+          description: >-
+            unix timestamp in seconds. If it's 0, it will return the latest
+            price.
           in: path
           required: true
           type: string
@@ -1200,6 +1239,7 @@ paths:
         - Query
   /greenfield/sp/get_sp_storage_price_by_time/{sp_addr}/{timestamp}:
     get:
+      summary: get storage price of specific sp and time
       operationId: QueryGetSpStoragePriceByTime
       responses:
         '200':
@@ -1213,10 +1253,10 @@ paths:
                   sp_address:
                     type: string
                     title: sp address
-                  update_time:
+                  update_time_sec:
                     type: string
                     format: int64
-                    title: update time, in unix timestamp
+                    title: update time, unix timestamp in seconds
                   read_price:
                     type: string
                     title: read price, in bnb wei per charge byte
@@ -1252,10 +1292,14 @@ paths:
                       format: byte
       parameters:
         - name: sp_addr
+          description: operator address of sp
           in: path
           required: true
           type: string
         - name: timestamp
+          description: >-
+            unix timestamp in seconds. If it's 0, it will return the latest
+            price.
           in: path
           required: true
           type: string
@@ -1282,8 +1326,13 @@ paths:
                   min_deposit:
                     type: string
                     description: >-
-                      min_deposit_amount defines the minimum deposit amount for
-                      storage providers.
+                      min_deposit defines the minimum deposit amount for storage
+                      providers.
+                  secondary_sp_store_price_ratio:
+                    type: string
+                    title: >-
+                      the ratio of the store price of the secondary sp to the
+                      primary sp, the default value is 80%
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -1395,10 +1444,7 @@ paths:
                       details:
                         type: string
                         description: details define other optional details.
-                description: |-
-                  StorageProvider defines the meta info of storage provider
-                  TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
-                  TODO: add more account address for different role.
+                title: StorageProvider defines the meta info of storage provider
         default:
           description: An unexpected error response.
           schema:
@@ -1514,10 +1560,7 @@ paths:
                         details:
                           type: string
                           description: details define other optional details.
-                  description: |-
-                    StorageProvider defines the meta info of storage provider
-                    TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
-                    TODO: add more account address for different role.
+                  title: StorageProvider defines the meta info of storage provider
               pagination:
                 description: pagination defines the pagination in the response.
                 type: object
@@ -1677,155 +1720,6 @@ paths:
           in: query
           required: false
           type: string
-      tags:
-        - Query
-  /bnb-chain/greenfield/storage/list_group/{group_owner}:
-    get:
-      summary: Queries a list of ListGroup items.
-      operationId: ListGroup
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-              group_infos:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    owner:
-                      type: string
-                      description: >-
-                        owner is the owner of the group. It can not changed once
-                        it created.
-                    group_name:
-                      type: string
-                      description: >-
-                        group_name is the name of group which is unique under an
-                        account.
-                    source_type:
-                      title: source_type
-                      type: string
-                      enum:
-                        - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
-                        - SOURCE_TYPE_MIRROR_PENDING
-                      default: SOURCE_TYPE_ORIGIN
-                    id:
-                      type: string
-                      title: id is the unique identifier of group
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: group_owner
-          in: path
-          required: true
-          type: string
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
       tags:
         - Query
   /bnb-chain/greenfield/storage/policy_for_group/{resource}/{principal_group_id}:
@@ -2035,12 +1929,17 @@ paths:
                   bucket_name:
                     type: string
                     title: bucket_name is a globally unique name of bucket
-                  is_public:
-                    type: boolean
+                  visibility:
                     description: >-
-                      is_public define the highest permissions for bucket. When
-                      the bucket is public, everyone can get storage objects in
-                      it.
+                      visibility defines the highest permissions for bucket.
+                      When a bucket is public, everyone can get storage objects
+                      in it.
+                    type: string
+                    enum:
+                      - VISIBILITY_TYPE_PUBLIC_READ
+                      - VISIBILITY_TYPE_PRIVATE
+                      - VISIBILITY_TYPE_DEFAULT
+                    default: VISIBILITY_TYPE_PUBLIC_READ
                   id:
                     type: string
                     description: id is the unique identification for bucket.
@@ -2157,12 +2056,17 @@ paths:
                   bucket_name:
                     type: string
                     title: bucket_name is a globally unique name of bucket
-                  is_public:
-                    type: boolean
+                  visibility:
                     description: >-
-                      is_public define the highest permissions for bucket. When
-                      the bucket is public, everyone can get storage objects in
-                      it.
+                      visibility defines the highest permissions for bucket.
+                      When a bucket is public, everyone can get storage objects
+                      in it.
+                    type: string
+                    enum:
+                      - VISIBILITY_TYPE_PUBLIC_READ
+                      - VISIBILITY_TYPE_PRIVATE
+                      - VISIBILITY_TYPE_DEFAULT
+                    default: VISIBILITY_TYPE_PUBLIC_READ
                   id:
                     type: string
                     description: id is the unique identification for bucket.
@@ -2481,11 +2385,16 @@ paths:
                     type: string
                     format: uint64
                     title: payloadSize is the total size of the object payload
-                  is_public:
-                    type: boolean
+                  visibility:
                     description: >-
-                      is_public define the highest permissions for object. When
-                      the object is public, everyone can access it.
+                      visibility defines the highest permissions for object.
+                      When an object is public, everyone can access it.
+                    type: string
+                    enum:
+                      - VISIBILITY_TYPE_PUBLIC_READ
+                      - VISIBILITY_TYPE_PRIVATE
+                      - VISIBILITY_TYPE_DEFAULT
+                    default: VISIBILITY_TYPE_PUBLIC_READ
                   content_type:
                     type: string
                     description: >-
@@ -2601,11 +2510,16 @@ paths:
                     type: string
                     format: uint64
                     title: payloadSize is the total size of the object payload
-                  is_public:
-                    type: boolean
+                  visibility:
                     description: >-
-                      is_public define the highest permissions for object. When
-                      the object is public, everyone can access it.
+                      visibility defines the highest permissions for object.
+                      When an object is public, everyone can access it.
+                    type: string
+                    enum:
+                      - VISIBILITY_TYPE_PUBLIC_READ
+                      - VISIBILITY_TYPE_PRIVATE
+                      - VISIBILITY_TYPE_DEFAULT
+                    default: VISIBILITY_TYPE_PUBLIC_READ
                   content_type:
                     type: string
                     description: >-
@@ -2776,12 +2690,17 @@ paths:
                     bucket_name:
                       type: string
                       title: bucket_name is a globally unique name of bucket
-                    is_public:
-                      type: boolean
+                    visibility:
                       description: >-
-                        is_public define the highest permissions for bucket.
+                        visibility defines the highest permissions for bucket.
                         When a bucket is public, everyone can get storage
                         objects in it.
+                      type: string
+                      enum:
+                        - VISIBILITY_TYPE_PUBLIC_READ
+                        - VISIBILITY_TYPE_PRIVATE
+                        - VISIBILITY_TYPE_DEFAULT
+                      default: VISIBILITY_TYPE_PUBLIC_READ
                     id:
                       type: string
                       description: id is the unique identification for bucket.
@@ -2959,6 +2878,155 @@ paths:
           type: boolean
       tags:
         - Query
+  /greenfield/storage/list_group/{group_owner}:
+    get:
+      summary: Queries a list of ListGroup items.
+      operationId: ListGroup
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+              group_infos:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    owner:
+                      type: string
+                      description: >-
+                        owner is the owner of the group. It can not changed once
+                        it created.
+                    group_name:
+                      type: string
+                      description: >-
+                        group_name is the name of group which is unique under an
+                        account.
+                    source_type:
+                      title: source_type
+                      type: string
+                      enum:
+                        - SOURCE_TYPE_ORIGIN
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_MIRROR_PENDING
+                      default: SOURCE_TYPE_ORIGIN
+                    id:
+                      type: string
+                      title: id is the unique identifier of group
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: group_owner
+          in: path
+          required: true
+          type: string
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
   /greenfield/storage/list_objects/{bucket_name}:
     get:
       summary: Queries a list of object items under the bucket.
@@ -2989,11 +3057,16 @@ paths:
                       type: string
                       format: uint64
                       title: payloadSize is the total size of the object payload
-                    is_public:
-                      type: boolean
+                    visibility:
                       description: >-
-                        is_public define the highest permissions for object.
-                        When the object is public, everyone can access it.
+                        visibility defines the highest permissions for object.
+                        When an object is public, everyone can access it.
+                      type: string
+                      enum:
+                        - VISIBILITY_TYPE_PUBLIC_READ
+                        - VISIBILITY_TYPE_PRIVATE
+                        - VISIBILITY_TYPE_DEFAULT
+                      default: VISIBILITY_TYPE_PUBLIC_READ
                     content_type:
                       type: string
                       description: >-
@@ -3193,11 +3266,16 @@ paths:
                       type: string
                       format: uint64
                       title: payloadSize is the total size of the object payload
-                    is_public:
-                      type: boolean
+                    visibility:
                       description: >-
-                        is_public define the highest permissions for object.
-                        When the object is public, everyone can access it.
+                        visibility defines the highest permissions for object.
+                        When an object is public, everyone can access it.
+                      type: string
+                      enum:
+                        - VISIBILITY_TYPE_PUBLIC_READ
+                        - VISIBILITY_TYPE_PRIVATE
+                        - VISIBILITY_TYPE_DEFAULT
+                      default: VISIBILITY_TYPE_PUBLIC_READ
                     content_type:
                       type: string
                       description: >-
@@ -27501,7 +27579,7 @@ definitions:
         title: flow rate
     title: |-
       OutFlow defines the accumulative outflow stream rate in BNB
-      from a stream account or a bucket to a SP
+      from a stream account to a Storage Provider
   bnbchain.greenfield.payment.Params:
     type: object
     properties:
@@ -27532,6 +27610,11 @@ definitions:
       fee_denom:
         type: string
         title: The denom of fee charged in payment module
+      validator_tax_rate:
+        type: string
+        title: >-
+          The tax rate to pay for validators in storage payment. The default
+          value is 1%(0.01)
     description: Params defines the parameters for the module.
   bnbchain.greenfield.payment.PaymentAccount:
     type: object
@@ -27740,6 +27823,14 @@ definitions:
                 - STREAM_ACCOUNT_STATUS_ACTIVE
                 - STREAM_ACCOUNT_STATUS_FROZEN
               default: STREAM_ACCOUNT_STATUS_ACTIVE
+              description: >-
+                - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE
+                defines the active status of a stream account.
+                 - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+                A frozen stream account cannot be used as payment address for
+                buckets.
+
+                It can be unfrozen by depositing more BNB to the stream account.
             settle_timestamp:
               type: string
               format: int64
@@ -27759,7 +27850,7 @@ definitions:
                     title: flow rate
                 title: |-
                   OutFlow defines the accumulative outflow stream rate in BNB
-                  from a stream account or a bucket to a SP
+                  from a stream account to a Storage Provider
               title: the accumulated outflow rates of the stream account
           title: Stream Payment Record of a stream account
       pagination:
@@ -27830,6 +27921,14 @@ definitions:
               - STREAM_ACCOUNT_STATUS_ACTIVE
               - STREAM_ACCOUNT_STATUS_FROZEN
             default: STREAM_ACCOUNT_STATUS_ACTIVE
+            description: >-
+              - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE
+              defines the active status of a stream account.
+               - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+              A frozen stream account cannot be used as payment address for
+              buckets.
+
+              It can be unfrozen by depositing more BNB to the stream account.
           settle_timestamp:
             type: string
             format: int64
@@ -27849,7 +27948,7 @@ definitions:
                   title: flow rate
               title: |-
                 OutFlow defines the accumulative outflow stream rate in BNB
-                from a stream account or a bucket to a SP
+                from a stream account to a Storage Provider
             title: the accumulated outflow rates of the stream account
         title: Stream Payment Record of a stream account
       current_timestamp:
@@ -27957,6 +28056,14 @@ definitions:
               - STREAM_ACCOUNT_STATUS_ACTIVE
               - STREAM_ACCOUNT_STATUS_FROZEN
             default: STREAM_ACCOUNT_STATUS_ACTIVE
+            description: >-
+              - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE
+              defines the active status of a stream account.
+               - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+              A frozen stream account cannot be used as payment address for
+              buckets.
+
+              It can be unfrozen by depositing more BNB to the stream account.
           settle_timestamp:
             type: string
             format: int64
@@ -27976,7 +28083,7 @@ definitions:
                   title: flow rate
               title: |-
                 OutFlow defines the accumulative outflow stream rate in BNB
-                from a stream account or a bucket to a SP
+                from a stream account to a Storage Provider
             title: the accumulated outflow rates of the stream account
         title: Stream Payment Record of a stream account
   bnbchain.greenfield.payment.QueryParamsResponse:
@@ -28015,6 +28122,11 @@ definitions:
           fee_denom:
             type: string
             title: The denom of fee charged in payment module
+          validator_tax_rate:
+            type: string
+            title: >-
+              The tax rate to pay for validators in storage payment. The default
+              value is 1%(0.01)
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   bnbchain.greenfield.payment.StreamAccountStatus:
     type: string
@@ -28022,6 +28134,14 @@ definitions:
       - STREAM_ACCOUNT_STATUS_ACTIVE
       - STREAM_ACCOUNT_STATUS_FROZEN
     default: STREAM_ACCOUNT_STATUS_ACTIVE
+    description: >-
+      - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE defines the
+      active status of a stream account.
+       - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+      A frozen stream account cannot be used as payment address for buckets.
+
+      It can be unfrozen by depositing more BNB to the stream account.
+    title: StreamAccountStatus defines the status of a stream account
   bnbchain.greenfield.payment.StreamRecord:
     type: object
     properties:
@@ -28059,6 +28179,13 @@ definitions:
           - STREAM_ACCOUNT_STATUS_ACTIVE
           - STREAM_ACCOUNT_STATUS_FROZEN
         default: STREAM_ACCOUNT_STATUS_ACTIVE
+        description: >-
+          - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE defines
+          the active status of a stream account.
+           - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+          A frozen stream account cannot be used as payment address for buckets.
+
+          It can be unfrozen by depositing more BNB to the stream account.
       settle_timestamp:
         type: string
         format: int64
@@ -28078,7 +28205,7 @@ definitions:
               title: flow rate
           title: |-
             OutFlow defines the accumulative outflow stream rate in BNB
-            from a stream account or a bucket to a SP
+            from a stream account to a Storage Provider
         title: the accumulated outflow rates of the stream account
     title: Stream Payment Record of a stream account
   cosmos.base.query.v1beta1.PageRequest:
@@ -28187,9 +28314,12 @@ definitions:
         description: deposit_denom defines the staking coin denomination.
       min_deposit:
         type: string
-        description: >-
-          min_deposit_amount defines the minimum deposit amount for storage
-          providers.
+        description: min_deposit defines the minimum deposit amount for storage providers.
+      secondary_sp_store_price_ratio:
+        type: string
+        title: >-
+          the ratio of the store price of the secondary sp to the primary sp,
+          the default value is 80%
     description: Params defines the parameters for the module.
   bnbchain.greenfield.sp.QueryGetSecondarySpStorePriceByTimeResponse:
     type: object
@@ -28197,16 +28327,14 @@ definitions:
       secondary_sp_store_price:
         type: object
         properties:
-          update_time:
+          update_time_sec:
             type: string
             format: int64
-            title: update time, in unix timestamp
+            title: update time, unix timestamp in seconds
           store_price:
             type: string
             title: store price, in bnb wei per charge byte
-        title: |-
-          global secondary sp store price
-          this is the price for all secondary sps
+        title: global secondary sp store price, the price for all secondary sps
   bnbchain.greenfield.sp.QueryGetSpStoragePriceByTimeResponse:
     type: object
     properties:
@@ -28216,10 +28344,10 @@ definitions:
           sp_address:
             type: string
             title: sp address
-          update_time:
+          update_time_sec:
             type: string
             format: int64
-            title: update time, in unix timestamp
+            title: update time, unix timestamp in seconds
           read_price:
             type: string
             title: read price, in bnb wei per charge byte
@@ -28244,8 +28372,13 @@ definitions:
           min_deposit:
             type: string
             description: >-
-              min_deposit_amount defines the minimum deposit amount for storage
+              min_deposit defines the minimum deposit amount for storage
               providers.
+          secondary_sp_store_price_ratio:
+            type: string
+            title: >-
+              the ratio of the store price of the secondary sp to the primary
+              sp, the default value is 80%
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   bnbchain.greenfield.sp.QueryStorageProviderResponse:
     type: object
@@ -28316,10 +28449,7 @@ definitions:
               details:
                 type: string
                 description: details define other optional details.
-        description: |-
-          StorageProvider defines the meta info of storage provider
-          TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
-          TODO: add more account address for different role.
+        title: StorageProvider defines the meta info of storage provider
   bnbchain.greenfield.sp.QueryStorageProvidersResponse:
     type: object
     properties:
@@ -28395,10 +28525,7 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
-          description: |-
-            StorageProvider defines the meta info of storage provider
-            TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
-            TODO: add more account address for different role.
+          title: StorageProvider defines the meta info of storage provider
       pagination:
         description: pagination defines the pagination in the response.
         type: object
@@ -28421,26 +28548,24 @@ definitions:
   bnbchain.greenfield.sp.SecondarySpStorePrice:
     type: object
     properties:
-      update_time:
+      update_time_sec:
         type: string
         format: int64
-        title: update time, in unix timestamp
+        title: update time, unix timestamp in seconds
       store_price:
         type: string
         title: store price, in bnb wei per charge byte
-    title: |-
-      global secondary sp store price
-      this is the price for all secondary sps
+    title: global secondary sp store price, the price for all secondary sps
   bnbchain.greenfield.sp.SpStoragePrice:
     type: object
     properties:
       sp_address:
         type: string
         title: sp address
-      update_time:
+      update_time_sec:
         type: string
         format: int64
-        title: update time, in unix timestamp
+        title: update time, unix timestamp in seconds
       read_price:
         type: string
         title: read price, in bnb wei per charge byte
@@ -28523,10 +28648,7 @@ definitions:
           details:
             type: string
             description: details define other optional details.
-    description: |-
-      StorageProvider defines the meta info of storage provider
-      TODO: add endpoint for RPC/HTTP/Websocket and p2p identity
-      TODO: add more account address for different role.
+    title: StorageProvider defines the meta info of storage provider
   bnbchain.greenfield.common.UInt64Value:
     type: object
     properties:
@@ -28861,11 +28983,16 @@ definitions:
       bucket_name:
         type: string
         title: bucket_name is a globally unique name of bucket
-      is_public:
-        type: boolean
+      visibility:
         description: >-
-          is_public define the highest permissions for bucket. When the bucket
+          visibility defines the highest permissions for bucket. When a bucket
           is public, everyone can get storage objects in it.
+        type: string
+        enum:
+          - VISIBILITY_TYPE_PUBLIC_READ
+          - VISIBILITY_TYPE_PRIVATE
+          - VISIBILITY_TYPE_DEFAULT
+        default: VISIBILITY_TYPE_PUBLIC_READ
       id:
         type: string
         description: id is the unique identification for bucket.
@@ -29015,11 +29142,16 @@ definitions:
         type: string
         format: uint64
         title: payloadSize is the total size of the object payload
-      is_public:
-        type: boolean
+      visibility:
         description: >-
-          is_public define the highest permissions for object. When the object
+          visibility defines the highest permissions for object. When an object
           is public, everyone can access it.
+        type: string
+        enum:
+          - VISIBILITY_TYPE_PUBLIC_READ
+          - VISIBILITY_TYPE_PRIVATE
+          - VISIBILITY_TYPE_DEFAULT
+        default: VISIBILITY_TYPE_PUBLIC_READ
       content_type:
         type: string
         description: >-
@@ -29231,11 +29363,16 @@ definitions:
           bucket_name:
             type: string
             title: bucket_name is a globally unique name of bucket
-          is_public:
-            type: boolean
+          visibility:
             description: >-
-              is_public define the highest permissions for bucket. When the
+              visibility defines the highest permissions for bucket. When a
               bucket is public, everyone can get storage objects in it.
+            type: string
+            enum:
+              - VISIBILITY_TYPE_PUBLIC_READ
+              - VISIBILITY_TYPE_PRIVATE
+              - VISIBILITY_TYPE_DEFAULT
+            default: VISIBILITY_TYPE_PUBLIC_READ
           id:
             type: string
             description: id is the unique identification for bucket.
@@ -29362,11 +29499,16 @@ definitions:
             type: string
             format: uint64
             title: payloadSize is the total size of the object payload
-          is_public:
-            type: boolean
+          visibility:
             description: >-
-              is_public define the highest permissions for object. When the
+              visibility defines the highest permissions for object. When an
               object is public, everyone can access it.
+            type: string
+            enum:
+              - VISIBILITY_TYPE_PUBLIC_READ
+              - VISIBILITY_TYPE_PRIVATE
+              - VISIBILITY_TYPE_DEFAULT
+            default: VISIBILITY_TYPE_PUBLIC_READ
           content_type:
             type: string
             description: >-
@@ -29430,11 +29572,16 @@ definitions:
             bucket_name:
               type: string
               title: bucket_name is a globally unique name of bucket
-            is_public:
-              type: boolean
+            visibility:
               description: >-
-                is_public define the highest permissions for bucket. When the
+                visibility defines the highest permissions for bucket. When a
                 bucket is public, everyone can get storage objects in it.
+              type: string
+              enum:
+                - VISIBILITY_TYPE_PUBLIC_READ
+                - VISIBILITY_TYPE_PRIVATE
+                - VISIBILITY_TYPE_DEFAULT
+              default: VISIBILITY_TYPE_PUBLIC_READ
             id:
               type: string
               description: id is the unique identification for bucket.
@@ -29602,11 +29749,16 @@ definitions:
               type: string
               format: uint64
               title: payloadSize is the total size of the object payload
-            is_public:
-              type: boolean
+            visibility:
               description: >-
-                is_public define the highest permissions for object. When the
+                visibility defines the highest permissions for object. When an
                 object is public, everyone can access it.
+              type: string
+              enum:
+                - VISIBILITY_TYPE_PUBLIC_READ
+                - VISIBILITY_TYPE_PRIVATE
+                - VISIBILITY_TYPE_DEFAULT
+              default: VISIBILITY_TYPE_PUBLIC_READ
             content_type:
               type: string
               description: >-
@@ -30104,6 +30256,17 @@ definitions:
         type: string
       value:
         type: string
+  bnbchain.greenfield.storage.VisibilityType:
+    type: string
+    enum:
+      - VISIBILITY_TYPE_PUBLIC_READ
+      - VISIBILITY_TYPE_PRIVATE
+      - VISIBILITY_TYPE_DEFAULT
+    default: VISIBILITY_TYPE_PUBLIC_READ
+    description: |-
+      VisibilityType is the resources public status.
+
+       - VISIBILITY_TYPE_DEFAULT: If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object
     properties:

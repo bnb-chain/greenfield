@@ -7,8 +7,6 @@ option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
 
 // Params defines the parameters for the module.
 message Params {
-  option (gogoproto.goproto_stringer) = false;
-
   // maximum_statements_num defines the maximum number of statements allowed in a policy
   uint64 maximum_statements_num = 1;
   // maximum_group_num used to set the upper limit on the number of groups to which a resource can grant access permissions.

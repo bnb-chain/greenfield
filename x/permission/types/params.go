@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -54,13 +53,6 @@ func (p Params) Validate() error {
 		return err
 	}
 	return nil
-}
-
-// String implements the Stringer interface.
-// todo(quality): why do you specify `option (gogoproto.goproto_stringer) = false;` in the proto and implement the Stringer interface manually here?
-func (p Params) String() string {
-	out, _ := yaml.Marshal(p)
-	return string(out)
 }
 
 func validateMaximumStatementsNum(i interface{}) error {

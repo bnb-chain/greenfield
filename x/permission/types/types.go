@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
-
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -53,24 +52,19 @@ var (
 	}
 )
 
-<<<<<<< HEAD
-func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
-	// 1. check if the policy is expired
-=======
-func NewDefaultPolicyForGroupMember(groupID math.Uint, member sdk.AccAddress) *Policy {
-	return &Policy{
-		Principal:       NewPrincipalWithAccount(member),
-		ResourceType:    resource.RESOURCE_TYPE_GROUP,
-		ResourceId:      groupID,
-		MemberStatement: NewMemberStatement(),
-	}
-}
-
-// todo(quality): The logic is quite complicated. Recommend to add comments to explain the logic.
+// Eval is used to evaluate the execution results of permission policies.
+// First, each policy has an expiration time. If it has expired, EFFECT_UNSPECIFIED will be returned, indicating that it cannot be evaluated and further verification is required.
+// Next, each statement in the policy needs to be checked, which includes verifying:
+// 1. Whether the statement has expired,
+// 2. Whether the limit size has been exceeded,
+// 3. Whether the resource in the statement matches the input resource name,
+// 4. Whether the action in the statement matches the input action.
+// Finally, in the verification process, based on the effect check
+// 1. if there is an explicit Deny, return EFFECT_DENY;
+// 2. if there is an explicit Allowed, record the flag and continue execution;
+// 3. after all statements have been checked, if the flag is true, return EFFECT_ALLOW; otherwise return EFFECT_UNSPECIFIED.
 func (p *Policy) Eval(action ActionType, blockTime time.Time, opts *VerifyOptions) (Effect, *Policy) {
 	// 1. the policy is expired, need delete
-	// todo(quality): Does nil ExpirationTime mean no expiration? If so, should comment in the proto file.
->>>>>>> 7384bc55 (chore: refine permission module)
 	if p.ExpirationTime != nil && p.ExpirationTime.Before(blockTime) {
 		// Notice: We do not actively delete policies that expire for users.
 		return EFFECT_UNSPECIFIED, nil
@@ -123,7 +117,6 @@ func (s *Statement) Eval(action ActionType, opts *VerifyOptions) (Effect, *State
 	if opts != nil && opts.Resource != "" && s.Resources != nil {
 		isMatch := false
 		for _, res := range s.Resources {
-			// todo(quality): regexp is too heavy, is <https://pkg.go.dev/path/filepath#Match> enough?
 			reg := regexp.MustCompile(res)
 			if reg == nil {
 				continue
@@ -212,7 +205,5 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	default:
 		return ErrInvalidStatement.Wrap("unknown resource type.")
 	}
-
-	// todo(quality): should return error for invalid resource
 	return nil
 }
