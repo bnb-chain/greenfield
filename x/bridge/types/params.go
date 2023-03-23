@@ -60,6 +60,10 @@ func validateRelayerFee(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
+	if fee.IsNil() {
+		return fmt.Errorf("relay fee should not be nil")
+	}
+
 	if fee.IsNegative() {
 		return fmt.Errorf("relay fee should not less than 0")
 	}
