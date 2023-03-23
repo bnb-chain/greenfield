@@ -3,6 +3,7 @@ package types_test
 import (
 	"testing"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/x/bridge/types"
@@ -23,34 +24,12 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TransferOutRelayerFee:    "1",
-					TransferOutAckRelayerFee: "0",
+					TransferOutRelayerFee:    sdkmath.NewUint(1),
+					TransferOutAckRelayerFee: sdkmath.NewUint(0),
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
-		},
-		{
-			desc: "invalid genesis state",
-			genState: &types.GenesisState{
-				Params: types.Params{
-					TransferOutRelayerFee:    "1",
-					TransferOutAckRelayerFee: "-1",
-				},
-				// this line is used by starport scaffolding # types/genesis/validField
-			},
-			valid: false,
-		},
-		{
-			desc: "invalid genesis state",
-			genState: &types.GenesisState{
-				Params: types.Params{
-					TransferOutRelayerFee:    "-1",
-					TransferOutAckRelayerFee: "1",
-				},
-				// this line is used by starport scaffolding # types/genesis/validField
-			},
-			valid: false,
 		},
 	} {
 		t.Run(tc.desc, func(t *testing.T) {

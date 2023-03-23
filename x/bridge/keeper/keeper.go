@@ -58,7 +58,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynPackage, refundReason types.RefundReason) ([]byte, error) {
+func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynPackage, refundReason uint32) ([]byte, error) {
 	refundPackage := &types.TransferInRefundPackage{
 		RefundAddress: transferInClaim.RefundAddress,
 		RefundAmount:  transferInClaim.Amount,

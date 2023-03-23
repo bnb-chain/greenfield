@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"math/big"
 
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
@@ -21,11 +20,11 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 
 	relayerFeeAmount, ackRelayerFeeAmount := k.GetTransferOutRelayerFee(ctx)
+	totalRelayerFee := relayerFeeAmount.Add(ackRelayerFeeAmount)
 
-	totalRelayerFee := big.NewInt(0).Add(relayerFeeAmount, ackRelayerFeeAmount)
 	relayerFee := sdk.Coin{
 		Denom:  bondDenom,
-		Amount: sdk.NewIntFromBigInt(totalRelayerFee),
+		Amount: totalRelayerFee,
 	}
 	transferAmount := sdk.Coins{*msg.Amount}.Add(relayerFee)
 
@@ -49,7 +48,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 	}
 
 	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
-		encodedPackage, relayerFeeAmount, ackRelayerFeeAmount)
+		encodedPackage, relayerFeeAmount.BigInt(), ackRelayerFeeAmount.BigInt())
 	if err != nil {
 		return nil, err
 	}

@@ -2,7 +2,6 @@ package tests
 
 import (
 	"context"
-	"math/big"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -42,9 +41,7 @@ func (s *BridgeTestSuite) TestTransferOut() {
 	params, err := s.Client.BridgeQueryClient.Params(ctx, &bridgetypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
-	transferOutRelayerFee, _ := big.NewInt(0).SetString(params.Params.TransferOutRelayerFee, 10)
-	transferOutRelayerAckFee, _ := big.NewInt(0).SetString(params.Params.TransferOutAckRelayerFee, 10)
-	totalTransferOutRelayerFee := big.NewInt(0).Add(transferOutRelayerFee, transferOutRelayerAckFee)
+	totalTransferOutRelayerFee := params.Params.TransferOutRelayerFee.Add(params.Params.TransferOutAckRelayerFee)
 
 	moduleAccount := types.MustAccAddressFromHex("0xB73C0Aac4C1E606C6E495d848196355e6CB30381")
 	// query balance before
@@ -67,7 +64,7 @@ func (s *BridgeTestSuite) TestTransferOut() {
 	s.T().Logf("balance after: %s %s", from.GetAddr().String(), moduleBalanceAfter.Balance.String())
 	s.Require().NoError(err)
 
-	s.Require().Equal(moduleBalanceBefore.Balance.Amount.Add(transferAmount).Add(types.NewIntFromBigInt(totalTransferOutRelayerFee)).String(), moduleBalanceAfter.Balance.Amount.String())
+	s.Require().Equal(moduleBalanceBefore.Balance.Amount.Add(transferAmount).Add(totalTransferOutRelayerFee).String(), moduleBalanceAfter.Balance.Amount.String())
 }
 
 func TestBridgeTestSuite(t *testing.T) {

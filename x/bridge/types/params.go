@@ -2,14 +2,14 @@ package types
 
 import (
 	"fmt"
-	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
-const (
-	DefaultTransferOutRelayerFeeParam    string = "1000000000000000" // 0.001
-	DefaultTransferOutAckRelayerFeeParam string = "0"
+var (
+	DefaultTransferOutRelayerFeeParam    = sdkmath.NewInt(1000000000000000) // 0.001
+	DefaultTransferOutAckRelayerFeeParam = sdkmath.NewInt(0)
 )
 
 var (
@@ -35,49 +35,33 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, &p.TransferOutRelayerFee, validateTransferOutRelayerFee),
-		// todo(quality): forget to use a new function after copy `validateTransferOutRelayerFee`?
-		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, &p.TransferOutAckRelayerFee, validateTransferOutRelayerFee),
+		paramtypes.NewParamSetPair(KeyParamTransferOutRelayerFee, &p.TransferOutRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyParamTransferOutAckRelayerFee, &p.TransferOutAckRelayerFee, validateRelayerFee),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	// todo(quality): could reuse the function `validateTransferOutRelayerFee` and `validateTransferOutAckRelayerFee`
-	relayerFee, valid := big.NewInt(0).SetString(p.TransferOutRelayerFee, 10)
-	if !valid {
-		return fmt.Errorf("invalid transfer out relayer fee, is %s", p.TransferOutRelayerFee)
-	}
-	if relayerFee.Cmp(big.NewInt(0)) < 0 {
-		return fmt.Errorf("transfer out relayer fee should not be negative, is %s", p.TransferOutRelayerFee)
+	err := validateRelayerFee(p.TransferOutRelayerFee)
+	if err != nil {
+		return err
 	}
 
-	ackRelayerFee, valid := big.NewInt(0).SetString(p.TransferOutAckRelayerFee, 10)
-	if !valid {
-		return fmt.Errorf("invalid ack transfer out relayer fee, is %s", p.TransferOutAckRelayerFee)
+	err = validateRelayerFee(p.TransferOutAckRelayerFee)
+	if err != nil {
+		return err
 	}
-	if ackRelayerFee.Cmp(big.NewInt(0)) < 0 {
-		return fmt.Errorf("transfer out ack relayer fee should not be negative, is %s", p.TransferOutAckRelayerFee)
-	}
-
 	return nil
 }
 
-func validateTransferOutRelayerFee(i interface{}) error {
-	v, ok := i.(string)
+func validateRelayerFee(i interface{}) error {
+	fee, ok := i.(sdkmath.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	relayerFee := big.NewInt(0)
-	relayerFee, valid := relayerFee.SetString(v, 10)
-
-	if !valid {
-		return fmt.Errorf("invalid transfer out relayer fee, %s", v)
-	}
-
-	if relayerFee.Cmp(big.NewInt(0)) < 0 {
-		return fmt.Errorf("invalid transfer out relayer fee, %s", v)
+	if fee.IsNegative() {
+		return fmt.Errorf("relay fee should not less than 0")
 	}
 
 	return nil
