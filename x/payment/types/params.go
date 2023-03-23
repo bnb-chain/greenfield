@@ -5,7 +5,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"gopkg.in/yaml.v2"
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -102,12 +101,6 @@ func (p Params) Validate() error {
 	return nil
 }
 
-// String implements the Stringer interface.
-func (p Params) String() string {
-	out, _ := yaml.Marshal(p)
-	return string(out)
-}
-
 // validateReserveTime validates the ReserveTime param
 func validateReserveTime(v interface{}) error {
 	reserveTime, ok := v.(uint64)
@@ -115,8 +108,9 @@ func validateReserveTime(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = reserveTime
+	if reserveTime <= 0 {
+		return fmt.Errorf("reserve time must be positive")
+	}
 
 	return nil
 }
@@ -128,9 +122,9 @@ func validateForcedSettleTime(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = ForcedSettleTime
-
+	if ForcedSettleTime <= 0 {
+		return fmt.Errorf("forced settle time must be positive")
+	}
 	return nil
 }
 
@@ -141,8 +135,9 @@ func validatePaymentAccountCountLimit(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = paymentAccountCountLimit
+	if paymentAccountCountLimit <= 0 {
+		return fmt.Errorf("payment account count limit must be positive")
+	}
 
 	return nil
 }
@@ -154,8 +149,9 @@ func validateMaxAutoForceSettleNum(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
-	_ = maxAutoForceSettleNum
+	if maxAutoForceSettleNum <= 0 {
+		return fmt.Errorf("max auto force settle num must be positive")
+	}
 
 	return nil
 }
@@ -167,7 +163,6 @@ func validateFeeDenom(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	// TODO implement validation
 	_ = feeDenom
 
 	return nil

@@ -43,5 +43,9 @@ func (msg *MsgDisableRefund) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	_, err = sdk.AccAddressFromHexUnsafe(msg.Addr)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
+	}
 	return nil
 }
