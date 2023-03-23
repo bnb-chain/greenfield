@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
-	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
@@ -62,7 +61,7 @@ func CmdEditStorageProvider() *cobra.Command {
 			msg := types.NewMsgEditStorageProvider(
 				spAddress,
 				endpoint,
-				description,
+				&description,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -84,22 +83,34 @@ func CmdEditStorageProvider() *cobra.Command {
 
 func CmdDeposit() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "deposit [sp-address] [value]",
+		Use:   "deposit [sp-address] [fund-address] [value]",
 		Short: "Broadcast message deposit",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argValue := args[0]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			// TODO:impl later
-			coin := sdk.Coin{Denom: argValue}
+			spAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
+			if err != nil {
+				return err
+			}
+
+			fundAddress, err := sdk.AccAddressFromHexUnsafe(args[1])
+			if err != nil {
+				return err
+			}
+
+			coin, err := sdk.ParseCoinNormalized(args[2])
+			if err != nil {
+				return err
+			}
+
 			msg := types.NewMsgDeposit(
-				clientCtx.GetFromAddress(),
-				clientCtx.GetFromAddress(),
+				fundAddress,
+				spAddress,
 				coin,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -166,10 +177,7 @@ func CmdGrantDepositAuthorization() *cobra.Command {
 			}
 			depositLimit = &spendLimit
 
-			authorization, err = types.NewDepositAuthorization(spAddress, depositLimit)
-			if err != nil {
-				return err
-			}
+			authorization = types.NewDepositAuthorization(spAddress, depositLimit)
 
 			expire, err := getExpireTime(cmd)
 			if err != nil {
@@ -226,6 +234,11 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 
 	fsCreateStorageProvider.String(FlagEndpoint, "", "The storage provider's endpoint")
 
+	// payment
+	fsCreateStorageProvider.String(FlagReadPrice, "100", "The storage provider's read price, in bnb wei per charge byte")
+	fsCreateStorageProvider.Uint64(FlagFreeReadQuota, 10000, "The storage provider's free read quota, in byte")
+	fsCreateStorageProvider.String(FlagStorePrice, "10000", "The storage provider's store price, in bnb wei per charge byte")
+
 	return fsCreateStorageProvider, defaultsDesc
 }
 
@@ -248,6 +261,10 @@ type TxCreateStorageProviderConfig struct {
 
 	Endpoint string
 	Deposit  string
+
+	ReadPrice     sdk.Dec
+	FreeReadQuota uint64
+	StorePrice    sdk.Dec
 }
 
 func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateStorageProviderConfig, error) {
@@ -350,6 +367,32 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.Endpoint = endpoint
 
+	// payment
+	readPriceStr, _ := flagSet.GetString(FlagReadPrice)
+	if readPriceStr != "" {
+		readPrice, err := sdk.NewDecFromStr(readPriceStr)
+		if err != nil {
+			return c, err
+		}
+
+		c.ReadPrice = readPrice
+	}
+	freeReadQuota, err := flagSet.GetUint64(FlagFreeReadQuota)
+	if err != nil {
+		return c, err
+	}
+	c.FreeReadQuota = freeReadQuota
+
+	storePriceStr, _ := flagSet.GetString(FlagStorePrice)
+	if storePriceStr != "" {
+		storePrice, err := sdk.NewDecFromStr(storePriceStr)
+		if err != nil {
+			return c, err
+		}
+
+		c.StorePrice = storePrice
+	}
+
 	return c, err
 }
 
@@ -368,14 +411,10 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 		config.Details,
 	)
 
-	// TODO may add new flags
-	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
-	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
-
 	msg, err := types.NewMsgCreateStorageProvider(
 		config.Creator, config.SpAddress, config.FundingAddress,
 		config.SealAddress, config.ApprovalAddress, description,
-		config.Endpoint, deposit, newReadPrice, 10000, newStorePrice,
+		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
 	)
 	if err != nil {
 		return txBldr, msg, err

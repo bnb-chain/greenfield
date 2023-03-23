@@ -1,6 +1,7 @@
 syntax = "proto3";
 package bnbchain.greenfield.sp;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
@@ -19,7 +20,7 @@ message EventCreateStorageProvider {
   // endpoint is the domain name address used by SP to provide storage services
   string endpoint = 5;
   // total_deposit is the token coin that the storage provider deposit to the storage module
-  string total_deposit = 6;
+  cosmos.base.v1beta1.Coin total_deposit = 6;
 }
 
 // EventEditStorageProvider is emitted when SP's metadata is edited.
@@ -32,8 +33,8 @@ message EventEditStorageProvider {
 
 // EventDeposit is emitted when sp deposit tokens.
 message EventDeposit {
-  // sp_address is the account address of storage provider
-  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // funding_address is the funding account address of the storage provider
+  string funding_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // deposit is the token coin deposited this message
   string deposit = 2;
   // total_deposit is the total token coins this storage provider deposited
@@ -44,7 +45,7 @@ message EventSpStoragePriceUpdate {
   // sp address
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // update time, in unix timestamp
-  int64 update_time = 2;
+  int64 update_time_sec = 2;
   // read price, in bnb wei per charge byte
   string read_price = 3 [
     (cosmos_proto.scalar) = "cosmos.Dec",
@@ -63,7 +64,7 @@ message EventSpStoragePriceUpdate {
 
 message EventSecondarySpStorePriceUpdate {
   // update time, in unix timestamp
-  int64 update_time = 1;
+  int64 update_time_sec = 1;
   // store price, in bnb wei per charge byte
   string store_price = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",

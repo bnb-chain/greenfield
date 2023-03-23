@@ -25,13 +25,21 @@ service Msg {
 message MsgCreateStorageProvider {
   option (cosmos.msg.v1.signer) = "creator";
 
+  // creator is the msg signer
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // description defines the description terms for the validator.
   Description description = 2 [(gogoproto.nullable) = false];
+  // sp_address defines the address of the sp's operator; It also is the unqiue index key of sp.
   string sp_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // fund_address is the account address of the storage provider for deposit, remuneration.
   string funding_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // seal_address is the account address of the storage provider for sealObject
   string seal_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // approval_address is the account address of the storage provider for ack CreateBuclet/Object.
   string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // endpoint is the service address of the storage provider
   string endpoint = 7;
+  // deposit define the deposit token
   cosmos.base.v1beta1.Coin deposit = 8 [(gogoproto.nullable) = false];
   // read price, in bnb wei per charge byte
   string read_price = 9 [
@@ -56,7 +64,7 @@ message MsgCreateStorageProviderResponse {}
 message MsgDeposit {
   option (cosmos.msg.v1.signer) = "creator";
 
-  // creator is the msg signer, it should be sp address or sp's fund address
+  // creator is the msg signer, it should be sp's fund address
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // sp_address is the operator address of sp
   string sp_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -73,7 +81,7 @@ message MsgEditStorageProvider {
 
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string endpoint = 2;
-  Description description = 3 [(gogoproto.nullable) = false];
+  Description description = 3;
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.

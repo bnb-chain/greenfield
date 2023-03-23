@@ -30,10 +30,6 @@ var (
 	SecondarySpStorePriceKeyPrefix   = []byte{0x26}
 )
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
-
 // GetStorageProviderKey creates the key for the provider with address
 // VALUE: staking/Validator
 func GetStorageProviderKey(spAddr sdk.AccAddress) []byte {
@@ -58,12 +54,13 @@ func GetStorageProviderByApprovalAddrKey(spAddr sdk.AccAddress) []byte {
 	return append(StorageProviderByApprovalAddrKey, spAddr.Bytes()...)
 }
 
-func UnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) (sp StorageProvider, err error) {
-	err = cdc.Unmarshal(value, &sp)
+func UnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) (sp *StorageProvider, err error) {
+	sp = &StorageProvider{}
+	err = cdc.Unmarshal(value, sp)
 	return sp, err
 }
 
-func MustUnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) StorageProvider {
+func MustUnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) *StorageProvider {
 	sp, err := UnmarshalStorageProvider(cdc, value)
 	if err != nil {
 		panic(err)
@@ -77,36 +74,35 @@ func MustMarshalStorageProvider(cdc codec.BinaryCodec, sp *StorageProvider) []by
 }
 
 func SpStoragePriceKey(
-	sp string,
-	updateTime int64,
+	sp sdk.AccAddress,
+	UpdateTimeSec int64,
 ) []byte {
 	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+	binary.BigEndian.PutUint64(timeBytes, uint64(UpdateTimeSec))
 
 	var key []byte
-	spBytes := []byte(sp)
-	key = append(key, spBytes...)
+	key = append(key, sp...)
 	key = append(key, timeBytes...)
 
 	return key
 }
 
-func ParseSpStoragePriceKey(key []byte) (spAddr string, updateTime int64) {
+func ParseSpStoragePriceKey(key []byte) (spAddr sdk.AccAddress, UpdateTimeSec int64) {
 	length := len(key)
-	spAddr = string(key[:length-8])
-	updateTime = int64(binary.BigEndian.Uint64(key[length-8 : length]))
+	spAddr = key[:length-8]
+	UpdateTimeSec = int64(binary.BigEndian.Uint64(key[length-8 : length]))
 	return
 }
 
 func SecondarySpStorePriceKey(
-	updateTime int64,
+	UpdateTimeSec int64,
 ) []byte {
 	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(updateTime))
+	binary.BigEndian.PutUint64(timeBytes, uint64(UpdateTimeSec))
 	return timeBytes
 }
 
-func ParseSecondarySpStorePriceKey(key []byte) (updateTime int64) {
-	updateTime = int64(binary.BigEndian.Uint64(key))
+func ParseSecondarySpStorePriceKey(key []byte) (UpdateTimeSec int64) {
+	UpdateTimeSec = int64(binary.BigEndian.Uint64(key))
 	return
 }
