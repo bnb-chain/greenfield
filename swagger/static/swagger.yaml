@@ -2780,7 +2780,7 @@ paths:
                       type: boolean
                       description: >-
                         is_public define the highest permissions for bucket.
-                        When the bucket is public, everyone can get storage
+                        When a bucket is public, everyone can get storage
                         objects in it.
                     id:
                       type: string

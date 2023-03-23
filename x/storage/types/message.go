@@ -76,12 +76,12 @@ var (
 
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
-	creator sdk.AccAddress, bucketName string, isPublic bool,
+	creator sdk.AccAddress, bucketName string, Visibility VisibilityType,
 	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte) *MsgCreateBucket {
 	return &MsgCreateBucket{
 		Creator:           creator.String(),
 		BucketName:        bucketName,
-		IsPublic:          isPublic,
+		Visibility:        Visibility,
 		PaymentAddress:    paymentAddress.String(),
 		PrimarySpAddress:  primarySPAddress.String(),
 		PrimarySpApproval: &Approval{timeoutHeight, sig},
@@ -200,12 +200,13 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 }
 
 // NewMsgUpdateBucketInfo creates a new MsgBucketReadQuota instance.
-func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota uint64, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota uint64, paymentAcc sdk.AccAddress, Visibility VisibilityType) *MsgUpdateBucketInfo {
 	return &MsgUpdateBucketInfo{
 		Operator:       operator.String(),
 		BucketName:     bucketName,
 		ReadQuota:      readQuota,
 		PaymentAddress: paymentAcc.String(),
+		Visibility:     Visibility,
 	}
 }
 
@@ -251,7 +252,7 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	isPublic bool, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
+	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
 	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
 
 	var secSPAddrs []string
@@ -264,7 +265,7 @@ func NewMsgCreateObject(
 		BucketName:                 bucketName,
 		ObjectName:                 objectName,
 		PayloadSize:                payloadSize,
-		IsPublic:                   isPublic,
+		Visibility:                 Visibility,
 		ContentType:                contentType,
 		PrimarySpApproval:          &Approval{timeoutHeight, sig},
 		ExpectChecksums:            expectChecksums,

@@ -5,7 +5,7 @@ import (
 )
 
 type CreateBucketOptions struct {
-	IsPublic          bool
+	Visibility        types.VisibilityType
 	SourceType        types.SourceType
 	ReadQuota         uint64
 	PaymentAddress    string
@@ -18,13 +18,14 @@ type DeleteBucketOptions struct {
 }
 
 type UpdateBucketOptions struct {
+	Visibility     types.VisibilityType
 	SourceType     types.SourceType
 	ReadQuota      uint64
 	PaymentAddress string
 }
 
 type CreateObjectOptions struct {
-	IsPublic             bool
+	Visibility           types.VisibilityType
 	ContentType          string
 	SourceType           types.SourceType
 	RedundancyType       types.RedundancyType
@@ -44,7 +45,7 @@ type DeleteObjectOptions struct {
 
 type CopyObjectOptions struct {
 	SourceType        types.SourceType
-	IsPublic          bool
+	Visibility        types.VisibilityType
 	PrimarySpApproval *types.Approval
 	ApprovalMsgBytes  []byte
 }

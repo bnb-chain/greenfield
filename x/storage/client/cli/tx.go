@@ -71,7 +71,11 @@ func CmdCreateBucket() *cobra.Command {
 
 			argBucketName := args[0]
 
-			isPublic, err := cmd.Flags().GetBool(FlagPublic)
+			visibility, err := cmd.Flags().GetString(FlagVisibility)
+			if err != nil {
+				return err
+			}
+			visibilityType, err := GetVisibilityType(visibility)
 			if err != nil {
 				return err
 			}
@@ -98,7 +102,7 @@ func CmdCreateBucket() *cobra.Command {
 			msg := types.NewMsgCreateBucket(
 				clientCtx.GetFromAddress(),
 				argBucketName,
-				isPublic,
+				visibilityType,
 				primarySPAcc,
 				paymentAcc,
 				approveTimeoutHeight,
@@ -112,7 +116,7 @@ func CmdCreateBucket() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().Bool(FlagPublic, false, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
+	cmd.Flags().AddFlagSet(FlagSetVisibility())
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
 	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
@@ -163,6 +167,15 @@ func CmdUpdateBucketInfo() *cobra.Command {
 				return err
 			}
 
+			visibility, err := cmd.Flags().GetString(FlagVisibility)
+			if err != nil {
+				return err
+			}
+			visibilityType, err := GetVisibilityType(visibility)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -173,6 +186,7 @@ func CmdUpdateBucketInfo() *cobra.Command {
 				argBucketName,
 				argReadQuota,
 				nil,
+				visibilityType,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -182,6 +196,7 @@ func CmdUpdateBucketInfo() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().AddFlagSet(FlagSetVisibility())
 
 	return cmd
 }
@@ -237,7 +252,14 @@ func CmdCreateObject() *cobra.Command {
 				return err
 			}
 
-			isPublic, _ := cmd.Flags().GetBool(FlagPublic)
+			visibility, err := cmd.Flags().GetString(FlagVisibility)
+			if err != nil {
+				return err
+			}
+			visibilityType, err := GetVisibilityType(visibility)
+			if err != nil {
+				return err
+			}
 
 			checksums, _ := cmd.Flags().GetString(FlagExpectChecksums)
 			redundancyTypeFlag, _ := cmd.Flags().GetString(FlagRedundancyType)
@@ -276,7 +298,7 @@ func CmdCreateObject() *cobra.Command {
 				argBucketName,
 				argObjectName,
 				payloadSize,
-				isPublic,
+				visibilityType,
 				expectChecksums,
 				argContentType,
 				redundancyType,
@@ -306,7 +328,7 @@ func CmdCreateObject() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().Bool(FlagPublic, true, "If true(by default), only owner and grantee can access it. Otherwise, every one have permission to access it.")
+	cmd.Flags().AddFlagSet(FlagSetVisibility())
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
 	cmd.Flags().String(FlagExpectChecksums, "", "The checksums that calculate by redundancy algorithm")
 	cmd.Flags().String(FlagRedundancyType, "", "The redundancy type, EC or Replica ")
