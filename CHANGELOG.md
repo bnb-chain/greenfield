@@ -1,5 +1,26 @@
 # Changelog
 
+## v0.0.10
+* [\#](https://github.com/bnb-chain/greenfield/pull/132) feat: allow unordered attestations
+* [\#](https://github.com/bnb-chain/greenfield/pull/131) feat: support delete bucket with non-zero charged read quota
+* [\#](https://github.com/bnb-chain/greenfield/pull/108) chore: refine storage module
+* [\#](https://github.com/bnb-chain/greenfield/pull/126) chore: refine permission module
+* [\#](https://github.com/bnb-chain/greenfield/pull/125) chore: refine bridge module
+* [\#](https://github.com/bnb-chain/greenfield/pull/124) feat: The visibility property of the Bucket&Object can be modified
+* [\#](https://github.com/bnb-chain/greenfield/pull/115) chore: refine sp module
+* [\#](https://github.com/bnb-chain/greenfield/pull/129) chore: refine payment module
+* [\#](https://github.com/bnb-chain/greenfield/pull/117) feat: implement validator tax in storage payment
+* [\#](https://github.com/bnb-chain/greenfield/pull/116) Merge pull request #116 from bnb-chain/refine_challenge
+* [\#](https://github.com/bnb-chain/greenfield/pull/130) fix: check status of object before mirroring
+* [\#](https://github.com/bnb-chain/greenfield/pull/122) chore: refine permission module for code quality 
+* [\#](https://github.com/bnb-chain/greenfield/pull/128) docs: add the banner of gnfd
+* [\#](https://github.com/bnb-chain/greenfield/pull/121) chore: code quality self-review of ante handler
+* [\#](https://github.com/bnb-chain/greenfield/pull/103) feat: add challenger address to validators
+* [\#](https://github.com/bnb-chain/greenfield/pull/123) feat: add max buckets per account to params
+* [\#](https://github.com/bnb-chain/greenfield/pull/110) feat: add expiration and limit size for policy
+* [\#](https://github.com/bnb-chain/greenfield/pull/118) chore: refine the code of the storage mode
+
+
 ## v0.0.9
 The resource mirror is introduced in this release.
 
