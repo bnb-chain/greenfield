@@ -691,7 +691,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 		},
 		{
 			BucketName: bucketName2,
-			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			PublicType: storagetypes.VISIBILITY_TYPE_INHERIT,
 		},
 	}
 
@@ -730,7 +730,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 		{
 			BucketName: bucketName0,
 			ObjectName: objectName2,
-			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			PublicType: storagetypes.VISIBILITY_TYPE_INHERIT,
 			Effect:     types.EFFECT_ALLOW,
 		},
 		{
@@ -748,7 +748,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 		{
 			BucketName: bucketName1,
 			ObjectName: objectName2,
-			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			PublicType: storagetypes.VISIBILITY_TYPE_INHERIT,
 			Effect:     types.EFFECT_DENY,
 		},
 		{
@@ -766,7 +766,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 		{
 			BucketName: bucketName2,
 			ObjectName: objectName2,
-			PublicType: storagetypes.VISIBILITY_TYPE_DEFAULT,
+			PublicType: storagetypes.VISIBILITY_TYPE_INHERIT,
 			Effect:     types.EFFECT_DENY,
 		},
 	}

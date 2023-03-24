@@ -211,7 +211,10 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	if opts.ChargedReadQuota == nil {
 		opts.ChargedReadQuota = &bucketInfo.ChargedReadQuota
 	}
-	bucketInfo.Visibility = opts.Visibility
+
+	if opts.Visibility != types.VISIBILITY_TYPE_UNSPECIFIED {
+		bucketInfo.Visibility = opts.Visibility
+	}
 
 	var paymentAcc sdk.AccAddress
 	var err error

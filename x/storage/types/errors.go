@@ -24,6 +24,7 @@ var (
 	ErrTooLargeObject           = errors.Register(ModuleName, 1115, "Object payload size is too large")
 	ErrInvalidApproval          = errors.Register(ModuleName, 1116, "Invalid approval of sp")
 	ErrChargeFailed             = errors.Register(ModuleName, 1117, "charge failed error")
+	ErrInvalidVisibility        = errors.Register(ModuleName, 1118, "Invalid type of visibility")
 
 	ErrNoSuchPolicy          = errors.Register(ModuleName, 1120, "No such Policy")
 	ErrInvalidParameter      = errors.Register(ModuleName, 1121, "Invalid parameter")
