@@ -19,6 +19,11 @@ var (
 )
 
 var (
+	KeyChallengeKeepAlivePeriod            = []byte("ChallengeKeepAlivePeriod")
+	DefaultChallengeKeepAlivePeriod uint64 = 300
+)
+
+var (
 	KeySlashCoolingOffPeriod            = []byte("SlashCoolingOffPeriod")
 	DefaultSlashCoolingOffPeriod uint64 = 300
 )
@@ -66,6 +71,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	challengeCountPerBlock uint64,
+	challengeKeepAlivePeriod uint64,
 	slashCoolingOffPeriod uint64,
 	slashAmountSizeRate sdk.Dec,
 	slashAmountMin math.Int,
@@ -77,6 +83,7 @@ func NewParams(
 ) Params {
 	return Params{
 		ChallengeCountPerBlock:   challengeCountPerBlock,
+		ChallengeKeepAlivePeriod: challengeKeepAlivePeriod,
 		SlashCoolingOffPeriod:    slashCoolingOffPeriod,
 		SlashAmountSizeRate:      slashAmountSizeRate,
 		SlashAmountMin:           slashAmountMin,
@@ -92,6 +99,7 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultChallengeCountPerBlock,
+		DefaultChallengeKeepAlivePeriod,
 		DefaultSlashCoolingOffPeriod,
 		DefaultSlashAmountSizeRate,
 		DefaultSlashAmountMin,
@@ -107,6 +115,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyChallengeCountPerBlock, &p.ChallengeCountPerBlock, validateChallengeCountPerBlock),
+		paramtypes.NewParamSetPair(KeyChallengeKeepAlivePeriod, &p.ChallengeKeepAlivePeriod, validateChallengeKeepAlivePeriod),
 		paramtypes.NewParamSetPair(KeySlashCoolingOffPeriod, &p.SlashCoolingOffPeriod, validateSlashCoolingOffPeriod),
 		paramtypes.NewParamSetPair(KeySlashAmountSizeRate, &p.SlashAmountSizeRate, validateSlashAmountSizeRate),
 		paramtypes.NewParamSetPair(KeySlashAmountMin, &p.SlashAmountMin, validateSlashAmountMin),
@@ -121,6 +130,10 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateChallengeCountPerBlock(p.ChallengeCountPerBlock); err != nil {
+		return err
+	}
+
+	if err := validateChallengeKeepAlivePeriod(p.ChallengeKeepAlivePeriod); err != nil {
 		return err
 	}
 
@@ -178,6 +191,20 @@ func validateChallengeCountPerBlock(v interface{}) error {
 	_, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	return nil
+}
+
+// validateChallengeKeepAlivePeriod validates the ChallengeKeepAlivePeriod param
+func validateChallengeKeepAlivePeriod(v interface{}) error {
+	challengeKeepAlivePeriod, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if challengeKeepAlivePeriod == 0 {
+		return errors.New("keep alive period cannot be zero")
 	}
 
 	return nil

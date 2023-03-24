@@ -75,9 +75,14 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		}
 	}
 
-	challengeId := k.GetChallengeId(ctx)
-	k.SetChallengeId(ctx, challengeId+1)
 	k.IncrChallengeCountCurrentBlock(ctx)
+	challengeId := k.GetChallengeId(ctx) + 1
+	expiredHeight := k.Keeper.ChallengeKeepAlivePeriod(ctx) + uint64(ctx.BlockHeight())
+
+	k.SaveChallenge(ctx, types.Challenge{
+		Id:            challengeId,
+		ExpiredHeight: expiredHeight,
+	})
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,
@@ -86,6 +91,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		SpOperatorAddress: spOperator.String(),
 		RedundancyIndex:   redundancyIndex,
 		ChallengerAddress: challenger.String(),
+		ExpiredHeight:     expiredHeight,
 	}); err != nil {
 		return nil, err
 	}

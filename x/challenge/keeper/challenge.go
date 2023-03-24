@@ -15,18 +15,59 @@ func (k Keeper) GetChallengeId(ctx sdk.Context) uint64 {
 	bz := store.Get(types.ChallengeIdKey)
 
 	if bz == nil {
-		return 1 // make challenge id starts from 1
+		return 0
 	}
 
 	return binary.BigEndian.Uint64(bz)
 }
 
-// SetChallengeId sets the new challenge id to the store
-func (k Keeper) SetChallengeId(ctx sdk.Context, challengeId uint64) {
+// setChallengeId sets the new challenge id to the store
+func (k Keeper) setChallengeId(ctx sdk.Context, challengeId uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, challengeId)
 	store.Set(types.ChallengeIdKey, bz)
+}
+
+// SaveChallenge set a specific challenge in the store
+func (k Keeper) SaveChallenge(ctx sdk.Context, challenge types.Challenge) {
+	k.setChallengeId(ctx, challenge.Id)
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
+
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, challenge.ExpiredHeight)
+
+	store.Set(getChallengeKeyBytes(challenge.Id), heightBytes)
+}
+
+// RemoveChallengeUntil removes challenges which are expired
+func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, height uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		expiredHeight := binary.BigEndian.Uint64(iterator.Value())
+		if expiredHeight <= height {
+			store.Delete(iterator.Key())
+		}
+	}
+}
+
+// ExistsChallenge check whether there exists ongoing challenge for an id
+func (k Keeper) ExistsChallenge(ctx sdk.Context, challengeId uint64) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
+
+	bz := store.Get(getChallengeKeyBytes(challengeId))
+	return bz != nil
+}
+
+// getChallengeKeyBytes returns the byte representation of challenge key
+func getChallengeKeyBytes(challengeId uint64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, challengeId)
+	return bz
 }
 
 // GetAttestChallengeId gets the challenge id of the latest attestation challenge
