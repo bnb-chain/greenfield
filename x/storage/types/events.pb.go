@@ -97,7 +97,7 @@ func (m *EventCreateBucket) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC_READ
+	return VISIBILITY_TYPE_UNSPECIFIED
 }
 
 func (m *EventCreateBucket) GetCreateAt() int64 {
@@ -309,7 +309,7 @@ func (m *EventUpdateBucketInfo) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC_READ
+	return VISIBILITY_TYPE_UNSPECIFIED
 }
 
 // EventCreateObject is emitted on MsgCreateObject
@@ -425,7 +425,7 @@ func (m *EventCreateObject) GetVisibility() VisibilityType {
 	if m != nil {
 		return m.Visibility
 	}
-	return VISIBILITY_TYPE_PUBLIC_READ
+	return VISIBILITY_TYPE_UNSPECIFIED
 }
 
 func (m *EventCreateObject) GetContentType() string {

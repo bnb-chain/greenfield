@@ -146,6 +146,10 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 		}
 	}
 
+	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
+		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
+	}
+
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
@@ -344,6 +348,10 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		if _, err = sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
 		}
+	}
+
+	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
+		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
 	return nil
 }

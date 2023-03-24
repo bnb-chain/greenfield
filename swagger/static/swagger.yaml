@@ -1938,7 +1938,7 @@ paths:
                     enum:
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
-                      - VISIBILITY_TYPE_DEFAULT
+                      - VISIBILITY_TYPE_INHERIT
                     default: VISIBILITY_TYPE_PUBLIC_READ
                   id:
                     type: string
@@ -2065,7 +2065,7 @@ paths:
                     enum:
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
-                      - VISIBILITY_TYPE_DEFAULT
+                      - VISIBILITY_TYPE_INHERIT
                     default: VISIBILITY_TYPE_PUBLIC_READ
                   id:
                     type: string
@@ -2393,7 +2393,7 @@ paths:
                     enum:
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
-                      - VISIBILITY_TYPE_DEFAULT
+                      - VISIBILITY_TYPE_INHERIT
                     default: VISIBILITY_TYPE_PUBLIC_READ
                   content_type:
                     type: string
@@ -2518,7 +2518,7 @@ paths:
                     enum:
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
-                      - VISIBILITY_TYPE_DEFAULT
+                      - VISIBILITY_TYPE_INHERIT
                     default: VISIBILITY_TYPE_PUBLIC_READ
                   content_type:
                     type: string
@@ -2699,7 +2699,7 @@ paths:
                       enum:
                         - VISIBILITY_TYPE_PUBLIC_READ
                         - VISIBILITY_TYPE_PRIVATE
-                        - VISIBILITY_TYPE_DEFAULT
+                        - VISIBILITY_TYPE_INHERIT
                       default: VISIBILITY_TYPE_PUBLIC_READ
                     id:
                       type: string
@@ -3065,7 +3065,7 @@ paths:
                       enum:
                         - VISIBILITY_TYPE_PUBLIC_READ
                         - VISIBILITY_TYPE_PRIVATE
-                        - VISIBILITY_TYPE_DEFAULT
+                        - VISIBILITY_TYPE_INHERIT
                       default: VISIBILITY_TYPE_PUBLIC_READ
                     content_type:
                       type: string
@@ -3274,7 +3274,7 @@ paths:
                       enum:
                         - VISIBILITY_TYPE_PUBLIC_READ
                         - VISIBILITY_TYPE_PRIVATE
-                        - VISIBILITY_TYPE_DEFAULT
+                        - VISIBILITY_TYPE_INHERIT
                       default: VISIBILITY_TYPE_PUBLIC_READ
                     content_type:
                       type: string
@@ -28991,7 +28991,7 @@ definitions:
         enum:
           - VISIBILITY_TYPE_PUBLIC_READ
           - VISIBILITY_TYPE_PRIVATE
-          - VISIBILITY_TYPE_DEFAULT
+          - VISIBILITY_TYPE_INHERIT
         default: VISIBILITY_TYPE_PUBLIC_READ
       id:
         type: string
@@ -29150,7 +29150,7 @@ definitions:
         enum:
           - VISIBILITY_TYPE_PUBLIC_READ
           - VISIBILITY_TYPE_PRIVATE
-          - VISIBILITY_TYPE_DEFAULT
+          - VISIBILITY_TYPE_INHERIT
         default: VISIBILITY_TYPE_PUBLIC_READ
       content_type:
         type: string
@@ -29371,7 +29371,7 @@ definitions:
             enum:
               - VISIBILITY_TYPE_PUBLIC_READ
               - VISIBILITY_TYPE_PRIVATE
-              - VISIBILITY_TYPE_DEFAULT
+              - VISIBILITY_TYPE_INHERIT
             default: VISIBILITY_TYPE_PUBLIC_READ
           id:
             type: string
@@ -29507,7 +29507,7 @@ definitions:
             enum:
               - VISIBILITY_TYPE_PUBLIC_READ
               - VISIBILITY_TYPE_PRIVATE
-              - VISIBILITY_TYPE_DEFAULT
+              - VISIBILITY_TYPE_INHERIT
             default: VISIBILITY_TYPE_PUBLIC_READ
           content_type:
             type: string
@@ -29580,7 +29580,7 @@ definitions:
               enum:
                 - VISIBILITY_TYPE_PUBLIC_READ
                 - VISIBILITY_TYPE_PRIVATE
-                - VISIBILITY_TYPE_DEFAULT
+                - VISIBILITY_TYPE_INHERIT
               default: VISIBILITY_TYPE_PUBLIC_READ
             id:
               type: string
@@ -29757,7 +29757,7 @@ definitions:
               enum:
                 - VISIBILITY_TYPE_PUBLIC_READ
                 - VISIBILITY_TYPE_PRIVATE
-                - VISIBILITY_TYPE_DEFAULT
+                - VISIBILITY_TYPE_INHERIT
               default: VISIBILITY_TYPE_PUBLIC_READ
             content_type:
               type: string
@@ -30261,12 +30261,12 @@ definitions:
     enum:
       - VISIBILITY_TYPE_PUBLIC_READ
       - VISIBILITY_TYPE_PRIVATE
-      - VISIBILITY_TYPE_DEFAULT
+      - VISIBILITY_TYPE_INHERIT
     default: VISIBILITY_TYPE_PUBLIC_READ
     description: |-
       VisibilityType is the resources public status.
 
-       - VISIBILITY_TYPE_DEFAULT: If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
+       - VISIBILITY_TYPE_INHERIT: If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object
     properties:

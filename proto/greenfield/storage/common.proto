@@ -39,11 +39,11 @@ enum ObjectStatus {
 // VisibilityType is the resources public status.
 enum VisibilityType {
   option (gogoproto.goproto_enum_prefix) = false;
-
-  VISIBILITY_TYPE_PUBLIC_READ = 0;
-  VISIBILITY_TYPE_PRIVATE = 1;
-  // If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
-  VISIBILITY_TYPE_DEFAULT = 2;
+  VISIBILITY_TYPE_UNSPECIFIED = 0;
+  VISIBILITY_TYPE_PUBLIC_READ = 1;
+  VISIBILITY_TYPE_PRIVATE = 2;
+  // If the bucket Visibility is inherit, it's finally set to private. If the object Visibility is inherit, it's the same as bucket.
+  VISIBILITY_TYPE_INHERIT = 3;
 }
 
 // Approval is the signature information returned by the Primary Storage Provider (SP) to the user

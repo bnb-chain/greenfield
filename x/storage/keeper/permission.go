@@ -68,10 +68,10 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 //  4. If it is evaluated as "unspecified", then if the EffectBucket is "unspecified", return deny
 func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo,
 	operator sdk.AccAddress, action permtypes.ActionType) permtypes.Effect {
-	// anyone can read but can not write it when the following case: 1) object is public 2) object is default, only when bucket is public
+	// anyone can read but can not write it when the following case: 1) object is public 2) object is inherit, only when bucket is public
 	visibility := false
 	if objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ ||
-		(objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_DEFAULT && bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ) {
+		(objectInfo.Visibility == storagetypes.VISIBILITY_TYPE_INHERIT && bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ) {
 		visibility = true
 	}
 	if visibility && PublicReadObjectAllowedActions[action] {
