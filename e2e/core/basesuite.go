@@ -77,6 +77,16 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 	return response.TxResponse
 }
 
+func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (*tx.BroadcastTxResponse, error) {
+	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	txOpt := &types.TxOption{
+		Mode: &mode,
+		Memo: "",
+	}
+	s.Client.SetKeyManager(from)
+	return s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+}
+
 func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyManager, expectErrorString string) {
 	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
 	txOpt := &types.TxOption{

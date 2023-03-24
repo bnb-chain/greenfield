@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/bnb-chain/greenfield/types/common"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -638,8 +640,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
-		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, 0)
-	msgCreateBucket.ChargedReadQuota = bucketChargedReadQuota
+		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, bucketChargedReadQuota)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -649,6 +650,16 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.Require().Equal(expectedRate.String(), paymentAccountStreamRecord.NetflowRate.Neg().String())
 	s.Require().Equal(paymentAccountStreamRecord.BufferBalance.String(), paymentAccountBNBNeeded.String())
 	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.String(), sdkmath.ZeroInt().String())
+
+	// increase bucket charged read quota is not allowed since the balance is not enough
+	msgUpdateBucketInfo := &storagetypes.MsgUpdateBucketInfo{
+		Operator:         user.GetAddr().String(),
+		BucketName:       bucketName,
+		ChargedReadQuota: &common.UInt64Value{Value: bucketChargedReadQuota + 1},
+		Visibility:       storagetypes.VISIBILITY_TYPE_PUBLIC_READ,
+	}
+	_, err = s.SendTxBlockWithoutCheck(msgUpdateBucketInfo, user)
+	s.Require().ErrorContains(err, "balance not enough, lack of")
 
 	// create bucket from user
 	msgCreateBucket.BucketName = storageutils.GenRandomBucketName()
