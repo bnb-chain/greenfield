@@ -226,11 +226,11 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 		createBucketPackage.Creator,
 		createBucketPackage.BucketName,
 		createBucketPackage.PrimarySpAddress,
-		CreateBucketOptions{
-			IsPublic:       createBucketPackage.IsPublic,
-			SourceType:     types.SOURCE_TYPE_BSC_CROSS_CHAIN,
-			ReadQuota:      createBucketPackage.ReadQuota,
-			PaymentAddress: createBucketPackage.PaymentAddress.String(),
+		&CreateBucketOptions{
+			Visibility:       createBucketPackage.Visibility,
+			SourceType:       types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
+			PaymentAddress:   createBucketPackage.PaymentAddress.String(),
 			PrimarySpApproval: &types.Approval{
 				ExpiredHeight: createBucketPackage.PrimarySpApprovalExpiredHeight,
 				Sig:           createBucketPackage.PrimarySpApprovalSignature,

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"time"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -8,6 +10,7 @@ import (
 	"github.com/gogo/protobuf/proto"
 
 	grn2 "github.com/bnb-chain/greenfield/types"
+	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/types/s3util"
@@ -74,15 +77,16 @@ var (
 
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
-	creator sdk.AccAddress, bucketName string, isPublic bool,
-	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte) *MsgCreateBucket {
+	creator sdk.AccAddress, bucketName string, Visibility VisibilityType,
+	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte, chargedReadQuota uint64) *MsgCreateBucket {
 	return &MsgCreateBucket{
 		Creator:           creator.String(),
 		BucketName:        bucketName,
-		IsPublic:          isPublic,
+		Visibility:        Visibility,
 		PaymentAddress:    paymentAddress.String(),
 		PrimarySpAddress:  primarySPAddress.String(),
 		PrimarySpApproval: &Approval{timeoutHeight, sig},
+		ChargedReadQuota:  chargedReadQuota,
 	}
 }
 
@@ -131,11 +135,19 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid primary sp address (%s)", err)
 	}
 
+	if msg.PrimarySpApproval == nil {
+		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
+	}
+
 	// PaymentAddress is optional, use creator by default if not set.
 	if msg.PaymentAddress != "" {
 		if _, err := sdk.AccAddressFromHexUnsafe(msg.PaymentAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid store payment address (%s)", err)
 		}
+	}
+
+	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
+		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
 
 	err = s3util.CheckValidBucketName(msg.BucketName)
@@ -193,14 +205,21 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgBucketReadQuota creates a new MsgBucketReadQuota instance.
-func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, readQuota uint64, paymentAcc sdk.AccAddress) *MsgUpdateBucketInfo {
-	return &MsgUpdateBucketInfo{
-		Operator:       operator.String(),
-		BucketName:     bucketName,
-		ReadQuota:      readQuota,
-		PaymentAddress: paymentAcc.String(),
+// NewMsgUpdateBucketInfo creates a new MsgBucketReadQuota instance.
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, chargedReadQuota *uint64, paymentAcc sdk.AccAddress, Visibility VisibilityType) *MsgUpdateBucketInfo {
+	msgUpdateBucketInfo := &MsgUpdateBucketInfo{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		Visibility: Visibility,
 	}
+	if paymentAcc != nil {
+		msgUpdateBucketInfo.PaymentAddress = paymentAcc.String()
+	}
+	if chargedReadQuota != nil {
+		msgUpdateBucketInfo.ChargedReadQuota = &common.UInt64Value{Value: *chargedReadQuota}
+	}
+
+	return msgUpdateBucketInfo
 }
 
 func (msg *MsgUpdateBucketInfo) Route() string {
@@ -234,9 +253,11 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 		return err
 	}
 
-	_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
+	if msg.PaymentAddress != "" {
+		_, err = sdk.AccAddressFromHexUnsafe(msg.PaymentAddress)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid payment address (%s)", err)
+		}
 	}
 
 	return nil
@@ -245,7 +266,7 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	isPublic bool, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
+	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
 	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
 
 	var secSPAddrs []string
@@ -258,7 +279,7 @@ func NewMsgCreateObject(
 		BucketName:                 bucketName,
 		ObjectName:                 objectName,
 		PayloadSize:                payloadSize,
-		IsPublic:                   isPublic,
+		Visibility:                 Visibility,
 		ContentType:                contentType,
 		PrimarySpApproval:          &Approval{timeoutHeight, sig},
 		ExpectChecksums:            expectChecksums,
@@ -299,6 +320,10 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.PrimarySpApproval == nil {
+		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
+	}
+
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
@@ -320,9 +345,13 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	}
 
 	for _, spAddress := range msg.ExpectSecondarySpAddresses {
-		if _, err := sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
+		if _, err = sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
 		}
+	}
+
+	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
+		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
 	return nil
 }
@@ -560,6 +589,10 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.DstPrimarySpApproval == nil {
+		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
+	}
+
 	err = s3util.CheckValidBucketName(msg.SrcBucketName)
 	if err != nil {
 		return err
@@ -782,7 +815,7 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 }
 
 func NewMsgUpdateGroupMember(
-	operator sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
+	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
 	membersToDelete []sdk.AccAddress) *MsgUpdateGroupMember {
 	var membersAddrToAdd, membersAddrToDelete []string
 	for _, member := range membersToAdd {
@@ -793,6 +826,7 @@ func NewMsgUpdateGroupMember(
 	}
 	return &MsgUpdateGroupMember{
 		Operator:        operator.String(),
+		GroupOwner:      groupOwner.String(),
 		GroupName:       groupName,
 		MembersToAdd:    membersAddrToAdd,
 		MembersToDelete: membersAddrToDelete,
@@ -830,6 +864,12 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
 	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
+	}
+
 	err = s3util.CheckValidGroupName(msg.GroupName)
 	if err != nil {
 		return err
@@ -854,12 +894,13 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 }
 
 func NewMsgPutPolicy(operator sdk.AccAddress, resource string,
-	principal *permtypes.Principal, statements []*permtypes.Statement) *MsgPutPolicy {
+	principal *permtypes.Principal, statements []*permtypes.Statement, expirationTime *time.Time) *MsgPutPolicy {
 	return &MsgPutPolicy{
-		Operator:   operator.String(),
-		Resource:   resource,
-		Principal:  principal,
-		Statements: statements,
+		Operator:       operator.String(),
+		Resource:       resource,
+		Principal:      principal,
+		Statements:     statements,
+		ExpirationTime: expirationTime,
 	}
 }
 
@@ -896,7 +937,7 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
-	if msg.Principal.Type == permtypes.TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
+	if msg.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
 
@@ -906,14 +947,9 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 	}
 
 	for _, s := range msg.Statements {
-		if s.Resources != nil {
-			for _, r := range s.Resources {
-				var grn grn2.GRN
-				err = grn.ParseFromString(r, true)
-				if err != nil {
-					return err
-				}
-			}
+		err = s.ValidateBasic(grn.ResourceType())
+		if err != nil {
+			return err
 		}
 	}
 
@@ -961,7 +997,7 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
-	if msg.Principal.Type == permtypes.TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
+	if msg.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
 	return nil
@@ -1004,7 +1040,7 @@ func (msg *MsgMirrorBucket) GetSignBytes() []byte {
 func (msg *MsgMirrorBucket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	return nil
@@ -1047,7 +1083,7 @@ func (msg *MsgMirrorObject) GetSignBytes() []byte {
 func (msg *MsgMirrorObject) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	return nil
@@ -1090,7 +1126,7 @@ func (msg *MsgMirrorGroup) GetSignBytes() []byte {
 func (msg *MsgMirrorGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
 	return nil

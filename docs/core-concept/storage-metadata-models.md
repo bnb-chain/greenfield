@@ -31,8 +31,8 @@ message BucketInfo {
   string owner;
   // bucket_name is a globally unique name of bucket
   string bucket_name;
-  // is_public define the highest permissions for bucket. When the bucket is public, everyone can get the object in it.
-  bool is_public;
+  // visibility defines the highest permissions for bucket. When a bucket is public, everyone can get the object under it.
+  VisibilityType visibility;
   // id is the unique identification for bucket.
   string id;
   // source_type define the source of the bucket
@@ -44,8 +44,8 @@ message BucketInfo {
   // primary_sp_address is the address of the primary sp. Objects belongs to this bucket will never
   // leave this SP, unless you explicitly shift them to another SP.
   string primary_sp_address;
-  // read_quota defines the traffic quota for read
-  ReadQuota read_quota;
+  // charged_read_quota defines the traffic quota for read
+  uint64 charged_read_quota;
   int64 payment_price_time;
   // payment_out_flows, for billing;
   repeated payment.OutFlowInUSD payment_out_flows;
@@ -83,8 +83,8 @@ message ObjectInfo {
   string id;
   // payloadSize is the total size of the object payload
   uint64 payload_size;
-  // is_public define the highest permissions for object. When the object is public, everyone can access it.
-  bool is_public;
+  // visibility defines the highest permissions for object. When an object is public, everyone can access it.
+  VisibilityType visibility;
   // content_type define the format of the object which should be a standard MIME type.
   string content_type;
   // create_at define the block number when the object created

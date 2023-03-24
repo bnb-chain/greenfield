@@ -13,7 +13,7 @@ import (
 )
 
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
-	if bucketInfo.ReadQuota == 0 {
+	if bucketInfo.ChargedReadQuota == 0 {
 		return nil
 	}
 	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
@@ -24,13 +24,30 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	return k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 }
 
+func (k Keeper) ChargeDeleteBucket(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
+	bill, err := k.GetBucketBill(ctx, bucketInfo)
+	if err != nil {
+		return err
+	}
+	if len(bill.Flows) == 0 {
+		return nil
+	}
+	// should only remain at most 2 flows: charged_read_quota fee and tax
+	if len(bill.Flows) > 2 {
+		panic(fmt.Sprintf("unexpected left flow number: %d", len(bill.Flows)))
+	}
+	bill.Flows = GetNegFlows(bill.Flows)
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
+	return err
+}
+
 func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newPaymentAddr string, newReadQuota uint64) error {
-	if bucketInfo.PaymentAddress != newPaymentAddr && bucketInfo.ReadQuota != newReadQuota {
+	if bucketInfo.PaymentAddress != newPaymentAddr && bucketInfo.ChargedReadQuota != newReadQuota {
 		return fmt.Errorf("payment address and read quota can not be changed at the same time")
 	}
 	err := k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.PaymentAddress = newPaymentAddr
-		bi.ReadQuota = newReadQuota
+		bi.ChargedReadQuota = newReadQuota
 		return nil
 	})
 	return err
@@ -115,7 +132,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
 	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ReadQuota == 0 {
+	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
 	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
@@ -125,7 +142,8 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
-	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ReadQuota)).TruncateInt()
+	totalUserOutRate := sdkmath.ZeroInt()
+	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
 	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
 	if primarySpRate.IsPositive() {
@@ -133,6 +151,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 			ToAddress: bucketInfo.PrimarySpAddress,
 			Rate:      primarySpRate,
 		})
+		totalUserOutRate = totalUserOutRate.Add(primarySpRate)
 	}
 	for _, spObjectsSize := range bucketInfo.BillingInfo.SecondarySpObjectsSize {
 		rate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(spObjectsSize.TotalChargeSize)).TruncateInt()
@@ -142,6 +161,15 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: spObjectsSize.SpAddress,
 			Rate:      rate,
+		})
+		totalUserOutRate = totalUserOutRate.Add(rate)
+	}
+	params := k.paymentKeeper.GetParams(ctx)
+	validatorTaxRate := params.ValidatorTaxRate.MulInt(totalUserOutRate).TruncateInt()
+	if validatorTaxRate.IsPositive() {
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: types.ValidatorTaxPoolAddress.String(),
+			Rate:      validatorTaxRate,
 		})
 	}
 	return userFlows, nil
@@ -249,7 +277,7 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 	return amount, nil
 }
 
-// todo(Fynn): refactor when we have a way to record the min charge size parameter history
+// TODO(Fynn): refactor when we have a way to record the min charge size parameter history
 func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, _time int64) uint64 {
 	minChargeSize := k.GetParams(ctx).MinChargeSize
 	if payloadSize < minChargeSize {

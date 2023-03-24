@@ -64,10 +64,11 @@ func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			desc := NewDescription(tt.moniker, tt.identity, tt.website, tt.details)
 			msg := MsgEditStorageProvider{
 				SpAddress:   tt.spAddress.String(),
 				Endpoint:    "http://127.0.0.1:9033",
-				Description: NewDescription(tt.moniker, tt.identity, tt.website, tt.details),
+				Description: &desc,
 			}
 			err := msg.ValidateBasic()
 			if tt.err != nil {
@@ -81,18 +82,20 @@ func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 
 func TestMsgDeposit_ValidateBasic(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
-	spAddr := sdk.AccAddress(pk1.Address())
+	pk2 := ed25519.GenPrivKey().PubKey()
+	fundAddr := sdk.AccAddress(pk1.Address())
+	spAddr := sdk.AccAddress(pk2.Address())
 	tests := []struct {
-		name               string
-		creator, spAddress sdk.AccAddress
-		deposit            sdk.Coin
-		err                error
+		name                   string
+		fundAddress, spAddress sdk.AccAddress
+		deposit                sdk.Coin
+		err                    error
 	}{
-		{"basic", spAddr, spAddr, coinPos, nil},
+		{"basic", fundAddr, spAddr, coinPos, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			msg := MsgDeposit{Creator: tt.creator.String(), SpAddress: tt.spAddress.String(), Deposit: tt.deposit}
+			msg := MsgDeposit{Creator: tt.fundAddress.String(), SpAddress: spAddr.String(), Deposit: tt.deposit}
 			err := msg.ValidateBasic()
 			if tt.err != nil {
 				require.ErrorIs(t, err, tt.err)

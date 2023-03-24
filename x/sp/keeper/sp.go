@@ -21,7 +21,7 @@ func (k Keeper) IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.Acc
 	return nil
 }
 
-func (k Keeper) GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp types.StorageProvider, found bool) {
+func (k Keeper) GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	value := store.Get(types.GetStorageProviderKey(addr))
@@ -33,7 +33,7 @@ func (k Keeper) GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp typ
 	return sp, true
 }
 
-func (k Keeper) GetStorageProviderByFundingAddr(ctx sdk.Context, fundAddr sdk.AccAddress) (sp types.StorageProvider, found bool) {
+func (k Keeper) GetStorageProviderByFundingAddr(ctx sdk.Context, fundAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	spAddr := store.Get(types.GetStorageProviderByFundingAddrKey(fundAddr))
@@ -44,7 +44,7 @@ func (k Keeper) GetStorageProviderByFundingAddr(ctx sdk.Context, fundAddr sdk.Ac
 	return k.GetStorageProvider(ctx, spAddr)
 }
 
-func (k Keeper) GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp types.StorageProvider, found bool) {
+func (k Keeper) GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	spAddr := store.Get(types.GetStorageProviderBySealAddrKey(sealAddr))
@@ -55,7 +55,7 @@ func (k Keeper) GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAd
 	return k.GetStorageProvider(ctx, spAddr)
 }
 
-func (k Keeper) GetStorageProviderByApprovalAddr(ctx sdk.Context, approvalAddr sdk.AccAddress) (sp types.StorageProvider, found bool) {
+func (k Keeper) GetStorageProviderByApprovalAddr(ctx sdk.Context, approvalAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	spAddr := store.Get(types.GetStorageProviderByApprovalAddrKey(approvalAddr))
@@ -98,7 +98,7 @@ func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProv
 
 	for ; iter.Valid(); iter.Next() {
 		sp := types.MustUnmarshalStorageProvider(k.cdc, iter.Value())
-		sps = append(sps, sp)
+		sps = append(sps, *sp)
 	}
 	return sps
 }

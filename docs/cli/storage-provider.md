@@ -87,7 +87,7 @@ Each storage provide will hold 4 account which for different uses.
 ## Deposit 
 
 ```shell
-gnfd tx sp deposit [sp-address] [value] [flags]
+gnfd tx sp deposit [sp-address] [funding-address] [value] [flags]
 ```
 
 

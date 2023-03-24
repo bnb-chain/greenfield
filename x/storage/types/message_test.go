@@ -10,6 +10,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	types2 "github.com/bnb-chain/greenfield/types"
+	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 )
@@ -32,7 +33,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        testBucketName,
-				IsPublic:          true,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -42,7 +43,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        "TestBucket",
-				IsPublic:          true,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -53,7 +54,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        "Test-Bucket",
-				IsPublic:          true,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -64,7 +65,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        "ss",
-				IsPublic:          true,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -75,7 +76,7 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 			msg: MsgCreateBucket{
 				Creator:           sample.AccAddress(),
 				BucketName:        string(testInvalidBucketNameWithLongLength[:]),
-				IsPublic:          true,
+				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
 				PaymentAddress:    sample.AccAddress(),
 				PrimarySpAddress:  sample.AccAddress(),
 				PrimarySpApproval: &Approval{},
@@ -137,10 +138,10 @@ func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "basic",
 			msg: MsgUpdateBucketInfo{
-				Operator:       sample.AccAddress(),
-				BucketName:     testBucketName,
-				PaymentAddress: sample.AccAddress(),
-				ReadQuota:      0,
+				Operator:         sample.AccAddress(),
+				BucketName:       testBucketName,
+				PaymentAddress:   sample.AccAddress(),
+				ChargedReadQuota: &common.UInt64Value{Value: 10000},
 			},
 		},
 	}
@@ -169,7 +170,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				BucketName:                 testBucketName,
 				ObjectName:                 testObjectName,
 				PayloadSize:                1024,
-				IsPublic:                   false,
+				Visibility:                 VISIBILITY_TYPE_PRIVATE,
 				ContentType:                "content-type",
 				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
@@ -182,7 +183,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				BucketName:                 testBucketName,
 				ObjectName:                 "",
 				PayloadSize:                1024,
-				IsPublic:                   false,
+				Visibility:                 VISIBILITY_TYPE_PRIVATE,
 				ContentType:                "content-type",
 				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
@@ -196,7 +197,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				BucketName:                 testBucketName,
 				ObjectName:                 "../object",
 				PayloadSize:                1024,
-				IsPublic:                   false,
+				Visibility:                 VISIBILITY_TYPE_PRIVATE,
 				ContentType:                "content-type",
 				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
@@ -210,7 +211,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 				BucketName:                 testBucketName,
 				ObjectName:                 "//object",
 				PayloadSize:                1024,
-				IsPublic:                   false,
+				Visibility:                 VISIBILITY_TYPE_PRIVATE,
 				ContentType:                "content-type",
 				PrimarySpApproval:          &Approval{},
 				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
@@ -299,6 +300,10 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 				SrcObjectName: testObjectName,
 				DstBucketName: "dst" + testBucketName,
 				DstObjectName: "dst" + testObjectName,
+				DstPrimarySpApproval: &Approval{
+					ExpiredHeight: 100,
+					Sig:           []byte("xxx"),
+				},
 			},
 		},
 	}
@@ -460,6 +465,7 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 			name: "normal",
 			msg: MsgUpdateGroupMember{
 				Operator:        sample.AccAddress(),
+				GroupOwner:      sample.AccAddress(),
 				GroupName:       testGroupName,
 				MembersToAdd:    []string{sample.AccAddress(), sample.AccAddress()},
 				MembersToDelete: []string{sample.AccAddress(), sample.AccAddress()},

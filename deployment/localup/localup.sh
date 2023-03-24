@@ -14,14 +14,16 @@ function init() {
     for ((i=0;i<${size};i++));do
         mkdir -p ${workspace}/.local/validator${i}
         mkdir -p ${workspace}/.local/relayer${i}
+        mkdir -p ${workspace}/.local/challenger${i}
 
         # init chain
         ${bin} init validator${i} --chain-id ${CHAIN_ID} --staking-bond-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
 
         # create genesis accounts
         ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info 2>&1
+        ${bin} keys add validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i} --algo eth_bls > ${workspace}/.local/validator${i}/bls_info 2>&1
         ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/relayer_info 2>&1
-        ${bin} keys add relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --algo eth_bls > ${workspace}/.local/relayer${i}/relayer_bls_info 2>&1
+        ${bin} keys add challenger${i} --keyring-backend test --home ${workspace}/.local/challenger${i} > ${workspace}/.local/challenger${i}/challenger_info 2>&1
     done
 
     # add sp account
@@ -59,6 +61,12 @@ function generate_genesis() {
         relayer_addrs+=("$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})")
     done
 
+    declare -a challenger_addrs=()
+    for ((i=0;i<${size};i++));do
+        # export validator addresses
+        challenger_addrs+=("$(${bin} keys show challenger${i} -a --keyring-backend test --home ${workspace}/.local/challenger${i})")
+    done
+
     mkdir -p ${workspace}/.local/gentx
     for ((i=0;i<${size};i++));do
         for validator_addr in "${validator_addrs[@]}";do
@@ -71,14 +79,20 @@ function generate_genesis() {
             ${bin} add-genesis-account $relayer_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
+        for challenger_addr in "${challenger_addrs[@]}";do
+            # init genesis account in genesis state
+            ${bin} add-genesis-account $challenger_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+        done
+
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
 
         validatorAddr=${validator_addrs[$i]}
         relayerAddr="$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})"
-        relayerBLSKey="$(${bin} keys show relayer_bls${i} --keyring-backend test --home ${workspace}/.local/relayer${i} --output json | jq -r .pubkey_hex)"
+        challengerAddr="$(${bin} keys show challenger${i} -a --keyring-backend test --home ${workspace}/.local/challenger${i})"
+        blsKey="$(${bin} keys show validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i} --output json | jq -r .pubkey_hex)"
 
         # create bond validator tx
-        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $validatorAddr $relayerAddr $relayerBLSKey \
+        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $validatorAddr $relayerAddr $challengerAddr $blsKey \
             --home ${workspace}/.local/validator${i} \
             --keyring-backend=test \
             --chain-id=${CHAIN_ID} \
@@ -103,7 +117,7 @@ function generate_genesis() {
         node_ids="$(${bin} tendermint show-node-id --home ${workspace}/.local/validator${i})@127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) ${node_ids}"
     done
 
-    # gererate sp to genesis
+    # generate sp to genesis
     generate_sp_genesis $size $sp_size
 
     persistent_peers=$(joinByString ',' ${node_ids})
@@ -129,6 +143,7 @@ function generate_genesis() {
         sed -i -e "s/\"10000000\"/\"${GOV_MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"max_bytes\": \"22020096\"/\"max_bytes\": \"1048576\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"challenge_count_per_block\": \"1\"/\"challenge_count_per_block\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"challenge_keep_alive_period\": \"300\"/\"challenge_keep_alive_period\": \"50\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"time_iota_ms\": \"1000\"/\"time_iota_ms\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done

@@ -58,8 +58,7 @@ func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
 
 	// 2. grant deposit authorization of sp to gov module account
 	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
-	authorization, err := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
-	s.Require().NoError(err)
+	authorization := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
 
 	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
 	now := time.Now().Add(24 * time.Hour)
@@ -181,11 +180,11 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 			Identity: "",
 		},
 		Endpoint:     "http://127.0.0.1:9034",
-		TotalDeposit: types.NewIntFromInt64WithDecimal(10000000, types.DecimalBNB),
+		TotalDeposit: prevSP.TotalDeposit,
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
-		sp.OperatorKey.GetAddr(), newSP.Endpoint, newSP.Description)
+		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description)
 	txRes := s.SendTxBlock(msgEditSP, sp.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -200,7 +199,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
-		sp.OperatorKey.GetAddr(), prevSP.Endpoint, prevSP.Description)
+		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description)
 	txRes = s.SendTxBlock(msgEditSP, sp.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -297,6 +296,20 @@ func (s *StorageProviderTestSuite) TestMsgCreateStorageProvider() {
 
 }
 
+func (s *StorageProviderTestSuite) TestDeposit() {
+	sp := s.StorageProviders[0]
+
+	deposit := sdk.Coin{
+		Denom:  s.Config.Denom,
+		Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+	}
+
+	msgDeposit := sptypes.NewMsgDeposit(
+		sp.FundingKey.GetAddr(), sp.OperatorKey.GetAddr(), deposit)
+	txRes := s.SendTxBlock(msgDeposit, sp.FundingKey)
+	s.Require().Equal(txRes.Code, uint32(0))
+}
+
 func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	ctx := context.Background()
 	s.CheckSecondarySpPrice()
@@ -353,7 +366,9 @@ func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
 		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
 		total = total.Add(spStoragePrice.SpStoragePrice.StorePrice)
 	}
-	expectedSecondarySpStorePrice := sptypes.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
+	params, err := s.Client.SpQueryClient.Params(ctx, &sptypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	expectedSecondarySpStorePrice := params.Params.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
 	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
 }
 

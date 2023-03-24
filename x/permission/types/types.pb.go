@@ -9,15 +9,19 @@ import (
 	_ "github.com/cosmos/cosmos-proto"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -26,12 +30,19 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 type Policy struct {
-	Id              Uint                  `protobuf:"bytes,1,opt,name=id,proto3,customtype=Uint" json:"id"`
-	Principal       *Principal            `protobuf:"bytes,2,opt,name=principal,proto3" json:"principal,omitempty"`
-	ResourceType    resource.ResourceType `protobuf:"varint,3,opt,name=resource_type,json=resourceType,proto3,enum=bnbchain.greenfield.resource.ResourceType" json:"resource_type,omitempty"`
-	ResourceId      Uint                  `protobuf:"bytes,4,opt,name=resource_id,json=resourceId,proto3,customtype=Uint" json:"resource_id"`
-	Statements      []*Statement          `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
-	MemberStatement *Statement            `protobuf:"bytes,6,opt,name=member_statement,json=memberStatement,proto3" json:"member_statement,omitempty"`
+	// id is an unique u256 sequence for each policy. It also be used as NFT tokenID
+	Id Uint `protobuf:"bytes,1,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// principal defines the accounts/group which the permission grants to
+	Principal *Principal `protobuf:"bytes,2,opt,name=principal,proto3" json:"principal,omitempty"`
+	// resource_type defines the type of resource that grants permission for
+	ResourceType resource.ResourceType `protobuf:"varint,3,opt,name=resource_type,json=resourceType,proto3,enum=bnbchain.greenfield.resource.ResourceType" json:"resource_type,omitempty"`
+	// resource_id defines the bucket/object/group id of the resource that grants permission for
+	ResourceId Uint `protobuf:"bytes,4,opt,name=resource_id,json=resourceId,proto3,customtype=Uint" json:"resource_id"`
+	// statements defines the details content of the permission, including effect/actions/sub-resources
+	Statements []*Statement `protobuf:"bytes,5,rep,name=statements,proto3" json:"statements,omitempty"`
+	// expiration_time defines the whole expiration time of all the statements.
+	// Notices: Its priority is higher than the expiration time inside the Statement
+	ExpirationTime *time.Time `protobuf:"bytes,6,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
 }
 
 func (m *Policy) Reset()         { *m = Policy{} }
@@ -78,7 +89,7 @@ func (m *Policy) GetResourceType() resource.ResourceType {
 	if m != nil {
 		return m.ResourceType
 	}
-	return resource.RESOURCE_TYPE_BUCKET
+	return resource.RESOURCE_TYPE_UNSPECIFIED
 }
 
 func (m *Policy) GetStatements() []*Statement {
@@ -88,14 +99,18 @@ func (m *Policy) GetStatements() []*Statement {
 	return nil
 }
 
-func (m *Policy) GetMemberStatement() *Statement {
+func (m *Policy) GetExpirationTime() *time.Time {
 	if m != nil {
-		return m.MemberStatement
+		return m.ExpirationTime
 	}
 	return nil
 }
 
+// PolicyGroup refers to a group of policies which grant permission to Group, which is limited to MaxGroupNum (default 10).
+// This means that a single resource can only grant permission to 10 groups. The reason for
+// this is to enable on-chain determination of whether an operator has permission within a limited time.
 type PolicyGroup struct {
+	// items define a pair of policy_id and group_id. Each resource can only grant its own permissions to a limited number of groups
 	Items []*PolicyGroup_Item `protobuf:"bytes,1,rep,name=items,proto3" json:"items,omitempty"`
 }
 
@@ -177,44 +192,99 @@ func (m *PolicyGroup_Item) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_PolicyGroup_Item proto.InternalMessageInfo
 
+type GroupMember struct {
+	// id is an unique u256 sequence for each group member. It also be used as NFT tokenID
+	Id Uint `protobuf:"bytes,1,opt,name=id,proto3,customtype=Uint" json:"id"`
+	// group_id is the unique id of the group
+	GroupId Uint `protobuf:"bytes,2,opt,name=group_id,json=groupId,proto3,customtype=Uint" json:"group_id"`
+	// member is the account address of the member
+	Member string `protobuf:"bytes,3,opt,name=member,proto3" json:"member,omitempty"`
+}
+
+func (m *GroupMember) Reset()         { *m = GroupMember{} }
+func (m *GroupMember) String() string { return proto.CompactTextString(m) }
+func (*GroupMember) ProtoMessage()    {}
+func (*GroupMember) Descriptor() ([]byte, []int) {
+	return fileDescriptor_0d2afeea9f743f03, []int{2}
+}
+func (m *GroupMember) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GroupMember) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GroupMember.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GroupMember) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GroupMember.Merge(m, src)
+}
+func (m *GroupMember) XXX_Size() int {
+	return m.Size()
+}
+func (m *GroupMember) XXX_DiscardUnknown() {
+	xxx_messageInfo_GroupMember.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GroupMember proto.InternalMessageInfo
+
+func (m *GroupMember) GetMember() string {
+	if m != nil {
+		return m.Member
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*Policy)(nil), "bnbchain.greenfield.permission.Policy")
 	proto.RegisterType((*PolicyGroup)(nil), "bnbchain.greenfield.permission.PolicyGroup")
 	proto.RegisterType((*PolicyGroup_Item)(nil), "bnbchain.greenfield.permission.PolicyGroup.Item")
+	proto.RegisterType((*GroupMember)(nil), "bnbchain.greenfield.permission.GroupMember")
 }
 
 func init() { proto.RegisterFile("greenfield/permission/types.proto", fileDescriptor_0d2afeea9f743f03) }
 
 var fileDescriptor_0d2afeea9f743f03 = []byte{
-	// 438 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x93, 0x4d, 0x8b, 0xd3, 0x40,
-	0x18, 0xc7, 0x33, 0x69, 0xb7, 0x6e, 0x27, 0xbe, 0x31, 0x78, 0x88, 0x15, 0xd2, 0xd8, 0x53, 0x55,
-	0x76, 0x22, 0x15, 0xc4, 0x83, 0xa7, 0x3d, 0xb8, 0x04, 0x04, 0x97, 0xb8, 0x5e, 0xbc, 0x84, 0x26,
-	0x19, 0xb3, 0x03, 0x9d, 0x17, 0x66, 0xa6, 0xb0, 0xfd, 0x16, 0x7e, 0x12, 0x4f, 0x7e, 0x88, 0xbd,
-	0xb9, 0x78, 0x12, 0x0f, 0x8b, 0xb4, 0x5f, 0x44, 0xf2, 0xd6, 0x04, 0x2c, 0xb6, 0xb7, 0x79, 0x1e,
-	0x7e, 0xff, 0x7f, 0xfe, 0x4f, 0xe6, 0x19, 0xf8, 0x34, 0x57, 0x84, 0xf0, 0x2f, 0x94, 0x2c, 0xb2,
-	0x40, 0x12, 0xc5, 0xa8, 0xd6, 0x54, 0xf0, 0xc0, 0xac, 0x24, 0xd1, 0x58, 0x2a, 0x61, 0x04, 0xf2,
-	0x12, 0x9e, 0xa4, 0x97, 0x73, 0xca, 0x71, 0xcb, 0xe2, 0x96, 0x1d, 0x3d, 0x4e, 0x85, 0x66, 0x42,
-	0xc7, 0x25, 0x1d, 0x54, 0x45, 0x25, 0x1d, 0x3d, 0xca, 0x45, 0x2e, 0xaa, 0x7e, 0x71, 0xaa, 0xbb,
-	0x93, 0xdd, 0xdf, 0x4c, 0x05, 0x63, 0x82, 0xd7, 0xcc, 0xb8, 0xc3, 0x28, 0xa2, 0xc5, 0x52, 0xa5,
-	0xa4, 0x9b, 0x6a, 0xf2, 0xad, 0x07, 0x07, 0xe7, 0x62, 0x41, 0xd3, 0x15, 0x7a, 0x01, 0x6d, 0x9a,
-	0xb9, 0xc0, 0x07, 0xd3, 0xe1, 0xe9, 0x93, 0xeb, 0xdb, 0xb1, 0xf5, 0xfb, 0x76, 0xdc, 0xff, 0x44,
-	0xb9, 0xf9, 0xf9, 0xfd, 0xc4, 0xa9, 0xf3, 0x14, 0x65, 0x64, 0xd3, 0x0c, 0x9d, 0xc1, 0xa1, 0x54,
-	0x94, 0xa7, 0x54, 0xce, 0x17, 0xae, 0xed, 0x83, 0xa9, 0x33, 0x7b, 0x86, 0xff, 0x3f, 0x21, 0x3e,
-	0x6f, 0x04, 0x51, 0xab, 0x45, 0x1f, 0xe0, 0xbd, 0x26, 0x58, 0x5c, 0x04, 0x73, 0x7b, 0x3e, 0x98,
-	0xde, 0x9f, 0x3d, 0xdf, 0x69, 0xd6, 0x90, 0x38, 0xaa, 0x0f, 0x17, 0x2b, 0x49, 0xa2, 0xbb, 0xaa,
-	0x53, 0xa1, 0xb7, 0xd0, 0xd9, 0x1a, 0xd2, 0xcc, 0xed, 0xef, 0x9f, 0x07, 0x36, 0x7c, 0x98, 0xa1,
-	0x10, 0x42, 0x6d, 0xe6, 0x86, 0x30, 0xc2, 0x8d, 0x76, 0x8f, 0xfc, 0xde, 0x21, 0x83, 0x7d, 0x6c,
-	0x14, 0x51, 0x47, 0x8c, 0x2e, 0xe0, 0x43, 0x46, 0x58, 0x42, 0x54, 0xbc, 0x6d, 0xba, 0x83, 0xc3,
-	0xfe, 0x54, 0x6b, 0xf8, 0xa0, 0xb2, 0xd8, 0x36, 0x26, 0x3f, 0x00, 0x74, 0xaa, 0x0b, 0x3b, 0x53,
-	0x62, 0x29, 0xd1, 0x3b, 0x78, 0x44, 0x0d, 0x61, 0xda, 0x05, 0x65, 0xd6, 0x97, 0x7b, 0x2f, 0xa1,
-	0xd5, 0xe2, 0xd0, 0x10, 0x16, 0x55, 0xf2, 0xd1, 0x15, 0xec, 0x17, 0x25, 0x7a, 0x03, 0x87, 0xb2,
-	0x44, 0xe2, 0xc3, 0x96, 0xe1, 0xb8, 0xa2, 0xc3, 0x0c, 0xbd, 0x86, 0xc7, 0x79, 0x61, 0x5b, 0x08,
-	0xed, 0xfd, 0xc2, 0x3b, 0x25, 0x1c, 0x66, 0xa7, 0xef, 0xaf, 0xd7, 0x1e, 0xb8, 0x59, 0x7b, 0xe0,
-	0xcf, 0xda, 0x03, 0x5f, 0x37, 0x9e, 0x75, 0xb3, 0xf1, 0xac, 0x5f, 0x1b, 0xcf, 0xfa, 0x3c, 0xcb,
-	0xa9, 0xb9, 0x5c, 0x26, 0x38, 0x15, 0x2c, 0x48, 0x78, 0x72, 0x52, 0xce, 0x15, 0x74, 0x56, 0xfa,
-	0xea, 0x9f, 0xc7, 0x96, 0x0c, 0xca, 0xbd, 0x7e, 0xf5, 0x37, 0x00, 0x00, 0xff, 0xff, 0xbb, 0x77,
-	0x88, 0xb0, 0x92, 0x03, 0x00, 0x00,
+	// 525 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x94, 0x4f, 0x6f, 0x12, 0x41,
+	0x18, 0xc6, 0x19, 0xa0, 0x08, 0x83, 0xd6, 0x64, 0xd2, 0xc3, 0x8a, 0xc9, 0x82, 0x9c, 0x50, 0xc3,
+	0x6c, 0x83, 0x89, 0xf1, 0xe0, 0x45, 0x0e, 0x36, 0x24, 0x36, 0x36, 0xdb, 0x7a, 0xf1, 0x42, 0xd8,
+	0xdd, 0xe9, 0x76, 0x12, 0xe6, 0x4f, 0x66, 0x86, 0x04, 0xbe, 0x45, 0x3f, 0x84, 0x89, 0x5f, 0xa0,
+	0x1f, 0x82, 0x9b, 0x4d, 0x4f, 0xc6, 0x03, 0x1a, 0xf8, 0x22, 0x66, 0x67, 0x77, 0xbb, 0x24, 0x36,
+	0x52, 0xbd, 0xcd, 0x3b, 0xfc, 0x9e, 0x77, 0x9e, 0x79, 0x9f, 0x61, 0xe1, 0xb3, 0x58, 0x11, 0xc2,
+	0xcf, 0x29, 0x99, 0x46, 0x9e, 0x24, 0x8a, 0x51, 0xad, 0xa9, 0xe0, 0x9e, 0x59, 0x48, 0xa2, 0xb1,
+	0x54, 0xc2, 0x08, 0xe4, 0x06, 0x3c, 0x08, 0x2f, 0x26, 0x94, 0xe3, 0x82, 0xc5, 0x05, 0xdb, 0x7a,
+	0x12, 0x0a, 0xcd, 0x84, 0x1e, 0x5b, 0xda, 0x4b, 0x8b, 0x54, 0xda, 0x3a, 0x88, 0x45, 0x2c, 0xd2,
+	0xfd, 0x64, 0x95, 0xed, 0xb6, 0x63, 0x21, 0xe2, 0x29, 0xf1, 0x6c, 0x15, 0xcc, 0xce, 0x3d, 0x43,
+	0x19, 0xd1, 0x66, 0xc2, 0x64, 0x06, 0x74, 0xef, 0x36, 0x15, 0x0a, 0xc6, 0x04, 0xbf, 0x6d, 0x52,
+	0x30, 0x8a, 0x68, 0x31, 0x53, 0x21, 0xd9, 0xb6, 0xdd, 0xfd, 0x5a, 0x81, 0xb5, 0x13, 0x31, 0xa5,
+	0xe1, 0x02, 0xbd, 0x84, 0x65, 0x1a, 0x39, 0xa0, 0x03, 0x7a, 0x8d, 0xe1, 0xd3, 0xe5, 0xaa, 0x5d,
+	0xfa, 0xb1, 0x6a, 0x57, 0x3f, 0x51, 0x6e, 0x6e, 0xae, 0xfa, 0xcd, 0xcc, 0x70, 0x52, 0xfa, 0x65,
+	0x1a, 0xa1, 0x23, 0xd8, 0x90, 0x8a, 0xf2, 0x90, 0xca, 0xc9, 0xd4, 0x29, 0x77, 0x40, 0xaf, 0x39,
+	0x78, 0x8e, 0xff, 0x3e, 0x02, 0x7c, 0x92, 0x0b, 0xfc, 0x42, 0x8b, 0x3e, 0xc2, 0x47, 0xb9, 0xb1,
+	0x71, 0x62, 0xcc, 0xa9, 0x74, 0x40, 0x6f, 0x7f, 0xf0, 0xe2, 0xce, 0x66, 0x39, 0x89, 0xfd, 0x6c,
+	0x71, 0xb6, 0x90, 0xc4, 0x7f, 0xa8, 0xb6, 0x2a, 0xf4, 0x16, 0x36, 0x6f, 0x1b, 0xd2, 0xc8, 0xa9,
+	0xee, 0xbe, 0x0f, 0xcc, 0xf9, 0x51, 0x84, 0x46, 0x10, 0x6a, 0x33, 0x31, 0x84, 0x11, 0x6e, 0xb4,
+	0xb3, 0xd7, 0xa9, 0xdc, 0xe7, 0x62, 0xa7, 0xb9, 0xc2, 0xdf, 0x12, 0xa3, 0x63, 0xf8, 0x98, 0xcc,
+	0x25, 0x55, 0x13, 0x43, 0x05, 0x1f, 0x27, 0xe9, 0x39, 0x35, 0x3b, 0xa8, 0x16, 0x4e, 0xa3, 0xc5,
+	0x79, 0xb4, 0xf8, 0x2c, 0x8f, 0x76, 0x58, 0x5f, 0xae, 0xda, 0xe0, 0xf2, 0x67, 0x1b, 0xf8, 0xfb,
+	0x85, 0x38, 0xf9, 0xb9, 0xfb, 0x0d, 0xc0, 0x66, 0x9a, 0xd4, 0x91, 0x12, 0x33, 0x89, 0xde, 0xc3,
+	0x3d, 0x6a, 0x08, 0xd3, 0x0e, 0xb0, 0x26, 0x0f, 0x77, 0x4e, 0xbf, 0xd0, 0xe2, 0x91, 0x21, 0xcc,
+	0x4f, 0xe5, 0xad, 0x39, 0xac, 0x26, 0x25, 0x7a, 0x03, 0x1b, 0xd2, 0x22, 0xe3, 0xfb, 0xbd, 0x82,
+	0x7a, 0x4a, 0x8f, 0x22, 0xf4, 0x1a, 0xd6, 0xe3, 0xa4, 0x6d, 0x22, 0x2c, 0xef, 0x16, 0x3e, 0xb0,
+	0xf0, 0x28, 0xea, 0x7e, 0x01, 0xb0, 0x69, 0xfd, 0x1c, 0x13, 0x16, 0x10, 0xf5, 0x6f, 0x0f, 0xf0,
+	0x3f, 0x0f, 0x45, 0x87, 0xb0, 0xc6, 0xec, 0x71, 0xf6, 0xa1, 0x35, 0x86, 0xce, 0xcd, 0x55, 0xff,
+	0x20, 0x23, 0xdf, 0x45, 0x91, 0x22, 0x5a, 0x9f, 0x1a, 0x45, 0x79, 0xec, 0x67, 0xdc, 0xf0, 0xc3,
+	0x72, 0xed, 0x82, 0xeb, 0xb5, 0x0b, 0x7e, 0xad, 0x5d, 0x70, 0xb9, 0x71, 0x4b, 0xd7, 0x1b, 0xb7,
+	0xf4, 0x7d, 0xe3, 0x96, 0x3e, 0x0f, 0x62, 0x6a, 0x2e, 0x66, 0x01, 0x0e, 0x05, 0xf3, 0x02, 0x1e,
+	0xf4, 0xed, 0xf8, 0xbd, 0xad, 0xbf, 0xdc, 0xfc, 0x8f, 0xaf, 0x45, 0x50, 0xb3, 0xa1, 0xbf, 0xfa,
+	0x1d, 0x00, 0x00, 0xff, 0xff, 0x8e, 0x06, 0x51, 0x68, 0x53, 0x04, 0x00, 0x00,
 }
 
 func (m *Policy) Marshal() (dAtA []byte, err error) {
@@ -237,15 +307,13 @@ func (m *Policy) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.MemberStatement != nil {
-		{
-			size, err := m.MemberStatement.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTypes(dAtA, i, uint64(size))
+	if m.ExpirationTime != nil {
+		n1, err1 := github_com_gogo_protobuf_types.StdTimeMarshalTo(*m.ExpirationTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(*m.ExpirationTime):])
+		if err1 != nil {
+			return 0, err1
 		}
+		i -= n1
+		i = encodeVarintTypes(dAtA, i, uint64(n1))
 		i--
 		dAtA[i] = 0x32
 	}
@@ -383,6 +451,56 @@ func (m *PolicyGroup_Item) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *GroupMember) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GroupMember) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GroupMember) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Member) > 0 {
+		i -= len(m.Member)
+		copy(dAtA[i:], m.Member)
+		i = encodeVarintTypes(dAtA, i, uint64(len(m.Member)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	{
+		size := m.GroupId.Size()
+		i -= size
+		if _, err := m.GroupId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	{
+		size := m.Id.Size()
+		i -= size
+		if _, err := m.Id.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTypes(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTypes(v)
 	base := offset
@@ -417,8 +535,8 @@ func (m *Policy) Size() (n int) {
 			n += 1 + l + sovTypes(uint64(l))
 		}
 	}
-	if m.MemberStatement != nil {
-		l = m.MemberStatement.Size()
+	if m.ExpirationTime != nil {
+		l = github_com_gogo_protobuf_types.SizeOfStdTime(*m.ExpirationTime)
 		n += 1 + l + sovTypes(uint64(l))
 	}
 	return n
@@ -449,6 +567,23 @@ func (m *PolicyGroup_Item) Size() (n int) {
 	n += 1 + l + sovTypes(uint64(l))
 	l = m.GroupId.Size()
 	n += 1 + l + sovTypes(uint64(l))
+	return n
+}
+
+func (m *GroupMember) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Id.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	l = m.GroupId.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	l = len(m.Member)
+	if l > 0 {
+		n += 1 + l + sovTypes(uint64(l))
+	}
 	return n
 }
 
@@ -646,7 +781,7 @@ func (m *Policy) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MemberStatement", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ExpirationTime", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -673,10 +808,10 @@ func (m *Policy) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.MemberStatement == nil {
-				m.MemberStatement = &Statement{}
+			if m.ExpirationTime == nil {
+				m.ExpirationTime = new(time.Time)
 			}
-			if err := m.MemberStatement.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(m.ExpirationTime, dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -881,6 +1016,156 @@ func (m *PolicyGroup_Item) Unmarshal(dAtA []byte) error {
 			if err := m.GroupId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GroupMember) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GroupMember: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GroupMember: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Id.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GroupId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.GroupId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Member", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Member = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

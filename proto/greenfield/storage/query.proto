@@ -22,8 +22,6 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/params";
   }
 
-  // this line is used by starport scaffolding # 2
-
   // Queries a bucket with specify name.
   rpc HeadBucket(QueryHeadBucketRequest) returns (QueryHeadBucketResponse) {
     option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_name}";
@@ -91,18 +89,20 @@ service Query {
 
   // Queries a list of ListGroup items.
   rpc ListGroup(QueryListGroupRequest) returns (QueryListGroupResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/storage/list_group";
+    option (google.api.http).get = "/greenfield/storage/list_group/{group_owner}";
   }
 
   // Queries a list of HeadGroupMember items.
   rpc HeadGroupMember(QueryHeadGroupMemberRequest) returns (QueryHeadGroupMemberResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/storage/head_group_member";
+    option (google.api.http).get = "/greenfield/storage/head_group_member";
   }
 
   // Queries a policy that grants permission to a group
   rpc QueryPolicyForGroup(QueryPolicyForGroupRequest) returns (QueryPolicyForGroupResponse) {
-    option (google.api.http).get = "/bnb-chain/greenfield/storage/policy_for_group/{resource}/{principal_group_id}";
+    option (google.api.http).get = "/greenfield/storage/policy_for_group/{resource}/{principal_group_id}";
   }
+
+  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -114,7 +114,6 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// this line is used by starport scaffolding # 3
 message QueryHeadBucketRequest {
   string bucket_name = 1;
 }
@@ -226,7 +225,7 @@ message QueryHeadGroupMemberRequest {
 }
 
 message QueryHeadGroupMemberResponse {
-  GroupInfo group_info = 1;
+  permission.GroupMember group_member = 1;
 }
 
 message QueryPolicyForGroupRequest {
@@ -237,3 +236,5 @@ message QueryPolicyForGroupRequest {
 message QueryPolicyForGroupResponse {
   permission.Policy policy = 1;
 }
+
+// this line is used by starport scaffolding # 3

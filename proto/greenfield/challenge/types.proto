@@ -6,22 +6,38 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 
+// VoteResult defines the result attestation for a challenge.
 enum VoteResult {
   option (gogoproto.goproto_enum_prefix) = false;
 
-  // The challenge failed, for further extension.
+  // The challenge failed.
   CHALLENGE_FAILED = 0;
 
   // The challenge succeed.
   CHALLENGE_SUCCEED = 1;
 }
 
+// Slash records the storage provider slashes, which will be pruned periodically.
 message Slash {
+  // The slashed storage provider.
   bytes sp_operator_address = 1;
+
+  // The slashed object info.
   string object_id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+
+  // The height when the slash happened, which is used for prune purpose.
   uint64 height = 3;
+}
+
+// Challenge records the challenge which are not expired yet.
+message Challenge {
+  // The id of the challenge.
+  uint64 id = 1;
+
+  // The height at which the challenge will be expired.
+  uint64 expired_height = 2;
 }

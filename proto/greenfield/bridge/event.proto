@@ -2,10 +2,19 @@ syntax = "proto3";
 package bnbchain.greenfield.bridge;
 
 import "cosmos/base/v1beta1/coin.proto";
+import "gogoproto/gogo.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
 option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
+
+enum RefundReason {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  REFUND_REASON_UNKNOWN = 0;
+  REFUND_REASON_INSUFFICIENT_BALANCE = 1;
+  REFUND_REASON_FAIL_ACK = 2;
+}
 
 // EventCrossTransferOut is emitted when a cross chain transfer out tx created
 message EventCrossTransferOut {
@@ -28,7 +37,7 @@ message EventCrossTransferOutRefund {
   // Amount of the failed cross chain transfer tx
   cosmos.base.v1beta1.Coin amount = 2;
   // Refund reason of the failed cross chain transfer tx
-  uint32 refund_reason = 3;
+  RefundReason refund_reason = 3;
   // Sequence of the corresponding cross chain package
   uint64 sequence = 4;
 }

@@ -25,19 +25,7 @@ var (
 )
 
 const (
-	opWeightMsgCreateStorageProvider = "op_weight_msg_create_storage_provider"
-	// TODO: Determine the simulation weight value
-	defaultWeightMsgCreateStorageProvider int = 100
-
-	opWeightMsgDeposit = "op_weight_msg_deposit"
-	// TODO: Determine the simulation weight value
-	defaultWeightMsgDeposit int = 100
-
-	opWeightMsgEditStorageProvider = "op_weight_msg_edit_storage_provider"
-	// TODO: Determine the simulation weight value
-	defaultWeightMsgEditStorageProvider int = 100
-
-	// this line is used by starport scaffolding # simapp/module/const
+// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
@@ -70,41 +58,6 @@ func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
-
-	var weightMsgCreateStorageProvider int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCreateStorageProvider, &weightMsgCreateStorageProvider, nil,
-		func(_ *rand.Rand) {
-			weightMsgCreateStorageProvider = defaultWeightMsgCreateStorageProvider
-		},
-	)
-	operations = append(operations, simulation.NewWeightedOperation(
-		weightMsgCreateStorageProvider,
-		spsimulation.SimulateMsgCreateStorageProvider(am.accountKeeper, am.bankKeeper, am.keeper),
-	))
-
-	var weightMsgDeposit int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgDeposit, &weightMsgDeposit, nil,
-		func(_ *rand.Rand) {
-			weightMsgDeposit = defaultWeightMsgDeposit
-		},
-	)
-	operations = append(operations, simulation.NewWeightedOperation(
-		weightMsgDeposit,
-		spsimulation.SimulateMsgDeposit(am.accountKeeper, am.bankKeeper, am.keeper),
-	))
-
-	var weightMsgEditStorageProvider int
-	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgEditStorageProvider, &weightMsgEditStorageProvider, nil,
-		func(_ *rand.Rand) {
-			weightMsgEditStorageProvider = defaultWeightMsgEditStorageProvider
-		},
-	)
-	operations = append(operations, simulation.NewWeightedOperation(
-		weightMsgEditStorageProvider,
-		spsimulation.SimulateMsgEditStorageProvider(am.accountKeeper, am.bankKeeper, am.keeper),
-	))
-
 	// this line is used by starport scaffolding # simapp/module/operation
-
 	return operations
 }

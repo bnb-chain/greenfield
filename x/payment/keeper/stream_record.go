@@ -99,6 +99,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_ACTIVE {
 		return fmt.Errorf("stream account %s is frozen", streamRecord.Account)
 	}
+	isPay := change.StaticBalanceChange.IsNegative() || change.RateChange.IsNegative()
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
@@ -147,7 +148,11 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 			}
 		}
 	}
-	// calculate settle time
+	// if the change is a pay(which decreases the static balance or netflow rate), the left static balance should be enough
+	if isPay && streamRecord.StaticBalance.IsNegative() {
+		return fmt.Errorf("stream account %s balance not enough, lack of %s BNB wei", streamRecord.Account, streamRecord.StaticBalance.Abs())
+	}
+	//calculate settle time
 	var settleTimestamp int64 = 0
 	if streamRecord.NetflowRate.IsNegative() {
 		payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())

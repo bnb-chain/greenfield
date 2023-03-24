@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -13,8 +12,8 @@ const (
 )
 
 var (
-	KeyMaxStatementsNum  = []byte("MaxStatementsNum")
-	KeyMaxPolicyGroupNum = []byte("MaxPolicyGroupNum")
+	KeyMaxStatementsNum   = []byte("MaxStatementsNum")
+	KeyMaxPolicyGroupSIze = []byte("MaxPolicyGroupSize")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -41,7 +40,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyMaxStatementsNum, &p.MaximumStatementsNum, validateMaximumStatementsNum),
-		paramtypes.NewParamSetPair(KeyMaxPolicyGroupNum, &p.MaximumGroupNum, validateMaximumGroupNum),
+		paramtypes.NewParamSetPair(KeyMaxPolicyGroupSIze, &p.MaximumGroupNum, validateMaximumGroupNum),
 	}
 }
 
@@ -54,12 +53,6 @@ func (p Params) Validate() error {
 		return err
 	}
 	return nil
-}
-
-// String implements the Stringer interface.
-func (p Params) String() string {
-	out, _ := yaml.Marshal(p)
-	return string(out)
 }
 
 func validateMaximumStatementsNum(i interface{}) error {

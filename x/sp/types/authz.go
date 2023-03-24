@@ -10,15 +10,12 @@ import (
 var _ authz.Authorization = &DepositAuthorization{}
 
 // NewDepositAuthorization creates a new DepositAuthorization object.
-func NewDepositAuthorization(spAddress sdk.AccAddress, amount *sdk.Coin) (*DepositAuthorization, error) {
+func NewDepositAuthorization(spAddress sdk.AccAddress, amount *sdk.Coin) *DepositAuthorization {
 	a := DepositAuthorization{}
 	a.SpAddress = spAddress.String()
+	a.MaxDeposit = amount
 
-	if amount != nil {
-		a.MaxDeposit = amount
-	}
-
-	return &a, nil
+	return &a
 }
 
 // MsgTypeURL implements Authorization.MsgTypeURL.
@@ -35,7 +32,7 @@ func (a DepositAuthorization) ValidateBasic() error {
 }
 
 // Accept implements Authorization.Accept.
-func (a DepositAuthorization) Accept(ctx sdk.Context, msg sdk.Msg) (authz.AcceptResponse, error) {
+func (a DepositAuthorization) Accept(_ctx sdk.Context, msg sdk.Msg) (authz.AcceptResponse, error) {
 	mDeposit, ok := msg.(*MsgDeposit)
 	if !ok {
 		return authz.AcceptResponse{}, sdkerrors.ErrInvalidRequest.Wrap("msg type mismatch")

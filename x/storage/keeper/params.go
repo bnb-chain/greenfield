@@ -24,6 +24,11 @@ func (k Keeper) RedundantParityChunkNum(ctx sdk.Context) (res uint32) {
 	return
 }
 
+func (k Keeper) MaxBucketsPerAccount(ctx sdk.Context) (res uint32) {
+	k.paramStore.Get(ctx, types.KeyMaxBucketsPerAccount, &res)
+	return
+}
+
 func (k Keeper) GetExpectSecondarySPNumForECObject(ctx sdk.Context) (res uint32) {
 	return k.RedundantDataChunkNum(ctx) + k.RedundantParityChunkNum(ctx)
 }
@@ -117,6 +122,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.RedundantDataChunkNum(ctx),
 		k.RedundantParityChunkNum(ctx),
 		k.MaxPayloadSize(ctx),
+		k.MaxBucketsPerAccount(ctx),
 		k.MinChargeSize(ctx),
 		k.MirrorBucketRelayerFee(ctx).String(),
 		k.MirrorBucketAckRelayerFee(ctx).String(),

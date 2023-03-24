@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -21,67 +23,60 @@ const (
 	MemStoreKey = "mem_permission"
 )
 
-func KeyPrefix(p string) []byte {
-	return []byte(p)
-}
-
 var (
 	BucketPolicyForAccountPrefix = []byte{0x11}
 	ObjectPolicyForAccountPrefix = []byte{0x12}
 	GroupPolicyForAccountPrefix  = []byte{0x13}
+	GroupMemberPrefix            = []byte{0x14}
 
 	BucketPolicyForGroupPrefix = []byte{0x21}
 	ObjectPolicyForGroupPrefix = []byte{0x22}
 
-	PolicyByIDPrefix = []byte{0x31}
+	PolicyByIDPrefix      = []byte{0x31}
+	GroupMemberByIDPrefix = []byte{0x32}
 
-	PolicySequencePrefix = []byte{0x41}
+	PolicySequencePrefix      = []byte{0x41}
+	GroupMemberSequencePrefix = []byte{0x42}
 )
 
 func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
+	var key []byte
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
-		return GetBucketPolicyForAccountKey(resourceID, addr)
+		key = BucketPolicyForAccountPrefix
 	case resource.RESOURCE_TYPE_OBJECT:
-		return GetObjectPolicyForAccountKey(resourceID, addr)
+		key = ObjectPolicyForAccountPrefix
 	case resource.RESOURCE_TYPE_GROUP:
-		return GetGroupPolicyForAccountKey(resourceID, addr)
+		key = GroupPolicyForAccountPrefix
 	default:
-		return nil
+		panic(fmt.Sprintf("GetPolicyForAccountKey Invalid Resource Type, %s", resourceType.String()))
 	}
-}
-
-func GetBucketPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(BucketPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
-}
-
-func GetObjectPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(ObjectPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
-}
-
-func GetGroupPolicyForAccountKey(resourceID math.Uint, addr sdk.AccAddress) []byte {
-	return append(GroupPolicyForAccountPrefix, append(resourceID.Bytes(), addr.Bytes()...)...)
+	key = append(key, resourceID.Bytes()...)
+	key = append(key, addr.Bytes()...)
+	return key
 }
 
 func GetPolicyForGroupKey(resourceID math.Uint, resourceType resource.ResourceType) []byte {
+	var key []byte
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
-		return GetBucketPolicyForGroupKey(resourceID)
+		key = BucketPolicyForGroupPrefix
 	case resource.RESOURCE_TYPE_OBJECT:
-		return GetObjectPolicyForGroupKey(resourceID)
+		key = ObjectPolicyForGroupPrefix
 	default:
-		return nil
+		panic(fmt.Sprintf("GetPolicyForGroupKey Invalid Resource Type, %s", resourceType.String()))
 	}
-}
-
-func GetBucketPolicyForGroupKey(resourceID math.Uint) []byte {
-	return append(BucketPolicyForGroupPrefix, resourceID.Bytes()...)
-}
-
-func GetObjectPolicyForGroupKey(resourceID math.Uint) []byte {
-	return append(ObjectPolicyForGroupPrefix, resourceID.Bytes()...)
+	key = append(key, resourceID.Bytes()...)
+	return key
 }
 
 func GetPolicyByIDKey(policyID math.Uint) []byte {
 	return append(PolicyByIDPrefix, policyID.Bytes()...)
+}
+
+func GetGroupMemberKey(groupID math.Uint, member sdk.AccAddress) []byte {
+	return append(GroupMemberPrefix, append(groupID.Bytes(), member.Bytes()...)...)
+}
+func GetGroupMemberByIDKey(memberID math.Uint) []byte {
+	return append(GroupMemberByIDPrefix, memberID.Bytes()...)
 }

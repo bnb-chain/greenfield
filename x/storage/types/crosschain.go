@@ -226,12 +226,12 @@ func DeserializeMirrorGroupAckPackage(serializedPackage []byte) (interface{}, er
 type CreateBucketSynPackage struct {
 	Creator                        sdk.AccAddress
 	BucketName                     string
-	IsPublic                       bool
+	Visibility                     VisibilityType
 	PaymentAddress                 sdk.AccAddress
 	PrimarySpAddress               sdk.AccAddress
 	PrimarySpApprovalExpiredHeight uint64
 	PrimarySpApprovalSignature     []byte
-	ReadQuota                      uint64
+	ChargedReadQuota               uint64
 	ExtraData                      []byte
 }
 
@@ -239,14 +239,14 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 	msg := MsgCreateBucket{
 		Creator:          p.Creator.String(),
 		BucketName:       p.BucketName,
-		IsPublic:         p.IsPublic,
+		Visibility:       p.Visibility,
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
 		PrimarySpApproval: &Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
-		ReadQuota: p.ReadQuota,
+		ChargedReadQuota: p.ChargedReadQuota,
 	}
 
 	return msg.ValidateBasic()
@@ -256,14 +256,14 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 	msg := MsgCreateBucket{
 		Creator:          p.Creator.String(),
 		BucketName:       p.BucketName,
-		IsPublic:         p.IsPublic,
+		Visibility:       p.Visibility,
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
 		PrimarySpApproval: &Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
-		ReadQuota: p.ReadQuota,
+		ChargedReadQuota: p.ChargedReadQuota,
 	}
 	return msg.GetApprovalBytes()
 }

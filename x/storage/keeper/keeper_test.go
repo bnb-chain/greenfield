@@ -36,14 +36,14 @@ func (s *IntegrationTestSuite) SetupTest() {
 	s.UserAddr = sample.RandAccAddress()
 	s.depKeepers.SpKeeper.SetSpStoragePrice(ctx, sptypes.SpStoragePrice{
 		SpAddress:     s.PrimarySpAddr.String(),
-		UpdateTime:    1,
+		UpdateTimeSec: 1,
 		ReadPrice:     sdk.NewDec(2),
 		StorePrice:    sdk.NewDec(5),
 		FreeReadQuota: 10000,
 	})
 	s.depKeepers.SpKeeper.SetSecondarySpStorePrice(ctx, sptypes.SecondarySpStorePrice{
-		UpdateTime: 1,
-		StorePrice: sdk.NewDec(4),
+		UpdateTimeSec: 1,
+		StorePrice:    sdk.NewDec(4),
 	})
 	coins := sdk.Coins{sdk.Coin{Denom: s.Denom, Amount: sdkmath.NewInt(1e18)}}
 	bankKeeper := s.depKeepers.BankKeeper
@@ -58,9 +58,9 @@ func (s *IntegrationTestSuite) SetupTest() {
 func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	ctx := s.ctx.WithBlockTime(time.Now())
 	// mock create bucket
-	readQuota := uint64(1000)
+	ChargedReadQuota := uint64(1000)
 	bucket := types.BucketInfo{
-		ReadQuota:        readQuota,
+		ChargedReadQuota: ChargedReadQuota,
 		PaymentAddress:   s.UserAddr.String(),
 		PrimarySpAddress: s.PrimarySpAddr.String(),
 	}
@@ -110,12 +110,12 @@ func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	s.T().Logf("spStreamRecordSealObject: %+v", spStreamRecordSealObject)
 
 	// check
-	primaryStorePriceRes, err := s.depKeepers.SpKeeper.GetSpStoragePriceByTime(ctx, s.PrimarySpAddr.String(), t2)
+	primaryStorePriceRes, err := s.depKeepers.SpKeeper.GetSpStoragePriceByTime(ctx, s.PrimarySpAddr, t2)
 	s.Require().NoError(err)
 	s.T().Logf("primaryStorePriceRes: %+v", primaryStorePriceRes)
 	primarySpRateDiff := spStreamRecordSealObject.NetflowRate.Sub(spStreamRecordCreateBucket.NetflowRate)
 	expectedRate := primaryStorePriceRes.StorePrice.MulInt(sdk.NewIntFromUint64(bucket.BillingInfo.TotalChargeSize)).TruncateInt()
-	readRate := primaryStorePriceRes.ReadPrice.MulInt(sdk.NewIntFromUint64(readQuota)).TruncateInt()
+	readRate := primaryStorePriceRes.ReadPrice.MulInt(sdk.NewIntFromUint64(ChargedReadQuota)).TruncateInt()
 	s.T().Logf("primarySpRateDiff: %s, expectedRate: %s, readRate: %s", primarySpRateDiff, expectedRate, readRate)
 	s.Require().Equal(expectedRate.String(), primarySpRateDiff.String())
 }

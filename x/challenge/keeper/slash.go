@@ -38,8 +38,7 @@ func (k Keeper) RemoveSlashUntil(ctx sdk.Context, height uint64) {
 func (k Keeper) ExistsSlash(ctx sdk.Context, spOperatorAddress sdk.AccAddress, objectId sdkmath.Uint) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SlashKeyPrefix)
 
-	bz := store.Get(getSlashKeyBytes(spOperatorAddress, objectId))
-	return bz != nil
+	return store.Has(getSlashKeyBytes(spOperatorAddress, objectId))
 }
 
 // getSlashKeyBytes returns the byte representation of Slash key

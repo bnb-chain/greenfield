@@ -25,10 +25,15 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+// StreamAccountStatus defines the status of a stream account
 type StreamAccountStatus int32
 
 const (
+	// STREAM_ACCOUNT_STATUS_ACTIVE defines the active status of a stream account.
 	STREAM_ACCOUNT_STATUS_ACTIVE StreamAccountStatus = 0
+	// STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+	// A frozen stream account cannot be used as payment address for buckets.
+	// It can be unfrozen by depositing more BNB to the stream account.
 	STREAM_ACCOUNT_STATUS_FROZEN StreamAccountStatus = 1
 )
 
@@ -51,7 +56,7 @@ func (StreamAccountStatus) EnumDescriptor() ([]byte, []int) {
 }
 
 // OutFlow defines the accumulative outflow stream rate in BNB
-// from a stream account or a bucket to a SP
+// from a stream account to a Storage Provider
 type OutFlow struct {
 	// stream account address who receives the flow, usually SP(service provider)
 	ToAddress string `protobuf:"bytes,1,opt,name=to_address,json=toAddress,proto3" json:"to_address,omitempty"`

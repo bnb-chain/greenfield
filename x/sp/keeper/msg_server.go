@@ -28,37 +28,23 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCreateStorageProvider) (*types.MsgCreateStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
-	if err != nil {
-		return nil, err
-	}
+	spAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
+	fundingAcc := sdk.MustAccAddressFromHex(msg.FundingAddress)
 
-	fundingAcc, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
-	if err != nil {
-		return nil, err
-	}
 	fundingAccount := k.accountKeeper.GetAccount(ctx, fundingAcc)
 	if fundingAccount == nil {
 		return nil, status.Errorf(codes.NotFound, "account %s not found", msg.FundingAddress)
 	}
 
-	sealAcc, err := sdk.AccAddressFromHexUnsafe(msg.SealAddress)
-	if err != nil {
-		return nil, err
-	}
+	sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
+	approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
 
-	approvalAcc, err := sdk.AccAddressFromHexUnsafe(msg.ApprovalAddress)
-	if err != nil {
-		return nil, err
-	}
-
+	signers := msg.GetSigners()
 	if ctx.BlockHeight() == 0 {
-		signers := msg.GetSigners()
 		if len(signers) != 1 || !signers[0].Equals(spAcc) {
 			return nil, types.ErrSignerNotSPOperator
 		}
 	} else {
-		signers := msg.GetSigners()
 		if len(signers) != 1 || !signers[0].Equals(k.accountKeeper.GetModuleAddress(gov.ModuleName)) {
 			return nil, types.ErrSignerNotGovModule
 		}
@@ -83,7 +69,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, types.ErrStorageProviderApprovalAddrExists
 	}
 
-	if _, err := msg.Description.EnsureLength(); err != nil {
+	if err := msg.Description.EnsureLength(); err != nil {
 		return nil, err
 	}
 
@@ -93,12 +79,12 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 
 	depositDenom := k.DepositDenomForSP(ctx)
 	if depositDenom != msg.Deposit.GetDenom() {
-		return nil, errors.Wrapf(types.ErrInvalidDepositDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
+		return nil, errors.Wrapf(types.ErrInvalidDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
 	}
 
 	// check the deposit authorization from the fund address to gov module account
-	if ctx.BlockHeader().Height != 0 {
-		err = k.CheckDepositAuthorization(
+	if ctx.BlockHeight() != 0 {
+		err := k.CheckDepositAuthorization(
 			ctx,
 			k.accountKeeper.GetModuleAddress(gov.ModuleName),
 			fundingAcc,
@@ -127,7 +113,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// set initial sp storage price
 	spStoragePrice := types.SpStoragePrice{
 		SpAddress:     spAcc.String(),
-		UpdateTime:    ctx.BlockTime().Unix(),
+		UpdateTimeSec: ctx.BlockTime().Unix(),
 		ReadPrice:     msg.ReadPrice,
 		StorePrice:    msg.StorePrice,
 		FreeReadQuota: msg.FreeReadQuota,
@@ -144,7 +130,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
 		Endpoint:        msg.Endpoint,
-		TotalDeposit:    msg.Deposit.String(),
+		TotalDeposit:    &msg.Deposit,
 	}); err != nil {
 		return nil, err
 	}
@@ -155,40 +141,43 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEditStorageProvider) (*types.MsgEditStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
-	if err != nil {
-		return nil, err
-	}
+	spAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
 
 	sp, found := k.GetStorageProvider(ctx, spAcc)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}
 
-	oldEndpoint := sp.Endpoint
+	changed := false
+
 	// replace endpoint
 	if len(msg.Endpoint) != 0 {
+		oldEndpoint := sp.Endpoint
 		sp.Endpoint = msg.Endpoint
-	}
-	if _, err := msg.Description.EnsureLength(); err != nil {
-		return nil, err
+		changed = true
+		// TODO(chris): when we need more fields to EventEditStorageProvider, it should be put before calling the SetStorageProvider method.
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
+			OldEndpoint: oldEndpoint,
+			NewEndpoint: sp.Endpoint,
+		}); err != nil {
+			return nil, err
+		}
 	}
 
-	description, err := sp.Description.UpdateDescription(msg.Description)
-	if err != nil {
-		return nil, err
+	if msg.Description != nil {
+		description, err := sp.Description.UpdateDescription(msg.Description)
+		if err != nil {
+			return nil, err
+		}
+		sp.Description = *description
+		changed = true
 	}
 
-	sp.Description = description
-
-	k.SetStorageProvider(ctx, &sp)
-
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
-		OldEndpoint: oldEndpoint,
-		NewEndpoint: sp.Endpoint,
-	}); err != nil {
-		return nil, err
+	if !changed {
+		return nil, types.ErrStorageProviderNotChanged
 	}
+	k.SetStorageProvider(ctx, sp)
+
 	return &types.MsgEditStorageProviderResponse{}, nil
 }
 
@@ -196,24 +185,16 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
-	if err != nil {
-		return nil, err
-	}
+	fundAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+	sp, found := k.GetStorageProviderByFundingAddr(ctx, fundAcc)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}
 
-	// Only funding address has permission to deposit tokens for SP
-	if msg.Creator != sp.FundingAddress {
-		return nil, types.ErrDepositAccountNotAllowed
-	}
-
 	depositDenom := k.DepositDenomForSP(ctx)
 	if depositDenom != msg.Deposit.GetDenom() {
-		return nil, errors.Wrapf(types.ErrInvalidDepositDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
+		return nil, errors.Wrapf(types.ErrInvalidDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)
 	}
 	// deposit the deposit token to module account.
 	coins := sdk.NewCoins(sdk.NewCoin(depositDenom, msg.Deposit.Amount))
@@ -223,12 +204,12 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 	// Add to storage provider's deposit tokens and update the storage provider.
 	sp.TotalDeposit = sp.TotalDeposit.Add(msg.Deposit.Amount)
-	k.SetStorageProvider(ctx, &sp)
+	k.SetStorageProvider(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
-		SpAddress:    msg.SpAddress,
-		Deposit:      msg.Deposit.String(),
-		TotalDeposit: sp.TotalDeposit.String(),
+		FundingAddress: msg.Creator,
+		Deposit:        msg.Deposit.String(),
+		TotalDeposit:   sp.TotalDeposit.String(),
 	}); err != nil {
 		return nil, err
 	}
@@ -237,16 +218,22 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 
 func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpdateSpStoragePrice) (*types.MsgUpdateSpStoragePriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	spAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
+	err := k.IsStorageProviderExistAndInService(ctx, spAcc)
+	if err != nil {
+		return nil, errors.Wrapf(err, "IsStorageProviderExistAndInService return err")
+	}
+
 	current := ctx.BlockTime().Unix()
 	spStorePrice := types.SpStoragePrice{
-		UpdateTime:    current,
-		SpAddress:     msg.SpAddress,
+		UpdateTimeSec: current,
+		SpAddress:     spAcc.String(),
 		ReadPrice:     msg.ReadPrice,
 		StorePrice:    msg.StorePrice,
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	err := k.UpdateSecondarySpStorePrice(ctx)
+	err = k.UpdateSecondarySpStorePrice(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "update secondary sp store price failed")
 	}

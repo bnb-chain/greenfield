@@ -122,16 +122,12 @@ const (
 	CoinType = 60
 )
 
-// this line is used by starport scaffolding # stargate/wasm/app/enabledProposals
-
 func getGovProposalHandlers() []govclient.ProposalHandler {
 	var govProposalHandlers []govclient.ProposalHandler
-	// this line is used by starport scaffolding # stargate/app/govProposalHandlers
 
 	govProposalHandlers = append(govProposalHandlers,
 		paramsclient.ProposalHandler,
 		distrclient.ProposalHandler,
-		// this line is used by starport scaffolding # stargate/app/govProposalHandler
 	)
 
 	return govProposalHandlers
@@ -166,7 +162,6 @@ var (
 		permissionmodule.AppModuleBasic{},
 		storagemodule.AppModuleBasic{},
 		challengemodule.AppModuleBasic{},
-		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
 	// module account permissions
@@ -182,7 +177,6 @@ var (
 		permissionmoduletypes.ModuleName: nil,
 		bridgemoduletypes.ModuleName:     nil,
 		spmoduletypes.ModuleName:         {authtypes.Staking},
-		// this line is used by starport scaffolding # stargate/app/maccPerms
 	}
 )
 
@@ -240,7 +234,6 @@ type App struct {
 	ChallengeKeeper        challengemodulekeeper.Keeper
 	PermissionmoduleKeeper permissionmodulekeeper.Keeper
 	StorageKeeper          storagemodulekeeper.Keeper
-	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// mm is the module manager
 	mm *module.Manager
@@ -297,9 +290,8 @@ func New(
 		permissionmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
 		challengemoduletypes.StoreKey,
-		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, challengemoduletypes.TStoreKey)
+	tKeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, challengemoduletypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey, challengemoduletypes.MemStoreKey)
 
 	app := &App{
@@ -310,7 +302,7 @@ func New(
 		interfaceRegistry: interfaceRegistry,
 		invCheckPeriod:    invCheckPeriod,
 		keys:              keys,
-		tkeys:             tkeys,
+		tkeys:             tKeys,
 		memKeys:           memKeys,
 	}
 
@@ -318,7 +310,7 @@ func New(
 		appCodec,
 		cdc,
 		keys[paramstypes.StoreKey],
-		tkeys[paramstypes.TStoreKey],
+		tKeys[paramstypes.TStoreKey],
 	)
 
 	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
@@ -427,12 +419,12 @@ func New(
 	)
 
 	// Register the upgrade keeper
-	upgradeInitlizier, upgradeHandler := UpgradeInitializerAndHandler(app.AccountKeeper)
+	upgradeInitializer, upgradeHandler := UpgradeInitializerAndHandler(app.AccountKeeper)
 	var err error
 	upgradeKeeperOpts := []upgradekeeper.KeeperOption{
 		upgradekeeper.RegisterUpgradePlan(app.ChainID(), bApp.AppConfig().Upgrade),
 		upgradekeeper.RegisterUpgradeHandler(upgradeHandler),
-		upgradekeeper.RegisterUpgradeInitializer(upgradeInitlizier),
+		upgradekeeper.RegisterUpgradeInitializer(upgradeInitializer),
 	}
 	app.UpgradeKeeper, err = upgradekeeper.NewKeeper(keys[upgradetypes.StoreKey], appCodec, homePath, upgradeKeeperOpts...)
 	if err != nil {
@@ -507,7 +499,7 @@ func New(
 		appCodec,
 		keys[challengemoduletypes.StoreKey],
 		memKeys[challengemoduletypes.MemStoreKey],
-		tkeys[challengemoduletypes.TStoreKey],
+		tKeys[challengemoduletypes.TStoreKey],
 		app.GetSubspace(challengemoduletypes.ModuleName),
 		app.BankKeeper,
 		app.StorageKeeper,
@@ -516,8 +508,6 @@ func New(
 		app.PaymentKeeper,
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
-
-	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	/****  Module Options ****/
 
@@ -553,8 +543,6 @@ func New(
 		permissionModule,
 		storageModule,
 		challengeModule,
-
-		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -584,7 +572,6 @@ func New(
 		storagemoduletypes.ModuleName,
 		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/beginBlockers
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -609,8 +596,6 @@ func New(
 		storagemoduletypes.ModuleName,
 		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
-
-		// this line is used by starport scaffolding # stargate/app/endBlockers
 	)
 
 	// NOTE: The genutils module must occur after staking so that pools are
@@ -640,7 +625,6 @@ func New(
 		storagemoduletypes.ModuleName,
 		gensptypes.ModuleName,
 		challengemoduletypes.ModuleName,
-		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
 	// Uncomment if you want to set a custom migration order here.
@@ -671,13 +655,12 @@ func New(
 		permissionModule,
 		storageModule,
 		challengeModule,
-		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 	app.sm.RegisterStoreDecoders()
 
 	// initialize stores
 	app.MountKVStores(keys)
-	app.MountTransientStores(tkeys)
+	app.MountTransientStores(tKeys)
 	app.MountMemoryStores(memKeys)
 
 	// initialize BaseApp
@@ -715,8 +698,6 @@ func New(
 			panic(err)
 		}
 	}
-
-	// this line is used by starport scaffolding # stargate/app/beforeInitReturn
 
 	app.initModules(ctx)
 
@@ -802,6 +783,7 @@ func (app *App) ModuleAccountAddrs() map[string]bool {
 func (app *App) BlockedModuleAccountAddrs() map[string]bool {
 	modAccAddrs := app.ModuleAccountAddrs()
 	delete(modAccAddrs, authtypes.NewModuleAddress(govtypes.ModuleName).String())
+	delete(modAccAddrs, authtypes.NewModuleAddress(distrtypes.ModuleName).String())
 
 	return modAccAddrs
 }
@@ -916,7 +898,6 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(permissionmoduletypes.ModuleName)
 	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
 	paramsKeeper.Subspace(challengemoduletypes.ModuleName)
-	// this line is used by starport scaffolding # stargate/app/paramSubspace
 	return paramsKeeper
 }
 

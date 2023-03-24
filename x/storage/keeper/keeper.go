@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"math"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -78,7 +77,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAcc sdk.AccAddress, opts CreateBucketOptions) (sdkmath.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
@@ -105,17 +104,17 @@ func (k Keeper) CreateBucket(
 	bucketInfo := types.BucketInfo{
 		Owner:            ownerAcc.String(),
 		BucketName:       bucketName,
-		IsPublic:         opts.IsPublic,
-		CreateAt:         ctx.BlockHeight(),
+		Visibility:       opts.Visibility,
+		CreateAt:         ctx.BlockTime().Unix(),
 		SourceType:       opts.SourceType,
-		ReadQuota:        opts.ReadQuota,
+		ChargedReadQuota: opts.ChargedReadQuota,
 		PaymentAddress:   paymentAcc.String(),
 		PrimarySpAddress: primarySpAcc.String(),
 	}
 
 	// charge by read quota
-	if opts.ReadQuota != 0 {
-		err := k.ChargeInitialReadFee(ctx, &bucketInfo)
+	if opts.ChargedReadQuota != 0 {
+		err = k.ChargeInitialReadFee(ctx, &bucketInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -130,14 +129,14 @@ func (k Keeper) CreateBucket(
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	// emit CreateBucket Event
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
-		IsPublic:         bucketInfo.IsPublic,
+		Visibility:       bucketInfo.Visibility,
 		CreateAt:         bucketInfo.CreateAt,
 		BucketId:         bucketInfo.Id,
 		SourceType:       bucketInfo.SourceType,
-		ReadQuota:        bucketInfo.ReadQuota,
+		ChargedReadQuota: bucketInfo.ChargedReadQuota,
 		PaymentAddress:   bucketInfo.PaymentAddress,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 	}); err != nil {
@@ -170,13 +169,10 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		return types.ErrBucketNotEmpty
 	}
 
-	// check bill is empty
-	bill, err := k.GetBucketBill(ctx, bucketInfo)
+	// change the bill
+	err := k.ChargeDeleteBucket(ctx, bucketInfo)
 	if err != nil {
-		return errors.Wrapf(err, "Get bucket bill failed.")
-	}
-	if len(bill.Flows) != 0 {
-		return types.ErrBucketBillNotEmpty
+		return types.ErrChargeFailed.Wrapf("ChargeDeleteBucket error: %s", err)
 	}
 
 	store.Delete(bucketKey)
@@ -207,14 +203,19 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	// check permission
 	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_UPDATE_BUCKET_INFO, nil)
 	if effect != permtypes.EFFECT_ALLOW {
-		return types.ErrAccessDenied.Wrapf("The operator(%s) has no DeleteBucket permission of the bucket(%s)",
+		return types.ErrAccessDenied.Wrapf("The operator(%s) has no UpdateBucketInfo permission of the bucket(%s)",
 			operator.String(), bucketName)
 	}
 
 	// handle fields not changed
-	if opts.ReadQuota == math.MaxUint64 {
-		opts.ReadQuota = bucketInfo.ReadQuota
+	if opts.ChargedReadQuota == nil {
+		opts.ChargedReadQuota = &bucketInfo.ChargedReadQuota
 	}
+
+	if opts.Visibility != types.VISIBILITY_TYPE_UNSPECIFIED {
+		bucketInfo.Visibility = opts.Visibility
+	}
+
 	var paymentAcc sdk.AccAddress
 	var err error
 	if opts.PaymentAddress != "" {
@@ -226,7 +227,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	} else {
 		paymentAcc = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	}
-	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, paymentAcc.String(), opts.ReadQuota)
+	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, paymentAcc.String(), *opts.ChargedReadQuota)
 	if err != nil {
 		return err
 	}
@@ -236,13 +237,14 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
-		OperatorAddress:      operator.String(),
-		BucketName:           bucketName,
-		BucketId:             bucketInfo.Id,
-		ReadQuotaBefore:      bucketInfo.ReadQuota,
-		ReadQuotaAfter:       opts.ReadQuota,
-		PaymentAddressBefore: bucketInfo.PaymentAddress,
-		PaymentAddressAfter:  paymentAcc.String(),
+		OperatorAddress:        operator.String(),
+		BucketName:             bucketName,
+		BucketId:               bucketInfo.Id,
+		ChargedReadQuotaBefore: bucketInfo.ChargedReadQuota,
+		ChargedReadQuotaAfter:  *opts.ChargedReadQuota,
+		PaymentAddressBefore:   bucketInfo.PaymentAddress,
+		PaymentAddressAfter:    paymentAcc.String(),
+		Visibility:             bucketInfo.Visibility,
 	}); err != nil {
 		return err
 	}
@@ -283,7 +285,7 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*type
 }
 
 func (k Keeper) CreateObject(
-	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName, objectName string,
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string,
 	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -298,14 +300,21 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
 	}
 
+	// verify permission
+	verifyOpts := &permtypes.VerifyOptions{
+		WantedSize: &payloadSize,
+	}
+	effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_CREATE_OBJECT, verifyOpts)
+	if effect != permtypes.EFFECT_ALLOW {
+		return sdkmath.ZeroUint(), types.ErrAccessDenied.Wrapf("The operator(%s) has no CreateObject permission of the bucket(%s)",
+			operator.String(), bucketName)
+	}
+
 	// check secondary sps
 	var secondarySPs []string
 	for _, sp := range opts.SecondarySpAddresses {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(sp)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-		err = k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
+		spAcc := sdk.MustAccAddressFromHex(sp)
+		err := k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -330,11 +339,11 @@ func (k Keeper) CreateObject(
 
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
-		Owner:                ownerAcc.String(),
+		Owner:                bucketInfo.Owner,
 		BucketName:           bucketName,
 		ObjectName:           objectName,
 		PayloadSize:          payloadSize,
-		IsPublic:             opts.IsPublic,
+		Visibility:           opts.Visibility,
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
@@ -359,7 +368,7 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		CreatorAddress:   ownerAcc.String(),
+		CreatorAddress:   operator.String(),
 		OwnerAddress:     objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
@@ -367,7 +376,7 @@ func (k Keeper) CreateObject(
 		ObjectId:         objectInfo.Id,
 		CreateAt:         bucketInfo.CreateAt,
 		PayloadSize:      objectInfo.PayloadSize,
-		IsPublic:         objectInfo.IsPublic,
+		Visibility:       objectInfo.Visibility,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
 		ContentType:      objectInfo.ContentType,
 		Status:           objectInfo.ObjectStatus,
@@ -447,20 +456,17 @@ func (k Keeper) SealObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectAlreadyExists
+		return types.ErrObjectAlreadySealed
 	}
 
 	// check the signature of secondary sps
 	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
 	var secondarySps []string
 	for i, spAddr := range opts.SecondarySpAddresses {
-		spAcc, err := sdk.AccAddressFromHexUnsafe(spAddr)
-		if err != nil {
-			return err
-		}
+		spAcc := sdk.MustAccAddressFromHex(spAddr)
 		secondarySps = append(secondarySps, spAcc.String())
 		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Id, objectInfo.Checksums[i+1])
-		err = k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
+		err := k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
 		if err != nil {
 			return err
 		}
@@ -509,7 +515,7 @@ func (k Keeper) CancelCreateObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	if objectInfo.SourceType != opts.SourceType {
@@ -561,7 +567,7 @@ func (k Keeper) DeleteObject(
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
-		return types.ErrObjectNotInService
+		return types.ErrObjectNotSealed
 	}
 
 	// check permission
@@ -645,7 +651,7 @@ func (k Keeper) CopyObject(
 		BucketName:     dstBucketInfo.BucketName,
 		ObjectName:     dstObjectName,
 		PayloadSize:    srcObjectInfo.PayloadSize,
-		IsPublic:       opts.IsPublic,
+		Visibility:     opts.Visibility,
 		ContentType:    srcObjectInfo.ContentType,
 		CreateAt:       ctx.BlockHeight(),
 		Id:             k.GenNextObjectID(ctx),
@@ -693,7 +699,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
-		return types.ErrObjectNotInit
+		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
@@ -742,8 +748,14 @@ func (k Keeper) CreateGroup(
 		GroupName:  groupName,
 	}
 
+	// Can not create a group with the same name.
+	groupKey := types.GetGroupKey(owner, groupName)
+	if store.Has(groupKey) {
+		return sdkmath.ZeroUint(), types.ErrGroupAlreadyExists
+	}
+
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(types.GetGroupKey(owner, groupName), sequence.EncodeSequence(groupInfo.Id))
+	store.Set(groupKey, sequence.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
@@ -849,7 +861,10 @@ func (k Keeper) LeaveGroup(
 	}
 
 	// Note: Delete group does not require the group is empty. The group member will be deleted by on-chain GC.
-	k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	err := k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, member)
+	if err != nil {
+		return err
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		OwnerAddress: groupInfo.Owner,
@@ -861,17 +876,13 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts UpdateGroupMemberOptions) error {
-	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
-	if !found {
-		return types.ErrNoSuchGroup
-	}
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts UpdateGroupMemberOptions) error {
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
 
 	// check permission
-	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_DELETE_GROUP)
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
 	if effect != permtypes.EFFECT_ALLOW {
 		return types.ErrAccessDenied.Wrapf(
 			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
@@ -894,7 +905,10 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		if err != nil {
 			return err
 		}
-		k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		err = k.permKeeper.RemoveGroupMember(ctx, groupInfo.Id, memberAcc)
+		if err != nil {
+			return err
+		}
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{

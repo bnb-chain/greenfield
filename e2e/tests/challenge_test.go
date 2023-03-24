@@ -45,8 +45,8 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := "ch" + storagetestutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, false, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil)
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
@@ -82,7 +82,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), false, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
@@ -145,7 +145,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	s.Require().Equal(event.SpOperatorAddress, secondarySps[0].String())
 }
 
-func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, relayerKey string) *bitset.BitSet {
+func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, blsKey string) *bitset.BitSet {
 	valBitSet := bitset.New(256)
 
 	page := 1
@@ -156,7 +156,7 @@ func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, relayerKey s
 	}
 
 	for idx, val := range valRes.Validators {
-		if strings.EqualFold(relayerKey, hex.EncodeToString(val.RelayerBlsKey[:])) {
+		if strings.EqualFold(blsKey, hex.EncodeToString(val.BlsKey[:])) {
 			valBitSet.Set(uint(idx))
 		}
 	}
@@ -176,13 +176,13 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	s.Require().NoError(err)
 	height := statusRes.SyncInfo.LatestBlockHeight
 
-	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
@@ -212,7 +212,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		s.Require().NoError(err)
 		height = statusRes.SyncInfo.LatestBlockHeight
 
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 		s.Require().NoError(err)
 		events := filterEventFromBlock(blockRes)
@@ -229,18 +229,18 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		}
 
 		if len(events) > 0 {
-			fmt.Println("Current challenge id", events[len(events)-1].ChallengeId)
+			s.T().Logf("current challenge id: %d", events[len(events)-1].ChallengeId)
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(500 * time.Millisecond)
 	}
 
-	valBitset := s.calculateValidatorBitSet(height, s.Relayer.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId,
 		event.SpOperatorAddress, challengetypes.CHALLENGE_FAILED, "", valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.Relayer.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
@@ -252,6 +252,47 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
 	s.Require().NoError(err)
 	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
+}
+
+func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	bucketName, objectName, primarySp, _ := s.createObject()
+	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
+	txRes := s.SendTxBlock(msgSubmit, user)
+	event := filterEventFromTx(txRes)
+
+	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
+
+	expiredHeight := event.ExpiredHeight
+	for {
+		time.Sleep(500 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		height := statusRes.SyncInfo.LatestBlockHeight
+
+		s.T().Logf("current height: %d, expired height: %d", height, expiredHeight)
+
+		if uint64(height) > expiredHeight {
+			break
+		}
+	}
+
+	height := statusRes.SyncInfo.LatestBlockHeight
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
+
+	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
+	toSign := msgAttest.GetBlsSignBytes()
+
+	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
+	if err != nil {
+		panic(err)
+	}
+	msgAttest.VoteAggSignature = voteAggSignature
+
+	s.SendTxBlockWithExpectErrorString(msgAttest, user, challengetypes.ErrInvalidChallengeId.Error())
 }
 
 func (s *ChallengeTestSuite) TestEndBlock() {
@@ -306,7 +347,7 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 }
 
 func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
-	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress := "", "", "", "", ""
+	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress, expiredHeightStr := "", "", "", "", "", ""
 	for _, event := range txRes.Logs[0].Events {
 		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {
 			for _, attr := range event.Attributes {
@@ -320,6 +361,8 @@ func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge
 					segmentIndexStr = strings.Trim(attr.Value, `"`)
 				} else if attr.Key == "sp_operator_address" {
 					spOpAddress = strings.Trim(attr.Value, `"`)
+				} else if attr.Key == "expired_height" {
+					expiredHeightStr = strings.Trim(attr.Value, `"`)
 				}
 			}
 		}
@@ -328,11 +371,13 @@ func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge
 	objectId := sdkmath.NewUintFromString(objectIdStr)
 	redundancyIndex, _ := strconv.ParseInt(redundancyIndexStr, 10, 32)
 	segmentIndex, _ := strconv.ParseInt(segmentIndexStr, 10, 32)
+	expiredHeight, _ := strconv.ParseInt(expiredHeightStr, 10, 64)
 	return challengetypes.EventStartChallenge{
 		ChallengeId:       uint64(challengeId),
 		ObjectId:          objectId,
 		SegmentIndex:      uint32(segmentIndex),
 		SpOperatorAddress: spOpAddress,
 		RedundancyIndex:   int32(redundancyIndex),
+		ExpiredHeight:     uint64(expiredHeight),
 	}
 }

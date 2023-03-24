@@ -37,10 +37,14 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 		return nil, errors.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
 	}
 
+	if options.GashubKeeper == nil {
+		return nil, errors.Wrap(sdkerrors.ErrLogic, "gashub keeper is required for ante builder")
+	}
+
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),               // outermost AnteDecorator. SetUpContext must be called first
-		SingleMessageDecorator{},                      // To support EIP712, only one msg is allowed
-		NewSignModeDecorator(options.SignModeHandler), // To support EIP712, only SignMode_SIGN_MODE_EIP_712 is allowed
+		SingleMessageDecorator{},                      // Only one msg is allowed in EIP712 tx
+		NewSignModeDecorator(options.SignModeHandler), // Only SignMode_SIGN_MODE_EIP_712 is allowed
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),

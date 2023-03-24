@@ -44,7 +44,7 @@ func NewBucketGRN(bucketName string) *GRN {
 
 func NewObjectGRN(bucketName, objectName string) *GRN {
 	name := strings.Join([]string{bucketName, objectName}, "/")
-	return &GRN{resType: resource.RESOURCE_TYPE_BUCKET, name: name}
+	return &GRN{resType: resource.RESOURCE_TYPE_OBJECT, name: name}
 }
 
 func NewGroupGRN(owner sdk.AccAddress, groupName string) *GRN {
@@ -59,7 +59,7 @@ func (r *GRN) String() string {
 	case resource.RESOURCE_TYPE_OBJECT:
 		res = strings.Join([]string{"grn", ObjectTypeAbbr, "", r.name}, ":")
 	case resource.RESOURCE_TYPE_GROUP:
-		res = strings.Join([]string{"grn", GroupTypeAbbr, "", r.groupOwner.String(), r.name}, ":")
+		res = strings.Join([]string{"grn", GroupTypeAbbr, r.groupOwner.String(), r.name}, ":")
 	default:
 		return ""
 	}

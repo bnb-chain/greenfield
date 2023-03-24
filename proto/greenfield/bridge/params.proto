@@ -1,6 +1,7 @@
 syntax = "proto3";
 package bnbchain.greenfield.bridge;
 
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
@@ -8,7 +9,15 @@ option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
 // Params defines the parameters for the module.
 message Params {
   // Relayer fee for the cross chain transfer out tx
-  string transfer_out_relayer_fee = 1;
+  string transfer_out_relayer_fee = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   // Relayer fee for the ACK or FAIL_ACK package of the cross chain transfer out tx
-  string transfer_out_ack_relayer_fee = 2;
+  string transfer_out_ack_relayer_fee = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

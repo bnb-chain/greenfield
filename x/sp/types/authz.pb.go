@@ -26,8 +26,6 @@ var _ = math.Inf
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // DepositAuthorization defines authorization for sp deposit.
-//
-// Since: cosmos-sdk 0.43
 type DepositAuthorization struct {
 	// max_deposit specifies the maximum amount of tokens can be deposit to a storage provider. If it is
 	// empty, there is no spend limit and any amount of coins can be deposit.

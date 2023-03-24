@@ -22,16 +22,19 @@ func KeyPrefix(p string) []byte {
 }
 
 var (
-	// OngoingChallengeIdKey is the key to retrieve the max id of challenge.
-	OngoingChallengeIdKey = []byte{0x11}
+	// ChallengeIdKey is the key to retrieve the id of challenge.
+	ChallengeIdKey = []byte{0x11}
+
+	// ChallengeKeyPrefix is the prefix to retrieve Challenge.
+	ChallengeKeyPrefix = []byte{0x12}
 
 	// AttestChallengeIdKey is the key to record the latest attest challenge id.
-	AttestChallengeIdKey = []byte{0x12}
+	AttestChallengeIdKey = []byte{0x13}
 
 	// SlashKeyPrefix is the prefix to retrieve Slash.
-	SlashKeyPrefix = []byte{0x13}
+	SlashKeyPrefix = []byte{0x14}
 
 	// CurrentBlockChallengeCountKey is key to track the count of challenges in the current block.
 	// The data is stored in transient store.
-	CurrentBlockChallengeCountKey = []byte{0x14}
+	CurrentBlockChallengeCountKey = []byte{0x15}
 )

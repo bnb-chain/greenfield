@@ -45,5 +45,12 @@ func (msg *MsgDeposit) ValidateBasic() error {
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
+	_, err = sdk.AccAddressFromHexUnsafe(msg.To)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid to address (%s)", err)
+	}
+	if msg.Amount.IsNil() || !msg.Amount.IsPositive() {
+		return errors.Wrapf(sdkerrors.ErrInvalidCoins, "invalid amount (%s)", msg.Amount)
+	}
 	return nil
 }

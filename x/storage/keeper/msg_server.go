@@ -11,6 +11,7 @@ import (
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type msgServer struct {
@@ -28,20 +29,14 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucket) (*types.MsgCreateBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
+	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	primarySPAcc, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
-	if err != nil {
-		return nil, err
-	}
+	primarySPAcc := sdk.MustAccAddressFromHex(msg.PrimarySpAddress)
 
-	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, CreateBucketOptions{
+	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, &CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
-		IsPublic:          msg.IsPublic,
-		ReadQuota:         msg.ReadQuota,
+		Visibility:        msg.Visibility,
+		ChargedReadQuota:  msg.ChargedReadQuota,
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		PrimarySpApproval: msg.PrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
@@ -58,12 +53,9 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucket) (*types.MsgDeleteBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err = k.Keeper.DeleteBucket(ctx, operatorAcc, msg.BucketName, DeleteBucketOptions{
+	err := k.Keeper.DeleteBucket(ctx, operatorAcc, msg.BucketName, DeleteBucketOptions{
 		SourceType: types.SOURCE_TYPE_ORIGIN,
 	})
 	if err != nil {
@@ -75,15 +67,17 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateBucketInfo) (*types.MsgUpdateBucketInfoResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err = k.Keeper.UpdateBucketInfo(ctx, operatorAcc, msg.BucketName, UpdateBucketOptions{
-		SourceType:     types.SOURCE_TYPE_ORIGIN,
-		ReadQuota:      msg.ReadQuota,
-		PaymentAddress: msg.PaymentAddress,
+	var chargedReadQuota *uint64
+	if msg.ChargedReadQuota != nil {
+		chargedReadQuota = &msg.ChargedReadQuota.Value
+	}
+	err := k.Keeper.UpdateBucketInfo(ctx, operatorAcc, msg.BucketName, UpdateBucketOptions{
+		SourceType:       types.SOURCE_TYPE_ORIGIN,
+		PaymentAddress:   msg.PaymentAddress,
+		Visibility:       msg.Visibility,
+		ChargedReadQuota: chargedReadQuota,
 	})
 	if err != nil {
 		return nil, err
@@ -93,10 +87,8 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
+
+	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
 	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx)) {
 		return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
@@ -106,7 +98,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 
 	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, CreateObjectOptions{
 		SourceType:           types.SOURCE_TYPE_ORIGIN,
-		IsPublic:             msg.IsPublic,
+		Visibility:           msg.Visibility,
 		ContentType:          msg.ContentType,
 		RedundancyType:       msg.RedundancyType,
 		Checksums:            msg.ExpectChecksums,
@@ -123,13 +115,23 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 	}, nil
 }
 
-func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
+func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCancelCreateObject) (*types.MsgCancelCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spSealAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.CancelCreateObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	if err != nil {
 		return nil, err
 	}
+
+	return &types.MsgCancelCreateObjectResponse{}, nil
+}
+
+func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (*types.MsgSealObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
 	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx)
 	if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
@@ -142,7 +144,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 			expectSecondarySPNum, len(msg.SecondarySpSignatures))
 	}
 
-	err = k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
+	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
 		SecondarySpAddresses:  msg.SecondarySpAddresses,
 		SecondarySpSignatures: msg.SecondarySpSignatures,
 	})
@@ -154,33 +156,14 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	return &types.MsgSealObjectResponse{}, nil
 }
 
-func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCancelCreateObject) (*types.MsgCancelCreateObjectResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.Keeper.CancelCreateObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
-	if err != nil {
-		return nil, err
-	}
-
-	return &types.MsgCancelCreateObjectResponse{}, nil
-}
-
 func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (*types.MsgCopyObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	ownerAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
 	id, err := k.Keeper.CopyObject(ctx, ownerAcc, msg.SrcBucketName, msg.SrcObjectName, msg.DstBucketName, msg.DstObjectName, CopyObjectOptions{
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
-		IsPublic:          false, // TODO: Need Impl
+		Visibility:        storagetypes.VISIBILITY_TYPE_PRIVATE,
 		PrimarySpApproval: msg.DstPrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
 	})
@@ -196,12 +179,9 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObject) (*types.MsgDeleteObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err = k.Keeper.DeleteObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, DeleteObjectOptions{
+	err := k.Keeper.DeleteObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, DeleteObjectOptions{
 		SourceType: types.SOURCE_TYPE_ORIGIN,
 	})
 
@@ -214,12 +194,8 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectSealObject) (*types.MsgRejectSealObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.Keeper.RejectSealObject(ctx, spAcc, msg.BucketName, msg.ObjectName)
+	spAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.RejectSealObject(ctx, spAcc, msg.BucketName, msg.ObjectName)
 	if err != nil {
 		return nil, err
 	}
@@ -229,10 +205,7 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.Creator)
-	if err != nil {
-		return nil, err
-	}
+	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
 	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, CreateGroupOptions{Members: msg.Members})
 	if err != nil {
@@ -247,12 +220,8 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup) (*types.MsgDeleteGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAcc, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
-
-	err = k.Keeper.DeleteGroup(ctx, operatorAcc, msg.GroupName, DeleteGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.DeleteGroup(ctx, operatorAcc, msg.GroupName, DeleteGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	if err != nil {
 		return nil, err
 	}
@@ -263,17 +232,11 @@ func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup)
 func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (*types.MsgLeaveGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	memberAcc, err := sdk.AccAddressFromHexUnsafe(msg.Member)
-	if err != nil {
-		return nil, err
-	}
+	memberAcc := sdk.MustAccAddressFromHex(msg.Member)
 
-	ownerAcc, err := sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
-	if err != nil {
-		return nil, err
-	}
+	ownerAcc := sdk.MustAccAddressFromHex(msg.GroupOwner)
 
-	err = k.Keeper.LeaveGroup(ctx, memberAcc, ownerAcc, msg.GroupName, LeaveGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+	err := k.Keeper.LeaveGroup(ctx, memberAcc, ownerAcc, msg.GroupName, LeaveGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	if err != nil {
 		return nil, err
 	}
@@ -284,12 +247,15 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdateGroupMember) (*types.MsgUpdateGroupMemberResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
 	}
-	// Now only allowed group owner to update member
-	err = k.Keeper.UpdateGroupMember(ctx, operator, msg.GroupName, UpdateGroupMemberOptions{
+	err := k.Keeper.UpdateGroupMember(ctx, operator, groupInfo, UpdateGroupMemberOptions{
 		SourceType:      types.SOURCE_TYPE_ORIGIN,
 		MembersToAdd:    msg.MembersToAdd,
 		MembersToDelete: msg.MembersToDelete,
@@ -304,41 +270,45 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*types.MsgPutPolicyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+
+	var grn types2.GRN
+	err := grn.ParseFromString(msg.Resource, false)
 	if err != nil {
 		return nil, err
 	}
 
-	var grn types2.GRN
-	err = grn.ParseFromString(msg.Resource, false)
-	if err != nil {
-		return nil, err
+	if msg.ExpirationTime != nil && msg.ExpirationTime.Before(ctx.BlockTime()) {
+		return nil, permtypes.ErrPermissionExpired.Wrapf("The specified policy expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
+	}
+
+	for _, s := range msg.Statements {
+		if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
+			return nil, permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
+		}
 	}
 
 	policy := &permtypes.Policy{
-		ResourceType: grn.ResourceType(),
-		Principal:    msg.Principal,
-		Statements:   msg.Statements,
+		ResourceType:   grn.ResourceType(),
+		Principal:      msg.Principal,
+		Statements:     msg.Statements,
+		ExpirationTime: msg.ExpirationTime,
 	}
 
 	policyID, err := k.Keeper.PutPolicy(ctx, operatorAddr, grn, policy)
 	if err != nil {
 		return nil, err
 	}
-	return &types.MsgPutPolicyResponse{Id: policyID}, nil
+	return &types.MsgPutPolicyResponse{PolicyId: policyID}, nil
 
 }
 
 func (k msgServer) DeletePolicy(goCtx context.Context, msg *types.MsgDeletePolicy) (*types.MsgDeletePolicyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	_ = ctx
-	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
 	var grn types2.GRN
-	err = grn.ParseFromString(msg.Resource, false)
+	err := grn.ParseFromString(msg.Resource, false)
 	if err != nil {
 		return nil, err
 	}
@@ -348,16 +318,13 @@ func (k msgServer) DeletePolicy(goCtx context.Context, msg *types.MsgDeletePolic
 		return nil, err
 	}
 
-	return &types.MsgDeletePolicyResponse{Id: policyID}, nil
+	return &types.MsgDeletePolicyResponse{PolicyId: policyID}, nil
 }
 
 func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObject) (*types.MsgMirrorObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
 	objectInfo, found := k.Keeper.GetObjectInfoById(ctx, msg.Id)
 	if !found {
@@ -366,6 +333,10 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 
 	if objectInfo.SourceType != types.SOURCE_TYPE_ORIGIN {
 		return nil, types.ErrAlreadyMirrored
+	}
+
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
+		return nil, types.ErrObjectNotSealed
 	}
 
 	if operator.String() != objectInfo.Owner {
@@ -420,10 +391,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucket) (*types.MsgMirrorBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
 	bucketInfo, found := k.Keeper.GetBucketInfoById(ctx, msg.Id)
 	if !found {
@@ -489,10 +457,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup) (*types.MsgMirrorGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		return nil, err
-	}
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
 	groupInfo, found := k.Keeper.GetGroupInfoById(ctx, msg.Id)
 	if !found {

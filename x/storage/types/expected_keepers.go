@@ -26,8 +26,8 @@ type BankKeeper interface {
 }
 
 type SpKeeper interface {
-	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp sptypes.StorageProvider, found bool)
-	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp sptypes.StorageProvider, found bool)
+	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
+	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
 }
 
@@ -44,13 +44,15 @@ type PermissionKeeper interface {
 	DeletePolicy(ctx sdk.Context, principal *permtypes.Principal, resourceType resource.ResourceType,
 		resourceID math.Uint) (math.Uint, error)
 	VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, operator sdk.AccAddress,
-		action permtypes.ActionType, resource *string) permtypes.Effect
+		action permtypes.ActionType, opts *permtypes.VerifyOptions) permtypes.Effect
 	AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error
-	RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress)
+	RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error
 	GetPolicyByID(ctx sdk.Context, policyID math.Uint) (*permtypes.Policy, bool)
 	GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) (policy *permtypes.Policy, isFound bool)
 	GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
 		groupID math.Uint) (policy *permtypes.Policy, isFound bool)
+	GetGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*permtypes.GroupMember, bool)
+	GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*permtypes.GroupMember, bool)
 }
 
 type CrossChainKeeper interface {

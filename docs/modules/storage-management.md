@@ -81,9 +81,9 @@ message MsgCreateBucket {
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is a globally unique name of bucket
   string bucket_name = 2;
-  // is_public means the bucket is private or public. if private, only bucket owner or grantee can read it,
+  // visibility means the bucket is private or public. if private, only bucket owner or grantee can read it,
   // otherwise every greenfield user can read it.
-  bool is_public = 3;
+  VisibilityType visibility = 3;
   // payment_address is an account address specified by bucket owner to pay the read fee. Default: creator
   string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // primary_sp_address is the address of primary sp.
@@ -91,7 +91,7 @@ message MsgCreateBucket {
   // primary_sp_approval is the approval info of the primary SP which indicates that primary sp confirm the user's request.
   Approval primary_sp_approval = 7;
   // read_quota
-  ReadQuota read_quota = 8;
+  uint64 charged_read_quota = 8;
 }
 ```
 
@@ -124,8 +124,8 @@ message MsgUpdateBucketInfo {
   // bucket_name is the name of bucket which you'll update
   string bucket_name = 2;
 
-  // read_quota is the traffic quota that you read from primary sp
-  ReadQuota read_quota = 3;
+  // charged_read_quota is the traffic quota that you read from primary sp
+  uint64 charged_read_quota = 3;
 
   // payment_address is the account address of the payment account
   string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -148,9 +148,9 @@ message MsgCreateObject {
   string object_name = 3;
   // payload_size is size of the object's payload
   uint64 payload_size = 4;
-  // is_public means the bucket is private or public. if private, only bucket owner or grantee can access it,
+  // visibility means the bucket is private or public. if private, only bucket owner or grantee can access it,
   // otherwise every greenfield user can access it.
-  bool is_public = 5;
+  VisibilityType visibility = 5;
   // content_type is a standard MIME type describing the format of the object.
   string content_type = 6;
   // primary_sp_approval is the approval info of the primary SP which indicates that primary sp confirm the user's request.

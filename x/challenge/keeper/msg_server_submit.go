@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -11,16 +10,15 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
+// Submit handles user's request for submitting a challenge.
 func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.MsgSubmitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(msg.SpOperatorAddress)
-	if err != nil {
-		return nil, err
-	}
+	spOperator := sdk.MustAccAddressFromHex(msg.SpOperatorAddress)
+	challenger := sdk.MustAccAddressFromHex(msg.Challenger)
 
 	// check sp status
-	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperatorAddr)
+	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperator)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}
@@ -40,27 +38,27 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	// check whether the sp stores the object info
 	stored := false
 	for _, sp := range objectInfo.GetSecondarySpAddresses() {
-		if strings.EqualFold(spOperatorAddr.String(), sp) {
+		if spOperator.Equals(sdk.MustAccAddressFromHex(sp)) {
 			stored = true
 			break
 		}
 	}
 	if !stored {
 		bucket, _ := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
-		if !strings.EqualFold(spOperatorAddr.String(), bucket.GetPrimarySpAddress()) {
+		if !spOperator.Equals(sdk.MustAccAddressFromHex(bucket.GetPrimarySpAddress())) {
 			return nil, types.ErrNotStoredOnSp
 		}
 	}
 
 	// check sp recent slash
-	if k.ExistsSlash(ctx, spOperatorAddr, objectInfo.Id) {
+	if k.ExistsSlash(ctx, spOperator, objectInfo.Id) {
 		return nil, types.ErrExistsRecentSlash
 	}
 
 	// generate redundancy index
 	redundancyIndex := types.RedundancyIndexPrimary
 	for i, sp := range objectInfo.GetSecondarySpAddresses() {
-		if strings.EqualFold(spOperatorAddr.String(), sp) {
+		if spOperator.Equals(sdk.MustAccAddressFromHex(sp)) {
 			redundancyIndex = int32(i)
 			break
 		}
@@ -77,17 +75,22 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		}
 	}
 
-	challengeId := k.GetOngoingChallengeId(ctx)
-	k.SetOngoingChallengeId(ctx, challengeId+1)
 	k.IncrChallengeCountCurrentBlock(ctx)
+	challengeId := k.GetChallengeId(ctx) + 1
+	expiredHeight := k.Keeper.ChallengeKeepAlivePeriod(ctx) + uint64(ctx.BlockHeight())
+	k.SaveChallenge(ctx, types.Challenge{
+		Id:            challengeId,
+		ExpiredHeight: expiredHeight,
+	})
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStartChallenge{
 		ChallengeId:       challengeId,
 		ObjectId:          objectInfo.Id,
 		SegmentIndex:      segmentIndex,
-		SpOperatorAddress: spOperatorAddr.String(),
+		SpOperatorAddress: spOperator.String(),
 		RedundancyIndex:   redundancyIndex,
-		ChallengerAddress: msg.Challenger,
+		ChallengerAddress: challenger.String(),
+		ExpiredHeight:     expiredHeight,
 	}); err != nil {
 		return nil, err
 	}

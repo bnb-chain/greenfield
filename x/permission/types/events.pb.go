@@ -82,7 +82,7 @@ func (m *EventPutPolicy) GetResourceType() resource.ResourceType {
 	if m != nil {
 		return m.ResourceType
 	}
-	return resource.RESOURCE_TYPE_BUCKET
+	return resource.RESOURCE_TYPE_UNSPECIFIED
 }
 
 func (m *EventPutPolicy) GetStatements() []*Statement {
