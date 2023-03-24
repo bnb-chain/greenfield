@@ -59,8 +59,7 @@ func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, height uint64) {
 func (k Keeper) ExistsChallenge(ctx sdk.Context, challengeId uint64) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
 
-	bz := store.Get(getChallengeKeyBytes(challengeId))
-	return bz != nil
+	return store.Has(getChallengeKeyBytes(challengeId))
 }
 
 // getChallengeKeyBytes returns the byte representation of challenge key
