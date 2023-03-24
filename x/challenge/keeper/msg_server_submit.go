@@ -78,7 +78,6 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	k.IncrChallengeCountCurrentBlock(ctx)
 	challengeId := k.GetChallengeId(ctx) + 1
 	expiredHeight := k.Keeper.ChallengeKeepAlivePeriod(ctx) + uint64(ctx.BlockHeight())
-
 	k.SaveChallenge(ctx, types.Challenge{
 		Id:            challengeId,
 		ExpiredHeight: expiredHeight,

@@ -33,7 +33,7 @@ message Slash {
   uint64 height = 3;
 }
 
-// OngoingChallenge records the challenge which are not expired yet.
+// Challenge records the challenge which are not expired yet.
 message Challenge {
   // The id of the challenge.
   uint64 id = 1;

@@ -109,7 +109,7 @@ func (m *Slash) GetHeight() uint64 {
 	return 0
 }
 
-// OngoingChallenge records the challenge which are not expired yet.
+// Challenge records the challenge which are not expired yet.
 type Challenge struct {
 	// The id of the challenge.
 	Id uint64 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`

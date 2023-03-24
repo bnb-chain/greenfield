@@ -38,7 +38,7 @@ type EventStartChallenge struct {
 	RedundancyIndex int32 `protobuf:"varint,5,opt,name=redundancy_index,json=redundancyIndex,proto3" json:"redundancy_index,omitempty"`
 	// The challenger who submits the challenge.
 	ChallengerAddress string `protobuf:"bytes,6,opt,name=challenger_address,json=challengerAddress,proto3" json:"challenger_address,omitempty"`
-	// The challenger will be expired after this height
+	// The challenge will be expired after this height
 	ExpiredHeight uint64 `protobuf:"varint,7,opt,name=expired_height,json=expiredHeight,proto3" json:"expired_height,omitempty"`
 }
 
