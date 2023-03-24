@@ -254,6 +254,47 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
 }
 
+func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	bucketName, objectName, primarySp, _ := s.createObject()
+	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
+	txRes := s.SendTxBlock(msgSubmit, user)
+	event := filterEventFromTx(txRes)
+
+	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
+
+	expiredHeight := event.ExpiredHeight
+	for {
+		time.Sleep(500 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		height := statusRes.SyncInfo.LatestBlockHeight
+
+		s.T().Logf("current height: %d, expired height: %d", height, expiredHeight)
+
+		if uint64(height) > expiredHeight {
+			break
+		}
+	}
+
+	height := statusRes.SyncInfo.LatestBlockHeight
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
+
+	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
+	toSign := msgAttest.GetBlsSignBytes()
+
+	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
+	if err != nil {
+		panic(err)
+	}
+	msgAttest.VoteAggSignature = voteAggSignature
+
+	s.SendTxBlockWithExpectErrorString(msgAttest, user, challengetypes.ErrInvalidChallengeId.Error())
+}
+
 func (s *ChallengeTestSuite) TestEndBlock() {
 	for i := 0; i < 3; i++ {
 		s.createObject()
@@ -306,7 +347,7 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 }
 
 func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
-	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress := "", "", "", "", ""
+	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress, expiredHeightStr := "", "", "", "", "", ""
 	for _, event := range txRes.Logs[0].Events {
 		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {
 			for _, attr := range event.Attributes {
@@ -320,6 +361,8 @@ func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge
 					segmentIndexStr = strings.Trim(attr.Value, `"`)
 				} else if attr.Key == "sp_operator_address" {
 					spOpAddress = strings.Trim(attr.Value, `"`)
+				} else if attr.Key == "expired_height" {
+					expiredHeightStr = strings.Trim(attr.Value, `"`)
 				}
 			}
 		}
@@ -328,11 +371,13 @@ func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge
 	objectId := sdkmath.NewUintFromString(objectIdStr)
 	redundancyIndex, _ := strconv.ParseInt(redundancyIndexStr, 10, 32)
 	segmentIndex, _ := strconv.ParseInt(segmentIndexStr, 10, 32)
+	expiredHeight, _ := strconv.ParseInt(expiredHeightStr, 10, 64)
 	return challengetypes.EventStartChallenge{
 		ChallengeId:       uint64(challengeId),
 		ObjectId:          objectId,
 		SegmentIndex:      uint32(segmentIndex),
 		SpOperatorAddress: spOpAddress,
 		RedundancyIndex:   int32(redundancyIndex),
+		ExpiredHeight:     uint64(expiredHeight),
 	}
 }

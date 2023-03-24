@@ -1,10 +1,10 @@
 package cli
 
 import (
+	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
-
-	"fmt"
 
 	"github.com/bnb-chain/greenfield/x/permission/types"
 )

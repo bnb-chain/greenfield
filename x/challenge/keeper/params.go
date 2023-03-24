@@ -11,6 +11,7 @@ import (
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
 		k.ChallengeCountPerBlock(ctx),
+		k.ChallengeKeepAlivePeriod(ctx),
 		k.SlashCoolingOffPeriod(ctx),
 		k.SlashAmountSizeRate(ctx),
 		k.SlashAmountMin(ctx),
@@ -30,6 +31,12 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
 // ChallengeCountPerBlock returns the ChallengeCountPerBlock param
 func (k Keeper) ChallengeCountPerBlock(ctx sdk.Context) (res uint64) {
 	k.paramstore.Get(ctx, types.KeyChallengeCountPerBlock, &res)
+	return
+}
+
+// ChallengeKeepAlivePeriod returns the ChallengeKeepAlivePeriod param
+func (k Keeper) ChallengeKeepAlivePeriod(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyChallengeKeepAlivePeriod, &res)
 	return
 }
 

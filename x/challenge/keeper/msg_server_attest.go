@@ -4,8 +4,6 @@ import (
 	"context"
 	"math/big"
 
-	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
-
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,6 +11,7 @@ import (
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
@@ -31,11 +30,8 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		challenger = sdk.MustAccAddressFromHex(msg.ChallengerAddress)
 	}
 
-	ongoingId := k.GetChallengeId(ctx)
-	attestedId := k.GetAttestChallengeId(ctx)
-
-	if msg.ChallengeId <= attestedId || msg.ChallengeId > ongoingId {
-		return nil, types.ErrInvalidChallengeId
+	if !k.ExistsChallenge(ctx, msg.ChallengeId) {
+		return nil, errors.Wrapf(types.ErrInvalidChallengeId, "challenge %d cannot be found, it could be expired", msg.ChallengeId)
 	}
 
 	//check object, and get object info
@@ -81,7 +77,6 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		if err != nil {
 			return nil, err
 		}
-
 	}
 	k.SetAttestChallengeId(ctx, msg.ChallengeId)
 

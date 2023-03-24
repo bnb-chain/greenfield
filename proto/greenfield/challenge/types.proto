@@ -32,3 +32,12 @@ message Slash {
   // The height when the slash happened, which is used for prune purpose.
   uint64 height = 3;
 }
+
+// Challenge records the challenge which are not expired yet.
+message Challenge {
+  // The id of the challenge.
+  uint64 id = 1;
+
+  // The height at which the challenge will be expired.
+  uint64 expired_height = 2;
+}

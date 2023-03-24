@@ -13,9 +13,12 @@ import (
 )
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
+	blockHeight := uint64(ctx.BlockHeight())
+	// delete expired challenges at this height
+	keeper.RemoveChallengeUntil(ctx, blockHeight)
+
 	// delete too old slashes at this height
 	coolingOff := keeper.SlashCoolingOffPeriod(ctx)
-	blockHeight := uint64(ctx.BlockHeight())
 	if blockHeight <= coolingOff {
 		return
 	}
@@ -37,6 +40,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	}
 
 	segmentSize := keeper.StorageKeeper.MaxSegmentSize(ctx)
+	expiredHeight := keeper.ChallengeKeepAlivePeriod(ctx) + uint64(ctx.BlockHeight())
 
 	events := make([]proto.Message, 0)                      // for events
 	objectMap := make(map[string]struct{})                  // for de-duplication
@@ -92,8 +96,11 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 		objectMap[mapKey] = struct{}{}
 
-		challengeId := keeper.GetChallengeId(ctx)
-		keeper.SetChallengeId(ctx, challengeId+1)
+		challengeId := keeper.GetChallengeId(ctx) + 1
+		keeper.SaveChallenge(ctx, types.Challenge{
+			Id:            challengeId,
+			ExpiredHeight: expiredHeight,
+		})
 		events = append(events, &types.EventStartChallenge{
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,
@@ -101,6 +108,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			SpOperatorAddress: spOperatorAddress,
 			RedundancyIndex:   redundancyIndex,
 			ChallengerAddress: "",
+			ExpiredHeight:     expiredHeight,
 		})
 
 		count++

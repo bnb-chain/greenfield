@@ -4,13 +4,13 @@ import (
 	"testing"
 
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/types/common"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	types2 "github.com/bnb-chain/greenfield/types"
+	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 )
