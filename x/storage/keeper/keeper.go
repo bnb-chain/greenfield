@@ -172,7 +172,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	// change the bill
 	err := k.ChargeDeleteBucket(ctx, bucketInfo)
 	if err != nil {
-		return types.ErrCharge.Wrapf("ChargeDeleteBucket error: %s", err)
+		return types.ErrChargeFailed.Wrapf("ChargeDeleteBucket error: %s", err)
 	}
 
 	store.Delete(bucketKey)

@@ -34,7 +34,7 @@ func (k Keeper) ChargeDeleteBucket(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	}
 	// should only remain at most 2 flows: charged_read_quota fee and tax
 	if len(bill.Flows) > 2 {
-		return fmt.Errorf("unexpected left flow number: %d", len(bill.Flows))
+		panic(fmt.Sprintf("unexpected left flow number: %d", len(bill.Flows)))
 	}
 	bill.Flows = GetNegFlows(bill.Flows)
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
