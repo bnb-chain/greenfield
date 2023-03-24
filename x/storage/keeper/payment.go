@@ -24,6 +24,23 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	return k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 }
 
+func (k Keeper) ChargeDeleteBucket(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
+	bill, err := k.GetBucketBill(ctx, bucketInfo)
+	if err != nil {
+		return err
+	}
+	if len(bill.Flows) == 0 {
+		return nil
+	}
+	// should only remain at most 2 flows: charged_read_quota fee and tax
+	if len(bill.Flows) > 2 {
+		return fmt.Errorf("unexpected left flow number: %d", len(bill.Flows))
+	}
+	bill.Flows = GetNegFlows(bill.Flows)
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
+	return err
+}
+
 func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, newPaymentAddr string, newReadQuota uint64) error {
 	if bucketInfo.PaymentAddress != newPaymentAddr && bucketInfo.ChargedReadQuota != newReadQuota {
 		return fmt.Errorf("payment address and read quota can not be changed at the same time")
