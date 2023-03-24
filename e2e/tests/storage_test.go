@@ -563,6 +563,34 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	// delete bucket
 }
 
+func (s *StorageTestSuite) TestPayment_DeleteBucketWithReadQuota() {
+	var err error
+	sp := s.StorageProviders[0]
+	user := s.User
+	// CreateBucket
+	chargedReadQuota := uint64(100)
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, chargedReadQuota)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user)
+
+	streamRecordsBeforeDelete := s.GetStreamRecords()
+	s.T().Logf("streamRecordsBeforeDelete: %s", core.YamlString(streamRecordsBeforeDelete))
+	s.Require().NotEqual(streamRecordsBeforeDelete.User.NetflowRate.String(), "0")
+
+	// DeleteBucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(msgDeleteBucket, user)
+
+	// check the billing change
+	streamRecordsAfterDelete := s.GetStreamRecords()
+	s.T().Logf("streamRecordsBeforeDelete: %s", core.YamlString(streamRecordsAfterDelete))
+	s.Require().Equal(streamRecordsAfterDelete.User.NetflowRate.String(), "0")
+}
+
 func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	ctx := context.Background()
 	sp := s.StorageProviders[0]

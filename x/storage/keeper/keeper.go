@@ -169,13 +169,10 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		return types.ErrBucketNotEmpty
 	}
 
-	// check bill is empty
-	bill, err := k.GetBucketBill(ctx, bucketInfo)
+	// change the bill
+	err := k.ChargeDeleteBucket(ctx, bucketInfo)
 	if err != nil {
-		return errors.Wrapf(err, "Get bucket bill failed.")
-	}
-	if len(bill.Flows) != 0 {
-		return types.ErrBucketBillNotEmpty
+		return types.ErrCharge.Wrapf("ChargeDeleteBucket error: %s", err)
 	}
 
 	store.Delete(bucketKey)

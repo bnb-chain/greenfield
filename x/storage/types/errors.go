@@ -23,7 +23,7 @@ var (
 	ErrSourceTypeMismatch       = errors.Register(ModuleName, 1114, "Object source type mismatch")
 	ErrTooLargeObject           = errors.Register(ModuleName, 1115, "Object payload size is too large")
 	ErrInvalidApproval          = errors.Register(ModuleName, 1116, "Invalid approval of sp")
-	ErrBucketBillNotEmpty       = errors.Register(ModuleName, 1117, "bucket bill is not empty")
+	ErrCharge                   = errors.Register(ModuleName, 1117, "charge error")
 
 	ErrNoSuchPolicy          = errors.Register(ModuleName, 1120, "No such Policy")
 	ErrInvalidParameter      = errors.Register(ModuleName, 1121, "Invalid parameter")
