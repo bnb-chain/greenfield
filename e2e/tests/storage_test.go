@@ -563,7 +563,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	queryAllAutoSettleRecordResponse, err := s.Client.AutoSettleRecordAll(ctx, &queryAllAutoSettleRecordRequest)
 	s.Require().NoError(err)
 	s.T().Logf("queryAllAutoSettleRecordResponse %s", core.YamlString(queryAllAutoSettleRecordResponse))
-	s.Require().True(len(queryAllAutoSettleRecordResponse.AutoSettleRecord) >= 1, "queryAllAutoSettleRecordResponse %s", core.YamlString(queryAllAutoSettleRecordResponse))
+	s.Require().True(len(queryAllAutoSettleRecordResponse.AutoSettleRecord) >= 1)
 
 	// change read quota
 
