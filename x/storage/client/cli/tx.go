@@ -44,6 +44,7 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdCopyObject())
 	cmd.AddCommand(CmdMirrorObject())
 	cmd.AddCommand(CmdDiscontinueObject())
+	cmd.AddCommand(CmdUpdateObjectInfo())
 
 	cmd.AddCommand(CmdCreateGroup())
 	cmd.AddCommand(CmdDeleteGroup())
@@ -418,6 +419,48 @@ func CmdDeleteObject() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateObjectInfo() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-object-info [bucket-name] [object-name] [visibility]",
+		Short: "Update the meta of object, Currently only support: Visibility",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+			argObjectName := args[1]
+
+			visibility, err := cmd.Flags().GetString(FlagVisibility)
+			if err != nil {
+				return err
+			}
+			visibilityType, err := GetVisibilityType(visibility)
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgUpdateObjectInfo(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				argObjectName,
+				visibilityType,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().AddFlagSet(FlagSetVisibility())
 
 	return cmd
 }
