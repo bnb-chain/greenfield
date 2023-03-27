@@ -10,7 +10,7 @@ import (
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 	blockHeight := uint64(ctx.BlockHeight())
 	discontinueWindow := keeper.DiscontinueRequestWindow(ctx)
-	if blockHeight > 0 && blockHeight%discontinueWindow == 0 {
+	if blockHeight > 0 && discontinueWindow > 0 && blockHeight%discontinueWindow == 0 {
 		keeper.ClearDiscontinueRequestCount(ctx)
 	}
 }
@@ -25,7 +25,9 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		operatorAcc := sdk.AccAddress(operator)
 		for _, objectId := range objectIds.ObjectId {
 			err := keeper.ForceDeleteObject(ctx, operatorAcc, objectId, k.DeleteObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
-			ctx.Logger().Error("failed to delete object", "id", objectId, "err", err.Error())
+			if err != nil {
+				ctx.Logger().Error("failed to delete object", "id", objectId, "err", err.Error())
+			}
 		}
 	}
 	keeper.ClearDiscontinueRequests(ctx, blockHeight)
