@@ -879,7 +879,7 @@ type MsgDiscontinueObject struct {
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_ids are the ids of object info.
 	ObjectIds []Uint `protobuf:"bytes,3,rep,name=object_ids,json=objectIds,proto3,customtype=Uint" json:"object_ids"`
-	// the reason for the request
+	// the reason for the request.
 	Reason string `protobuf:"bytes,4,opt,name=reason,proto3" json:"reason,omitempty"`
 }
 

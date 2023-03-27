@@ -773,7 +773,7 @@ func (m *GroupMetaData) GetAttributes() []Trait {
 }
 
 type ObjectIds struct {
-	// id of the object
+	// ids of the objects
 	ObjectId []Uint `protobuf:"bytes,1,rep,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
 }
 

@@ -149,7 +149,7 @@ message GroupMetaData {
 }
 
 message ObjectIds {
-  // id of the object
+  // ids of the objects
   repeated string object_id = 1 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",

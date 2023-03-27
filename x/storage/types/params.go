@@ -135,6 +135,33 @@ func (p Params) Validate() error {
 	if err := validateMinChargeSize(p.MinChargeSize); err != nil {
 		return err
 	}
+	if err := validateRelayerFee(p.MirrorBucketRelayerFee); err != nil {
+		return err
+	}
+	if err := validateRelayerFee(p.MirrorBucketAckRelayerFee); err != nil {
+		return err
+	}
+	if err := validateRelayerFee(p.MirrorObjectRelayerFee); err != nil {
+		return err
+	}
+	if err := validateRelayerFee(p.MirrorObjectAckRelayerFee); err != nil {
+		return err
+	}
+	if err := validateRelayerFee(p.MirrorGroupRelayerFee); err != nil {
+		return err
+	}
+	if err := validateRelayerFee(p.MirrorGroupAckRelayerFee); err != nil {
+		return err
+	}
+	if err := validateDiscontinueRequestWindow(p.DiscontinueRequestWindow); err != nil {
+		return err
+	}
+	if err := validateDiscontinueRequestMax(p.DiscontinueRequestMax); err != nil {
+		return err
+	}
+	if err := validateDiscontinueConfirmPeriod(p.DiscontinueConfirmPeriod); err != nil {
+		return err
+	}
 	return nil
 }
 

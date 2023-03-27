@@ -147,7 +147,7 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.MirrorGroupAckRelayerFee(ctx).String(),
 		k.DiscontinueRequestWindow(ctx),
 		k.DiscontinueRequestMax(ctx),
-		k.DiscontinueRequestMax(ctx),
+		k.DiscontinueConfirmPeriod(ctx),
 	)
 }
 

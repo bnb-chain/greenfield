@@ -199,7 +199,7 @@ message MsgDiscontinueObject {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // the reason for the request
+  // the reason for the request.
   string reason = 4;
 }
 
