@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -32,6 +33,7 @@ const (
 	TypeMsgRejectSealObject   = "reject_seal_object"
 	TypeMsgCancelCreateObject = "cancel_create_object"
 	TypeMsgMirrorObject       = "mirror_object"
+	TypeMsgDiscontinueObject  = "discontinue_object"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -662,6 +664,63 @@ func (msg *MsgRejectSealObject) ValidateBasic() error {
 	err = s3util.CheckValidObjectName(msg.ObjectName)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func NewMsgDiscontinueObject(operator sdk.AccAddress, bucketName string, objectIds []Uint, reason string) *MsgDiscontinueObject {
+	return &MsgDiscontinueObject{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		ObjectIds:  objectIds,
+		Reason:     strings.TrimSpace(reason),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) Type() string {
+	return TypeMsgDiscontinueObject
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgDiscontinueObject) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.ObjectIds) == 0 || len(msg.ObjectIds) > 128 {
+		return errors.Wrapf(ErrInvalidIds, "length of ids is %d", len(msg.ObjectIds))
+	}
+
+	if len(msg.Reason) > 128 {
+		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
 	}
 
 	return nil

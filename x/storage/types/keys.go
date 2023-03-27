@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/binary"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -35,6 +37,9 @@ var (
 	BucketSequencePrefix = []byte{0x31}
 	ObjectSequencePrefix = []byte{0x32}
 	GroupSequencePrefix  = []byte{0x33}
+
+	DiscontinueCountPrefix = []byte{0x41}
+	DiscontinueReqPrefix   = []byte{0x42}
 )
 
 // GetBucketKey return the bucket name store key
@@ -78,4 +83,11 @@ func GetObjectByIDKey(objectId math.Uint) []byte {
 // GetGroupByIDKey return the groupId store key
 func GetGroupByIDKey(groupId math.Uint) []byte {
 	return append(GroupByIDPrefix, sequence.EncodeSequence(groupId)...)
+}
+
+// GetDiscontinueRequestKey return the discontinue request store key
+func GetDiscontinueRequestKey(height uint64) []byte {
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, height)
+	return append(DiscontinueCountPrefix, heightBytes...)
 }

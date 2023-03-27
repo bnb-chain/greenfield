@@ -115,6 +115,21 @@ func (k Keeper) MirrorGroupAckRelayerFee(ctx sdk.Context) *big.Int {
 	return relayerFee
 }
 
+func (k Keeper) DiscontinueRequestWindow(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueRequestWindow, &res)
+	return
+}
+
+func (k Keeper) DiscontinueRequestMax(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueRequestMax, &res)
+	return
+}
+
+func (k Keeper) DiscontinueConfirmPeriod(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueConfirmPeriod, &res)
+	return
+}
+
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
@@ -130,6 +145,9 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.MirrorObjectAckRelayerFee(ctx).String(),
 		k.MirrorGroupRelayerFee(ctx).String(),
 		k.MirrorGroupAckRelayerFee(ctx).String(),
+		k.DiscontinueRequestWindow(ctx),
+		k.DiscontinueRequestMax(ctx),
+		k.DiscontinueRequestMax(ctx),
 	)
 }
 

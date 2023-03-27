@@ -29,6 +29,7 @@ service Msg {
   rpc DeleteObject(MsgDeleteObject) returns (MsgDeleteObjectResponse);
   rpc CancelCreateObject(MsgCancelCreateObject) returns (MsgCancelCreateObjectResponse);
   rpc MirrorObject(MsgMirrorObject) returns (MsgMirrorObjectResponse);
+  rpc DiscontinueObject(MsgDiscontinueObject) returns (MsgDiscontinueObjectResponse);
 
   // basic operation of group
   rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
@@ -184,6 +185,25 @@ message MsgDeleteObject {
 }
 
 message MsgDeleteObjectResponse {}
+
+message MsgDiscontinueObject {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the sp who wants to stop serving the objects.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket where the object which to be discontinued is stored.
+  string bucket_name = 2;
+  // object_ids are the ids of object info.
+  repeated string object_ids = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // the reason for the request
+  string reason = 4;
+}
+
+message MsgDiscontinueObjectResponse {}
 
 message MsgCreateGroup {
   option (cosmos.msg.v1.signer) = "creator";

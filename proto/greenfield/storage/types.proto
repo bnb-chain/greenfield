@@ -147,3 +147,12 @@ message GroupMetaData {
   // attributes
   repeated Trait attributes = 5 [(gogoproto.nullable) = false];
 }
+
+message ObjectIds {
+  // id of the object
+  repeated string object_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}

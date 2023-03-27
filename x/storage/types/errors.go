@@ -33,5 +33,8 @@ var (
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")
 	ErrInvalidOperationType     = errors.Register(ModuleName, 3002, "invalid operation type")
-	ErrInvalidId                = errors.Register(ModuleName, 3003, "is is invalid")
+	ErrInvalidId                = errors.Register(ModuleName, 3003, "id is invalid")
+
+	ErrInvalidIds    = errors.Register(ModuleName, 3004, "ids are invalid")
+	ErrInvalidReason = errors.Register(ModuleName, 3005, "reason is invalid")
 )

@@ -217,6 +217,22 @@ message EventRejectSealObject {
   ];
 }
 
+// EventDiscontinueObject is emitted on MsgDiscontinueObject
+message EventDiscontinueObject {
+  // bucket_name define the name of the bucket
+  string bucket_name = 1;
+  // object_ids define the objects
+  repeated string object_ids = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // the reason
+  string reason = 3;
+  // the block height after which the sp can safely delete it
+  uint64 delete_at = 4;
+}
+
 // EventCreateGroup is emitted on MsgCreateGroup
 message EventCreateGroup {
   // owner_address define the account address of group owner

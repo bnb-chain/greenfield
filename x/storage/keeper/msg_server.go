@@ -202,6 +202,17 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 	return &types.MsgRejectSealObjectResponse{}, nil
 }
 
+func (k msgServer) DiscontinueObject(goCtx context.Context, msg *storagetypes.MsgDiscontinueObject) (*storagetypes.MsgDiscontinueObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.DiscontinueObject(ctx, spAcc, msg.BucketName, msg.ObjectIds, msg.Reason)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDiscontinueObjectResponse{}, nil
+}
+
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

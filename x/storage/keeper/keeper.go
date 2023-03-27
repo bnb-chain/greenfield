@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"bytes"
+	"encoding/binary"
 	"fmt"
 
 	"cosmossdk.io/errors"
@@ -602,6 +604,52 @@ func (k Keeper) DeleteObject(
 	return nil
 }
 
+// ForceDeleteObject will delete object without permission check, it is used for discontinue request from sps.
+func (k Keeper) ForceDeleteObject(ctx sdk.Context, operator sdk.AccAddress, objectId sdkmath.Uint, opts DeleteObjectOptions) error {
+	store := ctx.KVStore(k.storeKey)
+
+	objectInfo, found := k.GetObjectInfoById(ctx, objectId)
+	if !found {
+		return types.ErrNoSuchObject
+	}
+
+	if objectInfo.SourceType != opts.SourceType {
+		return types.ErrSourceTypeMismatch
+	}
+
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
+		return types.ErrObjectNotSealed
+	}
+
+	bucketInfo, found := k.GetBucketInfo(ctx, objectInfo.BucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+
+	err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
+	if err != nil {
+		return err
+	}
+
+	bbz := k.cdc.MustMarshal(bucketInfo)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+
+	store.Delete(types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName))
+	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
+		OperatorAddress:      operator.String(),
+		BucketName:           bucketInfo.BucketName,
+		ObjectName:           objectInfo.ObjectName,
+		ObjectId:             objectInfo.Id,
+		PrimarySpAddress:     bucketInfo.PrimarySpAddress,
+		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k Keeper) CopyObject(
 	ctx sdk.Context, operator sdk.AccAddress, srcBucketName, srcObjectName, dstBucketName, dstObjectName string,
 	opts CopyObjectOptions) (sdkmath.Uint, error) {
@@ -730,6 +778,64 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		BucketName:      bucketInfo.BucketName,
 		ObjectName:      objectInfo.ObjectName,
 		ObjectId:        objectInfo.Id,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, bucketName string, objectIds []sdkmath.Uint, reason string) error {
+	count := k.getDiscontinueRequestCount(ctx, operator)
+	max := k.DiscontinueRequestMax(ctx)
+	if count+uint64(len(objectIds)) > max {
+		return types.ErrInvalidIds.Wrapf("only %d objects can be requested in this window", max-count)
+	}
+
+	sp, found := k.spKeeper.GetStorageProvider(ctx, operator)
+	if !found {
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "incorrect sp status, sp: %s, status: %s", operator.String(), sp.Status.String())
+	}
+	if sp.Status != sptypes.STATUS_IN_SERVICE {
+		return sptypes.ErrStorageProviderNotInService
+	}
+
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
+		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
+	}
+
+	for _, objectId := range objectIds {
+		object, found := k.GetObjectInfoById(ctx, objectId)
+		if !found {
+			return types.ErrInvalidIds.Wrapf("object not found, id: %s", objectId)
+		}
+		if object.BucketName != bucketName {
+			return types.ErrInvalidIds.Wrapf("object %s should in bucket: %s", objectId, bucketName)
+		}
+		if object.ObjectStatus != types.OBJECT_STATUS_SEALED {
+			return types.ErrInvalidIds.Wrapf("object %s should in sealed status", objectId)
+		}
+	}
+
+	deleteAt := uint64(ctx.BlockHeight()) + k.DiscontinueConfirmPeriod(ctx)
+
+	toStoreObjectIds := make([]sdkmath.Uint, 0)
+	toStoreObjectIds = append(toStoreObjectIds, objectIds...)
+	exists, found := k.getDiscontinueRequests(ctx, deleteAt, operator)
+	if found {
+		toStoreObjectIds = append(toStoreObjectIds, exists.ObjectId...)
+	}
+	k.saveDiscontinueRequests(ctx, deleteAt, operator, &types.ObjectIds{ObjectId: toStoreObjectIds})
+	k.setDiscontinueRequestCount(ctx, operator, count+uint64(len(objectIds)))
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDiscontinueObject{
+		BucketName: bucketName,
+		ObjectIds:  objectIds,
+		Reason:     reason,
+		DeleteAt:   deleteAt,
 	}); err != nil {
 		return err
 	}
@@ -972,4 +1078,75 @@ func (k Keeper) isNonEmptyBucket(ctx sdk.Context, bucketName string) bool {
 
 	iter := objectStore.Iterator(nil, nil)
 	return iter.Valid()
+}
+
+func (k Keeper) getDiscontinueRequestCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueCountPrefix)
+	bz := store.Get(operator.Bytes())
+
+	if bz == nil {
+		return 0
+	}
+	return binary.BigEndian.Uint64(bz)
+}
+
+func (k Keeper) setDiscontinueRequestCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueCountPrefix)
+
+	countBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(countBytes, count)
+
+	store.Set(operator.Bytes(), countBytes)
+}
+
+func (k Keeper) ClearDiscontinueRequestCount(ctx sdk.Context) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueCountPrefix)
+
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}
+
+func (k Keeper) getDiscontinueRequests(ctx sdk.Context, height uint64, operator sdk.AccAddress) (*types.ObjectIds, bool) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDiscontinueRequestKey(height))
+
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		if bytes.Equal(iterator.Key(), operator.Bytes()) {
+			var objectIds types.ObjectIds
+			k.cdc.MustUnmarshal(iterator.Value(), &objectIds)
+			return &objectIds, true
+		}
+	}
+	return nil, false
+}
+
+func (k Keeper) saveDiscontinueRequests(ctx sdk.Context, height uint64, operator sdk.AccAddress, objectIds *types.ObjectIds) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDiscontinueRequestKey(height))
+	store.Set(operator.Bytes(), k.cdc.MustMarshal(objectIds))
+}
+
+func (k Keeper) GetDiscontinueRequests(ctx sdk.Context, height uint64) map[string]*types.ObjectIds {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetDiscontinueRequestKey(height))
+
+	m := make(map[string]*types.ObjectIds)
+	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var objectIds types.ObjectIds
+		k.cdc.MustUnmarshal(iterator.Value(), &objectIds)
+		m[string(iterator.Key())] = &objectIds
+	}
+	return m
+}
+
+func (k Keeper) ClearDiscontinueRequests(ctx sdk.Context, height uint64) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetDiscontinueRequestKey(height))
 }
