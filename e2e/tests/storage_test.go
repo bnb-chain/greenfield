@@ -558,6 +558,13 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 		s.Require().Equal(userOutflowMap[secondarySpAddr].String(), secondaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
 	}
 
+	// test query auto settle records
+	queryAllAutoSettleRecordRequest := paymenttypes.QueryAllAutoSettleRecordRequest{}
+	queryAllAutoSettleRecordResponse, err := s.Client.AutoSettleRecordAll(ctx, &queryAllAutoSettleRecordRequest)
+	s.Require().NoError(err)
+	s.T().Logf("queryAllAutoSettleRecordResponse %s", core.YamlString(queryAllAutoSettleRecordResponse))
+	s.Require().True(len(queryAllAutoSettleRecordResponse.AutoSettleRecord) >= 1)
+
 	// change read quota
 
 	// delete object
