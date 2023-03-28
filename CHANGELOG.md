@@ -1,8 +1,11 @@
 # Changelog
+## v0.0.11
+* [\#140](https://github.com/bnb-chain/greenfield/pull/140) fix: `Visibility` type in `CreateBucketSynPackage`
+* [\#139](https://github.com/bnb-chain/greenfield/pull/139) fix: payment queries
 
 ## v0.0.10
-* [\#136](https://github.com/bnb-chain/greenfield/pull/136)fix: forbid a stream account with negative static balance to pay
-* [\#135](https://github.com/bnb-chain/greenfield/pull/135)modify default to inherit
+* [\#136](https://github.com/bnb-chain/greenfield/pull/136) fix: forbid a stream account with negative static balance to pay
+* [\#135](https://github.com/bnb-chain/greenfield/pull/135) modify default to inherit
 * [\#132](https://github.com/bnb-chain/greenfield/pull/132) feat: allow unordered attestations
 * [\#131](https://github.com/bnb-chain/greenfield/pull/131) feat: support delete bucket with non-zero charged read quota
 * [\#108](https://github.com/bnb-chain/greenfield/pull/108) chore: refine storage module
