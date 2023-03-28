@@ -24,11 +24,7 @@ func (k Keeper) AutoSettleRecordAll(c context.Context, req *types.QueryAllAutoSe
 	autoSettleRecordStore := prefix.NewStore(store, types.AutoSettleRecordKeyPrefix)
 
 	pageRes, err := query.Paginate(autoSettleRecordStore, req.Pagination, func(key []byte, value []byte) error {
-		var autoSettleRecord types.AutoSettleRecord
-		if err := k.cdc.Unmarshal(value, &autoSettleRecord); err != nil {
-			return err
-		}
-
+		autoSettleRecord := types.ParseAutoSettleRecordKey(key)
 		autoSettleRecords = append(autoSettleRecords, autoSettleRecord)
 		return nil
 	})

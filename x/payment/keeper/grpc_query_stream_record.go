@@ -28,6 +28,7 @@ func (k Keeper) StreamRecordAll(c context.Context, req *types.QueryAllStreamReco
 		if err := k.cdc.Unmarshal(value, &streamRecord); err != nil {
 			return err
 		}
+		streamRecord.Account = sdk.AccAddress(key).String()
 
 		streamRecords = append(streamRecords, streamRecord)
 		return nil

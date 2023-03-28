@@ -28,6 +28,7 @@ func (k Keeper) PaymentAccountAll(c context.Context, req *types.QueryAllPaymentA
 		if err := k.cdc.Unmarshal(value, &paymentAccount); err != nil {
 			return err
 		}
+		paymentAccount.Addr = sdk.AccAddress(key).String()
 
 		paymentAccounts = append(paymentAccounts, paymentAccount)
 		return nil
