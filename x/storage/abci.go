@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	k "github.com/bnb-chain/greenfield/x/storage/keeper"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
@@ -24,7 +23,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	for operator, objectIds := range discontinueRequests {
 		operatorAcc := sdk.AccAddress(operator)
 		for _, objectId := range objectIds.ObjectId {
-			err := keeper.ForceDeleteObject(ctx, operatorAcc, objectId, k.DeleteObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+			err := keeper.ForceDeleteObject(ctx, operatorAcc, objectId)
 			if err != nil {
 				ctx.Logger().Error("failed to delete object", "id", objectId, "err", err.Error())
 			}

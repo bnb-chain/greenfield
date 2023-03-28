@@ -605,16 +605,12 @@ func (k Keeper) DeleteObject(
 }
 
 // ForceDeleteObject will delete object without permission check, it is used for discontinue request from sps.
-func (k Keeper) ForceDeleteObject(ctx sdk.Context, operator sdk.AccAddress, objectId sdkmath.Uint, opts DeleteObjectOptions) error {
+func (k Keeper) ForceDeleteObject(ctx sdk.Context, operator sdk.AccAddress, objectId sdkmath.Uint) error {
 	store := ctx.KVStore(k.storeKey)
 
 	objectInfo, found := k.GetObjectInfoById(ctx, objectId)
 	if !found {
 		return types.ErrNoSuchObject
-	}
-
-	if objectInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {

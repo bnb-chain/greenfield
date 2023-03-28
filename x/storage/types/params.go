@@ -17,8 +17,8 @@ const (
 	DefaultMaxBucketsPerAccount     uint32 = 100
 	DefaultMinChargeSize            uint64 = 1 * 1024 * 1024 // 1M
 	DefaultDiscontinueRequestWindow uint64 = 10000
-	DefaultDiscontinueRequestMax    uint64 = 128
-	DefaultDiscontinueConfirmPeriod uint64 = 100
+	DefaultDiscontinueRequestMax    uint64 = ^uint64(0)
+	DefaultDiscontinueConfirmPeriod uint64 = 300
 
 	DefaultMirrorBucketRelayerFee    = "1000000000000000" // 0.01
 	DefaultMirrorBucketAckRelayerFee = "0"
