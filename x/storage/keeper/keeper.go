@@ -130,7 +130,7 @@ func (k Keeper) CreateBucket(
 
 	// emit CreateBucket Event
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
-		OwnerAddress:     bucketInfo.Owner,
+		Owner:            bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		Visibility:       bucketInfo.Visibility,
 		CreateAt:         bucketInfo.CreateAt,
@@ -180,7 +180,7 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
 		OperatorAddress:  operator.String(),
-		OwnerAddress:     bucketInfo.Owner,
+		Owner:            bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		BucketId:         bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
@@ -369,7 +369,7 @@ func (k Keeper) CreateObject(
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
 		CreatorAddress:   operator.String(),
-		OwnerAddress:     objectInfo.Owner,
+		Owner:            objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		BucketId:         bucketInfo.Id,
@@ -770,11 +770,11 @@ func (k Keeper) CreateGroup(
 		}
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
-		SourceType:   groupInfo.SourceType,
-		Members:      opts.Members,
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Members:    opts.Members,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -839,9 +839,9 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 	store.Delete(types.GetGroupByIDKey(groupInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -867,9 +867,9 @@ func (k Keeper) LeaveGroup(
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -913,7 +913,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{
 		OperatorAddress: operator.String(),
-		OwnerAddress:    groupInfo.Owner,
+		Owner:           groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
 		GroupId:         groupInfo.Id,
 		MembersToAdd:    opts.MembersToAdd,

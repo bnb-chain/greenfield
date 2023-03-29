@@ -505,9 +505,9 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	k.Keeper.SetGroupInfo(ctx, groupInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
