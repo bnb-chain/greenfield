@@ -19,3 +19,4 @@ jobs:
       - uses: actions/checkout@v2
       - uses: bufbuild/buf-setup-action@v1
       - run: buf format --diff --exit-code
+      - run: make proto-gen-check
