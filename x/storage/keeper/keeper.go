@@ -568,7 +568,8 @@ func (k Keeper) DeleteObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED &&
+		objectInfo.ObjectStatus != types.OBJECT_STATUS_DISCONTINUED {
 		return types.ErrObjectNotSealed
 	}
 
@@ -613,7 +614,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, operator sdk.AccAddress, obje
 		return types.ErrNoSuchObject
 	}
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_DISCONTINUED {
 		return types.ErrObjectNotSealed
 	}
 
@@ -787,6 +788,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		return types.ErrInvalidIds.Wrapf("only %d objects can be requested in this window", max-count)
 	}
 
+	// TODO: use an special address for discontinue transactions
 	sp, found := k.spKeeper.GetStorageProvider(ctx, operator)
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "incorrect sp status, sp: %s, status: %s", operator.String(), sp.Status.String())
@@ -803,6 +805,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 	}
 
+	store := ctx.KVStore(k.storeKey)
 	for _, objectId := range objectIds {
 		object, found := k.GetObjectInfoById(ctx, objectId)
 		if !found {
@@ -814,6 +817,10 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		if object.ObjectStatus != types.OBJECT_STATUS_SEALED {
 			return types.ErrInvalidIds.Wrapf("object %s should in sealed status", objectId)
 		}
+
+		object.ObjectStatus = types.OBJECT_STATUS_DISCONTINUED
+		obz := k.cdc.MustMarshal(object)
+		store.Set(types.GetObjectByIDKey(object.Id), obz)
 	}
 
 	deleteAt := uint64(ctx.BlockHeight()) + k.DiscontinueConfirmPeriod(ctx)

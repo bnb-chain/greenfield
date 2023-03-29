@@ -28,12 +28,14 @@ enum RedundancyType {
 // ObjectStatus represents the creation status of an object. After a user successfully
 // sends a CreateObject transaction onto the chain, the status is set to 'Created'.
 // After the Primary Service Provider successfully sends a Seal Object transaction onto
-// the chain, the status is set to 'Sealed'.
+// the chain, the status is set to 'Sealed'. When a Discontinue Object transaction is
+// received on chain, the status is set to 'Discontinued'.
 enum ObjectStatus {
   option (gogoproto.goproto_enum_prefix) = false;
 
   OBJECT_STATUS_CREATED = 0;
   OBJECT_STATUS_SEALED = 1;
+  OBJECT_STATUS_DISCONTINUED = 2;
 }
 
 // VisibilityType is the resources public status.

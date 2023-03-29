@@ -1008,6 +1008,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 
 	time.Sleep(500 * time.Millisecond)
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
 	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > deleteAt)
 }
 

@@ -38,8 +38,8 @@ var (
 	ObjectSequencePrefix = []byte{0x32}
 	GroupSequencePrefix  = []byte{0x33}
 
-	DiscontinueCountPrefix = []byte{0x41}
-	DiscontinueReqPrefix   = []byte{0x42}
+	DiscontinueCountPrefix   = []byte{0x41}
+	DiscontinueRequestPrefix = []byte{0x42}
 )
 
 // GetBucketKey return the bucket name store key
