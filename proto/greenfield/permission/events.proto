@@ -3,10 +3,10 @@ package bnbchain.greenfield.permission;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "greenfield/permission/common.proto";
 import "greenfield/permission/types.proto";
 import "greenfield/resource/types.proto";
-import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
 
