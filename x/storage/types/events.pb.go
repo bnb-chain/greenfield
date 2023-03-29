@@ -32,7 +32,7 @@ type EventCreateBucket struct {
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// visibility defines the highest permissions for bucket. When a bucket is public, everyone can get the object under it.
 	Visibility VisibilityType `protobuf:"varint,3,opt,name=visibility,proto3,enum=bnbchain.greenfield.storage.VisibilityType" json:"visibility,omitempty"`
-	// create_at define the block number when the bucket has been created
+	// create_at define the block timestamp when the bucket has been created
 	CreateAt int64 `protobuf:"varint,4,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
 	// bucket_id is the unique u256 for bucket. Not global, only unique in buckets.
 	BucketId Uint `protobuf:"bytes,5,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
@@ -334,7 +334,7 @@ type EventCreateObject struct {
 	Visibility VisibilityType `protobuf:"varint,10,opt,name=visibility,proto3,enum=bnbchain.greenfield.storage.VisibilityType" json:"visibility,omitempty"`
 	// content_type define the content type of the payload data
 	ContentType string `protobuf:"bytes,11,opt,name=content_type,json=contentType,proto3" json:"content_type,omitempty"`
-	// create_at define the block number when the object created
+	// create_at define the block timestamp when the object created
 	CreateAt int64 `protobuf:"varint,12,opt,name=create_at,json=createAt,proto3" json:"create_at,omitempty"`
 	// status define the status of the object. INIT or IN_SERVICE or others
 	Status ObjectStatus `protobuf:"varint,13,opt,name=status,proto3,enum=bnbchain.greenfield.storage.ObjectStatus" json:"status,omitempty"`

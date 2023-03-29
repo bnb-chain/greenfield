@@ -33,8 +33,10 @@ func (k Keeper) GetAutoSettleRecord(
 		return val, false
 	}
 
-	val.Timestamp = timestamp
-	val.Addr = addr.String()
+	val = &types.AutoSettleRecord{
+		Timestamp: timestamp,
+		Addr:      addr.String(),
+	}
 	return val, true
 }
 

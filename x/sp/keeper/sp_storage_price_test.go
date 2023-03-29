@@ -40,9 +40,9 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 		wantErr bool
 	}{
 		{"test 0", args{time: 0}, types.SpStoragePrice{}, true},
-		{"test 1", args{time: 1}, spStoragePrice, false},
+		{"test 1", args{time: 1}, types.SpStoragePrice{}, true},
 		{"test 2", args{time: 2}, spStoragePrice, false},
-		{"test 100", args{time: 100}, spStoragePrice2, false},
+		{"test 100", args{time: 100}, spStoragePrice, false},
 		{"test 101", args{time: 101}, spStoragePrice2, false},
 	}
 	for _, tt := range tests {
@@ -81,9 +81,9 @@ func TestKeeper_GetSecondarySpStorePriceByTime(t *testing.T) {
 		wantErr bool
 	}{
 		{"test 0", args{time: 0}, types.SecondarySpStorePrice{}, true},
-		{"test 1", args{time: 1}, secondarySpStorePrice, false},
+		{"test 1", args{time: 1}, types.SecondarySpStorePrice{}, true},
 		{"test 2", args{time: 2}, secondarySpStorePrice, false},
-		{"test 100", args{time: 100}, secondarySpStorePrice2, false},
+		{"test 100", args{time: 100}, secondarySpStorePrice, false},
 		{"test 101", args{time: 101}, secondarySpStorePrice2, false},
 	}
 	for _, tt := range tests {
