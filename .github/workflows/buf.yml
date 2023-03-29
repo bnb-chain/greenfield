@@ -17,32 +17,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+      - uses: bufbuild/buf-setup-action@v1
+      - run: buf format --diff --exit-code
       - name: Install Go
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go-version }}
-      - uses: actions/cache@v3
-        with:
-          # In order:
-          # * Module download cache
-          # * Build cache (Linux)
-          # * Build cache (Mac)
-          # * Build cache (Windows)
-          path: |
-            ~/go/pkg/mod
-            ~/.cache/go-build
-            ~/Library/Caches/go-build
-            %LocalAppData%\go-build
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
-      - uses: bufbuild/buf-setup-action@v1
-      - run: buf format --diff --exit-code
       - name: Test protobuf changes generates new go files
         run: |
           export PATH="$PATH:$(go env GOPATH)/bin"
-          go get google.golang.org/protobuf/cmd/protoc-gen-go
-          go get google.golang.org/grpc/cmd/protoc-gen-go-grpc
-          go get github.com/regen-network/cosmos-proto/protoc-gen-gocosmos
-          go get github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+          go install google.golang.org/protobuf/cmd/protoc-gen-go
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
+          go install github.com/regen-network/cosmos-proto/protoc-gen-gocosmos
+          go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
           make proto-gen-check
