@@ -36,6 +36,8 @@ message BucketInfo {
   uint64 charged_read_quota = 9;
   // billing info of the bucket
   BillingInfo billing_info = 10 [(gogoproto.nullable) = false];
+  // bucket_status define the status of the bucket.
+  BucketStatus bucket_status = 11;
 }
 
 // BillingInfo is the billing information of the bucket
@@ -148,9 +150,9 @@ message GroupMetaData {
   repeated Trait attributes = 5 [(gogoproto.nullable) = false];
 }
 
-message ObjectIds {
-  // ids of the objects
-  repeated string object_id = 1 [
+message Ids {
+  // ids of the objects or buckets
+  repeated string id = 1 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false

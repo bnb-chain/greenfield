@@ -146,7 +146,7 @@ function generate_genesis() {
         sed -i -e "s/\"challenge_keep_alive_period\": \"300\"/\"challenge_keep_alive_period\": \"50\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"time_iota_ms\": \"1000\"/\"time_iota_ms\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"discontinue_confirm_period\": \"300\"/\"discontinue_confirm_period\": \"50\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"discontinue_confirm_period\": \"302400\"/\"discontinue_confirm_period\": \"50\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
 
     # enable swagger API for validator0

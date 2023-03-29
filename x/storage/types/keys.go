@@ -38,8 +38,10 @@ var (
 	ObjectSequencePrefix = []byte{0x32}
 	GroupSequencePrefix  = []byte{0x33}
 
-	DiscontinueCountPrefix   = []byte{0x41}
-	DiscontinueRequestPrefix = []byte{0x42}
+	DiscontinueObjectCountPrefix = []byte{0x41}
+	DiscontinueBucketCountPrefix = []byte{0x42}
+	DiscontinueObjectPrefix      = []byte{0x43}
+	DiscontinueBucketPrefix      = []byte{0x44}
 )
 
 // GetBucketKey return the bucket name store key
@@ -85,9 +87,16 @@ func GetGroupByIDKey(groupId math.Uint) []byte {
 	return append(GroupByIDPrefix, sequence.EncodeSequence(groupId)...)
 }
 
-// GetDiscontinueRequestKey return the discontinue request store key
-func GetDiscontinueRequestKey(height uint64) []byte {
+// GetDiscontinueObjectKey return discontinue object store key
+func GetDiscontinueObjectKey(height uint64) []byte {
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, height)
-	return append(DiscontinueCountPrefix, heightBytes...)
+	return append(DiscontinueObjectPrefix, heightBytes...)
+}
+
+// GetDiscontinueBucketKey return discontinue bucket store key
+func GetDiscontinueBucketKey(height uint64) []byte {
+	heightBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(heightBytes, height)
+	return append(DiscontinueObjectPrefix, heightBytes...)
 }

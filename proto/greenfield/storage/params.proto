@@ -34,10 +34,14 @@ message Params {
   string mirror_group_ack_relayer_fee = 11;
   // The maximum number of buckets that can be created per account
   uint32 max_buckets_per_account = 12;
-  // The window to limit the max discontinue requests (in number of objects) can be submitted
-  uint64 discontinue_request_window = 13;
-  // The max objects can be requested in the window
-  uint64 discontinue_request_max = 14;
+  // The window to count the discontinued objects or buckets
+  uint64 discontinue_counting_window = 13;
+  // The max objects can be requested in a window
+  uint64 discontinue_object_max = 14;
+  // The max buckets can be requested in a window
+  uint64 discontinue_bucket_max = 15;
   // The object will be deleted after the confirm period in blocks
-  uint64 discontinue_confirm_period = 15;
+  uint64 discontinue_confirm_period = 16;
+  // The max delete objects in each end block
+  uint64 discontinue_deletion_max = 17;
 }

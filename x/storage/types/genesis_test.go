@@ -35,8 +35,9 @@ func TestGenesisState_Validate(t *testing.T) {
 					MirrorGroupAckRelayerFee:  "10",
 					MirrorObjectRelayerFee:    "10",
 					MirrorObjectAckRelayerFee: "10",
-					DiscontinueRequestWindow:  1000,
-					DiscontinueRequestMax:     10000,
+					DiscontinueCountingWindow: 1000,
+					DiscontinueObjectMax:      10000,
+					DiscontinueBucketMax:      10000,
 					DiscontinueConfirmPeriod:  100,
 				},
 

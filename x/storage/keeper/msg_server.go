@@ -85,6 +85,20 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 	return &types.MsgUpdateBucketInfoResponse{}, nil
 }
 
+func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.MsgDiscontinueBucket) (*storagetypes.MsgDiscontinueBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.DiscontinueBucket(ctx, operatorAcc, msg.BucketName, msg.Reason, DeleteBucketOptions{
+		SourceType: types.SOURCE_TYPE_ORIGIN,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDiscontinueBucketResponse{}, nil
+}
+
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

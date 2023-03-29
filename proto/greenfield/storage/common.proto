@@ -16,6 +16,16 @@ enum SourceType {
   SOURCE_TYPE_MIRROR_PENDING = 2;
 }
 
+// BucketStatus represents the status of a bucket. After a user successfully
+// sends a CreateBucket transaction onto the chain, the status is set to 'Created'.
+// When a Discontinue Object transaction is received on chain, the status is set to 'Discontinued'.
+enum BucketStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  BUCKET_STATUS_CREATED = 0;
+  BUCKET_STATUS_DISCONTINUED = 1;
+}
+
 // RedundancyType represents the redundancy algorithm type for object data,
 // which can be either multi-replica or erasure coding.
 enum RedundancyType {

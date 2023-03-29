@@ -35,6 +35,8 @@ var (
 	ErrInvalidOperationType     = errors.Register(ModuleName, 3002, "invalid operation type")
 	ErrInvalidId                = errors.Register(ModuleName, 3003, "id is invalid")
 
-	ErrInvalidIds    = errors.Register(ModuleName, 3004, "ids are invalid")
-	ErrInvalidReason = errors.Register(ModuleName, 3005, "reason is invalid")
+	ErrInvalidObjectIds   = errors.Register(ModuleName, 3101, "object ids are invalid")
+	ErrInvalidReason      = errors.Register(ModuleName, 3102, "reason is invalid")
+	ErrNoMoreDiscontinue  = errors.Register(ModuleName, 3103, "no more discontinue requests")
+	ErrBucketDiscontinued = errors.Register(ModuleName, 3104, "the bucket is discontinued")
 )

@@ -34,6 +34,7 @@ const (
 	TypeMsgCancelCreateObject = "cancel_create_object"
 	TypeMsgMirrorObject       = "mirror_object"
 	TypeMsgDiscontinueObject  = "discontinue_object"
+	TypeMsgDiscontinueBucket  = "discontinue_bucket"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -716,7 +717,59 @@ func (msg *MsgDiscontinueObject) ValidateBasic() error {
 	}
 
 	if len(msg.ObjectIds) == 0 || len(msg.ObjectIds) > 128 {
-		return errors.Wrapf(ErrInvalidIds, "length of ids is %d", len(msg.ObjectIds))
+		return errors.Wrapf(ErrInvalidObjectIds, "length of ids is %d", len(msg.ObjectIds))
+	}
+
+	if len(msg.Reason) > 128 {
+		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
+	}
+
+	return nil
+}
+
+func NewMsgDiscontinueBucket(operator sdk.AccAddress, bucketName string, reason string) *MsgDiscontinueBucket {
+	return &MsgDiscontinueBucket{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		Reason:     strings.TrimSpace(reason),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) Type() string {
+	return TypeMsgDiscontinueBucket
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgDiscontinueBucket) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
 	}
 
 	if len(msg.Reason) > 128 {
