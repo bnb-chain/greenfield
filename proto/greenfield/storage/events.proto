@@ -83,8 +83,8 @@ message EventDiscontinueBucket {
   string bucket_name = 1;
   // the reason
   string reason = 2;
-  // the block height after which the sp can safely delete it
-  uint64 delete_at = 3;
+  // the timestamp after which the metadata will be deleted
+  int64 delete_at = 3;
 }
 
 // EventCreateObject is emitted on MsgCreateObject
@@ -241,8 +241,8 @@ message EventDiscontinueObject {
   ];
   // the reason
   string reason = 3;
-  // the block height after which the sp can safely delete it
-  uint64 delete_at = 4;
+  // the timestamp after which the metadata will be deleted
+  int64 delete_at = 4;
 }
 
 // EventCreateGroup is emitted on MsgCreateGroup

@@ -40,8 +40,8 @@ message Params {
   uint64 discontinue_object_max = 14;
   // The max buckets can be requested in a window
   uint64 discontinue_bucket_max = 15;
-  // The object will be deleted after the confirm period in blocks
-  uint64 discontinue_confirm_period = 16;
+  // The object will be deleted after the confirm period in seconds
+  int64 discontinue_confirm_period = 16;
   // The max delete objects in each end block
   uint64 discontinue_deletion_max = 17;
 }

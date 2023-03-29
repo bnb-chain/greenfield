@@ -933,37 +933,56 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 }
 
 func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
-	sp, _, bucketName, _, _, objectId := s.createObject()
+	sp1, _, bucketName1, _, _, objectId1 := s.createObject()
+	sp2, _, bucketName2, _, _, objectId2 := s.createObject()
 
 	// DiscontinueObject
-	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.OperatorKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
-	txRes := s.SendTxBlock(msgDiscontinueObject, sp.OperatorKey)
+	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp1.OperatorKey.GetAddr(), bucketName1, []sdkmath.Uint{objectId1}, "test")
+	txRes := s.SendTxBlock(msgDiscontinueObject, sp1.OperatorKey)
 	deleteAt := int64(filterDiscontinueObjectEventFromTx(txRes).DeleteAt)
 
-	// Wait after the delete height
+	time.Sleep(5 * time.Second)
+	msgDiscontinueObject2 := storagetypes.NewMsgDiscontinueObject(sp2.OperatorKey.GetAddr(), bucketName2, []sdkmath.Uint{objectId2}, "test")
+	s.SendTxBlock(msgDiscontinueObject2, sp2.OperatorKey)
+
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
 	for {
 		time.Sleep(500 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
-		height := statusRes.SyncInfo.LatestBlockHeight
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
 
-		s.T().Logf("current height: %d, delete height: %d", height, deleteAt)
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
 
-		if height > deleteAt {
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
 			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
 		}
 	}
 
-	blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &deleteAt)
-	s.Require().NoError(err)
-	events := filterDeleteObjectEventFromBlock(blockRes)
-	found := false
+	events := make([]storagetypes.EventDeleteObject, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteObjectEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	object1Found, object2Found := false, false
 	for _, event := range events {
-		if event.ObjectId.Equal(objectId) {
-			found = true
+		if event.ObjectId.Equal(objectId1) {
+			object1Found = true
+		}
+		if event.ObjectId.Equal(objectId2) {
+			object2Found = true
 		}
 	}
-	s.Require().True(found)
+	s.Require().True(object1Found)
+	s.Require().True(!object2Found)
 }
 
 func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
@@ -972,7 +991,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 	// DiscontinueObject
 	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.OperatorKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
 	txRes := s.SendTxBlock(msgDiscontinueObject, sp.OperatorKey)
-	deleteAt := int64(filterDiscontinueObjectEventFromTx(txRes).DeleteAt)
+	deleteAt := filterDiscontinueObjectEventFromTx(txRes).DeleteAt
 
 	// DeleteObject before discontinue confirm window
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
@@ -980,70 +999,99 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 	event := filterDeleteObjectEventFromTx(txRes)
 	s.Require().Equal(event.ObjectId, objectId)
 
-	// Wait after the delete height
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
 	for {
 		time.Sleep(500 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
-		height := statusRes.SyncInfo.LatestBlockHeight
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
 
-		s.T().Logf("current height: %d, delete height: %d", height, deleteAt)
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
 
-		if height > deleteAt {
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
 			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
 		}
 	}
 
-	blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &deleteAt)
-	s.Require().NoError(err)
-	events := filterDeleteObjectEventFromBlock(blockRes)
+	events := make([]storagetypes.EventDeleteObject, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteObjectEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	// Already deleted by user
 	found := false
 	for _, event := range events {
 		if event.ObjectId.Equal(objectId) {
 			found = true
 		}
 	}
-	// Already deleted by user
 	s.Require().True(!found)
 
 	time.Sleep(500 * time.Millisecond)
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
-	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > deleteAt)
+	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > heightAfter)
 }
 
 func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
-	sp, _, bucketName, bucketId, _, _ := s.createObject()
+	sp1, _, bucketName1, bucketId1, _, _ := s.createObject()
+	sp2, _, bucketName2, bucketId2, _, _ := s.createObject()
 
 	// DiscontinueBucket
-	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.OperatorKey.GetAddr(), bucketName, "test")
-	txRes := s.SendTxBlock(msgDiscontinueBucket, sp.OperatorKey)
-	deleteAt := int64(filterDiscontinueBucketEventFromTx(txRes).DeleteAt)
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp1.OperatorKey.GetAddr(), bucketName1, "test")
+	txRes := s.SendTxBlock(msgDiscontinueBucket, sp1.OperatorKey)
+	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
 
-	// Wait after the delete height
+	time.Sleep(3 * time.Second)
+	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.OperatorKey.GetAddr(), bucketName2, "test")
+	s.SendTxBlock(msgDiscontinueBucket2, sp2.OperatorKey)
+
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
 	for {
 		time.Sleep(500 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
-		height := statusRes.SyncInfo.LatestBlockHeight
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
 
-		s.T().Logf("current height: %d, delete height: %d", height, deleteAt)
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
 
-		if height > deleteAt {
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
 			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
 		}
 	}
 
-	blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &deleteAt)
-	s.Require().NoError(err)
-	events := filterDeleteBucketEventFromBlock(blockRes)
-	found := false
+	events := make([]storagetypes.EventDeleteBucket, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteBucketEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	bucket1Found, bucket2Found := false, false
 	for _, event := range events {
-		if event.BucketId.Equal(bucketId) {
-			found = true
+		if event.BucketId.Equal(bucketId1) {
+			bucket1Found = true
+		}
+		if event.BucketId.Equal(bucketId2) {
+			bucket2Found = true
 		}
 	}
-	s.Require().True(found)
+	s.Require().True(bucket1Found)
+	s.Require().True(!bucket2Found)
 }
 
 func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
@@ -1062,36 +1110,46 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 	event := filterDeleteBucketEventFromTx(txRes)
 	s.Require().Equal(event.BucketId, bucketId)
 
-	// Wait after the delete height
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
 	for {
 		time.Sleep(500 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
-		height := statusRes.SyncInfo.LatestBlockHeight
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
 
-		s.T().Logf("current height: %d, delete height: %d", height, deleteAt)
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
 
-		if height > deleteAt {
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
 			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
 		}
 	}
 
-	blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &deleteAt)
-	s.Require().NoError(err)
-	events := filterDeleteBucketEventFromBlock(blockRes)
+	events := make([]storagetypes.EventDeleteBucket, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteBucketEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	// Already deleted by user
 	found := false
 	for _, event := range events {
 		if event.BucketId.Equal(bucketId) {
 			found = true
 		}
 	}
-	// Already deleted by user
 	s.Require().True(!found)
 
 	time.Sleep(500 * time.Millisecond)
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
-	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > deleteAt)
+	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > heightAfter)
 }
 
 func (s *StorageTestSuite) createObject() (core.SPKeyManagers, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
@@ -1219,7 +1277,7 @@ func filterDiscontinueObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.Even
 	}
 	deleteAt, _ := strconv.ParseInt(deleteAtStr, 10, 64)
 	return storagetypes.EventDiscontinueObject{
-		DeleteAt: uint64(deleteAt),
+		DeleteAt: deleteAt,
 	}
 }
 
@@ -1273,7 +1331,7 @@ func filterDiscontinueBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.Even
 	}
 	deleteAt, _ := strconv.ParseInt(deleteAtStr, 10, 64)
 	return storagetypes.EventDiscontinueBucket{
-		DeleteAt: uint64(deleteAt),
+		DeleteAt: deleteAt,
 	}
 }
 

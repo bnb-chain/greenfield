@@ -19,7 +19,7 @@ const (
 	DefaultDiscontinueCountingWindow uint64 = 10000
 	DefaultDiscontinueObjectMax      uint64 = ^uint64(0)
 	DefaultDiscontinueBucketMax      uint64 = ^uint64(0)
-	DefaultDiscontinueConfirmPeriod  uint64 = 302400 // 7 days (2s a block)
+	DefaultDiscontinueConfirmPeriod  int64  = 604800 // 7 days (in second)
 	DefaultDiscontinueDeletionMax    uint64 = 10000
 
 	DefaultMirrorBucketRelayerFee    = "1000000000000000" // 0.01
@@ -65,8 +65,9 @@ func NewParams(
 	minChargeSize uint64, mirrorBucketRelayerFee, mirrorBucketAckRelayerFee string,
 	mirrorObjectRelayerFee, mirrorObjectAckRelayerFee string,
 	mirrorGroupRelayerFee, mirrorGroupAckRelayerFee string,
-	discontinueCountingWindow, discontinueObjectMax, discontinueBucketMax,
-	discontinueConfirmPeriod, discontinueDeletionMax uint64,
+	discontinueCountingWindow, discontinueObjectMax, discontinueBucketMax uint64,
+	discontinueConfirmPeriod int64,
+	discontinueDeletionMax uint64,
 ) Params {
 	return Params{
 		MaxSegmentSize:            maxSegmentSize,
@@ -313,12 +314,12 @@ func validateDiscontinueBucketMax(i interface{}) error {
 }
 
 func validateDiscontinueConfirmPeriod(i interface{}) error {
-	v, ok := i.(uint64)
+	v, ok := i.(int64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v == 0 {
+	if v <= 0 {
 		return fmt.Errorf("discontine confirm period must be positive: %d", v)
 	}
 	return nil

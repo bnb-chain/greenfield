@@ -130,7 +130,7 @@ func (k Keeper) DiscontinueBucketMax(ctx sdk.Context) (res uint64) {
 	return
 }
 
-func (k Keeper) DiscontinueConfirmPeriod(ctx sdk.Context) (res uint64) {
+func (k Keeper) DiscontinueConfirmPeriod(ctx sdk.Context) (res int64) {
 	k.paramStore.Get(ctx, types.KeyDiscontinueConfirmPeriod, &res)
 	return
 }
