@@ -43,7 +43,7 @@ func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.Q
 		return nil, status.Error(codes.InvalidArgument, "invalid timestamp")
 	}
 	if req.Timestamp == 0 {
-		req.Timestamp = ctx.BlockTime().Unix()
+		req.Timestamp = ctx.BlockTime().Unix() + 1
 	}
 	spAddr, err := sdk.AccAddressFromHexUnsafe(req.SpAddr)
 	if err != nil {
@@ -65,7 +65,7 @@ func (k Keeper) QueryGetSecondarySpStorePriceByTime(goCtx context.Context, req *
 		return nil, status.Error(codes.InvalidArgument, "invalid timestamp")
 	}
 	if req.Timestamp == 0 {
-		req.Timestamp = ctx.BlockTime().Unix()
+		req.Timestamp = ctx.BlockTime().Unix() + 1
 	}
 
 	price, err := k.GetSecondarySpStorePriceByTime(ctx, req.Timestamp)

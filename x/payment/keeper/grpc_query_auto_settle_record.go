@@ -35,25 +35,3 @@ func (k Keeper) AutoSettleRecordAll(c context.Context, req *types.QueryAllAutoSe
 
 	return &types.QueryAllAutoSettleRecordResponse{AutoSettleRecord: autoSettleRecords, Pagination: pageRes}, nil
 }
-
-func (k Keeper) AutoSettleRecord(c context.Context, req *types.QueryGetAutoSettleRecordRequest) (*types.QueryGetAutoSettleRecordResponse, error) {
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	ctx := sdk.UnwrapSDKContext(c)
-
-	addr, err := sdk.AccAddressFromHexUnsafe(req.Addr)
-	if err != nil {
-		return nil, status.Error(codes.InvalidArgument, err.Error())
-	}
-	val, found := k.GetAutoSettleRecord(
-		ctx,
-		req.Timestamp,
-		addr,
-	)
-	if !found {
-		return nil, status.Error(codes.NotFound, "not found")
-	}
-
-	return &types.QueryGetAutoSettleRecordResponse{AutoSettleRecord: *val}, nil
-}
