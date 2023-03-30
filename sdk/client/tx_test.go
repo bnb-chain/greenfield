@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,7 +25,7 @@ func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {
 	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 12)))
-	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, nil)
+	response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, nil)
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(0), response.TxResponse.Code)
 	t.Log(response.TxResponse.String())
@@ -52,7 +53,7 @@ func TestSendTokenWithTxOptionSucceed(t *testing.T) {
 		FeePayer:   payerAddr,
 		FeeAmount:  feeAmt, // 2000 * 5000000000
 	}
-	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
+	response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, txOpt)
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(0), response.TxResponse.Code)
 	t.Log(response.TxResponse.String())
@@ -115,7 +116,7 @@ func TestSendTokenWithCustomizedNonce(t *testing.T) {
 			FeePayer: payerAddr,
 			Nonce:    nonce,
 		}
-		response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
+		response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, txOpt)
 		assert.NoError(t, err)
 		nonce++
 		assert.Equal(t, uint32(0), response.TxResponse.Code)
