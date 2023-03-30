@@ -130,7 +130,7 @@ func (k Keeper) CreateBucket(
 
 	// emit CreateBucket Event
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
-		OwnerAddress:     bucketInfo.Owner,
+		Owner:            bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		Visibility:       bucketInfo.Visibility,
 		CreateAt:         bucketInfo.CreateAt,
@@ -179,8 +179,8 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
-		OperatorAddress:  operator.String(),
-		OwnerAddress:     bucketInfo.Owner,
+		Operator:         operator.String(),
+		Owner:            bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		BucketId:         bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
@@ -237,7 +237,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
-		OperatorAddress:        operator.String(),
+		Operator:               operator.String(),
 		BucketName:             bucketName,
 		BucketId:               bucketInfo.Id,
 		ChargedReadQuotaBefore: bucketInfo.ChargedReadQuota,
@@ -368,13 +368,13 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		CreatorAddress:   operator.String(),
-		OwnerAddress:     objectInfo.Owner,
+		Creator:          operator.String(),
+		Owner:            objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		BucketId:         bucketInfo.Id,
 		ObjectId:         objectInfo.Id,
-		CreateAt:         bucketInfo.CreateAt,
+		CreateAt:         objectInfo.CreateAt,
 		PayloadSize:      objectInfo.PayloadSize,
 		Visibility:       objectInfo.Visibility,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
@@ -489,7 +489,7 @@ func (k Keeper) SealObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
-		OperatorAddress:      spSealAcc.String(),
+		Operator:             spSealAcc.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,
 		ObjectId:             objectInfo.Id,
@@ -538,7 +538,7 @@ func (k Keeper) CancelCreateObject(
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
-		OperatorAddress:  ownAcc.String(),
+		Operator:         ownAcc.String(),
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
@@ -590,7 +590,7 @@ func (k Keeper) DeleteObject(
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
-		OperatorAddress:      operator.String(),
+		Operator:             operator.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,
 		ObjectId:             objectInfo.Id,
@@ -674,13 +674,13 @@ func (k Keeper) CopyObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
-		OperatorAddress: operator.String(),
-		SrcBucketName:   srcObjectInfo.BucketName,
-		SrcObjectName:   srcObjectInfo.ObjectName,
-		DstBucketName:   objectInfo.BucketName,
-		DstObjectName:   objectInfo.ObjectName,
-		SrcObjectId:     srcObjectInfo.Id,
-		DstObjectId:     objectInfo.Id,
+		Operator:      operator.String(),
+		SrcBucketName: srcObjectInfo.BucketName,
+		SrcObjectName: srcObjectInfo.ObjectName,
+		DstBucketName: objectInfo.BucketName,
+		DstObjectName: objectInfo.ObjectName,
+		SrcObjectId:   srcObjectInfo.Id,
+		DstObjectId:   objectInfo.Id,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -726,10 +726,10 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
-		OperatorAddress: operator.String(),
-		BucketName:      bucketInfo.BucketName,
-		ObjectName:      objectInfo.ObjectName,
-		ObjectId:        objectInfo.Id,
+		Operator:   operator.String(),
+		BucketName: bucketInfo.BucketName,
+		ObjectName: objectInfo.ObjectName,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -770,11 +770,11 @@ func (k Keeper) CreateGroup(
 		}
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
-		SourceType:   groupInfo.SourceType,
-		Members:      opts.Members,
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Members:    opts.Members,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -839,9 +839,9 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 	store.Delete(types.GetGroupByIDKey(groupInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -867,9 +867,9 @@ func (k Keeper) LeaveGroup(
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -912,8 +912,8 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{
-		OperatorAddress: operator.String(),
-		OwnerAddress:    groupInfo.Owner,
+		Operator:        operator.String(),
+		Owner:           groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
 		GroupId:         groupInfo.Id,
 		MembersToAdd:    opts.MembersToAdd,
