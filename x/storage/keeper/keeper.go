@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/types/s3util"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -289,6 +290,17 @@ func (k Keeper) CreateObject(
 	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
+	// check is folder
+	isFolder := false
+	if payloadSize == 0 {
+		err := s3util.CheckValidFolderName(objectName)
+		if err != nil {
+			return sdkmath.ZeroUint(), types.ErrInvalidFolderName.Wrapf("The object payloadsize is zero, but the object name (%s) is invalid for folder",
+				objectName)
+		}
+
+	}
+
 	// check payload size
 	if payloadSize > k.MaxPayloadSize(ctx) {
 		return sdkmath.ZeroUint(), types.ErrTooLargeObject
@@ -343,6 +355,10 @@ func (k Keeper) CreateObject(
 	}
 
 	// construct objectInfo
+	objectStatus := types.OBJECT_STATUS_CREATED
+	if isFolder {
+		objectStatus = types.OBJECT_STATUS_SEALED
+	}
 	objectInfo := types.ObjectInfo{
 		Owner:                bucketInfo.Owner,
 		BucketName:           bucketName,
@@ -352,7 +368,7 @@ func (k Keeper) CreateObject(
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
-		ObjectStatus:         types.OBJECT_STATUS_CREATED,
+		ObjectStatus:         objectStatus,
 		RedundancyType:       opts.RedundancyType,
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,

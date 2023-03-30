@@ -18,6 +18,7 @@ var (
 	ErrInvalidGRN            = errors.Register(RootCodespace, 1008, "Not a standard greenfield resource name format")
 	ErrInvalidParameter      = errors.Register(RootCodespace, 1009, "Invalid parameter")
 	ErrInvalidVisibilityType = errors.Register(RootCodespace, 1010, "Invalid public type")
+	ErrInvalidFolderName     = errors.Register(RootCodespace, 1011, "Invalid folder name")
 
 	ErrGRNTypeMismatch = errors.Register(RootCodespace, 2000, "Greenfield resource type mismatch")
 )
