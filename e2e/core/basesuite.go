@@ -1,6 +1,7 @@
 package core
 
 import (
+	"context"
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -70,7 +71,7 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
 	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
@@ -84,7 +85,7 @@ func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	return s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	return s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 }
 
 func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyManager, expectErrorString string) {
@@ -94,7 +95,7 @@ func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyM
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	_, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.T().Logf("tx failed, err: %s, expect error string: %s", err, expectErrorString)
 	s.Require().Error(err)
 	s.Require().True(strings.Contains(err.Error(), expectErrorString))

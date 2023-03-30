@@ -24,7 +24,7 @@ type TransactionClient interface {
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
-func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
+func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 
@@ -44,7 +44,7 @@ func (c *GreenfieldClient) BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, op
 		mode = *txOpt.Mode
 	}
 	txRes, err := c.TxClient.BroadcastTx(
-		context.Background(),
+		ctx,
 		&tx.BroadcastTxRequest{
 			Mode:    mode,
 			TxBytes: txSignedBytes,
