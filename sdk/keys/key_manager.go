@@ -19,13 +19,12 @@ const (
 )
 
 type KeyManager interface {
-	GetPrivKey() ctypes.PrivKey
+	ctypes.PrivKey
 	GetAddr() types.AccAddress
 }
 
 type keyManager struct {
 	privKey  ctypes.PrivKey
-	addr     types.AccAddress
 	mnemonic string
 }
 
@@ -47,9 +46,8 @@ func NewBlsMnemonicKeyManager(mnemonic string) (KeyManager, error) {
 	return &k, err
 }
 
-//TODO NewKeyStoreKeyManager to be implemented
-
-func (m *keyManager) recoveryFromPrivateKey(privateKey string) error {
+// TODO NewKeyStoreKeyManager to be implemented
+func (km *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	priBytes, err := hex.DecodeString(privateKey)
 	if err != nil {
 		return err
@@ -61,13 +59,11 @@ func (m *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	var keyBytesArray [32]byte
 	copy(keyBytesArray[:], priBytes[:32])
 	priKey := ethHd.EthSecp256k1.Generate()(keyBytesArray[:]).(*ethsecp256k1.PrivKey)
-	addr := types.AccAddress(priKey.PubKey().Address())
-	m.addr = addr
-	m.privKey = priKey
+	km.privKey = priKey
 	return nil
 }
 
-func (m *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
+func (km *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 	words := strings.Split(mnemonic, " ")
 	if len(words) != 12 && len(words) != 24 {
 		return fmt.Errorf("mnemonic length should either be 12 or 24")
@@ -83,14 +79,12 @@ func (m *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 		return err
 	}
 	priKey := ethHd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
-	addr := types.AccAddress(priKey.PubKey().Address())
-	m.addr = addr
-	m.privKey = priKey
-	m.mnemonic = mnemonic
+	km.privKey = priKey
+	km.mnemonic = mnemonic
 	return nil
 }
 
-func (m *keyManager) recoveryBlsFromMnemonic(mnemonic, keyPath string) error {
+func (km *keyManager) recoveryBlsFromMnemonic(mnemonic, keyPath string) error {
 	words := strings.Split(mnemonic, " ")
 	if len(words) != 12 && len(words) != 24 {
 		return fmt.Errorf("mnemonic length should either be 12 or 24")
@@ -102,17 +96,35 @@ func (m *keyManager) recoveryBlsFromMnemonic(mnemonic, keyPath string) error {
 	}
 
 	priKey := hd.EthBLS.Generate()(derivedPriv)
-	addr := types.AccAddress(priKey.PubKey().Address())
-	m.addr = addr
-	m.privKey = priKey
-	m.mnemonic = mnemonic
+	km.privKey = priKey
+	km.mnemonic = mnemonic
 	return nil
 }
 
-func (m *keyManager) GetPrivKey() ctypes.PrivKey {
-	return m.privKey
+func (km *keyManager) Bytes() []byte {
+	panic("Not allow to get privKey bytes from KeyManager")
 }
 
-func (m *keyManager) GetAddr() types.AccAddress {
-	return m.addr
+func (km *keyManager) Sign(msg []byte) ([]byte, error) {
+	return km.privKey.Sign(msg)
 }
+
+func (km *keyManager) PubKey() ctypes.PubKey {
+	return km.privKey.PubKey()
+}
+
+func (km *keyManager) Equals(key ctypes.LedgerPrivKey) bool {
+	return km.privKey.Equals(key)
+}
+
+func (km *keyManager) Type() string {
+	return km.privKey.Type()
+}
+
+func (km *keyManager) GetAddr() types.AccAddress {
+	return types.AccAddress(km.privKey.PubKey().Address())
+}
+
+func (km *keyManager) String() string { return km.mnemonic }
+func (km *keyManager) ProtoMessage()  {}
+func (km *keyManager) Reset()         { *km = keyManager{} }

@@ -123,7 +123,7 @@ func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxB
 	sig, err := clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
-		km.GetPrivKey(),
+		km,
 		txConfig,
 		nonce,
 	)
@@ -157,7 +157,7 @@ func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *type
 		nonce = txOpt.Nonce
 	}
 	sig := signing.SignatureV2{
-		PubKey: km.GetPrivKey().PubKey(),
+		PubKey: km.PubKey(),
 		Data: &signing.SingleSignatureData{
 			SignMode: signing.SignMode_SIGN_MODE_EIP_712,
 		},
