@@ -52,6 +52,9 @@ Users looking to create or access data on Greenfield may do so by engaging with 
 through decentralized applications known as BNB Greenfield dApps. These dApps provide a user-friendly interface for
 interacting with the platform, enabling users to create and manipulate data in a secure and decentralized environment.
 
+## Documentation
+Visit our official [documentation site](https://greenfield.bnbchain.org/docs/guide/) for more info.
+
 ## Quick Started
 
 *Note*: Requires [Go 1.18+](https://go.dev/dl/)
