@@ -38,10 +38,11 @@ var (
 	ObjectSequencePrefix = []byte{0x32}
 	GroupSequencePrefix  = []byte{0x33}
 
-	DiscontinueObjectCountPrefix = []byte{0x41}
-	DiscontinueBucketCountPrefix = []byte{0x42}
-	DiscontinueObjectIdsPrefix   = []byte{0x43}
-	DiscontinueBucketIdsPrefix   = []byte{0x44}
+	DiscontinueObjectCountPrefix  = []byte{0x41}
+	DiscontinueBucketCountPrefix  = []byte{0x42}
+	DiscontinueObjectIdsPrefix    = []byte{0x43}
+	DiscontinueBucketIdsPrefix    = []byte{0x44}
+	DiscontinueObjectStatusPrefix = []byte{0x45}
 )
 
 // GetBucketKey return the bucket name store key
@@ -99,4 +100,9 @@ func GetDiscontinueBucketIdsKey(timestamp int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(timestamp))
 	return append(DiscontinueBucketIdsPrefix, bz...)
+}
+
+// GetDiscontinueObjectStatusKey return discontinue object status store key
+func GetDiscontinueObjectStatusKey(objectId math.Uint) []byte {
+	return append(DiscontinueObjectStatusPrefix, sequence.EncodeSequence(objectId)...)
 }

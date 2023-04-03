@@ -222,10 +222,16 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		var objectInfo types.ObjectInfo
 		k.cdc.MustUnmarshal(bz, &objectInfo)
 
-		if err := k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo); err != nil {
-			return false, deleted, err
+		if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
+			if err := k.UnlockStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
+				return false, deleted, err
+			}
+		} else if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
+			if err := k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo); err != nil {
+				ctx.Logger().Error("ChargeDeleteObject error", "err", err)
+				return false, deleted, err
+			}
 		}
-
 		if err := k.doDeleteObject(ctx, sdk.AccAddress{}, bucketInfo, &objectInfo); err != nil {
 			return false, deleted, err
 		}
@@ -233,6 +239,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 
 	if !iter.Valid() {
 		if err := k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
+			ctx.Logger().Error("ChargeDeleteBucket error", "err", err)
 			return false, deleted, err
 		}
 
@@ -722,9 +729,22 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		return types.ErrNoSuchBucket
 	}
 
-	err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
+	objectStatus, err := k.getDiscontinueObjectStatus(ctx, objectId)
 	if err != nil {
 		return err
+	}
+
+	if objectStatus == types.OBJECT_STATUS_CREATED {
+		err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
+	} else if objectStatus == types.OBJECT_STATUS_SEALED {
+		err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			ctx.Logger().Error("ChargeDeleteObject error", "err", err)
+			return err
+		}
 	}
 
 	err = k.doDeleteObject(ctx, sdk.AccAddress{}, bucketInfo, objectInfo)
@@ -888,6 +908,10 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 	if !found {
 		return types.ErrNoSuchBucket
 	}
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
+		return types.ErrInvalidBucketStatus
+	}
+
 	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
 		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 	}
@@ -901,13 +925,16 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		if object.BucketName != bucketName {
 			return types.ErrInvalidObjectIds.Wrapf("object %s should in bucket: %s", objectId, bucketName)
 		}
-		if object.ObjectStatus != types.OBJECT_STATUS_SEALED {
-			return types.ErrInvalidObjectIds.Wrapf("object %s should in sealed status", objectId)
+		if object.ObjectStatus != types.OBJECT_STATUS_SEALED && object.ObjectStatus != types.OBJECT_STATUS_CREATED {
+			return types.ErrInvalidObjectIds.Wrapf("object %s should in created or sealed status", objectId)
 		}
 
+		// remember object status
+		k.saveDiscontinueObjectStatus(ctx, object)
+
+		// update object status
 		object.ObjectStatus = types.OBJECT_STATUS_DISCONTINUED
-		obz := k.cdc.MustMarshal(object)
-		store.Set(types.GetObjectByIDKey(object.Id), obz)
+		store.Set(types.GetObjectByIDKey(object.Id), k.cdc.MustMarshal(object))
 	}
 
 	deleteAt := ctx.BlockTime().Unix() + k.DiscontinueConfirmPeriod(ctx)
@@ -1332,4 +1359,22 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 	}
 
 	return deleted, nil
+}
+
+func (k Keeper) saveDiscontinueObjectStatus(ctx sdk.Context, object *types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 4)
+	binary.BigEndian.PutUint32(bz, uint32(object.ObjectStatus))
+	store.Set(types.GetDiscontinueObjectStatusKey(object.Id), bz)
+}
+
+func (k Keeper) getDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint) (types.ObjectStatus, error) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetDiscontinueObjectStatusKey(objectId))
+	if bz == nil {
+		return types.OBJECT_STATUS_DISCONTINUED, errors.Wrapf(types.ErrInvalidObjectStatus, "object id: %s", objectId)
+	}
+	status := int32(binary.BigEndian.Uint32(bz))
+	store.Delete(types.GetDiscontinueObjectStatusKey(objectId)) //remove it at the same time
+	return types.ObjectStatus(status), nil
 }
