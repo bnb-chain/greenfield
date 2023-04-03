@@ -30,7 +30,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	cmd.AddCommand(CmdDynamicBalance())
 	cmd.AddCommand(CmdGetPaymentAccountsByOwner())
 	cmd.AddCommand(CmdListAutoSettleRecord())
-	cmd.AddCommand(CmdShowAutoSettleRecord())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

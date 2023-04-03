@@ -81,7 +81,7 @@ func (k Keeper) GetSpStoragePriceByTime(
 
 	startKey := types.SpStoragePriceKey(
 		spAddr,
-		time+1,
+		time,
 	)
 	iterator := store.ReverseIterator(nil, startKey)
 	defer iterator.Close()
@@ -122,7 +122,7 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 		if sp.Status != types.STATUS_IN_SERVICE {
 			continue
 		}
-		price, err := k.GetSpStoragePriceByTime(ctx, sp.GetOperator(), current)
+		price, err := k.GetSpStoragePriceByTime(ctx, sp.GetOperator(), current+1)
 		if err != nil {
 			return err
 		}
@@ -145,7 +145,7 @@ func (k Keeper) GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondarySpStorePriceKeyPrefix)
 
 	startKey := types.SecondarySpStorePriceKey(
-		time + 1,
+		time,
 	)
 	iterator := store.ReverseIterator(nil, startKey)
 	defer iterator.Close()
