@@ -209,3 +209,7 @@ func (c *GreenfieldClient) GetChainId() (string, error) {
 	}
 	return c.chainId, nil
 }
+
+func (c *GreenfieldClient) GetCodec() *codec.ProtoCodec {
+	return c.codec
+}
