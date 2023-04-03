@@ -90,9 +90,7 @@ func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.Ms
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err := k.Keeper.DiscontinueBucket(ctx, operatorAcc, msg.BucketName, msg.Reason, DeleteBucketOptions{
-		SourceType: types.SOURCE_TYPE_ORIGIN,
-	})
+	err := k.Keeper.DiscontinueBucket(ctx, operatorAcc, msg.BucketName, msg.Reason)
 	if err != nil {
 		return nil, err
 	}

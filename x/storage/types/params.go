@@ -332,7 +332,7 @@ func validateDiscontinueDeletionMax(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("discontine confirm period must be positive: %d", v)
+		return fmt.Errorf("discontine deletion max must be positive: %d", v)
 	}
 	return nil
 }

@@ -150,9 +150,6 @@ func (k Keeper) CreateBucket(
 }
 
 func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error {
-	store := ctx.KVStore(k.storeKey)
-	bucketKey := types.GetBucketKey(bucketName)
-
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
@@ -179,32 +176,34 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		return types.ErrChargeFailed.Wrapf("ChargeDeleteBucket error: %s", err)
 	}
 
+	return k.doDeleteBucket(ctx, operator, bucketInfo)
+}
+
+func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketInfo *types.BucketInfo) error {
+	store := ctx.KVStore(k.storeKey)
+	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
 	store.Delete(bucketKey)
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
-
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
+	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
 		OperatorAddress:  operator.String(),
 		OwnerAddress:     bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		BucketId:         bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
+	return err
 }
 
 // ForceDeleteBucket will delete bucket without permission check, it is used for discontinue request from sps.
 // The cap parameter will limit the max objects can be deleted in the call.
 // It will also return 1) whether the bucket is deleted, 2) the objects deleted, and 3) error is there is
 func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap uint64) (bool, uint64, error) {
-	store := ctx.KVStore(k.storeKey)
-
 	bucketInfo, found := k.GetBucketInfoById(ctx, bucketId)
-	if !found {
-		return false, 0, types.ErrNoSuchBucket
+	if !found { // the bucket is already deleted
+		return true, 0, nil
 	}
 
+	store := ctx.KVStore(k.storeKey)
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 	iter := objectPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
@@ -223,42 +222,21 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		var objectInfo types.ObjectInfo
 		k.cdc.MustUnmarshal(bz, &objectInfo)
 
-		err := k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo)
-		if err != nil {
+		if err := k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo); err != nil {
 			return false, deleted, err
 		}
 
-		store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
-		store.Delete(types.GetObjectByIDKey(bucketInfo.Id))
-
-		if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
-			BucketName:           bucketInfo.BucketName,
-			ObjectName:           objectInfo.ObjectName,
-			ObjectId:             bucketInfo.Id,
-			PrimarySpAddress:     bucketInfo.PrimarySpAddress,
-			SecondarySpAddresses: objectInfo.SecondarySpAddresses,
-		}); err != nil {
+		if err := k.doDeleteObject(ctx, sdk.AccAddress{}, bucketInfo, &objectInfo); err != nil {
 			return false, deleted, err
 		}
 	}
 
 	if !iter.Valid() {
-		// change the bill
-		err := k.ChargeDeleteBucket(ctx, bucketInfo)
-		if err != nil {
-			return false, deleted, types.ErrChargeFailed.Wrapf("ChargeDeleteBucket error: %s", err)
+		if err := k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
+			return false, deleted, err
 		}
 
-		bucketKey := types.GetBucketKey(bucketInfo.BucketName)
-		store.Delete(bucketKey)
-		store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
-
-		if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
-			OwnerAddress:     bucketInfo.Owner,
-			BucketName:       bucketInfo.BucketName,
-			BucketId:         bucketInfo.Id,
-			PrimarySpAddress: bucketInfo.PrimarySpAddress,
-		}); err != nil {
+		if err := k.doDeleteBucket(ctx, sdk.AccAddress{}, bucketInfo); err != nil {
 			return true, deleted, err
 		}
 	}
@@ -327,7 +305,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	return nil
 }
 
-func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName, reason string, opts DeleteBucketOptions) error {
+func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName, reason string) error {
 	count := k.getDiscontinueBucketCount(ctx, operator)
 	max := k.DiscontinueBucketMax(ctx)
 	if count+1 > max {
@@ -346,9 +324,6 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
-	}
-	if bucketInfo.SourceType != opts.SourceType {
-		return types.ErrSourceTypeMismatch
 	}
 
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_DISCONTINUED
@@ -675,7 +650,7 @@ func (k Keeper) CancelCreateObject(
 
 func (k Keeper) DeleteObject(
 	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error {
-	store := ctx.KVStore(k.storeKey)
+
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
@@ -708,32 +683,38 @@ func (k Keeper) DeleteObject(
 		return err
 	}
 
+	err = k.doDeleteObject(ctx, operator, bucketInfo, objectInfo)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo) error {
+	store := ctx.KVStore(k.storeKey)
+
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
-	store.Delete(types.GetObjectKey(bucketName, objectName))
+	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
+	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
 		OperatorAddress:      operator.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,
 		ObjectId:             objectInfo.Id,
 		PrimarySpAddress:     bucketInfo.PrimarySpAddress,
 		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
+	return err
 }
 
 // ForceDeleteObject will delete object without permission check, it is used for discontinue request from sps.
 func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error {
-	store := ctx.KVStore(k.storeKey)
-
 	objectInfo, found := k.GetObjectInfoById(ctx, objectId)
-	if !found {
-		return types.ErrNoSuchObject
+	if !found { // the object is deleted already
+		return nil
 	}
 
 	bucketInfo, found := k.GetBucketInfo(ctx, objectInfo.BucketName)
@@ -746,19 +727,8 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		return err
 	}
 
-	bbz := k.cdc.MustMarshal(bucketInfo)
-	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
-
-	store.Delete(types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName))
-	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
-
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
-		BucketName:           bucketInfo.BucketName,
-		ObjectName:           objectInfo.ObjectName,
-		ObjectId:             objectInfo.Id,
-		PrimarySpAddress:     bucketInfo.PrimarySpAddress,
-		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
-	}); err != nil {
+	err = k.doDeleteObject(ctx, sdk.AccAddress{}, bucketInfo, objectInfo)
+	if err != nil {
 		return err
 	}
 	return nil
@@ -1240,7 +1210,7 @@ func (k Keeper) AppendDiscontinueObjectIds(ctx sdk.Context, timestamp int64, obj
 	store.Set(key, k.cdc.MustMarshal(&types.Ids{Id: objectIds}))
 }
 
-func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, max uint64) (deleted uint64) {
+func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (deleted uint64, err error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueObjectIdsKey(timestamp)
 	iterator := store.Iterator(types.DiscontinueObjectIdsPrefix, sdk.InclusiveEndBytes(key))
@@ -1248,7 +1218,7 @@ func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, 
 
 	deleted = uint64(0)
 	for ; iterator.Valid(); iterator.Next() {
-		if deleted >= max {
+		if deleted >= maxObjectsToDelete {
 			break
 		}
 		var ids types.Ids
@@ -1256,14 +1226,15 @@ func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, 
 
 		left := make([]types.Uint, 0)
 		for _, id := range ids.Id {
-			if deleted >= max {
+			if deleted >= maxObjectsToDelete {
 				left = append(left, id)
 				continue
 			}
 
-			err := k.ForceDeleteObject(ctx, id)
+			err = k.ForceDeleteObject(ctx, id)
 			if err != nil {
 				ctx.Logger().Error("delete object error", "err", err, "height", ctx.BlockHeight())
+				return deleted, err
 			}
 			deleted++
 		}
@@ -1274,7 +1245,7 @@ func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, 
 		}
 	}
 
-	return deleted
+	return deleted, nil
 }
 
 func (k Keeper) getDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
@@ -1321,15 +1292,15 @@ func (k Keeper) appendDiscontinueBucketIds(ctx sdk.Context, timestamp int64, buc
 	store.Set(key, k.cdc.MustMarshal(&types.Ids{Id: bucketIds}))
 }
 
-func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, max uint64) (deleted uint64) {
+func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueBucketIdsKey(timestamp)
 	iterator := store.Iterator(types.DiscontinueBucketIdsPrefix, sdk.InclusiveEndBytes(key))
 	defer iterator.Close()
 
-	deleted = uint64(0)
+	deleted := uint64(0)
 	for ; iterator.Valid(); iterator.Next() {
-		if deleted >= max {
+		if deleted >= maxObjectsToDelete {
 			break
 		}
 		var ids types.Ids
@@ -1337,14 +1308,15 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 
 		left := make([]types.Uint, 0)
 		for _, id := range ids.Id {
-			if deleted >= max {
+			if deleted >= maxObjectsToDelete {
 				left = append(left, id)
 				continue
 			}
 
-			bucketDeleted, objectDeleted, err := k.ForceDeleteBucket(ctx, id, max-deleted)
+			bucketDeleted, objectDeleted, err := k.ForceDeleteBucket(ctx, id, maxObjectsToDelete-deleted)
 			if err != nil {
 				ctx.Logger().Error("delete bucket error", "err", err, "height", ctx.BlockHeight())
+				return deleted, err
 			}
 			deleted = deleted + objectDeleted
 
@@ -1359,5 +1331,5 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 		}
 	}
 
-	return deleted
+	return deleted, nil
 }

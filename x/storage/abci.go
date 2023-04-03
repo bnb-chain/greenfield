@@ -23,12 +23,18 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 	blockTime := ctx.BlockTime().Unix()
 	// delete objects
-	deleted := keeper.DeleteDiscontinueObjectsUntil(ctx, blockTime, deletionMax)
+	deleted, err := keeper.DeleteDiscontinueObjectsUntil(ctx, blockTime, deletionMax)
+	if err != nil {
+		panic("fail to delete objects, err " + err.Error())
+	}
 
 	if deleted >= deletionMax {
 		return
 	}
 
 	// delete buckets
-	_ = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
+	_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
+	if err != nil {
+		panic("fail to delete buckets, err " + err.Error())
+	}
 }

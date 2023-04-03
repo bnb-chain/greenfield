@@ -48,6 +48,10 @@ const (
 	TypeMsgDeletePolicy = "delete_policy"
 
 	MaxGroupMemberLimitOnce = 20
+
+	// For discontinue
+	MaxDiscontinueReasonLen = 128
+	MaxDiscontinueObjects   = 128
 )
 
 var (
@@ -716,11 +720,11 @@ func (msg *MsgDiscontinueObject) ValidateBasic() error {
 		return err
 	}
 
-	if len(msg.ObjectIds) == 0 || len(msg.ObjectIds) > 128 {
+	if len(msg.ObjectIds) == 0 || len(msg.ObjectIds) > MaxDiscontinueObjects {
 		return errors.Wrapf(ErrInvalidObjectIds, "length of ids is %d", len(msg.ObjectIds))
 	}
 
-	if len(msg.Reason) > 128 {
+	if len(msg.Reason) > MaxDiscontinueReasonLen {
 		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
 	}
 
@@ -772,7 +776,7 @@ func (msg *MsgDiscontinueBucket) ValidateBasic() error {
 		return err
 	}
 
-	if len(msg.Reason) > 128 {
+	if len(msg.Reason) > MaxDiscontinueReasonLen {
 		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
 	}
 
