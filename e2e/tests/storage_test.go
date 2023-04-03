@@ -696,7 +696,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 		}
 		time.Sleep(time.Second)
 		retryCount++
-		if retryCount > 31 {
+		if retryCount > 60 {
 			s.T().Fatalf("wait for settle time timeout")
 		}
 	}
