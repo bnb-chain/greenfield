@@ -26,8 +26,9 @@ var (
 	StorageProviderByFundingAddrKey  = []byte{0x22} // prefix for each key to a storage provider index, by funding address
 	StorageProviderBySealAddrKey     = []byte{0x23} // prefix for each key to a storage provider index, by seal address
 	StorageProviderByApprovalAddrKey = []byte{0x24} // prefix for each key to a storage provider index, by approval address
-	SpStoragePriceKeyPrefix          = []byte{0x25}
-	SecondarySpStorePriceKeyPrefix   = []byte{0x26}
+	StorageProviderByGcAddrKey       = []byte{0x25} // prefix for each key to a storage provider index, by gc address
+	SpStoragePriceKeyPrefix          = []byte{0x26}
+	SecondarySpStorePriceKeyPrefix   = []byte{0x27}
 )
 
 // GetStorageProviderKey creates the key for the provider with address
@@ -52,6 +53,12 @@ func GetStorageProviderBySealAddrKey(spAddr sdk.AccAddress) []byte {
 // VALUE: storage provider operator address ([]byte)
 func GetStorageProviderByApprovalAddrKey(spAddr sdk.AccAddress) []byte {
 	return append(StorageProviderByApprovalAddrKey, spAddr.Bytes()...)
+}
+
+// GetStorageProviderByApprovalAddrKey creates the key for the storage provider with approval address
+// VALUE: storage provider operator address ([]byte)
+func GetStorageProviderByGcAddrKey(spAddr sdk.AccAddress) []byte {
+	return append(StorageProviderByGcAddrKey, spAddr.Bytes()...)
 }
 
 func UnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) (sp *StorageProvider, err error) {

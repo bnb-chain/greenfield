@@ -60,6 +60,14 @@ func (sp *StorageProvider) GetApprovalAccAddress() sdk.AccAddress {
 	return addr
 }
 
+func (sp *StorageProvider) GetGcAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr := sdk.MustAccAddressFromHex(sp.GcAddress)
+	return addr
+}
+
 func (sp *StorageProvider) IsInService() bool {
 	return sp.GetStatus() == STATUS_IN_SERVICE
 }
