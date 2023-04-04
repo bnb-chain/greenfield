@@ -64,10 +64,6 @@ service Query {
   }
 
   // Queries a list of AutoSettleRecord items.
-  rpc AutoSettleRecord(QueryGetAutoSettleRecordRequest) returns (QueryGetAutoSettleRecordResponse) {
-    option (google.api.http).get = "/greenfield/payment/auto_settle_record/{timestamp}/{addr}";
-  }
-
   rpc AutoSettleRecordAll(QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/auto_settle_record";
   }
@@ -153,15 +149,6 @@ message QueryGetPaymentAccountsByOwnerRequest {
 
 message QueryGetPaymentAccountsByOwnerResponse {
   repeated string paymentAccounts = 1;
-}
-
-message QueryGetAutoSettleRecordRequest {
-  int64 timestamp = 1;
-  string addr = 2;
-}
-
-message QueryGetAutoSettleRecordResponse {
-  AutoSettleRecord auto_settle_record = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryAllAutoSettleRecordRequest {

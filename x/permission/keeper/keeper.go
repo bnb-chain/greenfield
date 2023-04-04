@@ -178,11 +178,12 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 
 	// emit PutPolicy Event
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventPutPolicy{
-		PolicyId:     newPolicy.Id,
-		Principal:    newPolicy.Principal,
-		ResourceType: newPolicy.ResourceType,
-		ResourceId:   newPolicy.ResourceId,
-		Statements:   newPolicy.Statements,
+		PolicyId:       newPolicy.Id,
+		Principal:      newPolicy.Principal,
+		ResourceType:   newPolicy.ResourceType,
+		ResourceId:     newPolicy.ResourceId,
+		Statements:     newPolicy.Statements,
+		ExpirationTime: newPolicy.ExpirationTime,
 	}); err != nil {
 		return math.ZeroUint(), err
 	}
