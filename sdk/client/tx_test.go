@@ -42,11 +42,14 @@ func TestSendTokenWithTxOptionSucceed(t *testing.T) {
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
 	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(10000000000000)))) // gasPrice * gasLimit
+
 	txOpt := &types.TxOption{
-		Mode:     &mode,
-		GasLimit: 123456,
-		Memo:     "test",
-		FeePayer: payerAddr,
+		Mode:      &mode,
+		GasLimit:  2000,
+		Memo:      "test",
+		FeePayer:  payerAddr,
+		FeeAmount: feeAmt, // 2000 * 5000000000
 	}
 	response, err := gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
 	assert.NoError(t, err)

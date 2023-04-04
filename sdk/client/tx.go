@@ -186,6 +186,12 @@ func (c *GreenfieldClient) constructTx(msgs []sdk.Msg, txOpt *types.TxOption, tx
 		if !txOpt.FeePayer.Empty() {
 			txBuilder.SetFeePayer(txOpt.FeePayer)
 		}
+		if !txOpt.FeeGranter.Empty() {
+			txBuilder.SetFeeGranter(txOpt.FeeGranter)
+		}
+		if txOpt.Tip != nil {
+			txBuilder.SetTip(txOpt.Tip)
+		}
 	}
 	// inject signer info into txBuilder, it is needed for simulating and signing
 	return c.setSingerInfo(txBuilder, txOpt)
@@ -200,11 +206,17 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 	if err != nil {
 		return err
 	}
+
+	if txOpt != nil && txOpt.GasLimit != 0 && !txOpt.FeeAmount.IsZero() {
+		txBuilder.SetGasLimit(txOpt.GasLimit)
+		txBuilder.SetFeeAmount(txOpt.FeeAmount)
+		return nil
+	}
+
 	simulateRes, err := c.simulateTx(txBytes)
 	if err != nil {
 		return err
 	}
-
 	gasLimit := simulateRes.GasInfo.GetGasUsed()
 	if txOpt != nil && txOpt.GasLimit != 0 {
 		gasLimit = txOpt.GasLimit

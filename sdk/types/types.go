@@ -19,12 +19,14 @@ const (
 )
 
 type TxOption struct {
-	Mode      *tx.BroadcastMode
-	GasLimit  uint64
-	Memo      string
-	FeeAmount sdk.Coins
-	FeePayer  sdk.AccAddress
-	Nonce     uint64
+	Mode       *tx.BroadcastMode
+	GasLimit   uint64
+	Nonce      uint64
+	FeeAmount  sdk.Coins
+	FeePayer   sdk.AccAddress
+	FeeGranter sdk.AccAddress
+	Tip        *tx.Tip
+	Memo       string
 }
 
 func NewIntFromInt64WithDecimal(amount int64, decimal int64) sdkmath.Int {
