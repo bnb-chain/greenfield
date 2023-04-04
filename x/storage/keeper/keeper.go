@@ -203,6 +203,8 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		return true, 0, nil
 	}
 
+	sp := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
+
 	store := ctx.KVStore(k.storeKey)
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 	iter := objectPrefixStore.Iterator(nil, nil)
@@ -232,7 +234,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 				return false, deleted, err
 			}
 		}
-		if err := k.doDeleteObject(ctx, sdk.AccAddress{}, bucketInfo, &objectInfo); err != nil {
+		if err := k.doDeleteObject(ctx, sp, bucketInfo, &objectInfo); err != nil {
 			return false, deleted, err
 		}
 	}
@@ -243,7 +245,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			return false, deleted, err
 		}
 
-		if err := k.doDeleteBucket(ctx, sdk.AccAddress{}, bucketInfo); err != nil {
+		if err := k.doDeleteBucket(ctx, sp, bucketInfo); err != nil {
 			return true, deleted, err
 		}
 	}
@@ -313,16 +315,9 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 }
 
 func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName, reason string) error {
-	count := k.getDiscontinueBucketCount(ctx, operator)
-	max := k.DiscontinueBucketMax(ctx)
-	if count+1 > max {
-		return types.ErrNoMoreDiscontinue.Wrapf("no more buckets can be requested in this window")
-	}
-
-	// TODO: use a special address for discontinue transactions
-	sp, found := k.spKeeper.GetStorageProvider(ctx, operator)
+	sp, found := k.spKeeper.GetStorageProviderByGcAddr(ctx, operator)
 	if !found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "incorrect sp status, sp: %s, status: %s", operator.String(), sp.Status.String())
+		return types.ErrNoSuchStorageProvider
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
@@ -331,6 +326,19 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
+	}
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
+		return types.ErrInvalidBucketStatus
+	}
+
+	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
+		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue bucket")
+	}
+
+	count := k.getDiscontinueBucketCount(ctx, operator)
+	max := k.DiscontinueBucketMax(ctx)
+	if count+1 > max {
+		return types.ErrNoMoreDiscontinue.Wrapf("no more buckets can be requested in this window")
 	}
 
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_DISCONTINUED
@@ -747,7 +755,8 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		}
 	}
 
-	err = k.doDeleteObject(ctx, sdk.AccAddress{}, bucketInfo, objectInfo)
+	sp := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
+	err = k.doDeleteObject(ctx, sp, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -889,16 +898,9 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 }
 
 func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, bucketName string, objectIds []sdkmath.Uint, reason string) error {
-	count := k.getDiscontinueObjectCount(ctx, operator)
-	max := k.DiscontinueObjectMax(ctx)
-	if count+uint64(len(objectIds)) > max {
-		return types.ErrNoMoreDiscontinue.Wrapf("only %d objects can be requested in this window", max-count)
-	}
-
-	// TODO: use a special address for discontinue transactions
-	sp, found := k.spKeeper.GetStorageProvider(ctx, operator)
+	sp, found := k.spKeeper.GetStorageProviderByGcAddr(ctx, operator)
 	if !found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "incorrect sp status, sp: %s, status: %s", operator.String(), sp.Status.String())
+		return types.ErrNoSuchStorageProvider
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
@@ -914,6 +916,12 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 
 	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
 		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
+	}
+
+	count := k.getDiscontinueObjectCount(ctx, operator)
+	max := k.DiscontinueObjectMax(ctx)
+	if count+uint64(len(objectIds)) > max {
+		return types.ErrNoMoreDiscontinue.Wrapf("only %d objects can be requested in this window", max-count)
 	}
 
 	store := ctx.KVStore(k.storeKey)

@@ -937,13 +937,13 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 	sp2, _, bucketName2, _, _, objectId2 := s.createObject()
 
 	// DiscontinueObject
-	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp1.OperatorKey.GetAddr(), bucketName1, []sdkmath.Uint{objectId1}, "test")
-	txRes := s.SendTxBlock(msgDiscontinueObject, sp1.OperatorKey)
+	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp1.GcKey.GetAddr(), bucketName1, []sdkmath.Uint{objectId1}, "test")
+	txRes := s.SendTxBlock(msgDiscontinueObject, sp1.GcKey)
 	deleteAt := int64(filterDiscontinueObjectEventFromTx(txRes).DeleteAt)
 
 	time.Sleep(5 * time.Second)
-	msgDiscontinueObject2 := storagetypes.NewMsgDiscontinueObject(sp2.OperatorKey.GetAddr(), bucketName2, []sdkmath.Uint{objectId2}, "test")
-	s.SendTxBlock(msgDiscontinueObject2, sp2.OperatorKey)
+	msgDiscontinueObject2 := storagetypes.NewMsgDiscontinueObject(sp2.GcKey.GetAddr(), bucketName2, []sdkmath.Uint{objectId2}, "test")
+	s.SendTxBlock(msgDiscontinueObject2, sp2.GcKey)
 
 	// Wait after the delete timestamp
 	heightBefore := txRes.Height
@@ -989,8 +989,8 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 	sp, user, bucketName, _, objectName, objectId := s.createObject()
 
 	// DiscontinueObject
-	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.OperatorKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
-	txRes := s.SendTxBlock(msgDiscontinueObject, sp.OperatorKey)
+	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.GcKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
+	txRes := s.SendTxBlock(msgDiscontinueObject, sp.GcKey)
 	deleteAt := filterDiscontinueObjectEventFromTx(txRes).DeleteAt
 
 	// DeleteObject before discontinue confirm window
@@ -1046,13 +1046,13 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 	sp2, _, bucketName2, bucketId2, _, _ := s.createObject()
 
 	// DiscontinueBucket
-	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp1.OperatorKey.GetAddr(), bucketName1, "test")
-	txRes := s.SendTxBlock(msgDiscontinueBucket, sp1.OperatorKey)
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName1, "test")
+	txRes := s.SendTxBlock(msgDiscontinueBucket, sp1.GcKey)
 	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
 
 	time.Sleep(3 * time.Second)
-	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.OperatorKey.GetAddr(), bucketName2, "test")
-	s.SendTxBlock(msgDiscontinueBucket2, sp2.OperatorKey)
+	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName2, "test")
+	s.SendTxBlock(msgDiscontinueBucket2, sp2.GcKey)
 
 	// Wait after the delete timestamp
 	heightBefore := txRes.Height
@@ -1098,8 +1098,8 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 	sp, user, bucketName, bucketId, objectName, _ := s.createObject()
 
 	// DiscontinueBucket
-	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.OperatorKey.GetAddr(), bucketName, "test")
-	txRes := s.SendTxBlock(msgDiscontinueBucket, sp.OperatorKey)
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes := s.SendTxBlock(msgDiscontinueBucket, sp.GcKey)
 	deleteAt := int64(filterDiscontinueBucketEventFromTx(txRes).DeleteAt)
 
 	// DeleteBucket before discontinue confirm window
