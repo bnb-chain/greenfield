@@ -17,7 +17,7 @@ const (
 // NewStorageProvider constructs a new StorageProvider
 func NewStorageProvider(
 	operator sdk.AccAddress, fundingAddress sdk.AccAddress,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress,
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
 	totalDeposit math.Int, endpoint string,
 	description Description) (StorageProvider, error) {
 	return StorageProvider{
@@ -25,6 +25,7 @@ func NewStorageProvider(
 		FundingAddress:  fundingAddress.String(),
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
+		GcAddress:       gcAddress.String(),
 		TotalDeposit:    totalDeposit,
 		Endpoint:        endpoint,
 		Description:     description,

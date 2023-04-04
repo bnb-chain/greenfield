@@ -7,6 +7,7 @@ const (
 	FlagFundingAddress  = "funding-address"
 	FlagSealAddress     = "seal-address"
 	FlagApprovalAddress = "approval-address"
+	FlagGcAddress       = "gc-address"
 	FlagCreator         = "creator"
 	FlagExpiration      = "expiration"
 	FlagEndpoint        = "endpoint"

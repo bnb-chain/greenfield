@@ -38,6 +38,7 @@ function init() {
       ${bin} keys add sp${i}_fund --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/fund_info 2>&1
       ${bin} keys add sp${i}_seal --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/seal_info 2>&1
       ${bin} keys add sp${i}_approval --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/approval_info 2>&1
+      ${bin} keys add sp${i}_gc --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/gc_info 2>&1
     done
 
 }
@@ -189,10 +190,12 @@ function generate_sp_genesis {
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     ${bin} add-genesis-account $spoperator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+    ${bin} add-genesis-account $spgc_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
   done
 
   rm -rf ${workspace}/.local/gensptx
@@ -203,6 +206,7 @@ function generate_sp_genesis {
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
     # create bond storage provider tx
     ${bin} spgentx sp${i} ${SP_MIN_DEPOSIT_AMOUNT}${STAKING_BOND_DENOM} \
@@ -212,6 +216,7 @@ function generate_sp_genesis {
       --funding-address=${spfund_addr} \
       --seal-address=${spseal_addr} \
       --approval-address=${spapproval_addr} \
+      --gc-address=${spgc_addr} \
       --keyring-backend=test \
       --chain-id=${CHAIN_ID} \
       --moniker="sp${i}" \
