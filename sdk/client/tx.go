@@ -207,7 +207,14 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 		return err
 	}
 
-	if txOpt != nil && txOpt.GasLimit != 0 && !txOpt.FeeAmount.IsZero() {
+	if txOpt != nil && txOpt.NoSimulate {
+		isFeeAmtZero, err := isFeeAmountZero(txOpt.FeeAmount)
+		if err != nil {
+			return err
+		}
+		if txOpt.GasLimit == 0 || isFeeAmtZero {
+			return types.GasInfoNotProvidedError
+		}
 		txBuilder.SetGasLimit(txOpt.GasLimit)
 		txBuilder.SetFeeAmount(txOpt.FeeAmount)
 		return nil
@@ -218,9 +225,6 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 		return err
 	}
 	gasLimit := simulateRes.GasInfo.GetGasUsed()
-	if txOpt != nil && txOpt.GasLimit != 0 {
-		gasLimit = txOpt.GasLimit
-	}
 	gasPrice, err := sdk.ParseCoinNormalized(simulateRes.GasInfo.GetMinGasPrice())
 	if err != nil {
 		return err
@@ -231,9 +235,6 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 	feeAmount := sdk.NewCoins(
 		sdk.NewCoin(gasPrice.Denom, gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit)))), // gasPrice * gasLimit
 	)
-	if txOpt != nil && !txOpt.FeeAmount.IsZero() {
-		feeAmount = txOpt.FeeAmount
-	}
 	txBuilder.SetGasLimit(gasLimit)
 	txBuilder.SetFeeAmount(feeAmount)
 	return nil
@@ -261,4 +262,17 @@ func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
 		return nil, err
 	}
 	return account, nil
+}
+
+func isFeeAmountZero(feeAmount sdk.Coins) (bool, error) {
+	if len(feeAmount) == 0 {
+		return true, nil
+	}
+	if len(feeAmount) != 1 {
+		return false, types.FeeAmountNotValidError
+	}
+	if feeAmount[0].Amount.IsNil() {
+		return false, types.FeeAmountNotValidError
+	}
+	return feeAmount[0].IsZero(), nil
 }

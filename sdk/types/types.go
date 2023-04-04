@@ -20,9 +20,10 @@ const (
 
 type TxOption struct {
 	Mode       *tx.BroadcastMode
+	NoSimulate bool
 	GasLimit   uint64
-	Nonce      uint64
 	FeeAmount  sdk.Coins
+	Nonce      uint64
 	FeePayer   sdk.AccAddress
 	FeeGranter sdk.AccAddress
 	Tip        *tx.Tip
