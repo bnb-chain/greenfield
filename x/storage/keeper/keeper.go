@@ -321,6 +321,11 @@ func (k Keeper) CreateObject(
 		secondarySPs = append(secondarySPs, spAcc.String())
 	}
 
+	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
+	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		secondarySPs = append(secondarySPs, operator.String())
+	}
+
 	// check approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
@@ -502,7 +507,7 @@ func (k Keeper) SealObject(
 }
 
 func (k Keeper) CancelCreateObject(
-	ctx sdk.Context, ownAcc sdk.AccAddress,
+	ctx sdk.Context, operator sdk.AccAddress,
 	bucketName, objectName string, opts CancelCreateObjectOptions) error {
 	store := ctx.KVStore(k.storeKey)
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
@@ -522,8 +527,16 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	if !ownAcc.Equals(sdk.MustAccAddressFromHex(objectInfo.Owner)) {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
+	var creator sdk.AccAddress
+	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
+	// if the operator is not the creator, we should return access deny
+	if len(objectInfo.SecondarySpAddresses) >= 1 {
+		creator = sdk.MustAccAddressFromHex(objectInfo.SecondarySpAddresses[len(objectInfo.SecondarySpAddresses)-1])
+	}
+	// By default, the creator is the owner
+	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if !operator.Equals(creator) && !operator.Equals(owner) {
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
 	}
 
 	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
@@ -538,7 +551,7 @@ func (k Keeper) CancelCreateObject(
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
-		OperatorAddress:  ownAcc.String(),
+		OperatorAddress:  operator.String(),
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
