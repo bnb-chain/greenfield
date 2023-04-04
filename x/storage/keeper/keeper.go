@@ -480,7 +480,7 @@ func (k Keeper) CreateObject(
 		ObjectName:       objectInfo.ObjectName,
 		BucketId:         bucketInfo.Id,
 		ObjectId:         objectInfo.Id,
-		CreateAt:         bucketInfo.CreateAt,
+		CreateAt:         objectInfo.CreateAt,
 		PayloadSize:      objectInfo.PayloadSize,
 		Visibility:       objectInfo.Visibility,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,

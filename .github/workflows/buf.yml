@@ -16,6 +16,16 @@ jobs:
   protobuf-check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: bufbuild/buf-setup-action@v1
       - run: buf format --diff --exit-code
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Test protobuf changes generates new go files
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
+          go install github.com/regen-network/cosmos-proto/protoc-gen-gocosmos
+          make proto-gen-check

@@ -49,5 +49,9 @@ e2e_test:
 lint:
 	golangci-lint run --fix
 
-ci: proto-format-check build test e2e_start_localchain e2e_test lint
+# ensures the changes of proto files generate new go files
+proto-gen-check: proto-gen
+	git diff --exit-code
+
+ci: proto-format-check build test e2e_start_localchain e2e_test lint proto-gen-check
 	echo "ci passed"
