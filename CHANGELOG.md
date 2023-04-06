@@ -32,7 +32,7 @@
 * [\#112](https://github.com/bnb-chain/greenfield/pull/115) chore: refine sp module
 * [\#129](https://github.com/bnb-chain/greenfield/pull/129) chore: refine payment module
 * [\#117](https://github.com/bnb-chain/greenfield/pull/117) feat: implement validator tax in storage payment
-* [\#116](https://github.com/bnb-chain/greenfield/pull/116) Merge pull request #116 from bnb-chain/refine_challenge
+* [\#116](https://github.com/bnb-chain/greenfield/pull/116) feat: implement challenge module
 * [\#130](https://github.com/bnb-chain/greenfield/pull/130) fix: check status of object before mirroring
 * [\#122](https://github.com/bnb-chain/greenfield/pull/122) chore: refine permission module for code quality 
 * [\#128](https://github.com/bnb-chain/greenfield/pull/128) docs: add the banner of gnfd
