@@ -1,4 +1,21 @@
 # Changelog
+## v0.1.0
+* [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments
+* [\#149](https://github.com/bnb-chain/greenfield/pull/149) fix: get price boundary logic, remove useless query, enhance ci
+* [\#148](https://github.com/bnb-chain/greenfield/pull/148) fix: gas simulation issue  
+* [\#146](https://github.com/bnb-chain/greenfield/pull/146) fix: incorrect assignment of the CreateAt field in EventCreateObject  
+* [\#145](https://github.com/bnb-chain/greenfield/pull/145) feat: add expiration time to event  
+* [\#151](https://github.com/bnb-chain/greenfield/pull/151) feat: Refine events and bugfix
+* [\#153](https://github.com/bnb-chain/greenfield/pull/153) fix: Revert event field changes  
+* [\#154](https://github.com/bnb-chain/greenfield/pull/154) fix: Revert event field changes 
+* [\#155](https://github.com/bnb-chain/greenfield/pull/155) docs: remove docs
+* [\#144](https://github.com/bnb-chain/greenfield/pull/144) fix: get price boundary logic, remove useless query, enhance ci
+* [\#157](https://github.com/bnb-chain/greenfield/pull/157) fix: occasionally timeout in auto-settle e2e test
+* [\#156](https://github.com/bnb-chain/greenfield/pull/156) patch v0.0.11 fix to main branch
+* [\#160](https://github.com/bnb-chain/greenfield/pull/160) feat: Only the creator and owner are allowed to cancel create objects 
+* [\#161](https://github.com/bnb-chain/greenfield/pull/161) fix: update license from GPL to AGPL
+* [\#158](https://github.com/bnb-chain/greenfield/pull/158) fix: sdk gas simulation  
+
 ## v0.0.11
 * [\#140](https://github.com/bnb-chain/greenfield/pull/140) fix: `Visibility` type in `CreateBucketSynPackage`
 * [\#139](https://github.com/bnb-chain/greenfield/pull/139) fix: payment queries
