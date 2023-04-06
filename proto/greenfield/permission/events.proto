@@ -3,6 +3,7 @@ package bnbchain.greenfield.permission;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "greenfield/permission/common.proto";
 import "greenfield/permission/types.proto";
 import "greenfield/resource/types.proto";
@@ -17,7 +18,7 @@ message EventPutPolicy {
     (gogoproto.nullable) = false
   ];
   // principal defines the accounts/group which the permission grants to
-  permission.Principal principal = 2;
+  Principal principal = 2;
   // resource_type defines the type of resource that grants permission for
   resource.ResourceType resource_type = 3;
   // resource_id defines the bucket/object/group id of the resource that grants permission for
@@ -27,7 +28,13 @@ message EventPutPolicy {
     (gogoproto.nullable) = false
   ];
   // statements defines the details content of the permission, include effect/actions/sub-resources
-  repeated permission.Statement statements = 5;
+  repeated Statement statements = 5;
+  // expiration_time defines the whole expiration time of all the statements.
+  // Notices: Its priority is higher than the expiration time inside the Statement
+  google.protobuf.Timestamp expiration_time = 6 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = true
+  ];
 }
 
 message EventDeletePolicy {

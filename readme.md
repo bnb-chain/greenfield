@@ -52,6 +52,9 @@ Users looking to create or access data on Greenfield may do so by engaging with 
 through decentralized applications known as BNB Greenfield dApps. These dApps provide a user-friendly interface for
 interacting with the platform, enabling users to create and manipulate data in a secure and decentralized environment.
 
+## Documentation
+Visit our official [documentation site](https://greenfield.bnbchain.org/docs/guide/) for more info.
+
 ## Quick Started
 
 *Note*: Requires [Go 1.18+](https://go.dev/dl/)
@@ -138,5 +141,5 @@ The greenfield library (i.e. all code outside the `cmd` directory) is licensed u
 also included in our repository in the `COPYING.LESSER` file.
 
 The greenfield binaries (i.e. all code inside the `cmd` directory) is licensed under the
-[GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html), also
+[GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html), also
 included in our repository in the `COPYING` file.

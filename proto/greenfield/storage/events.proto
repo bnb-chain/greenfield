@@ -15,7 +15,7 @@ message EventCreateBucket {
   string bucket_name = 2;
   // visibility defines the highest permissions for bucket. When a bucket is public, everyone can get the object under it.
   VisibilityType visibility = 3;
-  // create_at define the block number when the bucket has been created
+  // create_at define the block timestamp when the bucket has been created
   int64 create_at = 4;
   // bucket_id is the unique u256 for bucket. Not global, only unique in buckets.
   string bucket_id = 5 [
@@ -105,7 +105,7 @@ message EventCreateObject {
   VisibilityType visibility = 10;
   // content_type define the content type of the payload data
   string content_type = 11;
-  // create_at define the block number when the object created
+  // create_at define the block timestamp when the object created
   int64 create_at = 12;
   // status define the status of the object. INIT or IN_SERVICE or others
   ObjectStatus status = 13;
