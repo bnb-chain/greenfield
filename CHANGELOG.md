@@ -1,6 +1,6 @@
 # Changelog
 ## v0.1.0
-* [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments
+* [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments for events.proto in storage (created_at field shows block timestamp instead of block number)
 * [\#149](https://github.com/bnb-chain/greenfield/pull/149) fix: get price boundary logic, remove useless query, enhance ci
 * [\#148](https://github.com/bnb-chain/greenfield/pull/148) fix: gas simulation issue  
 * [\#146](https://github.com/bnb-chain/greenfield/pull/146) fix: incorrect assignment of the CreateAt field in EventCreateObject  
