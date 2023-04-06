@@ -3,6 +3,7 @@ package client
 import (
 	_ "encoding/json"
 
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -86,6 +87,9 @@ type TxClient = tx.ServiceClient
 // UpgradeQueryClient is a type to define the upgrade types Query Client
 type UpgradeQueryClient = upgradetypes.QueryClient
 
+// TmClient is a type to define the tendermint service client
+type TmClient = tmservice.ServiceClient
+
 // GreenfieldClient holds all necessary information for creating/querying transactions.
 type GreenfieldClient struct {
 	// AuthQueryClient holds the auth query client.
@@ -126,6 +130,8 @@ type GreenfieldClient struct {
 	UpgradeQueryClient
 	// TxClient holds the tx service client.
 	TxClient
+	// TmService holds the tendermint service client
+	TmClient
 
 	// keyManager is the manager used for generating and managing keys.
 	keyManager keys.KeyManager
@@ -181,6 +187,7 @@ func NewGreenfieldClient(grpcAddr, chainId string, opts ...GreenfieldClientOptio
 	client.StakingQueryClient = stakingtypes.NewQueryClient(conn)
 	client.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
 	client.TxClient = tx.NewServiceClient(conn)
+	client.TmClient = tmservice.NewServiceClient(conn)
 	return client
 }
 
