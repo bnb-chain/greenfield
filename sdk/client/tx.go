@@ -29,7 +29,7 @@ func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOp
 	txBuilder := txConfig.NewTxBuilder()
 
 	// txBuilder holds tx info
-	if err := c.constructTxWithGasInfo(msgs, txOpt, txConfig, txBuilder); err != nil {
+	if err := c.constructTxWithGasInfo(ctx, msgs, txOpt, txConfig, txBuilder); err != nil {
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOp
 }
 
 // SimulateTx simulates a tx and gets Gas info
-func (c *GreenfieldClient) SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error) {
+func (c *GreenfieldClient) SimulateTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 	err := c.constructTx(msgs, txOpt, txBuilder)
@@ -69,16 +69,16 @@ func (c *GreenfieldClient) SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opt
 	if err != nil {
 		return nil, err
 	}
-	simulateResponse, err := c.simulateTx(txBytes, opts...)
+	simulateResponse, err := c.simulateTx(ctx, txBytes, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return simulateResponse, nil
 }
 
-func (c *GreenfieldClient) simulateTx(txBytes []byte, opts ...grpc.CallOption) (*tx.SimulateResponse, error) {
+func (c *GreenfieldClient) simulateTx(ctx context.Context, txBytes []byte, opts ...grpc.CallOption) (*tx.SimulateResponse, error) {
 	simulateResponse, err := c.TxClient.Simulate(
-		context.Background(),
+		ctx,
 		&tx.SimulateRequest{
 			TxBytes: txBytes,
 		},
@@ -91,10 +91,10 @@ func (c *GreenfieldClient) simulateTx(txBytes []byte, opts ...grpc.CallOption) (
 }
 
 // SignTx signs the tx with private key and returns bytes
-func (c *GreenfieldClient) SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error) {
+func (c *GreenfieldClient) SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
-	if err := c.constructTxWithGasInfo(msgs, txOpt, txConfig, txBuilder); err != nil {
+	if err := c.constructTxWithGasInfo(ctx, msgs, txOpt, txConfig, txBuilder); err != nil {
 		return nil, err
 	}
 	return c.signTx(txConfig, txBuilder, txOpt)
@@ -197,7 +197,7 @@ func (c *GreenfieldClient) constructTx(msgs []sdk.Msg, txOpt *types.TxOption, tx
 	return c.setSingerInfo(txBuilder, txOpt)
 }
 
-func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.TxOption, txConfig client.TxConfig, txBuilder client.TxBuilder) error {
+func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, txConfig client.TxConfig, txBuilder client.TxBuilder) error {
 	// construct a tx with txOpt excluding GasLimit and
 	if err := c.constructTx(msgs, txOpt, txBuilder); err != nil {
 		return err
@@ -220,7 +220,7 @@ func (c *GreenfieldClient) constructTxWithGasInfo(msgs []sdk.Msg, txOpt *types.T
 		return nil
 	}
 
-	simulateRes, err := c.simulateTx(txBytes)
+	simulateRes, err := c.simulateTx(ctx, txBytes)
 	if err != nil {
 		return err
 	}

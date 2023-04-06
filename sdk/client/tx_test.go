@@ -90,7 +90,7 @@ func TestSimulateTx(t *testing.T) {
 	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
-	simulateRes, err := gnfdCli.SimulateTx([]sdk.Msg{transfer}, nil)
+	simulateRes, err := gnfdCli.SimulateTx(context.Background(), []sdk.Msg{transfer}, nil)
 	assert.NoError(t, err)
 	t.Log(simulateRes.GasInfo.String())
 }
