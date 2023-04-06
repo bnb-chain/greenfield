@@ -14,11 +14,12 @@ import (
 func (k Keeper) SetPaymentAccount(ctx sdk.Context, paymentAccount *types.PaymentAccount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 	key := types.PaymentAccountKey(sdk.MustAccAddressFromHex(paymentAccount.Addr))
+	addr := paymentAccount.Addr
 	paymentAccount.Addr = ""
 	b := k.cdc.MustMarshal(paymentAccount)
 	store.Set(key, b)
 	_ = ctx.EventManager().EmitTypedEvents(&types.EventPaymentAccountUpdate{
-		Addr:       paymentAccount.Addr,
+		Addr:       addr,
 		Owner:      paymentAccount.Owner,
 		Refundable: paymentAccount.Refundable,
 	})
