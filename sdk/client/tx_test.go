@@ -77,7 +77,7 @@ func TestErrorOutWhenGasInfoNotFullProvided(t *testing.T) {
 		Memo:       "test",
 		FeePayer:   payerAddr,
 	}
-	_, err = gnfdCli.BroadcastTx([]sdk.Msg{transfer}, txOpt)
+	_, err = gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, txOpt)
 	assert.Equal(t, err, types.GasInfoNotProvidedError)
 }
 
