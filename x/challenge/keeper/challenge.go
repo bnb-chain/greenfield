@@ -97,13 +97,17 @@ func (k Keeper) AppendAttestChallengeId(ctx sdk.Context, challengeId uint64) {
 	idBz := make([]byte, 8)
 	binary.BigEndian.PutUint64(idBz, challengeId)
 
-	if uint64(len(bz)) < maxToKeep*8 {
+	bzLen := uint64(len(bz))
+	keepLen := maxToKeep * 8
+	if bzLen < keepLen {
 		bz = append(bz, idBz...)
+		store.Set(types.AttestChallengeIdKey, bz)
 	} else {
-		copy(bz[(maxToKeep-1)*8:], idBz)
+		newBz := make([]byte, keepLen)
+		copy(newBz, bz[bzLen-keepLen+8:])
+		copy(newBz[keepLen-8:], idBz[:])
+		store.Set(types.AttestChallengeIdKey, newBz)
 	}
-
-	store.Set(types.AttestChallengeIdKey, bz)
 }
 
 // GetChallengeCountCurrentBlock gets the count of challenges

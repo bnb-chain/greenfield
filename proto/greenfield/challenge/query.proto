@@ -53,7 +53,7 @@ message QueryInturnAttestationSubmitterRequest {}
 
 // QueryInturnAttestationSubmitterResponse is response type for the Query/InturnAttestationSubmitter RPC method.
 message QueryInturnAttestationSubmitterResponse {
-  string        bls_pub_key = 1;
+  string bls_pub_key = 1;
   SubmitInterval submit_interval = 2;
 }
 
