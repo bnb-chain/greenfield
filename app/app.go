@@ -736,6 +736,8 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	// TODO: remove this after we have a better way to handle this
+	app.initGashub(ctx)
 	return app.mm.BeginBlock(ctx, req)
 }
 

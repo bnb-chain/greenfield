@@ -1,4 +1,8 @@
 # Changelog
+
+## v0.1.1
+* [\#166](https://github.com/bnb-chain/greenfield/pull/166) fix: gashub causes state sync to fail to synchronize
+
 ## v0.1.0
 * [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments for events.proto in storage (created_at field shows block timestamp instead of block number)
 * [\#149](https://github.com/bnb-chain/greenfield/pull/149) fix: get price boundary logic, remove useless query, enhance ci
