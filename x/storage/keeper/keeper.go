@@ -342,7 +342,7 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
 	}
 
-	// construct objectInfo
+	// check payload size, the empty object doesn't need sealed
 	var objectStatus types.ObjectStatus
 	if payloadSize == 0 {
 		// empty object does not interact with sp
@@ -351,6 +351,7 @@ func (k Keeper) CreateObject(
 		objectStatus = types.OBJECT_STATUS_CREATED
 	}
 
+	// construct objectInfo
 	objectInfo := types.ObjectInfo{
 		Owner:                bucketInfo.Owner,
 		BucketName:           bucketName,
@@ -667,6 +668,15 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), err
 	}
 
+	// check payload size, the empty object doesn't need sealed
+	var objectStatus types.ObjectStatus
+	if srcObjectInfo.PayloadSize == 0 {
+		// empty object does not interact with sp
+		objectStatus = types.OBJECT_STATUS_SEALED
+	} else {
+		objectStatus = types.OBJECT_STATUS_CREATED
+	}
+
 	objectInfo := types.ObjectInfo{
 		Owner:          operator.String(),
 		BucketName:     dstBucketInfo.BucketName,
@@ -676,7 +686,7 @@ func (k Keeper) CopyObject(
 		ContentType:    srcObjectInfo.ContentType,
 		CreateAt:       ctx.BlockHeight(),
 		Id:             k.GenNextObjectID(ctx),
-		ObjectStatus:   types.OBJECT_STATUS_CREATED,
+		ObjectStatus:   objectStatus,
 		RedundancyType: srcObjectInfo.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      srcObjectInfo.Checksums,
