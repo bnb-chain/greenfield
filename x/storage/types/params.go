@@ -17,12 +17,12 @@ const (
 	DefaultMaxBucketsPerAccount    uint32 = 100
 	DefaultMinChargeSize           uint64 = 1 * 1024 * 1024 // 1M
 
-	DefaultMirrorBucketRelayerFee    = "1000000000000000" // 0.01
-	DefaultMirrorBucketAckRelayerFee = "0"
-	DefaultMirrorObjectRelayerFee    = "1000000000000000" // 0.01
-	DefaultMirrorObjectAckRelayerFee = "0"
-	DefaultMirrorGroupRelayerFee     = "1000000000000000" // 0.01
-	DefaultMirrorGroupAckRelayerFee  = "0"
+	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025
+	DefaultMirrorBucketAckRelayerFee = "250000000000000" // 0.00025
+	DefaultMirrorObjectRelayerFee    = "250000000000000" // 0.00025
+	DefaultMirrorObjectAckRelayerFee = "250000000000000" // 0.00025
+	DefaultMirrorGroupRelayerFee     = "250000000000000" // 0.00025
+	DefaultMirrorGroupAckRelayerFee  = "250000000000000" // 0.00025
 )
 
 var (
