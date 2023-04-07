@@ -26,8 +26,10 @@ type KeyManager interface {
 type keyManager struct {
 	privKey  ctypes.PrivKey
 	mnemonic string
+	addr     types.AccAddress
 }
 
+// TODO: NewKeyStoreKeyManager to be implemented
 func NewPrivateKeyManager(priKey string) (KeyManager, error) {
 	k := keyManager{}
 	err := k.recoveryFromPrivateKey(priKey)
@@ -46,7 +48,6 @@ func NewBlsMnemonicKeyManager(mnemonic string) (KeyManager, error) {
 	return &k, err
 }
 
-// TODO NewKeyStoreKeyManager to be implemented
 func (km *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	priBytes, err := hex.DecodeString(privateKey)
 	if err != nil {
@@ -60,6 +61,7 @@ func (km *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	copy(keyBytesArray[:], priBytes[:32])
 	priKey := ethHd.EthSecp256k1.Generate()(keyBytesArray[:]).(*ethsecp256k1.PrivKey)
 	km.privKey = priKey
+	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
 }
 
@@ -81,6 +83,7 @@ func (km *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 	priKey := ethHd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
 	km.privKey = priKey
 	km.mnemonic = mnemonic
+	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
 }
 
@@ -98,6 +101,7 @@ func (km *keyManager) recoveryBlsFromMnemonic(mnemonic, keyPath string) error {
 	priKey := hd.EthBLS.Generate()(derivedPriv)
 	km.privKey = priKey
 	km.mnemonic = mnemonic
+	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
 }
 
@@ -122,7 +126,7 @@ func (km *keyManager) Type() string {
 }
 
 func (km *keyManager) GetAddr() types.AccAddress {
-	return types.AccAddress(km.privKey.PubKey().Address())
+	return km.addr
 }
 
 func (km *keyManager) String() string { return km.mnemonic }
