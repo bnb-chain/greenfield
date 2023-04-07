@@ -63,6 +63,16 @@ var (
 	DefaultHeartbeatInterval uint64 = 1000
 )
 
+var (
+	KeyAttestationInturnInterval            = []byte("AttestationInturnInterval")
+	DefaultAttestationInturnInterval uint64 = 120 // in seconds
+)
+
+var (
+	KeyAttestationKeptCount            = []byte("AttestationKeptCount")
+	DefaultAttestationKeptCount uint64 = 10
+)
+
 // ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
@@ -80,18 +90,22 @@ func NewParams(
 	rewardSubmitterRatio sdk.Dec,
 	rewardSubmitterThreshold math.Int,
 	heartbeatInterval uint64,
+	attestationInturnInterval uint64,
+	attestationKeptCount uint64,
 ) Params {
 	return Params{
-		ChallengeCountPerBlock:   challengeCountPerBlock,
-		ChallengeKeepAlivePeriod: challengeKeepAlivePeriod,
-		SlashCoolingOffPeriod:    slashCoolingOffPeriod,
-		SlashAmountSizeRate:      slashAmountSizeRate,
-		SlashAmountMin:           slashAmountMin,
-		SlashAmountMax:           slashAmountMax,
-		RewardValidatorRatio:     rewardValidatorRatio,
-		RewardSubmitterRatio:     rewardSubmitterRatio,
-		RewardSubmitterThreshold: rewardSubmitterThreshold,
-		HeartbeatInterval:        heartbeatInterval,
+		ChallengeCountPerBlock:    challengeCountPerBlock,
+		ChallengeKeepAlivePeriod:  challengeKeepAlivePeriod,
+		SlashCoolingOffPeriod:     slashCoolingOffPeriod,
+		SlashAmountSizeRate:       slashAmountSizeRate,
+		SlashAmountMin:            slashAmountMin,
+		SlashAmountMax:            slashAmountMax,
+		RewardValidatorRatio:      rewardValidatorRatio,
+		RewardSubmitterRatio:      rewardSubmitterRatio,
+		RewardSubmitterThreshold:  rewardSubmitterThreshold,
+		HeartbeatInterval:         heartbeatInterval,
+		AttestationInturnInterval: attestationInturnInterval,
+		AttestationKeptCount:      attestationKeptCount,
 	}
 }
 
@@ -108,6 +122,8 @@ func DefaultParams() Params {
 		DefaultRewardSubmitterRatio,
 		DefaultRewardSubmitterThreshold,
 		DefaultHeartbeatInterval,
+		DefaultAttestationInturnInterval,
+		DefaultAttestationKeptCount,
 	)
 }
 
@@ -124,6 +140,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyRewardSubmitterRatio, &p.RewardSubmitterRatio, validateRewardSubmitterRatio),
 		paramtypes.NewParamSetPair(KeyRewardSubmitterThreshold, &p.RewardSubmitterThreshold, validateRewardSubmitterThreshold),
 		paramtypes.NewParamSetPair(KeyHeartbeatInterval, &p.HeartbeatInterval, validateHeartbeatInterval),
+		paramtypes.NewParamSetPair(KeyAttestationInturnInterval, &p.AttestationInturnInterval, validateAttestationInturnInterval),
+		paramtypes.NewParamSetPair(KeyAttestationKeptCount, &p.AttestationKeptCount, validateAttestationKeptCount),
 	}
 }
 
@@ -312,6 +330,32 @@ func validateHeartbeatInterval(v interface{}) error {
 	}
 	if heartbeatInterval == 0 {
 		return errors.New("heartbeat interval cannot be zero")
+	}
+
+	return nil
+}
+
+// validateAttestationInturnInterval validates the AttestationInturnInterval param
+func validateAttestationInturnInterval(v interface{}) error {
+	inturnInterval, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+	if inturnInterval == 0 {
+		return errors.New("attestation inturn interval cannot be zero")
+	}
+
+	return nil
+}
+
+// validateAttestationKeptCount validates the AttestationKeptCount param
+func validateAttestationKeptCount(v interface{}) error {
+	count, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+	if count == 0 {
+		return errors.New("attestation kept count interval cannot be zero")
 	}
 
 	return nil

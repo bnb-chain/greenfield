@@ -145,6 +145,7 @@ function generate_genesis() {
         sed -i -e "s/\"challenge_count_per_block\": \"1\"/\"challenge_count_per_block\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"challenge_keep_alive_period\": \"300\"/\"challenge_keep_alive_period\": \"50\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"attestation_inturn_interval\": \"120\"/\"attestation_inturn_interval\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"time_iota_ms\": \"1000\"/\"time_iota_ms\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done
 

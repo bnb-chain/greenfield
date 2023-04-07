@@ -178,7 +178,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 
 	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
@@ -188,12 +188,33 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	}
 	msgAttest.VoteAggSignature = voteAggSignature
 
-	txRes = s.SendTxBlock(msgAttest, user)
+	// wait to its turn
+	for {
+		queryRes, err := s.Client.ChallengeQueryClient.InturnAttestationSubmitter(context.Background(), &challengetypes.QueryInturnAttestationSubmitterRequest{})
+		s.Require().NoError(err)
+
+		s.T().Logf("current submitter %s, interval: %d - %d", queryRes.BlsPubKey,
+			queryRes.SubmitInterval.Start, queryRes.SubmitInterval.End)
+
+		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.GetPrivKey().PubKey().Bytes()) {
+			break
+		}
+	}
+
+	// submit attest
+	txRes = s.SendTxBlock(msgAttest, s.Challenger)
 	s.Require().True(txRes.Code == 0)
 
-	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
+	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
 	s.Require().NoError(err)
-	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
+	found := false
+	for _, challengeId := range queryRes.ChallengeIds {
+		if challengeId == event.ChallengeId {
+			found = true
+			break
+		}
+	}
+	s.Require().True(found)
 }
 
 func (s *ChallengeTestSuite) TestHeartbeatAttest() {
@@ -202,7 +223,6 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	}
 
 	heartbeatInterval := uint64(100)
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	var event challengetypes.EventStartChallenge
 	found := false
@@ -236,7 +256,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 
 	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId,
+	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId,
 		event.SpOperatorAddress, challengetypes.CHALLENGE_FAILED, "", valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
@@ -246,12 +266,33 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	}
 	msgAttest.VoteAggSignature = voteAggSignature
 
-	txRes := s.SendTxBlock(msgAttest, user)
+	// wait to its turn
+	for {
+		queryRes, err := s.Client.ChallengeQueryClient.InturnAttestationSubmitter(context.Background(), &challengetypes.QueryInturnAttestationSubmitterRequest{})
+		s.Require().NoError(err)
+
+		s.T().Logf("current submitter %s, interval: %d - %d", queryRes.BlsPubKey,
+			queryRes.SubmitInterval.Start, queryRes.SubmitInterval.End)
+
+		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.GetPrivKey().PubKey().Bytes()) {
+			break
+		}
+	}
+
+	// submit attest
+	txRes := s.SendTxBlock(msgAttest, s.Challenger)
 	s.Require().True(txRes.Code == 0)
 
-	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
+	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
 	s.Require().NoError(err)
-	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
+	found = false
+	for _, challengeId := range queryRes.ChallengeIds {
+		if challengeId == event.ChallengeId {
+			found = true
+			break
+		}
+	}
+	s.Require().True(found)
 }
 
 func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {

@@ -69,23 +69,40 @@ func getChallengeKeyBytes(challengeId uint64) []byte {
 	return bz
 }
 
-// GetAttestChallengeId gets the challenge id of the latest attestation challenge
-func (k Keeper) GetAttestChallengeId(ctx sdk.Context) uint64 {
+// GetAttestChallengeIds gets the challenge id of the latest attestation challenge
+func (k Keeper) GetAttestChallengeIds(ctx sdk.Context) []uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	bz := store.Get(types.AttestChallengeIdKey)
 
 	if bz == nil {
-		return 0
+		return []uint64{}
 	}
 
-	return binary.BigEndian.Uint64(bz)
+	ids := []uint64{}
+	for i := 0; i < len(bz)/8; i++ {
+		id := binary.BigEndian.Uint64(bz[i*8 : (i+1)*8])
+		ids = append(ids, id)
+	}
+
+	return ids
 }
 
-// SetAttestChallengeId sets the new id of challenge to the store
-func (k Keeper) SetAttestChallengeId(ctx sdk.Context, challengeId uint64) {
+// AppendAttestChallengeId sets the new id of challenge to the store
+func (k Keeper) AppendAttestChallengeId(ctx sdk.Context, challengeId uint64) {
+	maxToKeep := k.KeyAttestationKeptCount(ctx)
+
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, challengeId)
+	bz := store.Get(types.AttestChallengeIdKey)
+
+	idBz := make([]byte, 8)
+	binary.BigEndian.PutUint64(idBz, challengeId)
+
+	if uint64(len(bz)) < maxToKeep*8 {
+		bz = append(bz, idBz...)
+	} else {
+		copy(bz[(maxToKeep-1)*8:], idBz)
+	}
+
 	store.Set(types.AttestChallengeIdKey, bz)
 }
 

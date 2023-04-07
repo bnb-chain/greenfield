@@ -114,22 +114,22 @@ func (m *QueryParamsResponse) GetParams() Params {
 	return Params{}
 }
 
-// QueryParamsRequest is request type for the Query/LatestAttestedChallenge RPC method.
-type QueryLatestAttestedChallengeRequest struct {
+// QueryLatestAttestedChallengesRequest is request type for the Query/LatestAttestedChallenges RPC method.
+type QueryLatestAttestedChallengesRequest struct {
 }
 
-func (m *QueryLatestAttestedChallengeRequest) Reset()         { *m = QueryLatestAttestedChallengeRequest{} }
-func (m *QueryLatestAttestedChallengeRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryLatestAttestedChallengeRequest) ProtoMessage()    {}
-func (*QueryLatestAttestedChallengeRequest) Descriptor() ([]byte, []int) {
+func (m *QueryLatestAttestedChallengesRequest) Reset()         { *m = QueryLatestAttestedChallengesRequest{} }
+func (m *QueryLatestAttestedChallengesRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryLatestAttestedChallengesRequest) ProtoMessage()    {}
+func (*QueryLatestAttestedChallengesRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f6f1807fa0a2b619, []int{2}
 }
-func (m *QueryLatestAttestedChallengeRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryLatestAttestedChallengesRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryLatestAttestedChallengeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryLatestAttestedChallengesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryLatestAttestedChallengeRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryLatestAttestedChallengesRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -139,35 +139,35 @@ func (m *QueryLatestAttestedChallengeRequest) XXX_Marshal(b []byte, deterministi
 		return b[:n], nil
 	}
 }
-func (m *QueryLatestAttestedChallengeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryLatestAttestedChallengeRequest.Merge(m, src)
+func (m *QueryLatestAttestedChallengesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryLatestAttestedChallengesRequest.Merge(m, src)
 }
-func (m *QueryLatestAttestedChallengeRequest) XXX_Size() int {
+func (m *QueryLatestAttestedChallengesRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryLatestAttestedChallengeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryLatestAttestedChallengeRequest.DiscardUnknown(m)
+func (m *QueryLatestAttestedChallengesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryLatestAttestedChallengesRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryLatestAttestedChallengeRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryLatestAttestedChallengesRequest proto.InternalMessageInfo
 
-// QueryParamsResponse is response type for the Query/LatestAttestedChallenge RPC method.
-type QueryLatestAttestedChallengeResponse struct {
-	ChallengeId uint64 `protobuf:"varint,1,opt,name=challengeId,proto3" json:"challengeId,omitempty"`
+// QueryLatestAttestedChallengesResponse is response type for the Query/LatestAttestedChallenges RPC method.
+type QueryLatestAttestedChallengesResponse struct {
+	ChallengeIds []uint64 `protobuf:"varint,1,rep,packed,name=challengeIds,proto3" json:"challengeIds,omitempty"`
 }
 
-func (m *QueryLatestAttestedChallengeResponse) Reset()         { *m = QueryLatestAttestedChallengeResponse{} }
-func (m *QueryLatestAttestedChallengeResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryLatestAttestedChallengeResponse) ProtoMessage()    {}
-func (*QueryLatestAttestedChallengeResponse) Descriptor() ([]byte, []int) {
+func (m *QueryLatestAttestedChallengesResponse) Reset()         { *m = QueryLatestAttestedChallengesResponse{} }
+func (m *QueryLatestAttestedChallengesResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryLatestAttestedChallengesResponse) ProtoMessage()    {}
+func (*QueryLatestAttestedChallengesResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f6f1807fa0a2b619, []int{3}
 }
-func (m *QueryLatestAttestedChallengeResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryLatestAttestedChallengesResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryLatestAttestedChallengeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryLatestAttestedChallengesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryLatestAttestedChallengeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryLatestAttestedChallengesResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -177,21 +177,168 @@ func (m *QueryLatestAttestedChallengeResponse) XXX_Marshal(b []byte, determinist
 		return b[:n], nil
 	}
 }
-func (m *QueryLatestAttestedChallengeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryLatestAttestedChallengeResponse.Merge(m, src)
+func (m *QueryLatestAttestedChallengesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryLatestAttestedChallengesResponse.Merge(m, src)
 }
-func (m *QueryLatestAttestedChallengeResponse) XXX_Size() int {
+func (m *QueryLatestAttestedChallengesResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryLatestAttestedChallengeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryLatestAttestedChallengeResponse.DiscardUnknown(m)
+func (m *QueryLatestAttestedChallengesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryLatestAttestedChallengesResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryLatestAttestedChallengeResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryLatestAttestedChallengesResponse proto.InternalMessageInfo
 
-func (m *QueryLatestAttestedChallengeResponse) GetChallengeId() uint64 {
+func (m *QueryLatestAttestedChallengesResponse) GetChallengeIds() []uint64 {
 	if m != nil {
-		return m.ChallengeId
+		return m.ChallengeIds
+	}
+	return nil
+}
+
+// QueryInturnAttestationSubmitterRequest is request type for the Query/InturnAttestationSubmitter RPC method.
+type QueryInturnAttestationSubmitterRequest struct {
+}
+
+func (m *QueryInturnAttestationSubmitterRequest) Reset() {
+	*m = QueryInturnAttestationSubmitterRequest{}
+}
+func (m *QueryInturnAttestationSubmitterRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryInturnAttestationSubmitterRequest) ProtoMessage()    {}
+func (*QueryInturnAttestationSubmitterRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f6f1807fa0a2b619, []int{4}
+}
+func (m *QueryInturnAttestationSubmitterRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryInturnAttestationSubmitterRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryInturnAttestationSubmitterRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryInturnAttestationSubmitterRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryInturnAttestationSubmitterRequest.Merge(m, src)
+}
+func (m *QueryInturnAttestationSubmitterRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryInturnAttestationSubmitterRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryInturnAttestationSubmitterRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryInturnAttestationSubmitterRequest proto.InternalMessageInfo
+
+// QueryInturnAttestationSubmitterResponse is response type for the Query/InturnAttestationSubmitter RPC method.
+type QueryInturnAttestationSubmitterResponse struct {
+	BlsPubKey      string          `protobuf:"bytes,1,opt,name=bls_pub_key,json=blsPubKey,proto3" json:"bls_pub_key,omitempty"`
+	SubmitInterval *SubmitInterval `protobuf:"bytes,2,opt,name=submit_interval,json=submitInterval,proto3" json:"submit_interval,omitempty"`
+}
+
+func (m *QueryInturnAttestationSubmitterResponse) Reset() {
+	*m = QueryInturnAttestationSubmitterResponse{}
+}
+func (m *QueryInturnAttestationSubmitterResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryInturnAttestationSubmitterResponse) ProtoMessage()    {}
+func (*QueryInturnAttestationSubmitterResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f6f1807fa0a2b619, []int{5}
+}
+func (m *QueryInturnAttestationSubmitterResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryInturnAttestationSubmitterResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryInturnAttestationSubmitterResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryInturnAttestationSubmitterResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryInturnAttestationSubmitterResponse.Merge(m, src)
+}
+func (m *QueryInturnAttestationSubmitterResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryInturnAttestationSubmitterResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryInturnAttestationSubmitterResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryInturnAttestationSubmitterResponse proto.InternalMessageInfo
+
+func (m *QueryInturnAttestationSubmitterResponse) GetBlsPubKey() string {
+	if m != nil {
+		return m.BlsPubKey
+	}
+	return ""
+}
+
+func (m *QueryInturnAttestationSubmitterResponse) GetSubmitInterval() *SubmitInterval {
+	if m != nil {
+		return m.SubmitInterval
+	}
+	return nil
+}
+
+// SubmitInterval holds start and end (exclusive) (i.e., [start, end)) time of in turn attestation.
+type SubmitInterval struct {
+	Start uint64 `protobuf:"varint,1,opt,name=start,proto3" json:"start,omitempty"`
+	End   uint64 `protobuf:"varint,2,opt,name=end,proto3" json:"end,omitempty"`
+}
+
+func (m *SubmitInterval) Reset()         { *m = SubmitInterval{} }
+func (m *SubmitInterval) String() string { return proto.CompactTextString(m) }
+func (*SubmitInterval) ProtoMessage()    {}
+func (*SubmitInterval) Descriptor() ([]byte, []int) {
+	return fileDescriptor_f6f1807fa0a2b619, []int{6}
+}
+func (m *SubmitInterval) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SubmitInterval) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SubmitInterval.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SubmitInterval) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SubmitInterval.Merge(m, src)
+}
+func (m *SubmitInterval) XXX_Size() int {
+	return m.Size()
+}
+func (m *SubmitInterval) XXX_DiscardUnknown() {
+	xxx_messageInfo_SubmitInterval.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SubmitInterval proto.InternalMessageInfo
+
+func (m *SubmitInterval) GetStart() uint64 {
+	if m != nil {
+		return m.Start
+	}
+	return 0
+}
+
+func (m *SubmitInterval) GetEnd() uint64 {
+	if m != nil {
+		return m.End
 	}
 	return 0
 }
@@ -199,40 +346,53 @@ func (m *QueryLatestAttestedChallengeResponse) GetChallengeId() uint64 {
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "bnbchain.greenfield.challenge.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "bnbchain.greenfield.challenge.QueryParamsResponse")
-	proto.RegisterType((*QueryLatestAttestedChallengeRequest)(nil), "bnbchain.greenfield.challenge.QueryLatestAttestedChallengeRequest")
-	proto.RegisterType((*QueryLatestAttestedChallengeResponse)(nil), "bnbchain.greenfield.challenge.QueryLatestAttestedChallengeResponse")
+	proto.RegisterType((*QueryLatestAttestedChallengesRequest)(nil), "bnbchain.greenfield.challenge.QueryLatestAttestedChallengesRequest")
+	proto.RegisterType((*QueryLatestAttestedChallengesResponse)(nil), "bnbchain.greenfield.challenge.QueryLatestAttestedChallengesResponse")
+	proto.RegisterType((*QueryInturnAttestationSubmitterRequest)(nil), "bnbchain.greenfield.challenge.QueryInturnAttestationSubmitterRequest")
+	proto.RegisterType((*QueryInturnAttestationSubmitterResponse)(nil), "bnbchain.greenfield.challenge.QueryInturnAttestationSubmitterResponse")
+	proto.RegisterType((*SubmitInterval)(nil), "bnbchain.greenfield.challenge.SubmitInterval")
 }
 
 func init() { proto.RegisterFile("greenfield/challenge/query.proto", fileDescriptor_f6f1807fa0a2b619) }
 
 var fileDescriptor_f6f1807fa0a2b619 = []byte{
-	// 412 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x92, 0x41, 0x6b, 0xdb, 0x30,
-	0x18, 0x86, 0xed, 0x90, 0xe5, 0xa0, 0xdc, 0xb4, 0xc0, 0x36, 0x93, 0x79, 0x99, 0x97, 0xc0, 0x18,
-	0xcc, 0xc2, 0xd9, 0x61, 0xe7, 0x25, 0x97, 0x8d, 0xed, 0xb0, 0xe5, 0x98, 0x4b, 0x90, 0x1c, 0x4d,
-	0x31, 0x38, 0x92, 0x63, 0x2b, 0xa5, 0xb9, 0xf6, 0x17, 0x14, 0x4a, 0xff, 0x53, 0x8e, 0x81, 0x5e,
-	0x0a, 0x85, 0x52, 0x92, 0xfe, 0x8d, 0x42, 0x89, 0x24, 0xa7, 0x69, 0x9b, 0xba, 0x2d, 0xbd, 0x18,
-	0xeb, 0xd3, 0xfb, 0xbe, 0x7a, 0xbe, 0x4f, 0x02, 0x0d, 0x96, 0x52, 0xca, 0xff, 0x47, 0x34, 0x1e,
-	0xa2, 0x70, 0x84, 0xe3, 0x98, 0x72, 0x46, 0xd1, 0x64, 0x4a, 0xd3, 0x99, 0x9f, 0xa4, 0x42, 0x0a,
-	0xf8, 0x9e, 0x70, 0x12, 0x8e, 0x70, 0xc4, 0xfd, 0x1b, 0xa9, 0xbf, 0x91, 0x3a, 0x5f, 0x42, 0x91,
-	0x8d, 0x45, 0x86, 0x08, 0xce, 0x8c, 0x0f, 0xed, 0x05, 0x84, 0x4a, 0x1c, 0xa0, 0x04, 0xb3, 0x88,
-	0x63, 0x19, 0x09, 0xae, 0xa3, 0x9c, 0x77, 0x5a, 0x3b, 0x50, 0x2b, 0xa4, 0x17, 0x66, 0xab, 0xc6,
-	0x04, 0x13, 0xba, 0xbe, 0xfe, 0x33, 0xd5, 0x3a, 0x13, 0x82, 0xc5, 0x14, 0xe1, 0x24, 0x42, 0x98,
-	0x73, 0x21, 0x55, 0x5a, 0xee, 0xf9, 0xb8, 0x93, 0x3d, 0xc1, 0x29, 0x1e, 0xe7, 0x92, 0xdd, 0xed,
-	0xc9, 0x59, 0x42, 0x8d, 0xc2, 0xab, 0x01, 0xf8, 0x6f, 0x4d, 0xfd, 0x57, 0xd9, 0x7a, 0x74, 0x32,
-	0xa5, 0x99, 0xf4, 0xfa, 0xe0, 0xf5, 0xad, 0x6a, 0x96, 0x08, 0x9e, 0x51, 0xd8, 0x05, 0x15, 0x1d,
-	0xff, 0xd6, 0x6e, 0xd8, 0x9f, 0xab, 0xed, 0x96, 0x5f, 0x38, 0x1c, 0x5f, 0xdb, 0x3b, 0xe5, 0xf9,
-	0xf9, 0x07, 0xab, 0x67, 0xac, 0x5e, 0x0b, 0x7c, 0x52, 0xd9, 0x7f, 0xb0, 0xa4, 0x99, 0xfc, 0x21,
-	0xd7, 0x5f, 0x3a, 0xec, 0xe6, 0xa6, 0x1c, 0xe1, 0x27, 0x68, 0x16, 0xcb, 0x0c, 0x53, 0x03, 0x54,
-	0x37, 0x07, 0xfe, 0x1a, 0x2a, 0xb0, 0x72, 0x6f, 0xbb, 0xd4, 0xbe, 0x2a, 0x81, 0x57, 0x2a, 0x0a,
-	0x1e, 0xdb, 0xa0, 0xa2, 0x99, 0x60, 0xf0, 0x08, 0xfa, 0xfd, 0xa1, 0x38, 0xed, 0xe7, 0x58, 0x34,
-	0x9d, 0xd7, 0x3c, 0x38, 0xb9, 0x3c, 0x2a, 0xb9, 0xb0, 0x8e, 0x0a, 0x2e, 0x0b, 0x9e, 0xd9, 0xe0,
-	0xcd, 0x03, 0x7d, 0xc2, 0xce, 0x53, 0x4e, 0x2d, 0x9e, 0xa5, 0xd3, 0x7d, 0x51, 0x86, 0x69, 0xe5,
-	0xbb, 0x6a, 0x25, 0x80, 0x68, 0x77, 0x2b, 0xb1, 0xb2, 0x0f, 0xb0, 0xf1, 0x0f, 0x36, 0x3b, 0x9d,
-	0xdf, 0xf3, 0xa5, 0x6b, 0x2f, 0x96, 0xae, 0x7d, 0xb1, 0x74, 0xed, 0xc3, 0x95, 0x6b, 0x2d, 0x56,
-	0xae, 0x75, 0xba, 0x72, 0xad, 0x7e, 0xc0, 0x22, 0x39, 0x9a, 0x12, 0x3f, 0x14, 0x63, 0x44, 0x38,
-	0xf9, 0xaa, 0x10, 0xb7, 0xe3, 0xf7, 0xef, 0xbe, 0x5a, 0x52, 0x51, 0xcf, 0xf6, 0xdb, 0x75, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0xea, 0x5e, 0x86, 0x84, 0xb9, 0x03, 0x00, 0x00,
+	// 567 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x54, 0x41, 0x6b, 0x13, 0x41,
+	0x18, 0xcd, 0xb6, 0x69, 0xa0, 0x53, 0xa9, 0x32, 0xe6, 0x10, 0x97, 0xba, 0xd6, 0xa5, 0xad, 0x41,
+	0xe8, 0x0e, 0x89, 0x82, 0xe2, 0xcd, 0x46, 0x85, 0x10, 0x0f, 0x75, 0x05, 0x0f, 0xbd, 0x2c, 0x33,
+	0xc9, 0xb8, 0x59, 0xdc, 0xcc, 0x6c, 0x77, 0x66, 0x8b, 0xb9, 0xfa, 0x0b, 0x04, 0xf1, 0x07, 0xf8,
+	0x6f, 0x7a, 0x2c, 0x78, 0xf1, 0x54, 0x24, 0x11, 0x04, 0x7f, 0x85, 0xec, 0xcc, 0x6c, 0x34, 0x9a,
+	0x76, 0x5b, 0x7a, 0x59, 0x76, 0xbe, 0x7d, 0xef, 0x7d, 0xef, 0x7d, 0xfb, 0x31, 0x60, 0x33, 0x4c,
+	0x29, 0x65, 0x6f, 0x23, 0x1a, 0x0f, 0x50, 0x7f, 0x88, 0xe3, 0x98, 0xb2, 0x90, 0xa2, 0xc3, 0x8c,
+	0xa6, 0x63, 0x2f, 0x49, 0xb9, 0xe4, 0xf0, 0x36, 0x61, 0xa4, 0x3f, 0xc4, 0x11, 0xf3, 0xfe, 0x40,
+	0xbd, 0x19, 0xd4, 0xbe, 0xdf, 0xe7, 0x62, 0xc4, 0x05, 0x22, 0x58, 0x18, 0x1e, 0x3a, 0x6a, 0x11,
+	0x2a, 0x71, 0x0b, 0x25, 0x38, 0x8c, 0x18, 0x96, 0x11, 0x67, 0x5a, 0xca, 0xbe, 0xa5, 0xb1, 0x81,
+	0x3a, 0x21, 0x7d, 0x30, 0x9f, 0xea, 0x21, 0x0f, 0xb9, 0xae, 0xe7, 0x6f, 0xa6, 0xba, 0x11, 0x72,
+	0x1e, 0xc6, 0x14, 0xe1, 0x24, 0x42, 0x98, 0x31, 0x2e, 0x95, 0x5a, 0xc1, 0xb9, 0xbb, 0xd0, 0x7b,
+	0x82, 0x53, 0x3c, 0x2a, 0x20, 0x8b, 0xe3, 0xc9, 0x71, 0x42, 0x0d, 0xc2, 0xad, 0x03, 0xf8, 0x2a,
+	0x77, 0xbd, 0xaf, 0x68, 0x3e, 0x3d, 0xcc, 0xa8, 0x90, 0xee, 0x01, 0xb8, 0x39, 0x57, 0x15, 0x09,
+	0x67, 0x82, 0xc2, 0x0e, 0xa8, 0x69, 0xf9, 0x86, 0xb5, 0x69, 0x35, 0xd7, 0xda, 0xdb, 0xde, 0xb9,
+	0xc3, 0xf1, 0x34, 0x7d, 0xaf, 0x7a, 0x7c, 0x7a, 0xa7, 0xe2, 0x1b, 0xaa, 0xbb, 0x03, 0xb6, 0x94,
+	0xf6, 0x4b, 0x2c, 0xa9, 0x90, 0x4f, 0x65, 0xfe, 0xa4, 0x83, 0x4e, 0x41, 0x9a, 0x79, 0xe8, 0x81,
+	0xed, 0x12, 0x9c, 0x71, 0xe5, 0x82, 0x6b, 0xb3, 0x96, 0xdd, 0x41, 0xee, 0x6d, 0xb9, 0x59, 0xf5,
+	0xe7, 0x6a, 0x6e, 0x13, 0xec, 0x28, 0xb1, 0x2e, 0x93, 0x59, 0xca, 0xb4, 0x98, 0x1a, 0xe6, 0xeb,
+	0x8c, 0x8c, 0x22, 0x29, 0x69, 0x5a, 0xb4, 0xfd, 0x62, 0x81, 0x7b, 0xa5, 0x50, 0xd3, 0xd9, 0x01,
+	0x6b, 0x24, 0x16, 0x41, 0x92, 0x91, 0xe0, 0x1d, 0x1d, 0xab, 0xa1, 0xac, 0xfa, 0xab, 0x24, 0x16,
+	0xfb, 0x19, 0xe9, 0xd1, 0x31, 0x7c, 0x03, 0xae, 0x0b, 0x45, 0x0a, 0x22, 0x26, 0x69, 0x7a, 0x84,
+	0xe3, 0xc6, 0x92, 0x1a, 0xdc, 0x6e, 0xc9, 0xe0, 0x74, 0xab, 0xae, 0x21, 0xf9, 0xeb, 0x62, 0xee,
+	0xec, 0x3e, 0x06, 0xeb, 0xf3, 0x08, 0x58, 0x07, 0x2b, 0x42, 0xe2, 0x54, 0x2a, 0x0f, 0x55, 0x5f,
+	0x1f, 0xe0, 0x0d, 0xb0, 0x4c, 0xd9, 0x40, 0xf5, 0xac, 0xfa, 0xf9, 0x6b, 0xfb, 0x57, 0x15, 0xac,
+	0xa8, 0x74, 0xf0, 0xb3, 0x05, 0x6a, 0xfa, 0xff, 0xc0, 0x56, 0x89, 0x9b, 0xff, 0x17, 0xc4, 0x6e,
+	0x5f, 0x86, 0xa2, 0xa7, 0xe5, 0x6e, 0x7d, 0xf8, 0xfa, 0xe3, 0xd3, 0x92, 0x03, 0x37, 0xd0, 0x39,
+	0x8b, 0x0b, 0x4f, 0x2d, 0xd0, 0x38, 0xeb, 0x97, 0xc3, 0xce, 0x45, 0xda, 0x96, 0x2c, 0x96, 0xfd,
+	0xec, 0x6a, 0x22, 0x26, 0xcd, 0x23, 0x95, 0xa6, 0x05, 0xd1, 0xe2, 0x34, 0xb1, 0xe2, 0x07, 0xd8,
+	0x08, 0x04, 0xb3, 0x2f, 0xf0, 0xa7, 0x05, 0xec, 0xb3, 0x77, 0x0b, 0x3e, 0xbf, 0x88, 0xbb, 0xd2,
+	0x35, 0xb6, 0x5f, 0x5c, 0x55, 0xc6, 0xc4, 0x7c, 0xa2, 0x62, 0x3e, 0x84, 0xed, 0xc5, 0x31, 0x23,
+	0xa5, 0x60, 0x62, 0x2a, 0x89, 0x40, 0x14, 0x1a, 0x7b, 0xbd, 0xe3, 0x89, 0x63, 0x9d, 0x4c, 0x1c,
+	0xeb, 0xfb, 0xc4, 0xb1, 0x3e, 0x4e, 0x9d, 0xca, 0xc9, 0xd4, 0xa9, 0x7c, 0x9b, 0x3a, 0x95, 0x83,
+	0x56, 0x18, 0xc9, 0x61, 0x46, 0xbc, 0x3e, 0x1f, 0x21, 0xc2, 0xc8, 0xae, 0x32, 0xfa, 0x77, 0x87,
+	0xf7, 0xff, 0x5e, 0x57, 0xa4, 0xa6, 0xee, 0xab, 0x07, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0xda,
+	0xe5, 0xf9, 0x5d, 0xb2, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -249,8 +409,10 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// Queries the latest attested challenge id.
-	LatestAttestedChallenge(ctx context.Context, in *QueryLatestAttestedChallengeRequest, opts ...grpc.CallOption) (*QueryLatestAttestedChallengeResponse, error)
+	// Queries the latest attested challenge ids.
+	LatestAttestedChallenges(ctx context.Context, in *QueryLatestAttestedChallengesRequest, opts ...grpc.CallOption) (*QueryLatestAttestedChallengesResponse, error)
+	// Queries the inturn challenger.
+	InturnAttestationSubmitter(ctx context.Context, in *QueryInturnAttestationSubmitterRequest, opts ...grpc.CallOption) (*QueryInturnAttestationSubmitterResponse, error)
 }
 
 type queryClient struct {
@@ -270,9 +432,18 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) LatestAttestedChallenge(ctx context.Context, in *QueryLatestAttestedChallengeRequest, opts ...grpc.CallOption) (*QueryLatestAttestedChallengeResponse, error) {
-	out := new(QueryLatestAttestedChallengeResponse)
-	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.challenge.Query/LatestAttestedChallenge", in, out, opts...)
+func (c *queryClient) LatestAttestedChallenges(ctx context.Context, in *QueryLatestAttestedChallengesRequest, opts ...grpc.CallOption) (*QueryLatestAttestedChallengesResponse, error) {
+	out := new(QueryLatestAttestedChallengesResponse)
+	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.challenge.Query/LatestAttestedChallenges", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) InturnAttestationSubmitter(ctx context.Context, in *QueryInturnAttestationSubmitterRequest, opts ...grpc.CallOption) (*QueryInturnAttestationSubmitterResponse, error) {
+	out := new(QueryInturnAttestationSubmitterResponse)
+	err := c.cc.Invoke(ctx, "/bnbchain.greenfield.challenge.Query/InturnAttestationSubmitter", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -283,8 +454,10 @@ func (c *queryClient) LatestAttestedChallenge(ctx context.Context, in *QueryLate
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// Queries the latest attested challenge id.
-	LatestAttestedChallenge(context.Context, *QueryLatestAttestedChallengeRequest) (*QueryLatestAttestedChallengeResponse, error)
+	// Queries the latest attested challenge ids.
+	LatestAttestedChallenges(context.Context, *QueryLatestAttestedChallengesRequest) (*QueryLatestAttestedChallengesResponse, error)
+	// Queries the inturn challenger.
+	InturnAttestationSubmitter(context.Context, *QueryInturnAttestationSubmitterRequest) (*QueryInturnAttestationSubmitterResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -294,8 +467,11 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) LatestAttestedChallenge(ctx context.Context, req *QueryLatestAttestedChallengeRequest) (*QueryLatestAttestedChallengeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method LatestAttestedChallenge not implemented")
+func (*UnimplementedQueryServer) LatestAttestedChallenges(ctx context.Context, req *QueryLatestAttestedChallengesRequest) (*QueryLatestAttestedChallengesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LatestAttestedChallenges not implemented")
+}
+func (*UnimplementedQueryServer) InturnAttestationSubmitter(ctx context.Context, req *QueryInturnAttestationSubmitterRequest) (*QueryInturnAttestationSubmitterResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InturnAttestationSubmitter not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -320,20 +496,38 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_LatestAttestedChallenge_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryLatestAttestedChallengeRequest)
+func _Query_LatestAttestedChallenges_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryLatestAttestedChallengesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).LatestAttestedChallenge(ctx, in)
+		return srv.(QueryServer).LatestAttestedChallenges(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/bnbchain.greenfield.challenge.Query/LatestAttestedChallenge",
+		FullMethod: "/bnbchain.greenfield.challenge.Query/LatestAttestedChallenges",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).LatestAttestedChallenge(ctx, req.(*QueryLatestAttestedChallengeRequest))
+		return srv.(QueryServer).LatestAttestedChallenges(ctx, req.(*QueryLatestAttestedChallengesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_InturnAttestationSubmitter_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryInturnAttestationSubmitterRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).InturnAttestationSubmitter(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/bnbchain.greenfield.challenge.Query/InturnAttestationSubmitter",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).InturnAttestationSubmitter(ctx, req.(*QueryInturnAttestationSubmitterRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -347,8 +541,12 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_Params_Handler,
 		},
 		{
-			MethodName: "LatestAttestedChallenge",
-			Handler:    _Query_LatestAttestedChallenge_Handler,
+			MethodName: "LatestAttestedChallenges",
+			Handler:    _Query_LatestAttestedChallenges_Handler,
+		},
+		{
+			MethodName: "InturnAttestationSubmitter",
+			Handler:    _Query_InturnAttestationSubmitter_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -411,7 +609,7 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryLatestAttestedChallengeRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryLatestAttestedChallengesRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -421,12 +619,12 @@ func (m *QueryLatestAttestedChallengeRequest) Marshal() (dAtA []byte, err error)
 	return dAtA[:n], nil
 }
 
-func (m *QueryLatestAttestedChallengeRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryLatestAttestedChallengesRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryLatestAttestedChallengeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryLatestAttestedChallengesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -434,7 +632,7 @@ func (m *QueryLatestAttestedChallengeRequest) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryLatestAttestedChallengeResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryLatestAttestedChallengesResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -444,18 +642,129 @@ func (m *QueryLatestAttestedChallengeResponse) Marshal() (dAtA []byte, err error
 	return dAtA[:n], nil
 }
 
-func (m *QueryLatestAttestedChallengeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryLatestAttestedChallengesResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryLatestAttestedChallengeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryLatestAttestedChallengesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.ChallengeId != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.ChallengeId))
+	if len(m.ChallengeIds) > 0 {
+		dAtA3 := make([]byte, len(m.ChallengeIds)*10)
+		var j2 int
+		for _, num := range m.ChallengeIds {
+			for num >= 1<<7 {
+				dAtA3[j2] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j2++
+			}
+			dAtA3[j2] = uint8(num)
+			j2++
+		}
+		i -= j2
+		copy(dAtA[i:], dAtA3[:j2])
+		i = encodeVarintQuery(dAtA, i, uint64(j2))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryInturnAttestationSubmitterRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryInturnAttestationSubmitterRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryInturnAttestationSubmitterRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryInturnAttestationSubmitterResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryInturnAttestationSubmitterResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryInturnAttestationSubmitterResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.SubmitInterval != nil {
+		{
+			size, err := m.SubmitInterval.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.BlsPubKey) > 0 {
+		i -= len(m.BlsPubKey)
+		copy(dAtA[i:], m.BlsPubKey)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.BlsPubKey)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SubmitInterval) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SubmitInterval) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SubmitInterval) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.End != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.End))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Start != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Start))
 		i--
 		dAtA[i] = 0x8
 	}
@@ -493,7 +802,7 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryLatestAttestedChallengeRequest) Size() (n int) {
+func (m *QueryLatestAttestedChallengesRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -502,14 +811,59 @@ func (m *QueryLatestAttestedChallengeRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryLatestAttestedChallengeResponse) Size() (n int) {
+func (m *QueryLatestAttestedChallengesResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ChallengeId != 0 {
-		n += 1 + sovQuery(uint64(m.ChallengeId))
+	if len(m.ChallengeIds) > 0 {
+		l = 0
+		for _, e := range m.ChallengeIds {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	return n
+}
+
+func (m *QueryInturnAttestationSubmitterRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryInturnAttestationSubmitterResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.BlsPubKey)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.SubmitInterval != nil {
+		l = m.SubmitInterval.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *SubmitInterval) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Start != 0 {
+		n += 1 + sovQuery(uint64(m.Start))
+	}
+	if m.End != 0 {
+		n += 1 + sovQuery(uint64(m.End))
 	}
 	return n
 }
@@ -653,7 +1007,7 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryLatestAttestedChallengeRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryLatestAttestedChallengesRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -676,10 +1030,10 @@ func (m *QueryLatestAttestedChallengeRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryLatestAttestedChallengeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryLatestAttestedChallengesRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryLatestAttestedChallengeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryLatestAttestedChallengesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -703,7 +1057,7 @@ func (m *QueryLatestAttestedChallengeRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryLatestAttestedChallengeResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryLatestAttestedChallengesResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -726,17 +1080,193 @@ func (m *QueryLatestAttestedChallengeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryLatestAttestedChallengeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryLatestAttestedChallengesResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryLatestAttestedChallengeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryLatestAttestedChallengesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ChallengeId", wireType)
+			if wireType == 0 {
+				var v uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.ChallengeIds = append(m.ChallengeIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.ChallengeIds) == 0 {
+					m.ChallengeIds = make([]uint64, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint64
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint64(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.ChallengeIds = append(m.ChallengeIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChallengeIds", wireType)
 			}
-			m.ChallengeId = 0
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryInturnAttestationSubmitterRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryInturnAttestationSubmitterRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryInturnAttestationSubmitterRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryInturnAttestationSubmitterResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryInturnAttestationSubmitterResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryInturnAttestationSubmitterResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlsPubKey", wireType)
+			}
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowQuery
@@ -746,7 +1276,144 @@ func (m *QueryLatestAttestedChallengeResponse) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.ChallengeId |= uint64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BlsPubKey = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SubmitInterval", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.SubmitInterval == nil {
+				m.SubmitInterval = &SubmitInterval{}
+			}
+			if err := m.SubmitInterval.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SubmitInterval) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SubmitInterval: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SubmitInterval: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Start", wireType)
+			}
+			m.Start = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Start |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field End", wireType)
+			}
+			m.End = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.End |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
