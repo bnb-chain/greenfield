@@ -684,7 +684,7 @@ func (k Keeper) CopyObject(
 		PayloadSize:    srcObjectInfo.PayloadSize,
 		Visibility:     opts.Visibility,
 		ContentType:    srcObjectInfo.ContentType,
-		CreateAt:       ctx.BlockHeight(),
+		CreateAt:       ctx.BlockTime().Unix(),
 		Id:             k.GenNextObjectID(ctx),
 		ObjectStatus:   objectStatus,
 		RedundancyType: srcObjectInfo.RedundancyType,
