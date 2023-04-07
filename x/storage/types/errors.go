@@ -29,7 +29,6 @@ var (
 	ErrNoSuchPolicy          = errors.Register(ModuleName, 1120, "No such Policy")
 	ErrInvalidParameter      = errors.Register(ModuleName, 1121, "Invalid parameter")
 	ErrInvalidRedundancyType = errors.Register(ModuleName, 1122, "Invalid redundancy type")
-	ErrInvalidFolderName     = errors.Register(ModuleName, 1123, "Invalid folder name")
 
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")

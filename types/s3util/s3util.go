@@ -127,11 +127,3 @@ func CheckValidContentType(contentType string) error {
 	// TODO(fynn): check validity of the contentType
 	return nil
 }
-
-func CheckValidFolderName(objectName string) error {
-	if !strings.HasSuffix(objectName, "/") {
-		return errors.Wrap(gnfderrors.ErrInvalidFolderName, "Bucket name contains invalid characters")
-	}
-
-	return nil
-}

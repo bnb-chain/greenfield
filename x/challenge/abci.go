@@ -90,6 +90,11 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			continue
 		}
 
+		// skip empty object
+		if objectInfo.PayloadSize == 0 {
+			continue
+		}
+
 		// random segment/piece index
 		segments := k.CalculateSegments(objectInfo.PayloadSize, segmentSize)
 		segmentIndex := k.RandomSegmentIndex(seed, segments)
