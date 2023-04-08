@@ -56,6 +56,11 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			continue
 		}
 
+		// skip empty object
+		if objectInfo.PayloadSize == 0 {
+			continue
+		}
+
 		// random redundancy index (sp address)
 		var spOperatorAddress string
 		secondarySpAddresses := objectInfo.SecondarySpAddresses
@@ -87,11 +92,6 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 
 		// check recent slash
 		if keeper.ExistsSlash(ctx, spOperatorAddr, objectInfo.Id) {
-			continue
-		}
-
-		// skip empty object
-		if objectInfo.PayloadSize == 0 {
 			continue
 		}
 
