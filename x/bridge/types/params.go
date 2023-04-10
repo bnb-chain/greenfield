@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	DefaultTransferOutRelayerFeeParam    = sdkmath.NewInt(1000000000000000) // 0.001
+	DefaultTransferOutRelayerFeeParam    = sdkmath.NewInt(250000000000000) // 0.00025
 	DefaultTransferOutAckRelayerFeeParam = sdkmath.NewInt(0)
 )
 
