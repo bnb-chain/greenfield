@@ -369,9 +369,10 @@ func (k Keeper) ListGroup(goCtx context.Context, req *types.QueryListGroupReques
 	groupStore := prefix.NewStore(store, types.GetGroupKeyOnlyOwnerPrefix(owner))
 
 	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key []byte, value []byte) error {
-		var groupInfo types.GroupInfo
-		k.cdc.MustUnmarshal(value, &groupInfo)
-		groupInfos = append(groupInfos, &groupInfo)
+		groupInfo, found := k.GetGroupInfoById(ctx, sequence.DecodeSequence(value))
+		if found {
+			groupInfos = append(groupInfos, groupInfo)
+		}
 		return nil
 	})
 
