@@ -368,10 +368,18 @@ func (k Keeper) CreateObject(
 		SecondarySpAddresses: secondarySPs,
 	}
 
-	// Lock Fee
-	err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if objectInfo.PayloadSize == 0 {
+		// charge directly without lock charge
+		err = k.ChargeStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		// Lock Fee
+		err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	bbz := k.cdc.MustMarshal(bucketInfo)
@@ -692,9 +700,16 @@ func (k Keeper) CopyObject(
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
-	err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if srcObjectInfo.PayloadSize == 0 {
+		err = k.ChargeStoreFee(ctx, dstBucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	bbz := k.cdc.MustMarshal(dstBucketInfo)
