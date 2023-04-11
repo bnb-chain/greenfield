@@ -70,7 +70,7 @@ var (
 
 var (
 	KeyAttestationKeptCount            = []byte("AttestationKeptCount")
-	DefaultAttestationKeptCount uint64 = 10
+	DefaultAttestationKeptCount uint64 = 300
 )
 
 // ParamKeyTable the param key table for launch module
