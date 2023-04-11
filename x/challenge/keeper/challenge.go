@@ -78,13 +78,15 @@ func (k Keeper) GetAttestChallengeIds(ctx sdk.Context) []uint64 {
 		return []uint64{}
 	}
 
-	var ids []uint64
-	for i := 0; i < len(bz)/8; i++ {
-		id := binary.BigEndian.Uint64(bz[i*8 : (i+1)*8])
-		ids = append(ids, id)
-	}
+	attestedChallengeIds := new(types.AttestedChallengeIds)
+	k.cdc.MustUnmarshal(bz, attestedChallengeIds)
 
-	return ids
+	cq := circularQueue{
+		size:  attestedChallengeIds.Size_,
+		items: attestedChallengeIds.Ids,
+		front: attestedChallengeIds.Cursor,
+	}
+	return cq.retrieveAll()
 }
 
 // AppendAttestChallengeId sets the new id of challenge to the store
@@ -94,20 +96,31 @@ func (k Keeper) AppendAttestChallengeId(ctx sdk.Context, challengeId uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
 	bz := store.Get(types.AttestChallengeIdKey)
 
-	idBz := make([]byte, 8)
-	binary.BigEndian.PutUint64(idBz, challengeId)
-
-	bzLen := uint64(len(bz))
-	keepLen := maxToKeep * 8
-	if bzLen < keepLen {
-		bz = append(bz, idBz...)
-		store.Set(types.AttestChallengeIdKey, bz)
+	attestedChallengeIds := new(types.AttestedChallengeIds)
+	if bz == nil {
+		attestedChallengeIds = &types.AttestedChallengeIds{
+			Size_:  maxToKeep,
+			Ids:    make([]uint64, maxToKeep),
+			Cursor: -1,
+		}
 	} else {
-		newBz := make([]byte, keepLen)
-		copy(newBz, bz[bzLen-keepLen+8:])
-		copy(newBz[keepLen-8:], idBz[:])
-		store.Set(types.AttestChallengeIdKey, newBz)
+		k.cdc.MustUnmarshal(bz, attestedChallengeIds)
 	}
+
+	cq := circularQueue{
+		size:  attestedChallengeIds.Size_,
+		items: attestedChallengeIds.Ids,
+		front: attestedChallengeIds.Cursor,
+	}
+	if cq.size != maxToKeep { // happens when the parameter changes
+		cq.resize(maxToKeep)
+	}
+	cq.enqueue(challengeId)
+	attestedChallengeIds.Size_ = cq.size
+	attestedChallengeIds.Ids = cq.items
+	attestedChallengeIds.Cursor = cq.front
+
+	store.Set(types.AttestChallengeIdKey, k.cdc.MustMarshal(attestedChallengeIds))
 }
 
 // GetChallengeCountCurrentBlock gets the count of challenges
