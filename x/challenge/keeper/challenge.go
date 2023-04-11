@@ -78,7 +78,7 @@ func (k Keeper) GetAttestChallengeIds(ctx sdk.Context) []uint64 {
 		return []uint64{}
 	}
 
-	ids := []uint64{}
+	var ids []uint64
 	for i := 0; i < len(bz)/8; i++ {
 		id := binary.BigEndian.Uint64(bz[i*8 : (i+1)*8])
 		ids = append(ids, id)

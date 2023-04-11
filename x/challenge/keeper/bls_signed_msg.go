@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/errors"
 	"github.com/bits-and-blooms/bitset"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
@@ -25,7 +24,7 @@ type BlsSignedMsg interface {
 }
 
 // verifySignature verifies whether the signature is valid or not.
-func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg, validators []stakingtypes.Validator) ([]string, error) {
+func (k Keeper) verifySignature(signedMsg BlsSignedMsg, validators []stakingtypes.Validator) ([]string, error) {
 	validatorsBitSet := bitset.From(signedMsg.GetVoteValidatorSet())
 	if validatorsBitSet.Count() > uint(len(validators)) {
 		return nil, errors.Wrap(types.ErrInvalidVoteValidatorSet, "number of validator set is larger than validators")
