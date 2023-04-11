@@ -85,11 +85,7 @@ func (k Keeper) isInturnAttestation(ctx sdk.Context, submitter sdk.AccAddress, v
 		return false, err
 	}
 
-	if bytes.Equal(inturnBlsKey, vldr.BlsKey) {
-		return true, nil
-	}
-
-	return false, nil
+	return bytes.Equal(inturnBlsKey, vldr.BlsKey), nil
 }
 
 func (k Keeper) getInturnSubmitter(ctx sdk.Context, interval uint64) ([]byte, *types.SubmitInterval, error) {
