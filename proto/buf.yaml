@@ -1,6 +1,6 @@
 # This module represents buf.build/cosmos/cosmos-sdk
 version: v1
-name: buf.build/bnb-chain/bfs
+name: buf.build/bnb-chain/greenfield
 deps:
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
