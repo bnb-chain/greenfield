@@ -21,6 +21,7 @@ while read line; do
 done < ${change_log_file}
 LINUX_BIN_SUM="$(checksum ./linux/linux)"
 MAC_BIN_SUM="$(checksum ./macos/macos)"
+TESTNET_CONFIG_SUM="$(checksum ./testnet_config.zip)"
 OUTPUT=$(cat <<-END
 ${CHANGE_LOG}\n
 ## Assets\n
@@ -28,6 +29,7 @@ ${CHANGE_LOG}\n
 | :-----------: |------------|\n
 | linux | ${LINUX_BIN_SUM} |\n
 | mac  | ${MAC_BIN_SUM} |\n
+| testnet_config.zip  | ${TESTNET_CONFIG_SUM} |\n
 END
 )
 
