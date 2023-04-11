@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
-checksum() {
+function checksum() {
     echo $(sha256sum $@ | awk '{print $1}')
 }
-change_log_file="./CHANGELOG.md"
-version="## $@"
-version_prefix="## v"
-start=0
-CHANGE_LOG=""
+
+declare change_log_file="./CHANGELOG.md"
+declare version="## $@"
+declare version_prefix="## v"
+declare start=0
+declare CHANGE_LOG=""
+
 while read line; do
     if [[ $line == *"$version"* ]]; then
         start=1
@@ -18,19 +20,22 @@ while read line; do
     if [ $start == 1 ]; then
         CHANGE_LOG+="$line\n"
     fi
-done < ${change_log_file}
+done < "${change_log_file}"
+
 LINUX_BIN_SUM="$(checksum ./linux/linux)"
 MAC_BIN_SUM="$(checksum ./macos/macos)"
 TESTNET_CONFIG_SUM="$(checksum ./testnet_config.zip)"
+
 OUTPUT=$(cat <<-END
+## Changelog\n
 ${CHANGE_LOG}\n
 ## Assets\n
-|    Assets    | Sha256 Checksum  |\n
-| :-----------: |------------|\n
-| linux | ${LINUX_BIN_SUM} |\n
-| mac  | ${MAC_BIN_SUM} |\n
+|    Assets    | Sha256 Checksum  |
+| :-----------: |------------|
+| linux | ${LINUX_BIN_SUM} |
+| mac  | ${MAC_BIN_SUM} |
 | testnet_config.zip  | ${TESTNET_CONFIG_SUM} |\n
 END
 )
 
-echo -e ${OUTPUT}
+echo -e "${OUTPUT}"
