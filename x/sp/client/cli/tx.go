@@ -53,6 +53,45 @@ func CmdEditStorageProvider() *cobra.Command {
 			details, _ := cmd.Flags().GetString(FlagDetails)
 			description := types.NewDescription(moniker, identity, website, details)
 
+			// seal address
+			sealAddressStr, err := cmd.Flags().GetString(FlagSealAddress)
+			if err != nil {
+				return err
+			}
+			sealAddress := sdk.AccAddress{}
+			if sealAddressStr != "" {
+				sealAddress, err = sdk.AccAddressFromHexUnsafe(sealAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
+			// approval address
+			approvalAddressStr, err := cmd.Flags().GetString(FlagApprovalAddress)
+			if err != nil {
+				return err
+			}
+			approvalAddress := sdk.AccAddress{}
+			if approvalAddressStr != "" {
+				approvalAddress, err = sdk.AccAddressFromHexUnsafe(approvalAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
+			// gc address
+			gcAddressStr, err := cmd.Flags().GetString(FlagGcAddress)
+			if err != nil {
+				return err
+			}
+			gcAddress := sdk.AccAddress{}
+			if gcAddressStr != "" {
+				gcAddress, err = sdk.AccAddressFromHexUnsafe(gcAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -62,6 +101,9 @@ func CmdEditStorageProvider() *cobra.Command {
 				spAddress,
 				endpoint,
 				&description,
+				sealAddress,
+				approvalAddress,
+				gcAddress,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -77,6 +119,10 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagIdentity, types.DoNotModifyDesc, "The (optional) identity signature (ex. UPort or Keybase)")
 	cmd.Flags().String(FlagWebsite, types.DoNotModifyDesc, "The storage provider's (optional) website")
 	cmd.Flags().String(FlagDetails, types.DoNotModifyDesc, "The storage provider's (optional) details")
+
+	cmd.Flags().String(FlagSealAddress, "", "The seal address of storage provider")
+	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
+	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
 
 	return cmd
 }
@@ -340,7 +386,6 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 
 	// seal address
 	sealAddress, err := flagSet.GetString(FlagSealAddress)
-	fmt.Println(sealAddress)
 	if err != nil {
 		return c, err
 	}
@@ -352,7 +397,6 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 
 	// approval address
 	approvalAddress, err := flagSet.GetString(FlagApprovalAddress)
-	fmt.Println(approvalAddress)
 	if err != nil {
 		return c, err
 	}
@@ -364,7 +408,6 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 
 	// gc address
 	gcAddress, err := flagSet.GetString(FlagGcAddress)
-	fmt.Println(gcAddress)
 	if err != nil {
 		return c, err
 	}

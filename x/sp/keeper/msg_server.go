@@ -182,10 +182,33 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		changed = true
 	}
 
+	if msg.SealAddress != "" {
+		sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
+		sp.SealAddress = sealAcc.String()
+		changed = true
+	}
+
+	if msg.ApprovalAddress != "" {
+		approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
+		sp.ApprovalAddress = approvalAcc.String()
+		changed = true
+	}
+
+	if msg.GcAddress != "" {
+		gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
+		sp.GcAddress = gcAcc.String()
+		changed = true
+	}
+
 	if !changed {
 		return nil, types.ErrStorageProviderNotChanged
 	}
+
 	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProviderByApprovalAddr(ctx, sp)
+	k.SetStorageProviderByFundingAddr(ctx, sp)
+	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProviderByGcAddr(ctx, sp)
 
 	return &types.MsgEditStorageProviderResponse{}, nil
 }
