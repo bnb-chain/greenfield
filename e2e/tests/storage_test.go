@@ -226,6 +226,12 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.GroupName, groupName)
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
 
+	// 3. ListGroup
+	queryListGroupReq := storagetypes.QueryListGroupRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroup(ctx, &queryListGroupReq)
+	s.Require().NoError(err)
+	s.Require().GreaterOrEqual(len(queryListGroupResp.GroupInfos), 1)
+
 	// 3. HeadGroupMember
 	queryHeadGroupMemberReq := storagetypes.QueryHeadGroupMemberRequest{
 		Member:     member.GetAddr().String(),
