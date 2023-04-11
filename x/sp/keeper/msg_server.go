@@ -38,6 +38,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 
 	sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
 	approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
+	gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
 
 	signers := msg.GetSigners()
 	if ctx.BlockHeight() == 0 {
@@ -67,6 +68,11 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// check to see if the approval address has been registered before
 	if _, found := k.GetStorageProviderByApprovalAddr(ctx, approvalAcc); found {
 		return nil, types.ErrStorageProviderApprovalAddrExists
+	}
+
+	// check to see if the gc address has been registered before
+	if _, found := k.GetStorageProviderByGcAddr(ctx, gcAcc); found {
+		return nil, types.ErrStorageProviderGcAddrExists
 	}
 
 	if err := msg.Description.EnsureLength(); err != nil {
@@ -100,7 +106,8 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	sp, err := types.NewStorageProvider(spAcc, fundingAcc, sealAcc, approvalAcc, msg.Deposit.Amount, msg.Endpoint, msg.Description)
+	sp, err := types.NewStorageProvider(spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
+		msg.Deposit.Amount, msg.Endpoint, msg.Description)
 	if err != nil {
 		return nil, err
 	}
@@ -109,6 +116,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	k.SetStorageProviderByApprovalAddr(ctx, &sp)
 	k.SetStorageProviderByFundingAddr(ctx, &sp)
 	k.SetStorageProviderBySealAddr(ctx, &sp)
+	k.SetStorageProviderByGcAddr(ctx, &sp)
 
 	// set initial sp storage price
 	spStoragePrice := types.SpStoragePrice{
@@ -129,6 +137,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
+		GcAddress:       gcAcc.String(),
 		Endpoint:        msg.Endpoint,
 		TotalDeposit:    &msg.Deposit,
 	}); err != nil {

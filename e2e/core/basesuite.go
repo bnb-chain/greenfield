@@ -20,6 +20,7 @@ type SPKeyManagers struct {
 	SealKey     keys.KeyManager
 	FundingKey  keys.KeyManager
 	ApprovalKey keys.KeyManager
+	GcKey       keys.KeyManager
 }
 
 type BaseSuite struct {
@@ -58,6 +59,8 @@ func (s *BaseSuite) SetupSuite() {
 		sPKeyManagers.FundingKey, err = keys.NewMnemonicKeyManager(spMnemonics.FundingMnemonic)
 		s.Require().NoError(err)
 		sPKeyManagers.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
+		s.Require().NoError(err)
+		sPKeyManagers.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
 		s.Require().NoError(err)
 		s.StorageProviders = append(s.StorageProviders, sPKeyManagers)
 	}

@@ -66,6 +66,17 @@ func (k Keeper) GetStorageProviderByApprovalAddr(ctx sdk.Context, approvalAddr s
 	return k.GetStorageProvider(ctx, spAddr)
 }
 
+func (k Keeper) GetStorageProviderByGcAddr(ctx sdk.Context, gcAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	spAddr := store.Get(types.GetStorageProviderByGcAddrKey(gcAddr))
+	if spAddr == nil {
+		return sp, false
+	}
+
+	return k.GetStorageProvider(ctx, spAddr)
+}
+
 func (k Keeper) SetStorageProvider(ctx sdk.Context, sp *types.StorageProvider) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalStorageProvider(k.cdc, sp)
@@ -89,6 +100,12 @@ func (k Keeper) SetStorageProviderByApprovalAddr(ctx sdk.Context, sp *types.Stor
 	approvalAddr := sp.GetApprovalAccAddress()
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetStorageProviderByApprovalAddrKey(approvalAddr), sp.GetOperator())
+}
+
+func (k Keeper) SetStorageProviderByGcAddr(ctx sdk.Context, sp *types.StorageProvider) {
+	gcAddr := sp.GetGcAccAddress()
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetStorageProviderByGcAddrKey(gcAddr), sp.GetOperator())
 }
 
 func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProvider) {

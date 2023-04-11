@@ -437,7 +437,7 @@ func CmdDiscontinueObject() *cobra.Command {
 				return err
 			}
 
-			objectIds := make([]sdk.Uint, 0)
+			objectIds := make([]cmath.Uint, 0)
 			splitIds := strings.Split(argObjectIds, ",")
 			for _, split := range splitIds {
 				id, ok := big.NewInt(0).SetString(split, 10)

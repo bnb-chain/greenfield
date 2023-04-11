@@ -315,8 +315,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 }
 
 func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName, reason string) error {
-	// TODO: use a special address for discontinue transactions
-	sp, found := k.spKeeper.GetStorageProvider(ctx, operator)
+	sp, found := k.spKeeper.GetStorageProviderByGcAddr(ctx, operator)
 	if !found {
 		return types.ErrNoSuchStorageProvider
 	}
@@ -330,6 +329,10 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	}
 	if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
 		return types.ErrInvalidBucketStatus
+	}
+
+	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
+		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue bucket")
 	}
 
 	count := k.getDiscontinueBucketCount(ctx, operator)
@@ -908,8 +911,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 }
 
 func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, bucketName string, objectIds []sdkmath.Uint, reason string) error {
-	// TODO: use a special address for discontinue transactions
-	sp, found := k.spKeeper.GetStorageProvider(ctx, operator)
+	sp, found := k.spKeeper.GetStorageProviderByGcAddr(ctx, operator)
 	if !found {
 		return types.ErrNoSuchStorageProvider
 	}
