@@ -308,9 +308,9 @@ type MsgEditStorageProvider struct {
 	Description *Description `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	// seal_address is the account address of the storage provider for sealObject
 	SealAddress string `protobuf:"bytes,4,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
-	// approval_address is the account address of the storage provider for ack CreateBucket/Object.
+	// approval_address is the account address of the storage provider for ack CreateBucket/Object
 	ApprovalAddress string `protobuf:"bytes,5,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
-	// gc_address defines one of the storage provider's accounts which is used for gc purpose.
+	// gc_address defines one of the storage provider's accounts which is used for gc purpose
 	GcAddress string `protobuf:"bytes,6,opt,name=gc_address,json=gcAddress,proto3" json:"gc_address,omitempty"`
 }
 

@@ -161,16 +161,8 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	// replace endpoint
 	if len(msg.Endpoint) != 0 {
-		oldEndpoint := sp.Endpoint
 		sp.Endpoint = msg.Endpoint
 		changed = true
-		// TODO(chris): when we need more fields to EventEditStorageProvider, it should be put before calling the SetStorageProvider method.
-		if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
-			OldEndpoint: oldEndpoint,
-			NewEndpoint: sp.Endpoint,
-		}); err != nil {
-			return nil, err
-		}
 	}
 
 	if msg.Description != nil {
@@ -205,10 +197,21 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	k.SetStorageProviderByApprovalAddr(ctx, sp)
 	k.SetStorageProviderByFundingAddr(ctx, sp)
 	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProviderByApprovalAddr(ctx, sp)
 	k.SetStorageProviderByGcAddr(ctx, sp)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
+		SpAddress:       spAcc.String(),
+		Endpoint:        sp.Endpoint,
+		Description:     sp.Description,
+		ApprovalAddress: sp.ApprovalAddress,
+		SealAddress:     sp.SealAddress,
+		GcAddress:       sp.GcAddress,
+	}); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgEditStorageProviderResponse{}, nil
 }
