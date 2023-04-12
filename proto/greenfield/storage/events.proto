@@ -9,8 +9,8 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // EventCreateBucket is emitted on MsgCreateBucket
 message EventCreateBucket {
-  // owner_address define the account address of bucket owner
-  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of bucket owner
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is a globally unique name of bucket
   string bucket_name = 2;
   // visibility defines the highest permissions for bucket. When a bucket is public, everyone can get the object under it.
@@ -37,10 +37,10 @@ message EventCreateBucket {
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
 message EventDeleteBucket {
-  // operator_address define the account address of operator who delete the bucket
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // owner_address define the account address of the bucket owner
-  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who delete the bucket
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of the bucket owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the deleted bucket
   string bucket_name = 3;
   // bucket_id define an u256 id for bucket
@@ -55,8 +55,8 @@ message EventDeleteBucket {
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
 message EventUpdateBucketInfo {
-  // operator_address define the account address of operator who update the bucket
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who update the bucket
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the bucket
   string bucket_name = 2;
   // bucket_id define an u256 id for bucket
@@ -95,10 +95,10 @@ message EventDiscontinueBucket {
 
 // EventCreateObject is emitted on MsgCreateObject
 message EventCreateObject {
-  // creator_address define the account address of msg creator
-  string creator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // owner_address define the account address of object owner
-  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // creator define the account address of msg creator
+  string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of object owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of bucket
   string bucket_name = 3;
   // object_name define the name of object
@@ -137,8 +137,8 @@ message EventCreateObject {
 
 // EventSealObject is emitted on MsgSealObject
 message EventCancelCreateObject {
-  // operator_address define the account address of operator who cancel create object
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who cancel create object
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the bucket
   string bucket_name = 2;
   // object_name define the name of the object
@@ -155,8 +155,8 @@ message EventCancelCreateObject {
 
 // EventSealObject is emitted on MsgSealObject
 message EventSealObject {
-  // operator_address define the account address of operator who seal object
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who seal object
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the bucket
   string bucket_name = 2;
   // object_name define the name of the object
@@ -175,8 +175,8 @@ message EventSealObject {
 
 // EventCopyObject is emitted on MsgCopyObject
 message EventCopyObject {
-  // operator_address define the account address of operator who copy the object
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who copy the object
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // src_bucket_name define the name of the src bucket
   string src_bucket_name = 2;
   // src_object_name define the name of the src object
@@ -201,8 +201,8 @@ message EventCopyObject {
 
 // EventDeleteObject is emitted on MsgDeleteObject
 message EventDeleteObject {
-  // operator_address define the account address of operator who delete the object
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who delete the object
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the bucket
   string bucket_name = 2;
   // object_name define the name of the object
@@ -221,8 +221,8 @@ message EventDeleteObject {
 
 // EventRejectSealObject is emitted on MsgRejectSealObject
 message EventRejectSealObject {
-  // operator_address define the account address of operator who reject seal object
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who reject seal object
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the bucket
   string bucket_name = 2;
   // object_name define the name of the object
@@ -253,8 +253,8 @@ message EventDiscontinueObject {
 
 // EventCreateGroup is emitted on MsgCreateGroup
 message EventCreateGroup {
-  // owner_address define the account address of group owner
-  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name define the name of the group
   string group_name = 2;
   // id define an u256 id for group
@@ -271,8 +271,8 @@ message EventCreateGroup {
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
 message EventDeleteGroup {
-  // owner_address define the account address of group owner
-  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name define the name of the group
   string group_name = 3;
   // id define an u256 id for group
@@ -287,8 +287,8 @@ message EventDeleteGroup {
 message EventLeaveGroup {
   // member_address define the address of the member who leave the group
   string member_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // owner_address define the account address of group owner
-  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name define the name of the group
   string group_name = 3;
   // id define an u256 id for group
@@ -301,10 +301,10 @@ message EventLeaveGroup {
 
 // EventUpdateGroupMember is emitted on MsgUpdateGroupMember
 message EventUpdateGroupMember {
-  // operator_address define the account address of operator who update the group member
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // owner_address define the account address of group owner
-  string owner_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who update the group member
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name define the name of the group
   string group_name = 3;
   // id define an u256 id for group
@@ -321,8 +321,8 @@ message EventUpdateGroupMember {
 
 // EventMirrorBucket is emitted on MirrorBucket
 message EventMirrorBucket {
-  // operator_address define the account address of operator who mirror the bucket
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who mirror the bucket
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket
   string bucket_name = 2;
   // bucket_id define an u256 id for bucket
@@ -349,8 +349,8 @@ message EventMirrorBucketResult {
 
 // EventMirrorObject is emitted on MirrorObject
 message EventMirrorObject {
-  // operator_address define the account address of operator who delete the object
-  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // operator define the account address of operator who delete the object
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name define the name of the bucket
   string bucket_name = 2;
   // object_name define the name of the object
@@ -381,8 +381,8 @@ message EventMirrorObjectResult {
 
 // EventMirrorGroup is emitted on MirrorGroup
 message EventMirrorGroup {
-  // owner_address define the account address of group owner
-  string owner_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // group_name define the name of the group
   string group_name = 2;
   // group_id define an u256 id for group
