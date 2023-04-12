@@ -355,7 +355,7 @@ func validateAttestationKeptCount(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 	if count == 0 {
-		return errors.New("attestation kept count interval cannot be zero")
+		return errors.New("attestation kept count cannot be zero")
 	}
 
 	return nil

@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 
+	"github.com/cosmos/cosmos-sdk/store"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -69,58 +70,88 @@ func getChallengeKeyBytes(challengeId uint64) []byte {
 	return bz
 }
 
+func (k Keeper) encodeUint64(data uint64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, data)
+	return bz
+}
+
 // GetAttestChallengeIds gets the challenge id of the latest attestation challenge
 func (k Keeper) GetAttestChallengeIds(ctx sdk.Context) []uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := store.Get(types.AttestChallengeIdKey)
+	store := ctx.KVStore(k.storeKey)
+	sizeBz := store.Get(types.AttestChallengeIdsSizeKey)
 
-	if bz == nil {
+	if sizeBz == nil {
 		return []uint64{}
 	}
 
-	attestedChallengeIds := new(types.AttestedChallengeIds)
-	k.cdc.MustUnmarshal(bz, attestedChallengeIds)
+	size := binary.BigEndian.Uint64(sizeBz)
+	cursor := binary.BigEndian.Uint64(store.Get(types.AttestChallengeIdsCursorKey))
 
-	cq := circularQueue{
-		size:  attestedChallengeIds.Size_,
-		items: attestedChallengeIds.Ids,
-		front: attestedChallengeIds.Cursor,
+	result := []uint64{}
+	current := cursor
+	idsStore := prefix.NewStore(store, types.AttestChallengeIdsPrefix)
+	for {
+		current = (current + 1) % size
+		idBz := idsStore.Get(k.encodeUint64(current))
+		if idBz != nil {
+			result = append(result, binary.BigEndian.Uint64(idBz))
+		}
+		if current == cursor {
+			break
+		}
 	}
-	return cq.retrieveAll()
+	return result
 }
 
 // AppendAttestChallengeId sets the new id of challenge to the store
 func (k Keeper) AppendAttestChallengeId(ctx sdk.Context, challengeId uint64) {
-	maxToKeep := k.KeyAttestationKeptCount(ctx)
+	toKeep := k.KeyAttestationKeptCount(ctx)
 
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := store.Get(types.AttestChallengeIdKey)
+	store := ctx.KVStore(k.storeKey)
+	sizeBz := store.Get(types.AttestChallengeIdsSizeKey)
 
-	attestedChallengeIds := new(types.AttestedChallengeIds)
-	if bz == nil {
-		attestedChallengeIds = &types.AttestedChallengeIds{
-			Size_:  maxToKeep,
-			Ids:    make([]uint64, maxToKeep),
-			Cursor: -1,
+	idsStore := prefix.NewStore(store, types.AttestChallengeIdsPrefix)
+	if sizeBz == nil { // the first time to append
+		store.Set(types.AttestChallengeIdsSizeKey, k.encodeUint64(toKeep))
+		k.enqueueAttestChallengeId(store, idsStore, challengeId)
+		return
+	}
+
+	size := binary.BigEndian.Uint64(sizeBz)
+	if size != toKeep { // the parameter changes, which is not frequent
+		currentIds := k.GetAttestChallengeIds(ctx)
+
+		iterator := sdk.KVStorePrefixIterator(idsStore, []byte{})
+		defer iterator.Close()
+
+		for ; iterator.Valid(); iterator.Next() {
+			idsStore.Delete(iterator.Key())
 		}
-	} else {
-		k.cdc.MustUnmarshal(bz, attestedChallengeIds)
+
+		store.Set(types.AttestChallengeIdsSizeKey, k.encodeUint64(toKeep))
+		store.Delete(types.AttestChallengeIdsCursorKey)
+
+		for _, id := range currentIds {
+			k.enqueueAttestChallengeId(store, idsStore, id)
+		}
+	}
+	k.enqueueAttestChallengeId(store, idsStore, challengeId)
+}
+
+func (k Keeper) enqueueAttestChallengeId(store, idsStore store.KVStore, challengeId uint64) {
+	size := binary.BigEndian.Uint64(store.Get(types.AttestChallengeIdsSizeKey))
+	cursorBz := store.Get(types.AttestChallengeIdsCursorKey)
+	cursor := uint64(0)
+	if cursorBz != nil {
+		cursor = binary.BigEndian.Uint64(cursorBz)
+		cursor = (cursor + 1) % size
 	}
 
-	cq := circularQueue{
-		size:  attestedChallengeIds.Size_,
-		items: attestedChallengeIds.Ids,
-		front: attestedChallengeIds.Cursor,
-	}
-	if cq.size != maxToKeep { // happens when the parameter changes
-		cq.resize(maxToKeep)
-	}
-	cq.enqueue(challengeId)
-	attestedChallengeIds.Size_ = cq.size
-	attestedChallengeIds.Ids = cq.items
-	attestedChallengeIds.Cursor = cq.front
+	cursorBz = k.encodeUint64(cursor)
+	store.Set(types.AttestChallengeIdsCursorKey, cursorBz)
 
-	store.Set(types.AttestChallengeIdKey, k.cdc.MustMarshal(attestedChallengeIds))
+	idsStore.Set(cursorBz, k.encodeUint64(challengeId))
 }
 
 // GetChallengeCountCurrentBlock gets the count of challenges
