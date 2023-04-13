@@ -953,7 +953,7 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigD
 
 	err = types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
-		return err
+		return errors.Wrapf(types.ErrInvalidApproval, "verify signature error: %s", err)
 	}
 	return nil
 }
