@@ -2,17 +2,17 @@ package bank
 
 import (
 	"context"
-	"testing"
-
-	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	"github.com/stretchr/testify/assert"
+	"testing"
 
 	gnfdclient "github.com/bnb-chain/greenfield/sdk/client"
 	"github.com/bnb-chain/greenfield/sdk/client/test"
+	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 )
 
 func TestOracleParams(t *testing.T) {
-	client := gnfdclient.NewGreenfieldClient(test.TEST_GRPC_ADDR, test.TEST_CHAIN_ID)
+	client, err := gnfdclient.NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID)
+	assert.NoError(t, err)
 
 	query := oracletypes.QueryParamsRequest{}
 	res, err := client.OracleQueryClient.Params(context.Background(), &query)

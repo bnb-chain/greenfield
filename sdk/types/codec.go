@@ -21,7 +21,7 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-func Cdc() *codec.ProtoCodec {
+func Codec() *codec.ProtoCodec {
 	interfaceRegistry := types.NewInterfaceRegistry()
 	challengetypes.RegisterInterfaces(interfaceRegistry)
 	cryptocodec.RegisterInterfaces(interfaceRegistry)
