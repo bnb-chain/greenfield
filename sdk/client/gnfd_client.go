@@ -3,8 +3,11 @@ package client
 import (
 	_ "encoding/json"
 
+	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -18,6 +21,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	grpc1 "github.com/gogo/protobuf/grpc"
 	"google.golang.org/grpc"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
@@ -133,55 +137,61 @@ type GreenfieldClient struct {
 	chainId string
 	// codec is the ProtoCodec used for encoding and decoding messages.
 	codec *codec.ProtoCodec
-
-	// option fields
-	// grpcDialOption is the list of grpc dial options.
-	grpcDialOption []grpc.DialOption
-}
-
-// grpcConn is used to establish a connection with a given address and dial options.
-func grpcConn(addr string, opts ...grpc.DialOption) *grpc.ClientConn {
-	conn, err := grpc.Dial(
-		addr,
-		opts...,
-	)
-	if err != nil {
-		panic(err)
-	}
-	return conn
+	// grpcConn is for client initialization using grpc connection
+	grpcConn *grpc.ClientConn
 }
 
 // NewGreenfieldClient is used to create a new GreenfieldClient structure.
-func NewGreenfieldClient(grpcAddr, chainId string, opts ...GreenfieldClientOption) *GreenfieldClient {
+func NewGreenfieldClient(rpcAddr, chainId string, opts ...GreenfieldClientOption) *GreenfieldClient {
+	cdc := types.Codec()
 	client := &GreenfieldClient{
 		chainId: chainId,
-		codec:   types.Cdc(),
+		codec:   cdc,
 	}
 	for _, opt := range opts {
 		opt.Apply(client)
 	}
+	if client.grpcConn != nil {
+		setClientsConn(client, client.grpcConn)
+		return client
+	}
 
-	conn := grpcConn(grpcAddr, client.grpcDialOption...)
-	client.AuthQueryClient = authtypes.NewQueryClient(conn)
-	client.AuthzQueryClient = authztypes.NewQueryClient(conn)
-	client.BankQueryClient = banktypes.NewQueryClient(conn)
-	client.ChallengeQueryClient = challengetypes.NewQueryClient(conn)
-	client.CrosschainQueryClient = crosschaintypes.NewQueryClient(conn)
-	client.DistrQueryClient = distrtypes.NewQueryClient(conn)
-	client.FeegrantQueryClient = feegranttypes.NewQueryClient(conn)
-	client.GashubQueryClient = gashubtypes.NewQueryClient(conn)
-	client.PaymentQueryClient = paymenttypes.NewQueryClient(conn)
-	client.SpQueryClient = sptypes.NewQueryClient(conn)
-	client.BridgeQueryClient = bridgetypes.NewQueryClient(conn)
-	client.StorageQueryClient = storagetypes.NewQueryClient(conn)
-	client.GovQueryClientV1 = govv1.NewQueryClient(conn)
-	client.OracleQueryClient = oracletypes.NewQueryClient(conn)
-	client.ParamsQueryClient = paramstypes.NewQueryClient(conn)
-	client.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
-	client.StakingQueryClient = stakingtypes.NewQueryClient(conn)
-	client.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
-	client.TxClient = tx.NewServiceClient(conn)
+	rpcClient, err := sdkclient.NewClientFromNode(rpcAddr)
+	if err != nil {
+		panic(err)
+	}
+	txConfig := authtx.NewTxConfig(cdc, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
+	clientCtx := sdkclient.Context{}.
+		WithCodec(cdc).
+		WithInterfaceRegistry(cdc.InterfaceRegistry()).
+		WithTxConfig(txConfig).
+		WithClient(rpcClient)
+
+	setClientsConn(client, clientCtx)
 	return client
+}
+
+func setClientsConn(c *GreenfieldClient, conn grpc1.ClientConn) {
+	c.AuthQueryClient = authtypes.NewQueryClient(conn)
+	c.AuthQueryClient = authtypes.NewQueryClient(conn)
+	c.AuthzQueryClient = authztypes.NewQueryClient(conn)
+	c.BankQueryClient = banktypes.NewQueryClient(conn)
+	c.ChallengeQueryClient = challengetypes.NewQueryClient(conn)
+	c.CrosschainQueryClient = crosschaintypes.NewQueryClient(conn)
+	c.DistrQueryClient = distrtypes.NewQueryClient(conn)
+	c.FeegrantQueryClient = feegranttypes.NewQueryClient(conn)
+	c.GashubQueryClient = gashubtypes.NewQueryClient(conn)
+	c.PaymentQueryClient = paymenttypes.NewQueryClient(conn)
+	c.SpQueryClient = sptypes.NewQueryClient(conn)
+	c.BridgeQueryClient = bridgetypes.NewQueryClient(conn)
+	c.StorageQueryClient = storagetypes.NewQueryClient(conn)
+	c.GovQueryClientV1 = govv1.NewQueryClient(conn)
+	c.OracleQueryClient = oracletypes.NewQueryClient(conn)
+	c.ParamsQueryClient = paramstypes.NewQueryClient(conn)
+	c.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
+	c.StakingQueryClient = stakingtypes.NewQueryClient(conn)
+	c.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
+	c.TxClient = tx.NewServiceClient(conn)
 }
 
 // SetKeyManager sets a key manager in the GreenfieldClient structure.

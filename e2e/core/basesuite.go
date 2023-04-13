@@ -7,8 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/bnb-chain/greenfield/sdk/client"
 	"github.com/bnb-chain/greenfield/sdk/keys"
@@ -36,8 +34,7 @@ type BaseSuite struct {
 
 func (s *BaseSuite) SetupSuite() {
 	s.Config = InitConfig()
-	s.Client = client.NewGreenfieldClient(s.Config.GrpcAddr, s.Config.ChainId,
-		client.WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	s.Client = client.NewGreenfieldClient(s.Config.TendermintAddr, s.Config.ChainId)
 	tmClient := client.NewTendermintClient(s.Config.TendermintAddr)
 	s.TmClient = &tmClient
 	var err error
