@@ -2,8 +2,9 @@ package client
 
 import (
 	_ "encoding/json"
-	grpc1 "github.com/gogo/protobuf/grpc"
 	"strings"
+
+	grpc1 "github.com/gogo/protobuf/grpc"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 

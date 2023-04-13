@@ -82,6 +82,7 @@ func TestSimulateTx(t *testing.T) {
 	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
 	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
+	assert.NoError(t, err)
 	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
