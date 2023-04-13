@@ -79,12 +79,18 @@ message EventUpdateBucketInfo {
 
 // EventDiscontinueBucket is emitted on MsgDiscontinueBucket
 message EventDiscontinueBucket {
+  // bucket_id define id of the bucket
+  string bucket_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
   // bucket_name define the name of the bucket
-  string bucket_name = 1;
+  string bucket_name = 2;
   // the reason
-  string reason = 2;
+  string reason = 3;
   // the timestamp after which the metadata will be deleted
-  int64 delete_at = 3;
+  int64 delete_at = 4;
 }
 
 // EventCreateObject is emitted on MsgCreateObject

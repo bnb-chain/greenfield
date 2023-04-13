@@ -353,6 +353,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	k.setDiscontinueBucketCount(ctx, operator, count+1)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDiscontinueBucket{
+		BucketId:   bucketInfo.Id,
 		BucketName: bucketInfo.BucketName,
 		Reason:     reason,
 		DeleteAt:   deleteAt,
