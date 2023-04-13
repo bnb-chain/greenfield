@@ -2,6 +2,7 @@ package client
 
 import (
 	_ "encoding/json"
+	"strings"
 
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -154,6 +155,9 @@ func NewGreenfieldClient(rpcAddr, chainId string, opts ...GreenfieldClientOption
 	if client.grpcConn != nil {
 		setClientsConn(client, client.grpcConn)
 		return client
+	}
+	if len(strings.TrimSpace(rpcAddr)) == 0 {
+		panic("rpc address is not provided")
 	}
 
 	rpcClient, err := sdkclient.NewClientFromNode(rpcAddr)

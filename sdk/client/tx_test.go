@@ -115,8 +115,7 @@ func TestSendTokenWithCustomizedNonce(t *testing.T) {
 func TestSendTxWithGrpcConn(t *testing.T) {
 	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
-	gnfdCli := NewGreenfieldClient("", test.TEST_CHAIN_ID, WithKeyManager(km),
-		WithGrpcConnectionAndDialOption(test.TEST_GRPC_ADDR, grpc.WithTransportCredentials(insecure.NewCredentials())))
+	gnfdCli := NewGreenfieldClient("", test.TEST_CHAIN_ID, WithKeyManager(km), WithGrpcConnectionAndDialOption(test.TEST_GRPC_ADDR, grpc.WithTransportCredentials(insecure.NewCredentials())))
 
 	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
