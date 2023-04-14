@@ -91,6 +91,11 @@ func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetype
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
+
+	return k.ChargeStoreFee(ctx, bucketInfo, objectInfo)
+}
+
+func (k Keeper) ChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize += chargeSize

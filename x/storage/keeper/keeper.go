@@ -342,6 +342,15 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
 	}
 
+	// check payload size, the empty object doesn't need sealed
+	var objectStatus types.ObjectStatus
+	if payloadSize == 0 {
+		// empty object does not interact with sp
+		objectStatus = types.OBJECT_STATUS_SEALED
+	} else {
+		objectStatus = types.OBJECT_STATUS_CREATED
+	}
+
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
 		Owner:                bucketInfo.Owner,
@@ -352,17 +361,25 @@ func (k Keeper) CreateObject(
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
-		ObjectStatus:         types.OBJECT_STATUS_CREATED,
+		ObjectStatus:         objectStatus,
 		RedundancyType:       opts.RedundancyType,
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,
 		SecondarySpAddresses: secondarySPs,
 	}
 
-	// Lock Fee
-	err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if objectInfo.PayloadSize == 0 {
+		// charge directly without lock charge
+		err = k.ChargeStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		// Lock Fee
+		err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	bbz := k.cdc.MustMarshal(bucketInfo)
@@ -659,6 +676,15 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), err
 	}
 
+	// check payload size, the empty object doesn't need sealed
+	var objectStatus types.ObjectStatus
+	if srcObjectInfo.PayloadSize == 0 {
+		// empty object does not interact with sp
+		objectStatus = types.OBJECT_STATUS_SEALED
+	} else {
+		objectStatus = types.OBJECT_STATUS_CREATED
+	}
+
 	objectInfo := types.ObjectInfo{
 		Owner:          operator.String(),
 		BucketName:     dstBucketInfo.BucketName,
@@ -666,17 +692,24 @@ func (k Keeper) CopyObject(
 		PayloadSize:    srcObjectInfo.PayloadSize,
 		Visibility:     opts.Visibility,
 		ContentType:    srcObjectInfo.ContentType,
-		CreateAt:       ctx.BlockHeight(),
+		CreateAt:       ctx.BlockTime().Unix(),
 		Id:             k.GenNextObjectID(ctx),
-		ObjectStatus:   types.OBJECT_STATUS_CREATED,
+		ObjectStatus:   objectStatus,
 		RedundancyType: srcObjectInfo.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
-	err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if srcObjectInfo.PayloadSize == 0 {
+		err = k.ChargeStoreFee(ctx, dstBucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	bbz := k.cdc.MustMarshal(dstBucketInfo)
