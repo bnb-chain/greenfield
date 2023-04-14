@@ -95,10 +95,12 @@ jobs:
           name: macos
           path: ./macos
       
-      # Rename assets
+      # Prepare assets
       - run: |
           mv ./linux/gnfd ./linux/linux
           mv ./macos/gnfd ./macos/macos
+          cp -r ./asset/configs/testnet_config ./testnet_config
+          zip -r ./testnet_config.zip ./testnet_config
 
       # ==============================
       #       Create release
@@ -126,3 +128,4 @@ jobs:
           files: |
             ./linux/linux
             ./macos/macos
+            ./testnet_config.zip

@@ -227,6 +227,12 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.GroupName, groupName)
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
 
+	// 3. ListGroup
+	queryListGroupReq := storagetypes.QueryListGroupRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroup(ctx, &queryListGroupReq)
+	s.Require().NoError(err)
+	s.Require().GreaterOrEqual(len(queryListGroupResp.GroupInfos), 1)
+
 	// 3. HeadGroupMember
 	queryHeadGroupMemberReq := storagetypes.QueryHeadGroupMemberRequest{
 		Member:     member.GetAddr().String(),
@@ -380,6 +386,44 @@ func (s *StorageTestSuite) GetStreamRecords() (streamRecords StreamRecords) {
 	return streamRecords
 }
 
+func (s *StorageTestSuite) CheckStreamRecordsBeforeAndAfter(streamRecordsBefore StreamRecords, streamRecordsAfter StreamRecords, readPrice sdk.Dec,
+	readChargeRate sdkmath.Int, primaryStorePrice sdk.Dec, secondaryStorePrice sdk.Dec, chargeSize uint64, secondarySPs []sdk.AccAddress, payloadSize uint64) {
+	userRateDiff := streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate)
+	taxRateDiff := streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate)
+	spRateDiffs := lo.Map(streamRecordsAfter.SPs, func(sp paymenttypes.StreamRecord, i int) sdkmath.Int {
+		return sp.NetflowRate.Sub(streamRecordsBefore.SPs[i].NetflowRate)
+	})
+	spRateDiffsSum := lo.Reduce(spRateDiffs, func(sum sdkmath.Int, rate sdkmath.Int, i int) sdkmath.Int {
+		return sum.Add(rate)
+	}, sdkmath.ZeroInt())
+	s.Require().Equal(userRateDiff, spRateDiffsSum.Add(taxRateDiff).Neg())
+	spRateDiffMap := lo.Reduce(spRateDiffs, func(m map[string]sdkmath.Int, rate sdkmath.Int, i int) map[string]sdkmath.Int {
+		m[streamRecordsAfter.SPs[i].Account] = rate
+		return m
+	}, make(map[string]sdkmath.Int))
+	userOutflowMap := lo.Reduce(streamRecordsAfter.User.OutFlows, func(m map[string]sdkmath.Int, outflow paymenttypes.OutFlow, i int) map[string]sdkmath.Int {
+		m[outflow.ToAddress] = outflow.Rate
+		return m
+	}, make(map[string]sdkmath.Int))
+	if payloadSize != 0 {
+		primarySpAddr := s.StorageProviders[0].OperatorKey.GetAddr().String()
+		s.Require().Equal(
+			userOutflowMap[primarySpAddr].Sub(readChargeRate).String(),
+			spRateDiffMap[primarySpAddr].String())
+		diff := spRateDiffMap[primarySpAddr].Sub(primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt())
+		s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
+		s.T().Logf("diff %s", diff.String())
+		s.Require().Equal(diff.String(), sdkmath.ZeroInt().String())
+		s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+		for i, sp := range secondarySPs {
+			secondarySpAddr := sp.String()
+			s.Require().Equal(userOutflowMap[secondarySpAddr].String(), spRateDiffMap[secondarySpAddr].String(), "sp %d", i+1)
+			s.Require().Equal(userOutflowMap[secondarySpAddr].String(), secondaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+		}
+	}
+
+}
+
 func (s *StorageTestSuite) TestPayment_Smoke() {
 	ctx := context.Background()
 	sp := s.StorageProviders[0]
@@ -510,37 +554,28 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	streamRecordsAfterSeal := s.GetStreamRecords()
 	s.T().Logf("streamRecordsAfterSeal %s", core.YamlString(streamRecordsAfterSeal))
 	s.Require().Equal(sdkmath.ZeroInt(), streamRecordsAfterSeal.User.LockBalance)
-	userRateDiff := streamRecordsAfterSeal.User.NetflowRate.Sub(streamRecordsAfterCreateObject.User.NetflowRate)
-	taxRateDiff := streamRecordsAfterSeal.Tax.NetflowRate.Sub(streamRecordsAfterCreateObject.Tax.NetflowRate)
-	spRateDiffs := lo.Map(streamRecordsAfterSeal.SPs, func(sp paymenttypes.StreamRecord, i int) sdkmath.Int {
-		return sp.NetflowRate.Sub(streamRecordsAfterCreateObject.SPs[i].NetflowRate)
-	})
-	spRateDiffsSum := lo.Reduce(spRateDiffs, func(sum sdkmath.Int, rate sdkmath.Int, i int) sdkmath.Int {
-		return sum.Add(rate)
-	}, sdkmath.ZeroInt())
-	s.Require().Equal(userRateDiff, spRateDiffsSum.Add(taxRateDiff).Neg())
-	spRateDiffMap := lo.Reduce(spRateDiffs, func(m map[string]sdkmath.Int, rate sdkmath.Int, i int) map[string]sdkmath.Int {
-		m[streamRecordsAfterSeal.SPs[i].Account] = rate
-		return m
-	}, make(map[string]sdkmath.Int))
-	userOutflowMap := lo.Reduce(streamRecordsAfterSeal.User.OutFlows, func(m map[string]sdkmath.Int, outflow paymenttypes.OutFlow, i int) map[string]sdkmath.Int {
-		m[outflow.ToAddress] = outflow.Rate
-		return m
-	}, make(map[string]sdkmath.Int))
-	primarySpAddr := s.StorageProviders[0].OperatorKey.GetAddr().String()
-	s.Require().Equal(
-		userOutflowMap[primarySpAddr].Sub(readChargeRate).String(),
-		spRateDiffMap[primarySpAddr].String())
-	diff := spRateDiffMap[primarySpAddr].Sub(primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt())
-	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
-	s.T().Logf("diff %s", diff.String())
-	s.Require().Equal(diff.String(), sdkmath.ZeroInt().String())
-	s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
-	for i, sp := range secondarySPs {
-		secondarySpAddr := sp.String()
-		s.Require().Equal(userOutflowMap[secondarySpAddr].String(), spRateDiffMap[secondarySpAddr].String(), "sp %d", i+1)
-		s.Require().Equal(userOutflowMap[secondarySpAddr].String(), secondaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
-	}
+	s.CheckStreamRecordsBeforeAndAfter(streamRecordsAfterCreateObject, streamRecordsAfterSeal, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, secondarySPs, uint64(payloadSize))
+
+	// create empty object
+	streamRecordsBeforeCreateEmptyObject := s.GetStreamRecords()
+	s.T().Logf("streamRecordsBeforeCreateEmptyObject %s", core.YamlString(streamRecordsBeforeCreateEmptyObject))
+
+	emptyObjectName := "sub_directory/"
+	// create empty test buffer
+	var emptyBuffer bytes.Buffer
+	emptyPayloadSize := emptyBuffer.Len()
+	emptyChecksum := sdk.Keccak256(emptyBuffer.Bytes())
+	emptyExpectChecksum := [][]byte{emptyChecksum, emptyChecksum, emptyChecksum, emptyChecksum, emptyChecksum, emptyChecksum, emptyChecksum}
+	msgCreateEmptyObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, emptyObjectName, uint64(emptyPayloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, emptyExpectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateEmptyObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateEmptyObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateEmptyObject, user)
+
+	streamRecordsAfterCreateEmptyObject := s.GetStreamRecords()
+	s.T().Logf("streamRecordsAfterCreateEmptyObject %s", core.YamlString(streamRecordsAfterCreateEmptyObject))
+	chargeSize = s.GetChargeSize(uint64(emptyPayloadSize))
+
+	s.CheckStreamRecordsBeforeAndAfter(streamRecordsBeforeCreateEmptyObject, streamRecordsAfterCreateEmptyObject, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, secondarySPs, uint64(emptyPayloadSize))
 
 	// test query auto settle records
 	queryAllAutoSettleRecordRequest := paymenttypes.QueryAllAutoSettleRecordRequest{}
@@ -1411,4 +1446,92 @@ func (s *StorageTestSuite) TestCancelCreateObject() {
 	msgCancelCreateObject := storagetypes.NewMsgCancelCreateObject(user.GetAddr(), bucketName, objectName)
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCancelCreateObject, user)
+}
+
+func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
+	var err error
+	// CreateBucket
+	sp := s.StorageProviders[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// CreateObject
+	objectName := "sub_directory/"
+	// create empty test buffer
+	var buffer bytes.Buffer
+
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateObject, user)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
+	s.Require().Equal(len(queryHeadObjectResponse.ObjectInfo.SecondarySpAddresses), 0)
+
+	// CopyObject
+	dstBucketName := bucketName
+	dstObjectName := "new_directory/"
+	msgCopyObject := storagetypes.NewMsgCopyObject(user.GetAddr(), bucketName, dstBucketName, objectName, dstObjectName, math.MaxUint, nil)
+	msgCopyObject.DstPrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCopyObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCopyObject, user)
+
+	// HeadObject
+	queryCopyObjectHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: dstBucketName,
+		ObjectName: dstObjectName,
+	}
+	queryCopyObjectHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryCopyObjectHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.ObjectName, dstObjectName)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.BucketName, dstBucketName)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
+	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.ContentType, contextType)
+	s.Require().Equal(len(queryCopyObjectHeadObjectResponse.ObjectInfo.SecondarySpAddresses), 0)
 }
