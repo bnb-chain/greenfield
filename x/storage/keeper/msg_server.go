@@ -378,10 +378,10 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 	k.Keeper.SetObjectInfo(ctx, objectInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObject{
-		OperatorAddress: objectInfo.Owner,
-		BucketName:      objectInfo.BucketName,
-		ObjectName:      objectInfo.ObjectName,
-		ObjectId:        objectInfo.Id,
+		Operator:   objectInfo.Owner,
+		BucketName: objectInfo.BucketName,
+		ObjectName: objectInfo.ObjectName,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -444,9 +444,9 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	k.Keeper.SetBucketInfo(ctx, bucketInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucket{
-		OperatorAddress: bucketInfo.Owner,
-		BucketName:      bucketInfo.BucketName,
-		BucketId:        bucketInfo.Id,
+		Operator:   bucketInfo.Owner,
+		BucketName: bucketInfo.BucketName,
+		BucketId:   bucketInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -505,9 +505,9 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	k.Keeper.SetGroupInfo(ctx, groupInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
