@@ -131,7 +131,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
-	event := filterEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
+	event := filterChallengeEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
 	s.Require().Equal(event.SpOperatorAddress, primarySp.String())
@@ -139,7 +139,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	bucketName, objectName, _, secondarySps := s.createObject()
 	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), secondarySps[0], bucketName, objectName, false, 0)
 	txRes = s.SendTxBlock(msgSubmit, user)
-	event = filterEventFromTx(txRes)
+	event = filterChallengeEventFromTx(txRes)
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().Equal(event.SegmentIndex, uint32(0))
 	s.Require().Equal(event.SpOperatorAddress, secondarySps[0].String())
@@ -170,7 +170,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
-	event := filterEventFromTx(txRes)
+	event := filterChallengeEventFromTx(txRes)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
@@ -215,7 +215,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		time.Sleep(20 * time.Millisecond)
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 		s.Require().NoError(err)
-		events := filterEventFromBlock(blockRes)
+		events := filterChallengeEventFromBlock(blockRes)
 
 		for _, e := range events {
 			if e.ChallengeId%heartbeatInterval == 0 {
@@ -260,7 +260,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
-	event := filterEventFromTx(txRes)
+	event := filterChallengeEventFromTx(txRes)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
@@ -306,11 +306,11 @@ func (s *ChallengeTestSuite) TestEndBlock() {
 
 	blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 	s.Require().NoError(err)
-	events := filterEventFromBlock(blockRes)
+	events := filterChallengeEventFromBlock(blockRes)
 	s.Require().True(len(events) > 0)
 }
 
-func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.EventStartChallenge {
+func filterChallengeEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.EventStartChallenge {
 	challengeEvents := make([]challengetypes.EventStartChallenge, 0)
 
 	for _, event := range blockRes.EndBlockEvents {
@@ -346,7 +346,7 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 	return challengeEvents
 }
 
-func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
+func filterChallengeEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
 	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress, expiredHeightStr := "", "", "", "", "", ""
 	for _, event := range txRes.Logs[0].Events {
 		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {

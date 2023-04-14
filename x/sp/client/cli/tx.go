@@ -53,6 +53,45 @@ func CmdEditStorageProvider() *cobra.Command {
 			details, _ := cmd.Flags().GetString(FlagDetails)
 			description := types.NewDescription(moniker, identity, website, details)
 
+			// seal address
+			sealAddressStr, err := cmd.Flags().GetString(FlagSealAddress)
+			if err != nil {
+				return err
+			}
+			sealAddress := sdk.AccAddress{}
+			if sealAddressStr != "" {
+				sealAddress, err = sdk.AccAddressFromHexUnsafe(sealAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
+			// approval address
+			approvalAddressStr, err := cmd.Flags().GetString(FlagApprovalAddress)
+			if err != nil {
+				return err
+			}
+			approvalAddress := sdk.AccAddress{}
+			if approvalAddressStr != "" {
+				approvalAddress, err = sdk.AccAddressFromHexUnsafe(approvalAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
+			// gc address
+			gcAddressStr, err := cmd.Flags().GetString(FlagGcAddress)
+			if err != nil {
+				return err
+			}
+			gcAddress := sdk.AccAddress{}
+			if gcAddressStr != "" {
+				gcAddress, err = sdk.AccAddressFromHexUnsafe(gcAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -62,6 +101,9 @@ func CmdEditStorageProvider() *cobra.Command {
 				spAddress,
 				endpoint,
 				&description,
+				sealAddress,
+				approvalAddress,
+				gcAddress,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -77,6 +119,10 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagIdentity, types.DoNotModifyDesc, "The (optional) identity signature (ex. UPort or Keybase)")
 	cmd.Flags().String(FlagWebsite, types.DoNotModifyDesc, "The storage provider's (optional) website")
 	cmd.Flags().String(FlagDetails, types.DoNotModifyDesc, "The storage provider's (optional) details")
+
+	cmd.Flags().String(FlagSealAddress, "", "The seal address of storage provider")
+	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
+	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
 
 	return cmd
 }
@@ -231,6 +277,7 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagFundingAddress, "", "The funding address of storage provider")
 	fsCreateStorageProvider.String(FlagSealAddress, "", "The seal address of storage provider")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
+	fsCreateStorageProvider.String(FlagGcAddress, "", "The gc address of storage provider")
 
 	fsCreateStorageProvider.String(FlagEndpoint, "", "The storage provider's endpoint")
 
@@ -258,6 +305,7 @@ type TxCreateStorageProviderConfig struct {
 	FundingAddress  sdk.AccAddress
 	SealAddress     sdk.AccAddress
 	ApprovalAddress sdk.AccAddress
+	GcAddress       sdk.AccAddress
 
 	Endpoint string
 	Deposit  string
@@ -338,7 +386,6 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 
 	// seal address
 	sealAddress, err := flagSet.GetString(FlagSealAddress)
-	fmt.Println(fundingAddress)
 	if err != nil {
 		return c, err
 	}
@@ -350,7 +397,6 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 
 	// approval address
 	approvalAddress, err := flagSet.GetString(FlagApprovalAddress)
-	fmt.Println(fundingAddress)
 	if err != nil {
 		return c, err
 	}
@@ -359,6 +405,17 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 		return c, err
 	}
 	c.ApprovalAddress = addr
+
+	// gc address
+	gcAddress, err := flagSet.GetString(FlagGcAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(gcAddress)
+	if err != nil {
+		return c, err
+	}
+	c.GcAddress = addr
 
 	// Endpoint
 	endpoint, err := flagSet.GetString(FlagEndpoint)
@@ -413,7 +470,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 
 	msg, err := types.NewMsgCreateStorageProvider(
 		config.Creator, config.SpAddress, config.FundingAddress,
-		config.SealAddress, config.ApprovalAddress, description,
+		config.SealAddress, config.ApprovalAddress, config.GcAddress, description,
 		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
 	)
 	if err != nil {

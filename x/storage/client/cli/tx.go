@@ -36,12 +36,14 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdDeleteBucket())
 	cmd.AddCommand(CmdUpdateBucketInfo())
 	cmd.AddCommand(CmdMirrorBucket())
+	cmd.AddCommand(CmdDiscontinueBucket())
 
 	cmd.AddCommand(CmdCreateObject())
 	cmd.AddCommand(CmdDeleteObject())
 	cmd.AddCommand(CmdCancelCreateObject())
 	cmd.AddCommand(CmdCopyObject())
 	cmd.AddCommand(CmdMirrorObject())
+	cmd.AddCommand(CmdDiscontinueObject())
 
 	cmd.AddCommand(CmdCreateGroup())
 	cmd.AddCommand(CmdDeleteGroup())
@@ -420,6 +422,53 @@ func CmdDeleteObject() *cobra.Command {
 	return cmd
 }
 
+func CmdDiscontinueObject() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "discontinue-object [bucket-name] [object-ids] [reason]",
+		Short: "Discontinue to store objects",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+			argObjectIds := args[1]
+			argObjectReason := args[2]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			objectIds := make([]cmath.Uint, 0)
+			splitIds := strings.Split(argObjectIds, ",")
+			for _, split := range splitIds {
+				id, ok := big.NewInt(0).SetString(split, 10)
+				if !ok {
+					return fmt.Errorf("invalid object id: %s", id)
+				}
+				if id.Cmp(big.NewInt(0)) < 0 {
+					return fmt.Errorf("object id should not be negative")
+				}
+
+				objectIds = append(objectIds, cmath.NewUintFromBigInt(id))
+			}
+
+			msg := types.NewMsgDiscontinueObject(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				objectIds,
+				argObjectReason,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-group [group-name] [member-list]",
@@ -659,6 +708,37 @@ func CmdMirrorBucket() *cobra.Command {
 			msg := types.NewMsgMirrorBucket(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(bucketId),
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdDiscontinueBucket() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "discontinue-bucket [bucket-name] [reason]",
+		Short: "Discontinue to store bucket",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argBucketName := args[0]
+			argObjectReason := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgDiscontinueBucket(
+				clientCtx.GetFromAddress(),
+				argBucketName,
+				argObjectReason,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

@@ -6,21 +6,22 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/bnb-chain/greenfield/types/common"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
+	"github.com/bnb-chain/greenfield/types/common"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -939,8 +940,444 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	s.SendTxBlock(msgMirrorGroup, owner)
 }
 
+func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
+	sp1, _, bucketName1, _, _, objectId1 := s.createObject()
+	sp2, _, bucketName2, _, _, objectId2 := s.createObject()
+
+	// DiscontinueObject
+	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp1.GcKey.GetAddr(), bucketName1, []sdkmath.Uint{objectId1}, "test")
+	txRes := s.SendTxBlock(msgDiscontinueObject, sp1.GcKey)
+	deleteAt := int64(filterDiscontinueObjectEventFromTx(txRes).DeleteAt)
+
+	time.Sleep(5 * time.Second)
+	msgDiscontinueObject2 := storagetypes.NewMsgDiscontinueObject(sp2.GcKey.GetAddr(), bucketName2, []sdkmath.Uint{objectId2}, "test")
+	s.SendTxBlock(msgDiscontinueObject2, sp2.GcKey)
+
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
+	for {
+		time.Sleep(500 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
+			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
+		}
+	}
+
+	events := make([]storagetypes.EventDeleteObject, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteObjectEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	object1Found, object2Found := false, false
+	for _, event := range events {
+		if event.ObjectId.Equal(objectId1) {
+			object1Found = true
+		}
+		if event.ObjectId.Equal(objectId2) {
+			object2Found = true
+		}
+	}
+	s.Require().True(object1Found)
+	s.Require().True(!object2Found)
+}
+
+func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
+	sp, user, bucketName, _, objectName, objectId := s.createObject()
+
+	// DiscontinueObject
+	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.GcKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
+	txRes := s.SendTxBlock(msgDiscontinueObject, sp.GcKey)
+	deleteAt := filterDiscontinueObjectEventFromTx(txRes).DeleteAt
+
+	// DeleteObject before discontinue confirm window
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	txRes = s.SendTxBlock(msgDeleteObject, user)
+	event := filterDeleteObjectEventFromTx(txRes)
+	s.Require().Equal(event.ObjectId, objectId)
+
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
+	for {
+		time.Sleep(500 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
+			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
+		}
+	}
+
+	events := make([]storagetypes.EventDeleteObject, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteObjectEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	// Already deleted by user
+	found := false
+	for _, event := range events {
+		if event.ObjectId.Equal(objectId) {
+			found = true
+		}
+	}
+	s.Require().True(!found)
+
+	time.Sleep(500 * time.Millisecond)
+	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
+	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > heightAfter)
+}
+
+func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
+	sp1, _, bucketName1, bucketId1, _, _ := s.createObject()
+	sp2, _, bucketName2, bucketId2, _, _ := s.createObject()
+
+	// DiscontinueBucket
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName1, "test")
+	txRes := s.SendTxBlock(msgDiscontinueBucket, sp1.GcKey)
+	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
+
+	time.Sleep(3 * time.Second)
+	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName2, "test")
+	s.SendTxBlock(msgDiscontinueBucket2, sp2.GcKey)
+
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
+	for {
+		time.Sleep(500 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
+			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
+		}
+	}
+
+	events := make([]storagetypes.EventDeleteBucket, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteBucketEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	bucket1Found, bucket2Found := false, false
+	for _, event := range events {
+		if event.BucketId.Equal(bucketId1) {
+			bucket1Found = true
+		}
+		if event.BucketId.Equal(bucketId2) {
+			bucket2Found = true
+		}
+	}
+	s.Require().True(bucket1Found)
+	s.Require().True(!bucket2Found)
+}
+
+func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
+	sp, user, bucketName, bucketId, objectName, _ := s.createObject()
+
+	// DiscontinueBucket
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes := s.SendTxBlock(msgDiscontinueBucket, sp.GcKey)
+	deleteAt := int64(filterDiscontinueBucketEventFromTx(txRes).DeleteAt)
+
+	// DeleteBucket before discontinue confirm window
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(msgDeleteObject, user)
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	txRes = s.SendTxBlock(msgDeleteBucket, user)
+	event := filterDeleteBucketEventFromTx(txRes)
+	s.Require().Equal(event.BucketId, bucketId)
+
+	// Wait after the delete timestamp
+	heightBefore := txRes.Height
+	heightAfter := int64(0)
+	for {
+		time.Sleep(500 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime >= deleteAt {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
+			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
+		}
+	}
+
+	events := make([]storagetypes.EventDeleteBucket, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteBucketEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	// Already deleted by user
+	found := false
+	for _, event := range events {
+		if event.BucketId.Equal(bucketId) {
+			found = true
+		}
+	}
+	s.Require().True(!found)
+
+	time.Sleep(500 * time.Millisecond)
+	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
+	s.Require().True(statusRes.SyncInfo.LatestBlockHeight > heightAfter)
+}
+
+func (s *StorageTestSuite) createObject() (core.SPKeyManagers, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
+	var err error
+	// CreateBucket
+	sp := s.StorageProviders[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// CreateObject
+	objectName := storageutils.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateObject, user)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
+
+	// SealObject
+	secondarySPs := []sdk.AccAddress{
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+	}
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+	s.Require().NoError(err)
+	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
+		secondarySig)
+	s.Require().NoError(err)
+
+	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
+	msgSealObject.SecondarySpSignatures = secondarySigs
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(msgSealObject, sp.SealKey)
+
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.Require().Greater(len(queryListBucketResponse.BucketInfos), 0)
+
+	// ListObject
+	queryListObjectsRequest := storagetypes.QueryListObjectsRequest{
+		BucketName: bucketName,
+	}
+	queryListObjectsResponse, err := s.Client.ListObjects(ctx, &queryListObjectsRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
+	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
+	return sp, user, bucketName, queryHeadBucketResponse.BucketInfo.Id, objectName, queryListObjectsResponse.ObjectInfos[0].Id
+}
+
 func TestStorageTestSuite(t *testing.T) {
 	suite.Run(t, new(StorageTestSuite))
+}
+
+func filterDiscontinueObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDiscontinueObject {
+	deleteAtStr := ""
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "bnbchain.greenfield.storage.EventDiscontinueObject" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "delete_at" {
+					deleteAtStr = strings.Trim(attr.Value, `"`)
+				}
+			}
+		}
+	}
+	deleteAt, _ := strconv.ParseInt(deleteAtStr, 10, 64)
+	return storagetypes.EventDiscontinueObject{
+		DeleteAt: deleteAt,
+	}
+}
+
+func filterDeleteObjectEventFromBlock(blockRes *ctypes.ResultBlockResults) []storagetypes.EventDeleteObject {
+	events := make([]storagetypes.EventDeleteObject, 0)
+
+	for _, event := range blockRes.EndBlockEvents {
+		if event.Type == "bnbchain.greenfield.storage.EventDeleteObject" {
+			objectIdStr := ""
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == "object_id" {
+					objectIdStr = strings.Trim(string(attr.Value), `"`)
+				}
+			}
+			objectId := sdkmath.NewUintFromString(objectIdStr)
+			events = append(events, storagetypes.EventDeleteObject{
+				ObjectId: objectId,
+			})
+		}
+	}
+	return events
+}
+
+func filterDeleteObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDeleteObject {
+	objectIdStr := ""
+	for _, event := range txRes.Events {
+		if event.Type == "bnbchain.greenfield.storage.EventDeleteObject" {
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == "object_id" {
+					objectIdStr = strings.Trim(string(attr.Value), `"`)
+				}
+			}
+		}
+	}
+	objectId := sdkmath.NewUintFromString(objectIdStr)
+	return storagetypes.EventDeleteObject{
+		ObjectId: objectId,
+	}
+}
+
+func filterDiscontinueBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDiscontinueBucket {
+	deleteAtStr := ""
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "bnbchain.greenfield.storage.EventDiscontinueBucket" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "delete_at" {
+					deleteAtStr = strings.Trim(attr.Value, `"`)
+				}
+			}
+		}
+	}
+	deleteAt, _ := strconv.ParseInt(deleteAtStr, 10, 64)
+	return storagetypes.EventDiscontinueBucket{
+		DeleteAt: deleteAt,
+	}
+}
+
+func filterDeleteBucketEventFromBlock(blockRes *ctypes.ResultBlockResults) []storagetypes.EventDeleteBucket {
+	events := make([]storagetypes.EventDeleteBucket, 0)
+
+	for _, event := range blockRes.EndBlockEvents {
+		if event.Type == "bnbchain.greenfield.storage.EventDeleteBucket" {
+			bucketIdStr := ""
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == "bucket_id" {
+					bucketIdStr = strings.Trim(string(attr.Value), `"`)
+				}
+			}
+			bucketId := sdkmath.NewUintFromString(bucketIdStr)
+			events = append(events, storagetypes.EventDeleteBucket{
+				BucketId: bucketId,
+			})
+		}
+	}
+	return events
+}
+
+func filterDeleteBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDeleteBucket {
+	bucketIdStr := ""
+	for _, event := range txRes.Events {
+		if event.Type == "bnbchain.greenfield.storage.EventDeleteBucket" {
+			for _, attr := range event.Attributes {
+				if string(attr.Key) == "bucket_id" {
+					bucketIdStr = strings.Trim(string(attr.Value), `"`)
+				}
+			}
+		}
+	}
+	bucketId := sdkmath.NewUintFromString(bucketIdStr)
+	return storagetypes.EventDeleteBucket{
+		BucketId: bucketId,
+	}
 }
 
 func (s *StorageTestSuite) TestCancelCreateObject() {

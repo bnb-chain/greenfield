@@ -85,6 +85,18 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 	return &types.MsgUpdateBucketInfoResponse{}, nil
 }
 
+func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.MsgDiscontinueBucket) (*storagetypes.MsgDiscontinueBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.DiscontinueBucket(ctx, operatorAcc, msg.BucketName, msg.Reason)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDiscontinueBucketResponse{}, nil
+}
+
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -200,6 +212,17 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 		return nil, err
 	}
 	return &types.MsgRejectSealObjectResponse{}, nil
+}
+
+func (k msgServer) DiscontinueObject(goCtx context.Context, msg *storagetypes.MsgDiscontinueObject) (*storagetypes.MsgDiscontinueObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.DiscontinueObject(ctx, spAcc, msg.BucketName, msg.ObjectIds, msg.Reason)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDiscontinueObjectResponse{}, nil
 }
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {

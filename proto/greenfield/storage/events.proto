@@ -31,6 +31,8 @@ message EventCreateBucket {
   string payment_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // primary_sp_address is the operator address of the primary sp.
   string primary_sp_address = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // status define the status of the bucket.
+  BucketStatus status = 10;
 }
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
@@ -73,6 +75,22 @@ message EventUpdateBucketInfo {
   string payment_address_after = 7;
   // visibility defines the highest permission of object.
   VisibilityType visibility = 8;
+}
+
+// EventDiscontinueBucket is emitted on MsgDiscontinueBucket
+message EventDiscontinueBucket {
+  // bucket_id define id of the bucket
+  string bucket_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // bucket_name define the name of the bucket
+  string bucket_name = 2;
+  // the reason
+  string reason = 3;
+  // the timestamp after which the metadata will be deleted
+  int64 delete_at = 4;
 }
 
 // EventCreateObject is emitted on MsgCreateObject
@@ -215,6 +233,22 @@ message EventRejectSealObject {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+}
+
+// EventDiscontinueObject is emitted on MsgDiscontinueObject
+message EventDiscontinueObject {
+  // bucket_name define the name of the bucket
+  string bucket_name = 1;
+  // object_id defines id of the object
+  string object_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // the reason
+  string reason = 3;
+  // the timestamp after which the metadata will be deleted
+  int64 delete_at = 4;
 }
 
 // EventCreateGroup is emitted on MsgCreateGroup

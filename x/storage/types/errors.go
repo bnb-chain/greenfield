@@ -33,5 +33,12 @@ var (
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")
 	ErrInvalidOperationType     = errors.Register(ModuleName, 3002, "invalid operation type")
-	ErrInvalidId                = errors.Register(ModuleName, 3003, "is is invalid")
+	ErrInvalidId                = errors.Register(ModuleName, 3003, "id is invalid")
+
+	ErrInvalidObjectIds    = errors.Register(ModuleName, 3101, "object ids are invalid")
+	ErrInvalidReason       = errors.Register(ModuleName, 3102, "reason is invalid")
+	ErrNoMoreDiscontinue   = errors.Register(ModuleName, 3103, "no more discontinue requests")
+	ErrBucketDiscontinued  = errors.Register(ModuleName, 3104, "the bucket is discontinued")
+	ErrInvalidObjectStatus = errors.Register(ModuleName, 3105, "invalid object status")
+	ErrInvalidBucketStatus = errors.Register(ModuleName, 3106, "invalid bucket status")
 )
