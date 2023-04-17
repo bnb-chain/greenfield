@@ -26,9 +26,21 @@ func WithKeyManager(km keys.KeyManager) GreenfieldClientOption {
 	})
 }
 
-// WithGrpcDialOption returns a GreenfieldClientOption which configures a grpc client connection options.
-func WithGrpcDialOption(opts ...grpc.DialOption) GreenfieldClientOption {
+// WithGrpcConnectionAndDialOption returns a GreenfieldClientOption which configures a grpc client connection with grpc dail options.
+func WithGrpcConnectionAndDialOption(grpcAddr string, opts ...grpc.DialOption) GreenfieldClientOption {
 	return GreenfieldClientOptionFunc(func(client *GreenfieldClient) {
-		client.grpcDialOption = opts
+		client.grpcConn = grpcConn(grpcAddr, opts...)
 	})
+}
+
+// grpcConn is used to establish a connection with a given address and dial options.
+func grpcConn(addr string, opts ...grpc.DialOption) *grpc.ClientConn {
+	conn, err := grpc.Dial(
+		addr,
+		opts...,
+	)
+	if err != nil {
+		panic(err)
+	}
+	return conn
 }
