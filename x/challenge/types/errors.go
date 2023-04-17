@@ -20,4 +20,6 @@ var (
 	ErrDuplicatedSlash         = errors.Register(ModuleName, 12, "duplicated slash in cooling-off period")
 	ErrInvalidBlsPubKey        = errors.Register(ModuleName, 13, "invalid bls public key")
 	ErrNotEnoughVotes          = errors.Register(ModuleName, 14, "attest votes are not enough")
+	ErrNotChallenger           = errors.Register(ModuleName, 15, "not a valid challenger")
+	ErrNotInturnChallenger     = errors.Register(ModuleName, 16, "challenger is not in turn")
 )
