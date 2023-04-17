@@ -258,16 +258,16 @@ function export_sps {
     spapproval_priv_key=("$(echo "y" | ${bin} keys export sp${i}_approval --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_priv_key=("$(echo "y" | ${bin} keys export sp${i}_gc --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     output="${output}\"sp${i}\":{"
-    output="${output}\"OperatorAddr\": \"${spoperator_addr}\","
-    output="${output}\"FundingAddr\": \"${spfund_addr}\","
-    output="${output}\"SealAddr\": \"${spseal_addr}\","
-    output="${output}\"ApprovalAddr\": \"${spapproval_addr}\","
-    output="${output}\"GcAddr\": \"${spgc_addr}\","
-    output="${output}\"OperatorPrivKey\": \"${spoperator_priv_key}\","
-    output="${output}\"FundingPrivKey\": \"${spfund_priv_key}\","
-    output="${output}\"SealPrivKey\": \"${spseal_priv_key}\","
-    output="${output}\"ApprovalPrivKey\": \"${spapproval_priv_key}\","
-    output="${output}\"GcPrivKey\": \"${spgc_priv_key}\""
+    output="${output}\"OperatorAddress\": \"${spoperator_addr}\","
+    output="${output}\"FundingAddress\": \"${spfund_addr}\","
+    output="${output}\"SealAddress\": \"${spseal_addr}\","
+    output="${output}\"ApprovalAddress\": \"${spapproval_addr}\","
+    output="${output}\"GcAddress\": \"${spgc_addr}\","
+    output="${output}\"OperatorPrivateKey\": \"${spoperator_priv_key}\","
+    output="${output}\"FundingPrivateKey\": \"${spfund_priv_key}\","
+    output="${output}\"SealPrivateKey\": \"${spseal_priv_key}\","
+    output="${output}\"ApprovalPrivateKey\": \"${spapproval_priv_key}\","
+    output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\""
     output="${output}},"
   done
   output="${output%?}}"
@@ -297,9 +297,7 @@ generate)
     ;;
 
 export_sps)
-    echo "===== export sps in genesis ===="
     export_sps $SIZE $SP_SIZE
-    echo "===== end ===="
     ;;
 start)
     echo "===== start ===="
