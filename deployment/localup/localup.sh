@@ -238,6 +238,42 @@ function generate_sp_genesis {
   ${bin} collect-spgentxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator0
 }
 
+function export_sps {
+  size=$1
+  sp_size=1
+  if [ $# -eq 2 ];then
+    sp_size=$2
+  fi
+  output="{"
+  for ((i = 0; i < ${sp_size}; i++)); do
+    spoperator_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+
+    spoperator_priv_key=("$(echo "y" | ${bin} keys export sp${i} --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spfund_priv_key=("$(echo "y" | ${bin} keys export sp${i}_fund --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spseal_priv_key=("$(echo "y" | ${bin} keys export sp${i}_seal --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spapproval_priv_key=("$(echo "y" | ${bin} keys export sp${i}_approval --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spgc_priv_key=("$(echo "y" | ${bin} keys export sp${i}_gc --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    output="${output}\"sp${i}\":{"
+    output="${output}\"OperatorAddr\": \"${spoperator_addr}\","
+    output="${output}\"FundingAddr\": \"${spfund_addr}\","
+    output="${output}\"SealAddr\": \"${spseal_addr}\","
+    output="${output}\"ApprovalAddr\": \"${spapproval_addr}\","
+    output="${output}\"GcAddr\": \"${spgc_addr}\","
+    output="${output}\"OperatorPrivKey\": \"${spoperator_priv_key}\","
+    output="${output}\"FundingPrivKey\": \"${spfund_priv_key}\","
+    output="${output}\"SealPrivKey\": \"${spseal_priv_key}\","
+    output="${output}\"ApprovalPrivKey\": \"${spapproval_priv_key}\","
+    output="${output}\"GcPrivKey\": \"${spgc_priv_key}\""
+    output="${output}},"
+  done
+  output="${output%?}}"
+  echo ${output} | jq .
+}
+
 CMD=$1
 SIZE=3
 SP_SIZE=3
@@ -257,6 +293,12 @@ init)
 generate)
     echo "===== generate genesis ===="
     generate_genesis $SIZE $SP_SIZE
+    echo "===== end ===="
+    ;;
+
+export_sps)
+    echo "===== export sps in genesis ===="
+    export_sps $SIZE $SP_SIZE
     echo "===== end ===="
     ;;
 start)
@@ -281,6 +323,6 @@ all)
     echo "===== end ===="
     ;;
 *)
-    echo "Usage: localup.sh all | init | generate | start | stop"
+    echo "Usage: localup.sh all | init | generate | start | stop | export_sps"
     ;;
 esac
