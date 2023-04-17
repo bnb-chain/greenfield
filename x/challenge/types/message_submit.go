@@ -40,6 +40,7 @@ func (msg *MsgSubmit) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgSubmit) GetSignBytes() []byte {
+	panic("GetSignBytes")
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }

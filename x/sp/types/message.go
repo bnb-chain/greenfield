@@ -65,6 +65,8 @@ func (msg *MsgCreateStorageProvider) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgCreateStorageProvider) GetSignBytes() []byte {
+	panic("GetSignBytes")
+
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -141,6 +143,8 @@ func (msg *MsgEditStorageProvider) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgEditStorageProvider) GetSignBytes() []byte {
+	panic("GetSignBytes")
+
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -213,6 +217,8 @@ func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgDeposit) GetSignBytes() []byte {
+	panic("GetSignBytes")
+
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -247,6 +253,8 @@ func (msg *MsgUpdateSpStoragePrice) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgUpdateSpStoragePrice) GetSignBytes() []byte {
+	panic("GetSignBytes")
+
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }

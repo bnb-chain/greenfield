@@ -14,6 +14,8 @@ func NewSecondarySpSignDoc(spAddress sdk.AccAddress, objectID math.Uint, checksu
 }
 
 func (sr *SecondarySpSignDoc) GetSignBytes() []byte {
+	panic("GetSignBytes")
+
 	bz := ModuleCdc.MustMarshalJSON(sr)
 	return sdk.MustSortJSON(bz)
 }
