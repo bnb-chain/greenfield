@@ -53,7 +53,6 @@ func GetTxCmd() *cobra.Command {
 	cmd.AddCommand(CmdMirrorGroup())
 
 	cmd.AddCommand(CmdPutPolicy())
-	cmd.AddCommand()
 	cmd.AddCommand(CmdDeletePolicy())
 	// this line is used by starport scaffolding # 1
 
