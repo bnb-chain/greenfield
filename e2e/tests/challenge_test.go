@@ -196,7 +196,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 		s.T().Logf("current submitter %s, interval: %d - %d", queryRes.BlsPubKey,
 			queryRes.SubmitInterval.Start, queryRes.SubmitInterval.End)
 
-		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.GetPrivKey().PubKey().Bytes()) {
+		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.PubKey().Bytes()) {
 			break
 		}
 	}
@@ -274,7 +274,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		s.T().Logf("current submitter %s, interval: %d - %d", queryRes.BlsPubKey,
 			queryRes.SubmitInterval.Start, queryRes.SubmitInterval.End)
 
-		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.GetPrivKey().PubKey().Bytes()) {
+		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.PubKey().Bytes()) {
 			break
 		}
 	}
