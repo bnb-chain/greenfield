@@ -1009,6 +1009,42 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 	return nil
 }
 
+func (k Keeper) UpdateObjectInfo(ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, visibility types.VisibilityType) error {
+	store := ctx.KVStore(k.storeKey)
+
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+
+	objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+	if !found {
+		return types.ErrNoSuchObject
+	}
+
+	// check permission
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_UPDATE_OBJECT_INFO)
+	if effect != permtypes.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf("The operator(%s) has no UpdateObjectInfo permission of the bucket(%s), object(%s)",
+			operator.String(), bucketName, objectName)
+	}
+
+	objectInfo.Visibility = visibility
+
+	obz := k.cdc.MustMarshal(objectInfo)
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateObjectInfo{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+		Visibility: visibility,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k Keeper) CreateGroup(
 	ctx sdk.Context, owner sdk.AccAddress,
 	groupName string, opts CreateGroupOptions) (sdkmath.Uint, error) {
