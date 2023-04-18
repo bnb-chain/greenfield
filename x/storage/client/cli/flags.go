@@ -6,6 +6,7 @@ import (
 	flag "github.com/spf13/pflag"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -28,6 +29,16 @@ func GetVisibilityType(str string) (storagetypes.VisibilityType, error) {
 	visibility := storagetypes.VisibilityType(v)
 
 	return visibility, nil
+}
+
+func GetActionType(str string) (permissiontypes.ActionType, error) {
+	v, ok := permissiontypes.ActionType_value[str]
+	if !ok {
+		return permissiontypes.ACTION_UNSPECIFIED, gnfderrors.ErrInvalidActionType
+	}
+	actionType := permissiontypes.ActionType(v)
+
+	return actionType, nil
 }
 
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
