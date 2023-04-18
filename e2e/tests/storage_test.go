@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"math"
 	"sort"
 	"strconv"
@@ -517,6 +518,19 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
+	// simulate
+	res := s.SimulateTx(msgCreateObject, user)
+	s.T().Logf("res %v", res.Result)
+	// check EventFeePreview in simulation result
+	var feePreviewEvent *abci.Event
+	events := res.Result.Events
+	for _, event := range events {
+		if event.Type == "bnbchain.greenfield.payment.EventFeePreview" {
+			s.T().Logf("event %v", event)
+			feePreviewEvent = &event
+		}
+	}
+	s.Require().NotNil(feePreviewEvent)
 	s.SendTxBlock(msgCreateObject, user)
 
 	// check lock balance
@@ -569,6 +583,15 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.Require().Equal(sdkmath.ZeroInt(), streamRecordsAfterSeal.User.LockBalance)
 	s.CheckStreamRecordsBeforeAndAfter(streamRecordsAfterCreateObject, streamRecordsAfterSeal, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, secondarySPs, uint64(payloadSize))
 
+	// query dynamic balance
+	time.Sleep(3 * time.Second)
+	queryDynamicBalanceRequest := paymenttypes.QueryDynamicBalanceRequest{
+		Account: user.GetAddr().String(),
+	}
+	queryDynamicBalanceResponse, err := s.Client.DynamicBalance(ctx, &queryDynamicBalanceRequest)
+	s.Require().NoError(err)
+	s.T().Logf("queryDynamicBalanceResponse %s", core.YamlString(queryDynamicBalanceResponse))
+
 	// create empty object
 	streamRecordsBeforeCreateEmptyObject := s.GetStreamRecords()
 	s.T().Logf("streamRecordsBeforeCreateEmptyObject %s", core.YamlString(streamRecordsBeforeCreateEmptyObject))
@@ -597,11 +620,10 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.T().Logf("queryAllAutoSettleRecordResponse %s", core.YamlString(queryAllAutoSettleRecordResponse))
 	s.Require().True(len(queryAllAutoSettleRecordResponse.AutoSettleRecord) >= 1)
 
-	// change read quota
-
-	// delete object
-
-	// delete bucket
+	// simulate delete object, check fee preview
+	deleteObjectMsg := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	deleteObjectSimRes := s.SimulateTx(deleteObjectMsg, user)
+	s.T().Logf("deleteObjectSimRes %v", deleteObjectSimRes.Result)
 }
 
 func (s *StorageTestSuite) TestPayment_DeleteBucketWithReadQuota() {
