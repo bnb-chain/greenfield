@@ -81,7 +81,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 			} else {
 				event.FeePreviewType = types.FEE_PREVIEW_TYPE_PRELOCKED_FEE
 			}
-			ctx.EventManager().EmitTypedEvents(event)
+			_ = ctx.EventManager().EmitTypedEvents(event)
 		}
 		err = k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange, false)
 		if err != nil {

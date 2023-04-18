@@ -57,7 +57,7 @@ func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInf
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if ctx.IsCheckTx() {
-		ctx.EventManager().EmitTypedEvents(&types.EventFeePreview{
+		_ = ctx.EventManager().EmitTypedEvents(&types.EventFeePreview{
 			Account:        paymentAddr.String(),
 			FeePreviewType: types.FEE_PREVIEW_TYPE_PRELOCKED_FEE,
 			Amount:         amount,

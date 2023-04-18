@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
