@@ -31,6 +31,7 @@ service Msg {
   rpc CancelCreateObject(MsgCancelCreateObject) returns (MsgCancelCreateObjectResponse);
   rpc MirrorObject(MsgMirrorObject) returns (MsgMirrorObjectResponse);
   rpc DiscontinueObject(MsgDiscontinueObject) returns (MsgDiscontinueObjectResponse);
+  rpc UpdateObjectInfo(MsgUpdateObjectInfo) returns (MsgUpdateObjectInfoResponse);
 
   // basic operation of group
   rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
@@ -382,6 +383,22 @@ message MsgMirrorBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+}
+
+message MsgUpdateObjectInfoResponse {}
+
+message MsgUpdateObjectInfo {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator defines the account address of the operator
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket
+  string bucket_name = 2;
+  // object_name defines the name of bucket which you'll update
+  string object_name = 3;
+  // visibility means the object is private or public. if private, only bucket owner or grantee can read it,
+  // otherwise every greenfield user can read it.
+  VisibilityType visibility = 4;
 }
 
 message MsgMirrorBucketResponse {}

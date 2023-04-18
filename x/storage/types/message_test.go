@@ -375,6 +375,44 @@ func TestMsgRejectSealObject_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgUpdateObjectInfo
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgUpdateObjectInfo{
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
+				ObjectName: testObjectName,
+				Visibility: VISIBILITY_TYPE_INHERIT,
+			},
+		},
+		{
+			name: "abnormal",
+			msg: MsgUpdateObjectInfo{
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
+				ObjectName: testObjectName,
+				Visibility: VISIBILITY_TYPE_UNSPECIFIED,
+			},
+			err: ErrInvalidVisibility,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
