@@ -199,6 +199,19 @@ func (s *StorageTestSuite) TestCreateObject() {
 	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
 	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
 
+	// UpdateObjectInfo
+	updateObjectInfo := storagetypes.NewMsgUpdateObjectInfo(
+		user.GetAddr(), bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
+	s.Require().NoError(err)
+	s.SendTxBlock(updateObjectInfo, user)
+	s.Require().NoError(err)
+
+	// verify modified objectinfo
+	// head object
+	queryHeadObjectAfterUpdateObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_INHERIT)
+
 	// DeleteObject
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
 	s.SendTxBlock(msgDeleteObject, user)
