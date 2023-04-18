@@ -36,7 +36,6 @@ func (msg *MsgWithdraw) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgWithdraw) GetSignBytes() []byte {
-	panic("GetSignBytes")
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }

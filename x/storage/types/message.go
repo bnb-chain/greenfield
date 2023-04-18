@@ -119,8 +119,6 @@ func (msg *MsgCreateBucket) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgCreateBucket) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -195,8 +193,6 @@ func (msg *MsgDeleteBucket) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes implements the sdk.Msg interface.
 func (msg *MsgDeleteBucket) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -250,8 +246,6 @@ func (msg *MsgUpdateBucketInfo) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgUpdateBucketInfo) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -322,8 +316,6 @@ func (msg *MsgCreateObject) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgCreateObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -403,8 +395,6 @@ func (msg *MsgCancelCreateObject) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgCancelCreateObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -456,8 +446,6 @@ func (msg *MsgDeleteObject) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgDeleteObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -520,8 +508,6 @@ func (msg *MsgSealObject) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgSealObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -592,8 +578,6 @@ func (msg *MsgCopyObject) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgCopyObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -667,8 +651,6 @@ func (msg *MsgRejectSealObject) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgRejectSealObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -722,8 +704,6 @@ func (msg *MsgDiscontinueObject) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgDiscontinueObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -780,8 +760,6 @@ func (msg *MsgDiscontinueBucket) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgDiscontinueBucket) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -838,8 +816,6 @@ func (msg *MsgCreateGroup) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgCreateGroup) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -889,8 +865,6 @@ func (msg *MsgDeleteGroup) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgDeleteGroup) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -938,8 +912,6 @@ func (msg *MsgLeaveGroup) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgLeaveGroup) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -998,8 +970,6 @@ func (msg *MsgUpdateGroupMember) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgUpdateGroupMember) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -1067,8 +1037,6 @@ func (msg *MsgPutPolicy) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgPutPolicy) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -1129,8 +1097,6 @@ func (msg *MsgDeletePolicy) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgDeletePolicy) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -1182,8 +1148,6 @@ func (msg *MsgMirrorBucket) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes implements the sdk.Msg interface.
 func (msg *MsgMirrorBucket) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -1227,8 +1191,6 @@ func (msg *MsgMirrorObject) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgMirrorObject) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
@@ -1272,8 +1234,6 @@ func (msg *MsgMirrorGroup) GetSigners() []sdk.AccAddress {
 
 // GetSignBytes returns the message bytes to sign over.
 func (msg *MsgMirrorGroup) GetSignBytes() []byte {
-	panic("GetSignBytes")
-
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }

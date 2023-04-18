@@ -43,7 +43,6 @@ func (msg *MsgAttest) GetSigners() []sdk.AccAddress {
 }
 
 func (msg *MsgAttest) GetSignBytes() []byte {
-	panic("GetSignBytes")
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
