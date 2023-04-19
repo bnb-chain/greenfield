@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	k "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"

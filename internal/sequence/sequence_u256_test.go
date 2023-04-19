@@ -4,13 +4,14 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	sdkstore "github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkstore "cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	dbm "github.com/cosmos/cosmos-db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	dbm "github.com/tendermint/tm-db"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 )
@@ -20,7 +21,7 @@ type MockContext struct {
 	store storetypes.CommitMultiStore
 }
 
-func (m MockContext) KVStore(key storetypes.StoreKey) sdk.KVStore {
+func (m MockContext) KVStore(key storetypes.StoreKey) storetypes.KVStore {
 	if s := m.store.GetCommitKVStore(key); s != nil {
 		return s
 	}
@@ -35,13 +36,13 @@ func NewMockContext() *MockContext {
 	db := dbm.NewMemDB()
 	return &MockContext{
 		db:    dbm.NewMemDB(),
-		store: sdkstore.NewCommitMultiStore(db),
+		store: sdkstore.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics()),
 	}
 }
 
 func TestSequenceUniqueConstraint(t *testing.T) {
 	ctx := NewMockContext()
-	store := ctx.KVStore(sdk.NewKVStoreKey("test"))
+	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
 
 	seq := sequence.NewSequence256([]byte{0x1})
 	err := seq.InitVal(store, math.NewUint(0))
@@ -52,7 +53,7 @@ func TestSequenceUniqueConstraint(t *testing.T) {
 
 func TestSequenceIncrements(t *testing.T) {
 	ctx := NewMockContext()
-	store := ctx.KVStore(sdk.NewKVStoreKey("test"))
+	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
 	seq := sequence.NewSequence256([]byte{0x1})
 	max := math.NewUint(10)
 	i := math.ZeroUint()

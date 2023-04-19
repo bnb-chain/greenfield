@@ -1,8 +1,8 @@
 package app
 
 import (
+	upgradetypes "cosmossdk.io/x/upgrade/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func UpgradeInitializerAndHandler(

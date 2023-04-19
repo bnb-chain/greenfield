@@ -9,6 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
+	tmos "github.com/cometbft/cometbft/libs/os"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -22,8 +24,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	tmos "github.com/tendermint/tendermint/libs/os"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/bnb-chain/greenfield/x/sp/client/cli"
 )
@@ -117,8 +117,10 @@ $ %s gentx sp0 10000000000000000000000000BNB --home ./deployment/localup/.local/
 				return errors.Wrap(err, "failed to validate account in genesis")
 			}
 
-			txFactory := tx.NewFactoryCLI(clientCtx, cmd.Flags())
-
+			txFactory, err := tx.NewFactoryCLI(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
 			clientCtx = clientCtx.WithInput(inBuf).WithFromAddress(addr)
 
 			createSpCfg.Deposit = amount

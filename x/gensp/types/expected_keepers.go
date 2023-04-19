@@ -1,22 +1,22 @@
 package types
 
 import (
+	context "context"
 	"encoding/json"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/types"
 	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx sdk.Context, addr sdk.AccAddress) types.AccountI
-	NewAccount(sdk.Context, auth.AccountI) auth.AccountI
-	SetAccount(sdk.Context, auth.AccountI)
-	IterateAccounts(ctx sdk.Context, process func(auth.AccountI) (stop bool))
+	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	NewAccount(context.Context, sdk.AccountI) sdk.AccountI
+	SetAccount(context.Context, sdk.AccountI)
+	IterateAccounts(ctx context.Context, process func(sdk.AccountI) (stop bool))
 	// Methods imported from account should be defined here
 }
 

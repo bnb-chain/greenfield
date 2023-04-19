@@ -3,7 +3,8 @@ package keeper
 import (
 	"encoding/binary"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 
@@ -48,7 +49,7 @@ func (k Keeper) GetPaymentAccount(
 // GetAllPaymentAccount returns all paymentAccount
 func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

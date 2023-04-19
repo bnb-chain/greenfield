@@ -1,7 +1,8 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -50,7 +51,7 @@ func (k Keeper) RemovePaymentAccountCount(
 // GetAllPaymentAccountCount returns all paymentAccountCount
 func (k Keeper) GetAllPaymentAccountCount(ctx sdk.Context) (list []types.PaymentAccountCount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountCountKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

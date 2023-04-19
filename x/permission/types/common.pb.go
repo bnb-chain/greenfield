@@ -5,16 +5,18 @@ package types
 
 import (
 	fmt "fmt"
-	common "github.com/bnb-chain/greenfield/types/common"
-	_ "github.com/cosmos/cosmos-proto"
-	_ "github.com/cosmos/gogoproto/gogoproto"
-	proto "github.com/gogo/protobuf/proto"
-	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
 	time "time"
+
+	_ "github.com/cosmos/cosmos-proto"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	proto "github.com/cosmos/gogoproto/proto"
+	github_com_gogo_protobuf_types "github.com/cosmos/gogoproto/types"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
+
+	common "github.com/bnb-chain/greenfield/types/common"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.

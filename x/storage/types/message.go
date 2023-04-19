@@ -7,8 +7,8 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/proto"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/gogo/protobuf/proto"
 
 	grn2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"

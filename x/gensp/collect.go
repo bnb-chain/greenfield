@@ -10,14 +10,14 @@ import (
 	"sort"
 	"strings"
 
+	cfg "github.com/cometbft/cometbft/config"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	cfg "github.com/tendermint/tendermint/config"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -25,11 +25,11 @@ import (
 
 // GenAppStateFromConfig gets the genesis app state from the config
 func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodingConfig,
-	config *cfg.Config, initCfg genutiltypes.InitConfig, genDoc tmtypes.GenesisDoc, genBalIterator genutiltypes.GenesisBalancesIterator,
+	config *cfg.Config, initCfg genutiltypes.InitConfig, genesis *types.AppGenesis, genBalIterator genutiltypes.GenesisBalancesIterator,
 ) (appState json.RawMessage, err error) {
 	// process genesis transactions, else create default genesis.json
 	appGenTxs, persistentPeers, err := CollectTxs(
-		cdc, txEncodingConfig.TxJSONDecoder(), config.Moniker, initCfg.GenTxsDir, genDoc, genBalIterator,
+		cdc, txEncodingConfig.TxJSONDecoder(), config.Moniker, initCfg.GenTxsDir, genesis, genBalIterator,
 	)
 	if err != nil {
 		return appState, err
@@ -44,7 +44,7 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodi
 	}
 
 	// create the app state
-	appGenesisState, err := genutiltypes.GenesisStateFromGenDoc(genDoc)
+	appGenesisState, err := genutiltypes.GenesisStateFromAppGenesis(genesis)
 	if err != nil {
 		return appState, err
 	}
@@ -59,8 +59,8 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodi
 		return appState, err
 	}
 
-	genDoc.AppState = appState
-	err = genutil.ExportGenesisFile(&genDoc, config.GenesisFile())
+	genesis.AppState = appState
+	err = genutil.ExportGenesisFile(genesis, config.GenesisFile())
 
 	return appState, err
 }
@@ -68,12 +68,12 @@ func GenAppStateFromConfig(cdc codec.JSONCodec, txEncodingConfig client.TxEncodi
 // CollectTxs processes and validates application's genesis Txs and returns
 // the list of appGenTxs, and persistent peers required to generate genesis.json.
 func CollectTxs(cdc codec.JSONCodec, txJSONDecoder sdk.TxDecoder, moniker, genTxsDir string,
-	genDoc tmtypes.GenesisDoc, genBalIterator genutiltypes.GenesisBalancesIterator,
+	genesis *types.AppGenesis, genBalIterator genutiltypes.GenesisBalancesIterator,
 ) (appGenTxs []sdk.Tx, persistentPeers string, err error) {
 	// prepare a map of all balances in genesis state to then validate
 	// against the validators addresses
 	var appState map[string]json.RawMessage
-	if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
+	if err := json.Unmarshal(genesis.AppState, &appState); err != nil {
 		return appGenTxs, persistentPeers, err
 	}
 

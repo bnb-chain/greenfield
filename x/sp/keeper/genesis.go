@@ -35,7 +35,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {
 		k.accountKeeper.SetModuleAccount(ctx, spDepositPool)
 	}
 
-	if !depositBalance.IsEqual(depositCoins) {
+	if !depositBalance.Equal(depositCoins) {
 		panic(fmt.Sprintf("sp deposit pool balance is different from sp deposit coins: %s <-> %s", depositBalance.String(), depositCoins.String()))
 	}
 }

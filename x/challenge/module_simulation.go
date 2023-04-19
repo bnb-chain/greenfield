@@ -4,8 +4,6 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
-	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
@@ -19,7 +17,6 @@ import (
 var (
 	_ = sample.AccAddress
 	_ = challengesimulation.FindAccount
-	_ = simappparams.StakePerAccount
 	_ = simulation.MsgEntryKind
 	_ = baseapp.Paramspace
 )
@@ -54,36 +51,8 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 	return nil
 }
 
-// RandomizedParams creates randomized  param changes for the simulator
-func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
-	challengeParams := types.DefaultParams()
-	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyChallengeCountPerBlock), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.ChallengeCountPerBlock))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashCoolingOffPeriod), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashCoolingOffPeriod))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountSizeRate), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountSizeRate))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountMin), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountMin))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountMax), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountMax))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardValidatorRatio), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.RewardValidatorRatio))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardSubmitterRatio), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.RewardSubmitterRatio))
-		}),
-	}
-}
-
 // RegisterStoreDecoder registers a decoder
-func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
+func (am AppModule) RegisterStoreDecoder(_ simtypes.StoreDecoderRegistry) {}
 
 // WeightedOperations returns the all the gov module operations with their respective weights.
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {

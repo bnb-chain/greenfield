@@ -4,7 +4,8 @@ import (
 	"fmt"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -81,7 +82,7 @@ func (k Keeper) GetStreamRecord(
 // GetAllStreamRecord returns all streamRecord
 func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 
@@ -218,7 +219,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 func (k Keeper) AutoSettle(ctx sdk.Context) {
 	currentTimestamp := ctx.BlockTime().Unix()
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
 	defer iterator.Close()
 

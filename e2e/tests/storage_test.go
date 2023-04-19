@@ -12,11 +12,11 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/keys"
