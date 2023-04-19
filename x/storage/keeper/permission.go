@@ -46,6 +46,9 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 		return permtypes.EFFECT_ALLOW
 	}
 
+	if operator.Empty() {
+		return permtypes.EFFECT_DENY
+	}
 	// verify policy
 	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
 	if effect == permtypes.EFFECT_ALLOW {
@@ -81,6 +84,9 @@ func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	ownerAcc := sdk.MustAccAddressFromHex(objectInfo.Owner)
 	if ownerAcc.Equals(operator) {
 		return permtypes.EFFECT_ALLOW
+	}
+	if operator.Empty() {
+		return permtypes.EFFECT_DENY
 	}
 
 	// verify policy
