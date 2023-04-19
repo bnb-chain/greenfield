@@ -14,7 +14,7 @@ import (
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group storage queries under a subcommand
-	cmd := &cobra.Command{
+	storageQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -22,19 +22,20 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdHeadBucket())
-	cmd.AddCommand(CmdHeadObject())
-	cmd.AddCommand(CmdListBuckets())
-	cmd.AddCommand(CmdListObjects())
-	cmd.AddCommand(CmdVerifyPermission())
-	cmd.AddCommand(CmdHeadGroup())
-	cmd.AddCommand(CmdListGroup())
-	cmd.AddCommand(CmdHeadGroupMember())
+	storageQueryCmd.AddCommand(
+		CmdQueryParams(),
+		CmdHeadBucket(),
+		CmdHeadObject(),
+		CmdListBuckets(),
+		CmdListObjects(),
+		CmdVerifyPermission(),
+		CmdHeadGroup(),
+		CmdListGroup(),
+		CmdHeadGroupMember())
 
 	// this line is used by starport scaffolding # 1
 
-	return cmd
+	return storageQueryCmd
 }
 
 func CmdHeadBucket() *cobra.Command {
@@ -108,7 +109,7 @@ func CmdHeadObject() *cobra.Command {
 func CmdListBuckets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-buckets",
-		Short: "Query listBuckets",
+		Short: "Query list buckets of the user",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -139,7 +140,7 @@ func CmdListBuckets() *cobra.Command {
 func CmdListObjects() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-objects [bucket-name]",
-		Short: "Query listObjects",
+		Short: "Query list objects of the bucket",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqBucketName := args[0]
@@ -171,10 +172,19 @@ func CmdListObjects() *cobra.Command {
 
 func CmdVerifyPermission() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "verify-permission",
-		Short: "Query verify-permission",
-		Args:  cobra.ExactArgs(0),
+		Use:   "verify-permission [operator] [bucket-name] [object-name] [action-type]",
+		Short: "Query verify if the operator has permission for the bucket/object's action",
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqOperator := args[0]
+			reqBucketName := args[1]
+			reqObjectName := args[2]
+			reqActionType := args[3]
+
+			actionType, err := GetActionType(reqActionType)
+			if err != nil {
+				return err
+			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -183,7 +193,12 @@ func CmdVerifyPermission() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryVerifyPermissionRequest{}
+			params := &types.QueryVerifyPermissionRequest{
+				Operator:   reqOperator,
+				BucketName: reqBucketName,
+				ObjectName: reqObjectName,
+				ActionType: actionType,
+			}
 
 			res, err := queryClient.VerifyPermission(cmd.Context(), params)
 			if err != nil {
@@ -201,10 +216,12 @@ func CmdVerifyPermission() *cobra.Command {
 
 func CmdHeadGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "head-group",
-		Short: "Query head-group",
-		Args:  cobra.ExactArgs(0),
+		Use:   "head-group [group-owner] [group-name]",
+		Short: "Query the group info",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqGroupOwner := args[0]
+			reqGroupName := args[1]
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -213,7 +230,10 @@ func CmdHeadGroup() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryHeadGroupRequest{}
+			params := &types.QueryHeadGroupRequest{
+				GroupOwner: reqGroupOwner,
+				GroupName:  reqGroupName,
+			}
 
 			res, err := queryClient.HeadGroup(cmd.Context(), params)
 			if err != nil {
@@ -231,10 +251,11 @@ func CmdHeadGroup() *cobra.Command {
 
 func CmdListGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-group",
-		Short: "Query list-group",
-		Args:  cobra.ExactArgs(0),
+		Use:   "list-group [group-owner]",
+		Short: "Query list group of owner",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqGroupOwner := args[0]
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -243,7 +264,9 @@ func CmdListGroup() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryListGroupRequest{}
+			params := &types.QueryListGroupRequest{
+				GroupOwner: reqGroupOwner,
+			}
 
 			res, err := queryClient.ListGroup(cmd.Context(), params)
 			if err != nil {
@@ -261,10 +284,13 @@ func CmdListGroup() *cobra.Command {
 
 func CmdHeadGroupMember() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "head-group-member",
-		Short: "Query head-group-member",
-		Args:  cobra.ExactArgs(0),
+		Use:   "head-group-member [group-owner] [group-name] [group-member]",
+		Short: "Query the group member info",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqGroupOwner := args[0]
+			reqGroupName := args[1]
+			reqGroupMember := args[2]
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
@@ -273,7 +299,11 @@ func CmdHeadGroupMember() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryHeadGroupMemberRequest{}
+			params := &types.QueryHeadGroupMemberRequest{
+				GroupOwner: reqGroupOwner,
+				GroupName:  reqGroupName,
+				Member:     reqGroupMember,
+			}
 
 			res, err := queryClient.HeadGroupMember(cmd.Context(), params)
 			if err != nil {
