@@ -54,11 +54,18 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 }
 
 func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	if ctx.IsCheckTx() {
+		_ = ctx.EventManager().EmitTypedEvents(&types.EventFeePreview{
+			Account:        paymentAddr.String(),
+			FeePreviewType: types.FEE_PREVIEW_TYPE_PRELOCKED_FEE,
+			Amount:         amount,
+		})
+	}
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
