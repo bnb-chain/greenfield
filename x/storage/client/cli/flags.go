@@ -1,10 +1,11 @@
 package cli
 
 import (
+	"math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	flag "github.com/spf13/pflag"
-	"math"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"

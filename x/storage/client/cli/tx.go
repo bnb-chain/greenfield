@@ -249,7 +249,6 @@ func CmdCreateObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-object [bucket-name] [object-name] [payload-size] [content-type]",
 		Short: "create a new object in the bucket, checksums split by ','",
-		Long:  " --redundancy-type",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
