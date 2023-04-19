@@ -203,7 +203,7 @@ func initRootCmd(
 		queryCommand(),
 		txCommand(),
 		keys.Commands(app.DefaultNodeHome),
-		startWithTunnelingCommand(a, app.DefaultNodeHome),
+		//startWithTunnelingCommand(a, app.DefaultNodeHome), // todo: check this
 	)
 
 	overrideOrAppendCommand(rootCmd, map[string]*cobra.Command{

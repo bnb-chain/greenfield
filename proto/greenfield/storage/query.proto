@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bnbchain.greenfield.storage;
+package greenfield.storage;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "cosmos_proto/cosmos.proto";

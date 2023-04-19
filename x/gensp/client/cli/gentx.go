@@ -185,7 +185,6 @@ $ %s gentx sp0 10000000000000000000000000BNB --home ./deployment/localup/.local/
 
 	cmd.Flags().String(flags.FlagHome, defaultNodeHome, "The application home directory")
 	cmd.Flags().String(flags.FlagOutputDocument, "", "Write the genesis transaction JSON document to the given file instead of the default location")
-	cmd.Flags().String(flags.FlagChainID, "", "The network chain ID")
 
 	cmd.Flags().AddFlagSet(fsCreateStorageProvider)
 	flags.AddTxFlagsToCmd(cmd)
