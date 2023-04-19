@@ -46,6 +46,7 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 		return permtypes.EFFECT_ALLOW
 	}
 
+	// if the operator is empty(may anonymous user), don't need check policy
 	if operator.Empty() {
 		return permtypes.EFFECT_DENY
 	}
