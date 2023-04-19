@@ -3,10 +3,11 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/version"
 	"math/big"
 	"strconv"
 	"strings"
+
+	"github.com/cosmos/cosmos-sdk/version"
 
 	cmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
