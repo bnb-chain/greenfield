@@ -880,7 +880,7 @@ func (s *StorageTestSuite) TestEmptyPermission() {
 		msgCreateBucket := storagetypes.NewMsgCreateBucket(
 			user[0].GetAddr(), bucket.BucketName, bucket.PublicType, sp.OperatorKey.GetAddr(),
 			nil, math.MaxUint, nil, 0)
-		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 		s.Require().NoError(err)
 		s.SendTxBlock(msgCreateBucket, user[0])
 
@@ -984,7 +984,7 @@ func (s *StorageTestSuite) TestEmptyPermission() {
 
 	for _, object := range objects {
 		msgCreateObject0 := storagetypes.NewMsgCreateObject(user[0].GetAddr(), object.BucketName, object.ObjectName, uint64(payloadSize), object.PublicType, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
-		msgCreateObject0.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject0.GetApprovalBytes())
+		msgCreateObject0.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject0.GetApprovalBytes())
 		s.Require().NoError(err)
 		s.SendTxBlock(msgCreateObject0, user[0])
 
