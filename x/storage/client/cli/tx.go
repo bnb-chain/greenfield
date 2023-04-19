@@ -620,7 +620,7 @@ func CmdUpdateGroupMember() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "update-group-member [group-name] [member-to-add] [member-to-delete]",
 		Short: "Update the member of the group you own, split member addresses by ,",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
 			argMemberToAdd := args[1]
@@ -669,7 +669,7 @@ func CmdUpdateGroupMember() *cobra.Command {
 
 func CmdPutPolicy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "put-policy",
+		Use:   "put-policy [operator] [principal-type] [principle-value] [resource]",
 		Short: "put a policy to bucket/object/group which can grant permission to others",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {

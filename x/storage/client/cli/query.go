@@ -171,9 +171,9 @@ func CmdListObjects() *cobra.Command {
 
 func CmdVerifyPermission() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "verify-permission",
+		Use:   "verify-permission [operator] [bucket-name] [object-name] [action-type]",
 		Short: "Query verify-permission",
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqOperator := args[0]
 			reqBucketName := args[1]
