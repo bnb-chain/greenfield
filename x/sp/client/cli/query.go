@@ -13,7 +13,7 @@ import (
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group sp queries under a subcommand
-	cmd := &cobra.Command{
+	spQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -21,19 +21,21 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdStorageProviders())
-	cmd.AddCommand(CmdStorageProvider())
+	spQueryCmd.AddCommand(
+		CmdQueryParams(),
+		CmdStorageProviders(),
+		CmdStorageProvider(),
+	)
 
 	// this line is used by starport scaffolding # 1
 
-	return cmd
+	return spQueryCmd
 }
 
 func CmdStorageProviders() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "storage-providers",
-		Short: "Query StorageProviders",
+		Short: "Query sp info of all storage providers",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -62,8 +64,8 @@ func CmdStorageProviders() *cobra.Command {
 
 func CmdStorageProvider() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "storage-provider [sp-address]",
-		Short: "Query storage-provider with specify address",
+		Use:   "storage-provider [sp-operator-address]",
+		Short: "Query storage provider with specify operator address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqSpAddress := args[0]
@@ -74,9 +76,7 @@ func CmdStorageProvider() *cobra.Command {
 			}
 
 			queryClient := types.NewQueryClient(clientCtx)
-
 			params := &types.QueryStorageProviderRequest{
-
 				SpAddress: reqSpAddress,
 			}
 

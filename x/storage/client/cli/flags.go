@@ -1,11 +1,14 @@
 package cli
 
 import (
+	"math"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	flag "github.com/spf13/pflag"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -28,6 +31,41 @@ func GetVisibilityType(str string) (storagetypes.VisibilityType, error) {
 	visibility := storagetypes.VisibilityType(v)
 
 	return visibility, nil
+}
+
+func GetActionType(str string) (permissiontypes.ActionType, error) {
+	v, ok := permissiontypes.ActionType_value[str]
+	if !ok {
+		return permissiontypes.ACTION_UNSPECIFIED, gnfderrors.ErrInvalidActionType
+	}
+	actionType := permissiontypes.ActionType(v)
+
+	return actionType, nil
+}
+
+func GetPrincipalType(str string) (permissiontypes.PrincipalType, error) {
+	v, ok := permissiontypes.PrincipalType_value[str]
+	if !ok {
+		return permissiontypes.PRINCIPAL_TYPE_UNSPECIFIED, gnfderrors.ErrInvalidPrincipalType
+	}
+	principalType := permissiontypes.PrincipalType(v)
+
+	return principalType, nil
+}
+
+func GetPrincipal(str string) (permissiontypes.Principal, error) {
+	principalType := permissiontypes.PRINCIPAL_TYPE_GNFD_ACCOUNT
+	principalValue := str
+	_, err := sdk.AccAddressFromHexUnsafe(str)
+	if err != nil {
+		principalType = permissiontypes.PRINCIPAL_TYPE_GNFD_GROUP
+	}
+
+	return permissiontypes.Principal{
+		Type:  principalType,
+		Value: principalValue,
+	}, nil
+
 }
 
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
@@ -93,5 +131,12 @@ func FlagSetVisibility() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	fs.String(FlagVisibility, "VISIBILITY_TYPE_PRIVATE", "If private, only owner and grantee can access it. Otherwise,"+
 		"every one has permission to access it. Select visibility's type (VISIBILITY_TYPE_PRIVATE|VISIBILITY_TYPE_PUBLIC_READ|VISIBILITY_TYPE_INHERIT)")
+	return fs
+}
+
+func FlagSetApproval() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(FlagApproveSignature, "", "The approval signature of primarySp")
+	fs.Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	return fs
 }
