@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/version"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -17,7 +19,7 @@ import (
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
+	spTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -25,18 +27,21 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdDeposit())
-	cmd.AddCommand(CmdEditStorageProvider())
-	cmd.AddCommand(CmdGrantDepositAuthorization())
+	spTxCmd.AddCommand(
+		CmdDeposit(),
+		CmdEditStorageProvider(),
+		CmdGrantDepositAuthorization(),
+	)
+
 	// this line is used by starport scaffolding # 1
 
-	return cmd
+	return spTxCmd
 }
 
 func CmdEditStorageProvider() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "edit-storage-provider [sp-address]",
-		Short: "Broadcast message editStorageProvider",
+		Short: "Edit an existing storage provider account",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argSpAddress := args[0]
@@ -130,7 +135,7 @@ func CmdEditStorageProvider() *cobra.Command {
 func CmdDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit [sp-address] [fund-address] [value]",
-		Short: "Broadcast message deposit",
+		Short: "Deposit tokens for an active proposal",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
@@ -174,8 +179,15 @@ func CmdDeposit() *cobra.Command {
 func CmdGrantDepositAuthorization() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "grant <grantee> --from <granter>",
-		Short: "Broadcast message deposit authorization",
-		Args:  cobra.ExactArgs(1),
+		Short: "Grant authorization to an address",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`create a new grant authorization to an address to execute a transaction on your behalf:
+
+Examples:
+ $ %s tx %s grant [grantee address] send --spend-limit=1000bnb --SPAddress [sp address] --from=sp0_fund
+	`, version.AppName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

@@ -4,6 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	flag "github.com/spf13/pflag"
+	"math"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
@@ -39,6 +40,16 @@ func GetActionType(str string) (permissiontypes.ActionType, error) {
 	actionType := permissiontypes.ActionType(v)
 
 	return actionType, nil
+}
+
+func GetPrincipalType(str string) (permissiontypes.PrincipalType, error) {
+	v, ok := permissiontypes.PrincipalType_value[str]
+	if !ok {
+		return permissiontypes.PRINCIPAL_TYPE_UNSPECIFIED, gnfderrors.ErrInvalidPrincipalType
+	}
+	principalType := permissiontypes.PrincipalType(v)
+
+	return principalType, nil
 }
 
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
@@ -104,5 +115,12 @@ func FlagSetVisibility() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	fs.String(FlagVisibility, "VISIBILITY_TYPE_PRIVATE", "If private, only owner and grantee can access it. Otherwise,"+
 		"every one has permission to access it. Select visibility's type (VISIBILITY_TYPE_PRIVATE|VISIBILITY_TYPE_PUBLIC_READ|VISIBILITY_TYPE_INHERIT)")
+	return fs
+}
+
+func FlagSetApproval() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(FlagApproveSignature, "", "The approval signature of primarySp")
+	fs.Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	return fs
 }

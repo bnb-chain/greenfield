@@ -3,7 +3,6 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
-	"math"
 	"math/big"
 	"strconv"
 	"strings"
@@ -15,8 +14,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -24,7 +21,7 @@ import (
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
-	cmd := &cobra.Command{
+	storageTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -32,31 +29,40 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	cmd.AddCommand(CmdCreateBucket())
-	cmd.AddCommand(CmdDeleteBucket())
-	cmd.AddCommand(CmdUpdateBucketInfo())
-	cmd.AddCommand(CmdMirrorBucket())
-	cmd.AddCommand(CmdDiscontinueBucket())
+	storageTxCmd.AddCommand(
+		CmdCreateBucket(),
+		CmdDeleteBucket(),
+		CmdUpdateBucketInfo(),
+		CmdMirrorBucket(),
+		CmdDiscontinueBucket(),
+	)
 
-	cmd.AddCommand(CmdCreateObject())
-	cmd.AddCommand(CmdDeleteObject())
-	cmd.AddCommand(CmdCancelCreateObject())
-	cmd.AddCommand(CmdCopyObject())
-	cmd.AddCommand(CmdMirrorObject())
-	cmd.AddCommand(CmdDiscontinueObject())
-	cmd.AddCommand(CmdUpdateObjectInfo())
+	storageTxCmd.AddCommand(
+		CmdCreateObject(),
+		CmdDeleteObject(),
+		CmdCancelCreateObject(),
+		CmdCopyObject(),
+		CmdMirrorObject(),
+		CmdDiscontinueObject(),
+		CmdUpdateObjectInfo(),
+	)
 
-	cmd.AddCommand(CmdCreateGroup())
-	cmd.AddCommand(CmdDeleteGroup())
-	cmd.AddCommand(CmdUpdateGroupMember())
-	cmd.AddCommand(CmdLeaveGroup())
-	cmd.AddCommand(CmdMirrorGroup())
+	storageTxCmd.AddCommand(
+		CmdCreateGroup(),
+		CmdDeleteGroup(),
+		CmdUpdateGroupMember(),
+		CmdLeaveGroup(),
+		CmdMirrorGroup(),
+	)
 
-	cmd.AddCommand(CmdPutPolicy())
-	cmd.AddCommand(CmdDeletePolicy())
+	storageTxCmd.AddCommand(
+		CmdPutPolicy(),
+		CmdDeletePolicy(),
+	)
+
 	// this line is used by starport scaffolding # 1
 
-	return cmd
+	return storageTxCmd
 }
 
 // CmdCreateBucket returns a CLI command handler for creating a MsgCreateBucket transaction.
@@ -125,10 +131,9 @@ func CmdCreateBucket() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FlagSetVisibility())
+	cmd.Flags().AddFlagSet(FlagSetApproval())
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
-	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
-	cmd.Flags().Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -242,8 +247,9 @@ func CmdCancelCreateObject() *cobra.Command {
 
 func CmdCreateObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-object [bucket-name] [object-name] [payload-size] [content-type] [redundancy-type]",
+		Use:   "create-object [bucket-name] [object-name] [payload-size] [content-type]",
 		Short: "create a new object in the bucket, checksums split by ','",
+		Long:  " --redundancy-type",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -337,11 +343,10 @@ func CmdCreateObject() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().AddFlagSet(FlagSetVisibility())
+	cmd.Flags().AddFlagSet(FlagSetApproval())
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
 	cmd.Flags().String(FlagExpectChecksums, "", "The checksums that calculate by redundancy algorithm")
 	cmd.Flags().String(FlagRedundancyType, "", "The redundancy type, EC or Replica ")
-	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
-	cmd.Flags().Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	return cmd
 }
 
@@ -385,8 +390,7 @@ func CmdCopyObject() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(FlagApproveSignature, "", "The approval signature of primarySp")
-	cmd.Flags().Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
+	cmd.Flags().AddFlagSet(FlagSetApproval())
 
 	return cmd
 }
@@ -673,16 +677,30 @@ func CmdPutPolicy() *cobra.Command {
 		Short: "put a policy to bucket/object/group which can grant permission to others",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			//argOperator := args[0]
+			argPrincipalType := args[1]
+			argPrincipalValue := args[2]
+			argResource := args[3]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			principalType, err := GetPrincipalType(argPrincipalType)
+			if err != nil {
+				return err
+			}
+
+			principal := permtypes.Principal{
+				Type:  principalType,
+				Value: argPrincipalValue,
+			}
+
 			msg := types.NewMsgPutPolicy(
 				clientCtx.GetFromAddress(),
-				"",
-				nil,
+				argResource,
+				&principal,
 				nil,
 				nil,
 			)
@@ -700,20 +718,32 @@ func CmdPutPolicy() *cobra.Command {
 
 func CmdDeletePolicy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete-policy",
+		Use:   "delete-policy [principal-type] [principle-value] [resource]",
 		Short: "Broadcast message delete-policy",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argPrincipalType := args[0]
+			argPrincipalValue := args[1]
+			argResource := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
+			principalType, err := GetPrincipalType(argPrincipalType)
+			if err != nil {
+				return err
+			}
+
+			principal := permtypes.Principal{
+				Type:  principalType,
+				Value: argPrincipalValue,
+			}
 
 			msg := types.NewMsgDeletePolicy(
 				clientCtx.GetFromAddress(),
-				types2.NewBucketGRN("test-bucket").String(),
-				permtypes.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
+				argResource,
+				&principal,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
