@@ -53,6 +53,21 @@ func GetPrincipalType(str string) (permissiontypes.PrincipalType, error) {
 	return principalType, nil
 }
 
+func GetPrincipal(str string) (permissiontypes.Principal, error) {
+	principalType := permissiontypes.PRINCIPAL_TYPE_GNFD_ACCOUNT
+	principalValue := str
+	_, err := sdk.AccAddressFromHexUnsafe(str)
+	if err != nil {
+		principalType = permissiontypes.PRINCIPAL_TYPE_GNFD_GROUP
+	}
+
+	return permissiontypes.Principal{
+		Type:  principalType,
+		Value: principalValue,
+	}, nil
+
+}
+
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
 func GetPrimarySPField(kr keyring.Keyring, primarySP string) (sdk.AccAddress, string, keyring.KeyType, error) {
 	if primarySP == "" {

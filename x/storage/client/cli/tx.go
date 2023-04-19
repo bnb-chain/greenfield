@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/version"
 	"math/big"
 	"strconv"
 	"strings"
@@ -15,7 +16,6 @@ import (
 	"github.com/spf13/cobra"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
-	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -672,28 +672,21 @@ func CmdUpdateGroupMember() *cobra.Command {
 
 func CmdPutPolicy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "put-policy [operator] [principal-type] [principle-value] [resource]",
+		Use:   "put-policy [principle-value] [resource]",
 		Short: "put a policy to bucket/object/group which can grant permission to others",
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			//argOperator := args[0]
-			argPrincipalType := args[1]
-			argPrincipalValue := args[2]
-			argResource := args[3]
+			argPrincipalValue := args[0]
+			argResource := args[1]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			principalType, err := GetPrincipalType(argPrincipalType)
+			principal, err := GetPrincipal(argPrincipalValue)
 			if err != nil {
 				return err
-			}
-
-			principal := permtypes.Principal{
-				Type:  principalType,
-				Value: argPrincipalValue,
 			}
 
 			msg := types.NewMsgPutPolicy(
@@ -717,26 +710,31 @@ func CmdPutPolicy() *cobra.Command {
 
 func CmdDeletePolicy() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "delete-policy [principal-type] [principle-value] [resource]",
-		Short: "Broadcast message delete-policy",
-		Args:  cobra.ExactArgs(0),
+		Use:   "delete-policy [principle-value] [resource]",
+		Short: "Delete policy with specify principle",
+		Args:  cobra.ExactArgs(2),
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Delete the policy, the principle-value can be account or group id.
+
+Example:
+$ %s tx storage delete-policy 0xffffffffffffffffffffff
+$ %s tx delete-policy 3
+`,
+				version.AppName, version.AppName,
+			),
+		),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argPrincipalType := args[0]
-			argPrincipalValue := args[1]
-			argResource := args[2]
+			argPrincipalValue := args[0]
+			argResource := args[1]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			principalType, err := GetPrincipalType(argPrincipalType)
+
+			principal, err := GetPrincipal(argPrincipalValue)
 			if err != nil {
 				return err
-			}
-
-			principal := permtypes.Principal{
-				Type:  principalType,
-				Value: argPrincipalValue,
 			}
 
 			msg := types.NewMsgDeletePolicy(

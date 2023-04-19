@@ -64,8 +64,8 @@ func CmdStorageProviders() *cobra.Command {
 
 func CmdStorageProvider() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "storage-provider [sp-address]",
-		Short: "Query storage provider with specify address",
+		Use:   "storage-provider [sp-operator-address]",
+		Short: "Query storage provider with specify operator address",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqSpAddress := args[0]
