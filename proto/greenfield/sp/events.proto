@@ -24,6 +24,10 @@ message EventCreateStorageProvider {
   string endpoint = 6;
   // total_deposit is the token coin that the storage provider deposit to the storage module
   cosmos.base.v1beta1.Coin total_deposit = 7;
+  // status defines the status of the storage provider
+  Status status = 8;
+  // description defines the description terms for the storage provider
+  Description description = 9 [(gogoproto.nullable) = false];
 }
 
 // EventEditStorageProvider is emitted when SP's metadata is edited.
