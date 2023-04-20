@@ -26,7 +26,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -79,21 +78,6 @@ func PermissionKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 
 	registry := codectypes.NewInterfaceRegistry()
 	cdc := codec.NewProtoCodec(registry)
-
-	paramKeeper := paramskeeper.NewKeeper(cdc, types.Amino, storeKeys[paramstypes.StoreKey], tkeys[paramstypes.TStoreKey])
-
-	paramKeeper.Subspace(authtypes.ModuleName)
-	paramKeeper.Subspace(banktypes.ModuleName)
-	paramKeeper.Subspace(authz.ModuleName)
-	paramKeeper.Subspace(sptypes.ModuleName)
-	paramKeeper.Subspace(paymentmoduletypes.ModuleName)
-
-	paramsSubspace := paramstypes.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"PermissionParams",
-	)
 
 	accountKeeper := authkeeper.NewAccountKeeper(
 		cdc,

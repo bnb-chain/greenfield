@@ -12,6 +12,14 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
+func (k Keeper) GetFundingAddressBySpAddr(ctx sdk.Context, spAddr sdk.AccAddress) (string, error) {
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spAddr)
+	if !found {
+		return "", fmt.Errorf("storage provider %s not found", spAddr)
+	}
+	return sp.FundingAddress, nil
+}
+
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
 	if bucketInfo.ChargedReadQuota == 0 {
 		return nil
@@ -147,13 +155,17 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
+	primarySpFundingAddr, err := k.GetFundingAddressBySpAddr(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress))
+	if err != nil {
+		return userFlows, fmt.Errorf("get funding address by sp address failed: %w, sp: %s", err, bucketInfo.PrimarySpAddress)
+	}
 	totalUserOutRate := sdkmath.ZeroInt()
 	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
 	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
 	if primarySpRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: bucketInfo.PrimarySpAddress,
+			ToAddress: primarySpFundingAddr,
 			Rate:      primarySpRate,
 		})
 		totalUserOutRate = totalUserOutRate.Add(primarySpRate)
@@ -163,8 +175,12 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		if rate.IsZero() {
 			continue
 		}
+		spFundingAddr, err := k.GetFundingAddressBySpAddr(ctx, sdk.MustAccAddressFromHex(spObjectsSize.SpAddress))
+		if err != nil {
+			return userFlows, fmt.Errorf("get funding address by sp address failed: %w, sp: %s", err, spObjectsSize.SpAddress)
+		}
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: spObjectsSize.SpAddress,
+			ToAddress: spFundingAddr,
 			Rate:      rate,
 		})
 		totalUserOutRate = totalUserOutRate.Add(rate)
