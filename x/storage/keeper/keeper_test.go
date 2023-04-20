@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
-	"github.com/samber/lo"
 	"testing"
 	"time"
+
+	"github.com/samber/lo"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
