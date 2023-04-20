@@ -394,7 +394,7 @@ func (s *StorageTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamR
 func (s *StorageTestSuite) GetStreamRecords() (streamRecords StreamRecords) {
 	streamRecords.User = s.GetStreamRecord(s.User.GetAddr().String())
 	for _, sp := range s.StorageProviders {
-		sr := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
+		sr := s.GetStreamRecord(sp.FundingKey.GetAddr().String())
 		streamRecords.SPs = append(streamRecords.SPs, sr)
 	}
 	streamRecords.Tax = s.GetStreamRecord(paymenttypes.ValidatorTaxPoolAddress.String())
@@ -421,15 +421,15 @@ func (s *StorageTestSuite) CheckStreamRecordsBeforeAndAfter(streamRecordsBefore 
 		return m
 	}, make(map[string]sdkmath.Int))
 	if payloadSize != 0 {
-		primarySpAddr := s.StorageProviders[0].OperatorKey.GetAddr().String()
+		primarySpFundingAddr := s.StorageProviders[0].FundingKey.GetAddr().String()
 		s.Require().Equal(
-			userOutflowMap[primarySpAddr].Sub(readChargeRate).String(),
-			spRateDiffMap[primarySpAddr].String())
-		diff := spRateDiffMap[primarySpAddr].Sub(primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt())
+			userOutflowMap[primarySpFundingAddr].Sub(readChargeRate).String(),
+			spRateDiffMap[primarySpFundingAddr].String())
+		diff := spRateDiffMap[primarySpFundingAddr].Sub(primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt())
 		s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
 		s.T().Logf("diff %s", diff.String())
 		s.Require().Equal(diff.String(), sdkmath.ZeroInt().String())
-		s.Require().Equal(spRateDiffMap[primarySpAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
+		s.Require().Equal(spRateDiffMap[primarySpFundingAddr].String(), primaryStorePrice.MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt().String())
 		for i, sp := range secondarySPs {
 			secondarySpAddr := sp.String()
 			s.Require().Equal(userOutflowMap[secondarySpAddr].String(), spRateDiffMap[secondarySpAddr].String(), "sp %d", i+1)
@@ -565,6 +565,9 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	secondarySPs := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) sdk.AccAddress {
 		return sp.OperatorKey.GetAddr()
 	})
+	secondarySPFundingKeys := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) sdk.AccAddress {
+		return sp.FundingKey.GetAddr()
+	})
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
 	secondarySigs := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) []byte {
 		sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
@@ -582,7 +585,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	streamRecordsAfterSeal := s.GetStreamRecords()
 	s.T().Logf("streamRecordsAfterSeal %s", core.YamlString(streamRecordsAfterSeal))
 	s.Require().Equal(sdkmath.ZeroInt(), streamRecordsAfterSeal.User.LockBalance)
-	s.CheckStreamRecordsBeforeAndAfter(streamRecordsAfterCreateObject, streamRecordsAfterSeal, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, secondarySPs, uint64(payloadSize))
+	s.CheckStreamRecordsBeforeAndAfter(streamRecordsAfterCreateObject, streamRecordsAfterSeal, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, secondarySPFundingKeys, uint64(payloadSize))
 
 	// query dynamic balance
 	time.Sleep(3 * time.Second)
