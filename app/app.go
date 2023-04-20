@@ -431,11 +431,10 @@ func New(
 	app.BridgeKeeper = *bridgemodulekeeper.NewKeeper(
 		appCodec,
 		keys[bridgemoduletypes.StoreKey],
-		keys[bridgemoduletypes.MemStoreKey],
-		app.GetSubspace(bridgemoduletypes.ModuleName),
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CrossChainKeeper,
+		authtypes.NewModuleAddress(bridgemoduletypes.ModuleName).String(),
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
 

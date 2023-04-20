@@ -23,7 +23,7 @@ function init_fullnode() {
 
     for ((i=0;i<${size};i++));do
         # init chain
-        ${bin} init dataseed${i} --chain-id ${CHAIN_ID} --staking-bond-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/dataseed${i}
+        ${bin} init dataseed${i} --chain-id ${CHAIN_ID} --default-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/dataseed${i}
         # remove unused files
         rm -rf ${workspace}/.local/dataseed${i}/priv_validator_key.json
         # copy configs from validator

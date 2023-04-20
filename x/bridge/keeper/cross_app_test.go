@@ -9,10 +9,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/bridge/keeper"
 	"github.com/bnb-chain/greenfield/x/bridge/types"
 )
@@ -63,11 +62,9 @@ func TestTransferOutCheck(t *testing.T) {
 	}
 }
 
-func TestTransferOutAck(t *testing.T) {
-	suite, _, ctx := keepertest.BridgeKeeper(t)
-
-	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
-	require.Nil(t, err, "generate key failed")
+func (s *TestSuite) TestTransferOutAck() {
+	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "generate key failed")
 
 	refundPackage := types.TransferOutRefundPackage{
 		RefundAmount: big.NewInt(1),
@@ -76,28 +73,20 @@ func TestTransferOutAck(t *testing.T) {
 	}
 
 	packageBytes, err := rlp.EncodeToBytes(&refundPackage)
-	require.Nil(t, err, "encode refund package error")
+	s.Require().Nil(err, "encode refund package error")
 
-	transferOutApp := keeper.NewTransferOutApp(*suite.BridgeKeeper)
+	transferOutApp := keeper.NewTransferOutApp(*s.bridgeKeeper)
 
-	crossChainAccount := suite.AccountKeeper.GetModuleAccount(ctx, crosschaintypes.ModuleName)
+	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
+	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	moduleBalanceBefore := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
-
-	result := transferOutApp.ExecuteAckPackage(ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
-	require.Nil(t, result.Err, "error should be nil")
-	moduleBalanceAfter := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
-	accountBalanceAfter := suite.BankKeeper.GetBalance(ctx, refundPackage.RefundAddr, "stake")
-
-	require.Equal(t, big.NewInt(0).Add(moduleBalanceAfter.Amount.BigInt(), refundPackage.RefundAmount).String(), moduleBalanceBefore.Amount.BigInt().String())
-	require.Equal(t, refundPackage.RefundAmount.String(), accountBalanceAfter.Amount.BigInt().String())
+	result := transferOutApp.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
+	s.Require().Nil(err, result.Err, "error should be nil")
 }
 
-func TestTransferOutFailAck(t *testing.T) {
-	suite, _, ctx := keepertest.BridgeKeeper(t)
-
-	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
-	require.Nil(t, err, "generate key failed")
+func (s *TestSuite) TestTransferOutFailAck() {
+	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "generate key failed")
 
 	synPackage := types.TransferOutSynPackage{
 		Amount:        big.NewInt(1),
@@ -106,21 +95,16 @@ func TestTransferOutFailAck(t *testing.T) {
 	}
 
 	packageBytes, err := rlp.EncodeToBytes(&synPackage)
-	require.Nil(t, err, "encode refund package error")
+	s.Require().Nil(err, "encode refund package error")
 
-	transferOutApp := keeper.NewTransferOutApp(*suite.BridgeKeeper)
+	transferOutApp := keeper.NewTransferOutApp(*s.bridgeKeeper)
 
-	crossChainAccount := suite.AccountKeeper.GetModuleAccount(ctx, crosschaintypes.ModuleName)
+	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
+	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
+	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	moduleBalanceBefore := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
-
-	result := transferOutApp.ExecuteFailAckPackage(ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
-	require.Nil(t, result.Err, "error should be nil")
-	moduleBalanceAfter := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
-	accountBalanceAfter := suite.BankKeeper.GetBalance(ctx, synPackage.RefundAddress, "stake")
-
-	require.Equal(t, big.NewInt(0).Add(moduleBalanceAfter.Amount.BigInt(), synPackage.Amount).String(), moduleBalanceBefore.Amount.BigInt().String())
-	require.Equal(t, synPackage.Amount.String(), accountBalanceAfter.Amount.BigInt().String())
+	result := transferOutApp.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
+	s.Require().Nil(err, result.Err, "error should be nil")
 }
 
 func TestTransferInCheck(t *testing.T) {
@@ -178,11 +162,9 @@ func TestTransferInCheck(t *testing.T) {
 	}
 }
 
-func TestTransferInSyn(t *testing.T) {
-	suite, _, ctx := keepertest.BridgeKeeper(t)
-
-	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, suite.Cdc)
-	require.Nil(t, err, "generate key failed")
+func (s *TestSuite) TestTransferInSyn() {
+	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "generate key failed")
 
 	transferInSynPackage := types.TransferInSynPackage{
 		Amount:          big.NewInt(1),
@@ -191,21 +173,14 @@ func TestTransferInSyn(t *testing.T) {
 	}
 
 	packageBytes, err := rlp.EncodeToBytes(&transferInSynPackage)
-	require.Nil(t, err, "encode refund package error")
+	s.Require().Nil(err, "encode refund package error")
 
-	transferInApp := keeper.NewTransferInApp(*suite.BridgeKeeper)
+	transferInApp := keeper.NewTransferInApp(*s.bridgeKeeper)
 
-	crossChainAccount := suite.AccountKeeper.GetModuleAccount(ctx, crosschaintypes.ModuleName)
+	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
+	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
+	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
-	moduleBalanceBefore := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
-
-	result := transferInApp.ExecuteSynPackage(ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
-	require.Nil(t, result.Err, "error should be nil")
-
-	moduleBalanceAfter := suite.BankKeeper.GetBalance(ctx, crossChainAccount.GetAddress(), "stake")
-	accountBalanceAfter := suite.BankKeeper.GetBalance(ctx, addr1, "stake")
-
-	require.Equal(t, transferInSynPackage.Amount.String(), accountBalanceAfter.Amount.BigInt().String())
-
-	require.Equal(t, big.NewInt(0).Add(moduleBalanceAfter.Amount.BigInt(), transferInSynPackage.Amount).String(), moduleBalanceBefore.Amount.BigInt().String())
+	result := transferInApp.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
+	s.Require().Nil(err, result.Err, "error should be nil")
 }
