@@ -3,7 +3,7 @@ package sequence
 import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	storetypes "cosmossdk.io/store/types"
 )
 
 var (
@@ -22,7 +22,7 @@ func NewSequence256(prefix []byte) U256 {
 }
 
 // NextVal increments and persists the counter by one and returns the value.
-func (s U256) NextVal(store sdk.KVStore) math.Uint {
+func (s U256) NextVal(store storetypes.KVStore) math.Uint {
 	v := store.Get(s.storeKey)
 	seq := DecodeSequence(v)
 	seq = seq.Incr()
@@ -31,13 +31,13 @@ func (s U256) NextVal(store sdk.KVStore) math.Uint {
 }
 
 // CurVal returns the last value used. 0 if none.
-func (s U256) CurVal(store sdk.KVStore) math.Uint {
+func (s U256) CurVal(store storetypes.KVStore) math.Uint {
 	v := store.Get(s.storeKey)
 	return DecodeSequence(v)
 }
 
 // PeekNextVal returns the CurVal + increment step. Not persistent.
-func (s U256) PeekNextVal(store sdk.KVStore) math.Uint {
+func (s U256) PeekNextVal(store storetypes.KVStore) math.Uint {
 	v := store.Get(s.storeKey)
 	seq := DecodeSequence(v)
 	seq = seq.Incr()
@@ -49,7 +49,7 @@ func (s U256) PeekNextVal(store sdk.KVStore) math.Uint {
 // start value will be stored as the current value. It is advised to use this function only
 // when the sequence start value is not '1', as calling it unnecessarily will consume
 // unnecessary gas. An example scenario would be importing from genesis.
-func (s U256) InitVal(store sdk.KVStore, seq math.Uint) error {
+func (s U256) InitVal(store storetypes.KVStore, seq math.Uint) error {
 	if store.Has(s.storeKey) {
 		return ErrSequenceUniqueConstraint
 	}

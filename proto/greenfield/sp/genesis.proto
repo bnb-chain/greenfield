@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.sp;
+package greenfield.sp;
 
 import "gogoproto/gogo.proto";
 import "greenfield/sp/params.proto";

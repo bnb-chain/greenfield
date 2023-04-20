@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil/types"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/bnb-chain/greenfield/x/gensp"
 )
@@ -69,7 +68,7 @@ func CollectSPGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNod
 				return errors.Wrap(err, "failed to initialize node validator files")
 			}
 
-			genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
+			appGenesis, err := types.AppGenesisFromFile(config.GenesisFile())
 			if err != nil {
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
@@ -80,12 +79,12 @@ func CollectSPGenTxsCmd(genBalIterator types.GenesisBalancesIterator, defaultNod
 				genTxsDir = filepath.Join(config.RootDir, "config", "gentx")
 			}
 
-			toPrint := newPrintInfo(config.Moniker, genDoc.ChainID, nodeID, genTxsDir, json.RawMessage(""))
-			initCfg := types.NewInitConfig(genDoc.ChainID, genTxsDir, nodeID, valPubKey)
+			toPrint := newPrintInfo(config.Moniker, appGenesis.ChainID, nodeID, genTxsDir, json.RawMessage(""))
+			initCfg := types.NewInitConfig(appGenesis.ChainID, genTxsDir, nodeID, valPubKey)
 
 			appMessage, err := gensp.GenAppStateFromConfig(cdc,
 				clientCtx.TxConfig,
-				config, initCfg, *genDoc, genBalIterator)
+				config, initCfg, appGenesis, genBalIterator)
 			if err != nil {
 				return errors.Wrap(err, "failed to get genesis app state from config")
 			}

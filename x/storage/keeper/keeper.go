@@ -5,14 +5,14 @@ import (
 	"fmt"
 
 	"cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/gogo/protobuf/proto"
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
@@ -1269,7 +1269,7 @@ func (k Keeper) setDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddre
 func (k Keeper) ClearDiscontinueObjectCount(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueObjectCountPrefix)
 
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -1293,7 +1293,7 @@ func (k Keeper) AppendDiscontinueObjectIds(ctx sdk.Context, timestamp int64, obj
 func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (deleted uint64, err error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueObjectIdsKey(timestamp)
-	iterator := store.Iterator(types.DiscontinueObjectIdsPrefix, sdk.InclusiveEndBytes(key))
+	iterator := store.Iterator(types.DiscontinueObjectIdsPrefix, storetypes.InclusiveEndBytes(key))
 	defer iterator.Close()
 
 	deleted = uint64(0)
@@ -1350,7 +1350,7 @@ func (k Keeper) setDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddre
 func (k Keeper) ClearDiscontinueBucketCount(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueBucketCountPrefix)
 
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -1375,7 +1375,7 @@ func (k Keeper) appendDiscontinueBucketIds(ctx sdk.Context, timestamp int64, buc
 func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueBucketIdsKey(timestamp)
-	iterator := store.Iterator(types.DiscontinueBucketIdsPrefix, sdk.InclusiveEndBytes(key))
+	iterator := store.Iterator(types.DiscontinueBucketIdsPrefix, storetypes.InclusiveEndBytes(key))
 	defer iterator.Close()
 
 	deleted := uint64(0)

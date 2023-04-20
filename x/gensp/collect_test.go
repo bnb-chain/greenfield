@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -13,8 +14,7 @@ import (
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	gtypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
-	"github.com/gogo/protobuf/proto"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type doNothingUnmarshalJSON struct {

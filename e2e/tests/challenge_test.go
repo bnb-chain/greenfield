@@ -13,9 +13,9 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"

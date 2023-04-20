@@ -2,7 +2,7 @@
 
 ![banner](./docs/asset/gnfd-banner.png)
 
-Official Golang implementation of the Greenfield Blockchain. It uses [tendermint](https://github.com/tendermint/tendermint/)
+Official Golang implementation of the Greenfield Blockchain. It uses [tendermint](https://github.com/cometbft/cometbft/)
 for consensus and build on [cosmos-sdk](https://github.com/cosmos/cosmos-sdk).
 
 BNB Greenfield aims to facilitate the decentralized data economy by simplifying the process of storing and managing data

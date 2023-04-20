@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bnbchain.greenfield.common;
+package greenfield.common;
 
 option go_package = "github.com/bnb-chain/greenfield/types/common";
 

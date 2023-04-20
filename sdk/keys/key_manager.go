@@ -6,11 +6,10 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
 	ctypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
-	"github.com/evmos/ethermint/crypto/ethsecp256k1"
-	ethHd "github.com/evmos/ethermint/crypto/hd"
 )
 
 const (
@@ -59,7 +58,7 @@ func (km *keyManager) recoveryFromPrivateKey(privateKey string) error {
 	}
 	var keyBytesArray [32]byte
 	copy(keyBytesArray[:], priBytes[:32])
-	priKey := ethHd.EthSecp256k1.Generate()(keyBytesArray[:]).(*ethsecp256k1.PrivKey)
+	priKey := hd.EthSecp256k1.Generate()(keyBytesArray[:]).(*ethsecp256k1.PrivKey)
 	km.privKey = priKey
 	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
@@ -80,7 +79,7 @@ func (km *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 	if err != nil {
 		return err
 	}
-	priKey := ethHd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
+	priKey := hd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
 	km.privKey = priKey
 	km.mnemonic = mnemonic
 	km.addr = types.AccAddress(km.privKey.PubKey().Address())

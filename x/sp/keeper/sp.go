@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/sp/types"
@@ -111,7 +112,7 @@ func (k Keeper) SetStorageProviderByGcAddr(ctx sdk.Context, sp *types.StoragePro
 func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProvider) {
 	store := ctx.KVStore(k.storeKey)
 
-	iter := sdk.KVStorePrefixIterator(store, types.StorageProviderKey)
+	iter := storetypes.KVStorePrefixIterator(store, types.StorageProviderKey)
 
 	for ; iter.Valid(); iter.Next() {
 		sp := types.MustUnmarshalStorageProvider(k.cdc, iter.Value())

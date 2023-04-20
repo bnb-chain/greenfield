@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bnbchain.greenfield.storage;
+package greenfield.storage;
 
 import "cosmos/msg/v1/msg.proto";
 // this line is used by starport scaffolding # proto/tx/import

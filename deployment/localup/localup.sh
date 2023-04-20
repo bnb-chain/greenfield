@@ -17,7 +17,7 @@ function init() {
         mkdir -p ${workspace}/.local/challenger${i}
 
         # init chain
-        ${bin} init validator${i} --chain-id ${CHAIN_ID} --staking-bond-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+        ${bin} init validator${i} --chain-id ${CHAIN_ID} --default-denom ${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
 
         # create genesis accounts
         ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info 2>&1

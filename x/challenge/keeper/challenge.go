@@ -3,7 +3,8 @@ package keeper
 import (
 	"encoding/binary"
 
-	"github.com/cosmos/cosmos-sdk/store/prefix"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -44,7 +45,7 @@ func (k Keeper) SaveChallenge(ctx sdk.Context, challenge types.Challenge) {
 // RemoveChallengeUntil removes challenges which are expired
 func (k Keeper) RemoveChallengeUntil(ctx sdk.Context, height uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.ChallengeKeyPrefix)
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {

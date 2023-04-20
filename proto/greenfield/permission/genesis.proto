@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.permission;
+package greenfield.permission;
 
 import "gogoproto/gogo.proto";
 import "greenfield/permission/params.proto";

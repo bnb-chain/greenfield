@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.permission;
+package greenfield.permission;
 
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
