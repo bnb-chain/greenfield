@@ -140,6 +140,8 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		GcAddress:       gcAcc.String(),
 		Endpoint:        msg.Endpoint,
 		TotalDeposit:    &msg.Deposit,
+		Status:          sp.Status,
+		Description:     sp.Description,
 	}); err != nil {
 		return nil, err
 	}
