@@ -28,13 +28,19 @@ var (
 	// ChallengeKeyPrefix is the prefix to retrieve Challenge.
 	ChallengeKeyPrefix = []byte{0x12}
 
-	// AttestChallengeIdKey is the key to record the latest attest challenge id.
-	AttestChallengeIdKey = []byte{0x13}
-
 	// SlashKeyPrefix is the prefix to retrieve Slash.
-	SlashKeyPrefix = []byte{0x14}
+	SlashKeyPrefix = []byte{0x13}
 
 	// CurrentBlockChallengeCountKey is key to track the count of challenges in the current block.
 	// The data is stored in transient store.
-	CurrentBlockChallengeCountKey = []byte{0x15}
+	CurrentBlockChallengeCountKey = []byte{0x14}
+
+	// AttestChallengeIdsPrefix is the prefix to record the latest attested challenge ids.
+	AttestChallengeIdsPrefix = []byte{0x15}
+
+	// AttestChallengeIdsSizeKey is the key to record the size of latest attested challenge ids.
+	AttestChallengeIdsSizeKey = []byte{0x16}
+
+	// AttestChallengeIdsCursorKey is the key to retrieve the latest attested challenge ids.
+	AttestChallengeIdsCursorKey = []byte{0x17}
 )

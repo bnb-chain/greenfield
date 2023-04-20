@@ -70,24 +70,88 @@ func getChallengeKeyBytes(challengeId uint64) []byte {
 	return bz
 }
 
-// GetAttestChallengeId gets the challenge id of the latest attestation challenge
-func (k Keeper) GetAttestChallengeId(ctx sdk.Context) uint64 {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := store.Get(types.AttestChallengeIdKey)
-
-	if bz == nil {
-		return 0
-	}
-
-	return binary.BigEndian.Uint64(bz)
+func (k Keeper) encodeUint64(data uint64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, data)
+	return bz
 }
 
-// SetAttestChallengeId sets the new id of challenge to the store
-func (k Keeper) SetAttestChallengeId(ctx sdk.Context, challengeId uint64) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), []byte{})
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, challengeId)
-	store.Set(types.AttestChallengeIdKey, bz)
+// GetAttestChallengeIds gets the challenge id of the latest attestation challenge
+func (k Keeper) GetAttestChallengeIds(ctx sdk.Context) []uint64 {
+	store := ctx.KVStore(k.storeKey)
+	sizeBz := store.Get(types.AttestChallengeIdsSizeKey)
+
+	if sizeBz == nil {
+		return []uint64{}
+	}
+
+	size := binary.BigEndian.Uint64(sizeBz)
+	cursor := binary.BigEndian.Uint64(store.Get(types.AttestChallengeIdsCursorKey))
+
+	result := []uint64{}
+	current := cursor
+	idsStore := prefix.NewStore(store, types.AttestChallengeIdsPrefix)
+	for {
+		current = (current + 1) % size
+		idBz := idsStore.Get(k.encodeUint64(current))
+		if idBz != nil {
+			result = append(result, binary.BigEndian.Uint64(idBz))
+		}
+		if current == cursor {
+			break
+		}
+	}
+	return result
+}
+
+// AppendAttestChallengeId sets the new id of challenge to the store
+func (k Keeper) AppendAttestChallengeId(ctx sdk.Context, challengeId uint64) {
+	toKeep := k.KeyAttestationKeptCount(ctx)
+
+	store := ctx.KVStore(k.storeKey)
+	sizeBz := store.Get(types.AttestChallengeIdsSizeKey)
+
+	idsStore := prefix.NewStore(store, types.AttestChallengeIdsPrefix)
+	if sizeBz == nil { // the first time to append
+		store.Set(types.AttestChallengeIdsSizeKey, k.encodeUint64(toKeep))
+		k.enqueueAttestChallengeId(store, idsStore, challengeId)
+		return
+	}
+
+	size := binary.BigEndian.Uint64(sizeBz)
+	if size != toKeep { // the parameter changes, which is not frequent
+		currentIds := k.GetAttestChallengeIds(ctx)
+
+		iterator := storetypes.KVStorePrefixIterator(idsStore, []byte{})
+		defer iterator.Close()
+
+		for ; iterator.Valid(); iterator.Next() {
+			idsStore.Delete(iterator.Key())
+		}
+
+		store.Set(types.AttestChallengeIdsSizeKey, k.encodeUint64(toKeep))
+		store.Delete(types.AttestChallengeIdsCursorKey)
+
+		for _, id := range currentIds {
+			k.enqueueAttestChallengeId(store, idsStore, id)
+		}
+	}
+	k.enqueueAttestChallengeId(store, idsStore, challengeId)
+}
+
+func (k Keeper) enqueueAttestChallengeId(store, idsStore storetypes.KVStore, challengeId uint64) {
+	size := binary.BigEndian.Uint64(store.Get(types.AttestChallengeIdsSizeKey))
+	cursorBz := store.Get(types.AttestChallengeIdsCursorKey)
+	cursor := uint64(0)
+	if cursorBz != nil {
+		cursor = binary.BigEndian.Uint64(cursorBz)
+		cursor = (cursor + 1) % size
+	}
+
+	cursorBz = k.encodeUint64(cursor)
+	store.Set(types.AttestChallengeIdsCursorKey, cursorBz)
+
+	idsStore.Set(cursorBz, k.encodeUint64(challengeId))
 }
 
 // GetChallengeCountCurrentBlock gets the count of challenges

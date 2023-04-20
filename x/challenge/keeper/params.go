@@ -20,6 +20,8 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.RewardSubmitterRatio(ctx),
 		k.RewardSubmitterThreshold(ctx),
 		k.HeartbeatInterval(ctx),
+		k.AttestationInturnInterval(ctx),
+		k.KeyAttestationKeptCount(ctx),
 	)
 }
 
@@ -76,14 +78,26 @@ func (k Keeper) RewardSubmitterRatio(ctx sdk.Context) (res sdk.Dec) {
 	return
 }
 
+// RewardSubmitterThreshold returns the RewardSubmitterThreshold param
+func (k Keeper) RewardSubmitterThreshold(ctx sdk.Context) (res math.Int) {
+	k.paramstore.Get(ctx, types.KeyRewardSubmitterThreshold, &res)
+	return
+}
+
 // HeartbeatInterval returns the HeartbeatInterval param
 func (k Keeper) HeartbeatInterval(ctx sdk.Context) (res uint64) {
 	k.paramstore.Get(ctx, types.KeyHeartbeatInterval, &res)
 	return
 }
 
-// RewardSubmitterThreshold returns the RewardSubmitterThreshold param
-func (k Keeper) RewardSubmitterThreshold(ctx sdk.Context) (res math.Int) {
-	k.paramstore.Get(ctx, types.KeyRewardSubmitterThreshold, &res)
+// AttestationInturnInterval returns the AttestationInturnInterval param
+func (k Keeper) AttestationInturnInterval(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyAttestationInturnInterval, &res)
+	return
+}
+
+// KeyAttestationKeptCount returns the KeyAttestationKeptCount param
+func (k Keeper) KeyAttestationKeptCount(ctx sdk.Context) (res uint64) {
+	k.paramstore.Get(ctx, types.KeyAttestationKeptCount, &res)
 	return
 }

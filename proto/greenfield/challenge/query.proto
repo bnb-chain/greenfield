@@ -19,9 +19,13 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/greenfield/challenge/params";
   }
-  // Queries the latest attested challenge id.
-  rpc LatestAttestedChallenge(QueryLatestAttestedChallengeRequest) returns (QueryLatestAttestedChallengeResponse) {
+  // Queries the latest attested challenge ids.
+  rpc LatestAttestedChallenges(QueryLatestAttestedChallengesRequest) returns (QueryLatestAttestedChallengesResponse) {
     option (google.api.http).get = "/greenfield/challenge/latest_attested_challenge";
+  }
+  // Queries the inturn challenger.
+  rpc InturnAttestationSubmitter(QueryInturnAttestationSubmitterRequest) returns (QueryInturnAttestationSubmitterResponse) {
+    option (google.api.http).get = "/greenfield/challenge/inturn_attestation_submitter";
   }
 
   // this line is used by starport scaffolding # 2
@@ -36,12 +40,27 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryParamsRequest is request type for the Query/LatestAttestedChallenge RPC method.
-message QueryLatestAttestedChallengeRequest {}
+// QueryLatestAttestedChallengesRequest is request type for the Query/LatestAttestedChallenges RPC method.
+message QueryLatestAttestedChallengesRequest {}
 
-// QueryParamsResponse is response type for the Query/LatestAttestedChallenge RPC method.
-message QueryLatestAttestedChallengeResponse {
-  uint64 challengeId = 1;
+// QueryLatestAttestedChallengesResponse is response type for the Query/LatestAttestedChallenges RPC method.
+message QueryLatestAttestedChallengesResponse {
+  repeated uint64 challengeIds = 1;
+}
+
+// QueryInturnAttestationSubmitterRequest is request type for the Query/InturnAttestationSubmitter RPC method.
+message QueryInturnAttestationSubmitterRequest {}
+
+// QueryInturnAttestationSubmitterResponse is response type for the Query/InturnAttestationSubmitter RPC method.
+message QueryInturnAttestationSubmitterResponse {
+  string bls_pub_key = 1;
+  SubmitInterval submit_interval = 2;
+}
+
+// SubmitInterval holds start and end (exclusive) (i.e., [start, end)) time of in turn attestation.
+message SubmitInterval {
+  uint64 start = 1;
+  uint64 end = 2;
 }
 
 // this line is used by starport scaffolding # 3
