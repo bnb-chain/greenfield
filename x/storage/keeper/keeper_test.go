@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/samber/lo"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -19,12 +21,15 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	keeper        *keeper.Keeper
-	depKeepers    keepertest.StorageDepKeepers
-	ctx           sdk.Context
-	PrimarySpAddr sdk.AccAddress
-	UserAddr      sdk.AccAddress
-	Denom         string
+	keeper               *keeper.Keeper
+	depKeepers           keepertest.StorageDepKeepers
+	ctx                  sdk.Context
+	PrimarySpAddr        sdk.AccAddress
+	PrimarySpFundingAddr sdk.AccAddress
+	PrimarySp            sptypes.StorageProvider
+	SecondarySps         []sptypes.StorageProvider
+	UserAddr             sdk.AccAddress
+	Denom                string
 }
 
 func (s *IntegrationTestSuite) SetupTest() {
@@ -33,7 +38,23 @@ func (s *IntegrationTestSuite) SetupTest() {
 	ctx := s.ctx.WithBlockTime(time.Now())
 	// init data
 	s.PrimarySpAddr = sample.RandAccAddress()
+	s.PrimarySpFundingAddr = sample.RandAccAddress()
 	s.UserAddr = sample.RandAccAddress()
+	sp := sptypes.StorageProvider{
+		OperatorAddress: s.PrimarySpAddr.String(),
+		FundingAddress:  s.PrimarySpFundingAddr.String(),
+	}
+	s.depKeepers.SpKeeper.SetStorageProvider(ctx, &sp)
+	for i := 0; i < 6; i++ {
+		secondarySpAddr := sample.RandAccAddress()
+		secondarySpFundingAddr := sample.RandAccAddress()
+		secondarySp := sptypes.StorageProvider{
+			OperatorAddress: secondarySpAddr.String(),
+			FundingAddress:  secondarySpFundingAddr.String(),
+		}
+		s.SecondarySps = append(s.SecondarySps, secondarySp)
+		s.depKeepers.SpKeeper.SetStorageProvider(ctx, &secondarySp)
+	}
 	s.depKeepers.SpKeeper.SetSpStoragePrice(ctx, sptypes.SpStoragePrice{
 		SpAddress:     s.PrimarySpAddr.String(),
 		UpdateTimeSec: 1,
@@ -71,7 +92,7 @@ func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	userStreamRecordCreateBucket, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
 	s.Require().True(found)
 	s.T().Logf("userStreamRecordCreateBucket: %+v", userStreamRecordCreateBucket)
-	spStreamRecordCreateBucket, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpAddr)
+	spStreamRecordCreateBucket, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpFundingAddr)
 	s.Require().True(found)
 	s.T().Logf("spStreamRecordCreateBucket: %+v", spStreamRecordCreateBucket)
 
@@ -89,15 +110,14 @@ func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	userStreamRecordCreateObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
 	s.Require().True(found)
 	s.T().Logf("userStreamRecordCreateObject: %+v", userStreamRecordCreateObject)
-	spStreamRecordCreateObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpAddr)
+	spStreamRecordCreateObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpFundingAddr)
 	s.Require().True(found)
 	s.T().Logf("spStreamRecordCreateObject: %+v", spStreamRecordCreateObject)
 
 	// mock seal object
-	var secondarySpAddresses []string
-	for i := 0; i < 6; i++ {
-		secondarySpAddresses = append(secondarySpAddresses, sample.RandAccAddress().String())
-	}
+	secondarySpAddresses := lo.Map(s.SecondarySps, func(sp sptypes.StorageProvider, index int) string {
+		return sp.OperatorAddress
+	})
 	object.SecondarySpAddresses = secondarySpAddresses
 	err = s.keeper.UnlockAndChargeStoreFee(ctx, &bucket, &object)
 	s.Require().NoError(err)
@@ -105,7 +125,7 @@ func (s *IntegrationTestSuite) TestCreateCreateBucket_Payment() {
 	userStreamRecordSealObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
 	s.Require().True(found)
 	s.T().Logf("userStreamRecordSealObject: %+v", userStreamRecordSealObject)
-	spStreamRecordSealObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpAddr)
+	spStreamRecordSealObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpFundingAddr)
 	s.Require().True(found)
 	s.T().Logf("spStreamRecordSealObject: %+v", spStreamRecordSealObject)
 
