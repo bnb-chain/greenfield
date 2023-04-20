@@ -1,6 +1,6 @@
 # Greenfield
 
-![banner](./docs/asset/gnfd-banner.png)
+![banner](./asset/static/banner.png)
 
 Official Golang implementation of the Greenfield Blockchain. It uses [tendermint](https://github.com/tendermint/tendermint/)
 for consensus and build on [cosmos-sdk](https://github.com/cosmos/cosmos-sdk).
