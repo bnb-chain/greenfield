@@ -40,12 +40,14 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	if bucketInfo.Visibility == storagetypes.VISIBILITY_TYPE_PUBLIC_READ && PublicReadBucketAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
 	}
+	// if the operator is empty(may anonymous user), don't need check policy
+	if operator.Empty() {
+		return permtypes.EFFECT_DENY
+	}
 	// The owner has full permissions
-
 	if operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
 		return permtypes.EFFECT_ALLOW
 	}
-
 	// verify policy
 	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
 	if effect == permtypes.EFFECT_ALLOW {
@@ -76,6 +78,11 @@ func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	}
 	if visibility && PublicReadObjectAllowedActions[action] {
 		return permtypes.EFFECT_ALLOW
+	}
+
+	// if the operator is empty(may anonymous user), don't need check policy
+	if operator.Empty() {
+		return permtypes.EFFECT_DENY
 	}
 	// The owner has full permissions
 	ownerAcc := sdk.MustAccAddressFromHex(objectInfo.Owner)
