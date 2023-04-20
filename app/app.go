@@ -449,11 +449,10 @@ func New(
 	app.SpKeeper = *spmodulekeeper.NewKeeper(
 		appCodec,
 		keys[spmoduletypes.StoreKey],
-		keys[spmoduletypes.MemStoreKey],
-		app.GetSubspace(spmoduletypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.AuthzKeeper,
+		authtypes.NewModuleAddress(spmoduletypes.ModuleName).String(),
 	)
 	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 

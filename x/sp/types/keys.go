@@ -22,6 +22,8 @@ const (
 )
 
 var (
+	ParamsKey = []byte{0x01}
+
 	StorageProviderKey               = []byte{0x21} // prefix for each key to a storage provider
 	StorageProviderByFundingAddrKey  = []byte{0x22} // prefix for each key to a storage provider index, by funding address
 	StorageProviderBySealAddrKey     = []byte{0x23} // prefix for each key to a storage provider index, by seal address
