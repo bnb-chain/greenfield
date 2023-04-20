@@ -16,12 +16,11 @@ require (
 	github.com/cosmos/cosmos-sdk v0.46.4
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.7
-	github.com/ethereum/go-ethereum v1.10.19
+	github.com/ethereum/go-ethereum v1.10.22
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
-	github.com/rakyll/statik v0.1.7
 	github.com/samber/lo v1.37.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.7.0
@@ -41,6 +40,7 @@ require (
 	github.com/cosmos/cosmos-db v1.0.0-rc.1
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
+	github.com/rakyll/statik v0.1.7
 )
 
 require (
@@ -56,7 +56,7 @@ require (
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816 // indirect
-	github.com/btcsuite/btcd v0.23.0 // indirect
+	github.com/btcsuite/btcd v0.23.3 // indirect
 	github.com/btcsuite/btcd/btcec/v2 v2.3.2 // indirect
 	github.com/btcsuite/btcd/btcutil v1.1.2 // indirect
 	github.com/btcsuite/btcd/chaincfg/chainhash v1.0.1 // indirect
@@ -169,11 +169,12 @@ require (
 	github.com/thomaso-mirodin/intmath v0.0.0-20160323211736-5dc6d854e46e // indirect
 	github.com/tidwall/btree v1.6.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.10 // indirect
-	github.com/urfave/cli/v2 v2.3.0 // indirect
+	github.com/urfave/cli/v2 v2.10.2 // indirect
 	github.com/wealdtech/go-bytesutil v1.1.1 // indirect
 	github.com/wealdtech/go-eth2-types/v2 v2.5.2 // indirect
 	github.com/wealdtech/go-eth2-util v1.6.3 // indirect
 	github.com/willf/bitset v1.1.11 // indirect
+	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	github.com/zondax/hid v0.9.1 // indirect
 	github.com/zondax/ledger-go v0.14.1 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
@@ -192,16 +193,16 @@ require (
 )
 
 replace (
-	cosmossdk.io/api => github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230420055930-1207abef0de5
-	cosmossdk.io/log => github.com/bnb-chain/greenfield-cosmos-sdk/log v0.0.0-20230420055930-1207abef0de5
-	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230420055930-1207abef0de5
-	cosmossdk.io/x/evidence => github.com/bnb-chain/greenfield-cosmos-sdk/x/evidence v0.0.0-20230420055930-1207abef0de5
-	cosmossdk.io/x/feegrant => github.com/bnb-chain/greenfield-cosmos-sdk/x/feegrant v0.0.0-20230420055930-1207abef0de5
-	cosmossdk.io/x/upgrade => github.com/bnb-chain/greenfield-cosmos-sdk/x/upgrade v0.0.0-20230420055930-1207abef0de5
+	cosmossdk.io/api => github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230420120548-24ed3abaca8f
+	cosmossdk.io/log => github.com/bnb-chain/greenfield-cosmos-sdk/log v0.0.0-20230420120548-24ed3abaca8f
+	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230420120548-24ed3abaca8f
+	cosmossdk.io/x/evidence => github.com/bnb-chain/greenfield-cosmos-sdk/x/evidence v0.0.0-20230420120548-24ed3abaca8f
+	cosmossdk.io/x/feegrant => github.com/bnb-chain/greenfield-cosmos-sdk/x/feegrant v0.0.0-20230420120548-24ed3abaca8f
+	cosmossdk.io/x/upgrade => github.com/bnb-chain/greenfield-cosmos-sdk/x/upgrade v0.0.0-20230420120548-24ed3abaca8f
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.0
 	github.com/cometbft/cometbft => github.com/bnb-chain/greenfield-tendermint v0.0.0-20230407055437-d971cdfb9041
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.0-20230420055930-1207abef0de5
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.0.0-20230420120548-24ed3abaca8f
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )

@@ -46,7 +46,7 @@ function start_fullnode() {
         mkdir -p ${workspace}/.local/dataseed${i}/logs
         nohup ${bin} start --home ${workspace}/.local/dataseed${i} \
             --address 0.0.0.0:$((${DATASEED_ADDRESS_PORT_START}+${i})) \
-            --grpc-web.address 0.0.0.0:$((${DATASEED_GRPC_WEB_PORT_START}+${i})) \
+            --api.address 0.0.0.0:$((${DATASEED_GRPC_WEB_PORT_START}+${i})) \
             --grpc.address 0.0.0.0:$((${DATASEED_GRPC_PORT_START}+${i})) \
             --p2p.laddr tcp://0.0.0.0:$((${DATASEED_P2P_PORT_START}+${i})) \
             --p2p.external-address 127.0.0.1:$((${DATASEED_P2P_PORT_START}+${i})) \
