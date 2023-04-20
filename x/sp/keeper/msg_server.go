@@ -161,16 +161,8 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 
 	// replace endpoint
 	if len(msg.Endpoint) != 0 {
-		oldEndpoint := sp.Endpoint
 		sp.Endpoint = msg.Endpoint
 		changed = true
-		// TODO(chris): when we need more fields to EventEditStorageProvider, it should be put before calling the SetStorageProvider method.
-		if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
-			OldEndpoint: oldEndpoint,
-			NewEndpoint: sp.Endpoint,
-		}); err != nil {
-			return nil, err
-		}
 	}
 
 	if msg.Description != nil {
@@ -182,10 +174,44 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		changed = true
 	}
 
+	if msg.SealAddress != "" {
+		sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
+		sp.SealAddress = sealAcc.String()
+		changed = true
+	}
+
+	if msg.ApprovalAddress != "" {
+		approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
+		sp.ApprovalAddress = approvalAcc.String()
+		changed = true
+	}
+
+	if msg.GcAddress != "" {
+		gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
+		sp.GcAddress = gcAcc.String()
+		changed = true
+	}
+
 	if !changed {
 		return nil, types.ErrStorageProviderNotChanged
 	}
+
 	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProviderByFundingAddr(ctx, sp)
+	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProviderByApprovalAddr(ctx, sp)
+	k.SetStorageProviderByGcAddr(ctx, sp)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
+		SpAddress:       spAcc.String(),
+		Endpoint:        sp.Endpoint,
+		Description:     sp.Description,
+		ApprovalAddress: sp.ApprovalAddress,
+		SealAddress:     sp.SealAddress,
+		GcAddress:       sp.GcAddress,
+	}); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgEditStorageProviderResponse{}, nil
 }

@@ -1,18 +1,16 @@
 package core
 
 import (
+	"context"
 	"strings"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/stretchr/testify/suite"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 
 	"github.com/bnb-chain/greenfield/sdk/client"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/suite"
 )
 
 type SPKeyManagers struct {
@@ -37,8 +35,7 @@ type BaseSuite struct {
 
 func (s *BaseSuite) SetupSuite() {
 	s.Config = InitConfig()
-	s.Client = client.NewGreenfieldClient(s.Config.GrpcAddr, s.Config.ChainId,
-		client.WithGrpcDialOption(grpc.WithTransportCredentials(insecure.NewCredentials())))
+	s.Client, _ = client.NewGreenfieldClient(s.Config.TendermintAddr, s.Config.ChainId)
 	tmClient := client.NewTendermintClient(s.Config.TendermintAddr)
 	s.TmClient = &tmClient
 	var err error
@@ -73,7 +70,7 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	response, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
 	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
@@ -87,7 +84,7 @@ func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	return s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	return s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 }
 
 func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyManager, expectErrorString string) {
@@ -97,7 +94,7 @@ func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyM
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	_, err := s.Client.BroadcastTx([]sdk.Msg{msg}, txOpt)
+	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.T().Logf("tx failed, err: %s, expect error string: %s", err, expectErrorString)
 	s.Require().Error(err)
 	s.Require().True(strings.Contains(err.Error(), expectErrorString))

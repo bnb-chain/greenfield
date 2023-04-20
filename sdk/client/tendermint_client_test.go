@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/assert"
+
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/types"
 
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 )

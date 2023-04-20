@@ -8,7 +8,7 @@ make build
 2. Creates all the configuration files
 ```bash
 # The argument <moniker> is the custom username of your node, it should be human-readable.
-./build/bin/gnfd init <moniker> --chain-id greenfield_9000-01 --staking-bond-denom BNB
+./build/bin/gnfd init <moniker> --chain-id greenfield_9000-01 --default-denom BNB
 ```
 
 All these configuration files are in ~/.gnfd by default, but you can overwrite the location of this folder by passing the --home flag.

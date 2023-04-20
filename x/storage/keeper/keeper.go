@@ -5,19 +5,19 @@ import (
 	"fmt"
 
 	"cosmossdk.io/errors"
+	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
+	"cosmossdk.io/store/prefix"
+	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	"github.com/gogo/protobuf/proto"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -133,7 +133,7 @@ func (k Keeper) CreateBucket(
 
 	// emit CreateBucket Event
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
-		OwnerAddress:     bucketInfo.Owner,
+		Owner:            bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		Visibility:       bucketInfo.Visibility,
 		CreateAt:         bucketInfo.CreateAt,
@@ -184,9 +184,10 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
 	store.Delete(bucketKey)
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
+
 	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
-		OperatorAddress:  operator.String(),
-		OwnerAddress:     bucketInfo.Owner,
+		Operator:         operator.String(),
+		Owner:            bucketInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		BucketId:         bucketInfo.Id,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
@@ -300,7 +301,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
-		OperatorAddress:        operator.String(),
+		Operator:               operator.String(),
 		BucketName:             bucketName,
 		BucketId:               bucketInfo.Id,
 		ChargedReadQuotaBefore: bucketInfo.ChargedReadQuota,
@@ -353,6 +354,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	k.setDiscontinueBucketCount(ctx, operator, count+1)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDiscontinueBucket{
+		BucketId:   bucketInfo.Id,
 		BucketName: bucketInfo.BucketName,
 		Reason:     reason,
 		DeleteAt:   deleteAt,
@@ -435,6 +437,11 @@ func (k Keeper) CreateObject(
 		secondarySPs = append(secondarySPs, spAcc.String())
 	}
 
+	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
+	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		secondarySPs = append(secondarySPs, operator.String())
+	}
+
 	// check approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
@@ -451,6 +458,15 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), types.ErrObjectAlreadyExists
 	}
 
+	// check payload size, the empty object doesn't need sealed
+	var objectStatus types.ObjectStatus
+	if payloadSize == 0 {
+		// empty object does not interact with sp
+		objectStatus = types.OBJECT_STATUS_SEALED
+	} else {
+		objectStatus = types.OBJECT_STATUS_CREATED
+	}
+
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
 		Owner:                bucketInfo.Owner,
@@ -461,17 +477,25 @@ func (k Keeper) CreateObject(
 		ContentType:          opts.ContentType,
 		Id:                   k.GenNextObjectID(ctx),
 		CreateAt:             ctx.BlockTime().Unix(),
-		ObjectStatus:         types.OBJECT_STATUS_CREATED,
+		ObjectStatus:         objectStatus,
 		RedundancyType:       opts.RedundancyType,
 		SourceType:           opts.SourceType,
 		Checksums:            opts.Checksums,
 		SecondarySpAddresses: secondarySPs,
 	}
 
-	// Lock Fee
-	err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if objectInfo.PayloadSize == 0 {
+		// charge directly without lock charge
+		err = k.ChargeStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		// Lock Fee
+		err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	bbz := k.cdc.MustMarshal(bucketInfo)
@@ -482,8 +506,8 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		CreatorAddress:   operator.String(),
-		OwnerAddress:     objectInfo.Owner,
+		Creator:          operator.String(),
+		Owner:            objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		BucketId:         bucketInfo.Id,
@@ -603,7 +627,7 @@ func (k Keeper) SealObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
-		OperatorAddress:      spSealAcc.String(),
+		Operator:             spSealAcc.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,
 		ObjectId:             objectInfo.Id,
@@ -616,7 +640,7 @@ func (k Keeper) SealObject(
 }
 
 func (k Keeper) CancelCreateObject(
-	ctx sdk.Context, ownAcc sdk.AccAddress,
+	ctx sdk.Context, operator sdk.AccAddress,
 	bucketName, objectName string, opts CancelCreateObjectOptions) error {
 	store := ctx.KVStore(k.storeKey)
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
@@ -636,8 +660,16 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	if !ownAcc.Equals(sdk.MustAccAddressFromHex(objectInfo.Owner)) {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner to do cancel create object")
+	var creator sdk.AccAddress
+	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
+	// if the operator is not the creator, we should return access deny
+	if len(objectInfo.SecondarySpAddresses) >= 1 {
+		creator = sdk.MustAccAddressFromHex(objectInfo.SecondarySpAddresses[len(objectInfo.SecondarySpAddresses)-1])
+	}
+	// By default, the creator is the owner
+	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if !operator.Equals(creator) && !operator.Equals(owner) {
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
 	}
 
 	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
@@ -652,7 +684,7 @@ func (k Keeper) CancelCreateObject(
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
-		OperatorAddress:  ownAcc.String(),
+		Operator:         operator.String(),
 		BucketName:       bucketInfo.BucketName,
 		ObjectName:       objectInfo.ObjectName,
 		PrimarySpAddress: bucketInfo.PrimarySpAddress,
@@ -715,7 +747,7 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
-		OperatorAddress:      operator.String(),
+		Operator:             operator.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,
 		ObjectId:             objectInfo.Id,
@@ -807,6 +839,15 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), err
 	}
 
+	// check payload size, the empty object doesn't need sealed
+	var objectStatus types.ObjectStatus
+	if srcObjectInfo.PayloadSize == 0 {
+		// empty object does not interact with sp
+		objectStatus = types.OBJECT_STATUS_SEALED
+	} else {
+		objectStatus = types.OBJECT_STATUS_CREATED
+	}
+
 	objectInfo := types.ObjectInfo{
 		Owner:          operator.String(),
 		BucketName:     dstBucketInfo.BucketName,
@@ -814,17 +855,24 @@ func (k Keeper) CopyObject(
 		PayloadSize:    srcObjectInfo.PayloadSize,
 		Visibility:     opts.Visibility,
 		ContentType:    srcObjectInfo.ContentType,
-		CreateAt:       ctx.BlockHeight(),
+		CreateAt:       ctx.BlockTime().Unix(),
 		Id:             k.GenNextObjectID(ctx),
-		ObjectStatus:   types.OBJECT_STATUS_CREATED,
+		ObjectStatus:   objectStatus,
 		RedundancyType: srcObjectInfo.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      srcObjectInfo.Checksums,
 	}
 
-	err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	if srcObjectInfo.PayloadSize == 0 {
+		err = k.ChargeStoreFee(ctx, dstBucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+	} else {
+		err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	bbz := k.cdc.MustMarshal(dstBucketInfo)
@@ -835,13 +883,13 @@ func (k Keeper) CopyObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
-		OperatorAddress: operator.String(),
-		SrcBucketName:   srcObjectInfo.BucketName,
-		SrcObjectName:   srcObjectInfo.ObjectName,
-		DstBucketName:   objectInfo.BucketName,
-		DstObjectName:   objectInfo.ObjectName,
-		SrcObjectId:     srcObjectInfo.Id,
-		DstObjectId:     objectInfo.Id,
+		Operator:      operator.String(),
+		SrcBucketName: srcObjectInfo.BucketName,
+		SrcObjectName: srcObjectInfo.ObjectName,
+		DstBucketName: objectInfo.BucketName,
+		DstObjectName: objectInfo.ObjectName,
+		SrcObjectId:   srcObjectInfo.Id,
+		DstObjectId:   objectInfo.Id,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -887,10 +935,10 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
-		OperatorAddress: operator.String(),
-		BucketName:      bucketInfo.BucketName,
-		ObjectName:      objectInfo.ObjectName,
-		ObjectId:        objectInfo.Id,
+		Operator:   operator.String(),
+		BucketName: bucketInfo.BucketName,
+		ObjectName: objectInfo.ObjectName,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -998,11 +1046,11 @@ func (k Keeper) CreateGroup(
 		}
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
-		SourceType:   groupInfo.SourceType,
-		Members:      opts.Members,
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Members:    opts.Members,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -1067,9 +1115,9 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 	store.Delete(types.GetGroupByIDKey(groupInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -1095,9 +1143,9 @@ func (k Keeper) LeaveGroup(
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -1140,8 +1188,8 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{
-		OperatorAddress: operator.String(),
-		OwnerAddress:    groupInfo.Owner,
+		Operator:        operator.String(),
+		Owner:           groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
 		GroupId:         groupInfo.Id,
 		MembersToAdd:    opts.MembersToAdd,
@@ -1161,14 +1209,11 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigD
 		return sptypes.ErrStorageProviderNotInService
 	}
 
-	approvalAccAddress, err := sdk.AccAddressFromHexUnsafe(sp.ApprovalAddress)
-	if err != nil {
-		return err
-	}
+	approvalAccAddress := sdk.MustAccAddressFromHex(sp.ApprovalAddress)
 
-	err = types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
+	err := types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
-		return err
+		return errors.Wrapf(types.ErrInvalidApproval, "verify signature error: %s", err)
 	}
 	return nil
 }
@@ -1223,8 +1268,8 @@ func (k Keeper) setDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddre
 
 func (k Keeper) ClearDiscontinueObjectCount(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueObjectCountPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -1248,7 +1293,8 @@ func (k Keeper) AppendDiscontinueObjectIds(ctx sdk.Context, timestamp int64, obj
 func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (deleted uint64, err error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueObjectIdsKey(timestamp)
-	iterator := store.Iterator(types.DiscontinueObjectIdsPrefix, sdk.InclusiveEndBytes(key))
+
+	iterator := store.Iterator(types.DiscontinueObjectIdsPrefix, storetypes.InclusiveEndBytes(key))
 	defer iterator.Close()
 
 	deleted = uint64(0)
@@ -1305,7 +1351,7 @@ func (k Keeper) setDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddre
 func (k Keeper) ClearDiscontinueBucketCount(ctx sdk.Context) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueBucketCountPrefix)
 
-	iterator := sdk.KVStorePrefixIterator(store, []byte{})
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -1330,7 +1376,8 @@ func (k Keeper) appendDiscontinueBucketIds(ctx sdk.Context, timestamp int64, buc
 func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueBucketIdsKey(timestamp)
-	iterator := store.Iterator(types.DiscontinueBucketIdsPrefix, sdk.InclusiveEndBytes(key))
+
+	iterator := store.Iterator(types.DiscontinueBucketIdsPrefix, storetypes.InclusiveEndBytes(key))
 	defer iterator.Close()
 
 	deleted := uint64(0)

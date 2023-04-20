@@ -23,12 +23,12 @@ const (
 	DefaultDiscontinueConfirmPeriod  int64  = 604800 // 7 days (in second)
 	DefaultDiscontinueDeletionMax    uint64 = 10000
 
-	DefaultMirrorBucketRelayerFee    = "1000000000000000" // 0.01
-	DefaultMirrorBucketAckRelayerFee = "0"
-	DefaultMirrorObjectRelayerFee    = "1000000000000000" // 0.01
-	DefaultMirrorObjectAckRelayerFee = "0"
-	DefaultMirrorGroupRelayerFee     = "1000000000000000" // 0.01
-	DefaultMirrorGroupAckRelayerFee  = "0"
+	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025
+	DefaultMirrorBucketAckRelayerFee = "250000000000000" // 0.00025
+	DefaultMirrorObjectRelayerFee    = "250000000000000" // 0.00025
+	DefaultMirrorObjectAckRelayerFee = "250000000000000" // 0.00025
+	DefaultMirrorGroupRelayerFee     = "250000000000000" // 0.00025
+	DefaultMirrorGroupAckRelayerFee  = "250000000000000" // 0.00025
 )
 
 var (

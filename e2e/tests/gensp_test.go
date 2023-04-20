@@ -30,6 +30,7 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 		FundingAddress:  sp.FundingKey.GetAddr().String(),
 		SealAddress:     sp.SealKey.GetAddr().String(),
 		ApprovalAddress: sp.ApprovalKey.GetAddr().String(),
+		GcAddress:       sp.GcKey.GetAddr().String(),
 		Description: sptypes.Description{
 			Moniker:  "sp0",
 			Identity: "",

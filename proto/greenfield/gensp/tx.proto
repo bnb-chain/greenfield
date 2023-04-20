@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.gensp;
+package greenfield.gensp;
 
 option go_package = "github.com/bnb-chain/greenfield/x/gensp/types";
 

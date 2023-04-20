@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.resource;
+package greenfield.resource;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";

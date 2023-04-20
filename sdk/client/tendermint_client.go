@@ -1,9 +1,9 @@
 package client
 
 import (
-	"github.com/tendermint/tendermint/rpc/client"
-	chttp "github.com/tendermint/tendermint/rpc/client/http"
-	libclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
+	"github.com/cometbft/cometbft/rpc/client"
+	chttp "github.com/cometbft/cometbft/rpc/client/http"
+	libclient "github.com/cometbft/cometbft/rpc/jsonrpc/client"
 )
 
 type TendermintClient struct {

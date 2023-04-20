@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package bnbchain.greenfield.payment;
+package greenfield.payment;
 
 import "gogoproto/gogo.proto";
 import "greenfield/payment/auto_settle_record.proto";

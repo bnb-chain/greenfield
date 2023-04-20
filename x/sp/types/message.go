@@ -108,11 +108,15 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 }
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
-func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description *Description) *MsgEditStorageProvider {
+func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description *Description,
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
-		SpAddress:   spAddress.String(),
-		Endpoint:    endpoint,
-		Description: description,
+		SpAddress:       spAddress.String(),
+		Endpoint:        endpoint,
+		Description:     description,
+		SealAddress:     sealAddress.String(),
+		ApprovalAddress: approvalAddress.String(),
+		GcAddress:       gcAddress.String(),
 	}
 }
 
@@ -156,6 +160,24 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 		err = IsValidEndpointURL(msg.Endpoint)
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
+		}
+	}
+
+	if msg.SealAddress != "" {
+		if _, err := sdk.AccAddressFromHexUnsafe(msg.SealAddress); err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid seal address (%s)", err)
+		}
+	}
+
+	if msg.ApprovalAddress != "" {
+		if _, err := sdk.AccAddressFromHexUnsafe(msg.ApprovalAddress); err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid approval address (%s)", err)
+		}
+	}
+
+	if msg.GcAddress != "" {
+		if _, err := sdk.AccAddressFromHexUnsafe(msg.GcAddress); err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
 		}
 	}
 	return nil

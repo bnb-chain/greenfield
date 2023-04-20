@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/gogo/protobuf/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	k "github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -53,6 +53,11 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		objectId := k.RandomObjectId(seed, objectCount)
 		objectInfo, found := keeper.StorageKeeper.GetObjectInfoById(ctx, objectId)
 		if !found || objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
+			continue
+		}
+
+		// skip empty object
+		if objectInfo.PayloadSize == 0 {
 			continue
 		}
 

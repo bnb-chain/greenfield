@@ -19,9 +19,9 @@
       "denom":"BNB",
       "amount":"10000000000000000000000"
     },
-    "read_price": "100.000000000000000000",
-    "store_price": "10000.000000000000000000",
-    "free_read_quota": 10000,
+    "read_price": "0.087",
+    "store_price": "0.0048",
+    "free_read_quota": 10000000000,
     "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
   }
 ],

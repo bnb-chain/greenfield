@@ -1,5 +1,5 @@
 syntax = "proto3";
-package bnbchain.greenfield.sp;
+package greenfield.sp;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
@@ -35,7 +35,7 @@ message MsgCreateStorageProvider {
   string funding_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // seal_address is the account address of the storage provider for sealObject
   string seal_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // approval_address is the account address of the storage provider for ack CreateBuclet/Object.
+  // approval_address is the account address of the storage provider for ack CreateBucket/Object.
   string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose.
   string gc_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -84,6 +84,12 @@ message MsgEditStorageProvider {
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string endpoint = 2;
   Description description = 3;
+  // seal_address is the account address of the storage provider for sealObject
+  string seal_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // approval_address is the account address of the storage provider for ack CreateBucket/Object
+  string approval_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // gc_address defines one of the storage provider's accounts which is used for gc purpose
+  string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
