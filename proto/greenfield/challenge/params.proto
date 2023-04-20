@@ -63,4 +63,10 @@ message Params {
 
   // Heartbeat interval, based on challenge id, defines the frequency of heartbeat attestation.
   uint64 heartbeat_interval = 10 [(gogoproto.moretags) = "yaml:\"heartbeat_interval\""];
+
+  // The time duration for each submitter to submit attestations in turn.
+  uint64 attestation_inturn_interval = 11 [(gogoproto.moretags) = "yaml:\"attestation_inturn_interval\""];
+
+  // The number of kept attested challenge ids, which can be queried by clients.
+  uint64 attestation_kept_count = 12 [(gogoproto.moretags) = "yaml:\"attestation_kept_count\""];
 }

@@ -41,3 +41,16 @@ message Challenge {
   // The height at which the challenge will be expired.
   uint64 expired_height = 2;
 }
+
+// AttestedChallengeIds stored fixed number of the latest attested challenge ids.
+// To use the storage more efficiently, a circular queue will be constructed using these fields.
+message AttestedChallengeIds {
+  // The fixed number of challenge ids to save.
+  uint64 size = 1;
+
+  // The latest attested challenge ids.
+  repeated uint64 ids = 2;
+
+  // The cursor to retrieve data from the ids field.
+  int64 cursor = 3;
+}

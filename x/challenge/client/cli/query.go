@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/cobra"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -21,9 +22,66 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdQueryParams())
-	cmd.AddCommand(CmdLatestAttestedChallenge())
+	cmd.AddCommand(CmdLatestAttestedChallenges())
+	cmd.AddCommand(CmdInturnChallenger())
 
 	// this line is used by starport scaffolding # 1
+
+	return cmd
+}
+
+func CmdLatestAttestedChallenges() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "latest-attested-challenges",
+		Short: "Query latest attested challenges",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			params := &types.QueryLatestAttestedChallengesRequest{}
+
+			res, err := queryClient.LatestAttestedChallenges(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdInturnChallenger() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "inturn-attestation-submitter",
+		Short: "Query the inturn attestation submitter",
+		Args:  cobra.NoArgs,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+			res, err := queryClient.InturnAttestationSubmitter(cmd.Context(), &types.QueryInturnAttestationSubmitterRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }
