@@ -355,7 +355,7 @@ func filterChallengeEventFromBlock(blockRes *ctypes.ResultBlockResults) []challe
 	challengeEvents := make([]challengetypes.EventStartChallenge, 0)
 
 	for _, event := range blockRes.EndBlockEvents {
-		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {
+		if event.Type == "greenfield.challenge.EventStartChallenge" {
 
 			challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress := "", "", "", "", ""
 			for _, attr := range event.Attributes {
@@ -390,7 +390,7 @@ func filterChallengeEventFromBlock(blockRes *ctypes.ResultBlockResults) []challe
 func filterChallengeEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
 	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress, expiredHeightStr := "", "", "", "", "", ""
 	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {
+		if event.Type == "greenfield.challenge.EventStartChallenge" {
 			for _, attr := range event.Attributes {
 				if attr.Key == "challenge_id" {
 					challengeIdStr = strings.Trim(attr.Value, `"`)
