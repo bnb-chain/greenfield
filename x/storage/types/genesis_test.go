@@ -23,12 +23,22 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					MaxSegmentSize:          20,
-					RedundantDataChunkNum:   10,
-					RedundantParityChunkNum: 8,
-					MaxPayloadSize:          2000,
-					MaxBucketsPerAccount:    100,
-					MinChargeSize:           100,
+					MaxSegmentSize:            20,
+					RedundantDataChunkNum:     10,
+					RedundantParityChunkNum:   8,
+					MaxPayloadSize:            2000,
+					MaxBucketsPerAccount:      100,
+					MinChargeSize:             100,
+					MirrorBucketRelayerFee:    "10",
+					MirrorBucketAckRelayerFee: "10",
+					MirrorGroupRelayerFee:     "10",
+					MirrorGroupAckRelayerFee:  "10",
+					MirrorObjectRelayerFee:    "10",
+					MirrorObjectAckRelayerFee: "10",
+					DiscontinueCountingWindow: 1000,
+					DiscontinueObjectMax:      10000,
+					DiscontinueBucketMax:      10000,
+					DiscontinueConfirmPeriod:  100,
 				},
 
 				// this line is used by starport scaffolding # types/genesis/validField

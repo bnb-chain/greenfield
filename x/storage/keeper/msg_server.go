@@ -85,6 +85,18 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 	return &types.MsgUpdateBucketInfoResponse{}, nil
 }
 
+func (k msgServer) DiscontinueBucket(goCtx context.Context, msg *storagetypes.MsgDiscontinueBucket) (*storagetypes.MsgDiscontinueBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.DiscontinueBucket(ctx, operatorAcc, msg.BucketName, msg.Reason)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDiscontinueBucketResponse{}, nil
+}
+
 func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObject) (*types.MsgCreateObjectResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -200,6 +212,28 @@ func (k msgServer) RejectSealObject(goCtx context.Context, msg *types.MsgRejectS
 		return nil, err
 	}
 	return &types.MsgRejectSealObjectResponse{}, nil
+}
+
+func (k msgServer) DiscontinueObject(goCtx context.Context, msg *storagetypes.MsgDiscontinueObject) (*storagetypes.MsgDiscontinueObjectResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.DiscontinueObject(ctx, spAcc, msg.BucketName, msg.ObjectIds, msg.Reason)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgDiscontinueObjectResponse{}, nil
+}
+
+func (k msgServer) UpdateObjectInfo(goCtx context.Context, msg *types.MsgUpdateObjectInfo) (*types.MsgUpdateObjectInfoResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.UpdateObjectInfo(ctx, spAcc, msg.BucketName, msg.ObjectName, msg.Visibility)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateObjectInfoResponse{}, nil
 }
 
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
@@ -378,10 +412,10 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 	k.Keeper.SetObjectInfo(ctx, objectInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObject{
-		OperatorAddress: objectInfo.Owner,
-		BucketName:      objectInfo.BucketName,
-		ObjectName:      objectInfo.ObjectName,
-		ObjectId:        objectInfo.Id,
+		Operator:   objectInfo.Owner,
+		BucketName: objectInfo.BucketName,
+		ObjectName: objectInfo.ObjectName,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -444,9 +478,9 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	k.Keeper.SetBucketInfo(ctx, bucketInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucket{
-		OperatorAddress: bucketInfo.Owner,
-		BucketName:      bucketInfo.BucketName,
-		BucketId:        bucketInfo.Id,
+		Operator:   bucketInfo.Owner,
+		BucketName: bucketInfo.BucketName,
+		BucketId:   bucketInfo.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -505,9 +539,9 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	k.Keeper.SetGroupInfo(ctx, groupInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorGroup{
-		OwnerAddress: groupInfo.Owner,
-		GroupName:    groupInfo.GroupName,
-		GroupId:      groupInfo.Id,
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
 	}); err != nil {
 		return nil, err
 	}

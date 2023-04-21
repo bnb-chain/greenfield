@@ -8,7 +8,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	authz "github.com/cosmos/cosmos-sdk/x/authz"
+	"github.com/cosmos/cosmos-sdk/x/authz"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/require"
@@ -43,13 +43,15 @@ func (s *StorageProviderTestSuite) SetupTest() {
 }
 
 func (s *StorageProviderTestSuite) NewSpAcc() *core.SPKeyManagers {
-	userAccs := s.GenAndChargeAccounts(4, 1000000)
+	userAccs := s.GenAndChargeAccounts(5, 1000000)
 	operatorAcc := userAccs[0]
 	fundingAcc := userAccs[1]
 	approvalAcc := userAccs[2]
 	sealAcc := userAccs[3]
+	gcAcc := userAccs[4]
 
-	return &core.SPKeyManagers{OperatorKey: operatorAcc, SealKey: fundingAcc, FundingKey: approvalAcc, ApprovalKey: sealAcc}
+	return &core.SPKeyManagers{OperatorKey: operatorAcc, SealKey: fundingAcc,
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc}
 }
 
 func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
@@ -94,7 +96,8 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
-		newSP.ApprovalKey.GetAddr(), description,
+		newSP.ApprovalKey.GetAddr(),
+		newSP.GcKey.GetAddr(), description,
 		endpoint, deposit, newReadPrice, 10000, newStorePrice)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
@@ -175,6 +178,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 		FundingAddress:  prevSP.FundingAddress,
 		SealAddress:     prevSP.SealAddress,
 		ApprovalAddress: prevSP.ApprovalAddress,
+		GcAddress:       prevSP.GcAddress,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
 			Identity: "",
@@ -184,7 +188,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	}
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
-		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description)
+		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
 	txRes := s.SendTxBlock(msgEditSP, sp.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -199,7 +204,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
-		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description)
+		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
 	txRes = s.SendTxBlock(msgEditSP, sp.OperatorKey)
 	s.Require().Equal(txRes.Code, uint32(0))
 

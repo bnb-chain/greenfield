@@ -26,8 +26,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // EventCreateBucket is emitted on MsgCreateBucket
 type EventCreateBucket struct {
-	// owner_address define the account address of bucket owner
-	OwnerAddress string `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// owner define the account address of bucket owner
+	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	// bucket_name is a globally unique name of bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// visibility defines the highest permissions for bucket. When a bucket is public, everyone can get the object under it.
@@ -44,6 +44,8 @@ type EventCreateBucket struct {
 	PaymentAddress string `protobuf:"bytes,8,opt,name=payment_address,json=paymentAddress,proto3" json:"payment_address,omitempty"`
 	// primary_sp_address is the operator address of the primary sp.
 	PrimarySpAddress string `protobuf:"bytes,9,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// status define the status of the bucket.
+	Status BucketStatus `protobuf:"varint,10,opt,name=status,proto3,enum=bnbchain.greenfield.storage.BucketStatus" json:"status,omitempty"`
 }
 
 func (m *EventCreateBucket) Reset()         { *m = EventCreateBucket{} }
@@ -79,9 +81,9 @@ func (m *EventCreateBucket) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCreateBucket proto.InternalMessageInfo
 
-func (m *EventCreateBucket) GetOwnerAddress() string {
+func (m *EventCreateBucket) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -135,12 +137,19 @@ func (m *EventCreateBucket) GetPrimarySpAddress() string {
 	return ""
 }
 
+func (m *EventCreateBucket) GetStatus() BucketStatus {
+	if m != nil {
+		return m.Status
+	}
+	return BUCKET_STATUS_CREATED
+}
+
 // EventDeleteBucket is emitted on MsgDeleteBucket
 type EventDeleteBucket struct {
-	// operator_address define the account address of operator who delete the bucket
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	// owner_address define the account address of the bucket owner
-	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// operator define the account address of operator who delete the bucket
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// owner define the account address of the bucket owner
+	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// bucket_name define the name of the deleted bucket
 	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_id define an u256 id for bucket
@@ -182,16 +191,16 @@ func (m *EventDeleteBucket) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventDeleteBucket proto.InternalMessageInfo
 
-func (m *EventDeleteBucket) GetOperatorAddress() string {
+func (m *EventDeleteBucket) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
 
-func (m *EventDeleteBucket) GetOwnerAddress() string {
+func (m *EventDeleteBucket) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -212,8 +221,8 @@ func (m *EventDeleteBucket) GetPrimarySpAddress() string {
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
 type EventUpdateBucketInfo struct {
-	// operator_address define the account address of operator who update the bucket
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who update the bucket
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name define the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_id define an u256 id for bucket
@@ -263,9 +272,9 @@ func (m *EventUpdateBucketInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventUpdateBucketInfo proto.InternalMessageInfo
 
-func (m *EventUpdateBucketInfo) GetOperatorAddress() string {
+func (m *EventUpdateBucketInfo) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -312,12 +321,78 @@ func (m *EventUpdateBucketInfo) GetVisibility() VisibilityType {
 	return VISIBILITY_TYPE_UNSPECIFIED
 }
 
+// EventDiscontinueBucket is emitted on MsgDiscontinueBucket
+type EventDiscontinueBucket struct {
+	// bucket_id define id of the bucket
+	BucketId Uint `protobuf:"bytes,1,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// the reason
+	Reason string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	// the timestamp after which the metadata will be deleted
+	DeleteAt int64 `protobuf:"varint,4,opt,name=delete_at,json=deleteAt,proto3" json:"delete_at,omitempty"`
+}
+
+func (m *EventDiscontinueBucket) Reset()         { *m = EventDiscontinueBucket{} }
+func (m *EventDiscontinueBucket) String() string { return proto.CompactTextString(m) }
+func (*EventDiscontinueBucket) ProtoMessage()    {}
+func (*EventDiscontinueBucket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_946dcba4f763ddc4, []int{3}
+}
+func (m *EventDiscontinueBucket) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventDiscontinueBucket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventDiscontinueBucket.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventDiscontinueBucket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventDiscontinueBucket.Merge(m, src)
+}
+func (m *EventDiscontinueBucket) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventDiscontinueBucket) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventDiscontinueBucket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventDiscontinueBucket proto.InternalMessageInfo
+
+func (m *EventDiscontinueBucket) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
+	}
+	return ""
+}
+
+func (m *EventDiscontinueBucket) GetReason() string {
+	if m != nil {
+		return m.Reason
+	}
+	return ""
+}
+
+func (m *EventDiscontinueBucket) GetDeleteAt() int64 {
+	if m != nil {
+		return m.DeleteAt
+	}
+	return 0
+}
+
 // EventCreateObject is emitted on MsgCreateObject
 type EventCreateObject struct {
-	// creator_address define the account address of msg creator
-	CreatorAddress string `protobuf:"bytes,1,opt,name=creator_address,json=creatorAddress,proto3" json:"creator_address,omitempty"`
-	// owner_address define the account address of object owner
-	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// creator define the account address of msg creator
+	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
+	// owner define the account address of object owner
+	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// bucket_name define the name of bucket
 	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of object
@@ -350,7 +425,7 @@ func (m *EventCreateObject) Reset()         { *m = EventCreateObject{} }
 func (m *EventCreateObject) String() string { return proto.CompactTextString(m) }
 func (*EventCreateObject) ProtoMessage()    {}
 func (*EventCreateObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{3}
+	return fileDescriptor_946dcba4f763ddc4, []int{4}
 }
 func (m *EventCreateObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -379,16 +454,16 @@ func (m *EventCreateObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCreateObject proto.InternalMessageInfo
 
-func (m *EventCreateObject) GetCreatorAddress() string {
+func (m *EventCreateObject) GetCreator() string {
 	if m != nil {
-		return m.CreatorAddress
+		return m.Creator
 	}
 	return ""
 }
 
-func (m *EventCreateObject) GetOwnerAddress() string {
+func (m *EventCreateObject) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -472,8 +547,8 @@ func (m *EventCreateObject) GetChecksums() [][]byte {
 
 // EventSealObject is emitted on MsgSealObject
 type EventCancelCreateObject struct {
-	// operator_address define the account address of operator who cancel create object
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who cancel create object
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name define the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
@@ -488,7 +563,7 @@ func (m *EventCancelCreateObject) Reset()         { *m = EventCancelCreateObject
 func (m *EventCancelCreateObject) String() string { return proto.CompactTextString(m) }
 func (*EventCancelCreateObject) ProtoMessage()    {}
 func (*EventCancelCreateObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{4}
+	return fileDescriptor_946dcba4f763ddc4, []int{5}
 }
 func (m *EventCancelCreateObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -517,9 +592,9 @@ func (m *EventCancelCreateObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCancelCreateObject proto.InternalMessageInfo
 
-func (m *EventCancelCreateObject) GetOperatorAddress() string {
+func (m *EventCancelCreateObject) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -547,8 +622,8 @@ func (m *EventCancelCreateObject) GetPrimarySpAddress() string {
 
 // EventSealObject is emitted on MsgSealObject
 type EventSealObject struct {
-	// operator_address define the account address of operator who seal object
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who seal object
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name define the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
@@ -565,7 +640,7 @@ func (m *EventSealObject) Reset()         { *m = EventSealObject{} }
 func (m *EventSealObject) String() string { return proto.CompactTextString(m) }
 func (*EventSealObject) ProtoMessage()    {}
 func (*EventSealObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{5}
+	return fileDescriptor_946dcba4f763ddc4, []int{6}
 }
 func (m *EventSealObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -594,9 +669,9 @@ func (m *EventSealObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventSealObject proto.InternalMessageInfo
 
-func (m *EventSealObject) GetOperatorAddress() string {
+func (m *EventSealObject) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -631,8 +706,8 @@ func (m *EventSealObject) GetSecondarySpAddresses() []string {
 
 // EventCopyObject is emitted on MsgCopyObject
 type EventCopyObject struct {
-	// operator_address define the account address of operator who copy the object
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who copy the object
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// src_bucket_name define the name of the src bucket
 	SrcBucketName string `protobuf:"bytes,2,opt,name=src_bucket_name,json=srcBucketName,proto3" json:"src_bucket_name,omitempty"`
 	// src_object_name define the name of the src object
@@ -651,7 +726,7 @@ func (m *EventCopyObject) Reset()         { *m = EventCopyObject{} }
 func (m *EventCopyObject) String() string { return proto.CompactTextString(m) }
 func (*EventCopyObject) ProtoMessage()    {}
 func (*EventCopyObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{6}
+	return fileDescriptor_946dcba4f763ddc4, []int{7}
 }
 func (m *EventCopyObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -680,9 +755,9 @@ func (m *EventCopyObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCopyObject proto.InternalMessageInfo
 
-func (m *EventCopyObject) GetOperatorAddress() string {
+func (m *EventCopyObject) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -717,8 +792,8 @@ func (m *EventCopyObject) GetDstObjectName() string {
 
 // EventDeleteObject is emitted on MsgDeleteObject
 type EventDeleteObject struct {
-	// operator_address define the account address of operator who delete the object
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who delete the object
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name define the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
@@ -735,7 +810,7 @@ func (m *EventDeleteObject) Reset()         { *m = EventDeleteObject{} }
 func (m *EventDeleteObject) String() string { return proto.CompactTextString(m) }
 func (*EventDeleteObject) ProtoMessage()    {}
 func (*EventDeleteObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{7}
+	return fileDescriptor_946dcba4f763ddc4, []int{8}
 }
 func (m *EventDeleteObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -764,9 +839,9 @@ func (m *EventDeleteObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventDeleteObject proto.InternalMessageInfo
 
-func (m *EventDeleteObject) GetOperatorAddress() string {
+func (m *EventDeleteObject) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -801,8 +876,8 @@ func (m *EventDeleteObject) GetSecondarySpAddresses() []string {
 
 // EventRejectSealObject is emitted on MsgRejectSealObject
 type EventRejectSealObject struct {
-	// operator_address define the account address of operator who reject seal object
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who reject seal object
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name define the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
@@ -815,7 +890,7 @@ func (m *EventRejectSealObject) Reset()         { *m = EventRejectSealObject{} }
 func (m *EventRejectSealObject) String() string { return proto.CompactTextString(m) }
 func (*EventRejectSealObject) ProtoMessage()    {}
 func (*EventRejectSealObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{8}
+	return fileDescriptor_946dcba4f763ddc4, []int{9}
 }
 func (m *EventRejectSealObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -844,9 +919,9 @@ func (m *EventRejectSealObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventRejectSealObject proto.InternalMessageInfo
 
-func (m *EventRejectSealObject) GetOperatorAddress() string {
+func (m *EventRejectSealObject) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -865,10 +940,151 @@ func (m *EventRejectSealObject) GetObjectName() string {
 	return ""
 }
 
+// EventDiscontinueObject is emitted on MsgDiscontinueObject
+type EventDiscontinueObject struct {
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,1,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_id defines id of the object
+	ObjectId Uint `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
+	// the reason
+	Reason string `protobuf:"bytes,3,opt,name=reason,proto3" json:"reason,omitempty"`
+	// the timestamp after which the metadata will be deleted
+	DeleteAt int64 `protobuf:"varint,4,opt,name=delete_at,json=deleteAt,proto3" json:"delete_at,omitempty"`
+}
+
+func (m *EventDiscontinueObject) Reset()         { *m = EventDiscontinueObject{} }
+func (m *EventDiscontinueObject) String() string { return proto.CompactTextString(m) }
+func (*EventDiscontinueObject) ProtoMessage()    {}
+func (*EventDiscontinueObject) Descriptor() ([]byte, []int) {
+	return fileDescriptor_946dcba4f763ddc4, []int{10}
+}
+func (m *EventDiscontinueObject) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventDiscontinueObject) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventDiscontinueObject.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventDiscontinueObject) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventDiscontinueObject.Merge(m, src)
+}
+func (m *EventDiscontinueObject) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventDiscontinueObject) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventDiscontinueObject.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventDiscontinueObject proto.InternalMessageInfo
+
+func (m *EventDiscontinueObject) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
+	}
+	return ""
+}
+
+func (m *EventDiscontinueObject) GetReason() string {
+	if m != nil {
+		return m.Reason
+	}
+	return ""
+}
+
+func (m *EventDiscontinueObject) GetDeleteAt() int64 {
+	if m != nil {
+		return m.DeleteAt
+	}
+	return 0
+}
+
+// EventUpdateObjectInfo is emitted on MsgUpdateObjectInfo
+type EventUpdateObjectInfo struct {
+	// operator define the account address of operator who update the bucket
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// bucket_name define the name of the bucket
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// object_name define the name of the object
+	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
+	// object_id define an u256 id for object
+	ObjectId Uint `protobuf:"bytes,4,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
+	// visibility defines the highest permission of object.
+	Visibility VisibilityType `protobuf:"varint,5,opt,name=visibility,proto3,enum=bnbchain.greenfield.storage.VisibilityType" json:"visibility,omitempty"`
+}
+
+func (m *EventUpdateObjectInfo) Reset()         { *m = EventUpdateObjectInfo{} }
+func (m *EventUpdateObjectInfo) String() string { return proto.CompactTextString(m) }
+func (*EventUpdateObjectInfo) ProtoMessage()    {}
+func (*EventUpdateObjectInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_946dcba4f763ddc4, []int{11}
+}
+func (m *EventUpdateObjectInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventUpdateObjectInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventUpdateObjectInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventUpdateObjectInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventUpdateObjectInfo.Merge(m, src)
+}
+func (m *EventUpdateObjectInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventUpdateObjectInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventUpdateObjectInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventUpdateObjectInfo proto.InternalMessageInfo
+
+func (m *EventUpdateObjectInfo) GetOperator() string {
+	if m != nil {
+		return m.Operator
+	}
+	return ""
+}
+
+func (m *EventUpdateObjectInfo) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
+	}
+	return ""
+}
+
+func (m *EventUpdateObjectInfo) GetObjectName() string {
+	if m != nil {
+		return m.ObjectName
+	}
+	return ""
+}
+
+func (m *EventUpdateObjectInfo) GetVisibility() VisibilityType {
+	if m != nil {
+		return m.Visibility
+	}
+	return VISIBILITY_TYPE_UNSPECIFIED
+}
+
 // EventCreateGroup is emitted on MsgCreateGroup
 type EventCreateGroup struct {
-	// owner_address define the account address of group owner
-	OwnerAddress string `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// owner define the account address of group owner
+	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	// group_name define the name of the group
 	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// id define an u256 id for group
@@ -883,7 +1099,7 @@ func (m *EventCreateGroup) Reset()         { *m = EventCreateGroup{} }
 func (m *EventCreateGroup) String() string { return proto.CompactTextString(m) }
 func (*EventCreateGroup) ProtoMessage()    {}
 func (*EventCreateGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{9}
+	return fileDescriptor_946dcba4f763ddc4, []int{12}
 }
 func (m *EventCreateGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -912,9 +1128,9 @@ func (m *EventCreateGroup) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCreateGroup proto.InternalMessageInfo
 
-func (m *EventCreateGroup) GetOwnerAddress() string {
+func (m *EventCreateGroup) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -942,8 +1158,8 @@ func (m *EventCreateGroup) GetMembers() []string {
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
 type EventDeleteGroup struct {
-	// owner_address define the account address of group owner
-	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// owner define the account address of group owner
+	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// group_name define the name of the group
 	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// id define an u256 id for group
@@ -954,7 +1170,7 @@ func (m *EventDeleteGroup) Reset()         { *m = EventDeleteGroup{} }
 func (m *EventDeleteGroup) String() string { return proto.CompactTextString(m) }
 func (*EventDeleteGroup) ProtoMessage()    {}
 func (*EventDeleteGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{10}
+	return fileDescriptor_946dcba4f763ddc4, []int{13}
 }
 func (m *EventDeleteGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -983,9 +1199,9 @@ func (m *EventDeleteGroup) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventDeleteGroup proto.InternalMessageInfo
 
-func (m *EventDeleteGroup) GetOwnerAddress() string {
+func (m *EventDeleteGroup) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -1001,8 +1217,8 @@ func (m *EventDeleteGroup) GetGroupName() string {
 type EventLeaveGroup struct {
 	// member_address define the address of the member who leave the group
 	MemberAddress string `protobuf:"bytes,1,opt,name=member_address,json=memberAddress,proto3" json:"member_address,omitempty"`
-	// owner_address define the account address of group owner
-	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// owner define the account address of group owner
+	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// group_name define the name of the group
 	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// id define an u256 id for group
@@ -1013,7 +1229,7 @@ func (m *EventLeaveGroup) Reset()         { *m = EventLeaveGroup{} }
 func (m *EventLeaveGroup) String() string { return proto.CompactTextString(m) }
 func (*EventLeaveGroup) ProtoMessage()    {}
 func (*EventLeaveGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{11}
+	return fileDescriptor_946dcba4f763ddc4, []int{14}
 }
 func (m *EventLeaveGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1049,9 +1265,9 @@ func (m *EventLeaveGroup) GetMemberAddress() string {
 	return ""
 }
 
-func (m *EventLeaveGroup) GetOwnerAddress() string {
+func (m *EventLeaveGroup) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -1065,10 +1281,10 @@ func (m *EventLeaveGroup) GetGroupName() string {
 
 // EventUpdateGroupMember is emitted on MsgUpdateGroupMember
 type EventUpdateGroupMember struct {
-	// operator_address define the account address of operator who update the group member
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	// owner_address define the account address of group owner
-	OwnerAddress string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// operator define the account address of operator who update the group member
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// owner define the account address of group owner
+	Owner string `protobuf:"bytes,2,opt,name=owner,proto3" json:"owner,omitempty"`
 	// group_name define the name of the group
 	GroupName string `protobuf:"bytes,3,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// id define an u256 id for group
@@ -1083,7 +1299,7 @@ func (m *EventUpdateGroupMember) Reset()         { *m = EventUpdateGroupMember{}
 func (m *EventUpdateGroupMember) String() string { return proto.CompactTextString(m) }
 func (*EventUpdateGroupMember) ProtoMessage()    {}
 func (*EventUpdateGroupMember) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{12}
+	return fileDescriptor_946dcba4f763ddc4, []int{15}
 }
 func (m *EventUpdateGroupMember) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1112,16 +1328,16 @@ func (m *EventUpdateGroupMember) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventUpdateGroupMember proto.InternalMessageInfo
 
-func (m *EventUpdateGroupMember) GetOperatorAddress() string {
+func (m *EventUpdateGroupMember) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
 
-func (m *EventUpdateGroupMember) GetOwnerAddress() string {
+func (m *EventUpdateGroupMember) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -1149,8 +1365,8 @@ func (m *EventUpdateGroupMember) GetMembersToDelete() []string {
 
 // EventMirrorBucket is emitted on MirrorBucket
 type EventMirrorBucket struct {
-	// operator_address define the account address of operator who mirror the bucket
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who mirror the bucket
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name defines the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_id define an u256 id for bucket
@@ -1161,7 +1377,7 @@ func (m *EventMirrorBucket) Reset()         { *m = EventMirrorBucket{} }
 func (m *EventMirrorBucket) String() string { return proto.CompactTextString(m) }
 func (*EventMirrorBucket) ProtoMessage()    {}
 func (*EventMirrorBucket) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{13}
+	return fileDescriptor_946dcba4f763ddc4, []int{16}
 }
 func (m *EventMirrorBucket) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1190,9 +1406,9 @@ func (m *EventMirrorBucket) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventMirrorBucket proto.InternalMessageInfo
 
-func (m *EventMirrorBucket) GetOperatorAddress() string {
+func (m *EventMirrorBucket) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -1218,7 +1434,7 @@ func (m *EventMirrorBucketResult) Reset()         { *m = EventMirrorBucketResult
 func (m *EventMirrorBucketResult) String() string { return proto.CompactTextString(m) }
 func (*EventMirrorBucketResult) ProtoMessage()    {}
 func (*EventMirrorBucketResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{14}
+	return fileDescriptor_946dcba4f763ddc4, []int{17}
 }
 func (m *EventMirrorBucketResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1263,8 +1479,8 @@ func (m *EventMirrorBucketResult) GetBucketName() string {
 
 // EventMirrorObject is emitted on MirrorObject
 type EventMirrorObject struct {
-	// operator_address define the account address of operator who delete the object
-	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
+	// operator define the account address of operator who delete the object
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name define the name of the bucket
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
@@ -1277,7 +1493,7 @@ func (m *EventMirrorObject) Reset()         { *m = EventMirrorObject{} }
 func (m *EventMirrorObject) String() string { return proto.CompactTextString(m) }
 func (*EventMirrorObject) ProtoMessage()    {}
 func (*EventMirrorObject) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{15}
+	return fileDescriptor_946dcba4f763ddc4, []int{18}
 }
 func (m *EventMirrorObject) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1306,9 +1522,9 @@ func (m *EventMirrorObject) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventMirrorObject proto.InternalMessageInfo
 
-func (m *EventMirrorObject) GetOperatorAddress() string {
+func (m *EventMirrorObject) GetOperator() string {
 	if m != nil {
-		return m.OperatorAddress
+		return m.Operator
 	}
 	return ""
 }
@@ -1343,7 +1559,7 @@ func (m *EventMirrorObjectResult) Reset()         { *m = EventMirrorObjectResult
 func (m *EventMirrorObjectResult) String() string { return proto.CompactTextString(m) }
 func (*EventMirrorObjectResult) ProtoMessage()    {}
 func (*EventMirrorObjectResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{16}
+	return fileDescriptor_946dcba4f763ddc4, []int{19}
 }
 func (m *EventMirrorObjectResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1395,8 +1611,8 @@ func (m *EventMirrorObjectResult) GetObjectName() string {
 
 // EventMirrorGroup is emitted on MirrorGroup
 type EventMirrorGroup struct {
-	// owner_address define the account address of group owner
-	OwnerAddress string `protobuf:"bytes,1,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
+	// owner define the account address of group owner
+	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 	// group_name define the name of the group
 	GroupName string `protobuf:"bytes,2,opt,name=group_name,json=groupName,proto3" json:"group_name,omitempty"`
 	// group_id define an u256 id for group
@@ -1407,7 +1623,7 @@ func (m *EventMirrorGroup) Reset()         { *m = EventMirrorGroup{} }
 func (m *EventMirrorGroup) String() string { return proto.CompactTextString(m) }
 func (*EventMirrorGroup) ProtoMessage()    {}
 func (*EventMirrorGroup) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{17}
+	return fileDescriptor_946dcba4f763ddc4, []int{20}
 }
 func (m *EventMirrorGroup) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1436,9 +1652,9 @@ func (m *EventMirrorGroup) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventMirrorGroup proto.InternalMessageInfo
 
-func (m *EventMirrorGroup) GetOwnerAddress() string {
+func (m *EventMirrorGroup) GetOwner() string {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Owner
 	}
 	return ""
 }
@@ -1464,7 +1680,7 @@ func (m *EventMirrorGroupResult) Reset()         { *m = EventMirrorGroupResult{}
 func (m *EventMirrorGroupResult) String() string { return proto.CompactTextString(m) }
 func (*EventMirrorGroupResult) ProtoMessage()    {}
 func (*EventMirrorGroupResult) Descriptor() ([]byte, []int) {
-	return fileDescriptor_946dcba4f763ddc4, []int{18}
+	return fileDescriptor_946dcba4f763ddc4, []int{21}
 }
 func (m *EventMirrorGroupResult) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -1511,12 +1727,15 @@ func init() {
 	proto.RegisterType((*EventCreateBucket)(nil), "bnbchain.greenfield.storage.EventCreateBucket")
 	proto.RegisterType((*EventDeleteBucket)(nil), "bnbchain.greenfield.storage.EventDeleteBucket")
 	proto.RegisterType((*EventUpdateBucketInfo)(nil), "bnbchain.greenfield.storage.EventUpdateBucketInfo")
+	proto.RegisterType((*EventDiscontinueBucket)(nil), "bnbchain.greenfield.storage.EventDiscontinueBucket")
 	proto.RegisterType((*EventCreateObject)(nil), "bnbchain.greenfield.storage.EventCreateObject")
 	proto.RegisterType((*EventCancelCreateObject)(nil), "bnbchain.greenfield.storage.EventCancelCreateObject")
 	proto.RegisterType((*EventSealObject)(nil), "bnbchain.greenfield.storage.EventSealObject")
 	proto.RegisterType((*EventCopyObject)(nil), "bnbchain.greenfield.storage.EventCopyObject")
 	proto.RegisterType((*EventDeleteObject)(nil), "bnbchain.greenfield.storage.EventDeleteObject")
 	proto.RegisterType((*EventRejectSealObject)(nil), "bnbchain.greenfield.storage.EventRejectSealObject")
+	proto.RegisterType((*EventDiscontinueObject)(nil), "bnbchain.greenfield.storage.EventDiscontinueObject")
+	proto.RegisterType((*EventUpdateObjectInfo)(nil), "bnbchain.greenfield.storage.EventUpdateObjectInfo")
 	proto.RegisterType((*EventCreateGroup)(nil), "bnbchain.greenfield.storage.EventCreateGroup")
 	proto.RegisterType((*EventDeleteGroup)(nil), "bnbchain.greenfield.storage.EventDeleteGroup")
 	proto.RegisterType((*EventLeaveGroup)(nil), "bnbchain.greenfield.storage.EventLeaveGroup")
@@ -1532,86 +1751,91 @@ func init() {
 func init() { proto.RegisterFile("greenfield/storage/events.proto", fileDescriptor_946dcba4f763ddc4) }
 
 var fileDescriptor_946dcba4f763ddc4 = []byte{
-	// 1257 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xdc, 0x58, 0xbf, 0x73, 0x1b, 0xc5,
-	0x17, 0xf7, 0x49, 0x67, 0x59, 0x5a, 0xfd, 0x72, 0xee, 0x6b, 0xfb, 0x7b, 0x89, 0x41, 0x56, 0xae,
-	0x08, 0x66, 0xc0, 0xd2, 0x8c, 0x61, 0x20, 0x14, 0x90, 0x91, 0x1d, 0x7e, 0x78, 0x20, 0xc9, 0x70,
-	0x72, 0x28, 0x68, 0x6e, 0x56, 0x77, 0x6b, 0xf9, 0x88, 0x74, 0x7b, 0xec, 0xae, 0x0c, 0xca, 0x3f,
-	0x40, 0x43, 0x41, 0x4d, 0x49, 0xc1, 0xd0, 0x50, 0x91, 0x8a, 0x9a, 0x22, 0x65, 0x26, 0x43, 0x91,
-	0xa1, 0xc8, 0x30, 0xf6, 0x30, 0x43, 0xc1, 0x1f, 0x00, 0x1d, 0x73, 0xbb, 0xab, 0xf3, 0x9d, 0xe4,
-	0x48, 0x3a, 0xcb, 0xce, 0x78, 0xe8, 0xa4, 0x77, 0xef, 0xed, 0x7e, 0xde, 0x67, 0x3f, 0xef, 0xbd,
-	0xbd, 0x03, 0x6b, 0x6d, 0x82, 0x90, 0xb7, 0xe7, 0xa2, 0x8e, 0x53, 0xa7, 0x0c, 0x13, 0xd8, 0x46,
-	0x75, 0x74, 0x80, 0x3c, 0x46, 0x6b, 0x3e, 0xc1, 0x0c, 0x6b, 0xab, 0x2d, 0xaf, 0x65, 0xef, 0x43,
-	0xd7, 0xab, 0x1d, 0x7b, 0xd6, 0xa4, 0xe7, 0x95, 0xcb, 0x36, 0xa6, 0x5d, 0x4c, 0x2d, 0xee, 0x5a,
-	0x17, 0x7f, 0x44, 0xdc, 0x95, 0xa5, 0x36, 0x6e, 0x63, 0x61, 0x0f, 0x7e, 0x49, 0xeb, 0x49, 0xdb,
-	0xd9, 0xb8, 0xdb, 0xc5, 0x9e, 0x70, 0x30, 0xbe, 0x55, 0xc1, 0xa5, 0x77, 0x83, 0xfd, 0xb7, 0x09,
-	0x82, 0x0c, 0x6d, 0xf5, 0xec, 0x7b, 0x88, 0x69, 0x6f, 0x83, 0x22, 0xfe, 0xc2, 0x43, 0xc4, 0x82,
-	0x8e, 0x43, 0x10, 0xa5, 0xba, 0x52, 0x55, 0xd6, 0x73, 0x5b, 0xfa, 0xe3, 0x07, 0x1b, 0x4b, 0x72,
-	0xd7, 0x86, 0x78, 0xd2, 0x64, 0xc4, 0xf5, 0xda, 0x66, 0x81, 0xbb, 0x4b, 0x9b, 0xb6, 0x06, 0xf2,
-	0x2d, 0xbe, 0x90, 0xe5, 0xc1, 0x2e, 0xd2, 0x53, 0x41, 0xb0, 0x09, 0x84, 0xe9, 0x36, 0xec, 0x22,
-	0xed, 0x43, 0x00, 0x0e, 0x5c, 0xea, 0xb6, 0xdc, 0x8e, 0xcb, 0xfa, 0x7a, 0xba, 0xaa, 0xac, 0x97,
-	0x36, 0x5f, 0xa9, 0x8d, 0xc9, 0xbc, 0xf6, 0x49, 0xe8, 0xbe, 0xdb, 0xf7, 0x91, 0x19, 0x09, 0xd7,
-	0x56, 0x41, 0xce, 0xe6, 0xe0, 0x2d, 0xc8, 0x74, 0xb5, 0xaa, 0xac, 0xa7, 0xcd, 0xac, 0x30, 0x34,
-	0x98, 0x76, 0x1d, 0xe4, 0x24, 0x14, 0xd7, 0xd1, 0xe7, 0x79, 0x16, 0xab, 0x0f, 0x9f, 0xae, 0xcd,
-	0xfd, 0xf6, 0x74, 0x4d, 0xbd, 0xeb, 0x7a, 0xec, 0xf1, 0x83, 0x8d, 0xbc, 0xcc, 0x28, 0xf8, 0x6b,
-	0x66, 0x85, 0xf7, 0x8e, 0xa3, 0x7d, 0x00, 0xf2, 0x14, 0xf7, 0x88, 0x8d, 0x2c, 0xd6, 0xf7, 0x91,
-	0x9e, 0xe1, 0x20, 0x5f, 0x1a, 0x0b, 0xb2, 0xc9, 0xfd, 0x05, 0x40, 0x1a, 0xfe, 0xd6, 0x5e, 0x05,
-	0x9a, 0xbd, 0x0f, 0x49, 0x1b, 0x39, 0x16, 0x41, 0xd0, 0xb1, 0x3e, 0xef, 0x61, 0x06, 0xf5, 0x85,
-	0xaa, 0xb2, 0xae, 0x9a, 0x8b, 0xf2, 0x89, 0x89, 0xa0, 0xf3, 0x71, 0x60, 0xd7, 0x1a, 0xa0, 0xec,
-	0xc3, 0x7e, 0x17, 0x79, 0x2c, 0x64, 0x3f, 0x3b, 0x81, 0xfd, 0x92, 0x0c, 0x18, 0xf0, 0xff, 0x1e,
-	0xd0, 0x7c, 0xe2, 0x76, 0x21, 0xe9, 0x5b, 0xd4, 0x0f, 0x57, 0xc9, 0x4d, 0x58, 0x65, 0x51, 0xc6,
-	0x34, 0x7d, 0x69, 0x37, 0x7e, 0x4e, 0x49, 0x71, 0xdc, 0x44, 0x1d, 0x14, 0x8a, 0x63, 0x1b, 0x2c,
-	0x62, 0x1f, 0x11, 0xc8, 0xf0, 0xf4, 0xfa, 0x28, 0x0f, 0x22, 0x06, 0x10, 0x47, 0x14, 0x96, 0x9a,
-	0x45, 0x61, 0xe9, 0x11, 0x85, 0xc5, 0xce, 0x5d, 0x4d, 0x72, 0xee, 0x27, 0x93, 0x37, 0x9f, 0x98,
-	0xbc, 0xc3, 0x34, 0x58, 0xe6, 0xe4, 0xdd, 0xf5, 0x9d, 0xb0, 0xb2, 0x76, 0xbc, 0x3d, 0x7c, 0x36,
-	0x04, 0x4e, 0xac, 0xb1, 0x18, 0x03, 0xe9, 0x24, 0x0c, 0xbc, 0x05, 0x2e, 0x8f, 0xea, 0xd5, 0x6a,
-	0xa1, 0x3d, 0x4c, 0x10, 0xe7, 0x52, 0x35, 0x57, 0x86, 0x65, 0xbb, 0xc5, 0x9f, 0x6a, 0x6f, 0x02,
-	0xfd, 0x84, 0x50, 0xb8, 0xc7, 0x10, 0xe1, 0x14, 0xaa, 0xe6, 0xf2, 0x70, 0x64, 0x23, 0x78, 0xa8,
-	0xbd, 0x0e, 0x56, 0x86, 0x54, 0x3f, 0xd8, 0x30, 0xc3, 0x33, 0x5b, 0x8a, 0x4b, 0x5c, 0x6e, 0xb7,
-	0x09, 0x96, 0x87, 0xa3, 0xc4, 0x5e, 0x0b, 0x3c, 0xe8, 0x7f, 0xf1, 0x20, 0xb1, 0x53, 0xbc, 0xf7,
-	0x64, 0x67, 0xea, 0x3d, 0xc6, 0x2f, 0x99, 0x58, 0xfb, 0xbc, 0xd3, 0xfa, 0x0c, 0xd9, 0x2c, 0x28,
-	0x61, 0xde, 0x80, 0x12, 0x9c, 0x6f, 0x49, 0x06, 0x3c, 0xaf, 0xfa, 0x58, 0x03, 0x79, 0xcc, 0xc1,
-	0x0a, 0x07, 0x55, 0x38, 0x08, 0xd3, 0xa8, 0x7c, 0x32, 0x49, 0xe4, 0x73, 0x1d, 0xe4, 0xe4, 0xd2,
-	0xae, 0x23, 0x0e, 0x62, 0x42, 0xa4, 0xf0, 0x7e, 0x66, 0xe9, 0x65, 0x93, 0x96, 0x9e, 0x76, 0x15,
-	0x14, 0x7c, 0xd8, 0xef, 0x60, 0xe8, 0x58, 0xd4, 0xbd, 0x8f, 0x78, 0xe7, 0x53, 0xcd, 0xbc, 0xb4,
-	0x35, 0xdd, 0xfb, 0xc3, 0x13, 0x08, 0xcc, 0x36, 0x81, 0xae, 0x82, 0x82, 0x8d, 0x3d, 0x16, 0xc8,
-	0x90, 0xcf, 0x8a, 0x3c, 0x67, 0x33, 0x2f, 0x6d, 0x7c, 0x06, 0xc4, 0x86, 0x54, 0x61, 0x68, 0x48,
-	0x35, 0x40, 0x86, 0x32, 0xc8, 0x7a, 0x54, 0x2f, 0x72, 0x20, 0x2f, 0x8f, 0x05, 0x22, 0x44, 0xd6,
-	0xe4, 0x01, 0xa6, 0x0c, 0xd4, 0x76, 0x41, 0x99, 0x20, 0xa7, 0xe7, 0x39, 0xd0, 0xb3, 0xfb, 0x02,
-	0x45, 0x69, 0x8a, 0xa4, 0xcc, 0x30, 0x86, 0x27, 0x55, 0x22, 0xb1, 0xff, 0xc3, 0x33, 0xb0, 0x7c,
-	0xfa, 0x19, 0xf8, 0x02, 0xc8, 0xd9, 0xfb, 0xc8, 0xbe, 0x47, 0x7b, 0x5d, 0xaa, 0x2f, 0x56, 0xd3,
-	0xeb, 0x05, 0xf3, 0xd8, 0x60, 0x7c, 0x97, 0x02, 0xff, 0x17, 0x65, 0x04, 0x3d, 0x1b, 0x75, 0x62,
-	0xc5, 0xf4, 0x7c, 0xba, 0xe5, 0x50, 0x3d, 0xa4, 0x47, 0xea, 0xe1, 0x64, 0x6d, 0xaa, 0x89, 0xb5,
-	0x19, 0xab, 0x8e, 0x4c, 0x82, 0xea, 0x30, 0xfe, 0x48, 0x81, 0x32, 0x27, 0xa9, 0x89, 0x60, 0xe7,
-	0x62, 0x91, 0x13, 0x4b, 0x6a, 0x3e, 0x49, 0xc9, 0x1f, 0x4b, 0x3f, 0x73, 0x5a, 0xe9, 0xdf, 0x06,
-	0x2b, 0x14, 0xd9, 0xd8, 0x73, 0xe2, 0x67, 0x83, 0xa8, 0xbe, 0x50, 0x4d, 0x8f, 0x65, 0x62, 0x29,
-	0x8c, 0x0b, 0xcf, 0x07, 0x51, 0xe3, 0xef, 0x01, 0xcf, 0xdb, 0xd8, 0xef, 0x9f, 0x25, 0xcf, 0xd7,
-	0x40, 0x99, 0x12, 0xdb, 0x1a, 0xe5, 0xba, 0x48, 0x89, 0xbd, 0x75, 0x4c, 0xb7, 0xf4, 0x1b, 0xa5,
-	0x3c, 0xf0, 0xbb, 0x73, 0xcc, 0xfa, 0x35, 0x50, 0x76, 0x28, 0x8b, 0xad, 0x27, 0xfa, 0x78, 0xd1,
-	0xa1, 0x2c, 0xbe, 0x5e, 0xe0, 0x17, 0x5d, 0x6f, 0x3e, 0xf4, 0x8b, 0xac, 0x77, 0x03, 0x14, 0x23,
-	0xfb, 0x4e, 0x27, 0xcf, 0x7c, 0x08, 0x69, 0xc7, 0x09, 0x16, 0x88, 0x6c, 0x34, 0x5d, 0xf7, 0xcf,
-	0x87, 0x18, 0x76, 0x1c, 0xe3, 0xaf, 0xf8, 0x85, 0xf3, 0x02, 0x8b, 0x5c, 0x9d, 0x7d, 0xae, 0x25,
-	0xbe, 0x52, 0x8e, 0x51, 0x7a, 0xe6, 0x54, 0x4a, 0x7f, 0xa2, 0xc8, 0x2b, 0xaa, 0x89, 0x78, 0x5d,
-	0x5d, 0xec, 0xbe, 0x92, 0x84, 0x72, 0xe3, 0xfb, 0x14, 0x58, 0x8c, 0x5c, 0xcc, 0xde, 0x27, 0xb8,
-	0xe7, 0xcf, 0xfa, 0x5a, 0xfb, 0x22, 0x00, 0xed, 0x60, 0x9d, 0x68, 0x3a, 0x39, 0x6e, 0xe1, 0x60,
-	0xdf, 0x00, 0x59, 0xf1, 0x78, 0xba, 0xfb, 0xf6, 0x02, 0x77, 0x1e, 0x7d, 0xd1, 0x54, 0x4f, 0x3f,
-	0x64, 0x37, 0xc1, 0x42, 0x17, 0x75, 0x5b, 0x88, 0x04, 0xe2, 0x1a, 0x2f, 0x88, 0x81, 0xa3, 0xf1,
-	0x83, 0x22, 0x89, 0x12, 0x25, 0xf7, 0x0c, 0xa2, 0x52, 0x33, 0x10, 0x95, 0x1e, 0x47, 0x94, 0x3a,
-	0x3d, 0x51, 0xc6, 0x9f, 0x8a, 0x6c, 0xcc, 0x1f, 0x21, 0x78, 0x20, 0x91, 0xde, 0x00, 0x25, 0x91,
-	0xc9, 0xd4, 0x67, 0x5a, 0x14, 0xfe, 0x67, 0x74, 0xd1, 0x3e, 0xa7, 0x54, 0xff, 0x49, 0x81, 0x95,
-	0xc8, 0xcb, 0x23, 0xcf, 0xf5, 0x16, 0xc7, 0x7d, 0x21, 0x5e, 0xbf, 0xcf, 0x27, 0x6b, 0xed, 0x9d,
-	0xc1, 0x61, 0x52, 0x8b, 0xe1, 0x00, 0xda, 0x44, 0x19, 0x17, 0xa4, 0xff, 0x2e, 0x6e, 0x38, 0x8e,
-	0x76, 0x13, 0x5c, 0x8a, 0xc4, 0x3b, 0x5c, 0xd0, 0x13, 0x5b, 0x63, 0x39, 0x5c, 0x42, 0x54, 0x80,
-	0xf1, 0x93, 0x22, 0x87, 0xd0, 0x2d, 0x97, 0x10, 0x4c, 0xce, 0xf2, 0xab, 0x47, 0xb2, 0x97, 0xf6,
-	0x24, 0x9f, 0x2d, 0x8c, 0xaf, 0x15, 0x79, 0x85, 0x8e, 0xa2, 0x36, 0x11, 0xed, 0x75, 0x98, 0xb6,
-	0x12, 0x5e, 0xb2, 0x02, 0xc4, 0xc5, 0xf0, 0xe6, 0x74, 0x8e, 0x70, 0x7e, 0x8d, 0x93, 0xf8, 0x5f,
-	0x19, 0x2b, 0x3f, 0xc6, 0x59, 0x16, 0x69, 0xcd, 0xca, 0xf2, 0x39, 0xe2, 0x0d, 0xbb, 0xbb, 0xc0,
-	0x7b, 0x81, 0xc7, 0xa0, 0xf1, 0x95, 0x22, 0x5b, 0x5e, 0x04, 0xea, 0x04, 0x66, 0xcf, 0x07, 0xc9,
-	0xd6, 0xce, 0xc3, 0xc3, 0x8a, 0xf2, 0xe8, 0xb0, 0xa2, 0xfc, 0x7e, 0x58, 0x51, 0xbe, 0x39, 0xaa,
-	0xcc, 0x3d, 0x3a, 0xaa, 0xcc, 0x3d, 0x39, 0xaa, 0xcc, 0x7d, 0x5a, 0x6f, 0xbb, 0x6c, 0xbf, 0xd7,
-	0xaa, 0xd9, 0xb8, 0x5b, 0x6f, 0x79, 0xad, 0x0d, 0x3e, 0xa0, 0xeb, 0x91, 0x6f, 0xec, 0x5f, 0x86,
-	0x5f, 0xd9, 0x83, 0x59, 0x4e, 0x5b, 0x19, 0xfe, 0x95, 0xfd, 0xb5, 0x7f, 0x03, 0x00, 0x00, 0xff,
-	0xff, 0x94, 0x22, 0xd5, 0x80, 0xf7, 0x17, 0x00, 0x00,
+	// 1342 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x59, 0xcd, 0x8f, 0xdb, 0x44,
+	0x14, 0x5f, 0x27, 0xce, 0xd7, 0x64, 0xb3, 0xd9, 0x9a, 0xed, 0xe2, 0xb6, 0x90, 0x4d, 0x7d, 0x28,
+	0x8b, 0xa0, 0x89, 0xb4, 0x54, 0x50, 0x2e, 0x54, 0xd9, 0x96, 0x8f, 0x15, 0xb4, 0x15, 0x4e, 0xcb,
+	0x81, 0x8b, 0x35, 0xb1, 0x67, 0xb3, 0xa6, 0x89, 0xc7, 0xcc, 0x4c, 0x0a, 0xe9, 0x3f, 0xc0, 0x85,
+	0x03, 0x12, 0x12, 0x08, 0x89, 0x23, 0x42, 0x5c, 0xb8, 0xf5, 0x5f, 0x40, 0x2a, 0x17, 0x54, 0x15,
+	0x09, 0xf1, 0x21, 0x2a, 0xd4, 0x9e, 0xf8, 0x2f, 0x90, 0x67, 0x26, 0x8e, 0x9d, 0x84, 0x24, 0x4e,
+	0x08, 0x2c, 0xb7, 0xf8, 0xf9, 0xbd, 0x99, 0xf7, 0x7e, 0xf3, 0x7b, 0x1f, 0x9e, 0x80, 0x9d, 0x36,
+	0x41, 0xc8, 0x3b, 0x74, 0x51, 0xc7, 0xa9, 0x53, 0x86, 0x09, 0x6c, 0xa3, 0x3a, 0xba, 0x8d, 0x3c,
+	0x46, 0x6b, 0x3e, 0xc1, 0x0c, 0x6b, 0x67, 0x5a, 0x5e, 0xcb, 0x3e, 0x82, 0xae, 0x57, 0x1b, 0x6a,
+	0xd6, 0xa4, 0xe6, 0xe9, 0x53, 0x36, 0xa6, 0x5d, 0x4c, 0x2d, 0xae, 0x5a, 0x17, 0x0f, 0xc2, 0xee,
+	0xf4, 0x56, 0x1b, 0xb7, 0xb1, 0x90, 0x07, 0xbf, 0xa4, 0x74, 0xd2, 0x76, 0x36, 0xee, 0x76, 0xb1,
+	0x27, 0x14, 0x8c, 0x1f, 0x54, 0x70, 0xe2, 0xd5, 0x60, 0xff, 0xcb, 0x04, 0x41, 0x86, 0xf6, 0x7b,
+	0xf6, 0x2d, 0xc4, 0xb4, 0x1a, 0xc8, 0xe0, 0x0f, 0x3c, 0x44, 0x74, 0xa5, 0xaa, 0xec, 0x16, 0xf6,
+	0xf5, 0x07, 0x77, 0xcf, 0x6f, 0xc9, 0xdd, 0x1a, 0x8e, 0x43, 0x10, 0xa5, 0x4d, 0x46, 0x5c, 0xaf,
+	0x6d, 0x0a, 0x35, 0x6d, 0x07, 0x14, 0x5b, 0xdc, 0xd2, 0xf2, 0x60, 0x17, 0xe9, 0xa9, 0xc0, 0xca,
+	0x04, 0x42, 0x74, 0x0d, 0x76, 0x91, 0xf6, 0x26, 0x00, 0xb7, 0x5d, 0xea, 0xb6, 0xdc, 0x8e, 0xcb,
+	0xfa, 0x7a, 0xba, 0xaa, 0xec, 0x6e, 0xec, 0x3d, 0x57, 0x9b, 0x12, 0x6a, 0xed, 0x9d, 0x50, 0xfd,
+	0x46, 0xdf, 0x47, 0x66, 0xc4, 0x5c, 0x3b, 0x03, 0x0a, 0x36, 0xf7, 0xd6, 0x82, 0x4c, 0x57, 0xab,
+	0xca, 0x6e, 0xda, 0xcc, 0x0b, 0x41, 0x83, 0x69, 0x17, 0x41, 0x41, 0xba, 0xe2, 0x3a, 0x7a, 0x86,
+	0xbb, 0x7f, 0xe6, 0xde, 0xc3, 0x9d, 0xb5, 0x5f, 0x1f, 0xee, 0xa8, 0x37, 0x5d, 0x8f, 0x3d, 0xb8,
+	0x7b, 0xbe, 0x28, 0x43, 0x09, 0x1e, 0xcd, 0xbc, 0xd0, 0x3e, 0x70, 0xb4, 0x37, 0x40, 0x91, 0xe2,
+	0x1e, 0xb1, 0x91, 0xc5, 0xfa, 0x3e, 0xd2, 0xb3, 0xdc, 0xc9, 0x67, 0xa6, 0x3a, 0xd9, 0xe4, 0xfa,
+	0xc2, 0x41, 0x1a, 0xfe, 0xd6, 0x9e, 0x07, 0x9a, 0x7d, 0x04, 0x49, 0x1b, 0x39, 0x16, 0x41, 0xd0,
+	0xb1, 0xde, 0xef, 0x61, 0x06, 0xf5, 0x5c, 0x55, 0xd9, 0x55, 0xcd, 0x4d, 0xf9, 0xc6, 0x44, 0xd0,
+	0x79, 0x3b, 0x90, 0x6b, 0x0d, 0x50, 0xf6, 0x61, 0xbf, 0x8b, 0x3c, 0x66, 0x41, 0x01, 0xae, 0x9e,
+	0x9f, 0x01, 0xfb, 0x86, 0x34, 0x90, 0x52, 0xed, 0x35, 0xa0, 0xf9, 0xc4, 0xed, 0x42, 0xd2, 0xb7,
+	0xa8, 0x1f, 0xae, 0x52, 0x98, 0xb1, 0xca, 0xa6, 0xb4, 0x69, 0xfa, 0x83, 0x75, 0x1a, 0x20, 0x4b,
+	0x19, 0x64, 0x3d, 0xaa, 0x03, 0x1e, 0xfd, 0xb3, 0x53, 0xa3, 0x17, 0x64, 0x69, 0x72, 0x03, 0x53,
+	0x1a, 0x1a, 0x5f, 0xa6, 0x24, 0xa1, 0xae, 0xa0, 0x0e, 0x0a, 0x09, 0x75, 0x01, 0xe4, 0xb1, 0x8f,
+	0x08, 0x64, 0x78, 0x36, 0xa7, 0x42, 0xcd, 0x21, 0x0d, 0x53, 0x0b, 0xd1, 0x30, 0x3d, 0x46, 0xc3,
+	0x18, 0x39, 0xd4, 0x24, 0xe4, 0x98, 0x8c, 0x70, 0x26, 0x29, 0xc2, 0xc6, 0x8f, 0x69, 0x70, 0x92,
+	0xc3, 0x73, 0xd3, 0x77, 0xc2, 0x7c, 0x3b, 0xf0, 0x0e, 0xf1, 0x82, 0x10, 0xcd, 0xcc, 0xbc, 0x58,
+	0xc8, 0xe9, 0x24, 0x21, 0xbf, 0x0c, 0x4e, 0x8d, 0xb3, 0xd8, 0x6a, 0xa1, 0x43, 0x4c, 0x10, 0x07,
+	0x4f, 0x35, 0xb7, 0x47, 0xc9, 0xbc, 0xcf, 0xdf, 0x6a, 0x2f, 0x01, 0x7d, 0x82, 0x29, 0x3c, 0x64,
+	0x88, 0x70, 0xcc, 0x54, 0xf3, 0xe4, 0xa8, 0x65, 0x23, 0x78, 0xa9, 0x5d, 0x00, 0xdb, 0x23, 0xb9,
+	0x30, 0xd8, 0x30, 0xcb, 0x23, 0xdb, 0x8a, 0x13, 0x5f, 0x6e, 0xb7, 0x07, 0x4e, 0x8e, 0x5a, 0x89,
+	0xbd, 0x72, 0xdc, 0xe8, 0x89, 0xb8, 0x91, 0xd8, 0x29, 0x5e, 0x91, 0xf2, 0x4b, 0x55, 0x24, 0xe3,
+	0x1b, 0x05, 0x6c, 0x0b, 0xd2, 0xbb, 0xd4, 0xc6, 0x1e, 0x73, 0xbd, 0xde, 0x80, 0xf9, 0x31, 0xfc,
+	0x95, 0x24, 0xf8, 0xcf, 0x3c, 0xda, 0x6d, 0x90, 0x25, 0x08, 0x52, 0xec, 0x49, 0xa6, 0xcb, 0xa7,
+	0xa0, 0x3e, 0x3a, 0x3c, 0xf9, 0x22, 0xf5, 0x51, 0x08, 0x1a, 0xcc, 0xf8, 0x3a, 0x1b, 0x2b, 0xf8,
+	0xd7, 0x5b, 0xef, 0x21, 0x9b, 0x69, 0x7b, 0x20, 0xc7, 0x2b, 0xe8, 0x1c, 0xdc, 0x1b, 0x28, 0xfe,
+	0xf3, 0xd9, 0xb9, 0x03, 0x8a, 0x98, 0xbb, 0x23, 0x14, 0x54, 0xa1, 0x20, 0x44, 0xe3, 0x5c, 0xce,
+	0x26, 0xc1, 0xf2, 0x22, 0x28, 0xc8, 0xa5, 0x5d, 0x47, 0xb0, 0x62, 0x86, 0xa5, 0xd0, 0xfe, 0xdb,
+	0xc4, 0xcf, 0x27, 0x2e, 0xad, 0x67, 0xc1, 0xba, 0x0f, 0xfb, 0x1d, 0x0c, 0x1d, 0x8b, 0xba, 0x77,
+	0x10, 0x2f, 0xce, 0xaa, 0x59, 0x94, 0xb2, 0xa6, 0x7b, 0x67, 0xb4, 0x49, 0x82, 0xe5, 0x9a, 0xe4,
+	0x59, 0xb0, 0x1e, 0x30, 0x31, 0xc8, 0x09, 0xde, 0xce, 0x8a, 0x1c, 0xcd, 0xa2, 0x94, 0xf1, 0x36,
+	0x15, 0xeb, 0xa3, 0xeb, 0x23, 0x7d, 0x74, 0xd8, 0x0a, 0x4a, 0x73, 0xb4, 0x02, 0x41, 0xa3, 0x78,
+	0x2b, 0xd0, 0x6e, 0x80, 0x32, 0x41, 0x4e, 0xcf, 0x73, 0xa0, 0x67, 0xf7, 0x85, 0x17, 0x1b, 0x73,
+	0x04, 0x65, 0x86, 0x36, 0x3c, 0xa8, 0x0d, 0x12, 0x7b, 0x1e, 0x6d, 0xd3, 0xe5, 0xc5, 0xdb, 0xf4,
+	0x53, 0xa0, 0x60, 0x1f, 0x21, 0xfb, 0x16, 0xed, 0x75, 0xa9, 0xbe, 0x59, 0x4d, 0xef, 0xae, 0x9b,
+	0x43, 0x81, 0xf1, 0x69, 0x0a, 0x3c, 0x29, 0x12, 0x05, 0x7a, 0x36, 0xea, 0xc4, 0xd2, 0x65, 0x45,
+	0xb5, 0x7a, 0x24, 0x01, 0xd2, 0x63, 0x09, 0x30, 0x99, 0x8c, 0x6a, 0x62, 0x32, 0xc6, 0xd2, 0x21,
+	0x9b, 0x20, 0x1d, 0x8c, 0x9f, 0x52, 0xa0, 0xcc, 0x51, 0x69, 0x22, 0xd8, 0xf9, 0x8f, 0xd1, 0x88,
+	0x45, 0x91, 0x49, 0x92, 0xd4, 0x43, 0x72, 0x67, 0x17, 0x25, 0xf7, 0x35, 0xb0, 0x4d, 0x91, 0x8d,
+	0x3d, 0x27, 0x7e, 0x18, 0x88, 0xea, 0xb9, 0x6a, 0x7a, 0x2a, 0x04, 0x5b, 0xa1, 0x5d, 0x78, 0x20,
+	0x88, 0x1a, 0x7f, 0x0e, 0x80, 0xbd, 0x8c, 0xfd, 0xfe, 0x52, 0xc0, 0x9e, 0x03, 0x65, 0x4a, 0x6c,
+	0x6b, 0x1c, 0xdc, 0x12, 0x25, 0xf6, 0xfe, 0x10, 0x5f, 0xa9, 0x37, 0x8e, 0x71, 0xa0, 0x77, 0x7d,
+	0x08, 0xf3, 0x39, 0x50, 0x76, 0x28, 0x8b, 0xad, 0x27, 0x4a, 0x73, 0xc9, 0xa1, 0x2c, 0xbe, 0x5e,
+	0xa0, 0x17, 0x5d, 0x2f, 0x13, 0xea, 0x45, 0xd6, 0xbb, 0x04, 0x4a, 0x91, 0x7d, 0xe7, 0x23, 0x60,
+	0x31, 0x74, 0xe9, 0xc0, 0x09, 0x16, 0x88, 0x6c, 0x34, 0x5f, 0x41, 0x2f, 0x86, 0x3e, 0x1c, 0x38,
+	0xc6, 0xef, 0xf1, 0x19, 0xf5, 0x38, 0xd1, 0x58, 0x5d, 0xbe, 0x37, 0x25, 0x1e, 0x4a, 0xa7, 0x70,
+	0x39, 0xbb, 0x10, 0x97, 0xbf, 0x57, 0xe4, 0x90, 0x6b, 0x22, 0x9e, 0x39, 0xc7, 0xac, 0x54, 0x24,
+	0xc1, 0x78, 0xe2, 0x68, 0x27, 0x83, 0x19, 0x71, 0x4b, 0x99, 0x34, 0x7b, 0x0f, 0x77, 0x4d, 0x25,
+	0x39, 0xd9, 0x85, 0x46, 0xbb, 0xcf, 0x52, 0xb1, 0x6f, 0x0b, 0x49, 0xf7, 0x15, 0x7e, 0x5b, 0xac,
+	0x90, 0xda, 0xf1, 0x59, 0x28, 0xb3, 0xdc, 0x78, 0xfe, 0x79, 0x0a, 0x6c, 0x46, 0x66, 0xde, 0xd7,
+	0x09, 0xee, 0xf9, 0x89, 0xef, 0x38, 0x9e, 0x06, 0xa0, 0x1d, 0x18, 0x46, 0xc1, 0x28, 0x70, 0x09,
+	0x0f, 0xf5, 0x45, 0x90, 0x17, 0xaf, 0xe7, 0xfb, 0xcc, 0xca, 0x71, 0xe5, 0xf1, 0x5b, 0x07, 0x75,
+	0xf1, 0x71, 0x66, 0x0f, 0xe4, 0xba, 0xa8, 0xdb, 0x42, 0x24, 0x28, 0x01, 0xd3, 0xd3, 0x76, 0xa0,
+	0x68, 0x7c, 0xa1, 0x48, 0x64, 0x44, 0x25, 0x1c, 0x41, 0x26, 0xb5, 0x08, 0x32, 0xe9, 0x69, 0xc8,
+	0xa8, 0xf3, 0x23, 0x63, 0xfc, 0xa2, 0xc8, 0x8e, 0xf8, 0x16, 0x82, 0xb7, 0xa5, 0x6b, 0x97, 0xc0,
+	0x86, 0x70, 0x3d, 0xac, 0x76, 0xb3, 0x4e, 0xaf, 0x24, 0xf4, 0x07, 0xa5, 0xee, 0x98, 0xc4, 0xf6,
+	0x5b, 0x4a, 0x56, 0x15, 0x91, 0xaa, 0x3c, 0xb8, 0xab, 0xdc, 0xd1, 0x7f, 0xe9, 0xaa, 0x64, 0x35,
+	0x71, 0x69, 0xaf, 0x0c, 0xce, 0x87, 0x5a, 0x0c, 0x07, 0x67, 0x34, 0x93, 0x8a, 0xeb, 0x52, 0xff,
+	0x06, 0x6e, 0x38, 0x8e, 0x76, 0x05, 0x9c, 0x88, 0xd8, 0x8b, 0xca, 0x36, 0xb3, 0x09, 0x95, 0xc3,
+	0x25, 0x04, 0x8b, 0x8d, 0xaf, 0x14, 0xd9, 0xdf, 0xaf, 0xba, 0x84, 0x60, 0xb2, 0xd4, 0x1d, 0x54,
+	0xb2, 0x0b, 0x96, 0x24, 0x77, 0x4a, 0xc6, 0xc7, 0x8a, 0xfc, 0xc2, 0x88, 0xba, 0x69, 0x22, 0xda,
+	0xeb, 0xb0, 0xa0, 0x01, 0xc8, 0x09, 0x35, 0x70, 0xb5, 0x14, 0x8e, 0x9d, 0x2b, 0x74, 0xe7, 0xbb,
+	0x38, 0x6a, 0xff, 0xdb, 0x8e, 0xfd, 0x6d, 0x1c, 0x56, 0x11, 0xc7, 0xb2, 0xb0, 0xae, 0xd0, 0xdf,
+	0xb0, 0x06, 0x0b, 0x7f, 0x8f, 0x53, 0x77, 0x32, 0x3e, 0x1a, 0x4c, 0x3f, 0x11, 0xdf, 0x66, 0x40,
+	0xb9, 0x1a, 0x4f, 0xf6, 0x0f, 0xee, 0x3d, 0xaa, 0x28, 0xf7, 0x1f, 0x55, 0x94, 0x3f, 0x1e, 0x55,
+	0x94, 0x4f, 0x1e, 0x57, 0xd6, 0xee, 0x3f, 0xae, 0xac, 0xfd, 0xfc, 0xb8, 0xb2, 0xf6, 0x6e, 0xbd,
+	0xed, 0xb2, 0xa3, 0x5e, 0xab, 0x66, 0xe3, 0x6e, 0xbd, 0xe5, 0xb5, 0xce, 0xf3, 0xbe, 0x59, 0x8f,
+	0xfc, 0xf1, 0xf1, 0x61, 0xf8, 0xd7, 0x47, 0xd0, 0x62, 0x69, 0x2b, 0xcb, 0xff, 0xfa, 0x78, 0xe1,
+	0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe5, 0x2c, 0xbe, 0x01, 0x8c, 0x19, 0x00, 0x00,
 }
 
 func (m *EventCreateBucket) Marshal() (dAtA []byte, err error) {
@@ -1634,6 +1858,11 @@ func (m *EventCreateBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if m.Status != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x50
+	}
 	if len(m.PrimarySpAddress) > 0 {
 		i -= len(m.PrimarySpAddress)
 		copy(dAtA[i:], m.PrimarySpAddress)
@@ -1685,10 +1914,10 @@ func (m *EventCreateBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1739,17 +1968,17 @@ func (m *EventDeleteBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1822,13 +2051,65 @@ func (m *EventUpdateBucketInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventDiscontinueBucket) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventDiscontinueBucket) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventDiscontinueBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.DeleteAt != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.DeleteAt))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.Reason) > 0 {
+		i -= len(m.Reason)
+		copy(dAtA[i:], m.Reason)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Reason)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -1941,17 +2222,17 @@ func (m *EventCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.CreatorAddress) > 0 {
-		i -= len(m.CreatorAddress)
-		copy(dAtA[i:], m.CreatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.CreatorAddress)))
+	if len(m.Creator) > 0 {
+		i -= len(m.Creator)
+		copy(dAtA[i:], m.Creator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Creator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2009,10 +2290,10 @@ func (m *EventCancelCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2077,10 +2358,10 @@ func (m *EventSealObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2155,10 +2436,10 @@ func (m *EventCopyObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2225,10 +2506,10 @@ func (m *EventDeleteObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2279,10 +2560,121 @@ func (m *EventRejectSealObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventDiscontinueObject) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventDiscontinueObject) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventDiscontinueObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.DeleteAt != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.DeleteAt))
+		i--
+		dAtA[i] = 0x20
+	}
+	if len(m.Reason) > 0 {
+		i -= len(m.Reason)
+		copy(dAtA[i:], m.Reason)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Reason)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	{
+		size := m.ObjectId.Size()
+		i -= size
+		if _, err := m.ObjectId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventUpdateObjectInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventUpdateObjectInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventUpdateObjectInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Visibility != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Visibility))
+		i--
+		dAtA[i] = 0x28
+	}
+	{
+		size := m.ObjectId.Size()
+		i -= size
+		if _, err := m.ObjectId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.ObjectName) > 0 {
+		i -= len(m.ObjectName)
+		copy(dAtA[i:], m.ObjectName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.ObjectName)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2340,10 +2732,10 @@ func (m *EventCreateGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2387,10 +2779,10 @@ func (m *EventDeleteGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2434,10 +2826,10 @@ func (m *EventLeaveGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2506,17 +2898,17 @@ func (m *EventUpdateGroupMember) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2560,10 +2952,10 @@ func (m *EventMirrorBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2659,10 +3051,10 @@ func (m *EventMirrorObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OperatorAddress) > 0 {
-		i -= len(m.OperatorAddress)
-		copy(dAtA[i:], m.OperatorAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OperatorAddress)))
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2758,10 +3150,10 @@ func (m *EventMirrorGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.Owner) > 0 {
+		i -= len(m.Owner)
+		copy(dAtA[i:], m.Owner)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Owner)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -2830,7 +3222,7 @@ func (m *EventCreateBucket) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -2860,6 +3252,9 @@ func (m *EventCreateBucket) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
+	if m.Status != 0 {
+		n += 1 + sovEvents(uint64(m.Status))
+	}
 	return n
 }
 
@@ -2869,11 +3264,11 @@ func (m *EventDeleteBucket) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -2896,7 +3291,7 @@ func (m *EventUpdateBucketInfo) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -2926,17 +3321,39 @@ func (m *EventUpdateBucketInfo) Size() (n int) {
 	return n
 }
 
+func (m *EventDiscontinueBucket) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.BucketId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.Reason)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.DeleteAt != 0 {
+		n += 1 + sovEvents(uint64(m.DeleteAt))
+	}
+	return n
+}
+
 func (m *EventCreateObject) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.CreatorAddress)
+	l = len(m.Creator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -2993,7 +3410,7 @@ func (m *EventCancelCreateObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3020,7 +3437,7 @@ func (m *EventSealObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3052,7 +3469,7 @@ func (m *EventCopyObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3085,7 +3502,7 @@ func (m *EventDeleteObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3118,7 +3535,7 @@ func (m *EventRejectSealObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3135,13 +3552,61 @@ func (m *EventRejectSealObject) Size() (n int) {
 	return n
 }
 
+func (m *EventDiscontinueObject) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.ObjectId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	l = len(m.Reason)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	if m.DeleteAt != 0 {
+		n += 1 + sovEvents(uint64(m.DeleteAt))
+	}
+	return n
+}
+
+func (m *EventUpdateObjectInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Operator)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.ObjectName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.ObjectId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.Visibility != 0 {
+		n += 1 + sovEvents(uint64(m.Visibility))
+	}
+	return n
+}
+
 func (m *EventCreateGroup) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3169,7 +3634,7 @@ func (m *EventDeleteGroup) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3192,7 +3657,7 @@ func (m *EventLeaveGroup) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3211,11 +3676,11 @@ func (m *EventUpdateGroupMember) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3246,7 +3711,7 @@ func (m *EventMirrorBucket) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3283,7 +3748,7 @@ func (m *EventMirrorObject) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OperatorAddress)
+	l = len(m.Operator)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3328,7 +3793,7 @@ func (m *EventMirrorGroup) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.OwnerAddress)
+	l = len(m.Owner)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -3396,7 +3861,7 @@ func (m *EventCreateBucket) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3424,7 +3889,7 @@ func (m *EventCreateBucket) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3632,6 +4097,25 @@ func (m *EventCreateBucket) Unmarshal(dAtA []byte) error {
 			}
 			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= BucketStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -3684,7 +4168,7 @@ func (m *EventDeleteBucket) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3712,11 +4196,11 @@ func (m *EventDeleteBucket) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3744,7 +4228,7 @@ func (m *EventDeleteBucket) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -3896,7 +4380,7 @@ func (m *EventUpdateBucketInfo) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3924,7 +4408,7 @@ func (m *EventUpdateBucketInfo) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4134,6 +4618,173 @@ func (m *EventUpdateBucketInfo) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *EventDiscontinueBucket) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventDiscontinueBucket: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventDiscontinueBucket: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Reason = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeleteAt", wireType)
+			}
+			m.DeleteAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DeleteAt |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -4165,7 +4816,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field CreatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Creator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4193,11 +4844,11 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.CreatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Creator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4225,7 +4876,7 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -4621,7 +5272,7 @@ func (m *EventCancelCreateObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4649,7 +5300,7 @@ func (m *EventCancelCreateObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4833,7 +5484,7 @@ func (m *EventSealObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -4861,7 +5512,7 @@ func (m *EventSealObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5064,7 +5715,7 @@ func (m *EventCopyObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5092,7 +5743,7 @@ func (m *EventCopyObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5342,7 +5993,7 @@ func (m *EventDeleteObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5370,7 +6021,7 @@ func (m *EventDeleteObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5586,7 +6237,7 @@ func (m *EventRejectSealObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5614,7 +6265,7 @@ func (m *EventRejectSealObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5735,6 +6386,372 @@ func (m *EventRejectSealObject) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
+func (m *EventDiscontinueObject) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventDiscontinueObject: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventDiscontinueObject: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ObjectId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reason", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Reason = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DeleteAt", wireType)
+			}
+			m.DeleteAt = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DeleteAt |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventUpdateObjectInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventUpdateObjectInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventUpdateObjectInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Operator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ObjectName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.ObjectId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Visibility", wireType)
+			}
+			m.Visibility = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Visibility |= VisibilityType(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
 func (m *EventCreateGroup) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -5766,7 +6783,7 @@ func (m *EventCreateGroup) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5794,7 +6811,7 @@ func (m *EventCreateGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -5965,7 +6982,7 @@ func (m *EventDeleteGroup) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5993,7 +7010,7 @@ func (m *EventDeleteGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -6145,7 +7162,7 @@ func (m *EventLeaveGroup) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6173,7 +7190,7 @@ func (m *EventLeaveGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -6293,7 +7310,7 @@ func (m *EventUpdateGroupMember) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6321,11 +7338,11 @@ func (m *EventUpdateGroupMember) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6353,7 +7370,7 @@ func (m *EventUpdateGroupMember) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
@@ -6537,7 +7554,7 @@ func (m *EventMirrorBucket) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6565,7 +7582,7 @@ func (m *EventMirrorBucket) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -6820,7 +7837,7 @@ func (m *EventMirrorObject) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OperatorAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -6848,7 +7865,7 @@ func (m *EventMirrorObject) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
+			m.Operator = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -7167,7 +8184,7 @@ func (m *EventMirrorGroup) Unmarshal(dAtA []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Owner", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -7195,7 +8212,7 @@ func (m *EventMirrorGroup) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.Owner = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {

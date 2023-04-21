@@ -34,6 +34,19 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		return nil, errors.Wrapf(types.ErrInvalidChallengeId, "challenge %d cannot be found, it could be expired", msg.ChallengeId)
 	}
 
+	historicalInfo, ok := k.stakingKeeper.GetHistoricalInfo(ctx, ctx.BlockHeight())
+	if !ok {
+		return nil, errors.Wrap(types.ErrInvalidVoteValidatorSet, "fail to get validators")
+	}
+	allValidators := historicalInfo.Valset
+	inTurn, err := k.isInturnAttestation(ctx, submitter, allValidators)
+	if err != nil {
+		return nil, err
+	}
+	if !inTurn {
+		return nil, types.ErrNotInturnChallenger
+	}
+
 	//check object, and get object info
 	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
 	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
@@ -41,7 +54,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	// check attest validators and signatures
-	validators, err := k.verifySignature(ctx, msg)
+	validators, err := k.verifySignature(msg, allValidators)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +91,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 			return nil, err
 		}
 	}
-	k.SetAttestChallengeId(ctx, msg.ChallengeId)
+	k.AppendAttestChallengeId(ctx, msg.ChallengeId)
 
 	return &types.MsgAttestResponse{}, nil
 }

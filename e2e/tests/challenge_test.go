@@ -47,7 +47,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
-	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateBucket.GetApprovalBytes())
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateBucket, user)
 
@@ -83,7 +83,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
-	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.GetPrivKey().Sign(msgCreateObject.GetApprovalBytes())
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(msgCreateObject, user)
 
@@ -105,7 +105,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	}
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
 	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
-	secondarySig, err := sp.ApprovalKey.GetPrivKey().Sign(sr.GetSignBytes())
+	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
 	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
@@ -131,7 +131,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
-	event := filterEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
+	event := filterChallengeEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
 	s.Require().Equal(event.SpOperatorAddress, primarySp.String())
@@ -139,7 +139,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	bucketName, objectName, _, secondarySps := s.createObject()
 	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), secondarySps[0], bucketName, objectName, false, 0)
 	txRes = s.SendTxBlock(msgSubmit, user)
-	event = filterEventFromTx(txRes)
+	event = filterChallengeEventFromTx(txRes)
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().Equal(event.SegmentIndex, uint32(0))
 	s.Require().Equal(event.SpOperatorAddress, secondarySps[0].String())
@@ -170,30 +170,51 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
-	event := filterEventFromTx(txRes)
+	event := filterChallengeEventFromTx(txRes)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
 	height := statusRes.SyncInfo.LatestBlockHeight
 
-	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
 	msgAttest.VoteAggSignature = voteAggSignature
 
-	txRes = s.SendTxBlock(msgAttest, user)
+	// wait to its turn
+	for {
+		queryRes, err := s.Client.ChallengeQueryClient.InturnAttestationSubmitter(context.Background(), &challengetypes.QueryInturnAttestationSubmitterRequest{})
+		s.Require().NoError(err)
+
+		s.T().Logf("current submitter %s, interval: %d - %d", queryRes.BlsPubKey,
+			queryRes.SubmitInterval.Start, queryRes.SubmitInterval.End)
+
+		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.PubKey().Bytes()) {
+			break
+		}
+	}
+
+	// submit attest
+	txRes = s.SendTxBlock(msgAttest, s.Challenger)
 	s.Require().True(txRes.Code == 0)
 
-	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
+	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
 	s.Require().NoError(err)
-	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
+	found := false
+	for _, challengeId := range queryRes.ChallengeIds {
+		if challengeId == event.ChallengeId {
+			found = true
+			break
+		}
+	}
+	s.Require().True(found)
 }
 
 func (s *ChallengeTestSuite) TestHeartbeatAttest() {
@@ -202,7 +223,6 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	}
 
 	heartbeatInterval := uint64(100)
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	var event challengetypes.EventStartChallenge
 	found := false
@@ -215,7 +235,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		time.Sleep(20 * time.Millisecond)
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 		s.Require().NoError(err)
-		events := filterEventFromBlock(blockRes)
+		events := filterChallengeEventFromBlock(blockRes)
 
 		for _, e := range events {
 			if e.ChallengeId%heartbeatInterval == 0 {
@@ -234,24 +254,45 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		time.Sleep(500 * time.Millisecond)
 	}
 
-	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId,
+	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId,
 		event.SpOperatorAddress, challengetypes.CHALLENGE_FAILED, "", valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
 	msgAttest.VoteAggSignature = voteAggSignature
 
-	txRes := s.SendTxBlock(msgAttest, user)
+	// wait to its turn
+	for {
+		queryRes, err := s.Client.ChallengeQueryClient.InturnAttestationSubmitter(context.Background(), &challengetypes.QueryInturnAttestationSubmitterRequest{})
+		s.Require().NoError(err)
+
+		s.T().Logf("current submitter %s, interval: %d - %d", queryRes.BlsPubKey,
+			queryRes.SubmitInterval.Start, queryRes.SubmitInterval.End)
+
+		if queryRes.BlsPubKey == hex.EncodeToString(s.ValidatorBLS.PubKey().Bytes()) {
+			break
+		}
+	}
+
+	// submit attest
+	txRes := s.SendTxBlock(msgAttest, s.Challenger)
 	s.Require().True(txRes.Code == 0)
 
-	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenge(context.Background(), &challengetypes.QueryLatestAttestedChallengeRequest{})
+	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
 	s.Require().NoError(err)
-	s.Require().True(queryRes.ChallengeId == event.ChallengeId)
+	found = false
+	for _, challengeId := range queryRes.ChallengeIds {
+		if challengeId == event.ChallengeId {
+			found = true
+			break
+		}
+	}
+	s.Require().True(found)
 }
 
 func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
@@ -260,7 +301,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(msgSubmit, user)
-	event := filterEventFromTx(txRes)
+	event := filterChallengeEventFromTx(txRes)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
@@ -280,13 +321,13 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	}
 
 	height := statusRes.SyncInfo.LatestBlockHeight
-	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.GetPrivKey().PubKey().String())
+	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.PubKey().String())
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes()
 
-	voteAggSignature, err := s.ValidatorBLS.GetPrivKey().Sign(toSign[:])
+	voteAggSignature, err := s.ValidatorBLS.Sign(toSign[:])
 	if err != nil {
 		panic(err)
 	}
@@ -306,11 +347,11 @@ func (s *ChallengeTestSuite) TestEndBlock() {
 
 	blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &height)
 	s.Require().NoError(err)
-	events := filterEventFromBlock(blockRes)
+	events := filterChallengeEventFromBlock(blockRes)
 	s.Require().True(len(events) > 0)
 }
 
-func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.EventStartChallenge {
+func filterChallengeEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.EventStartChallenge {
 	challengeEvents := make([]challengetypes.EventStartChallenge, 0)
 
 	for _, event := range blockRes.EndBlockEvents {
@@ -346,7 +387,7 @@ func filterEventFromBlock(blockRes *ctypes.ResultBlockResults) []challengetypes.
 	return challengeEvents
 }
 
-func filterEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
+func filterChallengeEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStartChallenge {
 	challengeIdStr, objectIdStr, redundancyIndexStr, segmentIndexStr, spOpAddress, expiredHeightStr := "", "", "", "", "", ""
 	for _, event := range txRes.Logs[0].Events {
 		if event.Type == "bnbchain.greenfield.challenge.EventStartChallenge" {

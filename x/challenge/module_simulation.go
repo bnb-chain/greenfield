@@ -56,30 +56,7 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 
 // RandomizedParams creates randomized  param changes for the simulator
 func (am AppModule) RandomizedParams(_ *rand.Rand) []simtypes.ParamChange {
-	challengeParams := types.DefaultParams()
-	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyChallengeCountPerBlock), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.ChallengeCountPerBlock))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashCoolingOffPeriod), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashCoolingOffPeriod))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountSizeRate), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountSizeRate))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountMin), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountMin))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeySlashAmountMax), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.SlashAmountMax))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardValidatorRatio), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.RewardValidatorRatio))
-		}),
-		simulation.NewSimParamChange(types.ModuleName, string(types.KeyRewardSubmitterRatio), func(r *rand.Rand) string {
-			return string(types.Amino.MustMarshalJSON(challengeParams.RewardSubmitterRatio))
-		}),
-	}
+	return []simtypes.ParamChange{}
 }
 
 // RegisterStoreDecoder registers a decoder

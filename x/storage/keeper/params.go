@@ -115,6 +115,31 @@ func (k Keeper) MirrorGroupAckRelayerFee(ctx sdk.Context) *big.Int {
 	return relayerFee
 }
 
+func (k Keeper) DiscontinueCountingWindow(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueCountingWindow, &res)
+	return
+}
+
+func (k Keeper) DiscontinueObjectMax(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueObjectMax, &res)
+	return
+}
+
+func (k Keeper) DiscontinueBucketMax(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueBucketMax, &res)
+	return
+}
+
+func (k Keeper) DiscontinueConfirmPeriod(ctx sdk.Context) (res int64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueConfirmPeriod, &res)
+	return
+}
+
+func (k Keeper) DiscontinueDeletionMax(ctx sdk.Context) (res uint64) {
+	k.paramStore.Get(ctx, types.KeyDiscontinueDeletionMax, &res)
+	return
+}
+
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 	return types.NewParams(
@@ -130,6 +155,11 @@ func (k Keeper) GetParams(ctx sdk.Context) types.Params {
 		k.MirrorObjectAckRelayerFee(ctx).String(),
 		k.MirrorGroupRelayerFee(ctx).String(),
 		k.MirrorGroupAckRelayerFee(ctx).String(),
+		k.DiscontinueCountingWindow(ctx),
+		k.DiscontinueObjectMax(ctx),
+		k.DiscontinueBucketMax(ctx),
+		k.DiscontinueConfirmPeriod(ctx),
+		k.DiscontinueDeletionMax(ctx),
 	)
 }
 

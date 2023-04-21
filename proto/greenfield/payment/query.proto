@@ -134,13 +134,40 @@ message QueryDynamicBalanceRequest {
 }
 
 message QueryDynamicBalanceResponse {
+  // dynamic balance is static balance + flowDelta
   string dynamic_balance = 1 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // the stream record of the given account, if it does not exist, it will be default values
   StreamRecord stream_record = 2 [(gogoproto.nullable) = false];
+  // the timestamp of the current block
   int64 current_timestamp = 3;
+  // bank_balance is the BNB balance of the bank module
+  string bank_balance = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // available_balance is bank balance + static balance
+  string available_balance = 5 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // locked_fee is buffer balance + locked balance
+  string locked_fee = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // change_rate is the netflow rate of the given account
+  string change_rate = 7 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 message QueryGetPaymentAccountsByOwnerRequest {

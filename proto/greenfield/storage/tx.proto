@@ -20,6 +20,7 @@ service Msg {
   rpc DeleteBucket(MsgDeleteBucket) returns (MsgDeleteBucketResponse);
   rpc UpdateBucketInfo(MsgUpdateBucketInfo) returns (MsgUpdateBucketInfoResponse);
   rpc MirrorBucket(MsgMirrorBucket) returns (MsgMirrorBucketResponse);
+  rpc DiscontinueBucket(MsgDiscontinueBucket) returns (MsgDiscontinueBucketResponse);
 
   // basic operation of object
   rpc CreateObject(MsgCreateObject) returns (MsgCreateObjectResponse);
@@ -29,6 +30,8 @@ service Msg {
   rpc DeleteObject(MsgDeleteObject) returns (MsgDeleteObjectResponse);
   rpc CancelCreateObject(MsgCancelCreateObject) returns (MsgCancelCreateObjectResponse);
   rpc MirrorObject(MsgMirrorObject) returns (MsgMirrorObjectResponse);
+  rpc DiscontinueObject(MsgDiscontinueObject) returns (MsgDiscontinueObjectResponse);
+  rpc UpdateObjectInfo(MsgUpdateObjectInfo) returns (MsgUpdateObjectInfoResponse);
 
   // basic operation of group
   rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
@@ -81,6 +84,19 @@ message MsgDeleteBucket {
 }
 
 message MsgDeleteBucketResponse {}
+
+message MsgDiscontinueBucket {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the sp who wants to stop serving the bucket.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket where the object which to be discontinued is stored.
+  string bucket_name = 2;
+  // the reason for the request.
+  string reason = 3;
+}
+
+message MsgDiscontinueBucketResponse {}
 
 message MsgCreateObject {
   option (cosmos.msg.v1.signer) = "creator";
@@ -184,6 +200,25 @@ message MsgDeleteObject {
 }
 
 message MsgDeleteObjectResponse {}
+
+message MsgDiscontinueObject {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator is the sp who wants to stop serving the objects.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket where the object which to be discontinued is stored.
+  string bucket_name = 2;
+  // object_ids are the ids of object info.
+  repeated string object_ids = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // the reason for the request.
+  string reason = 4;
+}
+
+message MsgDiscontinueObjectResponse {}
 
 message MsgCreateGroup {
   option (cosmos.msg.v1.signer) = "creator";
@@ -348,6 +383,22 @@ message MsgMirrorBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+}
+
+message MsgUpdateObjectInfoResponse {}
+
+message MsgUpdateObjectInfo {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator defines the account address of the operator
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name is the name of the bucket
+  string bucket_name = 2;
+  // object_name defines the name of bucket which you'll update
+  string object_name = 3;
+  // visibility means the object is private or public. if private, only bucket owner or grantee can read it,
+  // otherwise every greenfield user can read it.
+  VisibilityType visibility = 4;
 }
 
 message MsgMirrorBucketResponse {}

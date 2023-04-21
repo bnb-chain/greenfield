@@ -1,7 +1,6 @@
 package keys
 
 import (
-	"encoding/hex"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,9 +11,9 @@ func TestCreateKeyManagerFromPrivateKeyHex(t *testing.T) {
 	priv := "ab463aca3d2965233da3d1d6108aa521274c5ddc2369ff72970a52a451863fbf"
 	keyManager, err := NewPrivateKeyManager(priv)
 	assert.NoError(t, err)
-	sigs, err := keyManager.GetPrivKey().Sign(planText)
+	sigs, err := keyManager.Sign(planText)
 	assert.NoError(t, err)
-	valid := keyManager.GetPrivKey().PubKey().VerifySignature(planText, sigs)
+	valid := keyManager.PubKey().VerifySignature(planText, sigs)
 	assert.True(t, valid)
 }
 
@@ -24,7 +23,4 @@ func TestCreateKeyManagerFromMnemonic(t *testing.T) {
 	assert.NoError(t, err)
 	address := keyManager.GetAddr().String()
 	assert.Equal(t, "0x535E34B319B3575108Deaf2f4FEeeC73AEbE3eF9", address)
-	key := keyManager.GetPrivKey()
-	assert.Equal(t, "ab463aca3d2965233da3d1d6108aa521274c5ddc2369ff72970a52a451863fbf", hex.EncodeToString(key.Bytes()))
-
 }

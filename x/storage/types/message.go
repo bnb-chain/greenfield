@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -32,6 +33,9 @@ const (
 	TypeMsgRejectSealObject   = "reject_seal_object"
 	TypeMsgCancelCreateObject = "cancel_create_object"
 	TypeMsgMirrorObject       = "mirror_object"
+	TypeMsgDiscontinueObject  = "discontinue_object"
+	TypeMsgDiscontinueBucket  = "discontinue_bucket"
+	TypeMsgUpdateObjectInfo   = "update_object_info"
 
 	// For group
 	TypeMsgCreateGroup       = "create_group"
@@ -45,6 +49,10 @@ const (
 	TypeMsgDeletePolicy = "delete_policy"
 
 	MaxGroupMemberLimitOnce = 20
+
+	// For discontinue
+	MaxDiscontinueReasonLen = 128
+	MaxDiscontinueObjects   = 128
 )
 
 var (
@@ -206,11 +214,11 @@ func (msg *MsgDeleteBucket) ValidateBasic() error {
 }
 
 // NewMsgUpdateBucketInfo creates a new MsgBucketReadQuota instance.
-func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, chargedReadQuota *uint64, paymentAcc sdk.AccAddress, Visibility VisibilityType) *MsgUpdateBucketInfo {
+func NewMsgUpdateBucketInfo(operator sdk.AccAddress, bucketName string, chargedReadQuota *uint64, paymentAcc sdk.AccAddress, visibility VisibilityType) *MsgUpdateBucketInfo {
 	msgUpdateBucketInfo := &MsgUpdateBucketInfo{
 		Operator:   operator.String(),
 		BucketName: bucketName,
-		Visibility: Visibility,
+		Visibility: visibility,
 	}
 	if paymentAcc != nil {
 		msgUpdateBucketInfo.PaymentAddress = paymentAcc.String()
@@ -662,6 +670,174 @@ func (msg *MsgRejectSealObject) ValidateBasic() error {
 	err = s3util.CheckValidObjectName(msg.ObjectName)
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func NewMsgDiscontinueObject(operator sdk.AccAddress, bucketName string, objectIds []Uint, reason string) *MsgDiscontinueObject {
+	return &MsgDiscontinueObject{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		ObjectIds:  objectIds,
+		Reason:     strings.TrimSpace(reason),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) Type() string {
+	return TypeMsgDiscontinueObject
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgDiscontinueObject) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgDiscontinueObject) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.ObjectIds) == 0 || len(msg.ObjectIds) > MaxDiscontinueObjects {
+		return errors.Wrapf(ErrInvalidObjectIds, "length of ids is %d", len(msg.ObjectIds))
+	}
+
+	if len(msg.Reason) > MaxDiscontinueReasonLen {
+		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
+	}
+
+	return nil
+}
+
+func NewMsgDiscontinueBucket(operator sdk.AccAddress, bucketName string, reason string) *MsgDiscontinueBucket {
+	return &MsgDiscontinueBucket{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		Reason:     strings.TrimSpace(reason),
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) Type() string {
+	return TypeMsgDiscontinueBucket
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgDiscontinueBucket) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgDiscontinueBucket) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.Reason) > MaxDiscontinueReasonLen {
+		return errors.Wrapf(ErrInvalidReason, "reason is too long with length %d", len(msg.Reason))
+	}
+
+	return nil
+}
+
+func NewMsgUpdateObjectInfo(
+	operator sdk.AccAddress, bucketName string, objectName string,
+	visibility VisibilityType) *MsgUpdateObjectInfo {
+	return &MsgUpdateObjectInfo{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+		Visibility: visibility,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectInfo) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectInfo) Type() string {
+	return TypeMsgUpdateObjectInfo
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectInfo) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+func (msg *MsgUpdateObjectInfo) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+
+	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
+		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
 	}
 
 	return nil

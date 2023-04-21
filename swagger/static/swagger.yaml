@@ -55,6 +55,7 @@ paths:
         - Query
   /greenfield/payment/auto_settle_record:
     get:
+      summary: Queries a list of AutoSettleRecord items.
       operationId: AutoSettleRecordAll
       responses:
         '200':
@@ -192,71 +193,6 @@ paths:
           in: query
           required: false
           type: boolean
-      tags:
-        - Query
-  /greenfield/payment/auto_settle_record/{timestamp}/{addr}:
-    get:
-      summary: Queries a list of AutoSettleRecord items.
-      operationId: AutoSettleRecord
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              auto_settle_record:
-                type: object
-                properties:
-                  timestamp:
-                    type: string
-                    format: int64
-                    description: >-
-                      timestamp is the unix timestamp when the stream account
-                      will be settled.
-                  addr:
-                    type: string
-                    title: A stream account address
-                description: >-
-                  AutoSettleRecord is the record keeps the auto settle
-                  information.
-
-                  The EndBlocker of payment module will scan the list of
-                  AutoSettleRecord
-
-                  and settle the stream account if the timestamp is less than
-                  the current time.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: timestamp
-          in: path
-          required: true
-          type: string
-          format: int64
-        - name: addr
-          in: path
-          required: true
-          type: string
       tags:
         - Query
   /greenfield/payment/dynamic_balance/{account}:
@@ -1395,6 +1331,11 @@ paths:
                       approval_address defines one of the storage provider's
                       accounts which is used to approve use's
                       createBucket/createObject request
+                  gc_address:
+                    type: string
+                    description: >-
+                      gc_address defines one of the storage provider's accounts
+                      which is used for gc purpose.
                   total_deposit:
                     type: string
                     description: >-
@@ -1511,6 +1452,11 @@ paths:
                         approval_address defines one of the storage provider's
                         accounts which is used to approve use's
                         createBucket/createObject request
+                    gc_address:
+                      type: string
+                      description: >-
+                        gc_address defines one of the storage provider's
+                        accounts which is used for gc purpose.
                     total_deposit:
                       type: string
                       description: >-
@@ -1661,253 +1607,6 @@ paths:
           type: boolean
       tags:
         - Query
-  /bnb-chain/greenfield/storage/head_group_member:
-    get:
-      summary: Queries a list of HeadGroupMember items.
-      operationId: HeadGroupMember
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              group_member:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    title: >-
-                      id is an unique u256 sequence for each group member. It
-                      also be used as NFT tokenID
-                  group_id:
-                    type: string
-                    title: group_id is the unique id of the group
-                  member:
-                    type: string
-                    title: member is the account address of the member
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: member
-          in: query
-          required: false
-          type: string
-        - name: group_owner
-          in: query
-          required: false
-          type: string
-        - name: group_name
-          in: query
-          required: false
-          type: string
-      tags:
-        - Query
-  /bnb-chain/greenfield/storage/policy_for_group/{resource}/{principal_group_id}:
-    get:
-      summary: Queries a policy that grants permission to a group
-      operationId: QueryPolicyForGroup
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              policy:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    title: >-
-                      id is an unique u256 sequence for each policy. It also be
-                      used as NFT tokenID
-                  principal:
-                    title: >-
-                      principal defines the accounts/group which the permission
-                      grants to
-                    type: object
-                    properties:
-                      type:
-                        type: string
-                        enum:
-                          - PRINCIPAL_TYPE_UNSPECIFIED
-                          - PRINCIPAL_TYPE_GNFD_ACCOUNT
-                          - PRINCIPAL_TYPE_GNFD_GROUP
-                        default: PRINCIPAL_TYPE_UNSPECIFIED
-                        description: >-
-                          PrincipalType refers to the identity type of system
-                          users or entities.
-
-                          In Greenfield, it usually refers to accounts or
-                          groups.
-                      value:
-                        type: string
-                        title: >-
-                          When the type is an account, its value is
-                          sdk.AccAddress().String();
-
-                          when the type is a group, its value is
-                          math.Uint().String()
-                    description: >-
-                      Principal define the roles that can grant permissions.
-                      Currently, it can be account or group.
-                  resource_type:
-                    title: >-
-                      resource_type defines the type of resource that grants
-                      permission for
-                    type: string
-                    enum:
-                      - RESOURCE_TYPE_UNSPECIFIED
-                      - RESOURCE_TYPE_BUCKET
-                      - RESOURCE_TYPE_OBJECT
-                      - RESOURCE_TYPE_GROUP
-                    default: RESOURCE_TYPE_UNSPECIFIED
-                  resource_id:
-                    type: string
-                    title: >-
-                      resource_id defines the bucket/object/group id of the
-                      resource that grants permission for
-                  statements:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        effect:
-                          title: >-
-                            effect define the impact of permissions, which can
-                            be Allow/Deny
-                          type: string
-                          enum:
-                            - EFFECT_UNSPECIFIED
-                            - EFFECT_ALLOW
-                            - EFFECT_DENY
-                          default: EFFECT_UNSPECIFIED
-                        actions:
-                          type: array
-                          items:
-                            type: string
-                            enum:
-                              - ACTION_UNSPECIFIED
-                              - ACTION_UPDATE_BUCKET_INFO
-                              - ACTION_DELETE_BUCKET
-                              - ACTION_CREATE_OBJECT
-                              - ACTION_DELETE_OBJECT
-                              - ACTION_COPY_OBJECT
-                              - ACTION_GET_OBJECT
-                              - ACTION_EXECUTE_OBJECT
-                              - ACTION_LIST_OBJECT
-                              - ACTION_UPDATE_GROUP_MEMBER
-                              - ACTION_DELETE_GROUP
-                              - ACTION_TYPE_ALL
-                            default: ACTION_UNSPECIFIED
-                            title: >-
-                              ActionType defines the operations you can execute
-                              in greenfield storage network
-                          description: >-
-                            action_type define the operation type you can act.
-                            greenfield defines a set of permission
-
-                            that you can specify in a permissionInfo. see
-                            ActionType enum for detail.
-                        resources:
-                          type: array
-                          items:
-                            type: string
-                          description: >-
-                            CAN ONLY USED IN bucket level. Support fuzzy match
-                            and limit to 5
-
-                            If no sub-resource is specified in a statement, then
-                            all objects in the bucket are accessible by the
-                            principal.
-
-                            However, if the sub-resource is defined as
-                            'bucket/test_*,' in the statement, then only objects
-                            with a 'test_'
-
-                            prefix can be accessed by the principal.
-                        expiration_time:
-                          type: string
-                          format: date-time
-                          description: >-
-                            expiration_time defines how long the permission is
-                            valid. If not explicitly specified, it means it will
-                            not expire.
-                        limit_size:
-                          description: >-
-                            limit_size defines the total data size that is
-                            allowed to operate. If not explicitly specified, it
-                            means it will not limit.
-                          type: object
-                          properties:
-                            value:
-                              type: string
-                              format: uint64
-                              description: The uint64 value.
-                    title: >-
-                      statements defines the details content of the permission,
-                      including effect/actions/sub-resources
-                  expiration_time:
-                    type: string
-                    format: date-time
-                    title: >-
-                      expiration_time defines the whole expiration time of all
-                      the statements.
-
-                      Notices: Its priority is higher than the expiration time
-                      inside the Statement
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: resource
-          in: path
-          required: true
-          type: string
-        - name: principal_group_id
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /greenfield/storage/head_bucket/{bucket_name}:
     get:
       summary: Queries a bucket with specify name.
@@ -1936,10 +1635,11 @@ paths:
                       in it.
                     type: string
                     enum:
+                      - VISIBILITY_TYPE_UNSPECIFIED
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
                       - VISIBILITY_TYPE_INHERIT
-                    default: VISIBILITY_TYPE_PUBLIC_READ
+                    default: VISIBILITY_TYPE_UNSPECIFIED
                   id:
                     type: string
                     description: id is the unique identification for bucket.
@@ -1956,7 +1656,9 @@ paths:
                   create_at:
                     type: string
                     format: int64
-                    description: create_at define the block number when the bucket created.
+                    description: >-
+                      create_at define the block timestamp when the bucket
+                      created.
                   payment_address:
                     type: string
                     title: payment_address is the address of the payment account
@@ -1968,12 +1670,17 @@ paths:
 
                       leave this SP, unless you explicitly shift them to another
                       SP.
-                  read_quota:
+                  charged_read_quota:
                     type: string
                     format: uint64
-                    title: >-
-                      read_quota defines the traffic quota for read in bytes per
-                      month
+                    description: >-
+                      charged_read_quota defines the traffic quota for read in
+                      bytes per month.
+
+                      The available read data for each user is the sum of the
+                      free read data provided by SP and
+
+                      the ChargeReadQuota specified here.
                   billing_info:
                     title: billing info of the bucket
                     type: object
@@ -2006,6 +1713,13 @@ paths:
                                 secondary sp
                           title: secondary sp objects size statistics
                         title: secondary sp objects size statistics
+                  bucket_status:
+                    description: bucket_status define the status of the bucket.
+                    type: string
+                    enum:
+                      - BUCKET_STATUS_CREATED
+                      - BUCKET_STATUS_DISCONTINUED
+                    default: BUCKET_STATUS_CREATED
         default:
           description: An unexpected error response.
           schema:
@@ -2063,10 +1777,11 @@ paths:
                       in it.
                     type: string
                     enum:
+                      - VISIBILITY_TYPE_UNSPECIFIED
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
                       - VISIBILITY_TYPE_INHERIT
-                    default: VISIBILITY_TYPE_PUBLIC_READ
+                    default: VISIBILITY_TYPE_UNSPECIFIED
                   id:
                     type: string
                     description: id is the unique identification for bucket.
@@ -2083,7 +1798,9 @@ paths:
                   create_at:
                     type: string
                     format: int64
-                    description: create_at define the block number when the bucket created.
+                    description: >-
+                      create_at define the block timestamp when the bucket
+                      created.
                   payment_address:
                     type: string
                     title: payment_address is the address of the payment account
@@ -2095,12 +1812,17 @@ paths:
 
                       leave this SP, unless you explicitly shift them to another
                       SP.
-                  read_quota:
+                  charged_read_quota:
                     type: string
                     format: uint64
-                    title: >-
-                      read_quota defines the traffic quota for read in bytes per
-                      month
+                    description: >-
+                      charged_read_quota defines the traffic quota for read in
+                      bytes per month.
+
+                      The available read data for each user is the sum of the
+                      free read data provided by SP and
+
+                      the ChargeReadQuota specified here.
                   billing_info:
                     title: billing info of the bucket
                     type: object
@@ -2133,6 +1855,13 @@ paths:
                                 secondary sp
                           title: secondary sp objects size statistics
                         title: secondary sp objects size statistics
+                  bucket_status:
+                    description: bucket_status define the status of the bucket.
+                    type: string
+                    enum:
+                      - BUCKET_STATUS_CREATED
+                      - BUCKET_STATUS_DISCONTINUED
+                    default: BUCKET_STATUS_CREATED
         default:
           description: An unexpected error response.
           schema:
@@ -2293,6 +2022,67 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/storage/head_group_member:
+    get:
+      summary: Queries a list of HeadGroupMember items.
+      operationId: HeadGroupMember
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              group_member:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    title: >-
+                      id is an unique u256 sequence for each group member. It
+                      also be used as NFT tokenID
+                  group_id:
+                    type: string
+                    title: group_id is the unique id of the group
+                  member:
+                    type: string
+                    title: member is the account address of the member
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: member
+          in: query
+          required: false
+          type: string
+        - name: group_owner
+          in: query
+          required: false
+          type: string
+        - name: group_name
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
   /greenfield/storage/head_group_nft/{token_id}:
     get:
       summary: Queries a group with EIP712 standard metadata info
@@ -2391,10 +2181,11 @@ paths:
                       When an object is public, everyone can access it.
                     type: string
                     enum:
+                      - VISIBILITY_TYPE_UNSPECIFIED
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
                       - VISIBILITY_TYPE_INHERIT
-                    default: VISIBILITY_TYPE_PUBLIC_READ
+                    default: VISIBILITY_TYPE_UNSPECIFIED
                   content_type:
                     type: string
                     description: >-
@@ -2403,13 +2194,16 @@ paths:
                   create_at:
                     type: string
                     format: int64
-                    title: create_at define the block number when the object created
+                    title: >-
+                      create_at define the block timestamp when the object is
+                      created
                   object_status:
                     description: object_status define the upload status of the object.
                     type: string
                     enum:
                       - OBJECT_STATUS_CREATED
                       - OBJECT_STATUS_SEALED
+                      - OBJECT_STATUS_DISCONTINUED
                     default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
@@ -2439,9 +2233,12 @@ paths:
                     items:
                       type: string
                       format: byte
-                    description: >-
+                    title: >-
                       checksums define the root hash of the pieces which stored
                       in a SP.
+
+                      add omit tag to omit the field when converting to NFT
+                      metadata
                   secondary_sp_addresses:
                     type: array
                     items:
@@ -2516,10 +2313,11 @@ paths:
                       When an object is public, everyone can access it.
                     type: string
                     enum:
+                      - VISIBILITY_TYPE_UNSPECIFIED
                       - VISIBILITY_TYPE_PUBLIC_READ
                       - VISIBILITY_TYPE_PRIVATE
                       - VISIBILITY_TYPE_INHERIT
-                    default: VISIBILITY_TYPE_PUBLIC_READ
+                    default: VISIBILITY_TYPE_UNSPECIFIED
                   content_type:
                     type: string
                     description: >-
@@ -2528,13 +2326,16 @@ paths:
                   create_at:
                     type: string
                     format: int64
-                    title: create_at define the block number when the object created
+                    title: >-
+                      create_at define the block timestamp when the object is
+                      created
                   object_status:
                     description: object_status define the upload status of the object.
                     type: string
                     enum:
                       - OBJECT_STATUS_CREATED
                       - OBJECT_STATUS_SEALED
+                      - OBJECT_STATUS_DISCONTINUED
                     default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
@@ -2564,9 +2365,12 @@ paths:
                     items:
                       type: string
                       format: byte
-                    description: >-
+                    title: >-
                       checksums define the root hash of the pieces which stored
                       in a SP.
+
+                      add omit tag to omit the field when converting to NFT
+                      metadata
                   secondary_sp_addresses:
                     type: array
                     items:
@@ -2697,10 +2501,11 @@ paths:
                         objects in it.
                       type: string
                       enum:
+                        - VISIBILITY_TYPE_UNSPECIFIED
                         - VISIBILITY_TYPE_PUBLIC_READ
                         - VISIBILITY_TYPE_PRIVATE
                         - VISIBILITY_TYPE_INHERIT
-                      default: VISIBILITY_TYPE_PUBLIC_READ
+                      default: VISIBILITY_TYPE_UNSPECIFIED
                     id:
                       type: string
                       description: id is the unique identification for bucket.
@@ -2718,7 +2523,7 @@ paths:
                       type: string
                       format: int64
                       description: >-
-                        create_at define the block number when the bucket
+                        create_at define the block timestamp when the bucket
                         created.
                     payment_address:
                       type: string
@@ -2731,12 +2536,17 @@ paths:
 
                         leave this SP, unless you explicitly shift them to
                         another SP.
-                    read_quota:
+                    charged_read_quota:
                       type: string
                       format: uint64
-                      title: >-
-                        read_quota defines the traffic quota for read in bytes
-                        per month
+                      description: >-
+                        charged_read_quota defines the traffic quota for read in
+                        bytes per month.
+
+                        The available read data for each user is the sum of the
+                        free read data provided by SP and
+
+                        the ChargeReadQuota specified here.
                     billing_info:
                       title: billing info of the bucket
                       type: object
@@ -2769,6 +2579,13 @@ paths:
                                   secondary sp
                             title: secondary sp objects size statistics
                           title: secondary sp objects size statistics
+                    bucket_status:
+                      description: bucket_status define the status of the bucket.
+                      type: string
+                      enum:
+                        - BUCKET_STATUS_CREATED
+                        - BUCKET_STATUS_DISCONTINUED
+                      default: BUCKET_STATUS_CREATED
               pagination:
                 type: object
                 properties:
@@ -3063,10 +2880,11 @@ paths:
                         When an object is public, everyone can access it.
                       type: string
                       enum:
+                        - VISIBILITY_TYPE_UNSPECIFIED
                         - VISIBILITY_TYPE_PUBLIC_READ
                         - VISIBILITY_TYPE_PRIVATE
                         - VISIBILITY_TYPE_INHERIT
-                      default: VISIBILITY_TYPE_PUBLIC_READ
+                      default: VISIBILITY_TYPE_UNSPECIFIED
                     content_type:
                       type: string
                       description: >-
@@ -3076,7 +2894,7 @@ paths:
                       type: string
                       format: int64
                       title: >-
-                        create_at define the block number when the object
+                        create_at define the block timestamp when the object is
                         created
                     object_status:
                       description: object_status define the upload status of the object.
@@ -3084,6 +2902,7 @@ paths:
                       enum:
                         - OBJECT_STATUS_CREATED
                         - OBJECT_STATUS_SEALED
+                        - OBJECT_STATUS_DISCONTINUED
                       default: OBJECT_STATUS_CREATED
                     redundancy_type:
                       description: >-
@@ -3113,9 +2932,12 @@ paths:
                       items:
                         type: string
                         format: byte
-                      description: >-
+                      title: >-
                         checksums define the root hash of the pieces which
                         stored in a SP.
+
+                        add omit tag to omit the field when converting to NFT
+                        metadata
                     secondary_sp_addresses:
                       type: array
                       items:
@@ -3272,10 +3094,11 @@ paths:
                         When an object is public, everyone can access it.
                       type: string
                       enum:
+                        - VISIBILITY_TYPE_UNSPECIFIED
                         - VISIBILITY_TYPE_PUBLIC_READ
                         - VISIBILITY_TYPE_PRIVATE
                         - VISIBILITY_TYPE_INHERIT
-                      default: VISIBILITY_TYPE_PUBLIC_READ
+                      default: VISIBILITY_TYPE_UNSPECIFIED
                     content_type:
                       type: string
                       description: >-
@@ -3285,7 +3108,7 @@ paths:
                       type: string
                       format: int64
                       title: >-
-                        create_at define the block number when the object
+                        create_at define the block timestamp when the object is
                         created
                     object_status:
                       description: object_status define the upload status of the object.
@@ -3293,6 +3116,7 @@ paths:
                       enum:
                         - OBJECT_STATUS_CREATED
                         - OBJECT_STATUS_SEALED
+                        - OBJECT_STATUS_DISCONTINUED
                       default: OBJECT_STATUS_CREATED
                     redundancy_type:
                       description: >-
@@ -3322,9 +3146,12 @@ paths:
                       items:
                         type: string
                         format: byte
-                      description: >-
+                      title: >-
                         checksums define the root hash of the pieces which
                         stored in a SP.
+
+                        add omit tag to omit the field when converting to NFT
+                        metadata
                     secondary_sp_addresses:
                       type: array
                       items:
@@ -3520,6 +3347,28 @@ paths:
                     title: >-
                       The maximum number of buckets that can be created per
                       account
+                  discontinue_counting_window:
+                    type: string
+                    format: uint64
+                    title: The window to count the discontinued objects or buckets
+                  discontinue_object_max:
+                    type: string
+                    format: uint64
+                    title: The max objects can be requested in a window
+                  discontinue_bucket_max:
+                    type: string
+                    format: uint64
+                    title: The max buckets can be requested in a window
+                  discontinue_confirm_period:
+                    type: string
+                    format: int64
+                    title: >-
+                      The object will be deleted after the confirm period in
+                      seconds
+                  discontinue_deletion_max:
+                    type: string
+                    format: uint64
+                    title: The max delete objects in each end block
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3642,6 +3491,7 @@ paths:
                               - ACTION_LIST_OBJECT
                               - ACTION_UPDATE_GROUP_MEMBER
                               - ACTION_DELETE_GROUP
+                              - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -3733,6 +3583,193 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/storage/policy_for_group/{resource}/{principal_group_id}:
+    get:
+      summary: Queries a policy that grants permission to a group
+      operationId: QueryPolicyForGroup
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              policy:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    title: >-
+                      id is an unique u256 sequence for each policy. It also be
+                      used as NFT tokenID
+                  principal:
+                    title: >-
+                      principal defines the accounts/group which the permission
+                      grants to
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - PRINCIPAL_TYPE_UNSPECIFIED
+                          - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                          - PRINCIPAL_TYPE_GNFD_GROUP
+                        default: PRINCIPAL_TYPE_UNSPECIFIED
+                        description: >-
+                          PrincipalType refers to the identity type of system
+                          users or entities.
+
+                          In Greenfield, it usually refers to accounts or
+                          groups.
+                      value:
+                        type: string
+                        title: >-
+                          When the type is an account, its value is
+                          sdk.AccAddress().String();
+
+                          when the type is a group, its value is
+                          math.Uint().String()
+                    description: >-
+                      Principal define the roles that can grant permissions.
+                      Currently, it can be account or group.
+                  resource_type:
+                    title: >-
+                      resource_type defines the type of resource that grants
+                      permission for
+                    type: string
+                    enum:
+                      - RESOURCE_TYPE_UNSPECIFIED
+                      - RESOURCE_TYPE_BUCKET
+                      - RESOURCE_TYPE_OBJECT
+                      - RESOURCE_TYPE_GROUP
+                    default: RESOURCE_TYPE_UNSPECIFIED
+                  resource_id:
+                    type: string
+                    title: >-
+                      resource_id defines the bucket/object/group id of the
+                      resource that grants permission for
+                  statements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        effect:
+                          title: >-
+                            effect define the impact of permissions, which can
+                            be Allow/Deny
+                          type: string
+                          enum:
+                            - EFFECT_UNSPECIFIED
+                            - EFFECT_ALLOW
+                            - EFFECT_DENY
+                          default: EFFECT_UNSPECIFIED
+                        actions:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - ACTION_UNSPECIFIED
+                              - ACTION_UPDATE_BUCKET_INFO
+                              - ACTION_DELETE_BUCKET
+                              - ACTION_CREATE_OBJECT
+                              - ACTION_DELETE_OBJECT
+                              - ACTION_COPY_OBJECT
+                              - ACTION_GET_OBJECT
+                              - ACTION_EXECUTE_OBJECT
+                              - ACTION_LIST_OBJECT
+                              - ACTION_UPDATE_GROUP_MEMBER
+                              - ACTION_DELETE_GROUP
+                              - ACTION_UPDATE_OBJECT_INFO
+                              - ACTION_TYPE_ALL
+                            default: ACTION_UNSPECIFIED
+                            title: >-
+                              ActionType defines the operations you can execute
+                              in greenfield storage network
+                          description: >-
+                            action_type define the operation type you can act.
+                            greenfield defines a set of permission
+
+                            that you can specify in a permissionInfo. see
+                            ActionType enum for detail.
+                        resources:
+                          type: array
+                          items:
+                            type: string
+                          description: >-
+                            CAN ONLY USED IN bucket level. Support fuzzy match
+                            and limit to 5
+
+                            If no sub-resource is specified in a statement, then
+                            all objects in the bucket are accessible by the
+                            principal.
+
+                            However, if the sub-resource is defined as
+                            'bucket/test_*,' in the statement, then only objects
+                            with a 'test_'
+
+                            prefix can be accessed by the principal.
+                        expiration_time:
+                          type: string
+                          format: date-time
+                          description: >-
+                            expiration_time defines how long the permission is
+                            valid. If not explicitly specified, it means it will
+                            not expire.
+                        limit_size:
+                          description: >-
+                            limit_size defines the total data size that is
+                            allowed to operate. If not explicitly specified, it
+                            means it will not limit.
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                              format: uint64
+                              description: The uint64 value.
+                    title: >-
+                      statements defines the details content of the permission,
+                      including effect/actions/sub-resources
+                  expiration_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      expiration_time defines the whole expiration time of all
+                      the statements.
+
+                      Notices: Its priority is higher than the expiration time
+                      inside the Statement
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: resource
+          in: path
+          required: true
+          type: string
+        - name: principal_group_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/storage/verify_permission/{operator}/{bucket_name}/{object_name}/{action_type}:
     get:
       summary: Queries a list of VerifyPermission items.
@@ -3804,6 +3841,7 @@ paths:
             - ACTION_LIST_OBJECT
             - ACTION_UPDATE_GROUP_MEMBER
             - ACTION_DELETE_GROUP
+            - ACTION_UPDATE_OBJECT_INFO
             - ACTION_TYPE_ALL
       tags:
         - Query
@@ -18916,11 +18954,11 @@ paths:
                   relayer_timeout:
                     type: string
                     format: uint64
-                    title: Timeout for the in turn relayer
+                    title: Timeout for the in turn relayer in seconds
                   relayer_interval:
                     type: string
                     format: uint64
-                    title: RelayInterval is for in-turn relayer
+                    title: RelayInterval is for in-turn relayer in seconds
                   relayer_reward_share:
                     type: integer
                     format: int64
@@ -27954,29 +27992,6 @@ definitions:
       current_timestamp:
         type: string
         format: int64
-  bnbchain.greenfield.payment.QueryGetAutoSettleRecordResponse:
-    type: object
-    properties:
-      auto_settle_record:
-        type: object
-        properties:
-          timestamp:
-            type: string
-            format: int64
-            description: >-
-              timestamp is the unix timestamp when the stream account will be
-              settled.
-          addr:
-            type: string
-            title: A stream account address
-        description: >-
-          AutoSettleRecord is the record keeps the auto settle information.
-
-          The EndBlocker of payment module will scan the list of
-          AutoSettleRecord
-
-          and settle the stream account if the timestamp is less than the
-          current time.
   bnbchain.greenfield.payment.QueryGetPaymentAccountCountResponse:
     type: object
     properties:
@@ -28406,6 +28421,11 @@ definitions:
             title: >-
               approval_address defines one of the storage provider's accounts
               which is used to approve use's createBucket/createObject request
+          gc_address:
+            type: string
+            description: >-
+              gc_address defines one of the storage provider's accounts which is
+              used for gc purpose.
           total_deposit:
             type: string
             description: >-
@@ -28478,6 +28498,11 @@ definitions:
               title: >-
                 approval_address defines one of the storage provider's accounts
                 which is used to approve use's createBucket/createObject request
+            gc_address:
+              type: string
+              description: >-
+                gc_address defines one of the storage provider's accounts which
+                is used for gc purpose.
             total_deposit:
               type: string
               description: >-
@@ -28609,6 +28634,11 @@ definitions:
         title: >-
           approval_address defines one of the storage provider's accounts which
           is used to approve use's createBucket/createObject request
+      gc_address:
+        type: string
+        description: >-
+          gc_address defines one of the storage provider's accounts which is
+          used for gc purpose.
       total_deposit:
         type: string
         description: >-
@@ -28674,6 +28704,7 @@ definitions:
       - ACTION_LIST_OBJECT
       - ACTION_UPDATE_GROUP_MEMBER
       - ACTION_DELETE_GROUP
+      - ACTION_UPDATE_OBJECT_INFO
       - ACTION_TYPE_ALL
     default: ACTION_UNSPECIFIED
     title: >-
@@ -28780,6 +28811,7 @@ definitions:
                   - ACTION_LIST_OBJECT
                   - ACTION_UPDATE_GROUP_MEMBER
                   - ACTION_DELETE_GROUP
+                  - ACTION_UPDATE_OBJECT_INFO
                   - ACTION_TYPE_ALL
                 default: ACTION_UNSPECIFIED
                 title: >-
@@ -28893,6 +28925,7 @@ definitions:
             - ACTION_LIST_OBJECT
             - ACTION_UPDATE_GROUP_MEMBER
             - ACTION_DELETE_GROUP
+            - ACTION_UPDATE_OBJECT_INFO
             - ACTION_TYPE_ALL
           default: ACTION_UNSPECIFIED
           title: >-
@@ -28989,10 +29022,11 @@ definitions:
           is public, everyone can get storage objects in it.
         type: string
         enum:
+          - VISIBILITY_TYPE_UNSPECIFIED
           - VISIBILITY_TYPE_PUBLIC_READ
           - VISIBILITY_TYPE_PRIVATE
           - VISIBILITY_TYPE_INHERIT
-        default: VISIBILITY_TYPE_PUBLIC_READ
+        default: VISIBILITY_TYPE_UNSPECIFIED
       id:
         type: string
         description: id is the unique identification for bucket.
@@ -29009,7 +29043,7 @@ definitions:
       create_at:
         type: string
         format: int64
-        description: create_at define the block number when the bucket created.
+        description: create_at define the block timestamp when the bucket created.
       payment_address:
         type: string
         title: payment_address is the address of the payment account
@@ -29020,10 +29054,17 @@ definitions:
           to this bucket will never
 
           leave this SP, unless you explicitly shift them to another SP.
-      read_quota:
+      charged_read_quota:
         type: string
         format: uint64
-        title: read_quota defines the traffic quota for read in bytes per month
+        description: >-
+          charged_read_quota defines the traffic quota for read in bytes per
+          month.
+
+          The available read data for each user is the sum of the free read data
+          provided by SP and
+
+          the ChargeReadQuota specified here.
       billing_info:
         title: billing info of the bucket
         type: object
@@ -29054,6 +29095,13 @@ definitions:
                   title: size is the total size of the objects in the secondary sp
               title: secondary sp objects size statistics
             title: secondary sp objects size statistics
+      bucket_status:
+        description: bucket_status define the status of the bucket.
+        type: string
+        enum:
+          - BUCKET_STATUS_CREATED
+          - BUCKET_STATUS_DISCONTINUED
+        default: BUCKET_STATUS_CREATED
   bnbchain.greenfield.storage.BucketMetaData:
     type: object
     properties:
@@ -29079,6 +29127,20 @@ definitions:
             value:
               type: string
         title: attributes
+  bnbchain.greenfield.storage.BucketStatus:
+    type: string
+    enum:
+      - BUCKET_STATUS_CREATED
+      - BUCKET_STATUS_DISCONTINUED
+    default: BUCKET_STATUS_CREATED
+    description: >-
+      BucketStatus represents the status of a bucket. After a user successfully
+
+      sends a CreateBucket transaction onto the chain, the status is set to
+      'Created'.
+
+      When a Discontinue Object transaction is received on chain, the status is
+      set to 'Discontinued'.
   bnbchain.greenfield.storage.GroupInfo:
     type: object
     properties:
@@ -29148,10 +29210,11 @@ definitions:
           is public, everyone can access it.
         type: string
         enum:
+          - VISIBILITY_TYPE_UNSPECIFIED
           - VISIBILITY_TYPE_PUBLIC_READ
           - VISIBILITY_TYPE_PRIVATE
           - VISIBILITY_TYPE_INHERIT
-        default: VISIBILITY_TYPE_PUBLIC_READ
+        default: VISIBILITY_TYPE_UNSPECIFIED
       content_type:
         type: string
         description: >-
@@ -29160,13 +29223,14 @@ definitions:
       create_at:
         type: string
         format: int64
-        title: create_at define the block number when the object created
+        title: create_at define the block timestamp when the object is created
       object_status:
         description: object_status define the upload status of the object.
         type: string
         enum:
           - OBJECT_STATUS_CREATED
           - OBJECT_STATUS_SEALED
+          - OBJECT_STATUS_DISCONTINUED
         default: OBJECT_STATUS_CREATED
       redundancy_type:
         description: >-
@@ -29193,7 +29257,9 @@ definitions:
         items:
           type: string
           format: byte
-        description: checksums define the root hash of the pieces which stored in a SP.
+        title: |-
+          checksums define the root hash of the pieces which stored in a SP.
+          add omit tag to omit the field when converting to NFT metadata
       secondary_sp_addresses:
         type: array
         items:
@@ -29229,6 +29295,7 @@ definitions:
     enum:
       - OBJECT_STATUS_CREATED
       - OBJECT_STATUS_SEALED
+      - OBJECT_STATUS_DISCONTINUED
     default: OBJECT_STATUS_CREATED
     description: >-
       ObjectStatus represents the creation status of an object. After a user
@@ -29240,7 +29307,10 @@ definitions:
       After the Primary Service Provider successfully sends a Seal Object
       transaction onto
 
-      the chain, the status is set to 'Sealed'.
+      the chain, the status is set to 'Sealed'. When a Discontinue Object
+      transaction is
+
+      received on chain, the status is set to 'Discontinued'.
   bnbchain.greenfield.storage.Params:
     type: object
     properties:
@@ -29292,6 +29362,26 @@ definitions:
         type: integer
         format: int64
         title: The maximum number of buckets that can be created per account
+      discontinue_counting_window:
+        type: string
+        format: uint64
+        title: The window to count the discontinued objects or buckets
+      discontinue_object_max:
+        type: string
+        format: uint64
+        title: The max objects can be requested in a window
+      discontinue_bucket_max:
+        type: string
+        format: uint64
+        title: The max buckets can be requested in a window
+      discontinue_confirm_period:
+        type: string
+        format: int64
+        title: The object will be deleted after the confirm period in seconds
+      discontinue_deletion_max:
+        type: string
+        format: uint64
+        title: The max delete objects in each end block
     description: Params defines the parameters for the module.
   bnbchain.greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -29369,10 +29459,11 @@ definitions:
               bucket is public, everyone can get storage objects in it.
             type: string
             enum:
+              - VISIBILITY_TYPE_UNSPECIFIED
               - VISIBILITY_TYPE_PUBLIC_READ
               - VISIBILITY_TYPE_PRIVATE
               - VISIBILITY_TYPE_INHERIT
-            default: VISIBILITY_TYPE_PUBLIC_READ
+            default: VISIBILITY_TYPE_UNSPECIFIED
           id:
             type: string
             description: id is the unique identification for bucket.
@@ -29389,7 +29480,7 @@ definitions:
           create_at:
             type: string
             format: int64
-            description: create_at define the block number when the bucket created.
+            description: create_at define the block timestamp when the bucket created.
           payment_address:
             type: string
             title: payment_address is the address of the payment account
@@ -29400,10 +29491,17 @@ definitions:
               belongs to this bucket will never
 
               leave this SP, unless you explicitly shift them to another SP.
-          read_quota:
+          charged_read_quota:
             type: string
             format: uint64
-            title: read_quota defines the traffic quota for read in bytes per month
+            description: >-
+              charged_read_quota defines the traffic quota for read in bytes per
+              month.
+
+              The available read data for each user is the sum of the free read
+              data provided by SP and
+
+              the ChargeReadQuota specified here.
           billing_info:
             title: billing info of the bucket
             type: object
@@ -29436,6 +29534,13 @@ definitions:
                         sp
                   title: secondary sp objects size statistics
                 title: secondary sp objects size statistics
+          bucket_status:
+            description: bucket_status define the status of the bucket.
+            type: string
+            enum:
+              - BUCKET_STATUS_CREATED
+              - BUCKET_STATUS_DISCONTINUED
+            default: BUCKET_STATUS_CREATED
   bnbchain.greenfield.storage.QueryHeadGroupMemberResponse:
     type: object
     properties:
@@ -29505,10 +29610,11 @@ definitions:
               object is public, everyone can access it.
             type: string
             enum:
+              - VISIBILITY_TYPE_UNSPECIFIED
               - VISIBILITY_TYPE_PUBLIC_READ
               - VISIBILITY_TYPE_PRIVATE
               - VISIBILITY_TYPE_INHERIT
-            default: VISIBILITY_TYPE_PUBLIC_READ
+            default: VISIBILITY_TYPE_UNSPECIFIED
           content_type:
             type: string
             description: >-
@@ -29517,13 +29623,14 @@ definitions:
           create_at:
             type: string
             format: int64
-            title: create_at define the block number when the object created
+            title: create_at define the block timestamp when the object is created
           object_status:
             description: object_status define the upload status of the object.
             type: string
             enum:
               - OBJECT_STATUS_CREATED
               - OBJECT_STATUS_SEALED
+              - OBJECT_STATUS_DISCONTINUED
             default: OBJECT_STATUS_CREATED
           redundancy_type:
             description: >-
@@ -29550,7 +29657,9 @@ definitions:
             items:
               type: string
               format: byte
-            description: checksums define the root hash of the pieces which stored in a SP.
+            title: |-
+              checksums define the root hash of the pieces which stored in a SP.
+              add omit tag to omit the field when converting to NFT metadata
           secondary_sp_addresses:
             type: array
             items:
@@ -29578,10 +29687,11 @@ definitions:
                 bucket is public, everyone can get storage objects in it.
               type: string
               enum:
+                - VISIBILITY_TYPE_UNSPECIFIED
                 - VISIBILITY_TYPE_PUBLIC_READ
                 - VISIBILITY_TYPE_PRIVATE
                 - VISIBILITY_TYPE_INHERIT
-              default: VISIBILITY_TYPE_PUBLIC_READ
+              default: VISIBILITY_TYPE_UNSPECIFIED
             id:
               type: string
               description: id is the unique identification for bucket.
@@ -29598,7 +29708,7 @@ definitions:
             create_at:
               type: string
               format: int64
-              description: create_at define the block number when the bucket created.
+              description: create_at define the block timestamp when the bucket created.
             payment_address:
               type: string
               title: payment_address is the address of the payment account
@@ -29609,10 +29719,17 @@ definitions:
                 belongs to this bucket will never
 
                 leave this SP, unless you explicitly shift them to another SP.
-            read_quota:
+            charged_read_quota:
               type: string
               format: uint64
-              title: read_quota defines the traffic quota for read in bytes per month
+              description: >-
+                charged_read_quota defines the traffic quota for read in bytes
+                per month.
+
+                The available read data for each user is the sum of the free
+                read data provided by SP and
+
+                the ChargeReadQuota specified here.
             billing_info:
               title: billing info of the bucket
               type: object
@@ -29645,6 +29762,13 @@ definitions:
                           sp
                     title: secondary sp objects size statistics
                   title: secondary sp objects size statistics
+            bucket_status:
+              description: bucket_status define the status of the bucket.
+              type: string
+              enum:
+                - BUCKET_STATUS_CREATED
+                - BUCKET_STATUS_DISCONTINUED
+              default: BUCKET_STATUS_CREATED
       pagination:
         type: object
         properties:
@@ -29755,10 +29879,11 @@ definitions:
                 object is public, everyone can access it.
               type: string
               enum:
+                - VISIBILITY_TYPE_UNSPECIFIED
                 - VISIBILITY_TYPE_PUBLIC_READ
                 - VISIBILITY_TYPE_PRIVATE
                 - VISIBILITY_TYPE_INHERIT
-              default: VISIBILITY_TYPE_PUBLIC_READ
+              default: VISIBILITY_TYPE_UNSPECIFIED
             content_type:
               type: string
               description: >-
@@ -29767,13 +29892,14 @@ definitions:
             create_at:
               type: string
               format: int64
-              title: create_at define the block number when the object created
+              title: create_at define the block timestamp when the object is created
             object_status:
               description: object_status define the upload status of the object.
               type: string
               enum:
                 - OBJECT_STATUS_CREATED
                 - OBJECT_STATUS_SEALED
+                - OBJECT_STATUS_DISCONTINUED
               default: OBJECT_STATUS_CREATED
             redundancy_type:
               description: >-
@@ -29800,9 +29926,11 @@ definitions:
               items:
                 type: string
                 format: byte
-              description: >-
+              title: >-
                 checksums define the root hash of the pieces which stored in a
                 SP.
+
+                add omit tag to omit the field when converting to NFT metadata
             secondary_sp_addresses:
               type: array
               items:
@@ -29923,6 +30051,26 @@ definitions:
             type: integer
             format: int64
             title: The maximum number of buckets that can be created per account
+          discontinue_counting_window:
+            type: string
+            format: uint64
+            title: The window to count the discontinued objects or buckets
+          discontinue_object_max:
+            type: string
+            format: uint64
+            title: The max objects can be requested in a window
+          discontinue_bucket_max:
+            type: string
+            format: uint64
+            title: The max buckets can be requested in a window
+          discontinue_confirm_period:
+            type: string
+            format: int64
+            title: The object will be deleted after the confirm period in seconds
+          discontinue_deletion_max:
+            type: string
+            format: uint64
+            title: The max delete objects in each end block
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   bnbchain.greenfield.storage.QueryPolicyForAccountResponse:
     type: object
@@ -30010,6 +30158,7 @@ definitions:
                       - ACTION_LIST_OBJECT
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
+                      - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -30151,6 +30300,7 @@ definitions:
                       - ACTION_LIST_OBJECT
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
+                      - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -30259,14 +30409,15 @@ definitions:
   bnbchain.greenfield.storage.VisibilityType:
     type: string
     enum:
+      - VISIBILITY_TYPE_UNSPECIFIED
       - VISIBILITY_TYPE_PUBLIC_READ
       - VISIBILITY_TYPE_PRIVATE
       - VISIBILITY_TYPE_INHERIT
-    default: VISIBILITY_TYPE_PUBLIC_READ
+    default: VISIBILITY_TYPE_UNSPECIFIED
     description: |-
       VisibilityType is the resources public status.
 
-       - VISIBILITY_TYPE_INHERIT: If the bucket Visibility is default, it's finally set to private. If the object Visibility is default, it's the same as bucket.
+       - VISIBILITY_TYPE_INHERIT: If the bucket Visibility is inherit, it's finally set to private. If the object Visibility is inherit, it's the same as bucket.
   cosmos.auth.v1beta1.AddressBytesToStringResponse:
     type: object
     properties:
@@ -41201,11 +41352,11 @@ definitions:
       relayer_timeout:
         type: string
         format: uint64
-        title: Timeout for the in turn relayer
+        title: Timeout for the in turn relayer in seconds
       relayer_interval:
         type: string
         format: uint64
-        title: RelayInterval is for in-turn relayer
+        title: RelayInterval is for in-turn relayer in seconds
       relayer_reward_share:
         type: integer
         format: int64
@@ -41245,11 +41396,11 @@ definitions:
           relayer_timeout:
             type: string
             format: uint64
-            title: Timeout for the in turn relayer
+            title: Timeout for the in turn relayer in seconds
           relayer_interval:
             type: string
             format: uint64
-            title: RelayInterval is for in-turn relayer
+            title: RelayInterval is for in-turn relayer in seconds
           relayer_reward_share:
             type: integer
             format: int64
