@@ -34,7 +34,7 @@ func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOp
 	}
 
 	// sign a tx
-	txSignedBytes, err := c.signTx(txConfig, txBuilder, txOpt)
+	txSignedBytes, err := c.signTx(ctx, txConfig, txBuilder, txOpt)
 	if err != nil {
 		return nil, err
 	}
@@ -97,10 +97,10 @@ func (c *GreenfieldClient) SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *ty
 	if err := c.constructTxWithGasInfo(ctx, msgs, txOpt, txConfig, txBuilder); err != nil {
 		return nil, err
 	}
-	return c.signTx(txConfig, txBuilder, txOpt)
+	return c.signTx(ctx, txConfig, txBuilder, txOpt)
 }
 
-func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxBuilder, txOpt *types.TxOption) ([]byte, error) {
+func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig, txBuilder client.TxBuilder, txOpt *types.TxOption) ([]byte, error) {
 	km, err := c.GetKeyManager()
 	if err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (c *GreenfieldClient) signTx(txConfig client.TxConfig, txBuilder client.TxB
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      nonce,
 	}
-	sig, err := clitx.SignWithPrivKey(signing.SignMode_SIGN_MODE_EIP_712,
+	sig, err := clitx.SignWithPrivKey(ctx, signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
 		km,

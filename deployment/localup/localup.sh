@@ -162,14 +162,15 @@ function start() {
         mkdir -p ${workspace}/.local/validator${i}/logs
         nohup ${bin} start --home ${workspace}/.local/validator${i} \
             --address 0.0.0.0:$((${VALIDATOR_ADDRESS_PORT_START}+${i})) \
-            --grpc-web.address 0.0.0.0:$((${VALIDATOR_GRPC_WEB_PORT_START}+${i})) \
+            --api.address tcp://0.0.0.0:$((${VALIDATOR_GRPC_WEB_PORT_START}+${i})) \
             --grpc.address 0.0.0.0:$((${VALIDATOR_GRPC_PORT_START}+${i})) \
             --p2p.laddr tcp://0.0.0.0:$((${VALIDATOR_P2P_PORT_START}+${i})) \
             --p2p.external-address 127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) \
             --rpc.laddr tcp://0.0.0.0:$((${VALIDATOR_RPC_PORT_START}+${i})) \
-            --json-rpc.address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i})) \
-            --json-rpc.ws-address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i}+1)) \
             --log_format json > ${workspace}/.local/validator${i}/logs/node.log &
+
+            #            --json-rpc.address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i})) \
+            #            --json-rpc.ws-address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i}+1)) \
     done
 }
 

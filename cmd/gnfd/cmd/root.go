@@ -12,6 +12,7 @@ import (
 	"cosmossdk.io/store/snapshots"
 	snapshottypes "cosmossdk.io/store/snapshots/types"
 	storetypes "cosmossdk.io/store/types"
+	confixcmd "cosmossdk.io/tools/confix/cmd"
 	tmcfg "github.com/cometbft/cometbft/config"
 	tmcli "github.com/cometbft/cometbft/libs/cli"
 	dbm "github.com/cosmos/cosmos-db"
@@ -162,7 +163,7 @@ func initRootCmd(
 
 	rootCmd.AddCommand(
 		genutilcli.InitCmd(app.ModuleBasics, app.DefaultNodeHome),
-		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, gentxModule.GenTxValidator), // todo: check this
+		genutilcli.CollectGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome, gentxModule.GenTxValidator),
 		genutilcli.MigrateGenesisCmd(),
 		genutilcli.GenTxCmd(
 			app.ModuleBasics,
@@ -180,7 +181,7 @@ func initRootCmd(
 		gensputilcli.CollectSPGenTxsCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		debug.Cmd(),
-		//config.Cmd(), // todo: check this
+		confixcmd.ConfigCommand(),
 		// this line is used by starport scaffolding # root/commands
 	)
 
@@ -203,7 +204,6 @@ func initRootCmd(
 		queryCommand(),
 		txCommand(),
 		keys.Commands(app.DefaultNodeHome),
-		//startWithTunnelingCommand(a, app.DefaultNodeHome), // todo: check this
 	)
 
 	overrideOrAppendCommand(rootCmd, map[string]*cobra.Command{
@@ -284,30 +284,6 @@ func txCommand() *cobra.Command {
 	cmd.PersistentFlags().String(flags.FlagChainID, "", "The network chain ID")
 
 	return cmd
-}
-
-// startWithTunnelingCommand returns a new start command with http tunneling
-// enabled.
-func startWithTunnelingCommand(appCreator appCreator, defaultNodeHome string) *cobra.Command {
-	return nil
-	//startCmd := server.StartCmd(appCreator.newApp, defaultNodeHome)
-	//startCmd.Use = "start-with-http-tunneling"
-	//startCmd.Short = "Run the full node with http tunneling"
-	//// Backup existing PreRunE, since we'll override it.
-	//startPreRunE := startCmd.PreRunE
-	//startCmd.PreRunE = func(cmd *cobra.Command, args []string) error {
-	//	var (
-	//		ctx       = cmd.Context()
-	//		clientCtx = client.GetClientContextFromCmd(cmd)
-	//		serverCtx = server.GetServerContextFromCmd(cmd)
-	//	)
-	//	network.StartProxyForTunneledPeers(ctx, clientCtx, serverCtx)
-	//	if startPreRunE == nil {
-	//		return nil
-	//	}
-	//	return startPreRunE(cmd, args)
-	//}
-	//return startCmd
 }
 
 func addModuleInitFlags(startCmd *cobra.Command) {
