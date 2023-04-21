@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"testing"
+
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,7 +16,6 @@ import (
 
 	"github.com/bnb-chain/greenfield/x/sp/keeper"
 	"github.com/bnb-chain/greenfield/x/sp/types"
-	"testing"
 )
 
 type KeeperTestSuite struct {

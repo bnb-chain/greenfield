@@ -5,8 +5,8 @@ import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/sp/types.proto";
 import "greenfield/sp/params.proto";
+import "greenfield/sp/types.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 

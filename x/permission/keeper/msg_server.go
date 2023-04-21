@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
-	"github.com/bnb-chain/greenfield/x/permission/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	"github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 type msgServer struct {

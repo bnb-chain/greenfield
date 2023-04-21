@@ -2,10 +2,12 @@ package keeper
 
 import (
 	"context"
-	"github.com/bnb-chain/greenfield/x/permission/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 var _ types.QueryServer = Keeper{}

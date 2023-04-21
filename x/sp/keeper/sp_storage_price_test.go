@@ -1,12 +1,12 @@
 package keeper_test
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"reflect"
 	"testing"
 	"time"
 
-	//keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )

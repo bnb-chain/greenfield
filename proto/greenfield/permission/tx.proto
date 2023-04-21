@@ -1,12 +1,12 @@
 syntax = "proto3";
 
+package greenfield.permission;
+
+import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/permission/types.proto";
 import "greenfield/permission/params.proto";
-import "cosmos/msg/v1/msg.proto";
-
-package greenfield.permission;
+import "greenfield/permission/types.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/permission/types";
 
