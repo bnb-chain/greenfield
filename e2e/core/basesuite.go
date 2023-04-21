@@ -4,13 +4,14 @@ import (
 	"context"
 	"strings"
 
-	"github.com/bnb-chain/greenfield/sdk/client"
-	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/sdk/client"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 type SPKeyManagers struct {
@@ -64,7 +65,7 @@ func (s *BaseSuite) SetupSuite() {
 }
 
 func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.TxResponse) {
-	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
 		Memo: "",
@@ -73,12 +74,13 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
 	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
+
 	s.Require().Equal(response.TxResponse.Code, uint32(0), "tx failed, err: %s", response.TxResponse.String())
 	return response.TxResponse
 }
 
 func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (*tx.BroadcastTxResponse, error) {
-	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
 		Memo: "",
@@ -88,7 +90,7 @@ func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (
 }
 
 func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyManager, expectErrorString string) {
-	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
 		Memo: "",
