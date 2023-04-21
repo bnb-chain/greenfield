@@ -195,6 +195,14 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if err := validateAttestationInturnInterval(p.AttestationInturnInterval); err != nil {
+		return err
+	}
+
+	if err := validateAttestationKeptCount(p.AttestationKeptCount); err != nil {
+		return err
+	}
+
 	return nil
 }
 

@@ -4,13 +4,18 @@ import (
 	"encoding/hex"
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/golang/mock/gomock"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
+	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
@@ -38,13 +43,12 @@ func TestLatestAttestedChallengesQuery(t *testing.T) {
 }
 
 func TestInturnAttestationSubmitterQuery(t *testing.T) {
-	keeper, ctx := makeKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
-	keeper.SetParams(ctx, types.DefaultParams())
+	encCfg := moduletestutil.MakeTestEncodingConfig(mint.AppModuleBasic{})
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	ctx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test")).Ctx
 
 	ctrl := gomock.NewController(t)
 	stakingKeeper := types.NewMockStakingKeeper(ctrl)
-	keeper.SetStakingKeeper(stakingKeeper)
 
 	blsKey := []byte("blskey")
 	historicalInfo := stakingtypes.HistoricalInfo{
@@ -53,7 +57,22 @@ func TestInturnAttestationSubmitterQuery(t *testing.T) {
 	}
 	stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).Return(historicalInfo, true).AnyTimes()
 
+	keeper := keeper.NewKeeper(
+		encCfg.Codec,
+		key,
+		key,
+		&types.MockBankKeeper{},
+		&types.MockStorageKeeper{},
+		&types.MockSpKeeper{},
+		stakingKeeper,
+		&types.MockPaymentKeeper{},
+		authtypes.NewModuleAddress(types.ModuleName).String(),
+	)
+
+	keeper.SetParams(ctx, types.DefaultParams())
+
+	wctx := sdk.WrapSDKContext(ctx)
 	response, err := keeper.InturnAttestationSubmitter(wctx, &types.QueryInturnAttestationSubmitterRequest{})
 	require.NoError(t, err)
-	require.Equal(t, blsKey, response.BlsPubKey, hex.EncodeToString(blsKey))
+	require.Equal(t, hex.EncodeToString(blsKey), response.BlsPubKey)
 }
