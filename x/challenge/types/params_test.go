@@ -56,7 +56,17 @@ func Test_validateParams(t *testing.T) {
 	params.HeartbeatInterval = 0
 	require.Error(t, params.Validate())
 
-	// no error
+	// validate attestation inturn interval
 	params.HeartbeatInterval = 100
+	params.AttestationInturnInterval = 0
+	require.Error(t, params.Validate())
+
+	// validate attestation kept count
+	params.AttestationInturnInterval = 120
+	params.AttestationKeptCount = 0
+	require.Error(t, params.Validate())
+
+	// no error
+	params.AttestationKeptCount = 100
 	require.NoError(t, params.Validate())
 }

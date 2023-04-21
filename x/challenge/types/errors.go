@@ -22,4 +22,5 @@ var (
 	ErrNotEnoughVotes          = errors.Register(ModuleName, 14, "attest votes are not enough")
 	ErrNotChallenger           = errors.Register(ModuleName, 15, "not a valid challenger")
 	ErrNotInturnChallenger     = errors.Register(ModuleName, 16, "challenger is not in turn")
+	ErrInvalidParams           = errors.Register(ModuleName, 17, "invalid params")
 )

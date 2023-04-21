@@ -4,9 +4,16 @@ import (
 	"strconv"
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
+	"github.com/bnb-chain/greenfield/x/challenge/keeper"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
+
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
@@ -14,7 +21,7 @@ import (
 var _ = strconv.IntSize
 
 func TestGetChallengeId(t *testing.T) {
-	keeper, ctx := keepertest.ChallengeKeeper(t)
+	keeper, ctx := makeKeeper(t)
 	keeper.SaveChallenge(ctx, types.Challenge{
 		Id:            100,
 		ExpiredHeight: 1000,
@@ -23,7 +30,7 @@ func TestGetChallengeId(t *testing.T) {
 }
 
 func TestAttestedChallengeIds(t *testing.T) {
-	keeper, ctx := keepertest.ChallengeKeeper(t)
+	keeper, ctx := makeKeeper(t)
 	params := types.DefaultParams()
 	params.AttestationKeptCount = 5
 	keeper.SetParams(ctx, params)
@@ -53,4 +60,24 @@ func TestAttestedChallengeIds(t *testing.T) {
 	keeper.SetParams(ctx, params)
 	keeper.AppendAttestChallengeId(ctx, 10)
 	require.Equal(t, []uint64{7, 8, 9, 10}, keeper.GetAttestChallengeIds(ctx))
+}
+
+func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
+	encCfg := moduletestutil.MakeTestEncodingConfig(mint.AppModuleBasic{})
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+	k := keeper.NewKeeper(
+		encCfg.Codec,
+		key,
+		key,
+		&types.MockBankKeeper{},
+		&types.MockStorageKeeper{},
+		&types.MockSpKeeper{},
+		&types.MockStakingKeeper{},
+		&types.MockPaymentKeeper{},
+		authtypes.NewModuleAddress(types.ModuleName).String(),
+	)
+
+	return k, testCtx.Ctx
 }

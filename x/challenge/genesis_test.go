@@ -3,11 +3,17 @@ package challenge_test
 import (
 	"testing"
 
+	storetypes "cosmossdk.io/store/types"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/nullify"
 	"github.com/bnb-chain/greenfield/x/challenge"
+	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 
@@ -18,7 +24,7 @@ func TestGenesis(t *testing.T) {
 		// this line is used by starport scaffolding # genesis/test/state
 	}
 
-	k, ctx := keepertest.ChallengeKeeper(t)
+	k, ctx := makeKeeper(t)
 	challenge.InitGenesis(ctx, *k, genesisState)
 	got := challenge.ExportGenesis(ctx, *k)
 	require.NotNil(t, got)
@@ -27,4 +33,24 @@ func TestGenesis(t *testing.T) {
 	nullify.Fill(got)
 
 	// this line is used by starport scaffolding # genesis/test/assert
+}
+
+func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
+	encCfg := moduletestutil.MakeTestEncodingConfig(mint.AppModuleBasic{})
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
+
+	k := keeper.NewKeeper(
+		encCfg.Codec,
+		key,
+		key,
+		&types.MockBankKeeper{},
+		&types.MockStorageKeeper{},
+		&types.MockSpKeeper{},
+		&types.MockStakingKeeper{},
+		&types.MockPaymentKeeper{},
+		authtypes.NewModuleAddress(types.ModuleName).String(),
+	)
+
+	return k, testCtx.Ctx
 }

@@ -494,14 +494,13 @@ func New(
 	app.ChallengeKeeper = *challengemodulekeeper.NewKeeper(
 		appCodec,
 		keys[challengemoduletypes.StoreKey],
-		memKeys[challengemoduletypes.MemStoreKey],
 		tKeys[challengemoduletypes.TStoreKey],
-		app.GetSubspace(challengemoduletypes.ModuleName),
 		app.BankKeeper,
 		app.StorageKeeper,
 		app.SpKeeper,
 		app.StakingKeeper,
 		app.PaymentKeeper,
+		authtypes.NewModuleAddress(challengemoduletypes.ModuleName).String(),
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 

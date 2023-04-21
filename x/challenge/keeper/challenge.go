@@ -106,7 +106,7 @@ func (k Keeper) GetAttestChallengeIds(ctx sdk.Context) []uint64 {
 
 // AppendAttestChallengeId sets the new id of challenge to the store
 func (k Keeper) AppendAttestChallengeId(ctx sdk.Context, challengeId uint64) {
-	toKeep := k.KeyAttestationKeptCount(ctx)
+	toKeep := k.GetParams(ctx).AttestationKeptCount
 
 	store := ctx.KVStore(k.storeKey)
 	sizeBz := store.Get(types.AttestChallengeIdsSizeKey)

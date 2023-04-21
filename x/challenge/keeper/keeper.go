@@ -9,7 +9,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -17,47 +16,45 @@ import (
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		tKey       storetypes.StoreKey
-		paramstore paramtypes.Subspace
+		cdc      codec.BinaryCodec
+		storeKey storetypes.StoreKey
+		tKey     storetypes.StoreKey
 
 		bankKeeper    types.BankKeeper
 		StorageKeeper types.StorageKeeper
 		SpKeeper      types.SpKeeper
 		stakingKeeper types.StakingKeeper
 		paymentKeeper types.PaymentKeeper
+
+		authority string
 	}
 )
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey, memKey, tKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
+	storeKey, tKey storetypes.StoreKey,
 	bankKeeper types.BankKeeper,
 	storageKeeper types.StorageKeeper,
 	spKeeper types.SpKeeper,
 	stakingKeeper types.StakingKeeper,
 	paymentKeeper types.PaymentKeeper,
+	authority string,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
-		memKey:        memKey,
 		tKey:          tKey,
-		paramstore:    ps,
 		bankKeeper:    bankKeeper,
 		StorageKeeper: storageKeeper,
 		SpKeeper:      spKeeper,
 		stakingKeeper: stakingKeeper,
 		paymentKeeper: paymentKeeper,
+		authority:     authority,
 	}
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -77,10 +74,10 @@ func (k Keeper) isInturnAttestation(ctx sdk.Context, submitter sdk.AccAddress, v
 	}
 
 	if validatorIndex < 0 {
-		return false, errors.Wrapf(types.ErrNotChallenger, "sender (%s) is not a attestation submitter", submitter.String())
+		return false, errors.Wrapf(types.ErrNotChallenger, "sender (%s) is not an attestation submitter", submitter.String())
 	}
 
-	inturnBlsKey, _, err := k.getInturnSubmitter(ctx, k.AttestationInturnInterval(ctx))
+	inturnBlsKey, _, err := k.getInturnSubmitter(ctx, k.GetParams(ctx).AttestationInturnInterval)
 	if err != nil {
 		return false, err
 	}
