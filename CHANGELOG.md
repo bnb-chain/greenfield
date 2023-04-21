@@ -1,6 +1,7 @@
 # Changelog
 
 ## v0.1.2
+* [\#195](https://github.com/bnb-chain/greenfield/pull/195) feat: make sp receive storage fee with funding addr
 * [\#167](https://github.com/bnb-chain/greenfield/pull/167) chore: change default sp price
 * [\#164](https://github.com/bnb-chain/greenfield/pull/164) feat: update relayer fee for mirror transactions
 * [\#168](https://github.com/bnb-chain/greenfield/pull/168) fix: list group error
