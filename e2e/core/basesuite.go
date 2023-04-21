@@ -67,7 +67,7 @@ func (s *BaseSuite) SetupSuite() {
 	}
 }
 
-func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.TxResponse) {
+func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) *sdk.TxResponse {
 	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
@@ -76,10 +76,15 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) (txRes *sdk.T
 	s.Client.SetKeyManager(from)
 	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.Require().NoError(err)
-	s.T().Logf("block_height: %d, tx_hash: 0x%s", response.TxResponse.Height, response.TxResponse.TxHash)
 
 	s.Require().NoError(s.CheckTxCode(response.TxResponse.TxHash, uint32(0)), "tx failed")
-	return response.TxResponse
+	getTxRes, err := s.Client.GetTx(context.Background(), &tx.GetTxRequest{
+		Hash: response.TxResponse.TxHash,
+	})
+	s.Require().NoError(err)
+
+	s.T().Logf("block_height: %d, tx_hash: 0x%s", getTxRes.TxResponse.Height, response.TxResponse.TxHash)
+	return getTxRes.TxResponse
 }
 
 func (s *BaseSuite) SendTxBlockWithoutCheck(msg sdk.Msg, from keys.KeyManager) (*tx.BroadcastTxResponse, error) {
