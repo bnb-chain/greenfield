@@ -51,10 +51,6 @@ func NewKeeper(
 	crossChainKeeper types.CrossChainKeeper,
 	authority string,
 ) *Keeper {
-	//// set KeyTable if it has not already been set
-	//if !ps.HasKeyTable() {
-	//	ps = ps.WithKeyTable(types.ParamKeyTable())
-	//}
 
 	k := Keeper{
 		cdc:              cdc,
