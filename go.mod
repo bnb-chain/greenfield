@@ -37,6 +37,7 @@ require (
 require (
 	cosmossdk.io/api v0.4.0
 	cosmossdk.io/store v0.1.0-alpha.1.0.20230328185921-37ba88872dbc
+	cosmossdk.io/tools/confix v0.0.0-00010101000000-000000000000
 	github.com/cosmos/cosmos-db v1.0.0-rc.1
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
@@ -75,7 +76,9 @@ require (
 	github.com/cosmos/iavl v0.21.0-beta.1 // indirect
 	github.com/cosmos/ledger-cosmos-go v0.13.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
+	github.com/creachadair/atomicfile v0.2.8 // indirect
 	github.com/creachadair/taskgroup v0.4.2 // indirect
+	github.com/creachadair/tomledit v0.0.24 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.1.0 // indirect
@@ -196,6 +199,7 @@ replace (
 	cosmossdk.io/api => github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230420120548-24ed3abaca8f
 	cosmossdk.io/log => github.com/bnb-chain/greenfield-cosmos-sdk/log v0.0.0-20230420120548-24ed3abaca8f
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230420120548-24ed3abaca8f
+	cosmossdk.io/tools/confix => github.com/bnb-chain/greenfield-cosmos-sdk/tools/confix v0.0.0-20230420120548-24ed3abaca8f
 	cosmossdk.io/x/evidence => github.com/bnb-chain/greenfield-cosmos-sdk/x/evidence v0.0.0-20230420120548-24ed3abaca8f
 	cosmossdk.io/x/feegrant => github.com/bnb-chain/greenfield-cosmos-sdk/x/feegrant v0.0.0-20230420120548-24ed3abaca8f
 	cosmossdk.io/x/upgrade => github.com/bnb-chain/greenfield-cosmos-sdk/x/upgrade v0.0.0-20230420120548-24ed3abaca8f
