@@ -13,6 +13,15 @@ import (
 
 var _ types.QueryServer = Keeper{}
 
+func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
+}
+
 func (k Keeper) LatestAttestedChallenges(goCtx context.Context, req *types.QueryLatestAttestedChallengesRequest) (*types.QueryLatestAttestedChallengesResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -34,7 +43,7 @@ func (k Keeper) InturnAttestationSubmitter(goCtx context.Context, req *types.Que
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	blsKey, interval, err := k.getInturnSubmitter(ctx, k.AttestationInturnInterval(ctx))
+	blsKey, interval, err := k.getInturnSubmitter(ctx, k.GetParams(ctx).AttestationInturnInterval)
 	if err != nil {
 		return nil, err
 	}

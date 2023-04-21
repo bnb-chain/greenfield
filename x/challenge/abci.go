@@ -18,18 +18,20 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 	keeper.RemoveChallengeUntil(ctx, blockHeight)
 
 	// delete too old slashes at this height
-	coolingOff := keeper.SlashCoolingOffPeriod(ctx)
-	if blockHeight <= coolingOff {
+	coolingOffPeriod := keeper.GetParams(ctx).SlashCoolingOffPeriod
+	if blockHeight <= coolingOffPeriod {
 		return
 	}
 
-	height := blockHeight - coolingOff
+	height := blockHeight - coolingOffPeriod
 	keeper.RemoveSlashUntil(ctx, height)
 }
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	count := keeper.GetChallengeCountCurrentBlock(ctx)
-	needed := keeper.ChallengeCountPerBlock(ctx)
+
+	params := keeper.GetParams(ctx)
+	needed := params.ChallengeCountPerBlock
 	if count >= needed {
 		return
 	}
@@ -40,7 +42,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	}
 
 	segmentSize := keeper.StorageKeeper.MaxSegmentSize(ctx)
-	expiredHeight := keeper.ChallengeKeepAlivePeriod(ctx) + uint64(ctx.BlockHeight())
+	expiredHeight := params.ChallengeKeepAlivePeriod + uint64(ctx.BlockHeight())
 
 	events := make([]proto.Message, 0)                      // for events
 	objectMap := make(map[string]struct{})                  // for de-duplication

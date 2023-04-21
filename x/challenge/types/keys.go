@@ -22,6 +22,8 @@ func KeyPrefix(p string) []byte {
 }
 
 var (
+	ParamsKey = []byte{0x01}
+
 	// ChallengeIdKey is the key to retrieve the id of challenge.
 	ChallengeIdKey = []byte{0x11}
 

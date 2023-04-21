@@ -8,7 +8,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
@@ -25,7 +24,7 @@ func createSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Slash {
 }
 
 func TestRecentSlashRemove(t *testing.T) {
-	keeper, ctx := keepertest.ChallengeKeeper(t)
+	keeper, ctx := makeKeeper(t)
 	items := createSlash(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveSlashUntil(ctx, item.Height)

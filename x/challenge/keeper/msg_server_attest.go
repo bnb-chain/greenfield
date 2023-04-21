@@ -80,7 +80,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		k.SaveSlash(ctx, slash)
 	} else {
 		// check whether it is a heartbeat attest
-		heartbeatInterval := k.HeartbeatInterval(ctx)
+		heartbeatInterval := k.GetParams(ctx).HeartbeatInterval
 		if msg.ChallengeId%heartbeatInterval != 0 {
 			return nil, errors.Wrapf(types.ErrInvalidChallengeId, "heartbeat attestation should be submitted at interval %d", heartbeatInterval)
 		}
@@ -98,15 +98,16 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 
 // calculateSlashAmount calculates the slash amount based on object size. There are also bounds of the amount.
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
-	sizeRate := k.SlashAmountSizeRate(ctx)
+	params := k.GetParams(ctx)
+	sizeRate := params.SlashAmountSizeRate
 	objectSizeInGB := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize)).QuoRoundUp(sdk.NewDec(1073741824))
 	slashAmount := objectSizeInGB.MulMut(sizeRate).MulMut(sdk.NewDec(1e18)).TruncateInt()
 
-	min := k.SlashAmountMin(ctx)
+	min := params.SlashAmountMin
 	if slashAmount.LT(min) {
 		return min
 	}
-	max := k.SlashAmountMax(ctx)
+	max := params.SlashAmountMax
 	if slashAmount.GT(max) {
 		return max
 	}
@@ -118,8 +119,9 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 	challengerReward := sdkmath.ZeroInt()
 	var eachValidatorReward sdkmath.Int
 
-	threshold := k.RewardSubmitterThreshold(ctx)
-	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
+	params := k.GetParams(ctx)
+	threshold := params.RewardSubmitterThreshold
+	submitterReward := params.RewardSubmitterRatio.Mul(sdk.NewDecFromInt(total)).TruncateInt()
 	if submitterReward.GT(threshold) {
 		submitterReward = threshold
 	}
@@ -133,7 +135,7 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 		// send remaining to submitter
 		submitterReward = submitterReward.Add(total)
 	} else { // the challenge is submitted by challenger
-		validatorRatio := k.RewardValidatorRatio(ctx)
+		validatorRatio := params.RewardValidatorRatio
 		eachValidatorReward = validatorRatio.MulInt(total).QuoInt64(validators).TruncateInt()
 		for i := int64(0); i < validators; i++ {
 			total = total.Sub(eachValidatorReward)
@@ -200,8 +202,9 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 
 // calculateHeartbeatRewards calculates the rewards to all validators and submitter.
 func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int) (sdkmath.Int, sdkmath.Int) {
-	threshold := k.RewardSubmitterThreshold(ctx)
-	submitterReward := k.RewardSubmitterRatio(ctx).Mul(sdk.NewDecFromInt(total)).TruncateInt()
+	params := k.GetParams(ctx)
+	threshold := params.RewardSubmitterThreshold
+	submitterReward := params.RewardSubmitterRatio.Mul(sdk.NewDecFromInt(total)).TruncateInt()
 	if submitterReward.GT(threshold) {
 		submitterReward = threshold
 	}
