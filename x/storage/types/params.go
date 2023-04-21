@@ -290,7 +290,7 @@ func validateDiscontinueCountingWindow(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("discontine request window must be positive: %d", v)
+		return fmt.Errorf("discontinue counting window must be positive: %d", v)
 	}
 
 	return nil
@@ -321,7 +321,7 @@ func validateDiscontinueConfirmPeriod(i interface{}) error {
 	}
 
 	if v <= 0 {
-		return fmt.Errorf("discontine confirm period must be positive: %d", v)
+		return fmt.Errorf("discontinue confirm period must be positive: %d", v)
 	}
 	return nil
 }
@@ -333,7 +333,7 @@ func validateDiscontinueDeletionMax(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("discontine deletion max must be positive: %d", v)
+		return fmt.Errorf("discontinue deletion max must be positive: %d", v)
 	}
 	return nil
 }
