@@ -703,7 +703,7 @@ type MsgClient interface {
 	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
 	EditStorageProvider(ctx context.Context, in *MsgEditStorageProvider, opts ...grpc.CallOption) (*MsgEditStorageProviderResponse, error)
 	UpdateSpStoragePrice(ctx context.Context, in *MsgUpdateSpStoragePrice, opts ...grpc.CallOption) (*MsgUpdateSpStoragePriceResponse, error)
-	// UpdateParams defines a governance operation for updating the x/bridge module parameters.
+	// UpdateParams defines a governance operation for updating the x/sp module parameters.
 	// The authority is defined in the keeper.
 	//
 	// Since: cosmos-sdk 0.47
@@ -769,7 +769,7 @@ type MsgServer interface {
 	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
 	EditStorageProvider(context.Context, *MsgEditStorageProvider) (*MsgEditStorageProviderResponse, error)
 	UpdateSpStoragePrice(context.Context, *MsgUpdateSpStoragePrice) (*MsgUpdateSpStoragePriceResponse, error)
-	// UpdateParams defines a governance operation for updating the x/bridge module parameters.
+	// UpdateParams defines a governance operation for updating the x/sp module parameters.
 	// The authority is defined in the keeper.
 	//
 	// Since: cosmos-sdk 0.47

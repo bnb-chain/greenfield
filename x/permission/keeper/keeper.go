@@ -6,53 +6,50 @@ import (
 	"cosmossdk.io/log"
 	"cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type (
 	Keeper struct {
 		cdc           codec.BinaryCodec
 		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		paramstore    paramtypes.Subspace
 		accountKeeper types.AccountKeeper
 
 		// policy sequence
 		policySeq      sequence.U256
 		groupMemberSeq sequence.U256
+
+		authority string
 	}
 )
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
+	storeKey storetypes.StoreKey,
 
 	accountKeeper types.AccountKeeper,
+	authority string,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
 
 	k := &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		memKey:        memKey,
-		paramstore:    ps,
+		cdc:      cdc,
+		storeKey: storeKey,
+
 		accountKeeper: accountKeeper,
+		authority:     authority,
 	}
 	k.policySeq = sequence.NewSequence256(types.PolicySequencePrefix)
 	k.groupMemberSeq = sequence.NewSequence256(types.GroupMemberSequencePrefix)
 	return k
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

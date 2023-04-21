@@ -20,7 +20,7 @@ service Msg {
   rpc EditStorageProvider(MsgEditStorageProvider) returns (MsgEditStorageProviderResponse);
   rpc UpdateSpStoragePrice(MsgUpdateSpStoragePrice) returns (MsgUpdateSpStoragePriceResponse);
 
-  // UpdateParams defines a governance operation for updating the x/bridge module parameters.
+  // UpdateParams defines a governance operation for updating the x/sp module parameters.
   // The authority is defined in the keeper.
   //
   // Since: cosmos-sdk 0.47

@@ -1,6 +1,10 @@
 package keeper_test
 
 import (
+	paymentmodulekeeper "github.com/bnb-chain/greenfield/x/payment/keeper"
+	spkeeper "github.com/bnb-chain/greenfield/x/sp/keeper"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"testing"
 	"time"
 
@@ -21,6 +25,10 @@ type IntegrationTestSuite struct {
 
 	keeper        *keeper.Keeper
 	depKeepers    keepertest.StorageDepKeepers
+	PaymentKeeper *paymentmodulekeeper.Keeper
+	SpKeeper      *spkeeper.Keeper
+	BankKeeper    *bankkeeper.BaseKeeper
+	AccountKeeper *authkeeper.AccountKeeper
 	ctx           sdk.Context
 	PrimarySpAddr sdk.AccAddress
 	UserAddr      sdk.AccAddress

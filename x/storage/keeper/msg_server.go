@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
@@ -12,6 +13,8 @@ import (
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+
+	errorsmod "cosmossdk.io/errors"
 )
 
 type msgServer struct {
@@ -536,4 +539,17 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	}
 
 	return nil, nil
+}
+
+func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.GetAuthority() != req.Authority {
+		return nil, errorsmod.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), req.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := k.SetParams(ctx, req.Params); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }
