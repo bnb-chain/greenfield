@@ -3,11 +3,16 @@ package keeper
 import (
 	"testing"
 
+	"cosmossdk.io/log"
+	"cosmossdk.io/store"
+	"cosmossdk.io/store/metrics"
+	storetypes "cosmossdk.io/store/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmdb "github.com/cosmos/cosmos-db"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/store"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -15,13 +20,11 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	typesparams "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/stretchr/testify/require"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmdb "github.com/tendermint/tm-db"
 
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -30,19 +33,19 @@ import (
 )
 
 func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
-	storeKeys := sdk.NewKVStoreKeys(
+	storeKeys := storetypes.NewKVStoreKeys(
 		banktypes.StoreKey,
 		authtypes.StoreKey,
 		paramstypes.StoreKey,
 		sptypes.StoreKey,
 		authz.ModuleName,
 	)
-	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
-	storeKey := sdk.NewKVStoreKey(types.StoreKey)
+	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
+	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
 	db := tmdb.NewMemDB()
-	stateStore := store.NewCommitMultiStore(db)
+	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NoOpMetrics{})
 	stateStore.MountStoreWithDB(storeKey, storetypes.StoreTypeIAVL, db)
 	stateStore.MountStoreWithDB(memStoreKey, storetypes.StoreTypeMemory, nil)
 	stateStore.MountStoreWithDB(storeKeys[paramstypes.StoreKey], storetypes.StoreTypeIAVL, db)
@@ -69,10 +72,10 @@ func PaymentKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	)
 	accountKeeper := authkeeper.NewAccountKeeper(
 		cdc,
-		storeKeys[authtypes.StoreKey],
-		GetSubspace(paramKeeper, authtypes.ModuleName),
+		runtime.NewKVStoreService(storeKeys[authtypes.StoreKey]),
 		authtypes.ProtoBaseAccount,
 		spMaccPerms,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	bankKeeper := bankkeeper.NewBaseKeeper(

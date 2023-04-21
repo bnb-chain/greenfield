@@ -471,23 +471,20 @@ func New(
 	app.PermissionmoduleKeeper = *permissionmodulekeeper.NewKeeper(
 		appCodec,
 		keys[permissionmoduletypes.StoreKey],
-		keys[permissionmoduletypes.MemStoreKey],
-		app.GetSubspace(permissionmoduletypes.ModuleName),
-
 		app.AccountKeeper,
+		authtypes.NewModuleAddress(spmoduletypes.ModuleName).String(),
 	)
 	permissionModule := permissionmodule.NewAppModule(appCodec, app.PermissionmoduleKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
 		appCodec,
 		keys[storagemoduletypes.StoreKey],
-		keys[storagemoduletypes.MemStoreKey],
-		app.GetSubspace(storagemoduletypes.ModuleName),
 		app.AccountKeeper,
 		app.SpKeeper,
 		app.PaymentKeeper,
 		app.PermissionmoduleKeeper,
 		app.CrossChainKeeper,
+		authtypes.NewModuleAddress(spmoduletypes.ModuleName).String(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
