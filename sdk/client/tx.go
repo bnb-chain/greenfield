@@ -120,7 +120,9 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 		AccountNumber: account.GetAccountNumber(),
 		Sequence:      nonce,
 	}
-	sig, err := clitx.SignWithPrivKey(ctx, signing.SignMode_SIGN_MODE_EIP_712,
+	sig, err := clitx.SignWithPrivKey(
+		ctx,
+		signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
 		km,
