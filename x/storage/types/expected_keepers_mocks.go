@@ -55,6 +55,20 @@ func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetAccount), ctx, addr)
 }
 
+// GetModuleAddress mocks base method.
+func (m *MockAccountKeeper) GetModuleAddress(name string) types2.AccAddress {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetModuleAddress", name)
+	ret0, _ := ret[0].(types2.AccAddress)
+	return ret0
+}
+
+// GetModuleAddress indicates an expected call of GetModuleAddress.
+func (mr *MockAccountKeeperMockRecorder) GetModuleAddress(name interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetModuleAddress", reflect.TypeOf((*MockAccountKeeper)(nil).GetModuleAddress), name)
+}
+
 // MockBankKeeper is a mock of BankKeeper interface.
 type MockBankKeeper struct {
 	ctrl     *gomock.Controller
@@ -76,6 +90,48 @@ func NewMockBankKeeper(ctrl *gomock.Controller) *MockBankKeeper {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 	return m.recorder
+}
+
+// GetAllBalances mocks base method.
+func (m *MockBankKeeper) GetAllBalances(ctx types2.Context, addr types2.AccAddress) types2.Coins {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllBalances", ctx, addr)
+	ret0, _ := ret[0].(types2.Coins)
+	return ret0
+}
+
+// GetAllBalances indicates an expected call of GetAllBalances.
+func (mr *MockBankKeeperMockRecorder) GetAllBalances(ctx, addr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllBalances", reflect.TypeOf((*MockBankKeeper)(nil).GetAllBalances), ctx, addr)
+}
+
+// GetBalance mocks base method.
+func (m *MockBankKeeper) GetBalance(ctx types2.Context, addr types2.AccAddress, denom string) types2.Coin {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBalance", ctx, addr, denom)
+	ret0, _ := ret[0].(types2.Coin)
+	return ret0
+}
+
+// GetBalance indicates an expected call of GetBalance.
+func (mr *MockBankKeeperMockRecorder) GetBalance(ctx, addr, denom interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBalance", reflect.TypeOf((*MockBankKeeper)(nil).GetBalance), ctx, addr, denom)
+}
+
+// SendCoinsFromModuleToAccount mocks base method.
+func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types2.Context, senderModule string, recipientAddr types2.AccAddress, amt types2.Coins) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SendCoinsFromModuleToAccount", ctx, senderModule, recipientAddr, amt)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SendCoinsFromModuleToAccount indicates an expected call of SendCoinsFromModuleToAccount.
+func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderModule, recipientAddr, amt interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SendCoinsFromModuleToAccount", reflect.TypeOf((*MockBankKeeper)(nil).SendCoinsFromModuleToAccount), ctx, senderModule, recipientAddr, amt)
 }
 
 // SpendableCoins mocks base method.
@@ -113,6 +169,21 @@ func NewMockSpKeeper(ctrl *gomock.Controller) *MockSpKeeper {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockSpKeeper) EXPECT() *MockSpKeeperMockRecorder {
 	return m.recorder
+}
+
+// GetSpStoragePriceByTime mocks base method.
+func (m *MockSpKeeper) GetSpStoragePriceByTime(ctx types2.Context, spAddr types2.AccAddress, time int64) (types1.SpStoragePrice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSpStoragePriceByTime", ctx, spAddr, time)
+	ret0, _ := ret[0].(types1.SpStoragePrice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSpStoragePriceByTime indicates an expected call of GetSpStoragePriceByTime.
+func (mr *MockSpKeeperMockRecorder) GetSpStoragePriceByTime(ctx, spAddr, time interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSpStoragePriceByTime", reflect.TypeOf((*MockSpKeeper)(nil).GetSpStoragePriceByTime), ctx, spAddr, time)
 }
 
 // GetStorageProvider mocks base method.
@@ -172,6 +243,30 @@ func (m *MockSpKeeper) IsStorageProviderExistAndInService(ctx types2.Context, ad
 func (mr *MockSpKeeperMockRecorder) IsStorageProviderExistAndInService(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsStorageProviderExistAndInService", reflect.TypeOf((*MockSpKeeper)(nil).IsStorageProviderExistAndInService), ctx, addr)
+}
+
+// SetSecondarySpStorePrice mocks base method.
+func (m *MockSpKeeper) SetSecondarySpStorePrice(ctx types2.Context, secondarySpStorePrice types1.SecondarySpStorePrice) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetSecondarySpStorePrice", ctx, secondarySpStorePrice)
+}
+
+// SetSecondarySpStorePrice indicates an expected call of SetSecondarySpStorePrice.
+func (mr *MockSpKeeperMockRecorder) SetSecondarySpStorePrice(ctx, secondarySpStorePrice interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecondarySpStorePrice", reflect.TypeOf((*MockSpKeeper)(nil).SetSecondarySpStorePrice), ctx, secondarySpStorePrice)
+}
+
+// SetSpStoragePrice mocks base method.
+func (m *MockSpKeeper) SetSpStoragePrice(ctx types2.Context, SpStoragePrice types1.SpStoragePrice) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetSpStoragePrice", ctx, SpStoragePrice)
+}
+
+// SetSpStoragePrice indicates an expected call of SetSpStoragePrice.
+func (mr *MockSpKeeperMockRecorder) SetSpStoragePrice(ctx, SpStoragePrice interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSpStoragePrice", reflect.TypeOf((*MockSpKeeper)(nil).SetSpStoragePrice), ctx, SpStoragePrice)
 }
 
 // MockPaymentKeeper is a mock of PaymentKeeper interface.
@@ -238,6 +333,21 @@ func (m *MockPaymentKeeper) GetStoragePrice(ctx types2.Context, params types.Sto
 func (mr *MockPaymentKeeperMockRecorder) GetStoragePrice(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStoragePrice", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStoragePrice), ctx, params)
+}
+
+// GetStreamRecord mocks base method.
+func (m *MockPaymentKeeper) GetStreamRecord(ctx types2.Context, account types2.AccAddress) (*types.StreamRecord, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
+	ret0, _ := ret[0].(*types.StreamRecord)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetStreamRecord indicates an expected call of GetStreamRecord.
+func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
 }
 
 // IsPaymentAccountOwner mocks base method.

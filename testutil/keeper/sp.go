@@ -15,6 +15,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/runtime"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -22,8 +23,10 @@ import (
 	authzkeeper "github.com/cosmos/cosmos-sdk/x/authz/keeper"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/group"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
@@ -34,6 +37,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stretchr/testify/require"
 
+	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	challengemoduletypes "github.com/bnb-chain/greenfield/x/challenge/types"
+	paymentmoduletypes "github.com/bnb-chain/greenfield/x/payment/types"
+	permissionmoduletypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/sp/keeper"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -58,6 +65,22 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		crosschaintypes.StoreKey,
 		oracletypes.StoreKey, types.StoreKey)
 
+	keys := storetypes.NewKVStoreKeys(
+		authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
+		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey, govtypes.StoreKey,
+		paramstypes.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
+		consensusparamtypes.StoreKey,
+		group.StoreKey,
+		crosschaintypes.StoreKey,
+		oracletypes.StoreKey,
+		bridgemoduletypes.StoreKey,
+		gashubtypes.StoreKey,
+		types.StoreKey,
+		paymentmoduletypes.StoreKey,
+		permissionmoduletypes.StoreKey,
+		storagemoduletypes.StoreKey,
+		challengemoduletypes.StoreKey,
+	)
 	tkeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey)
 
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
@@ -85,19 +108,12 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	paramKeeper.Subspace(banktypes.ModuleName)
 	paramKeeper.Subspace(authz.ModuleName)
 
-	paramsSubspace := paramstypes.NewSubspace(cdc,
-		types.Amino,
-		storeKey,
-		memStoreKey,
-		"SpParams",
-	)
-
 	accountKeeper := authkeeper.NewAccountKeeper(
 		cdc,
-		storeKeys[authtypes.StoreKey],
-		GetSubspace(paramKeeper, authtypes.ModuleName),
+		runtime.NewKVStoreService(keys[authtypes.StoreKey]),
 		authtypes.ProtoBaseAccount,
 		spMaccPerms,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	authzKeeper := authzkeeper.NewKeeper(
@@ -111,16 +127,15 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 		cdc,
 		storeKeys[banktypes.StoreKey],
 		accountKeeper,
-		GetSubspace(paramKeeper, banktypes.ModuleName),
 		nil,
+		authtypes.NewModuleAddress(banktypes.ModuleName).String(),
 	)
 
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
-		memStoreKey,
-		paramsSubspace,
 		accountKeeper, bankKeeper, authzKeeper,
+		authtypes.NewModuleAddress(types.ModuleName).String(),
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
