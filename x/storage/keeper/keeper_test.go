@@ -1,13 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
-)
 
-import (
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 // import (
