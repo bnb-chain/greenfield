@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/stretchr/testify/require"
 
@@ -45,7 +44,7 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 		&types.MockAccountKeeper{},
 		&types.MockBankKeeper{},
 		&types.MockAuthzKeeper{},
-		authtypes.NewModuleAddress(types.ModuleName).String(),
+		"",
 	)
 
 	return k, testCtx.Ctx
