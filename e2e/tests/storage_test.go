@@ -693,7 +693,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	res := s.SendTxBlock(msgCreateBucket, user)
-	s.T().Logf("res %s", core.YamlString(res))
+	s.T().Logf("res %s", res.String())
 	// check user stream record
 	userStreamRecord := s.GetStreamRecord(userAddr)
 	s.T().Logf("userStreamRecord %s", core.YamlString(userStreamRecord))
