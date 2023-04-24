@@ -317,7 +317,7 @@ func New(
 	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		keys[crosschaintypes.StoreKey],
-		authtypes.NewModuleAddress(crosschaintypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// set the BaseApp's parameter store
@@ -435,14 +435,14 @@ func New(
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CrossChainKeeper,
-		authtypes.NewModuleAddress(bridgemoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.GashubKeeper = gashubkeeper.NewKeeper(
 		appCodec,
 		keys[gashubtypes.StoreKey],
-		authtypes.NewModuleAddress(gashubtypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	gashubModule := gashub.NewAppModule(app.GashubKeeper)
 
@@ -501,7 +501,7 @@ func New(
 		app.SpKeeper,
 		app.StakingKeeper,
 		app.PaymentKeeper,
-		authtypes.NewModuleAddress(challengemoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 
