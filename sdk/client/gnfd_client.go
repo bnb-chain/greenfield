@@ -200,6 +200,7 @@ func setClientsConn(c *GreenfieldClient, conn grpc1.ClientConn) {
 	c.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
 	c.StakingQueryClient = stakingtypes.NewQueryClient(conn)
 	c.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
+	c.TmClient = cmtservice.NewServiceClient(conn)
 	c.TxClient = tx.NewServiceClient(conn)
 }
 
