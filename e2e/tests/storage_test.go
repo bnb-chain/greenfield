@@ -1275,7 +1275,7 @@ func TestStorageTestSuite(t *testing.T) {
 func filterDiscontinueObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDiscontinueObject {
 	deleteAtStr := ""
 	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "bnbchain.greenfield.storage.EventDiscontinueObject" {
+		if event.Type == "greenfield.storage.EventDiscontinueObject" {
 			for _, attr := range event.Attributes {
 				if attr.Key == "delete_at" {
 					deleteAtStr = strings.Trim(attr.Value, `"`)
@@ -1293,7 +1293,7 @@ func filterDeleteObjectEventFromBlock(blockRes *ctypes.ResultBlockResults) []sto
 	events := make([]storagetypes.EventDeleteObject, 0)
 
 	for _, event := range blockRes.EndBlockEvents {
-		if event.Type == "bnbchain.greenfield.storage.EventDeleteObject" {
+		if event.Type == "greenfield.storage.EventDeleteObject" {
 			objectIdStr := ""
 			for _, attr := range event.Attributes {
 				if string(attr.Key) == "object_id" {
@@ -1312,7 +1312,7 @@ func filterDeleteObjectEventFromBlock(blockRes *ctypes.ResultBlockResults) []sto
 func filterDeleteObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDeleteObject {
 	objectIdStr := ""
 	for _, event := range txRes.Events {
-		if event.Type == "bnbchain.greenfield.storage.EventDeleteObject" {
+		if event.Type == "greenfield.storage.EventDeleteObject" {
 			for _, attr := range event.Attributes {
 				if string(attr.Key) == "object_id" {
 					objectIdStr = strings.Trim(string(attr.Value), `"`)
@@ -1329,7 +1329,7 @@ func filterDeleteObjectEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDele
 func filterDiscontinueBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDiscontinueBucket {
 	deleteAtStr := ""
 	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "bnbchain.greenfield.storage.EventDiscontinueBucket" {
+		if event.Type == "greenfield.storage.EventDiscontinueBucket" {
 			for _, attr := range event.Attributes {
 				if attr.Key == "delete_at" {
 					deleteAtStr = strings.Trim(attr.Value, `"`)
@@ -1347,7 +1347,7 @@ func filterDeleteBucketEventFromBlock(blockRes *ctypes.ResultBlockResults) []sto
 	events := make([]storagetypes.EventDeleteBucket, 0)
 
 	for _, event := range blockRes.EndBlockEvents {
-		if event.Type == "bnbchain.greenfield.storage.EventDeleteBucket" {
+		if event.Type == "greenfield.storage.EventDeleteBucket" {
 			bucketIdStr := ""
 			for _, attr := range event.Attributes {
 				if string(attr.Key) == "bucket_id" {
@@ -1366,7 +1366,7 @@ func filterDeleteBucketEventFromBlock(blockRes *ctypes.ResultBlockResults) []sto
 func filterDeleteBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDeleteBucket {
 	bucketIdStr := ""
 	for _, event := range txRes.Events {
-		if event.Type == "bnbchain.greenfield.storage.EventDeleteBucket" {
+		if event.Type == "greenfield.storage.EventDeleteBucket" {
 			for _, attr := range event.Attributes {
 				if string(attr.Key) == "bucket_id" {
 					bucketIdStr = strings.Trim(string(attr.Value), `"`)
