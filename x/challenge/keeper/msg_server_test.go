@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
@@ -58,7 +59,7 @@ func (s *TestSuite) SetupTest() {
 		spKeeper,
 		stakingKeeper,
 		paymentKeeper,
-		authtypes.NewModuleAddress(types.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	s.cdc = encCfg.Codec

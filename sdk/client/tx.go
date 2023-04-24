@@ -250,7 +250,7 @@ func (c *GreenfieldClient) GetNonce() (uint64, error) {
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
+func (c *GreenfieldClient) getAccount() (sdk.AccountI, error) {
 	km, err := c.GetKeyManager()
 	if err != nil {
 		return nil, err
@@ -259,7 +259,7 @@ func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
 	if err != nil {
 		return nil, err
 	}
-	var account authtypes.AccountI
+	var account sdk.AccountI
 	if err := c.codec.InterfaceRegistry().UnpackAny(acct.Account, &account); err != nil {
 		return nil, err
 	}
