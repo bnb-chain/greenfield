@@ -23,8 +23,7 @@ import (
 type IntegrationTestSuite struct {
 	suite.Suite
 
-	keeper *keeper.Keeper
-	//depKeepers    keepertest.StorageDepKeepers
+	keeper           *keeper.Keeper
 	paymentKeeper    *types.MockPaymentKeeper
 	spKeeper         *types.MockSpKeeper
 	bankKeeper       *types.MockBankKeeper

@@ -452,7 +452,7 @@ func New(
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.AuthzKeeper,
-		authtypes.NewModuleAddress(spmoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -472,7 +472,7 @@ func New(
 		appCodec,
 		keys[permissionmoduletypes.StoreKey],
 		app.AccountKeeper,
-		authtypes.NewModuleAddress(permissionmoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	permissionModule := permissionmodule.NewAppModule(appCodec, app.PermissionmoduleKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -484,7 +484,7 @@ func New(
 		app.PaymentKeeper,
 		app.PermissionmoduleKeeper,
 		app.CrossChainKeeper,
-		authtypes.NewModuleAddress(storagemoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 

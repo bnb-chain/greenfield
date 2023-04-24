@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"testing"
 
 	storetypes "cosmossdk.io/store/types"
@@ -45,7 +46,7 @@ func (s *TestSuite) SetupTest() {
 		encCfg.Codec,
 		key,
 		accountKeeper,
-		authtypes.NewModuleAddress(types.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	s.cdc = encCfg.Codec

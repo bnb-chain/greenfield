@@ -1,6 +1,7 @@
 package storage_test
 
 import (
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"testing"
 
 	storetypes "cosmossdk.io/store/types"
@@ -30,7 +31,7 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 		&types.MockPaymentKeeper{},
 		&types.MockPermissionKeeper{},
 		&types.MockCrossChainKeeper{},
-		authtypes.NewModuleAddress(types.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	return k, testCtx.Ctx
