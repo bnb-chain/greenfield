@@ -1,9 +1,8 @@
 package keeper_test
 
 import (
-	"github.com/bnb-chain/greenfield/sdk/types"
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,7 +10,10 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	"github.com/bnb-chain/greenfield/sdk/types"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {

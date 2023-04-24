@@ -1,12 +1,11 @@
 package keeper_test
 
 import (
+	"testing"
+	"time"
+
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/storage/keeper"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -14,8 +13,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
-	"testing"
-	"time"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/keeper"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type IntegrationTestSuite struct {

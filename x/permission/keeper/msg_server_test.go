@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"github.com/bnb-chain/greenfield/x/challenge"
 	"testing"
 
 	storetypes "cosmossdk.io/store/types"
@@ -14,6 +13,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/bnb-chain/greenfield/x/challenge"
 	"github.com/bnb-chain/greenfield/x/permission/keeper"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 )
