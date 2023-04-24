@@ -34,7 +34,7 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 			},
 			err: ErrInvalidParams,
 		}, {
-			name: "invalid authority and params",
+			name: "valid authority and params",
 			msg: MsgUpdateParams{
 				Authority: sample.AccAddress(),
 				Params:    DefaultParams(),
