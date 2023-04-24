@@ -6,9 +6,7 @@ on:
       - main
       - develop
   pull_request:
-    branches: 
-      - master
-      - develop
+
 jobs:
   gosec:
     name: gosec
