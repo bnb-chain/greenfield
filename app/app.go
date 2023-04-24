@@ -674,6 +674,9 @@ func New(
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
 
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	app.RegisterUpgradeHandlers(app.ChainID(), &app.appConfig.Config)
+
 	ms := app.CommitMultiStore()
 	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
 	if loadLatest {

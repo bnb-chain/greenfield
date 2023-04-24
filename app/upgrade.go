@@ -1,39 +1,38 @@
 package app
 
 import (
-	upgradetypes "cosmossdk.io/x/upgrade/types"
-	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 )
 
-func UpgradeInitializerAndHandler(
-	accountKeeper authkeeper.AccountKeeper,
-) (map[string]upgradetypes.UpgradeInitializer, map[string]upgradetypes.UpgradeHandler) {
-	upgradeInitializer := map[string]upgradetypes.UpgradeInitializer{
-		// Add specific actions when restarting and upgrade happen
-		// ex.
-		// uprgadeTypes.BEP111: BEP111Initializer(accountKeeper),
-	}
-	upgradeHandler := map[string]upgradetypes.UpgradeHandler{
-		// Add specific actions when the upgrade happen
-		// ex.
-		// uprgadeTypes.BEP111: BEP111Handler(accountKeeper),
+func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.Config) error {
+	// Register the plans from server config
+	err := app.UpgradeKeeper.RegisterUpgradePlan(chainID, serverCfg.Upgrade)
+	if err != nil {
+		return err
 	}
 
-	return upgradeInitializer, upgradeHandler
+	// Register the upgrade handlers here
+	// app.registerPublicDelegationUpgradeHandler()
+	// app.register...()
+	// ...
+	return nil
 }
 
-// func BEP111Initializer(
-// 	accountKeeper authkeeper.AccountKeeper,
-// ) upgradetypes.UpgradeInitializer {
-// 	return func() error {
-// 		return nil
-// 	}
-// }
+// registerPublicDelegationUpgradeHandler registers the upgrade handlers for the public delegation upgrade.
+// it will be enabled at the future version.
+// func (app *App) registerPublicDelegationUpgradeHandler() {
+// 	// Register the upgrade handler
+// 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.EnablePublicDelegationUpgrade,
+// 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+// 			app.Logger().Info("upgrade to ", plan.Name)
+// 			return fromVM, nil
+// 		})
 
-// func BEP111Handler(
-// 	accountKeeper authkeeper.AccountKeeper,
-// ) upgradetypes.UpgradeHandler {
-// 	return func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-// 		return fromVM, nil
-// 	}
+// 	// Register the upgrade initializer
+// 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.EnablePublicDelegationUpgrade,
+// 		func() error {
+// 			app.Logger().Info("Init enable public delegation upgrade")
+// 			return nil
+// 		},
+// 	)
 // }
