@@ -493,8 +493,8 @@ func (p DeleteGroupAckPackage) MustSerialize() []byte {
 }
 
 const (
-	OperationAddGroupMember    uint8 = 1
-	OperationDeleteGroupMember uint8 = 2
+	OperationAddGroupMember    uint8 = 0
+	OperationDeleteGroupMember uint8 = 1
 )
 
 type UpdateGroupMemberSynPackage struct {
