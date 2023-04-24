@@ -1,75 +1,115 @@
 package keeper_test
 
-//
-//import (
-//	storetypes "cosmossdk.io/store/types"
-//	"github.com/cosmos/cosmos-sdk/baseapp"
-//	"github.com/cosmos/cosmos-sdk/codec"
-//	"github.com/cosmos/cosmos-sdk/testutil"
-//	sdk "github.com/cosmos/cosmos-sdk/types"
-//	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
-//	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-//	"github.com/cosmos/cosmos-sdk/x/mint"
-//	"github.com/golang/mock/gomock"
-//	"github.com/stretchr/testify/suite"
-//
-//	"github.com/bnb-chain/greenfield/x/sp/keeper"
-//	"github.com/bnb-chain/greenfield/x/sp/types"
-//	"testing"
-//)
-//
-//type TestSuite struct {
-//	suite.Suite
-//
-//	cdc      codec.Codec
-//	spKeeper *keeper.Keeper
-//
-//	bankKeeper    *types.MockBankKeeper
-//	accountKeeper *types.MockAccountKeeper
-//	authzKeeper   *types.MockAuthzKeeper
-//
-//	ctx         sdk.Context
-//	queryClient types.QueryClient
-//	msgServer   types.MsgServer
-//}
-//
-//func (s *TestSuite) SetupTest() {
-//	encCfg := moduletestutil.MakeTestEncodingConfig(mint.AppModuleBasic{})
-//	key := storetypes.NewKVStoreKey(types.StoreKey)
-//	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
-//	s.ctx = testCtx.Ctx
-//
-//	ctrl := gomock.NewController(s.T())
-//
-//	bankKeeper := types.NewMockBankKeeper(ctrl)
-//	accountKeeper := types.NewMockAccountKeeper(ctrl)
-//	authzKeeper := types.NewMockAuthzKeeper(ctrl)
-//
-//	s.spKeeper = keeper.NewKeeper(
-//		encCfg.Codec,
-//		key,
-//		accountKeeper,
-//		bankKeeper,
-//		authzKeeper,
-//		authtypes.NewModuleAddress(types.ModuleName).String(),
-//	)
-//
-//	s.cdc = encCfg.Codec
-//
-//	s.bankKeeper = bankKeeper
-//	s.accountKeeper = accountKeeper
-//	s.authzKeeper = authzKeeper
-//
-//	err := s.spKeeper.SetParams(s.ctx, types.DefaultParams())
-//	s.Require().NoError(err)
-//
-//	queryHelper := baseapp.NewQueryServerTestHelper(testCtx.Ctx, encCfg.InterfaceRegistry)
-//	types.RegisterQueryServer(queryHelper, s.spKeeper)
-//
-//	s.queryClient = types.NewQueryClient(queryHelper)
-//	s.msgServer = keeper.NewMsgServerImpl(*s.spKeeper)
-//}
-//
-//func TestTestSuite(t *testing.T) {
-//	suite.Run(t, new(TestSuite))
-//}
+import (
+	"github.com/bnb-chain/greenfield/sdk/types"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
+	"testing"
+)
+
+func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
+	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
+	// 1. create new newStorageProvider and grant
+
+	operatorAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "error should be nil")
+	fundingAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "error should be nil")
+	sealAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "error should be nil")
+	approvalAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "error should be nil")
+	gcAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "error should be nil")
+
+	s.accountKeeper.EXPECT().GetAccount(gomock.Any(), fundingAddr).Return(authtypes.NewBaseAccountWithAddress(fundingAddr)).AnyTimes()
+	s.accountKeeper.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	testCases := []struct {
+		Name      string
+		ExceptErr bool
+		req       types.MsgCreateStorageProvider
+	}{
+		{
+			Name:      "invalid funding address",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "sp_test",
+					Identity: "",
+				},
+				SpAddress:       operatorAddr.String(),
+				FundingAddress:  sample.AccAddress(),
+				SealAddress:     sealAddr.String(),
+				ApprovalAddress: approvalAddr.String(),
+				GcAddress:       gcAddr.String(),
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+		{
+			Name:      "invalid endpoint",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "sp_test",
+					Identity: "",
+				},
+				SpAddress:       operatorAddr.String(),
+				FundingAddress:  fundingAddr.String(),
+				SealAddress:     sealAddr.String(),
+				ApprovalAddress: approvalAddr.String(),
+				GcAddress:       gcAddr.String(),
+				Endpoint:        "sp.io",
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+		{
+			Name:      "success",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "MsgServer_sp_test",
+					Identity: "",
+				},
+				SpAddress:       operatorAddr.String(),
+				FundingAddress:  fundingAddr.String(),
+				SealAddress:     sealAddr.String(),
+				ApprovalAddress: approvalAddr.String(),
+				GcAddress:       gcAddr.String(),
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+	}
+	for _, testCase := range testCases {
+		s.Suite.T().Run(testCase.Name, func(t *testing.T) {
+			_, err := s.msgServer.CreateStorageProvider(s.ctx, &testCase.req)
+			if testCase.ExceptErr {
+				require.Error(t, err)
+			} else {
+				require.NoError(t, err)
+			}
+		})
+
+	}
+
+}
