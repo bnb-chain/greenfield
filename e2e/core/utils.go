@@ -1,9 +1,9 @@
 package core
 
 import (
-	"crypto/rand"
+	cryptoRand "crypto/rand"
 	"fmt"
-	mathRand "math/rand"
+	"math/rand"
 
 	"github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,13 +14,13 @@ import (
 
 func GenRandomAddr() sdk.AccAddress {
 	// #nosec
-	return sdk.AccAddress(crypto.AddressHash([]byte(fmt.Sprintf("%d", mathRand.Int()))))
+	return sdk.AccAddress(crypto.AddressHash([]byte(fmt.Sprintf("%d", rand.Int()))))
 }
 
 func GenRandomHexString(len int) string {
 	b := make([]byte, len)
 	// #nosec
-	_, err := rand.Read(b)
+	_, err := cryptoRand.Read(b)
 	if err != nil {
 		panic(err)
 	}
