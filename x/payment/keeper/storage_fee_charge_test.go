@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"github.com/golang/mock/gomock"
 	"sort"
 	"testing"
 	"time"
@@ -9,13 +10,12 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 func TestApplyFlowChanges(t *testing.T) {
-	keeper, ctx := keepertest.PaymentKeeper(t)
+	keeper, ctx, _ := makePaymentKeeper(t)
 	ctx = ctx.WithBlockTime(time.Unix(100, 0))
 	user := sample.RandAccAddress()
 	rate := sdkmath.NewInt(100)
@@ -41,7 +41,7 @@ func TestApplyFlowChanges(t *testing.T) {
 }
 
 func TestSettleStreamRecord(t *testing.T) {
-	keeper, ctx := keepertest.PaymentKeeper(t)
+	keeper, ctx, _ := makePaymentKeeper(t)
 	ctx = ctx.WithBlockTime(time.Unix(100, 0))
 	user := sample.RandAccAddress()
 	rate := sdkmath.NewInt(-100)
@@ -87,7 +87,7 @@ func TestMergeStreamRecordChanges(t *testing.T) {
 		*types.NewDefaultStreamRecordChangeWithAddr(user1).WithRateChange(sdkmath.NewInt(100)).WithStaticBalanceChange(sdkmath.NewInt(1e10)),
 		*types.NewDefaultStreamRecordChangeWithAddr(user3).WithRateChange(sdkmath.NewInt(200)).WithStaticBalanceChange(sdkmath.NewInt(2e10)),
 	}
-	k, _ := keepertest.PaymentKeeper(t)
+	k, _, _ := makePaymentKeeper(t)
 	merged := k.MergeStreamRecordChanges(append(base, changes...))
 	t.Logf("merged: %+v", merged)
 	require.Equal(t, len(merged), 3)
@@ -99,7 +99,8 @@ func TestMergeStreamRecordChanges(t *testing.T) {
 }
 
 func TestAutoForceSettle(t *testing.T) {
-	keeper, ctx := keepertest.PaymentKeeper(t)
+	keeper, ctx, depKeepers := makePaymentKeeper(t)
+	t.Logf("depKeepers: %+v", depKeepers)
 	params := keeper.GetParams(ctx)
 	var startTime int64 = 100
 	ctx = ctx.WithBlockTime(time.Unix(startTime, 0))
@@ -142,6 +143,7 @@ func TestAutoForceSettle(t *testing.T) {
 	// 1 day pass
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(86400) * time.Second))
 	// update and deposit to user for extra 100s
+	depKeepers.AccountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).Return(false).AnyTimes()
 	userAddBalance := rate.MulRaw(100)
 	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userAddBalance)
 	ret, err := keeper.UpdateStreamRecordByAddr(ctx, change)

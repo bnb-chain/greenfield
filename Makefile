@@ -16,7 +16,7 @@ format:
 	bash scripts/format.sh
 
 tools:
-	curl https://get.ignite.com/cli! | bash
+	go install github.com/cosmos/gogoproto/protoc-gen-gocosmos
 
 proto-gen:
 	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  &&rm -rf github.com

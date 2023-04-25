@@ -28,22 +28,15 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
 	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	azk types.AuthzKeeper,
 
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      key,
 		memKey:        memKey,
-		paramstore:    ps,
 		accountKeeper: ak,
 		bankKeeper:    bk,
 		authzKeeper:   azk,

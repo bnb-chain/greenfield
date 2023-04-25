@@ -450,7 +450,6 @@ func New(
 		appCodec,
 		keys[spmoduletypes.StoreKey],
 		keys[spmoduletypes.MemStoreKey],
-		app.GetSubspace(spmoduletypes.ModuleName),
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.AuthzKeeper,
@@ -461,11 +460,12 @@ func New(
 		appCodec,
 		keys[paymentmoduletypes.StoreKey],
 		keys[paymentmoduletypes.MemStoreKey],
-		app.GetSubspace(paymentmoduletypes.ModuleName),
 
 		app.BankKeeper,
 		app.AccountKeeper,
 		app.SpKeeper,
+
+		authtypes.NewModuleAddress(paymentmoduletypes.ModuleName).String(),
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
 

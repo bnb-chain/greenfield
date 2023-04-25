@@ -7,23 +7,21 @@ import (
 	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
 	storetypes "cosmossdk.io/store/types"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
-	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 type (
 	Keeper struct {
-		cdc        codec.BinaryCodec
-		storeKey   storetypes.StoreKey
-		memKey     storetypes.StoreKey
-		paramstore paramtypes.Subspace
+		cdc      codec.BinaryCodec
+		storeKey storetypes.StoreKey
+		memKey   storetypes.StoreKey
 
 		bankKeeper    types.BankKeeper
 		accountKeeper types.AccountKeeper
 		spKeeper      types.SpKeeper
+		authority     string
 	}
 )
 
@@ -31,24 +29,19 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey,
 	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
 	spKeeper types.SpKeeper,
+	authority string,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
-
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      storeKey,
 		memKey:        memKey,
-		paramstore:    ps,
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
 		spKeeper:      spKeeper,
+		authority:     authority,
 	}
 }
 
@@ -85,4 +78,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amoun
 		return errors.Wrapf(err, "send coins from module to account failed")
 	}
 	return nil
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }

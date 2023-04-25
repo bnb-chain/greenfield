@@ -5,6 +5,7 @@ package greenfield.payment;
 import "cosmos/msg/v1/msg.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "greenfield/payment/params.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
 
@@ -12,11 +13,31 @@ option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // Msg defines the Msg service.
 service Msg {
+  // UpdateParams defines a governance operation for updating the x/payment module parameters.
+  // The authority is defined in the keeper.
+  //
+  // Since: cosmos-sdk 0.47
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
   rpc CreatePaymentAccount(MsgCreatePaymentAccount) returns (MsgCreatePaymentAccountResponse);
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc DisableRefund(MsgDisableRefund) returns (MsgDisableRefundResponse);
 }
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the x/payment parameters to update.
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
 
 message MsgCreatePaymentAccount {
   option (cosmos.msg.v1.signer) = "creator";

@@ -15,4 +15,5 @@ var (
 	ErrInsufficientBalance                = errorsmod.Register(ModuleName, 1206, "insufficient balance")
 	ErrReceiveAccountNotExist             = errorsmod.Register(ModuleName, 1207, "receive account not exist")
 	ErrInvalidStreamAccountStatus         = errorsmod.Register(ModuleName, 1208, "invalid stream account status")
+	ErrInvalidParams                      = errorsmod.Register(ModuleName, 1209, "invalid params")
 )
