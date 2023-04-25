@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -510,15 +508,15 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	res := s.SimulateTx(msgCreateObject, user)
 	s.T().Logf("res %v", res.Result)
 	// check EventFeePreview in simulation result
-	var feePreviewEvent *abci.Event
+	var feePreviewEventEmitted bool
 	events := res.Result.Events
 	for _, event := range events {
 		if event.Type == "bnbchain.greenfield.payment.EventFeePreview" {
 			s.T().Logf("event %v", event)
-			feePreviewEvent = &event
+			feePreviewEventEmitted = true
 		}
 	}
-	s.Require().NotNil(feePreviewEvent)
+	s.Require().True(feePreviewEventEmitted)
 	s.SendTxBlock(msgCreateObject, user)
 
 	// check lock balance
