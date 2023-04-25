@@ -1,7 +1,6 @@
 package storage_test
 
 import (
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"testing"
 
 	storetypes "cosmossdk.io/store/types"
@@ -9,6 +8,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/stretchr/testify/require"
 
