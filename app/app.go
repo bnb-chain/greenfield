@@ -465,7 +465,7 @@ func New(
 		app.AccountKeeper,
 		app.SpKeeper,
 
-		authtypes.NewModuleAddress(paymentmoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
 
