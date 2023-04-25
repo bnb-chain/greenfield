@@ -413,7 +413,8 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 		Actions: []types.ActionType{types.ACTION_CREATE_OBJECT},
 		Effect:  types.EFFECT_ALLOW,
 	}
-	expirationTime := time.Now().UTC()
+	// Add 5 seconds to the current time, because current BlockTime is later than the current time about 3 sec
+	expirationTime := time.Now().UTC().Add(5 * time.Second)
 	s.T().Logf("Time now: %s", expirationTime.String())
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),

@@ -90,7 +90,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
 		validator.String(),
-		"test", "test", "test", true,
+		"test", "test", "test", false,
 	)
 	s.Require().NoError(err)
 
@@ -127,8 +127,8 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	s.Require().NoError(err)
 
 	// 5. wait a voting period and confirm that the proposal success.
-	s.T().Logf("voting period %s", *queryVoteParamsResp.VotingParams.VotingPeriod)
-	time.Sleep(*queryVoteParamsResp.VotingParams.VotingPeriod)
+	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
