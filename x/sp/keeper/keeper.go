@@ -7,7 +7,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
@@ -16,31 +15,36 @@ type (
 	Keeper struct {
 		cdc           codec.BinaryCodec
 		storeKey      storetypes.StoreKey
-		memKey        storetypes.StoreKey
-		paramstore    paramtypes.Subspace
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
 		authzKeeper   types.AuthzKeeper
+
+		authority string
 	}
 )
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	key storetypes.StoreKey,
-	memKey storetypes.StoreKey,
 	ak types.AccountKeeper,
 	bk types.BankKeeper,
 	azk types.AuthzKeeper,
+	authority string,
 
 ) *Keeper {
+
 	return &Keeper{
 		cdc:           cdc,
 		storeKey:      key,
-		memKey:        memKey,
 		accountKeeper: ak,
 		bankKeeper:    bk,
 		authzKeeper:   azk,
+		authority:     authority,
 	}
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

@@ -10,6 +10,7 @@ import "google/protobuf/timestamp.proto";
 import "greenfield/common/wrapper.proto";
 import "greenfield/permission/common.proto";
 import "greenfield/storage/common.proto";
+import "greenfield/storage/params.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
@@ -41,6 +42,12 @@ service Msg {
   // basic operation of policy
   rpc PutPolicy(MsgPutPolicy) returns (MsgPutPolicyResponse);
   rpc DeletePolicy(MsgDeletePolicy) returns (MsgDeletePolicyResponse);
+
+  // UpdateParams defines a governance operation for updating the x/storage module parameters.
+  // The authority is defined in the keeper.
+  //
+  // Since: cosmos-sdk 0.47
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
   // this line is used by starport scaffolding # proto/tx/rpc
 }
 message MsgCreateBucket {
@@ -399,5 +406,22 @@ message MsgMirrorGroup {
 }
 
 message MsgMirrorGroupResponse {}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // params defines the x/storage parameters to update.
+  //
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message

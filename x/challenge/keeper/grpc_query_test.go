@@ -7,7 +7,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
@@ -21,23 +20,21 @@ import (
 
 func TestParamsQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
 	params := types.DefaultParams()
 	keeper.SetParams(ctx, params)
 
-	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})
+	response, err := keeper.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
 }
 
 func TestLatestAttestedChallengesQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
 	keeper.SetParams(ctx, types.DefaultParams())
 	keeper.AppendAttestChallengeId(ctx, 100)
 	keeper.AppendAttestChallengeId(ctx, 200)
 
-	response, err := keeper.LatestAttestedChallenges(wctx, &types.QueryLatestAttestedChallengesRequest{})
+	response, err := keeper.LatestAttestedChallenges(ctx, &types.QueryLatestAttestedChallengesRequest{})
 	require.NoError(t, err)
 	require.Equal(t, &types.QueryLatestAttestedChallengesResponse{ChallengeIds: []uint64{100, 200}}, response)
 }
@@ -71,8 +68,7 @@ func TestInturnAttestationSubmitterQuery(t *testing.T) {
 
 	keeper.SetParams(ctx, types.DefaultParams())
 
-	wctx := sdk.WrapSDKContext(ctx)
-	response, err := keeper.InturnAttestationSubmitter(wctx, &types.QueryInturnAttestationSubmitterRequest{})
+	response, err := keeper.InturnAttestationSubmitter(ctx, &types.QueryInturnAttestationSubmitterRequest{})
 	require.NoError(t, err)
 	require.Equal(t, hex.EncodeToString(blsKey), response.BlsPubKey)
 }

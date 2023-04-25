@@ -8,7 +8,7 @@ make build
 2. Creates all the configuration files
 ```bash
 # The argument <moniker> is the custom username of your node, it should be human-readable.
-./build/bin/gnfd init <moniker> --chain-id greenfield_9000-01 --default-denom BNB
+./build/bin/gnfd init <moniker> --chain-id greenfield_9000-1 --default-denom BNB
 ```
 
 All these configuration files are in ~/.gnfd by default, but you can overwrite the location of this folder by passing the --home flag.
@@ -55,11 +55,12 @@ BLS=$(./build/bin/gnfd keys show bls --keyring-backend test --output json | jq -
 5. Create validator in genesis state
 ```bash
 # create a gentx.
-./build/bin/gnfd gentx validator 10000000000000000000000000BNB $VALIDATOR $RELAYER $CHALLENGER $BLS --keyring-backend=test --chain-id=greenfield_9000-121 \
+./build/bin/gnfd gentx validator 10000000000000000000000000BNB $VALIDATOR $RELAYER $CHALLENGER $BLS --keyring-backend=test --chain-id=greenfield_9000-1 \
     --moniker="validator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=1.0 \
-    --commission-rate=0.07
+    --commission-rate=0.07 \
+    --gas ""
 
 # Add the gentx to the genesis file.
 ./build/bin/gnfd collect-gentxs

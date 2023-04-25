@@ -24,6 +24,8 @@ const (
 )
 
 var (
+	ParamsKey = []byte{0x01}
+
 	BucketPolicyForAccountPrefix = []byte{0x11}
 	ObjectPolicyForAccountPrefix = []byte{0x12}
 	GroupPolicyForAccountPrefix  = []byte{0x13}

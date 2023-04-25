@@ -7,14 +7,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-func TestGetSpStoragePriceByTime(t *testing.T) {
-	keeper, ctx := keepertest.SpKeeper(t)
-	ctx = ctx.WithBlockTime(time.Unix(100, 0))
+func (s *KeeperTestSuite) TestGetSpStoragePriceByTime() {
+	ctx := s.ctx.WithBlockTime(time.Unix(100, 0))
 	spAddr := sample.RandAccAddress()
 	spStoragePrice := types.SpStoragePrice{
 		SpAddress:     spAddr.String(),
@@ -22,14 +20,15 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 		ReadPrice:     sdk.NewDec(100),
 		StorePrice:    sdk.NewDec(100),
 	}
-	keeper.SetSpStoragePrice(ctx, spStoragePrice)
+	s.spKeeper.SetSpStoragePrice(ctx, spStoragePrice)
+	//keeper.SetSpStoragePrice(ctx, spStoragePrice)
 	spStoragePrice2 := types.SpStoragePrice{
 		SpAddress:     spAddr.String(),
 		UpdateTimeSec: 100,
 		ReadPrice:     sdk.NewDec(200),
 		StorePrice:    sdk.NewDec(200),
 	}
-	keeper.SetSpStoragePrice(ctx, spStoragePrice2)
+	s.spKeeper.SetSpStoragePrice(ctx, spStoragePrice2)
 	type args struct {
 		time int64
 	}
@@ -46,8 +45,8 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 		{"test 101", args{time: 101}, spStoragePrice2, false},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			gotVal, err := keeper.GetSpStoragePriceByTime(ctx, spAddr, tt.args.time)
+		s.T().Run(tt.name, func(t *testing.T) {
+			gotVal, err := s.spKeeper.GetSpStoragePriceByTime(ctx, spAddr, tt.args.time)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetSpStoragePriceByTime() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -57,10 +56,12 @@ func TestGetSpStoragePriceByTime(t *testing.T) {
 			}
 		})
 	}
+
 }
 
-func TestKeeper_GetSecondarySpStorePriceByTime(t *testing.T) {
-	keeper, ctx := keepertest.SpKeeper(t)
+func (s *KeeperTestSuite) TestGetSecondarySpStorePriceByTime() {
+	keeper := s.spKeeper
+	ctx := s.ctx
 	secondarySpStorePrice := types.SecondarySpStorePrice{
 		UpdateTimeSec: 1,
 		StorePrice:    sdk.NewDec(100),
@@ -87,7 +88,7 @@ func TestKeeper_GetSecondarySpStorePriceByTime(t *testing.T) {
 		{"test 101", args{time: 101}, secondarySpStorePrice2, false},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		s.T().Run(tt.name, func(t *testing.T) {
 			gotVal, err := keeper.GetSecondarySpStorePriceByTime(ctx, tt.args.time)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetSpStoragePriceByTime() error = %v, wantErr %v", err, tt.wantErr)

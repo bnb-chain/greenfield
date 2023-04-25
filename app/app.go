@@ -317,7 +317,7 @@ func New(
 	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
 		keys[crosschaintypes.StoreKey],
-		authtypes.NewModuleAddress(crosschaintypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	// set the BaseApp's parameter store
@@ -435,24 +435,24 @@ func New(
 		app.BankKeeper,
 		app.StakingKeeper,
 		app.CrossChainKeeper,
-		authtypes.NewModuleAddress(bridgemoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	bridgeModule := bridgemodule.NewAppModule(appCodec, app.BridgeKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.GashubKeeper = gashubkeeper.NewKeeper(
 		appCodec,
 		keys[gashubtypes.StoreKey],
-		authtypes.NewModuleAddress(gashubtypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	gashubModule := gashub.NewAppModule(app.GashubKeeper)
 
 	app.SpKeeper = *spmodulekeeper.NewKeeper(
 		appCodec,
 		keys[spmoduletypes.StoreKey],
-		keys[spmoduletypes.MemStoreKey],
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.AuthzKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -472,23 +472,20 @@ func New(
 	app.PermissionmoduleKeeper = *permissionmodulekeeper.NewKeeper(
 		appCodec,
 		keys[permissionmoduletypes.StoreKey],
-		keys[permissionmoduletypes.MemStoreKey],
-		app.GetSubspace(permissionmoduletypes.ModuleName),
-
 		app.AccountKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	permissionModule := permissionmodule.NewAppModule(appCodec, app.PermissionmoduleKeeper, app.AccountKeeper, app.BankKeeper)
 
 	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
 		appCodec,
 		keys[storagemoduletypes.StoreKey],
-		keys[storagemoduletypes.MemStoreKey],
-		app.GetSubspace(storagemoduletypes.ModuleName),
 		app.AccountKeeper,
 		app.SpKeeper,
 		app.PaymentKeeper,
 		app.PermissionmoduleKeeper,
 		app.CrossChainKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 
@@ -501,7 +498,7 @@ func New(
 		app.SpKeeper,
 		app.StakingKeeper,
 		app.PaymentKeeper,
-		authtypes.NewModuleAddress(challengemoduletypes.ModuleName).String(),
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 
@@ -673,6 +670,9 @@ func New(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
+
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	app.RegisterUpgradeHandlers(app.ChainID(), &app.appConfig.Config)
 
 	ms := app.CommitMultiStore()
 	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
