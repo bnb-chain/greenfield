@@ -113,11 +113,13 @@ func SpKeeper(t testing.TB) (*keeper.Keeper, sdk.Context) {
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
+	err := k.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, err)
 
-	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	err = accountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	require.NoError(t, err)
 
-	err := bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
+	err = bankKeeper.MintCoins(ctx, authtypes.FeeCollectorName, sdk.Coins{sdk.Coin{
 		Denom:  "stake",
 		Amount: sdk.NewInt(1000000000),
 	}})

@@ -7,7 +7,6 @@ import (
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	auth "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankexported "github.com/cosmos/cosmos-sdk/x/bank/exported"
 )
 
@@ -36,7 +35,7 @@ type GenesisAccountsIterator interface {
 	IterateGenesisAccounts(
 		cdc *codec.LegacyAmino,
 		appGenesis map[string]json.RawMessage,
-		cb func(auth.AccountI) (stop bool),
+		cb func(sdk.AccountI) (stop bool),
 	)
 }
 

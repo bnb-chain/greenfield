@@ -164,17 +164,21 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
 
 	// Initialize params
-	k.SetParams(ctx, types.DefaultParams())
-	accountKeeper.SetParams(ctx, authtypes.DefaultParams())
-	spKeeper.SetParams(ctx, sptypes.DefaultParams())
-	paymentKeeper.SetParams(ctx, paymentmoduletypes.DefaultParams())
+	err := k.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, err)
+	err = accountKeeper.SetParams(ctx, authtypes.DefaultParams())
+	require.NoError(t, err)
+	err = spKeeper.SetParams(ctx, sptypes.DefaultParams())
+	require.NoError(t, err)
+	err = paymentKeeper.SetParams(ctx, paymentmoduletypes.DefaultParams())
+	require.NoError(t, err)
 
 	// Initialize module accounts
 	paymentModulePool := accountKeeper.GetModuleAccount(ctx, paymentmoduletypes.ModuleName)
 	accountKeeper.SetModuleAccount(ctx, paymentModulePool)
 
 	amount := sdk.NewIntFromUint64(1e19)
-	err := bankKeeper.MintCoins(ctx, authtypes.Minter, sdk.Coins{sdk.Coin{
+	err = bankKeeper.MintCoins(ctx, authtypes.Minter, sdk.Coins{sdk.Coin{
 		Denom:  "BNB",
 		Amount: amount,
 	}})

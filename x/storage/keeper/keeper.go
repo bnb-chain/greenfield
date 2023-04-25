@@ -11,7 +11,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
@@ -24,8 +23,6 @@ type (
 	Keeper struct {
 		cdc              codec.BinaryCodec
 		storeKey         storetypes.StoreKey
-		memKey           storetypes.StoreKey
-		paramStore       paramtypes.Subspace
 		spKeeper         types.SpKeeper
 		paymentKeeper    types.PaymentKeeper
 		accountKeeper    types.AccountKeeper
