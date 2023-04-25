@@ -158,3 +158,11 @@ message Ids {
     (gogoproto.nullable) = false
   ];
 }
+
+
+message DeleteInfo {
+  Ids bucket_ids = 1;
+  Ids object_ids = 2;
+  Ids group_ids = 3;
+}
+

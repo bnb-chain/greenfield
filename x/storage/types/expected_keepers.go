@@ -64,6 +64,9 @@ type PermissionKeeper interface {
 		groupID math.Uint) (policy *permtypes.Policy, isFound bool)
 	GetGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*permtypes.GroupMember, bool)
 	GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*permtypes.GroupMember, bool)
+	ForceDeleteAccountPolicyForResource(ctx sdk.Context, resourceType resource.ResourceType, resourceID math.Uint)
+	ForceDeleteGroupPolicyForResource(ctx sdk.Context, resourceType resource.ResourceType, resourceID math.Uint)
+	ForceDeleteGroupMembers(ctx sdk.Context, groupId math.Uint)
 }
 
 type CrossChainKeeper interface {

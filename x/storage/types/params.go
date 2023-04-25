@@ -22,6 +22,7 @@ const (
 	DefaultDiscontinueBucketMax      uint64 = math.MaxUint64
 	DefaultDiscontinueConfirmPeriod  int64  = 604800 // 7 days (in second)
 	DefaultDiscontinueDeletionMax    uint64 = 10000
+	DefaultStalePoliesCleanupMax     uint64 = 200
 
 	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025
 	DefaultMirrorBucketAckRelayerFee = "250000000000000" // 0.00025
@@ -43,7 +44,7 @@ var (
 	KeyDiscontinueBucketMax      = []byte("DiscontinueBucketMax")
 	KeyDiscontinueConfirmPeriod  = []byte("DiscontinueConfirmPeriod")
 	KeyDiscontinueDeletionMax    = []byte("DiscontinueDeletionMax")
-
+	KeyStalePoliesCleanupMax     = []byte("StalePoliesCleanupMax")
 	KeyMirrorBucketRelayerFee    = []byte("MirrorBucketRelayerFee")
 	KeyMirrorBucketAckRelayerFee = []byte("MirrorBucketAckRelayerFee")
 	KeyMirrorObjectRelayerFee    = []byte("MirrorObjectRelayerFee")
@@ -69,6 +70,7 @@ func NewParams(
 	discontinueCountingWindow, discontinueObjectMax, discontinueBucketMax uint64,
 	discontinueConfirmPeriod int64,
 	discontinueDeletionMax uint64,
+	stalePoliesCleanupMax uint64,
 ) Params {
 	return Params{
 		MaxSegmentSize:            maxSegmentSize,
@@ -88,6 +90,7 @@ func NewParams(
 		DiscontinueBucketMax:      discontinueBucketMax,
 		DiscontinueConfirmPeriod:  discontinueConfirmPeriod,
 		DiscontinueDeletionMax:    discontinueDeletionMax,
+		StalePoliesCleanupMax:     stalePoliesCleanupMax,
 	}
 }
 
@@ -100,7 +103,7 @@ func DefaultParams() Params {
 		DefaultMirrorObjectRelayerFee, DefaultMirrorObjectAckRelayerFee,
 		DefaultMirrorGroupRelayerFee, DefaultMirrorGroupAckRelayerFee,
 		DefaultDiscontinueCountingWindow, DefaultDiscontinueObjectMax, DefaultDiscontinueBucketMax,
-		DefaultDiscontinueConfirmPeriod, DefaultDiscontinueDeletionMax,
+		DefaultDiscontinueConfirmPeriod, DefaultDiscontinueDeletionMax, DefaultStalePoliesCleanupMax,
 	)
 }
 

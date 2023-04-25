@@ -41,7 +41,7 @@ var (
 	GroupMemberSequencePrefix = []byte{0x42}
 )
 
-func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
+func PolicyForAccountPrefix(resourceID math.Uint, resourceType resource.ResourceType) []byte {
 	var key []byte
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
@@ -54,6 +54,11 @@ func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.Resource
 		panic(fmt.Sprintf("GetPolicyForAccountKey Invalid Resource Type, %s", resourceType.String()))
 	}
 	key = append(key, resourceID.Bytes()...)
+	return key
+}
+
+func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
+	key := PolicyForAccountPrefix(resourceID, resourceType)
 	key = append(key, addr.Bytes()...)
 	return key
 }
@@ -76,9 +81,14 @@ func GetPolicyByIDKey(policyID math.Uint) []byte {
 	return append(PolicyByIDPrefix, policyID.Bytes()...)
 }
 
+func GetGroupMembersKey(groupID math.Uint) []byte {
+	return append(GroupMemberPrefix, groupID.Bytes()...)
+}
+
 func GetGroupMemberKey(groupID math.Uint, member sdk.AccAddress) []byte {
 	return append(GroupMemberPrefix, append(groupID.Bytes(), member.Bytes()...)...)
 }
+
 func GetGroupMemberByIDKey(memberID math.Uint) []byte {
 	return append(GroupMemberByIDPrefix, memberID.Bytes()...)
 }

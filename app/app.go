@@ -288,7 +288,7 @@ func New(
 		storagemoduletypes.StoreKey,
 		challengemoduletypes.StoreKey,
 	)
-	tKeys := storetypes.NewTransientStoreKeys(challengemoduletypes.TStoreKey)
+	tKeys := storetypes.NewTransientStoreKeys(challengemoduletypes.TStoreKey, storagemoduletypes.TStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys(challengemoduletypes.MemStoreKey)
 
 	app := &App{
@@ -467,6 +467,7 @@ func New(
 	app.StorageKeeper = *storagemodulekeeper.NewKeeper(
 		appCodec,
 		keys[storagemoduletypes.StoreKey],
+		tKeys[storagemoduletypes.TStoreKey],
 		app.AccountKeeper,
 		app.SpKeeper,
 		app.PaymentKeeper,

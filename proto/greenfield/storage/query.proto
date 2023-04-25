@@ -102,6 +102,11 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/policy_for_group/{resource}/{principal_group_id}";
   }
 
+  // Queries a policy by policy id
+  rpc QueryPolicyById(QueryPolicyByIdRequest) returns (QueryPolicyByIdResponse) {
+    option (google.api.http).get = "/greenfield/storage/policy_by_id/{policy_id}";
+  }
+
   // this line is used by starport scaffolding # 2
 }
 
@@ -234,6 +239,14 @@ message QueryPolicyForGroupRequest {
 }
 
 message QueryPolicyForGroupResponse {
+  permission.Policy policy = 1;
+}
+
+message QueryPolicyByIdRequest {
+  string policy_id = 1;
+}
+
+message QueryPolicyByIdResponse {
   permission.Policy policy = 1;
 }
 

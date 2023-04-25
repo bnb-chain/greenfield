@@ -41,4 +41,7 @@ var (
 	ErrBucketDiscontinued  = errors.Register(ModuleName, 3104, "the bucket is discontinued")
 	ErrInvalidObjectStatus = errors.Register(ModuleName, 3105, "invalid object status")
 	ErrInvalidBucketStatus = errors.Register(ModuleName, 3106, "invalid bucket status")
+
+	ErrKeyNotExist     = errors.Register(ModuleName, 3201, "DeletePermissionKey not exist")
+	ErrInvalidResource = errors.Register(ModuleName, 3202, "invalid resource type")
 )

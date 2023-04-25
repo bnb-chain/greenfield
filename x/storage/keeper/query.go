@@ -408,3 +408,17 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	}
 	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
 }
+
+func (k Keeper) QueryPolicyById(goCtx context.Context, req *types.QueryPolicyByIdRequest) (*types.
+	QueryPolicyByIdResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	policyId, err := math.ParseUint(req.PolicyId)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid policy id")
+	}
+	policy, found := k.permKeeper.GetPolicyByID(ctx, policyId)
+	if !found {
+		return nil, types.ErrNoSuchPolicy
+	}
+	return &types.QueryPolicyByIdResponse{Policy: policy}, nil
+}

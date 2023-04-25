@@ -79,6 +79,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	memStoreKey := storetypes.NewMemoryStoreKey(types.MemStoreKey)
 
 	storeKey := storetypes.NewKVStoreKey(types.StoreKey)
+	tStorekey := storetypes.NewTransientStoreKey(types.TStoreKey)
 
 	db := tmdb.NewMemDB()
 	stateStore := store.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NoOpMetrics{})
@@ -153,6 +154,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	k := keeper.NewKeeper(
 		cdc,
 		storeKey,
+		tStorekey,
 		accountKeeper,
 		spKeeper,
 		paymentKeeper,

@@ -600,3 +600,39 @@ func (mr *MockCrossChainKeeperMockRecorder) RegisterChannel(name, id, app interf
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RegisterChannel", reflect.TypeOf((*MockCrossChainKeeper)(nil).RegisterChannel), name, id, app)
 }
+
+// ForceDeleteAccountPolicyForResource mocks base method.
+func (m *MockPermissionKeeper) ForceDeleteAccountPolicyForResource(ctx types2.Context, resourceType resource.ResourceType, resourceID math.Uint) {
+	m.ctrl.T.Helper()
+	_ = m.ctrl.Call(m, "ForceDeleteAccountPolicyForResource", ctx, resourceType, resourceID)
+}
+
+// ForceDeleteAccountPolicyForResource indicates an expected call of ForceDeleteAccountPolicyForResource.
+func (mr *MockPermissionKeeperMockRecorder) ForceDeletePolicyForResource(ctx, resourceType, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteAccountPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).DeletePolicy), ctx, resourceType, resourceID)
+}
+
+// ForceDeleteGroupPolicyForResource mocks base method.
+func (m *MockPermissionKeeper) ForceDeleteGroupPolicyForResource(ctx types2.Context, resourceType resource.ResourceType, resourceID math.Uint) {
+	m.ctrl.T.Helper()
+	_ = m.ctrl.Call(m, "ForceDeleteGroupPolicyForResource", ctx, resourceType, resourceID)
+}
+
+// ForceDeleteGroupPolicyForResource indicates an expected call of ForceDeleteGroupPolicyForResource.
+func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupPolicyForResource(ctx, resourceType, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).DeletePolicy), ctx, resourceType, resourceID)
+}
+
+// ForceDeleteGroupMembers mocks base method.
+func (m *MockPermissionKeeper) ForceDeleteGroupMembers(ctx types2.Context, groupId math.Uint) {
+	m.ctrl.T.Helper()
+	_ = m.ctrl.Call(m, "ForceDeleteGroupMembers", ctx, groupId)
+}
+
+// ForceDeleteGroupMembers indicates an expected call of ForceDeleteGroupMembers.
+func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupMembers(ctx, groupId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupMembers", reflect.TypeOf((*MockPermissionKeeper)(nil).DeletePolicy), ctx, groupId)
+}
