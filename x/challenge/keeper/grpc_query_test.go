@@ -50,7 +50,7 @@ func TestInturnAttestationSubmitterQuery(t *testing.T) {
 	blsKey := []byte("blskey")
 	historicalInfo := stakingtypes.HistoricalInfo{
 		Header: tmproto.Header{},
-		Valset: []stakingtypes.Validator{stakingtypes.Validator{BlsKey: blsKey}},
+		Valset: []stakingtypes.Validator{{BlsKey: blsKey}},
 	}
 	stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).Return(historicalInfo, true).AnyTimes()
 

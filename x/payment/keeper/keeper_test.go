@@ -1,6 +1,8 @@
 package keeper_test
 
 import (
+	"testing"
+
 	storetypes "cosmossdk.io/store/types"
 	"github.com/bnb-chain/greenfield/x/payment"
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
@@ -10,7 +12,6 @@ import (
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang/mock/gomock"
-	"testing"
 )
 
 type DepKeepers struct {

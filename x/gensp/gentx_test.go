@@ -4,10 +4,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	"math/rand"
 	"testing"
 	"time"
+
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 
 	"cosmossdk.io/math"
 	"github.com/prysmaticlabs/prysm/crypto/bls"

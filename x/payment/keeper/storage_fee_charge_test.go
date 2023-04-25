@@ -1,10 +1,11 @@
 package keeper_test
 
 import (
-	"github.com/golang/mock/gomock"
 	"sort"
 	"testing"
 	"time"
+
+	"github.com/golang/mock/gomock"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
