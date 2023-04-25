@@ -511,7 +511,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	var feePreviewEventEmitted bool
 	events := res.Result.Events
 	for _, event := range events {
-		if event.Type == "bnbchain.greenfield.payment.EventFeePreview" {
+		if event.Type == "greenfield.payment.EventFeePreview" {
 			s.T().Logf("event %v", event)
 			feePreviewEventEmitted = true
 		}
