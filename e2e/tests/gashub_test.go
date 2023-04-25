@@ -35,12 +35,15 @@ func (s *GashubTestSuite) TestUpdateParams() {
 	// 1. submit MsgUpdateMsgGasParams
 	typeUrl := sdk.MsgTypeURL(&banktypes.MsgSend{})
 	msgSendGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1e6)
-	msgUpdateGasParams := gashubtypes.NewMsgUpdateMsgGasParams(authtypes.NewModuleAddress(gov.ModuleName), []*gashubtypes.MsgGasParams{msgSendGasParams})
+	msgUpdateGasParams := gashubtypes.NewMsgSetMsgGasParams(authtypes.NewModuleAddress(gov.ModuleName).String(), []*gashubtypes.MsgGasParams{msgSendGasParams}, nil)
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgUpdateGasParams},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
 		validator.String(),
 		"test",
+		"update gas params",
+		"pdate gas params",
+		false,
 	)
 	s.Require().NoError(err)
 
@@ -83,11 +86,11 @@ func (s *GashubTestSuite) TestUpdateParams() {
 	}
 
 	// 4. query new gas params
-	queryRequest := &gashubtypes.QueryParamsRequest{}
-	queryRes, err := s.Client.GashubQueryClient.Params(ctx, queryRequest)
+	queryRequest := &gashubtypes.QueryMsgGasParamsRequest{}
+	queryRes, err := s.Client.GashubQueryClient.MsgGasParams(ctx, queryRequest)
 	s.Require().NoError(err)
 
-	for _, params := range queryRes.GetParams().MsgGasParamsSet {
+	for _, params := range queryRes.GetMsgGasParams() {
 		if params.MsgTypeUrl == typeUrl {
 			s.Require().True(params.GetFixedType().Equal(msgSendGasParams.GetFixedType()))
 		}
