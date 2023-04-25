@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/runtime"
 	"testing"
+
+	"github.com/cosmos/cosmos-sdk/runtime"
 
 	"cosmossdk.io/log"
 	"cosmossdk.io/store"
@@ -129,7 +130,6 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	paymentKeeper := paymentmodulekeeper.NewKeeper(
 		cdc,
 		storeKeys[paymentmoduletypes.StoreKey],
-		storeKeys[paymentmoduletypes.MemStoreKey],
 
 		bankKeeper,
 		accountKeeper,

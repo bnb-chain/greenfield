@@ -459,7 +459,6 @@ func New(
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
 		keys[paymentmoduletypes.StoreKey],
-		keys[paymentmoduletypes.MemStoreKey],
 
 		app.BankKeeper,
 		app.AccountKeeper,

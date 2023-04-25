@@ -32,7 +32,6 @@ func makePaymentKeeper(t *testing.T) (*keeper.Keeper, sdk.Context, DepKeepers) {
 	k := keeper.NewKeeper(
 		encCfg.Codec,
 		key,
-		key,
 		bankKeeper,
 		accountKeeper,
 		spKeeper,
