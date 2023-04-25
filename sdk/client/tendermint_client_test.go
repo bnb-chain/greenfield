@@ -6,7 +6,6 @@ import (
 
 	"github.com/cometbft/cometbft/types"
 	"github.com/stretchr/testify/assert"
-
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/sdk/client/test"

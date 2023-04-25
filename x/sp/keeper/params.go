@@ -8,30 +8,41 @@ import (
 )
 
 func (k Keeper) DepositDenomForSP(ctx sdk.Context) (res string) {
-	k.paramstore.Get(ctx, types.KeyDepostDenom, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.DepositDenom
 }
 
 func (k Keeper) MinDeposit(ctx sdk.Context) (res math.Int) {
-	k.paramstore.Get(ctx, types.KeyMinDeposit, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.MinDeposit
 }
 
 func (k Keeper) SecondarySpStorePriceRatio(ctx sdk.Context) (res sdk.Dec) {
-	k.paramstore.Get(ctx, types.KeySecondarySpStorePriceRatio, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.SecondarySpStorePriceRatio
 }
 
-// GetParams get all parameters as types.Params
-func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(
-		k.DepositDenomForSP(ctx),
-		k.MinDeposit(ctx),
-		k.SecondarySpStorePriceRatio(ctx),
-	)
+// GetParams returns the current sp module parameters.
+func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
 }
 
-// SetParams set the params
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramstore.SetParamSet(ctx, &params)
+// SetParams sets the params of sp module
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }

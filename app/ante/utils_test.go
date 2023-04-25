@@ -13,12 +13,6 @@ import (
 	storetypes "cosmossdk.io/store/types"
 	evtypes "cosmossdk.io/x/evidence/types"
 	"cosmossdk.io/x/feegrant"
-	"github.com/bnb-chain/greenfield/app"
-	"github.com/bnb-chain/greenfield/app/ante"
-	"github.com/bnb-chain/greenfield/app/params"
-	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/client/test"
-	"github.com/bnb-chain/greenfield/sdk/keys"
 	abci "github.com/cometbft/cometbft/abci/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -43,6 +37,13 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/app"
+	"github.com/bnb-chain/greenfield/app/ante"
+	"github.com/bnb-chain/greenfield/app/params"
+	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/client/test"
+	"github.com/bnb-chain/greenfield/sdk/keys"
 )
 
 type AnteTestSuite struct {

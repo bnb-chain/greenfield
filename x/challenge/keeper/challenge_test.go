@@ -5,15 +5,14 @@ import (
 	"testing"
 
 	storetypes "cosmossdk.io/store/types"
-	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/mint"
-
 	"github.com/stretchr/testify/require"
 
+	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 )
 

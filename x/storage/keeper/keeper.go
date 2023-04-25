@@ -36,41 +36,41 @@ type (
 		bucketSeq sequence.U256
 		objectSeq sequence.U256
 		groupSeq  sequence.U256
+
+		authority string
 	}
 )
 
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey,
-	memKey storetypes.StoreKey,
-	ps paramtypes.Subspace,
+	storeKey storetypes.StoreKey,
 	accountKeeper types.AccountKeeper,
 	spKeeper types.SpKeeper,
 	paymentKeeper types.PaymentKeeper,
 	permKeeper types.PermissionKeeper,
 	crossChainKeeper types.CrossChainKeeper,
+	authority string,
 ) *Keeper {
-	// set KeyTable if it has not already been set
-	if !ps.HasKeyTable() {
-		ps = ps.WithKeyTable(types.ParamKeyTable())
-	}
 
 	k := Keeper{
 		cdc:              cdc,
 		storeKey:         storeKey,
-		memKey:           memKey,
-		paramStore:       ps,
 		accountKeeper:    accountKeeper,
 		spKeeper:         spKeeper,
 		paymentKeeper:    paymentKeeper,
 		permKeeper:       permKeeper,
 		crossChainKeeper: crossChainKeeper,
+		authority:        authority,
 	}
 
 	k.bucketSeq = sequence.NewSequence256(types.BucketSequencePrefix)
 	k.objectSeq = sequence.NewSequence256(types.ObjectSequencePrefix)
 	k.groupSeq = sequence.NewSequence256(types.GroupSequencePrefix)
 	return &k
+}
+
+func (k Keeper) GetAuthority() string {
+	return k.authority
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {

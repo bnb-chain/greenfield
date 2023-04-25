@@ -10,23 +10,23 @@ import (
 )
 
 func (k Keeper) MaxSegmentSize(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyMaxSegmentSize, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.MaxSegmentSize
 }
 
 func (k Keeper) RedundantDataChunkNum(ctx sdk.Context) (res uint32) {
-	k.paramStore.Get(ctx, types.KeyRedundantDataChunkNum, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.RedundantDataChunkNum
 }
 
 func (k Keeper) RedundantParityChunkNum(ctx sdk.Context) (res uint32) {
-	k.paramStore.Get(ctx, types.KeyRedundantParityChunkNum, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.RedundantParityChunkNum
 }
 
 func (k Keeper) MaxBucketsPerAccount(ctx sdk.Context) (res uint32) {
-	k.paramStore.Get(ctx, types.KeyMaxBucketsPerAccount, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.MaxBucketsPerAccount
 }
 
 func (k Keeper) GetExpectSecondarySPNumForECObject(ctx sdk.Context) (res uint32) {
@@ -34,19 +34,18 @@ func (k Keeper) GetExpectSecondarySPNumForECObject(ctx sdk.Context) (res uint32)
 }
 
 func (k Keeper) MaxPayloadSize(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyMaxPayloadSize, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.MaxPayloadSize
 }
 
 func (k Keeper) MinChargeSize(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyMinChargeSize, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.MinChargeSize
 }
 
 func (k Keeper) MirrorBucketRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
-
-	k.paramStore.Get(ctx, types.KeyMirrorBucketRelayerFee, &relayerFeeParam)
+	params := k.GetParams(ctx)
+	relayerFeeParam := params.MirrorBucketRelayerFee
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -56,9 +55,9 @@ func (k Keeper) MirrorBucketRelayerFee(ctx sdk.Context) *big.Int {
 }
 
 func (k Keeper) MirrorBucketAckRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
+	params := k.GetParams(ctx)
+	relayerFeeParam := params.MirrorBucketAckRelayerFee
 
-	k.paramStore.Get(ctx, types.KeyMirrorBucketAckRelayerFee, &relayerFeeParam)
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -68,9 +67,9 @@ func (k Keeper) MirrorBucketAckRelayerFee(ctx sdk.Context) *big.Int {
 }
 
 func (k Keeper) MirrorObjectRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
+	params := k.GetParams(ctx)
+	relayerFeeParam := params.MirrorObjectRelayerFee
 
-	k.paramStore.Get(ctx, types.KeyMirrorObjectRelayerFee, &relayerFeeParam)
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -80,9 +79,9 @@ func (k Keeper) MirrorObjectRelayerFee(ctx sdk.Context) *big.Int {
 }
 
 func (k Keeper) MirrorObjectAckRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
+	params := k.GetParams(ctx)
+	relayerFeeParam := params.MirrorObjectAckRelayerFee
 
-	k.paramStore.Get(ctx, types.KeyMirrorObjectAckRelayerFee, &relayerFeeParam)
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -92,9 +91,9 @@ func (k Keeper) MirrorObjectAckRelayerFee(ctx sdk.Context) *big.Int {
 }
 
 func (k Keeper) MirrorGroupRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
+	params := k.GetParams(ctx)
+	relayerFeeParam := params.MirrorGroupRelayerFee
 
-	k.paramStore.Get(ctx, types.KeyMirrorGroupRelayerFee, &relayerFeeParam)
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -104,9 +103,9 @@ func (k Keeper) MirrorGroupRelayerFee(ctx sdk.Context) *big.Int {
 }
 
 func (k Keeper) MirrorGroupAckRelayerFee(ctx sdk.Context) *big.Int {
-	var relayerFeeParam string
+	params := k.GetParams(ctx)
+	relayerFeeParam := params.MirrorGroupAckRelayerFee
 
-	k.paramStore.Get(ctx, types.KeyMirrorGroupAckRelayerFee, &relayerFeeParam)
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -116,54 +115,51 @@ func (k Keeper) MirrorGroupAckRelayerFee(ctx sdk.Context) *big.Int {
 }
 
 func (k Keeper) DiscontinueCountingWindow(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyDiscontinueCountingWindow, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.DiscontinueCountingWindow
 }
 
 func (k Keeper) DiscontinueObjectMax(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyDiscontinueObjectMax, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.DiscontinueObjectMax
 }
 
 func (k Keeper) DiscontinueBucketMax(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyDiscontinueBucketMax, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.DiscontinueBucketMax
 }
 
 func (k Keeper) DiscontinueConfirmPeriod(ctx sdk.Context) (res int64) {
-	k.paramStore.Get(ctx, types.KeyDiscontinueConfirmPeriod, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.DiscontinueConfirmPeriod
 }
 
 func (k Keeper) DiscontinueDeletionMax(ctx sdk.Context) (res uint64) {
-	k.paramStore.Get(ctx, types.KeyDiscontinueDeletionMax, &res)
-	return
+	params := k.GetParams(ctx)
+	return params.DiscontinueDeletionMax
 }
 
-// GetParams get all parameters as types.Params
-func (k Keeper) GetParams(ctx sdk.Context) types.Params {
-	return types.NewParams(
-		k.MaxSegmentSize(ctx),
-		k.RedundantDataChunkNum(ctx),
-		k.RedundantParityChunkNum(ctx),
-		k.MaxPayloadSize(ctx),
-		k.MaxBucketsPerAccount(ctx),
-		k.MinChargeSize(ctx),
-		k.MirrorBucketRelayerFee(ctx).String(),
-		k.MirrorBucketAckRelayerFee(ctx).String(),
-		k.MirrorObjectRelayerFee(ctx).String(),
-		k.MirrorObjectAckRelayerFee(ctx).String(),
-		k.MirrorGroupRelayerFee(ctx).String(),
-		k.MirrorGroupAckRelayerFee(ctx).String(),
-		k.DiscontinueCountingWindow(ctx),
-		k.DiscontinueObjectMax(ctx),
-		k.DiscontinueBucketMax(ctx),
-		k.DiscontinueConfirmPeriod(ctx),
-		k.DiscontinueDeletionMax(ctx),
-	)
+// GetParams returns the current storage module parameters.
+func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
 }
 
-// SetParams set the params
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramStore.SetParamSet(ctx, &params)
+// SetParams sets the params of storage module
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }

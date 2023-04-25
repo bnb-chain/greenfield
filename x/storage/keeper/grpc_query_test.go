@@ -1,4 +1,4 @@
-package storage_test
+package keeper_test
 
 import (
 	"testing"
@@ -12,8 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/mint"
 	"github.com/stretchr/testify/require"
 
-	"github.com/bnb-chain/greenfield/testutil/nullify"
-	"github.com/bnb-chain/greenfield/x/storage"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -37,20 +35,13 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 	return k, testCtx.Ctx
 }
 
-func TestGenesis(t *testing.T) {
-	genesisState := types.GenesisState{
-		Params: types.DefaultParams(),
+func TestParamsQuery(t *testing.T) {
+	keeper, ctx := makeKeeper(t)
+	wctx := sdk.WrapSDKContext(ctx)
+	params := types.DefaultParams()
+	keeper.SetParams(ctx, params)
 
-		// this line is used by starport scaffolding # genesis/test/state
-	}
-
-	k, ctx := makeKeeper(t)
-	storage.InitGenesis(ctx, *k, genesisState)
-	got := storage.ExportGenesis(ctx, *k)
-	require.NotNil(t, got)
-
-	nullify.Fill(&genesisState)
-	nullify.Fill(got)
-
-	// this line is used by starport scaffolding # genesis/test/assert
+	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
 }
