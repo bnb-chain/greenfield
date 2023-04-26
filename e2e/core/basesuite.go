@@ -185,7 +185,7 @@ func (s *BaseSuite) WaitForNextBlock() error {
 }
 
 func (s *BaseSuite) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, error) {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
 	timeout := time.NewTimer(t)
@@ -211,7 +211,7 @@ func (s *BaseSuite) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, e
 }
 
 func (s *BaseSuite) LatestHeight() (int64, error) {
-	ticker := time.NewTicker(time.Second)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
 	timeout := time.NewTimer(time.Second * 5)
