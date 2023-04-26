@@ -301,7 +301,7 @@ func (k Keeper) VerifyPermission(goCtx context.Context, req *types.QueryVerifyPe
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operator, err := sdk.AccAddressFromHexUnsafe(req.Operator)
-	if err != nil {
+	if err != nil && err != sdk.ErrEmptyHexAddress {
 		return nil, errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
 	}
 
