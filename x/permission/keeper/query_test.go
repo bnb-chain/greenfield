@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/x/permission/types"
@@ -11,11 +10,11 @@ import (
 
 func TestParamsQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
-	wctx := sdk.WrapSDKContext(ctx)
 	params := types.DefaultParams()
-	keeper.SetParams(ctx, params)
+	err := keeper.SetParams(ctx, params)
+	require.NoError(t, err)
 
-	response, err := keeper.Params(wctx, &types.QueryParamsRequest{})
+	response, err := keeper.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
 }

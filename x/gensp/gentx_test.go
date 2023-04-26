@@ -4,10 +4,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 	"math/rand"
 	"testing"
 	"time"
+
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 
 	"cosmossdk.io/math"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
@@ -326,7 +327,7 @@ func (suite *GenTxTestSuite) TestDeliverGenTxs() {
 
 			if tc.expPass {
 				suite.Require().NotPanics(func() {
-					gensp.DeliverGenTxs(
+					_, _ = gensp.DeliverGenTxs(
 						suite.ctx, genTxs, suite.stakingKeeper, tc.deliverTxFn,
 						suite.encodingConfig.TxConfig,
 					)

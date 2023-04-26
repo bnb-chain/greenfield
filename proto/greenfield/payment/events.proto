@@ -97,3 +97,22 @@ message EventWithdraw {
     (gogoproto.nullable) = false
   ];
 }
+
+enum FeePreviewType {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  FEE_PREVIEW_TYPE_PRELOCKED_FEE = 0;
+  FEE_PREVIEW_TYPE_UNLOCKED_FEE = 1;
+}
+
+// emit when upload/cancel/delete object, used for frontend to preview the fee changed
+// only emit in tx simulation
+message EventFeePreview {
+  string account = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  FeePreviewType fee_preview_type = 2;
+  string amount = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+}

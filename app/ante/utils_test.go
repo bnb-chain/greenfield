@@ -67,7 +67,8 @@ func (suite *AnteTestSuite) SetupTest() {
 	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, sdk.OneInt()))) // set to 1 stake
 
 	infCtx := suite.ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
-	suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	err := suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
+	suite.Require().NoError(err)
 
 	suite.clientCtx = client.Context{}.WithTxConfig(encCfg.TxConfig)
 

@@ -12,6 +12,14 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
+func (k Keeper) GetFundingAddressBySpAddr(ctx sdk.Context, spAddr sdk.AccAddress) (string, error) {
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spAddr)
+	if !found {
+		return "", fmt.Errorf("storage provider %s not found", spAddr)
+	}
+	return sp.FundingAddress, nil
+}
+
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
 	if bucketInfo.ChargedReadQuota == 0 {
 		return nil
@@ -54,11 +62,18 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 }
 
 func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	if ctx.IsCheckTx() {
+		_ = ctx.EventManager().EmitTypedEvents(&types.EventFeePreview{
+			Account:        paymentAddr.String(),
+			FeePreviewType: types.FEE_PREVIEW_TYPE_PRELOCKED_FEE,
+			Amount:         amount,
+		})
+	}
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
@@ -147,13 +162,17 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
+	primarySpFundingAddr, err := k.GetFundingAddressBySpAddr(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress))
+	if err != nil {
+		return userFlows, fmt.Errorf("get funding address by sp address failed: %w, sp: %s", err, bucketInfo.PrimarySpAddress)
+	}
 	totalUserOutRate := sdkmath.ZeroInt()
 	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
 	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
 	if primarySpRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: bucketInfo.PrimarySpAddress,
+			ToAddress: primarySpFundingAddr,
 			Rate:      primarySpRate,
 		})
 		totalUserOutRate = totalUserOutRate.Add(primarySpRate)
@@ -163,8 +182,12 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		if rate.IsZero() {
 			continue
 		}
+		spFundingAddr, err := k.GetFundingAddressBySpAddr(ctx, sdk.MustAccAddressFromHex(spObjectsSize.SpAddress))
+		if err != nil {
+			return userFlows, fmt.Errorf("get funding address by sp address failed: %w, sp: %s", err, spObjectsSize.SpAddress)
+		}
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: spObjectsSize.SpAddress,
+			ToAddress: spFundingAddr,
 			Rate:      rate,
 		})
 		totalUserOutRate = totalUserOutRate.Add(rate)

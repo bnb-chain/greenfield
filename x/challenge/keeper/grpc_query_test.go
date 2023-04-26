@@ -21,7 +21,8 @@ import (
 func TestParamsQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
 	params := types.DefaultParams()
-	keeper.SetParams(ctx, params)
+	err := keeper.SetParams(ctx, params)
+	require.NoError(t, err)
 
 	response, err := keeper.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
@@ -30,7 +31,8 @@ func TestParamsQuery(t *testing.T) {
 
 func TestLatestAttestedChallengesQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
-	keeper.SetParams(ctx, types.DefaultParams())
+	err := keeper.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, err)
 	keeper.AppendAttestChallengeId(ctx, 100)
 	keeper.AppendAttestChallengeId(ctx, 200)
 
@@ -50,7 +52,7 @@ func TestInturnAttestationSubmitterQuery(t *testing.T) {
 	blsKey := []byte("blskey")
 	historicalInfo := stakingtypes.HistoricalInfo{
 		Header: tmproto.Header{},
-		Valset: []stakingtypes.Validator{stakingtypes.Validator{BlsKey: blsKey}},
+		Valset: []stakingtypes.Validator{{BlsKey: blsKey}},
 	}
 	stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).Return(historicalInfo, true).AnyTimes()
 
@@ -66,7 +68,8 @@ func TestInturnAttestationSubmitterQuery(t *testing.T) {
 		authtypes.NewModuleAddress(types.ModuleName).String(),
 	)
 
-	keeper.SetParams(ctx, types.DefaultParams())
+	err := keeper.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, err)
 
 	response, err := keeper.InturnAttestationSubmitter(ctx, &types.QueryInturnAttestationSubmitterRequest{})
 	require.NoError(t, err)

@@ -1,6 +1,7 @@
 package core
 
 import (
+	cryptoRand "crypto/rand"
 	"fmt"
 	"math/rand"
 
@@ -19,7 +20,7 @@ func GenRandomAddr() sdk.AccAddress {
 func GenRandomHexString(len int) string {
 	b := make([]byte, len)
 	// #nosec
-	_, err := rand.Read(b)
+	_, err := cryptoRand.Read(b)
 	if err != nil {
 		panic(err)
 	}

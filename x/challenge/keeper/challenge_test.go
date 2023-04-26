@@ -32,7 +32,8 @@ func TestAttestedChallengeIds(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
 	params := types.DefaultParams()
 	params.AttestationKeptCount = 5
-	keeper.SetParams(ctx, params)
+	err := keeper.SetParams(ctx, params)
+	require.NoError(t, err)
 
 	keeper.AppendAttestChallengeId(ctx, 1)
 	keeper.AppendAttestChallengeId(ctx, 2)
@@ -45,18 +46,21 @@ func TestAttestedChallengeIds(t *testing.T) {
 	require.Equal(t, []uint64{2, 3, 4, 5, 6}, keeper.GetAttestChallengeIds(ctx))
 
 	params.AttestationKeptCount = 8
-	keeper.SetParams(ctx, params)
+	err = keeper.SetParams(ctx, params)
+	require.NoError(t, err)
 	keeper.AppendAttestChallengeId(ctx, 7)
 	keeper.AppendAttestChallengeId(ctx, 8)
 	require.Equal(t, []uint64{2, 3, 4, 5, 6, 7, 8}, keeper.GetAttestChallengeIds(ctx))
 
 	params.AttestationKeptCount = 3
-	keeper.SetParams(ctx, params)
+	err = keeper.SetParams(ctx, params)
+	require.NoError(t, err)
 	keeper.AppendAttestChallengeId(ctx, 9)
 	require.Equal(t, []uint64{7, 8, 9}, keeper.GetAttestChallengeIds(ctx))
 
 	params.AttestationKeptCount = 5
-	keeper.SetParams(ctx, params)
+	err = keeper.SetParams(ctx, params)
+	require.NoError(t, err)
 	keeper.AppendAttestChallengeId(ctx, 10)
 	require.Equal(t, []uint64{7, 8, 9, 10}, keeper.GetAttestChallengeIds(ctx))
 }

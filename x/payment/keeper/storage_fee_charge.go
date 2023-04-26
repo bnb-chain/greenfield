@@ -68,6 +68,21 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		// update flows
 		streamRecord.OutFlows = k.MergeOutFlows(append(streamRecord.OutFlows, userFlows.Flows...))
 		streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
+		// storage fee preview
+		if ctx.IsCheckTx() {
+			reserveTime := k.GetParams(ctx).ReserveTime
+			changeRate := totalRate.Neg()
+			event := &types.EventFeePreview{
+				Account: from.String(),
+				Amount:  changeRate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Abs(),
+			}
+			if changeRate.IsPositive() {
+				event.FeePreviewType = types.FEE_PREVIEW_TYPE_UNLOCKED_FEE
+			} else {
+				event.FeePreviewType = types.FEE_PREVIEW_TYPE_PRELOCKED_FEE
+			}
+			_ = ctx.EventManager().EmitTypedEvents(event)
+		}
 		err = k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange, false)
 		if err != nil {
 			return fmt.Errorf("apply stream record changes for user failed: %w", err)

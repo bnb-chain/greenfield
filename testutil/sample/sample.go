@@ -1,7 +1,7 @@
 package sample
 
 import (
-	"math/rand"
+	"crypto/rand"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -27,6 +27,6 @@ func Checksum() []byte {
 func RandStr(length int) []byte {
 	randBytes := make([]byte, length/2)
 	// #nosec
-	rand.Read(randBytes)
+	_, _ = rand.Read(randBytes)
 	return randBytes
 }

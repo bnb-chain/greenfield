@@ -26,7 +26,7 @@ func (s *TestSuite) TestAttest_Invalid() {
 	blsKey, _ := bls.RandKey()
 	historicalInfo := stakingtypes.HistoricalInfo{
 		Header: tmproto.Header{},
-		Valset: []stakingtypes.Validator{stakingtypes.Validator{
+		Valset: []stakingtypes.Validator{{
 			BlsKey:            blsKey.PublicKey().Marshal(),
 			ChallengerAddress: validSubmitter.String(),
 		}},
@@ -115,7 +115,7 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 	blsKey, _ := bls.RandKey()
 	historicalInfo := stakingtypes.HistoricalInfo{
 		Header: tmproto.Header{},
-		Valset: []stakingtypes.Validator{stakingtypes.Validator{
+		Valset: []stakingtypes.Validator{{
 			BlsKey:            blsKey.PublicKey().Marshal(),
 			ChallengerAddress: validSubmitter.String(),
 		}},
@@ -171,7 +171,7 @@ func (s *TestSuite) TestAttest_Normal() {
 	blsKey, _ := bls.RandKey()
 	historicalInfo := stakingtypes.HistoricalInfo{
 		Header: tmproto.Header{},
-		Valset: []stakingtypes.Validator{stakingtypes.Validator{
+		Valset: []stakingtypes.Validator{{
 			BlsKey:            blsKey.PublicKey().Marshal(),
 			ChallengerAddress: validSubmitter.String(),
 		}},
