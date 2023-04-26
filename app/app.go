@@ -74,9 +74,6 @@ import (
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
-	paramskeeper "github.com/cosmos/cosmos-sdk/x/params/keeper"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	paramproposal "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	"github.com/cosmos/cosmos-sdk/x/slashing"
 	slashingkeeper "github.com/cosmos/cosmos-sdk/x/slashing/keeper"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
@@ -220,7 +217,6 @@ type App struct {
 	DistrKeeper           distrkeeper.Keeper
 	GovKeeper             govkeeper.Keeper
 	UpgradeKeeper         *upgradekeeper.Keeper
-	ParamsKeeper          paramskeeper.Keeper
 	FeeGrantKeeper        feegrantkeeper.Keeper
 	CrossChainKeeper      crosschainkeeper.Keeper
 	OracleKeeper          oraclekeeper.Keeper
@@ -278,7 +274,7 @@ func New(
 	keys := storetypes.NewKVStoreKeys(
 		authtypes.StoreKey, authz.ModuleName, banktypes.StoreKey, stakingtypes.StoreKey,
 		minttypes.StoreKey, distrtypes.StoreKey, slashingtypes.StoreKey, govtypes.StoreKey,
-		paramstypes.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
+		upgradetypes.StoreKey, feegrant.StoreKey, evidencetypes.StoreKey,
 		consensusparamtypes.StoreKey,
 		group.StoreKey,
 		crosschaintypes.StoreKey,
@@ -291,7 +287,7 @@ func New(
 		storagemoduletypes.StoreKey,
 		challengemoduletypes.StoreKey,
 	)
-	tKeys := storetypes.NewTransientStoreKeys(paramstypes.TStoreKey, challengemoduletypes.TStoreKey)
+	tKeys := storetypes.NewTransientStoreKeys(challengemoduletypes.TStoreKey)
 	memKeys := storetypes.NewMemoryStoreKeys(challengemoduletypes.MemStoreKey)
 
 	app := &App{
@@ -305,13 +301,6 @@ func New(
 		tkeys:             tKeys,
 		memKeys:           memKeys,
 	}
-
-	app.ParamsKeeper = initParamsKeeper(
-		appCodec,
-		cdc,
-		keys[paramstypes.StoreKey],
-		tKeys[paramstypes.TStoreKey],
-	)
 
 	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
 		appCodec,
@@ -399,8 +388,7 @@ func New(
 
 	govRouter := govv1beta1.NewRouter()
 	govRouter.
-		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
-		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.ParamsKeeper))
+		AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler)
 	govConfig := govtypes.DefaultConfig()
 
 	govKeeper := govkeeper.NewKeeper(
@@ -515,16 +503,15 @@ func New(
 		),
 		gensp.NewAppModule(app.AccountKeeper, app.StakingKeeper, app.BaseApp.DeliverTx,
 			encodingConfig.TxConfig),
-		auth.NewAppModule(appCodec, app.AccountKeeper, nil, app.GetSubspace(authtypes.ModuleName)),
+		auth.NewAppModule(appCodec, app.AccountKeeper, nil, nil),
 		authzmodule.NewAppModule(appCodec, app.AuthzKeeper, app.AccountKeeper, app.BankKeeper, app.interfaceRegistry),
-		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, app.GetSubspace(banktypes.ModuleName)),
+		bank.NewAppModule(appCodec, app.BankKeeper, app.AccountKeeper, nil),
 		feegrantmodule.NewAppModule(appCodec, app.AccountKeeper, app.BankKeeper, app.FeeGrantKeeper, app.interfaceRegistry),
-		gov.NewAppModule(appCodec, &app.GovKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(govtypes.ModuleName)),
-		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(slashingtypes.ModuleName)),
-		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, app.GetSubspace(distrtypes.ModuleName)),
-		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, app.GetSubspace(stakingtypes.ModuleName)),
+		gov.NewAppModule(appCodec, &app.GovKeeper, app.AccountKeeper, app.BankKeeper, nil),
+		slashing.NewAppModule(appCodec, app.SlashingKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, nil),
+		distr.NewAppModule(appCodec, app.DistrKeeper, app.AccountKeeper, app.BankKeeper, app.StakingKeeper, nil),
+		staking.NewAppModule(appCodec, app.StakingKeeper, app.AccountKeeper, app.BankKeeper, nil),
 		upgrade.NewAppModule(app.UpgradeKeeper),
-		params.NewAppModule(app.ParamsKeeper),
 		crosschain.NewAppModule(app.CrossChainKeeper, app.BankKeeper, app.StakingKeeper),
 		oracle.NewAppModule(app.OracleKeeper),
 		consensus.NewAppModule(appCodec, app.ConsensusParamsKeeper),
@@ -554,7 +541,6 @@ func New(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
@@ -578,7 +564,6 @@ func New(
 		genutiltypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
-		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
@@ -609,7 +594,6 @@ func New(
 		authz.ModuleName,
 		feegrant.ModuleName,
 		consensusparamtypes.ModuleName,
-		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		crosschaintypes.ModuleName,
 		oracletypes.ModuleName,
@@ -641,7 +625,7 @@ func New(
 
 	// create the simulation manager and define the order of the modules for deterministic simulations
 	overrideModules := map[string]module.AppModuleSimulation{
-		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, app.GetSubspace(authtypes.ModuleName)),
+		authtypes.ModuleName: auth.NewAppModule(app.appCodec, app.AccountKeeper, authsims.RandomGenesisAccounts, nil),
 	}
 	app.sm = module.NewSimulationManagerFromAppModules(app.mm.Modules, overrideModules)
 
@@ -818,14 +802,6 @@ func (app *App) GetMemKey(storeKey string) *storetypes.MemoryStoreKey {
 	return app.memKeys[storeKey]
 }
 
-// GetSubspace returns a param subspace for a given module name.
-//
-// NOTE: This is solely to be used for testing purposes.
-func (app *App) GetSubspace(moduleName string) paramstypes.Subspace {
-	subspace, _ := app.ParamsKeeper.GetSubspace(moduleName)
-	return subspace
-}
-
 // RegisterAPIRoutes registers all application module routes with the provided
 // API server.
 func (app *App) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APIConfig) {
@@ -864,28 +840,6 @@ func GetMaccPerms() map[string][]string {
 		dupMaccPerms[k] = v
 	}
 	return dupMaccPerms
-}
-
-// initParamsKeeper init params keeper and its subspaces
-func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino, key, tkey storetypes.StoreKey) paramskeeper.Keeper {
-	paramsKeeper := paramskeeper.NewKeeper(appCodec, legacyAmino, key, tkey)
-
-	paramsKeeper.Subspace(authtypes.ModuleName)
-	paramsKeeper.Subspace(banktypes.ModuleName)
-	paramsKeeper.Subspace(stakingtypes.ModuleName)
-	paramsKeeper.Subspace(distrtypes.ModuleName)
-	paramsKeeper.Subspace(slashingtypes.ModuleName)
-	paramsKeeper.Subspace(govtypes.ModuleName)
-	paramsKeeper.Subspace(crosschaintypes.ModuleName)
-	paramsKeeper.Subspace(oracletypes.ModuleName)
-	paramsKeeper.Subspace(bridgemoduletypes.ModuleName)
-	paramsKeeper.Subspace(gashubtypes.ModuleName)
-	paramsKeeper.Subspace(spmoduletypes.ModuleName)
-	paramsKeeper.Subspace(paymentmoduletypes.ModuleName)
-	paramsKeeper.Subspace(permissionmoduletypes.ModuleName)
-	paramsKeeper.Subspace(storagemoduletypes.ModuleName)
-	paramsKeeper.Subspace(challengemoduletypes.ModuleName)
-	return paramsKeeper
 }
 
 // SimulationManager implements the SimulationApp interface
