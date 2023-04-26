@@ -18,6 +18,8 @@ var (
 	ErrInvalidGRN            = errors.Register(RootCodespace, 1008, "Not a standard greenfield resource name format")
 	ErrInvalidParameter      = errors.Register(RootCodespace, 1009, "Invalid parameter")
 	ErrInvalidVisibilityType = errors.Register(RootCodespace, 1010, "Invalid public type")
+	ErrInvalidActionType     = errors.Register(RootCodespace, 1011, "Invalid action type")
+	ErrInvalidPrincipalType  = errors.Register(RootCodespace, 1012, "Invalid principal type")
 
 	ErrGRNTypeMismatch = errors.Register(RootCodespace, 2000, "Greenfield resource type mismatch")
 )
