@@ -149,8 +149,8 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 }
 
 func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {
-	// wait for 2 blocks
-	for i := 0; i < 2; i++ {
+	// wait for 1 blocks
+	for i := 0; i < 1; i++ {
 		if err := s.WaitForNextBlock(); err != nil {
 			return fmt.Errorf("failed to wait for next block: %w", err)
 		}
