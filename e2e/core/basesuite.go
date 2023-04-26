@@ -88,7 +88,7 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) *sdk.TxRespon
 }
 
 func (s *BaseSuite) SimulateTx(msg sdk.Msg, from keys.KeyManager) (txRes *tx.SimulateResponse) {
-	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
 		Memo: "",
