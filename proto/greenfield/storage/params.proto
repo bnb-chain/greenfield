@@ -7,7 +7,6 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // Params defines the parameters for the module.
 message Params {
-  // TODO: We should think more about the version-control of the storage params.
   option (gogoproto.goproto_stringer) = false;
 
   // max_segment_size is the maximum size of a segment. default: 16M
@@ -44,4 +43,6 @@ message Params {
   int64 discontinue_confirm_period = 16;
   // The max delete objects in each end block
   uint64 discontinue_deletion_max = 17;
+  // The timestamp of the create params
+  int64 create_timestamp = 18;
 }

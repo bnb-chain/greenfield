@@ -108,3 +108,10 @@ func GetDiscontinueBucketIdsKey(timestamp int64) []byte {
 func GetDiscontinueObjectStatusKey(objectId math.Uint) []byte {
 	return append(DiscontinueObjectStatusPrefix, sequence.EncodeSequence(objectId)...)
 }
+
+// GetParamsKeyWithTimestamp return multi-version params store key
+func GetParamsKeyWithTimestamp(timestamp int64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(timestamp))
+	return append(ParamsKey, bz...)
+}

@@ -305,9 +305,8 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 	return amount, nil
 }
 
-// TODO(Fynn): refactor when we have a way to record the min charge size parameter history
-func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, _time int64) uint64 {
-	minChargeSize := k.GetParams(ctx).MinChargeSize
+func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) uint64 {
+	minChargeSize := k.GetParamsWithTimestamp(ctx, ts).MinChargeSize
 	if payloadSize < minChargeSize {
 		return minChargeSize
 	} else {

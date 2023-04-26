@@ -4,11 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/samber/lo"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"

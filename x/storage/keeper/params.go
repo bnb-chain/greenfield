@@ -151,6 +151,29 @@ func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	return p
 }
 
+// GetParamsWithTimestamp returns the current storage module parameters.
+func (k Keeper) GetParamsWithTimestamp(ctx sdk.Context, ts int64) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetParamsKeyWithTimestamp(ts)
+
+	// TODO(chris) : end should be nil or a bigger value
+	iterator := store.ReverseIterator(key, nil)
+	// nolint
+	defer iterator.Close()
+
+	var params types.Params
+	for ; iterator.Valid(); iterator.Next() {
+		k.cdc.MustUnmarshal(iterator.Value(), &params)
+
+		if params.CreateTimestamp <= ts {
+			return params
+		}
+	}
+
+	return p
+}
+
 // SetParams sets the params of storage module
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	if err := params.Validate(); err != nil {
@@ -160,6 +183,9 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(&params)
 	store.Set(types.ParamsKey, bz)
+
+	// multi version set with timestamp
+	store.Set(types.GetParamsKeyWithTimestamp(params.CreateTimestamp), bz)
 
 	return nil
 }
