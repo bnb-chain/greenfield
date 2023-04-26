@@ -251,6 +251,24 @@ message EventDiscontinueObject {
   int64 delete_at = 4;
 }
 
+// EventUpdateObjectInfo is emitted on MsgUpdateObjectInfo
+message EventUpdateObjectInfo {
+  // operator define the account address of operator who update the bucket
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name define the name of the bucket
+  string bucket_name = 2;
+  // object_name define the name of the object
+  string object_name = 3;
+  // object_id define an u256 id for object
+  string object_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // visibility defines the highest permission of object.
+  VisibilityType visibility = 5;
+}
+
 // EventCreateGroup is emitted on MsgCreateGroup
 message EventCreateGroup {
   // owner define the account address of group owner

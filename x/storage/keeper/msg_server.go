@@ -227,6 +227,17 @@ func (k msgServer) DiscontinueObject(goCtx context.Context, msg *storagetypes.Ms
 	return &types.MsgDiscontinueObjectResponse{}, nil
 }
 
+func (k msgServer) UpdateObjectInfo(goCtx context.Context, msg *types.MsgUpdateObjectInfo) (*types.MsgUpdateObjectInfoResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	spAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.UpdateObjectInfo(ctx, spAcc, msg.BucketName, msg.ObjectName, msg.Visibility)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateObjectInfoResponse{}, nil
+}
+
 func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup) (*types.MsgCreateGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

@@ -1331,6 +1331,11 @@ paths:
                       approval_address defines one of the storage provider's
                       accounts which is used to approve use's
                       createBucket/createObject request
+                  gc_address:
+                    type: string
+                    description: >-
+                      gc_address defines one of the storage provider's accounts
+                      which is used for gc purpose.
                   total_deposit:
                     type: string
                     description: >-
@@ -1447,6 +1452,11 @@ paths:
                         approval_address defines one of the storage provider's
                         accounts which is used to approve use's
                         createBucket/createObject request
+                    gc_address:
+                      type: string
+                      description: >-
+                        gc_address defines one of the storage provider's
+                        accounts which is used for gc purpose.
                     total_deposit:
                       type: string
                       description: >-
@@ -1703,6 +1713,13 @@ paths:
                                 secondary sp
                           title: secondary sp objects size statistics
                         title: secondary sp objects size statistics
+                  bucket_status:
+                    description: bucket_status define the status of the bucket.
+                    type: string
+                    enum:
+                      - BUCKET_STATUS_CREATED
+                      - BUCKET_STATUS_DISCONTINUED
+                    default: BUCKET_STATUS_CREATED
         default:
           description: An unexpected error response.
           schema:
@@ -1838,6 +1855,13 @@ paths:
                                 secondary sp
                           title: secondary sp objects size statistics
                         title: secondary sp objects size statistics
+                  bucket_status:
+                    description: bucket_status define the status of the bucket.
+                    type: string
+                    enum:
+                      - BUCKET_STATUS_CREATED
+                      - BUCKET_STATUS_DISCONTINUED
+                    default: BUCKET_STATUS_CREATED
         default:
           description: An unexpected error response.
           schema:
@@ -2179,6 +2203,7 @@ paths:
                     enum:
                       - OBJECT_STATUS_CREATED
                       - OBJECT_STATUS_SEALED
+                      - OBJECT_STATUS_DISCONTINUED
                     default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
@@ -2310,6 +2335,7 @@ paths:
                     enum:
                       - OBJECT_STATUS_CREATED
                       - OBJECT_STATUS_SEALED
+                      - OBJECT_STATUS_DISCONTINUED
                     default: OBJECT_STATUS_CREATED
                   redundancy_type:
                     description: >-
@@ -2553,6 +2579,13 @@ paths:
                                   secondary sp
                             title: secondary sp objects size statistics
                           title: secondary sp objects size statistics
+                    bucket_status:
+                      description: bucket_status define the status of the bucket.
+                      type: string
+                      enum:
+                        - BUCKET_STATUS_CREATED
+                        - BUCKET_STATUS_DISCONTINUED
+                      default: BUCKET_STATUS_CREATED
               pagination:
                 type: object
                 properties:
@@ -2869,6 +2902,7 @@ paths:
                       enum:
                         - OBJECT_STATUS_CREATED
                         - OBJECT_STATUS_SEALED
+                        - OBJECT_STATUS_DISCONTINUED
                       default: OBJECT_STATUS_CREATED
                     redundancy_type:
                       description: >-
@@ -3082,6 +3116,7 @@ paths:
                       enum:
                         - OBJECT_STATUS_CREATED
                         - OBJECT_STATUS_SEALED
+                        - OBJECT_STATUS_DISCONTINUED
                       default: OBJECT_STATUS_CREATED
                     redundancy_type:
                       description: >-
@@ -3312,6 +3347,28 @@ paths:
                     title: >-
                       The maximum number of buckets that can be created per
                       account
+                  discontinue_counting_window:
+                    type: string
+                    format: uint64
+                    title: The window to count the discontinued objects or buckets
+                  discontinue_object_max:
+                    type: string
+                    format: uint64
+                    title: The max objects can be requested in a window
+                  discontinue_bucket_max:
+                    type: string
+                    format: uint64
+                    title: The max buckets can be requested in a window
+                  discontinue_confirm_period:
+                    type: string
+                    format: int64
+                    title: >-
+                      The object will be deleted after the confirm period in
+                      seconds
+                  discontinue_deletion_max:
+                    type: string
+                    format: uint64
+                    title: The max delete objects in each end block
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3434,6 +3491,7 @@ paths:
                               - ACTION_LIST_OBJECT
                               - ACTION_UPDATE_GROUP_MEMBER
                               - ACTION_DELETE_GROUP
+                              - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -3620,6 +3678,7 @@ paths:
                               - ACTION_LIST_OBJECT
                               - ACTION_UPDATE_GROUP_MEMBER
                               - ACTION_DELETE_GROUP
+                              - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -3782,6 +3841,7 @@ paths:
             - ACTION_LIST_OBJECT
             - ACTION_UPDATE_GROUP_MEMBER
             - ACTION_DELETE_GROUP
+            - ACTION_UPDATE_OBJECT_INFO
             - ACTION_TYPE_ALL
       tags:
         - Query
@@ -28361,6 +28421,11 @@ definitions:
             title: >-
               approval_address defines one of the storage provider's accounts
               which is used to approve use's createBucket/createObject request
+          gc_address:
+            type: string
+            description: >-
+              gc_address defines one of the storage provider's accounts which is
+              used for gc purpose.
           total_deposit:
             type: string
             description: >-
@@ -28433,6 +28498,11 @@ definitions:
               title: >-
                 approval_address defines one of the storage provider's accounts
                 which is used to approve use's createBucket/createObject request
+            gc_address:
+              type: string
+              description: >-
+                gc_address defines one of the storage provider's accounts which
+                is used for gc purpose.
             total_deposit:
               type: string
               description: >-
@@ -28564,6 +28634,11 @@ definitions:
         title: >-
           approval_address defines one of the storage provider's accounts which
           is used to approve use's createBucket/createObject request
+      gc_address:
+        type: string
+        description: >-
+          gc_address defines one of the storage provider's accounts which is
+          used for gc purpose.
       total_deposit:
         type: string
         description: >-
@@ -28629,6 +28704,7 @@ definitions:
       - ACTION_LIST_OBJECT
       - ACTION_UPDATE_GROUP_MEMBER
       - ACTION_DELETE_GROUP
+      - ACTION_UPDATE_OBJECT_INFO
       - ACTION_TYPE_ALL
     default: ACTION_UNSPECIFIED
     title: >-
@@ -28735,6 +28811,7 @@ definitions:
                   - ACTION_LIST_OBJECT
                   - ACTION_UPDATE_GROUP_MEMBER
                   - ACTION_DELETE_GROUP
+                  - ACTION_UPDATE_OBJECT_INFO
                   - ACTION_TYPE_ALL
                 default: ACTION_UNSPECIFIED
                 title: >-
@@ -28848,6 +28925,7 @@ definitions:
             - ACTION_LIST_OBJECT
             - ACTION_UPDATE_GROUP_MEMBER
             - ACTION_DELETE_GROUP
+            - ACTION_UPDATE_OBJECT_INFO
             - ACTION_TYPE_ALL
           default: ACTION_UNSPECIFIED
           title: >-
@@ -29017,6 +29095,13 @@ definitions:
                   title: size is the total size of the objects in the secondary sp
               title: secondary sp objects size statistics
             title: secondary sp objects size statistics
+      bucket_status:
+        description: bucket_status define the status of the bucket.
+        type: string
+        enum:
+          - BUCKET_STATUS_CREATED
+          - BUCKET_STATUS_DISCONTINUED
+        default: BUCKET_STATUS_CREATED
   bnbchain.greenfield.storage.BucketMetaData:
     type: object
     properties:
@@ -29042,6 +29127,20 @@ definitions:
             value:
               type: string
         title: attributes
+  bnbchain.greenfield.storage.BucketStatus:
+    type: string
+    enum:
+      - BUCKET_STATUS_CREATED
+      - BUCKET_STATUS_DISCONTINUED
+    default: BUCKET_STATUS_CREATED
+    description: >-
+      BucketStatus represents the status of a bucket. After a user successfully
+
+      sends a CreateBucket transaction onto the chain, the status is set to
+      'Created'.
+
+      When a Discontinue Object transaction is received on chain, the status is
+      set to 'Discontinued'.
   bnbchain.greenfield.storage.GroupInfo:
     type: object
     properties:
@@ -29131,6 +29230,7 @@ definitions:
         enum:
           - OBJECT_STATUS_CREATED
           - OBJECT_STATUS_SEALED
+          - OBJECT_STATUS_DISCONTINUED
         default: OBJECT_STATUS_CREATED
       redundancy_type:
         description: >-
@@ -29195,6 +29295,7 @@ definitions:
     enum:
       - OBJECT_STATUS_CREATED
       - OBJECT_STATUS_SEALED
+      - OBJECT_STATUS_DISCONTINUED
     default: OBJECT_STATUS_CREATED
     description: >-
       ObjectStatus represents the creation status of an object. After a user
@@ -29206,7 +29307,10 @@ definitions:
       After the Primary Service Provider successfully sends a Seal Object
       transaction onto
 
-      the chain, the status is set to 'Sealed'.
+      the chain, the status is set to 'Sealed'. When a Discontinue Object
+      transaction is
+
+      received on chain, the status is set to 'Discontinued'.
   bnbchain.greenfield.storage.Params:
     type: object
     properties:
@@ -29258,6 +29362,26 @@ definitions:
         type: integer
         format: int64
         title: The maximum number of buckets that can be created per account
+      discontinue_counting_window:
+        type: string
+        format: uint64
+        title: The window to count the discontinued objects or buckets
+      discontinue_object_max:
+        type: string
+        format: uint64
+        title: The max objects can be requested in a window
+      discontinue_bucket_max:
+        type: string
+        format: uint64
+        title: The max buckets can be requested in a window
+      discontinue_confirm_period:
+        type: string
+        format: int64
+        title: The object will be deleted after the confirm period in seconds
+      discontinue_deletion_max:
+        type: string
+        format: uint64
+        title: The max delete objects in each end block
     description: Params defines the parameters for the module.
   bnbchain.greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -29410,6 +29534,13 @@ definitions:
                         sp
                   title: secondary sp objects size statistics
                 title: secondary sp objects size statistics
+          bucket_status:
+            description: bucket_status define the status of the bucket.
+            type: string
+            enum:
+              - BUCKET_STATUS_CREATED
+              - BUCKET_STATUS_DISCONTINUED
+            default: BUCKET_STATUS_CREATED
   bnbchain.greenfield.storage.QueryHeadGroupMemberResponse:
     type: object
     properties:
@@ -29499,6 +29630,7 @@ definitions:
             enum:
               - OBJECT_STATUS_CREATED
               - OBJECT_STATUS_SEALED
+              - OBJECT_STATUS_DISCONTINUED
             default: OBJECT_STATUS_CREATED
           redundancy_type:
             description: >-
@@ -29630,6 +29762,13 @@ definitions:
                           sp
                     title: secondary sp objects size statistics
                   title: secondary sp objects size statistics
+            bucket_status:
+              description: bucket_status define the status of the bucket.
+              type: string
+              enum:
+                - BUCKET_STATUS_CREATED
+                - BUCKET_STATUS_DISCONTINUED
+              default: BUCKET_STATUS_CREATED
       pagination:
         type: object
         properties:
@@ -29760,6 +29899,7 @@ definitions:
               enum:
                 - OBJECT_STATUS_CREATED
                 - OBJECT_STATUS_SEALED
+                - OBJECT_STATUS_DISCONTINUED
               default: OBJECT_STATUS_CREATED
             redundancy_type:
               description: >-
@@ -29911,6 +30051,26 @@ definitions:
             type: integer
             format: int64
             title: The maximum number of buckets that can be created per account
+          discontinue_counting_window:
+            type: string
+            format: uint64
+            title: The window to count the discontinued objects or buckets
+          discontinue_object_max:
+            type: string
+            format: uint64
+            title: The max objects can be requested in a window
+          discontinue_bucket_max:
+            type: string
+            format: uint64
+            title: The max buckets can be requested in a window
+          discontinue_confirm_period:
+            type: string
+            format: int64
+            title: The object will be deleted after the confirm period in seconds
+          discontinue_deletion_max:
+            type: string
+            format: uint64
+            title: The max delete objects in each end block
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   bnbchain.greenfield.storage.QueryPolicyForAccountResponse:
     type: object
@@ -29998,6 +30158,7 @@ definitions:
                       - ACTION_LIST_OBJECT
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
+                      - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -30139,6 +30300,7 @@ definitions:
                       - ACTION_LIST_OBJECT
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
+                      - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
