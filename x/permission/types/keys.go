@@ -81,7 +81,7 @@ func GetPolicyByIDKey(policyID math.Uint) []byte {
 	return append(PolicyByIDPrefix, policyID.Bytes()...)
 }
 
-func GetGroupMembersKey(groupID math.Uint) []byte {
+func GroupMembersPrefix(groupID math.Uint) []byte {
 	return append(GroupMemberPrefix, groupID.Bytes()...)
 }
 

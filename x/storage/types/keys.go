@@ -119,8 +119,8 @@ func GetDiscontinueObjectStatusKey(objectId math.Uint) []byte {
 	return append(DiscontinueObjectStatusPrefix, sequence.EncodeSequence(objectId)...)
 }
 
-// GetDeleteStalePoliesKey return DeletePermission store key
-func GetDeleteStalePoliesKey(height int64) []byte {
+// GetDeleteStalePoliciesKey return delete stale policies store Key
+func GetDeleteStalePoliciesKey(height int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(height))
 	return append(DeleteStalePoliciesPrefix, bz...)

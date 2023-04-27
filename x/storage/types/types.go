@@ -87,8 +87,5 @@ func (di *DeleteInfo) IsEmpty() bool {
 	if di.GroupIds == nil || (di.GroupIds != nil && len(di.GroupIds.Id) == 0) {
 		isGroupIdsEmpty = true
 	}
-	if isBucketIdsEmpty && isObjectIdsEmpty && isGroupIdsEmpty {
-		return true
-	}
-	return false
+	return isBucketIdsEmpty && isObjectIdsEmpty && isGroupIdsEmpty
 }

@@ -1165,7 +1165,6 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 	s.Require().Error(err)
 	s.Require().ErrorContains(err, "No such bucket")
 
-	time.Sleep(3 * time.Second)
 	// policy is GC
 	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: objectPolicyId.String()})
 	s.Require().Error(err)

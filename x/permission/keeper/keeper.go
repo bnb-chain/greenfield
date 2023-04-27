@@ -365,10 +365,9 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, resourceTyp
 	if resourceType == resource.RESOURCE_TYPE_UNSPECIFIED {
 		return
 	}
-	resourcePolicyKey := types.PolicyForAccountPrefix(resourceID, resourceType)
 	store := ctx.KVStore(k.storeKey)
-	resourcePolicyStore := prefix.NewStore(store, resourcePolicyKey)
-	iterator := resourcePolicyStore.Iterator(nil, nil)
+	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		// delete mapping policyId -> policy
@@ -384,9 +383,9 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, resourceType 
 	if resourceType == resource.RESOURCE_TYPE_UNSPECIFIED {
 		return
 	}
-	policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+	policyForGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(policyGroupKey)
+	bz := store.Get(policyForGroupKey)
 	if bz != nil {
 		policyGroup := types.PolicyGroup{}
 		k.cdc.MustUnmarshal(bz, &policyGroup)
@@ -394,18 +393,16 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, resourceType 
 			// delete concrete policy by policyId
 			store.Delete(types.GetPolicyByIDKey(policyGroup.Items[i].PolicyId))
 		}
-		store.Delete(policyGroupKey)
+		store.Delete(policyForGroupKey)
 	}
 }
 
 // ForceDeleteGroupMembers deletes group members when user deletes group
 func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, groupId math.Uint) {
-
 	store := ctx.KVStore(k.storeKey)
-	groupMembersPrefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GetGroupMembersKey(groupId))
+	groupMembersPrefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GroupMembersPrefix(groupId))
 	iter := groupMembersPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
-
 	for ; iter.Valid(); iter.Next() {
 		memberID := sequence.DecodeSequence(iter.Value())
 		// delete GroupMemberByIDPrefix_id -> groupMember

@@ -44,6 +44,6 @@ message Params {
   int64 discontinue_confirm_period = 16;
   // The max delete objects in each end block
   uint64 discontinue_deletion_max = 17;
-  // The max delete polies in each end block
-  uint64 stale_polies_cleanup_max = 18;
+  // The max number for deleting policy in each end block
+  uint64 stale_policy_cleanup_max = 18;
 }

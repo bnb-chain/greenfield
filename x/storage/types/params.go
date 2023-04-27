@@ -22,7 +22,7 @@ const (
 	DefaultDiscontinueBucketMax      uint64 = math.MaxUint64
 	DefaultDiscontinueConfirmPeriod  int64  = 604800 // 7 days (in second)
 	DefaultDiscontinueDeletionMax    uint64 = 10000
-	DefaultStalePoliesCleanupMax     uint64 = 200
+	DefaultStalePolicyCleanupMax     uint64 = 200
 
 	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025
 	DefaultMirrorBucketAckRelayerFee = "250000000000000" // 0.00025
@@ -44,7 +44,7 @@ var (
 	KeyDiscontinueBucketMax      = []byte("DiscontinueBucketMax")
 	KeyDiscontinueConfirmPeriod  = []byte("DiscontinueConfirmPeriod")
 	KeyDiscontinueDeletionMax    = []byte("DiscontinueDeletionMax")
-	KeyStalePoliesCleanupMax     = []byte("StalePoliesCleanupMax")
+	KeyStalePolicyCleanupMax     = []byte("StalePolicyCleanupMax")
 	KeyMirrorBucketRelayerFee    = []byte("MirrorBucketRelayerFee")
 	KeyMirrorBucketAckRelayerFee = []byte("MirrorBucketAckRelayerFee")
 	KeyMirrorObjectRelayerFee    = []byte("MirrorObjectRelayerFee")
@@ -90,7 +90,7 @@ func NewParams(
 		DiscontinueBucketMax:      discontinueBucketMax,
 		DiscontinueConfirmPeriod:  discontinueConfirmPeriod,
 		DiscontinueDeletionMax:    discontinueDeletionMax,
-		StalePoliesCleanupMax:     stalePoliesCleanupMax,
+		StalePolicyCleanupMax:     stalePoliesCleanupMax,
 	}
 }
 
@@ -103,7 +103,7 @@ func DefaultParams() Params {
 		DefaultMirrorObjectRelayerFee, DefaultMirrorObjectAckRelayerFee,
 		DefaultMirrorGroupRelayerFee, DefaultMirrorGroupAckRelayerFee,
 		DefaultDiscontinueCountingWindow, DefaultDiscontinueObjectMax, DefaultDiscontinueBucketMax,
-		DefaultDiscontinueConfirmPeriod, DefaultDiscontinueDeletionMax, DefaultStalePoliesCleanupMax,
+		DefaultDiscontinueConfirmPeriod, DefaultDiscontinueDeletionMax, DefaultStalePolicyCleanupMax,
 	)
 }
 
@@ -127,6 +127,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDiscontinueBucketMax, &p.DiscontinueBucketMax, validateDiscontinueBucketMax),
 		paramtypes.NewParamSetPair(KeyDiscontinueConfirmPeriod, &p.DiscontinueConfirmPeriod, validateDiscontinueConfirmPeriod),
 		paramtypes.NewParamSetPair(KeyDiscontinueDeletionMax, &p.DiscontinueDeletionMax, validateDiscontinueDeletionMax),
+		paramtypes.NewParamSetPair(KeyStalePolicyCleanupMax, &p.StalePolicyCleanupMax, validateStalePolicyCleanupMax),
 	}
 }
 
@@ -337,6 +338,18 @@ func validateDiscontinueDeletionMax(i interface{}) error {
 
 	if v == 0 {
 		return fmt.Errorf("discontinue deletion max must be positive: %d", v)
+	}
+	return nil
+}
+
+func validateStalePolicyCleanupMax(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("StalePolicyCleanupMax must be positive: %d", v)
 	}
 	return nil
 }

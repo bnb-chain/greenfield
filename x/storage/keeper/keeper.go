@@ -186,7 +186,7 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(bucketKey)
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 
-	if err := k.appendResourceIdForDeletion(ctx, bucketInfo); err != nil {
+	if err := k.appendResourceIdForGarbageCollection(ctx, bucketInfo); err != nil {
 		return err
 	}
 	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
@@ -750,7 +750,7 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	if err := k.appendResourceIdForDeletion(ctx, objectInfo); err != nil {
+	if err := k.appendResourceIdForGarbageCollection(ctx, objectInfo); err != nil {
 		return err
 	}
 
@@ -1158,7 +1158,7 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 	store.Delete(types.GetGroupKey(operator, groupName))
 	store.Delete(types.GetGroupByIDKey(groupInfo.Id))
 
-	if err := k.appendResourceIdForDeletion(ctx, groupInfo); err != nil {
+	if err := k.appendResourceIdForGarbageCollection(ctx, groupInfo); err != nil {
 		return err
 	}
 
@@ -1480,7 +1480,7 @@ func (k Keeper) getDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint)
 	return types.ObjectStatus(status), nil
 }
 
-func (k Keeper) appendResourceIdForDeletion(ctx sdk.Context, resource interface{}) error {
+func (k Keeper) appendResourceIdForGarbageCollection(ctx sdk.Context, resource interface{}) error {
 	if ctx.IsCheckTx() {
 		return nil
 	}
@@ -1524,7 +1524,7 @@ func (k Keeper) PersistDeleteInfo(ctx sdk.Context) {
 	// persist current block stale permission info to store if exists
 	if !deleteInfo.IsEmpty() {
 		store := ctx.KVStore(k.storeKey)
-		store.Set(types.GetDeleteStalePoliesKey(ctx.BlockHeight()), bz)
+		store.Set(types.GetDeleteStalePoliciesKey(ctx.BlockHeight()), bz)
 	}
 }
 
@@ -1536,7 +1536,7 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 	iterator := deleteStalePoliciesPrefixStore.Iterator(nil, nil)
 	defer iterator.Close()
 
-	maxCleanup := k.StalePoliesCleanupMax(ctx)
+	maxCleanup := k.StalePolicyCleanupMax(ctx)
 	deletedCount := uint64(0)
 
 	for ; iterator.Valid(); iterator.Next() {

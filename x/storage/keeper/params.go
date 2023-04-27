@@ -139,9 +139,9 @@ func (k Keeper) DiscontinueDeletionMax(ctx sdk.Context) (res uint64) {
 	return params.DiscontinueDeletionMax
 }
 
-func (k Keeper) StalePoliesCleanupMax(ctx sdk.Context) (res uint64) {
+func (k Keeper) StalePolicyCleanupMax(ctx sdk.Context) (res uint64) {
 	params := k.GetParams(ctx)
-	return params.StalePoliesCleanupMax
+	return params.StalePolicyCleanupMax
 }
 
 // GetParams returns the current storage module parameters.

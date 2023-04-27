@@ -159,7 +159,6 @@ message Ids {
   ];
 }
 
-
 message DeleteInfo {
   Ids bucket_ids = 1;
   Ids object_ids = 2;
