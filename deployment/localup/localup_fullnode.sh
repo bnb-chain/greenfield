@@ -52,9 +52,6 @@ function start_fullnode() {
             --p2p.external-address 127.0.0.1:$((${DATASEED_P2P_PORT_START}+${i})) \
             --rpc.laddr tcp://0.0.0.0:$((${DATASEED_RPC_PORT_START}+${i})) \
             --log_format json > ${workspace}/.local/dataseed${i}/logs/node.log &
-            
-#                        --json-rpc.address 127.0.0.1:$((${DATASEED_JSONRPC_PORT_START}+${i}+${i})) \
-#                        --json-rpc.ws-address 127.0.0.1:$((${DATASEED_JSONRPC_PORT_START}+${i}+${i}+1)) \
     done
 }
 

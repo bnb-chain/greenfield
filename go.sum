@@ -171,8 +171,8 @@ github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816/go.mod h1:+zsy
 github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=
 github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.0.0-20230425074444-eb5869b05fe9 h1:rqrNUZpJgGpeZE4/CEdMM4/zpn07kmizGDgvTMGOpmU=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.0.0-20230425074444-eb5869b05fe9/go.mod h1:oF9MKomLghrWZhTZnduUnmXF8+PiIzT8WS4NT4kl7U4=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.0.0-20230427054008-7b4ef78ae38e h1:VFn+8TjW2jZ/4mFV80j+YjNA3OtoYI2UabJzMLy663A=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.0.0-20230427054008-7b4ef78ae38e/go.mod h1:vHHjRdwIxT9QBzIXBCqg0K/cROq6vmbRbdc4joowQFA=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9 h1:6fLpmmI0EZvDTfPvI0zy5dBaaTUboHnEkoC5/p/w8TQ=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9/go.mod h1:rbc4o84RSEvhf09o2+4Qiazsv0snRJLiEZdk17HeIDw=
 github.com/bnb-chain/greenfield-cosmos-sdk/log v0.0.0-20230425074444-eb5869b05fe9 h1:tiynnFs/m7rbzESJYLL9C6u2SVj3q0XsbBZACwoQS/0=
@@ -187,8 +187,8 @@ github.com/bnb-chain/greenfield-cosmos-sdk/x/feegrant v0.0.0-20230425074444-eb58
 github.com/bnb-chain/greenfield-cosmos-sdk/x/feegrant v0.0.0-20230425074444-eb5869b05fe9/go.mod h1:bcBfa2lBbJUCL05zvN6BVF2C0tvANw0OtwQVSSeIKB4=
 github.com/bnb-chain/greenfield-cosmos-sdk/x/upgrade v0.0.0-20230425074444-eb5869b05fe9 h1:u6tIMKbOzcMkuKgtA9TK+p4D6vGff26B2tnYtTna0y0=
 github.com/bnb-chain/greenfield-cosmos-sdk/x/upgrade v0.0.0-20230425074444-eb5869b05fe9/go.mod h1:AGS1+n8CFDXaC/HDDW6z3kybGuuffJAKYNppsRwVgnI=
-github.com/bnb-chain/greenfield-tendermint v0.0.0-20230407055437-d971cdfb9041 h1:5FYLZuKmUUuexUkaNP+C96yEP1mw63fH0xIE+395/u0=
-github.com/bnb-chain/greenfield-tendermint v0.0.0-20230407055437-d971cdfb9041/go.mod h1:9q11eHNRY9FDwFH+4pompzPNGv//Z3VcfvkELaHJPMs=
+github.com/bnb-chain/greenfield-tendermint v0.0.0-20230426135532-2f353c60f767 h1:fU0WUQb5xXeZ87OUHMZaT3ARnyC/BYLdDMDwpkW7dLM=
+github.com/bnb-chain/greenfield-tendermint v0.0.0-20230426135532-2f353c60f767/go.mod h1:9q11eHNRY9FDwFH+4pompzPNGv//Z3VcfvkELaHJPMs=
 github.com/boltdb/bolt v1.3.1/go.mod h1:clJnj/oiGkjum5o1McbSZDSLxVThjynRyGBgiAx27Ps=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
 github.com/bradfitz/gomemcache v0.0.0-20170208213004-1952afaa557d/go.mod h1:PmM6Mmwb0LSuEubjR8N7PtNe1KxZLtOUHtbeikc5h60=
