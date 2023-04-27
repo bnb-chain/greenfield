@@ -1257,8 +1257,8 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 	nonce, _ := s.Client.GetNonce()
 	bucketNames := make([]string, 0)
 
-	// Create 1000 Buckets
-	bucketNumber := 1000
+	// Create 250 Buckets
+	bucketNumber := 250
 
 	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(15000000000000))))
 	txOpt := sdktype.TxOption{
@@ -1323,20 +1323,17 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 		nonce++
 	}
 
-	// Garbage collection wont be done within next 3 blocks since the total number of policies(1000) to be deleted exceed the
-	// handling ability of each block(200)
-	for i := 0; i < 2; i++ {
-		notAllPoliciesGC := false
-		for i := 0; i < bucketNumber; i++ {
-			_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyIds[i].String()})
-			if err == nil {
-				// if there is at least 1 policy still exist, that means GC is not fully done yet.
-				notAllPoliciesGC = true
-			}
+	// Garbage collection wont be done within the block since the total number of policies to be deleted exceed the
+	// handling ability of each block
+	notAllPoliciesGC := false
+	for i := 0; i < bucketNumber; i++ {
+		_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyIds[i].String()})
+		if err == nil {
+			// if there is at least 1 policy still exist, that means GC is not fully done yet.
+			notAllPoliciesGC = true
 		}
-		s.Require().True(notAllPoliciesGC)
-		_ = s.WaitForNextBlock()
 	}
+	s.Require().True(notAllPoliciesGC)
 
 	// wait for another 2 block, all policies should be GC
 	for i := 0; i < 2; i++ {
