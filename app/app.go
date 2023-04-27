@@ -681,6 +681,11 @@ func New(
 
 	app.initModules(ctx)
 
+	// add eth query router
+	ethRouter := app.BaseApp.EthQueryRouter()
+	ethRouter.RegisterConstHandler()
+	ethRouter.RegisterEthQueryBalanceHandler(app.BankKeeper, bankkeeper.EthQueryBalanceHandlerGen)
+
 	return app
 }
 

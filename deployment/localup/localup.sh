@@ -168,9 +168,6 @@ function start() {
             --p2p.external-address 127.0.0.1:$((${VALIDATOR_P2P_PORT_START}+${i})) \
             --rpc.laddr tcp://0.0.0.0:$((${VALIDATOR_RPC_PORT_START}+${i})) \
             --log_format json > ${workspace}/.local/validator${i}/logs/node.log &
-
-            #            --json-rpc.address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i})) \
-            #            --json-rpc.ws-address 127.0.0.1:$((${VALIDATOR_JSONRPC_PORT_START}+${i}+${i}+1)) \
     done
 }
 
