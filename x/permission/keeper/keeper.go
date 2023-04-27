@@ -374,7 +374,7 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, resourceTyp
 		policyID := sequence.DecodeSequence(iterator.Value())
 		store.Delete(types.GetPolicyByIDKey(policyID))
 		// delete mapping policyKey -> policyId
-		store.Delete(iterator.Key())
+		resourceAccountsPolicyStore.Delete(iterator.Key())
 	}
 }
 
@@ -408,6 +408,6 @@ func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, groupId math.Uint) {
 		// delete GroupMemberByIDPrefix_id -> groupMember
 		store.Delete(types.GetGroupMemberByIDKey(memberID))
 		// delete GroupMemberPrefix_groupId_memberAddr -> memberSequence(id)
-		store.Delete(iter.Key())
+		groupMembersPrefixStore.Delete(iter.Key())
 	}
 }

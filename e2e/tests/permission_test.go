@@ -7,8 +7,11 @@ import (
 	"math"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sdktype "github.com/bnb-chain/greenfield/sdk/types"
 	storageutil "github.com/bnb-chain/greenfield/testutil/storage"
 	types2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
@@ -1240,4 +1243,110 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 	s.Require().Error(err)
 	s.Require().ErrorContains(err, "No such Policy")
 
+}
+
+func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
+	var err error
+	ctx := context.Background()
+	owner := s.GenAndChargeAccounts(1, 10000)[0]
+	user := s.GenAndChargeAccounts(1, 10000)[0]
+	sp := s.StorageProviders[0]
+
+	s.Client.SetKeyManager(owner)
+
+	nonce, _ := s.Client.GetNonce()
+	bucketNames := make([]string, 0)
+
+	// Create 1000 Buckets
+	bucketNumber := 1000
+
+	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(15000000000000))))
+	txOpt := sdktype.TxOption{
+		NoSimulate: true,
+		GasLimit:   3000,
+		FeeAmount:  feeAmt,
+	}
+
+	for i := 0; i < bucketNumber; i++ {
+		txOpt.Nonce = nonce
+		bucketName := storageutil.GenRandomBucketName()
+		bucketNames = append(bucketNames, bucketName)
+		msgCreateBucket := storagetypes.NewMsgCreateBucket(
+			owner.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+			nil, math.MaxUint, nil, 0)
+		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+		s.Require().NoError(err)
+		s.SendTxWithTxOpt(msgCreateBucket, owner, txOpt)
+		nonce++
+	}
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.T().Logf("number of buckes is %d", queryListBucketResponse.Pagination.Total)
+
+	principal := types.NewPrincipalWithAccount(user.GetAddr())
+
+	for i := 0; i < bucketNumber; i++ {
+		txOpt.Nonce = nonce
+		// Put bucket policy
+		bucketStatement := &types.Statement{
+			Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+			Effect:  types.EFFECT_ALLOW,
+		}
+		msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketNames[i]).String(),
+			principal, []*types.Statement{bucketStatement}, nil)
+		s.SendTxWithTxOpt(msgPutBucketPolicy, owner, txOpt)
+		nonce++
+	}
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	policyIds := make([]sdkmath.Uint, 0)
+	// policies are present for buckets
+	for i := 0; i < bucketNumber; i++ {
+		queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: types2.NewBucketGRN(bucketNames[i]).String(),
+			PrincipalAddress: user.GetAddr().String()})
+		policyIds = append(policyIds, queryPolicyForAccountResp.Policy.Id)
+		s.Require().NoError(err)
+	}
+
+	// delete batch of buckets
+	for i := 0; i < bucketNumber; i++ {
+		txOpt.Nonce = nonce
+		// the owner deletes the bucket
+		msgDeleteBucket := storagetypes.NewMsgDeleteBucket(owner.GetAddr(), bucketNames[i])
+		s.SendTxWithTxOpt(msgDeleteBucket, owner, txOpt)
+		nonce++
+	}
+
+	// Garbage collection wont be done within next 3 blocks since the total number of policies(1000) to be deleted exceed the
+	// handling ability of each block(200)
+	for i := 0; i < 2; i++ {
+		notAllPoliciesGC := false
+		for i := 0; i < bucketNumber; i++ {
+			_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyIds[i].String()})
+			if err == nil {
+				// if there is at least 1 policy still exist, that means GC is not fully done yet.
+				notAllPoliciesGC = true
+			}
+		}
+		s.Require().True(notAllPoliciesGC)
+		_ = s.WaitForNextBlock()
+	}
+
+	// wait for another 2 block, all policies should be GC
+	for i := 0; i < 2; i++ {
+		_ = s.WaitForNextBlock()
+	}
+
+	for i := 0; i < bucketNumber; i++ {
+		// policy is GC
+		_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyIds[i].String()})
+		s.Require().Error(err)
+		s.Require().ErrorContains(err, "No such Policy")
+	}
 }

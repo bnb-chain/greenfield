@@ -1551,8 +1551,9 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 				deletedCount++
 				// reaches the deletion limit during current endblocker
 				if deletedCount > maxCleanup {
-					ids = append(ids, ids[idx+1:]...)
+					ids = ids[idx+1:]
 					deleteInfo.ObjectIds.Id = ids
+					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
 					return
 				}
 			}
@@ -1567,8 +1568,9 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 				k.permKeeper.ForceDeleteGroupPolicyForResource(ctx, resource.RESOURCE_TYPE_BUCKET, id)
 				deletedCount++
 				if deletedCount > maxCleanup {
-					ids = append(ids, ids[idx+1:]...)
+					ids = ids[idx+1:]
 					deleteInfo.BucketIds.Id = ids
+					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
 					return
 				}
 			}
@@ -1586,8 +1588,9 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 				k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, resource.RESOURCE_TYPE_GROUP, id)
 				deletedCount++
 				if deletedCount > maxCleanup {
-					ids = append(ids, ids[idx+1:]...)
+					ids = ids[idx+1:]
 					deleteInfo.GroupIds.Id = ids
+					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
 					return
 				}
 			}
