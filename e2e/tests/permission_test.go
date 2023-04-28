@@ -1302,14 +1302,17 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 		s.SendTxWithTxOpt(msgPutBucketPolicy, owner, txOpt)
 		nonce++
 	}
-	err = s.WaitForNextBlock()
-	s.Require().NoError(err)
+	// wait for 2 blocks
+	for i := 0; i < 2; i++ {
+		_ = s.WaitForNextBlock()
+	}
 
 	policyIds := make([]sdkmath.Uint, 0)
 	// policies are present for buckets
 	for i := 0; i < bucketNumber; i++ {
 		queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: types2.NewBucketGRN(bucketNames[i]).String(),
 			PrincipalAddress: user.GetAddr().String()})
+		s.Require().NoError(err)
 		policyIds = append(policyIds, queryPolicyForAccountResp.Policy.Id)
 		s.Require().NoError(err)
 	}
@@ -1322,6 +1325,8 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 		s.SendTxWithTxOpt(msgDeleteBucket, owner, txOpt)
 		nonce++
 	}
+
+	_ = s.WaitForNextBlock()
 
 	// Garbage collection wont be done within the block since the total number of policies to be deleted exceed the
 	// handling ability of each block

@@ -380,7 +380,7 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, resourceTyp
 
 // ForceDeleteGroupPolicyForResource deletes group policy enforced on resource
 func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, resourceType resource.ResourceType, resourceID math.Uint) {
-	if resourceType == resource.RESOURCE_TYPE_UNSPECIFIED {
+	if resourceType == resource.RESOURCE_TYPE_UNSPECIFIED || resourceType == resource.RESOURCE_TYPE_GROUP {
 		return
 	}
 	policyForGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)

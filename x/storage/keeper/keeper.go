@@ -1481,17 +1481,21 @@ func (k Keeper) getDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint)
 }
 
 func (k Keeper) appendResourceIdForGarbageCollection(ctx sdk.Context, resource interface{}) error {
-	if ctx.IsCheckTx() {
-		return nil
-	}
-
 	tStore := ctx.TransientStore(k.tStoreKey)
-	bz := tStore.Get(types.CurrentBlockDeleteStalePoliciesKey)
-	if bz == nil {
-		return types.ErrKeyNotExist
+	var deleteInfo types.DeleteInfo
+	if !tStore.Has(types.CurrentBlockDeleteStalePoliciesKey) {
+		deleteInfo = types.DeleteInfo{
+			BucketIds: &types.Ids{},
+			ObjectIds: &types.Ids{},
+			GroupIds:  &types.Ids{},
+		}
+	} else {
+		bz := tStore.Get(types.CurrentBlockDeleteStalePoliciesKey)
+		k.cdc.MustUnmarshal(bz, &deleteInfo)
+		if bz == nil {
+			return types.ErrKeyNotExist
+		}
 	}
-	deleteInfo := &types.DeleteInfo{}
-	k.cdc.MustUnmarshal(bz, deleteInfo)
 	switch r := resource.(type) {
 	case *types.BucketInfo:
 		bucketIds := deleteInfo.BucketIds.Id
@@ -1508,16 +1512,16 @@ func (k Keeper) appendResourceIdForGarbageCollection(ctx sdk.Context, resource i
 	default:
 		return types.ErrInvalidResource
 	}
-	tStore.Set(types.CurrentBlockDeleteStalePoliciesKey, k.cdc.MustMarshal(deleteInfo))
+	tStore.Set(types.CurrentBlockDeleteStalePoliciesKey, k.cdc.MustMarshal(&deleteInfo))
 	return nil
 }
 
 func (k Keeper) PersistDeleteInfo(ctx sdk.Context) {
 	tStore := ctx.TransientStore(k.tStoreKey)
-	bz := tStore.Get(types.CurrentBlockDeleteStalePoliciesKey)
-	if bz == nil {
-		panic(types.ErrKeyNotExist)
+	if !tStore.Has(types.CurrentBlockDeleteStalePoliciesKey) {
+		return
 	}
+	bz := tStore.Get(types.CurrentBlockDeleteStalePoliciesKey)
 	deleteInfo := &types.DeleteInfo{}
 	k.cdc.MustUnmarshal(bz, deleteInfo)
 
@@ -1603,16 +1607,4 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 			deleteStalePoliciesPrefixStore.Delete(iterator.Key())
 		}
 	}
-}
-
-// InitDeleteInfo init using transient store in BeginBlocker, and gets discarded in EndBlocker
-// the deleteInfo holds resources' Ids, stale policies related to these Ids will be deleted in EndBlocker
-func (k Keeper) InitDeleteInfo(ctx sdk.Context) {
-	deleteInfo := &types.DeleteInfo{
-		BucketIds: &types.Ids{},
-		ObjectIds: &types.Ids{},
-		GroupIds:  &types.Ids{},
-	}
-	tStore := ctx.TransientStore(k.tStoreKey)
-	tStore.Set(types.CurrentBlockDeleteStalePoliciesKey, k.cdc.MustMarshal(deleteInfo))
 }

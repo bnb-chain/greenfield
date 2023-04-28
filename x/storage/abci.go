@@ -13,7 +13,6 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 		keeper.ClearDiscontinueObjectCount(ctx)
 		keeper.ClearDiscontinueBucketCount(ctx)
 	}
-	keeper.InitDeleteInfo(ctx)
 }
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
