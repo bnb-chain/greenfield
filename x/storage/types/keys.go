@@ -26,7 +26,8 @@ const (
 type RawID math.Uint
 
 var (
-	ParamsKey = []byte{0x01}
+	ParamsKey            = []byte{0x01}
+	MultiParamsKeyPrefix = []byte{0x02}
 
 	BucketPrefix = []byte{0x11}
 	ObjectPrefix = []byte{0x12}

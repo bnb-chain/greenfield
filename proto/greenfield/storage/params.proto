@@ -43,6 +43,4 @@ message Params {
   int64 discontinue_confirm_period = 16;
   // The max delete objects in each end block
   uint64 discontinue_deletion_max = 17;
-  // The timestamp of the create params
-  int64 create_timestamp = 18;
 }

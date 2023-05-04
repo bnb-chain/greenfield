@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/store/prefix"
 	"fmt"
 	"math/big"
 
@@ -151,29 +152,6 @@ func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	return p
 }
 
-// GetParamsWithTimestamp returns the current storage module parameters.
-func (k Keeper) GetParamsWithTimestamp(ctx sdk.Context, ts int64) (p types.Params) {
-	store := ctx.KVStore(k.storeKey)
-
-	key := types.GetParamsKeyWithTimestamp(ts)
-
-	// TODO(chris) : end should be nil or a bigger value
-	iterator := store.ReverseIterator(key, nil)
-	// nolint
-	defer iterator.Close()
-
-	var params types.Params
-	for ; iterator.Valid(); iterator.Next() {
-		k.cdc.MustUnmarshal(iterator.Value(), &params)
-
-		if params.CreateTimestamp <= ts {
-			return params
-		}
-	}
-
-	return p
-}
-
 // SetParams sets the params of storage module
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	if err := params.Validate(); err != nil {
@@ -184,8 +162,33 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	bz := k.cdc.MustMarshal(&params)
 	store.Set(types.ParamsKey, bz)
 
-	// multi version set with timestamp
-	store.Set(types.GetParamsKeyWithTimestamp(params.CreateTimestamp), bz)
+	// store another kv with timestamp
+	k.SetParamsWithTs(ctx, params)
 
 	return nil
+}
+
+func (k Keeper) SetParamsWithTs(ctx sdk.Context, params types.Params) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MultiParamsKeyPrefix)
+	key := types.GetParamsKeyWithTimestamp(ctx.BlockTime().Unix())
+
+	b := k.cdc.MustMarshal(&params)
+	store.Set(key, b)
+
+	return nil
+}
+
+func (k Keeper) GetParamsWithTs(ctx sdk.Context, ts int64) (val types.Params, err error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MultiParamsKeyPrefix)
+
+	startKey := types.GetParamsKeyWithTimestamp(ts)
+	iterator := store.ReverseIterator(nil, startKey)
+	defer iterator.Close()
+	if !iterator.Valid() {
+		return val, fmt.Errorf("no params found")
+	}
+
+	k.cdc.MustUnmarshal(iterator.Value(), &val)
+
+	return val, nil
 }

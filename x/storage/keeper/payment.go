@@ -306,7 +306,11 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 }
 
 func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) uint64 {
-	minChargeSize := k.GetParamsWithTimestamp(ctx, ts).MinChargeSize
+	params, err := k.GetParamsWithTs(ctx, ts)
+	if err != nil {
+		//return types.StoragePrice{}, fmt.Errorf("get sp [%s] storage price @[%d] failed: %w", params.PrimarySp, params.PriceTime, err)
+	}
+	minChargeSize := params.MinChargeSize
 	if payloadSize < minChargeSize {
 		return minChargeSize
 	} else {
