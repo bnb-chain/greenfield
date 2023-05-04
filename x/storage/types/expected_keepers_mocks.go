@@ -642,3 +642,45 @@ func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupMembers(ctx, groupId
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupMembers", reflect.TypeOf((*MockPermissionKeeper)(nil).ForceDeleteGroupMembers), ctx, groupId)
 }
+
+// ExistAccountPolicyForResource mocks base method.
+func (m *MockPermissionKeeper) ExistAccountPolicyForResource(ctx types2.Context, resourceType resource.ResourceType, resourceID math.Uint) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistAccountPolicyForResource", ctx, resourceType, resourceID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ExistAccountPolicyForResource indicates an expected call of ExistAccountPolicyForResource.
+func (mr *MockPermissionKeeperMockRecorder) ExistAccountPolicyForResource(ctx, resourceType, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistAccountPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).ExistAccountPolicyForResource), ctx, resourceType, resourceID)
+}
+
+// ExistGroupPolicyForResource mocks base method.
+func (m *MockPermissionKeeper) ExistGroupPolicyForResource(ctx types2.Context, resourceType resource.ResourceType, resourceID math.Uint) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistGroupPolicyForResource", ctx, resourceType, resourceID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ExistGroupPolicyForResource indicates an expected call of ExistGroupPolicyForResource.
+func (mr *MockPermissionKeeperMockRecorder) ExistGroupPolicyForResource(ctx, resourceType, resourceID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistGroupPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).ExistGroupPolicyForResource), ctx, resourceType, resourceID)
+}
+
+// ExistGroupMemberForGroup mocks base method.
+func (m *MockPermissionKeeper) ExistGroupMemberForGroup(ctx types2.Context, groupID math.Uint) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ExistGroupMemberForGroup", ctx, groupID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// ExistGroupMemberForGroup indicates an expected call of ExistGroupMemberForGroup.
+func (mr *MockPermissionKeeperMockRecorder) ExistGroupMemberForGroup(ctx, groupID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ExistGroupMemberForGroup", reflect.TypeOf((*MockPermissionKeeper)(nil).ExistGroupMemberForGroup), ctx, groupID)
+}

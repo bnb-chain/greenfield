@@ -1483,7 +1483,11 @@ func (k Keeper) getDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint)
 func (k Keeper) appendResourceIdForGarbageCollection(ctx sdk.Context, resourceType resource.ResourceType, resourceID sdkmath.Uint) error {
 	if !k.permKeeper.ExistAccountPolicyForResource(ctx, resourceType, resourceID) &&
 		!k.permKeeper.ExistGroupPolicyForResource(ctx, resourceType, resourceID) {
-		return nil
+
+		if resourceType != resource.RESOURCE_TYPE_GROUP ||
+			(resourceType == resource.RESOURCE_TYPE_GROUP && !k.permKeeper.ExistGroupMemberForGroup(ctx, resourceID)) {
+			return nil
+		}
 	}
 	tStore := ctx.TransientStore(k.tStoreKey)
 	var deleteInfo types.DeleteInfo

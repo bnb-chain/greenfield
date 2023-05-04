@@ -1326,8 +1326,6 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 		nonce++
 	}
 
-	_ = s.WaitForNextBlock()
-
 	// Garbage collection wont be done within the block since the total number of policies to be deleted exceed the
 	// handling ability of each block
 	notAllPoliciesGC := false
