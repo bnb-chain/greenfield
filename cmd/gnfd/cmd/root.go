@@ -6,6 +6,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -27,6 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	genutilcli "github.com/cosmos/cosmos-sdk/x/genutil/client/cli"
 	"github.com/ignite/cli/ignite/services/network"
+	"github.com/rs/zerolog"
 	"github.com/spf13/cast"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
@@ -85,6 +88,11 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 			err = server.InterceptConfigsPreRunHandler(
 				cmd, app.CustomAppTemplate, app.NewDefaultAppConfig(), customTMConfig,
 			)
+			if err != nil {
+				return err
+			}
+
+			err = initLogger(server.GetServerContextFromCmd(cmd))
 			if err != nil {
 				return err
 			}
@@ -148,6 +156,26 @@ func ParseAppConfigInPlace(cmd *cobra.Command) error {
 func initTendermintConfig() *tmcfg.Config {
 	cfg := tmcfg.DefaultConfig()
 	return cfg
+}
+
+// initLogger initializes the logger with the given log level and format.
+func initLogger(serverCtx *server.Context) error {
+	var logWriter io.Writer = os.Stderr
+	if strings.ToLower(serverCtx.Viper.GetString(flags.FlagLogFormat)) == tmcfg.LogFormatPlain {
+		logWriter = zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: "2006-01-02T15:04:05.000"}
+	}
+
+	logLvlStr := serverCtx.Viper.GetString(flags.FlagLogLevel)
+	logLvl, err := zerolog.ParseLevel(logLvlStr)
+	if err != nil {
+		return fmt.Errorf("failed to parse log level (%s): %w", logLvlStr, err)
+	}
+	zerolog.TimeFieldFormat = time.RFC3339Nano
+
+	serverCtx.Logger = server.ZeroLogWrapper{
+		Logger: zerolog.New(logWriter).Level(logLvl).With().Timestamp().Logger(),
+	}
+	return nil
 }
 
 func initRootCmd(
