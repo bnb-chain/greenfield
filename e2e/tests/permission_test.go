@@ -1257,8 +1257,8 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 	nonce, _ := s.Client.GetNonce()
 	bucketNames := make([]string, 0)
 
-	// Create 250 Buckets
-	bucketNumber := 250
+	// Create 420 Buckets
+	bucketNumber := 420
 
 	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(15000000000000))))
 	txOpt := sdktype.TxOption{

@@ -602,27 +602,33 @@ func (mr *MockCrossChainKeeperMockRecorder) RegisterChannel(name, id, app interf
 }
 
 // ForceDeleteAccountPolicyForResource mocks base method.
-func (m *MockPermissionKeeper) ForceDeleteAccountPolicyForResource(ctx types2.Context, resourceType resource.ResourceType, resourceID math.Uint) {
+func (m *MockPermissionKeeper) ForceDeleteAccountPolicyForResource(ctx types2.Context, maxDelete, deletedCount uint64, resourceType resource.ResourceType, resourceID math.Uint) (uint64, bool) {
 	m.ctrl.T.Helper()
-	_ = m.ctrl.Call(m, "ForceDeleteAccountPolicyForResource", ctx, resourceType, resourceID)
+	ret := m.ctrl.Call(m, "ForceDeleteAccountPolicyForResource", ctx, resourceType, resourceID)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 // ForceDeleteAccountPolicyForResource indicates an expected call of ForceDeleteAccountPolicyForResource.
-func (mr *MockPermissionKeeperMockRecorder) ForceDeletePolicyForResource(ctx, resourceType, resourceID interface{}) *gomock.Call {
+func (mr *MockPermissionKeeperMockRecorder) ForceDeleteAccountPolicyForResource(ctx, maxDelete, deletedCount, resourceType, resourceID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteAccountPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).DeletePolicy), ctx, resourceType, resourceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteAccountPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).ForceDeleteAccountPolicyForResource), ctx, maxDelete, deletedCount, resourceType, resourceID)
 }
 
 // ForceDeleteGroupPolicyForResource mocks base method.
-func (m *MockPermissionKeeper) ForceDeleteGroupPolicyForResource(ctx types2.Context, resourceType resource.ResourceType, resourceID math.Uint) {
+func (m *MockPermissionKeeper) ForceDeleteGroupPolicyForResource(ctx types2.Context, maxDelete, deletedCount uint64, resourceType resource.ResourceType, resourceID math.Uint) (uint64, bool) {
 	m.ctrl.T.Helper()
-	_ = m.ctrl.Call(m, "ForceDeleteGroupPolicyForResource", ctx, resourceType, resourceID)
+	ret := m.ctrl.Call(m, "ForceDeleteGroupPolicyForResource", ctx, resourceType, resourceID)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 // ForceDeleteGroupPolicyForResource indicates an expected call of ForceDeleteGroupPolicyForResource.
-func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupPolicyForResource(ctx, resourceType, resourceID interface{}) *gomock.Call {
+func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupPolicyForResource(ctx, maxDelete, deletedCount, resourceType, resourceID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).DeletePolicy), ctx, resourceType, resourceID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupPolicyForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).ForceDeleteGroupPolicyForResource), ctx, maxDelete, deletedCount, resourceType, resourceID)
 }
 
 // ForceDeleteGroupMembers mocks base method.
@@ -634,5 +640,5 @@ func (m *MockPermissionKeeper) ForceDeleteGroupMembers(ctx types2.Context, group
 // ForceDeleteGroupMembers indicates an expected call of ForceDeleteGroupMembers.
 func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupMembers(ctx, groupId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupMembers", reflect.TypeOf((*MockPermissionKeeper)(nil).DeletePolicy), ctx, groupId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupMembers", reflect.TypeOf((*MockPermissionKeeper)(nil).ForceDeleteGroupMembers), ctx, groupId)
 }
