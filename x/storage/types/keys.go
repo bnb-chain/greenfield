@@ -116,10 +116,3 @@ func GetParamsKeyWithTimestamp(timestamp int64) []byte {
 	binary.BigEndian.PutUint64(bz, uint64(timestamp))
 	return append(ParamsKey, bz...)
 }
-
-func ParseParamsKeyWithTimestamp(key []byte) (paramsKey []byte, createTimeSec int64) {
-	length := len(key)
-	paramsKey = key[:length-8]
-	createTimeSec = int64(binary.BigEndian.Uint64(key[length-8 : length]))
-	return
-}
