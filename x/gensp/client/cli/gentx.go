@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 
 	tmos "github.com/cometbft/cometbft/libs/os"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -74,7 +75,7 @@ $ %s gentx sp0 10000000000000000000000000BNB --home ./deployment/localup/.local/
 				nodeID = nodeIDString
 			}
 
-			genDoc, err := types.AppGenesisFromFile(config.GenesisFile())
+			genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
 			if err != nil {
 				return errors.Wrapf(err, "failed to read genesis doc file %s", config.GenesisFile())
 			}

@@ -1,20 +1,19 @@
 package types
 
 import (
-	context "context"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
-	HasAccount(ctx context.Context, addr sdk.AccAddress) bool
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	HasAccount(ctx sdk.Context, addr sdk.AccAddress) bool
 	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx context.Context, moduleName string) sdk.ModuleAccountI
-	SetModuleAccount(context.Context, sdk.ModuleAccountI)
+	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
+	SetModuleAccount(sdk.Context, authtypes.ModuleAccountI)
 }
 
 // BankKeeper defines the expected interface needed to retrieve account balances.

@@ -3,7 +3,7 @@ package sequence
 import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	storetypes "cosmossdk.io/store/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 )
 
 var (

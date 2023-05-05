@@ -3,15 +3,16 @@ package keeper_test
 import (
 	"testing"
 
-	storetypes "cosmossdk.io/store/types"
-	"github.com/bnb-chain/greenfield/x/payment"
-	"github.com/bnb-chain/greenfield/x/payment/keeper"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/golang/mock/gomock"
+
+	"github.com/bnb-chain/greenfield/x/payment"
+	"github.com/bnb-chain/greenfield/x/payment/keeper"
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 type DepKeepers struct {
