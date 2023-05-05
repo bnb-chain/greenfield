@@ -121,7 +121,6 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 		Sequence:      nonce,
 	}
 	sig, err := clitx.SignWithPrivKey(
-		ctx,
 		signing.SignMode_SIGN_MODE_EIP_712,
 		signerData,
 		txBuilder,
@@ -250,7 +249,7 @@ func (c *GreenfieldClient) GetNonce() (uint64, error) {
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) getAccount() (sdk.AccountI, error) {
+func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
 	km, err := c.GetKeyManager()
 	if err != nil {
 		return nil, err
@@ -259,7 +258,7 @@ func (c *GreenfieldClient) getAccount() (sdk.AccountI, error) {
 	if err != nil {
 		return nil, err
 	}
-	var account sdk.AccountI
+	var account authtypes.AccountI
 	if err := c.codec.InterfaceRegistry().UnpackAny(acct.Account, &account); err != nil {
 		return nil, err
 	}

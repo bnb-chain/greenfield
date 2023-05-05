@@ -13,8 +13,8 @@ import (
 	"cosmossdk.io/math"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
-	storetypes "cosmossdk.io/store/types"
 	abci "github.com/cometbft/cometbft/abci/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 

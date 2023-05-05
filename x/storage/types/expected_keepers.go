@@ -1,11 +1,11 @@
 package types
 
 import (
-	context "context"
 	"math/big"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/bnb-chain/greenfield/types/resource"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
@@ -15,7 +15,7 @@ import (
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
 type AccountKeeper interface {
-	GetAccount(ctx context.Context, addr sdk.AccAddress) sdk.AccountI
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
 	GetModuleAddress(name string) sdk.AccAddress
 	// Methods imported from account should be defined here
 }

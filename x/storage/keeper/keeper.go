@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"cosmossdk.io/errors"
-	"cosmossdk.io/log"
 	sdkmath "cosmossdk.io/math"
-	"cosmossdk.io/store/prefix"
-	storetypes "cosmossdk.io/store/types"
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -322,7 +322,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName, reason string) error {
 	sp, found := k.spKeeper.GetStorageProviderByGcAddr(ctx, operator)
 	if !found {
-		return types.ErrNoSuchStorageProvider
+		return types.ErrNoSuchStorageProvider.Wrapf("SP operator address: %s", operator.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
@@ -585,7 +585,7 @@ func (k Keeper) SealObject(
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, spSealAcc)
 	if !found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "sealAddr: %s, status: %s", spSealAcc.String(), sp.Status.String())
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", spSealAcc.String())
 	}
 
 	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
@@ -921,13 +921,13 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
 	if found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "sealAddr: %s, status: %s", operator.String(), sp.Status.String())
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", operator.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
 	}
 	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary sp to do cancel create object")
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary SP to do cancel create object")
 	}
 
 	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
@@ -956,7 +956,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, bucketName string, objectIds []sdkmath.Uint, reason string) error {
 	sp, found := k.spKeeper.GetStorageProviderByGcAddr(ctx, operator)
 	if !found {
-		return types.ErrNoSuchStorageProvider
+		return types.ErrNoSuchStorageProvider.Wrapf("SP operator address: %s", operator.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
@@ -1251,7 +1251,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "spAddr: %s, status: %s", sp.OperatorAddress, sp.Status.String())
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP operator address: %s", spAcc.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService

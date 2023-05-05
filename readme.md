@@ -1,6 +1,6 @@
 # Greenfield
 
-![banner](./docs/asset/gnfd-banner.png)
+![banner](./asset/static/banner.png)
 
 Official Golang implementation of the Greenfield Blockchain. It uses [cometbft](https://github.com/cometbft/cometbft/)
 for consensus and build on [cosmos-sdk](https://github.com/cosmos/cosmos-sdk).
@@ -106,7 +106,12 @@ They get involved in the governance and staking of the blockchain.
 
 Refer to the [docs](docs/readme.md) to dive deep into these modules.
 
-## Join Testnet && Mainnet (coming soon..)
+## Running node
+
+- [Interacting with the Node](https://greenfield.bnbchain.org/docs/guide/greenfield-blockchain/run-node/interact-node.html)
+- [Run Local Network](https://greenfield.bnbchain.org/docs/guide/greenfield-blockchain/run-node/run-local-network.html)
+- [Run Testnet Node](https://greenfield.bnbchain.org/docs/guide/greenfield-blockchain/run-node/run-testnet-node.html)
+- [Become Testnet Validator](https://greenfield.bnbchain.org/docs/guide/greenfield-blockchain/run-node/become-testnet-validator.html)
 
 ## Related Projects
 - [Greenfield-Contract](https://github.com/bnb-chain/greenfield-contracts): the cross chain contract for Greenfield that deployed on BSC network.

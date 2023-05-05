@@ -1,7 +1,6 @@
 package types
 
 import (
-	feegranttypes "cosmossdk.io/x/feegrant"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/codec/types"
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
@@ -9,6 +8,7 @@ import (
 	authztypes "github.com/cosmos/cosmos-sdk/x/authz"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	proposaltypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"

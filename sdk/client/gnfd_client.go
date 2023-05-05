@@ -4,10 +4,8 @@ import (
 	_ "encoding/json"
 	"strings"
 
-	feegranttypes "cosmossdk.io/x/feegrant"
-	upgradetypes "cosmossdk.io/x/upgrade/types"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/grpc/cmtservice"
+	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
@@ -17,12 +15,14 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	feegranttypes "github.com/cosmos/cosmos-sdk/x/feegrant"
 	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	"google.golang.org/grpc"
 
@@ -93,7 +93,7 @@ type TxClient = tx.ServiceClient
 type UpgradeQueryClient = upgradetypes.QueryClient
 
 // TmClient is a type to define the tendermint service client
-type TmClient = cmtservice.ServiceClient
+type TmClient = tmservice.ServiceClient
 
 // GreenfieldClient holds all necessary information for creating/querying transactions.
 type GreenfieldClient struct {
@@ -200,7 +200,7 @@ func setClientsConn(c *GreenfieldClient, conn grpc1.ClientConn) {
 	c.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
 	c.StakingQueryClient = stakingtypes.NewQueryClient(conn)
 	c.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
-	c.TmClient = cmtservice.NewServiceClient(conn)
+	c.TmClient = tmservice.NewServiceClient(conn)
 	c.TxClient = tx.NewServiceClient(conn)
 }
 

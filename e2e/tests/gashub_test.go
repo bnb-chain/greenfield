@@ -43,7 +43,6 @@ func (s *GashubTestSuite) TestUpdateParams() {
 		"test",
 		"update gas params",
 		"pdate gas params",
-		false,
 	)
 	s.Require().NoError(err)
 
