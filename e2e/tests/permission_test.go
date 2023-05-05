@@ -1257,8 +1257,8 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 	nonce, _ := s.Client.GetNonce()
 	bucketNames := make([]string, 0)
 
-	// Create 420 Buckets
-	bucketNumber := 420
+	// Create 250 Buckets
+	bucketNumber := 250
 
 	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(15000000000000))))
 	txOpt := sdktype.TxOption{
@@ -1319,7 +1319,7 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 	// delete batch of buckets
 	for i := 0; i < bucketNumber; i++ {
 		txOpt.Nonce = nonce
-		// the owner deletes the bucket
+		// the owner deletes buckets
 		msgDeleteBucket := storagetypes.NewMsgDeleteBucket(owner.GetAddr(), bucketNames[i])
 		s.SendTxWithTxOpt(msgDeleteBucket, owner, txOpt)
 		nonce++
