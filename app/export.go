@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"log"
 
-	storetypes "cosmossdk.io/store/types"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -29,10 +29,7 @@ func (app *App) ExportAppStateAndValidators(
 		app.prepForZeroHeightGenesis(ctx, jailAllowedAddrs)
 	}
 
-	genState, err := app.mm.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
-	if err != nil {
-		return servertypes.ExportedApp{}, err
-	}
+	genState := app.mm.ExportGenesisForModules(ctx, app.appCodec, modulesToExport)
 
 	appState, err := json.MarshalIndent(genState, "", "  ")
 	if err != nil {

@@ -14,7 +14,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/spf13/cobra"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
@@ -329,7 +328,7 @@ func CmdCreateObject() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			sig, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes(), signing.SignMode_SIGN_MODE_EIP_712)
+			sig, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
 			if err != nil {
 				return err
 			}

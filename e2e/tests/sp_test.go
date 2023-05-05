@@ -90,7 +90,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
 		validator.String(),
-		"test", "test", "test", false,
+		"test", "test", "test",
 	)
 	s.Require().NoError(err)
 

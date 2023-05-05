@@ -4,12 +4,10 @@ import (
 	"fmt"
 	"testing"
 
-	"cosmossdk.io/log"
 	"cosmossdk.io/math"
-	sdkstore "cosmossdk.io/store"
-	"cosmossdk.io/store/metrics"
-	storetypes "cosmossdk.io/store/types"
-	dbm "github.com/cosmos/cosmos-db"
+	dbm "github.com/cometbft/cometbft-db"
+	sdkstore "github.com/cosmos/cosmos-sdk/store"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -36,7 +34,7 @@ func NewMockContext() *MockContext {
 	db := dbm.NewMemDB()
 	return &MockContext{
 		db:    dbm.NewMemDB(),
-		store: sdkstore.NewCommitMultiStore(db, log.NewNopLogger(), metrics.NewNoOpMetrics()),
+		store: sdkstore.NewCommitMultiStore(db),
 	}
 }
 
