@@ -2,10 +2,10 @@ package keeper_test
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"testing"
 	"time"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
@@ -33,9 +33,6 @@ func GetParamsWithTimestamp(k *keeper.Keeper, ctx sdk.Context, ts int64) (val ty
 func TestMultiVersiontParams(t *testing.T) {
 	k, ctx := makeKeeper(t)
 	params := types.DefaultParams()
-	beginTs := time.Now().Unix()
-
-	t.Logf("beginTs time %d\n", beginTs)
 
 	blockTimeT1 := ctx.BlockTime().Unix()
 	params.MaxSegmentSize = 1

@@ -111,7 +111,10 @@ func (k Keeper) UnlockAndChargeStoreFee(ctx sdk.Context, bucketInfo *storagetype
 }
 
 func (k Keeper) ChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
+	chargeSize, err := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
+	if err != nil {
+		return fmt.Errorf("get charge size error: %w", err)
+	}
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize += chargeSize
 		secondarySpObjectsSize := bi.BillingInfo.SecondarySpObjectsSize
@@ -213,7 +216,10 @@ func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prev, current types
 }
 
 func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	chargeSize := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
+	chargeSize, err := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
+	if err != nil {
+		return fmt.Errorf("get charge size error: %w", err)
+	}
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize -= chargeSize
 		var toBeSub []storagetypes.SecondarySpObjectsSize
@@ -298,22 +304,25 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 	if err != nil {
 		return amount, fmt.Errorf("get store price failed: %w", err)
 	}
-	chargeSize := k.GetChargeSize(ctx, payloadSize, priceTime)
+	chargeSize, err := k.GetChargeSize(ctx, payloadSize, priceTime)
+	if err != nil {
+		return amount, fmt.Errorf("get charge size error: %w", err)
+	}
 	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	reserveTime := k.paymentKeeper.GetParams(ctx).ReserveTime
 	amount = rate.Mul(sdkmath.NewIntFromUint64(reserveTime))
 	return amount, nil
 }
 
-func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) uint64 {
+func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (size uint64, err error) {
 	params, err := k.GetParamsWithTs(ctx, ts)
 	if err != nil {
-		//return types.StoragePrice{}, fmt.Errorf("get sp [%s] storage price @[%d] failed: %w", params.PrimarySp, params.PriceTime, err)
+		return size, fmt.Errorf("get charge size failed, ts:%d, error: %w", ts, err)
 	}
 	minChargeSize := params.MinChargeSize
 	if payloadSize < minChargeSize {
-		return minChargeSize
+		return minChargeSize, nil
 	} else {
-		return payloadSize
+		return payloadSize, nil
 	}
 }

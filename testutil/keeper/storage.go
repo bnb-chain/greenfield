@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"testing"
+	"time"
 
 	tmdb "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
@@ -159,6 +160,7 @@ func StorageKeeper(t testing.TB) (*keeper.Keeper, StorageDepKeepers, sdk.Context
 	)
 
 	ctx := sdk.NewContext(stateStore, tmproto.Header{}, false, nil, log.NewNopLogger())
+	ctx = ctx.WithBlockTime(time.Now())
 
 	// Initialize params
 	err := k.SetParams(ctx, types.DefaultParams())

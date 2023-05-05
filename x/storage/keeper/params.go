@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"cosmossdk.io/store/prefix"
 	"fmt"
 	"math/big"
 
+	"cosmossdk.io/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -163,7 +163,10 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	store.Set(types.ParamsKey, bz)
 
 	// store another kv with timestamp
-	k.SetParamsWithTs(ctx, params)
+	err := k.SetParamsWithTs(ctx, params)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

@@ -5,12 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/version"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/authz"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
