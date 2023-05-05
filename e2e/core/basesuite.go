@@ -89,9 +89,8 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) *sdk.TxRespon
 
 func (s *BaseSuite) SendTxWithTxOpt(msg sdk.Msg, from keys.KeyManager, txOpt types.TxOption) {
 	s.Client.SetKeyManager(from)
-	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, &txOpt)
+	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, &txOpt)
 	s.Require().NoError(err)
-	s.T().Logf("tx status is %d, txHash = %s", response.TxResponse.Code, response.TxResponse.TxHash)
 }
 
 func (s *BaseSuite) SimulateTx(msg sdk.Msg, from keys.KeyManager) (txRes *tx.SimulateResponse) {

@@ -1314,7 +1314,6 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 			PrincipalAddress: user.GetAddr().String()})
 		s.Require().NoError(err)
 		policyIds = append(policyIds, queryPolicyForAccountResp.Policy.Id)
-		s.Require().NoError(err)
 	}
 
 	// delete batch of buckets

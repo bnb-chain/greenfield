@@ -1500,9 +1500,6 @@ func (k Keeper) appendResourceIdForGarbageCollection(ctx sdk.Context, resourceTy
 	} else {
 		bz := tStore.Get(types.CurrentBlockDeleteStalePoliciesKey)
 		k.cdc.MustUnmarshal(bz, &deleteInfo)
-		if bz == nil {
-			return types.ErrKeyNotExist
-		}
 	}
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
@@ -1561,8 +1558,6 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 		deleteInfo := &types.DeleteInfo{}
 		k.cdc.MustUnmarshal(iterator.Value(), deleteInfo)
 
-		fmt.Printf("deleteinfo is %s\n", deleteInfo)
-
 		if deleteInfo.ObjectIds != nil && len(deleteInfo.ObjectIds.Id) > 0 {
 			ids := deleteInfo.ObjectIds.Id
 			temp := ids
@@ -1615,13 +1610,13 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 			// 2. group policy
 			temp := ids
 			for idx, id := range ids {
-				k.permKeeper.ForceDeleteGroupMembers(ctx, id)
 				deletedCount, done = k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, maxCleanup, deletedCount, resource.RESOURCE_TYPE_GROUP, id)
 				if !done {
 					deleteInfo.GroupIds.Id = temp
 					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
 					return
 				}
+				k.permKeeper.ForceDeleteGroupMembers(ctx, id)
 				temp = ids[idx+1:]
 			}
 			// clean deleted buckets id from deleteInfo
