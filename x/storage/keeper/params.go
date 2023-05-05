@@ -168,6 +168,7 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 	return nil
 }
 
+// SetParamsWithTs set a specific params in the store from its index
 func (k Keeper) SetParamsWithTs(ctx sdk.Context, params types.Params) error {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MultiParamsKeyPrefix)
 	key := types.GetParamsKeyWithTimestamp(ctx.BlockTime().Unix())
@@ -178,6 +179,7 @@ func (k Keeper) SetParamsWithTs(ctx sdk.Context, params types.Params) error {
 	return nil
 }
 
+// GetParamsWithTs find the latest params before the given time
 func (k Keeper) GetParamsWithTs(ctx sdk.Context, ts int64) (val types.Params, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.MultiParamsKeyPrefix)
 
