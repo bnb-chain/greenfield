@@ -75,7 +75,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			}
 			spOperatorAddress = bucket.PrimarySpAddress
 		} else {
-			spOperatorAddress = objectInfo.SecondarySpAddresses[redundancyIndex]
+			spOperatorAddress = secondarySpAddresses[redundancyIndex]
 		}
 
 		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(spOperatorAddress)
