@@ -315,7 +315,7 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 }
 
 func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (size uint64, err error) {
-	params, err := k.GetParamsWithTs(ctx, ts)
+	params, err := k.GetVersionedParamsWithTs(ctx, ts)
 	if err != nil {
 		return size, fmt.Errorf("get charge size failed, ts:%d, error: %w", ts, err)
 	}
