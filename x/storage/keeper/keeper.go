@@ -1556,80 +1556,61 @@ func (k Keeper) GarbageCollectResourcesStalePolicy(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		deleteInfo := &types.DeleteInfo{}
 		k.cdc.MustUnmarshal(iterator.Value(), deleteInfo)
-
-		if deleteInfo.ObjectIds != nil && len(deleteInfo.ObjectIds.Id) > 0 {
-			ids := deleteInfo.ObjectIds.Id
-			temp := ids
-			for idx, id := range ids {
-				deletedTotal, done = k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, maxCleanup, deletedTotal, resource.RESOURCE_TYPE_OBJECT, id)
-				if !done {
-					deleteInfo.ObjectIds.Id = temp
-					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
-					return
-				}
-				deletedTotal, done = k.permKeeper.ForceDeleteGroupPolicyForResource(ctx, maxCleanup, deletedTotal, resource.RESOURCE_TYPE_OBJECT, id)
-				if !done {
-					deleteInfo.ObjectIds.Id = temp
-					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
-					return
-				}
-				//  remove current resource id from list of ids to be deleted
-				temp = ids[idx+1:]
-			}
-			// clean deleted objects id from deleteInfo
-			deleteInfo.ObjectIds = nil
+		deletedTotal, done = k.garbageCollectionForResource(ctx, deleteStalePoliciesPrefixStore, iterator, deleteInfo, resource.RESOURCE_TYPE_OBJECT, deleteInfo.ObjectIds, maxCleanup, deletedTotal)
+		if !done {
+			return
 		}
-
-		if deleteInfo.BucketIds != nil && len(deleteInfo.BucketIds.Id) > 0 {
-			ids := deleteInfo.BucketIds.Id
-			temp := ids
-			for idx, id := range ids {
-				deletedTotal, done = k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, maxCleanup, deletedTotal, resource.RESOURCE_TYPE_BUCKET, id)
-				if !done {
-					deleteInfo.BucketIds.Id = temp
-					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
-					return
-				}
-				deletedTotal, done = k.permKeeper.ForceDeleteGroupPolicyForResource(ctx, maxCleanup, deletedTotal, resource.RESOURCE_TYPE_BUCKET, id)
-				if !done {
-					deleteInfo.BucketIds.Id = temp
-					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
-					return
-				}
-				temp = ids[idx+1:]
-			}
-			// clean deleted buckets id from deleteInfo
-			deleteInfo.BucketIds = nil
+		deleteInfo.ObjectIds = nil
+		deletedTotal, done = k.garbageCollectionForResource(ctx, deleteStalePoliciesPrefixStore, iterator, deleteInfo, resource.RESOURCE_TYPE_BUCKET, deleteInfo.BucketIds, maxCleanup, deletedTotal)
+		if !done {
+			return
 		}
-
-		if deleteInfo.GroupIds != nil && len(deleteInfo.GroupIds.Id) > 0 {
-			ids := deleteInfo.GroupIds.Id
-			// for a group which is deleted by user, there are 2 parts need to clean:
-			// 1. group members within the group.
-			// 2. group policy
-			temp := ids
-			for idx, id := range ids {
-				deletedTotal, done = k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, maxCleanup, deletedTotal, resource.RESOURCE_TYPE_GROUP, id)
-				if !done {
-					deleteInfo.GroupIds.Id = temp
-					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
-					return
-				}
-				deletedTotal, done = k.permKeeper.ForceDeleteGroupMembers(ctx, maxCleanup, deletedTotal, id)
-				if !done {
-					deleteInfo.GroupIds.Id = temp
-					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
-					return
-				}
-				temp = ids[idx+1:]
-			}
-			// clean deleted buckets id from deleteInfo
-			deleteInfo.GroupIds = nil
+		deleteInfo.BucketIds = nil
+		deletedTotal, done = k.garbageCollectionForResource(ctx, deleteStalePoliciesPrefixStore, iterator, deleteInfo, resource.RESOURCE_TYPE_GROUP, deleteInfo.GroupIds, maxCleanup, deletedTotal)
+		if !done {
+			return
 		}
-
+		deleteInfo.GroupIds = nil
 		// the specified block height(iterator-key)'s stale resource permission metadata is purged
 		if deleteInfo.IsEmpty() {
 			deleteStalePoliciesPrefixStore.Delete(iterator.Key())
 		}
 	}
+}
+
+func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePoliciesPrefixStore prefix.Store, iterator storetypes.Iterator,
+	deleteInfo *types.DeleteInfo, resourceType resource.ResourceType, resourceIds *types.Ids, maxCleanup, deletedTotal uint64) (uint64, bool) {
+	var done bool
+	if resourceIds != nil && len(resourceIds.Id) > 0 {
+		ids := resourceIds.Id
+		temp := ids
+		for idx, id := range ids {
+			deletedTotal, done = k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, maxCleanup, deletedTotal, resourceType, id)
+			if !done {
+				resourceIds.Id = temp
+
+				deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
+				return deletedTotal, false
+			}
+			if resourceType == resource.RESOURCE_TYPE_GROUP {
+				deletedTotal, done = k.permKeeper.ForceDeleteGroupMembers(ctx, maxCleanup, deletedTotal, id)
+				if !done {
+					deleteInfo.GroupIds.Id = temp
+					deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
+					return deletedTotal, false
+				}
+				// no need to deal with group policy when resource type is group
+				continue
+			}
+			deletedTotal, done = k.permKeeper.ForceDeleteGroupPolicyForResource(ctx, maxCleanup, deletedTotal, resourceType, id)
+			if !done {
+				resourceIds.Id = temp
+				deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
+				return deletedTotal, false
+			}
+			//  remove current resource id from list of ids to be deleted
+			temp = ids[idx+1:]
+		}
+	}
+	return deletedTotal, true
 }
