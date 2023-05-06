@@ -1723,7 +1723,7 @@ func (m *EventMirrorGroupResult) GetGroupName() string {
 	return ""
 }
 
-// EventStalePolicyCleanup is emitted when specified block height's stale policies is garbage collected
+// EventStalePolicyCleanup is emitted when specified block height's stale policies need to be Garbage collected
 type EventStalePolicyCleanup struct {
 	BlockNum   int64       `protobuf:"varint,1,opt,name=blockNum,proto3" json:"blockNum,omitempty"`
 	DeleteInfo *DeleteInfo `protobuf:"bytes,2,opt,name=delete_info,json=deleteInfo,proto3" json:"delete_info,omitempty"`

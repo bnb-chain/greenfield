@@ -361,9 +361,9 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 }
 
 // ForceDeleteAccountPolicyForResource deletes all individual accounts policy enforced on resources, if
-func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, deletedCount uint64, resourceType resource.ResourceType, resourceID math.Uint) (uint64, bool) {
+func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, deletedTotal uint64, resourceType resource.ResourceType, resourceID math.Uint) (uint64, bool) {
 	if resourceType == resource.RESOURCE_TYPE_UNSPECIFIED {
-		return deletedCount, true
+		return deletedTotal, true
 	}
 	store := ctx.KVStore(k.storeKey)
 	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
@@ -371,22 +371,24 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
-		// if exceeding the limit, pause the GC and mark the current resource's deletion is not complete yet
-		if deletedCount > maxDelete {
-			return deletedCount, false
-		}
 		// delete mapping policyId -> policy
 		policyID := sequence.DecodeSequence(iterator.Value())
 		store.Delete(types.GetPolicyByIDKey(policyID))
 		// delete mapping policyKey -> policyId
 		resourceAccountsPolicyStore.Delete(iterator.Key())
-		deletedCount++
+
 		// emit DeletePolicy Event
 		_ = ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{
 			PolicyId: policyID,
 		})
+		deletedTotal++
+		// if exceeding the limit, pause the GC and mark the current resource's deletion is not complete yet
+		if deletedTotal > maxDelete {
+			return deletedTotal, false
+		}
+
 	}
-	return deletedCount, true
+	return deletedTotal, true
 }
 
 // ForceDeleteGroupPolicyForResource deletes group policy enforced on resource
@@ -401,16 +403,17 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 		policyGroup := types.PolicyGroup{}
 		k.cdc.MustUnmarshal(bz, &policyGroup)
 		for i := 0; i < len(policyGroup.Items); i++ {
-			if deletedTotal > maxDelete {
-				return deletedTotal, false
-			}
 			// delete concrete policy by policyId
 			policyId := policyGroup.Items[i].PolicyId
 			store.Delete(types.GetPolicyByIDKey(policyId))
-			deletedTotal++
+
 			_ = ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{
 				PolicyId: policyId,
 			})
+			deletedTotal++
+			if deletedTotal > maxDelete {
+				return deletedTotal, false
+			}
 		}
 		store.Delete(policyForGroupKey)
 	}
@@ -418,7 +421,7 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 }
 
 // ForceDeleteGroupMembers deletes group members when user deletes a group
-func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, groupId math.Uint) {
+func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, maxDelete, deletedTotal uint64, groupId math.Uint) (uint64, bool) {
 	store := ctx.KVStore(k.storeKey)
 	groupMembersPrefixStore := prefix.NewStore(ctx.KVStore(k.storeKey), types.GroupMembersPrefix(groupId))
 	iter := groupMembersPrefixStore.Iterator(nil, nil)
@@ -429,7 +432,12 @@ func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, groupId math.Uint) {
 		store.Delete(types.GetGroupMemberByIDKey(memberID))
 		// delete GroupMemberPrefix_groupId_memberAddr -> memberSequence(id)
 		groupMembersPrefixStore.Delete(iter.Key())
+		deletedTotal++
+		if deletedTotal > maxDelete {
+			return deletedTotal, false
+		}
 	}
+	return deletedTotal, true
 }
 
 func (k Keeper) ExistAccountPolicyForResource(ctx sdk.Context, resourceType resource.ResourceType, resourceID math.Uint) bool {

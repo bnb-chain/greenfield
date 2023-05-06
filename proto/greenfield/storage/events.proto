@@ -427,7 +427,7 @@ message EventMirrorGroupResult {
   ];
 }
 
-// EventStalePolicyCleanup is emitted when specified block height's stale policies is garbage collected
+// EventStalePolicyCleanup is emitted when specified block height's stale policies need to be Garbage collected
 message EventStalePolicyCleanup {
   int64 blockNum = 1;
   DeleteInfo delete_info =2;

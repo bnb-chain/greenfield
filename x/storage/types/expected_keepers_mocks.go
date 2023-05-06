@@ -633,15 +633,15 @@ func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupPolicyForResource(ct
 }
 
 // ForceDeleteGroupMembers mocks base method.
-func (m *MockPermissionKeeper) ForceDeleteGroupMembers(ctx types2.Context, groupId math.Uint) {
+func (m *MockPermissionKeeper) ForceDeleteGroupMembers(ctx types2.Context, maxDelete, deletedCount uint64, groupId math.Uint) {
 	m.ctrl.T.Helper()
 	_ = m.ctrl.Call(m, "ForceDeleteGroupMembers", ctx, groupId)
 }
 
 // ForceDeleteGroupMembers indicates an expected call of ForceDeleteGroupMembers.
-func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupMembers(ctx, groupId interface{}) *gomock.Call {
+func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupMembers(ctx, maxDelete, deletedCount, groupId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupMembers", reflect.TypeOf((*MockPermissionKeeper)(nil).ForceDeleteGroupMembers), ctx, groupId)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ForceDeleteGroupMembers", reflect.TypeOf((*MockPermissionKeeper)(nil).ForceDeleteGroupMembers), ctx, maxDelete, deletedCount, groupId)
 }
 
 // ExistAccountPolicyForResource mocks base method.
