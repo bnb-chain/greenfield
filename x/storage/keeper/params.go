@@ -186,11 +186,12 @@ func (k Keeper) SetVersionedParamsWithTs(ctx sdk.Context, verParams types.Versio
 	return nil
 }
 
-// GetVersionedParamsWithTs find the latest params before the given time
+// GetVersionedParamsWithTs find the latest params before and equal than the specific timestamp
 func (k Keeper) GetVersionedParamsWithTs(ctx sdk.Context, ts int64) (verParams types.VersionedParams, err error) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VersionedParamsKeyPrefix)
 
-	startKey := types.GetParamsKeyWithTimestamp(ts)
+	// ReverseIterator will exclusive end, so we increment ts by 1
+	startKey := types.GetParamsKeyWithTimestamp(ts + 1)
 	iterator := store.ReverseIterator(nil, startKey)
 	defer iterator.Close()
 	if !iterator.Valid() {
