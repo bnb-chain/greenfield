@@ -40,6 +40,18 @@ func (s *TestSuite) SetupTest() {
 	encCfg := moduletestutil.MakeTestEncodingConfig(challenge.AppModuleBasic{})
 	key := storetypes.NewKVStoreKey(types.StoreKey)
 	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
+
+	// set mock randao mix
+	randaoMix := sdk.Keccak256([]byte{1})
+	randaoMix = append(randaoMix, sdk.Keccak256([]byte{2})...)
+	header := testCtx.Ctx.BlockHeader()
+	header.RandaoMix = randaoMix
+	testCtx = testutil.TestContext{
+		Ctx: sdk.NewContext(testCtx.CMS, header, false, nil, testCtx.Ctx.Logger()),
+		DB:  testCtx.DB,
+		CMS: testCtx.CMS,
+	}
+
 	s.ctx = testCtx.Ctx
 
 	ctrl := gomock.NewController(s.T())
