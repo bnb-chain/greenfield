@@ -7,7 +7,39 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // Params defines the parameters for the module.
 message Params {
-  // TODO: We should think more about the version-control of the storage params.
+  option (gogoproto.goproto_stringer) = false;
+  VersionedParams versioned_params = 1 [(gogoproto.nullable) = false];
+
+  // max_payload_size is the maximum size of the payload, default: 2G
+  uint64 max_payload_size = 2;
+  // relayer fee for the mirror bucket tx
+  string mirror_bucket_relayer_fee = 3;
+  // relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx
+  string mirror_bucket_ack_relayer_fee = 4;
+  // relayer fee for the mirror object tx
+  string mirror_object_relayer_fee = 5;
+  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
+  string mirror_object_ack_relayer_fee = 6;
+  // relayer fee for the mirror object tx
+  string mirror_group_relayer_fee = 7;
+  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
+  string mirror_group_ack_relayer_fee = 8;
+  // The maximum number of buckets that can be created per account
+  uint32 max_buckets_per_account = 9;
+  // The window to count the discontinued objects or buckets
+  uint64 discontinue_counting_window = 10;
+  // The max objects can be requested in a window
+  uint64 discontinue_object_max = 11;
+  // The max buckets can be requested in a window
+  uint64 discontinue_bucket_max = 12;
+  // The object will be deleted after the confirm period in seconds
+  int64 discontinue_confirm_period = 13;
+  // The max delete objects in each end block
+  uint64 discontinue_deletion_max = 14;
+}
+
+// VersionedParams defines the parameters for the storage module with multi version, each version store with different timestamp.
+message VersionedParams {
   option (gogoproto.goproto_stringer) = false;
 
   // max_segment_size is the maximum size of a segment. default: 16M
@@ -16,32 +48,6 @@ message Params {
   uint32 redundant_data_chunk_num = 2;
   // redundant_data_check_num is the num of parity chunks of EC redundancy algorithm
   uint32 redundant_parity_chunk_num = 3;
-  // max_payload_size is the maximum size of the payload, default: 2G
-  uint64 max_payload_size = 4;
   // min_charge_size is the minimum charge size of the payload, objects smaller than this size will be charged as this size
-  uint64 min_charge_size = 5;
-  // relayer fee for the mirror bucket tx
-  string mirror_bucket_relayer_fee = 6;
-  // relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx
-  string mirror_bucket_ack_relayer_fee = 7;
-  // relayer fee for the mirror object tx
-  string mirror_object_relayer_fee = 8;
-  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
-  string mirror_object_ack_relayer_fee = 9;
-  // relayer fee for the mirror object tx
-  string mirror_group_relayer_fee = 10;
-  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
-  string mirror_group_ack_relayer_fee = 11;
-  // The maximum number of buckets that can be created per account
-  uint32 max_buckets_per_account = 12;
-  // The window to count the discontinued objects or buckets
-  uint64 discontinue_counting_window = 13;
-  // The max objects can be requested in a window
-  uint64 discontinue_object_max = 14;
-  // The max buckets can be requested in a window
-  uint64 discontinue_bucket_max = 15;
-  // The object will be deleted after the confirm period in seconds
-  int64 discontinue_confirm_period = 16;
-  // The max delete objects in each end block
-  uint64 discontinue_deletion_max = 17;
+  uint64 min_charge_size = 4;
 }

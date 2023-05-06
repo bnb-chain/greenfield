@@ -812,7 +812,7 @@ func (s *StorageTestSuite) GetChargeSize(payloadSize uint64) uint64 {
 	storageParams, err := s.Client.StorageQueryClient.Params(ctx, &storagetypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	s.T().Logf("storageParams %s", storageParams)
-	minChargeSize := storageParams.Params.MinChargeSize
+	minChargeSize := storageParams.Params.VersionedParams.MinChargeSize
 	if payloadSize < minChargeSize {
 		return minChargeSize
 	} else {

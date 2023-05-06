@@ -4,11 +4,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/samber/lo"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
@@ -86,7 +85,7 @@ func (s *IntegrationTestSuiteWithoutMock) TestCreateCreateBucket_Payment() {
 		PrimarySpAddress: s.PrimarySpAddr.String(),
 	}
 	t1 := int64(200)
-	ctx = ctx.WithBlockTime(time.Unix(t1, 0))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(t1) * time.Second))
 	err := s.keeper.ChargeInitialReadFee(ctx, &bucket)
 	s.Require().NoError(err)
 	userStreamRecordCreateBucket, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
@@ -98,11 +97,11 @@ func (s *IntegrationTestSuiteWithoutMock) TestCreateCreateBucket_Payment() {
 
 	// mock add a object
 	t2 := t1 + 5000
-	ctx = ctx.WithBlockTime(time.Unix(t2, 0))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(t2) * time.Second))
 	bucket.BillingInfo.PriceTime = t2
 	object := types.ObjectInfo{
 		PayloadSize: 100,
-		CreateAt:    t2,
+		CreateAt:    ctx.BlockTime().Unix(),
 	}
 	err = s.keeper.LockStoreFee(ctx, &bucket, &object)
 	s.Require().NoError(err)
