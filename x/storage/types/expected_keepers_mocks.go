@@ -633,9 +633,12 @@ func (mr *MockPermissionKeeperMockRecorder) ForceDeleteGroupPolicyForResource(ct
 }
 
 // ForceDeleteGroupMembers mocks base method.
-func (m *MockPermissionKeeper) ForceDeleteGroupMembers(ctx types2.Context, maxDelete, deletedCount uint64, groupId math.Uint) {
+func (m *MockPermissionKeeper) ForceDeleteGroupMembers(ctx types2.Context, maxDelete, deletedCount uint64, groupId math.Uint) (uint64, bool) {
 	m.ctrl.T.Helper()
-	_ = m.ctrl.Call(m, "ForceDeleteGroupMembers", ctx, groupId)
+	ret := m.ctrl.Call(m, "ForceDeleteGroupMembers", ctx, groupId)
+	ret0, _ := ret[0].(uint64)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
 }
 
 // ForceDeleteGroupMembers indicates an expected call of ForceDeleteGroupMembers.
