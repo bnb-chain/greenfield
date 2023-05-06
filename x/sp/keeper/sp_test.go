@@ -3,7 +3,10 @@ package keeper_test
 import (
 	"fmt"
 
+	"cosmossdk.io/math"
+	types2 "github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
@@ -78,4 +81,51 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(s.T(), found, true)
+}
+
+func (s *KeeperTestSuite) TestSlashBasic() {
+	// mock
+	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
+
+	k := s.spKeeper
+	ctx := s.ctx
+	spAccStr := sample.AccAddress()
+	spAcc := sdk.MustAccAddressFromHex(spAccStr)
+
+	fundingAccStr := sample.AccAddress()
+	fundingAcc := sdk.MustAccAddressFromHex(fundingAccStr)
+
+	sealAccStr := sample.AccAddress()
+	sealAcc := sdk.MustAccAddressFromHex(sealAccStr)
+
+	approvalAccStr := sample.AccAddress()
+	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
+
+	sp := &types.StorageProvider{
+		OperatorAddress: spAcc.String(),
+		FundingAddress:  fundingAcc.String(),
+		SealAddress:     sealAcc.String(),
+		ApprovalAddress: approvalAcc.String(),
+		TotalDeposit:    math.NewIntWithDecimal(2010, types2.DecimalBNB),
+	}
+
+	k.SetStorageProvider(ctx, sp)
+	_, found := k.GetStorageProvider(ctx, spAcc)
+	if !found {
+		fmt.Printf("no such sp: %s", spAcc)
+	}
+	require.EqualValues(s.T(), found, true)
+
+	rewardInfo := types.RewardInfo{
+		Address: sample.AccAddress(),
+		Amount:  sdk.NewCoin(types2.Denom, math.NewIntWithDecimal(10, types2.DecimalBNB)),
+	}
+
+	err := k.Slash(ctx, spAcc, []types.RewardInfo{rewardInfo})
+	require.NoError(s.T(), err)
+
+	spAfterSlash, found := k.GetStorageProvider(ctx, spAcc)
+	require.True(s.T(), found)
+	s.T().Logf("%s", spAfterSlash.TotalDeposit.String())
+	require.True(s.T(), spAfterSlash.TotalDeposit.Equal(math.NewIntWithDecimal(2000, types2.DecimalBNB)))
 }

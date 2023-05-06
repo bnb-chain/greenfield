@@ -15,7 +15,7 @@ func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types
 
 	totalAmount := sdkmath.NewInt(0)
 	for _, rewardInfo := range rewardInfos {
-		totalAmount.Add(rewardInfo.Amount.Amount)
+		totalAmount = totalAmount.Add(rewardInfo.Amount.Amount)
 		if k.DepositDenomForSP(ctx) != rewardInfo.GetAmount().Denom {
 			return types.ErrInvalidDenom.Wrapf("Expect: %s, actual: %s", k.DepositDenomForSP(ctx), rewardInfo.GetAmount().Denom)
 		}
@@ -37,6 +37,8 @@ func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types
 		}
 	}
 
-	// TODO: if the total deposit of SP is less than the MinDeposit, we will jail it.
+	sp.TotalDeposit = sp.TotalDeposit.Sub(totalAmount)
+	k.SetStorageProvider(ctx, sp)
+
 	return nil
 }
