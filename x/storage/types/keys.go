@@ -29,7 +29,8 @@ const (
 type RawID math.Uint
 
 var (
-	ParamsKey = []byte{0x01}
+	ParamsKey                = []byte{0x01}
+	VersionedParamsKeyPrefix = []byte{0x02}
 
 	BucketPrefix = []byte{0x11}
 	ObjectPrefix = []byte{0x12}
@@ -117,6 +118,13 @@ func GetDiscontinueBucketIdsKey(timestamp int64) []byte {
 // GetDiscontinueObjectStatusKey return discontinue object status store key
 func GetDiscontinueObjectStatusKey(objectId math.Uint) []byte {
 	return append(DiscontinueObjectStatusPrefix, sequence.EncodeSequence(objectId)...)
+}
+
+// GetParamsKeyWithTimestamp return multi-version params store key
+func GetParamsKeyWithTimestamp(timestamp int64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(timestamp))
+	return append(ParamsKey, bz...)
 }
 
 // GetDeleteStalePoliciesKey return delete stale policies store Key

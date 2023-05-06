@@ -8,17 +8,10 @@ import (
 	"testing"
 	"time"
 
-	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
-
 	"cosmossdk.io/math"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	abci "github.com/cometbft/cometbft/abci/types"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/suite"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -28,8 +21,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltestutil "github.com/cosmos/cosmos-sdk/x/genutil/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/golang/mock/gomock"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/x/gensp"
+	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 )
 
 var (

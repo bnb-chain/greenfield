@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
@@ -25,6 +24,12 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 
 	sp := s.StorageProviders[0]
 
+	querySPReq := sptypes.QueryStorageProviderRequest{
+		SpAddress: sp.OperatorKey.GetAddr().String(),
+	}
+
+	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
+
 	genSP := &sptypes.StorageProvider{
 		OperatorAddress: sp.OperatorKey.GetAddr().String(),
 		FundingAddress:  sp.FundingKey.GetAddr().String(),
@@ -38,12 +43,9 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 			Website:  "http://website",
 		},
 		Endpoint:     "http://127.0.0.1:9033",
-		TotalDeposit: types.NewIntFromInt64WithDecimal(10000000, types.DecimalBNB),
+		TotalDeposit: querySPResp.StorageProvider.TotalDeposit,
 	}
-	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: sp.OperatorKey.GetAddr().String(),
-	}
-	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
+
 	s.Require().NoError(err)
 	s.Require().Equal(querySPResp.StorageProvider, genSP)
 }

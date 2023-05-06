@@ -73,11 +73,13 @@ func NewParams(
 	stalePoliesCleanupMax uint64,
 ) Params {
 	return Params{
-		MaxSegmentSize:            maxSegmentSize,
-		RedundantDataChunkNum:     redundantDataChunkNum,
-		RedundantParityChunkNum:   redundantParityChunkNum,
+		VersionedParams: VersionedParams{
+			MaxSegmentSize:          maxSegmentSize,
+			RedundantDataChunkNum:   redundantDataChunkNum,
+			RedundantParityChunkNum: redundantParityChunkNum,
+			MinChargeSize:           minChargeSize,
+		},
 		MaxPayloadSize:            maxPayloadSize,
-		MinChargeSize:             minChargeSize,
 		MaxBucketsPerAccount:      maxBucketsPerAccount,
 		MirrorBucketRelayerFee:    mirrorBucketRelayerFee,
 		MirrorBucketAckRelayerFee: mirrorBucketAckRelayerFee,
@@ -110,12 +112,13 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyMaxSegmentSize, &p.MaxSegmentSize, validateMaxSegmentSize),
-		paramtypes.NewParamSetPair(KeyRedundantDataChunkNum, &p.RedundantDataChunkNum, validateRedundantDataChunkNum),
-		paramtypes.NewParamSetPair(KeyRedundantParityChunkNum, &p.RedundantParityChunkNum, validateRedundantParityChunkNum),
+		paramtypes.NewParamSetPair(KeyMaxSegmentSize, &p.VersionedParams.MaxSegmentSize, validateMaxSegmentSize),
+		paramtypes.NewParamSetPair(KeyRedundantDataChunkNum, &p.VersionedParams.RedundantDataChunkNum, validateRedundantDataChunkNum),
+		paramtypes.NewParamSetPair(KeyRedundantParityChunkNum, &p.VersionedParams.RedundantParityChunkNum, validateRedundantParityChunkNum),
+		paramtypes.NewParamSetPair(KeyMinChargeSize, &p.VersionedParams.MinChargeSize, validateMinChargeSize),
+
 		paramtypes.NewParamSetPair(KeyMaxPayloadSize, &p.MaxPayloadSize, validateMaxPayloadSize),
 		paramtypes.NewParamSetPair(KeyMaxBucketsPerAccount, &p.MaxBucketsPerAccount, validateMaxBucketsPerAccount),
-		paramtypes.NewParamSetPair(KeyMinChargeSize, &p.MinChargeSize, validateMinChargeSize),
 		paramtypes.NewParamSetPair(KeyMirrorBucketRelayerFee, &p.MirrorBucketRelayerFee, validateRelayerFee),
 		paramtypes.NewParamSetPair(KeyMirrorBucketAckRelayerFee, &p.MirrorBucketAckRelayerFee, validateRelayerFee),
 		paramtypes.NewParamSetPair(KeyMirrorObjectRelayerFee, &p.MirrorObjectRelayerFee, validateRelayerFee),
@@ -133,22 +136,23 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	if err := validateMaxSegmentSize(p.MaxSegmentSize); err != nil {
+	if err := validateMaxSegmentSize(p.VersionedParams.MaxSegmentSize); err != nil {
 		return err
 	}
-	if err := validateRedundantDataChunkNum(p.RedundantDataChunkNum); err != nil {
+	if err := validateRedundantDataChunkNum(p.VersionedParams.RedundantDataChunkNum); err != nil {
 		return err
 	}
-	if err := validateRedundantParityChunkNum(p.RedundantParityChunkNum); err != nil {
+	if err := validateRedundantParityChunkNum(p.VersionedParams.RedundantParityChunkNum); err != nil {
 		return err
 	}
+	if err := validateMinChargeSize(p.VersionedParams.MinChargeSize); err != nil {
+		return err
+	}
+
 	if err := validateMaxPayloadSize(p.MaxPayloadSize); err != nil {
 		return err
 	}
 	if err := validateMaxBucketsPerAccount(p.MaxBucketsPerAccount); err != nil {
-		return err
-	}
-	if err := validateMinChargeSize(p.MinChargeSize); err != nil {
 		return err
 	}
 	if err := validateRelayerFee(p.MirrorBucketRelayerFee); err != nil {
@@ -186,6 +190,12 @@ func (p Params) Validate() error {
 
 // String implements the Stringer interface.
 func (p Params) String() string {
+	out, _ := yaml.Marshal(p)
+	return string(out)
+}
+
+// String implements the Stringer interface.
+func (p VersionedParams) String() string {
 	out, _ := yaml.Marshal(p)
 	return string(out)
 }

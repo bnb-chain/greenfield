@@ -23,12 +23,14 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					MaxSegmentSize:            20,
-					RedundantDataChunkNum:     10,
-					RedundantParityChunkNum:   8,
+					VersionedParams: types.VersionedParams{
+						MaxSegmentSize:          20,
+						RedundantDataChunkNum:   10,
+						RedundantParityChunkNum: 8,
+						MinChargeSize:           100,
+					},
 					MaxPayloadSize:            2000,
 					MaxBucketsPerAccount:      100,
-					MinChargeSize:             100,
 					MirrorBucketRelayerFee:    "10",
 					MirrorBucketAckRelayerFee: "10",
 					MirrorGroupRelayerFee:     "10",
