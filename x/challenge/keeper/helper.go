@@ -20,8 +20,7 @@ func SeedFromRandaoMix(randaoMix []byte, number uint64) []byte {
 	lowBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(lowBytes, number)
 
-	seedBytes := make([]byte, RandaoMixLength)
-
+	seedBytes := make([]byte, 0)
 	seedBytes = append(seedBytes, sdk.Keccak256(highBytes)...)
 	seedBytes = append(seedBytes, sdk.Keccak256(lowBytes)...)
 
@@ -54,7 +53,7 @@ func CalculateSegments(payloadSize, segmentSize uint64) uint64 {
 
 // RandomSegmentIndex generates a random segment index for challenge.
 func RandomSegmentIndex(seed []byte, segments uint64) uint32 {
-	number := new(big.Int).SetBytes(sdk.Keccak256(seed)[:32])
+	number := new(big.Int).SetBytes(sdk.Keccak256(seed[:32]))
 	number = new(big.Int).Abs(number)
 	index := new(big.Int).Mod(number, big.NewInt(int64(segments)))
 	return uint32(index.Uint64())
@@ -63,7 +62,7 @@ func RandomSegmentIndex(seed []byte, segments uint64) uint32 {
 // RandomRedundancyIndex generates a random redundancy index (storage provider) for challenge.
 // Be noted: RedundancyIndex starts from -1 (the primary sp).
 func RandomRedundancyIndex(seed []byte, sps uint64) int32 {
-	number := new(big.Int).SetBytes(sdk.Keccak256(seed)[32:])
+	number := new(big.Int).SetBytes(sdk.Keccak256(seed[32:]))
 	number = new(big.Int).Abs(number)
 	index := new(big.Int).Mod(number, big.NewInt(int64(sps)))
 	return int32(index.Uint64()) - 1
