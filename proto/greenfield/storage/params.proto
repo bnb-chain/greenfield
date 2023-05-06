@@ -8,7 +8,7 @@ option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 // Params defines the parameters for the module.
 message Params {
   option (gogoproto.goproto_stringer) = false;
-  VersionedParams versioned_params = 1 [(gogoproto.nullable) = false] ;
+  VersionedParams versioned_params = 1 [(gogoproto.nullable) = false];
 
   // max_payload_size is the maximum size of the payload, default: 2G
   uint64 max_payload_size = 2;
