@@ -295,7 +295,6 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal
 			operator.String(), resOwner.String())
 	}
 	return k.permKeeper.DeletePolicy(ctx, principal, grn.ResourceType(), resID)
-
 }
 
 func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {

@@ -7,8 +7,11 @@ import (
 	"math"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sdktype "github.com/bnb-chain/greenfield/sdk/types"
 	storageutil "github.com/bnb-chain/greenfield/testutil/storage"
 	types2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
@@ -1000,5 +1003,349 @@ func (s *StorageTestSuite) TestEmptyPermission() {
 		s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
 		s.Require().NoError(err)
 		s.Require().Equal(verifyPermResp.Effect, object.Effect)
+	}
+}
+
+// When resources are deleted, policies which associated with personal account(address) and resources(Bucket and Object)
+// will also be garbage collected.
+func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
+	var err error
+	ctx := context.Background()
+	user1 := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	_, owner, bucketName, bucketId, objectName, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+
+	principal := types.NewPrincipalWithAccount(user1.GetAddr())
+
+	// Put bucket policy
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(msgPutBucketPolicy, owner)
+
+	// Put Object policy
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
+		principal, []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(msgPutObjectPolicy, owner)
+
+	// Query the policy which is enforced on bucket and object
+	grn := types2.NewBucketGRN(bucketName)
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: grn.String(),
+		PrincipalAddress: user1.GetAddr().String()})
+	s.Require().NoError(err)
+	s.Require().Equal(bucketId, queryPolicyForAccountResp.Policy.ResourceId)
+	bucketPolicyId := queryPolicyForAccountResp.Policy.Id
+
+	grn2 := types2.NewObjectGRN(bucketName, objectName)
+	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: grn2.String(),
+		PrincipalAddress: user1.GetAddr().String()})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+	objectPolicyId := queryPolicyForAccountResp.Policy.Id
+	s.T().Log(queryPolicyForAccountResp.Policy.String())
+
+	// user1 deletes the object
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user1.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(msgDeleteObject, user1)
+
+	// user1 deletes the bucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user1.GetAddr(), bucketName)
+	s.SendTxBlock(msgDeleteBucket, user1)
+
+	// bucket and object dont exist after deletion
+	headObjectReq := storagetypes.QueryHeadObjectRequest{
+		BucketName: objectName,
+	}
+	_, err = s.Client.HeadObject(ctx, &headObjectReq)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such object")
+
+	headBucketReq := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	_, err = s.Client.HeadBucket(ctx, &headBucketReq)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such bucket")
+
+	// policy is GC
+	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: bucketPolicyId.String()})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+
+	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: objectPolicyId.String()})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+}
+
+// When resources are deleted, policies which associated with group and resources(Bucket and Object)
+// will also be garbage collected.
+func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
+	ctx := context.Background()
+	user := s.GenAndChargeAccounts(3, 10000)
+	_, owner, bucketName, bucketId, objectName, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()})
+	s.SendTxBlock(msgCreateGroup, owner)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	principal := types.NewPrincipalWithGroup(headGroupResponse.GroupInfo.Id)
+	// Put bucket policy for group
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(msgPutBucketPolicy, owner)
+
+	// Put Object policy for group
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
+		principal, []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(msgPutObjectPolicy, owner)
+
+	// Query bucket policy for group
+	grn := types2.NewBucketGRN(bucketName)
+	queryPolicyForGroupReq := storagetypes.QueryPolicyForGroupRequest{Resource: grn.String(),
+		PrincipalGroupId: headGroupResponse.GroupInfo.Id.String()}
+
+	queryPolicyForGroupResp, err := s.Client.QueryPolicyForGroup(ctx, &queryPolicyForGroupReq)
+	s.Require().NoError(err)
+	s.Require().Equal(bucketId, queryPolicyForGroupResp.Policy.ResourceId)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
+	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
+	bucketPolicyId := queryPolicyForGroupResp.Policy.Id
+
+	// Query object policy for group
+	grn2 := types2.NewObjectGRN(bucketName, objectName)
+	queryPolicyForGroupResp, err = s.Client.QueryPolicyForGroup(ctx, &storagetypes.QueryPolicyForGroupRequest{Resource: grn2.String(),
+		PrincipalGroupId: headGroupResponse.GroupInfo.Id.String()})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForGroupResp.Policy.ResourceId)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_OBJECT)
+	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
+	objectPolicyId := queryPolicyForGroupResp.Policy.Id
+
+	// user1 deletes the object
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user[1].GetAddr(), bucketName, objectName)
+	s.SendTxBlock(msgDeleteObject, user[1])
+
+	// user1 deletes the bucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user[1].GetAddr(), bucketName)
+	s.SendTxBlock(msgDeleteBucket, user[1])
+
+	// bucket and object dont exist after deletion
+	headObjectReq := storagetypes.QueryHeadObjectRequest{
+		BucketName: objectName,
+	}
+	_, err = s.Client.HeadObject(ctx, &headObjectReq)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such object")
+
+	headBucketReq := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	_, err = s.Client.HeadBucket(ctx, &headBucketReq)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such bucket")
+
+	// policy is GC
+	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: objectPolicyId.String()})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+
+	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: bucketPolicyId.String()})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+}
+
+// When a group is deleted, a. Policies associated with group members and group, b. group members
+// will be garbage collected.
+func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
+	var err error
+	ctx := context.Background()
+
+	user := s.GenAndChargeAccounts(4, 1000000)
+	owner := user[0]
+	_ = s.StorageProviders[0]
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
+		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()})
+	s.SendTxBlock(msgCreateGroup, owner)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Put policy
+	groupStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_GROUP_MEMBER},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), testGroupName).String(),
+		types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{groupStatement}, nil)
+	s.SendTxBlock(msgPutGroupPolicy, owner)
+
+	// Query for policy
+	grn := types2.NewGroupGRN(owner.GetAddr(), testGroupName)
+	queryPolicyForAccountReq := storagetypes.QueryPolicyForAccountRequest{Resource: grn.String(),
+		PrincipalAddress: user[1].GetAddr().String()}
+
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceType, resource.RESOURCE_TYPE_GROUP)
+	s.T().Logf("policy is %s", queryPolicyForAccountResp.Policy.String())
+	policyID := queryPolicyForAccountResp.Policy.Id
+
+	// Head Group member
+	headGroupMemberRequest := storagetypes.QueryHeadGroupMemberRequest{Member: user[2].GetAddr().String(), GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupMemberResponse, err := s.Client.HeadGroupMember(ctx, &headGroupMemberRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupMemberResponse.GroupMember.GroupId, headGroupResponse.GetGroupInfo().Id)
+
+	// list group
+	queryListGroupReq := storagetypes.QueryListGroupRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroup(ctx, &queryListGroupReq)
+	s.Require().NoError(err)
+	s.T().Log(queryListGroupResp.String())
+
+	// the owner deletes the group
+	msgDeleteGroup := storagetypes.NewMsgDeleteGroup(owner.GetAddr(), testGroupName)
+	s.SendTxBlock(msgDeleteGroup, owner)
+
+	// policy is GC
+	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyID.String()})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+
+}
+
+func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
+	var err error
+	ctx := context.Background()
+	owner := s.GenAndChargeAccounts(1, 10000)[0]
+	user := s.GenAndChargeAccounts(1, 10000)[0]
+	sp := s.StorageProviders[0]
+
+	s.Client.SetKeyManager(owner)
+
+	nonce, _ := s.Client.GetNonce()
+	bucketNames := make([]string, 0)
+
+	// Create 250 Buckets
+	bucketNumber := 250
+
+	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(15000000000000))))
+	txOpt := sdktype.TxOption{
+		NoSimulate: true,
+		GasLimit:   3000,
+		FeeAmount:  feeAmt,
+	}
+
+	for i := 0; i < bucketNumber; i++ {
+		txOpt.Nonce = nonce
+		bucketName := storageutil.GenRandomBucketName()
+		bucketNames = append(bucketNames, bucketName)
+		msgCreateBucket := storagetypes.NewMsgCreateBucket(
+			owner.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+			nil, math.MaxUint, nil, 0)
+		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+		s.Require().NoError(err)
+		s.SendTxWithTxOpt(msgCreateBucket, owner, txOpt)
+		nonce++
+	}
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.T().Logf("number of buckes is %d", queryListBucketResponse.Pagination.Total)
+
+	principal := types.NewPrincipalWithAccount(user.GetAddr())
+
+	for i := 0; i < bucketNumber; i++ {
+		txOpt.Nonce = nonce
+		// Put bucket policy
+		bucketStatement := &types.Statement{
+			Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+			Effect:  types.EFFECT_ALLOW,
+		}
+		msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketNames[i]).String(),
+			principal, []*types.Statement{bucketStatement}, nil)
+		s.SendTxWithTxOpt(msgPutBucketPolicy, owner, txOpt)
+		nonce++
+	}
+	// wait for 2 blocks
+	for i := 0; i < 2; i++ {
+		_ = s.WaitForNextBlock()
+	}
+
+	policyIds := make([]sdkmath.Uint, 0)
+	// policies are present for buckets
+	for i := 0; i < bucketNumber; i++ {
+		queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: types2.NewBucketGRN(bucketNames[i]).String(),
+			PrincipalAddress: user.GetAddr().String()})
+		s.Require().NoError(err)
+		policyIds = append(policyIds, queryPolicyForAccountResp.Policy.Id)
+	}
+
+	// delete batch of buckets
+	for i := 0; i < bucketNumber; i++ {
+		txOpt.Nonce = nonce
+		// the owner deletes buckets
+		msgDeleteBucket := storagetypes.NewMsgDeleteBucket(owner.GetAddr(), bucketNames[i])
+		s.SendTxWithTxOpt(msgDeleteBucket, owner, txOpt)
+		nonce++
+	}
+
+	// Garbage collection wont be done within the block since the total number of policies to be deleted exceed the
+	// handling ability of each block
+	notAllPoliciesGC := false
+	for i := 0; i < bucketNumber; i++ {
+		_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyIds[i].String()})
+		if err == nil {
+			// if there is at least 1 policy still exist, that means GC is not fully done yet.
+			notAllPoliciesGC = true
+		}
+	}
+	s.Require().True(notAllPoliciesGC)
+
+	// wait for another 2 block, all policies should be GC
+	for i := 0; i < 2; i++ {
+		_ = s.WaitForNextBlock()
+	}
+
+	for i := 0; i < bucketNumber; i++ {
+		// policy is GC
+		_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyIds[i].String()})
+		s.Require().Error(err)
+		s.Require().ErrorContains(err, "No such Policy")
 	}
 }

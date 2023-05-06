@@ -37,4 +37,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	if err != nil {
 		panic("fail to delete buckets, err " + err.Error())
 	}
+	keeper.PersistDeleteInfo(ctx)
+
+	// Permission GC
+	keeper.GarbageCollectResourcesStalePolicy(ctx)
 }

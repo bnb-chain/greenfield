@@ -40,7 +40,7 @@ func TestSendTokenWithTxOptionSucceed(t *testing.T) {
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
-	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(10000000000000)))) // gasPrice * gasLimit
 
 	txOpt := &types.TxOption{
@@ -67,7 +67,7 @@ func TestErrorOutWhenGasInfoNotFullProvided(t *testing.T) {
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
-	mode := tx.BroadcastMode_BROADCAST_MODE_BLOCK
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode:       &mode,
 		NoSimulate: true,

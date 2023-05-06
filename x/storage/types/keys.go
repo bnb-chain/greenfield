@@ -21,6 +21,9 @@ const (
 
 	// MemStoreKey defines the in-memory store key
 	MemStoreKey = "mem_storage"
+
+	// TStoreKey defines the transient store key
+	TStoreKey = "transient_storage"
 )
 
 type RawID math.Uint
@@ -46,6 +49,13 @@ var (
 	DiscontinueObjectIdsPrefix    = []byte{0x43}
 	DiscontinueBucketIdsPrefix    = []byte{0x44}
 	DiscontinueObjectStatusPrefix = []byte{0x45}
+
+	// CurrentBlockDeleteStalePoliciesKey is the key for DeleteInfo which keep track of deleted resources in the current block,
+	//stale permission of these resources needs to be deleted.
+	// it is stored in transient store
+	CurrentBlockDeleteStalePoliciesKey = []byte{0x51}
+
+	DeleteStalePoliciesPrefix = []byte{0x52}
 )
 
 // GetBucketKey return the bucket name store key
@@ -115,4 +125,11 @@ func GetParamsKeyWithTimestamp(timestamp int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(timestamp))
 	return append(ParamsKey, bz...)
+}
+
+// GetDeleteStalePoliciesKey return delete stale policies store Key
+func GetDeleteStalePoliciesKey(height int64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(height))
+	return append(DeleteStalePoliciesPrefix, bz...)
 }

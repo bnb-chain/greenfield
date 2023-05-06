@@ -87,6 +87,12 @@ func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) *sdk.TxRespon
 	return getTxRes.TxResponse
 }
 
+func (s *BaseSuite) SendTxWithTxOpt(msg sdk.Msg, from keys.KeyManager, txOpt types.TxOption) {
+	s.Client.SetKeyManager(from)
+	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, &txOpt)
+	s.Require().NoError(err)
+}
+
 func (s *BaseSuite) SimulateTx(msg sdk.Msg, from keys.KeyManager) (txRes *tx.SimulateResponse) {
 	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{

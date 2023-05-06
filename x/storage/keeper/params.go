@@ -144,6 +144,11 @@ func (k Keeper) MinChargeSize(ctx sdk.Context) (res uint64) {
 	return params.MinChargeSize
 }
 
+func (k Keeper) StalePolicyCleanupMax(ctx sdk.Context) (res uint64) {
+	params := k.GetParams(ctx)
+	return params.StalePolicyCleanupMax
+}
+
 // GetParams returns the current storage module parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	store := ctx.KVStore(k.storeKey)

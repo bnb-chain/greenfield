@@ -4,6 +4,8 @@ package greenfield.storage;
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "greenfield/storage/common.proto";
+import "greenfield/storage/types.proto";
+
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
@@ -423,4 +425,10 @@ message EventMirrorGroupResult {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+}
+
+// EventStalePolicyCleanup is emitted when specified block height's stale policies need to be Garbage collected
+message EventStalePolicyCleanup {
+  int64 blockNum = 1;
+  DeleteInfo delete_info =2;
 }

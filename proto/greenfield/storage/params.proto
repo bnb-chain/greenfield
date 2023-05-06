@@ -36,6 +36,8 @@ message Params {
   int64 discontinue_confirm_period = 13;
   // The max delete objects in each end block
   uint64 discontinue_deletion_max = 14;
+  // The max number for deleting policy in each end block
+  uint64 stale_policy_cleanup_max = 15;
 }
 
 // VersionedParams defines the parameters for the storage module with multi version, each version store with different timestamp.
