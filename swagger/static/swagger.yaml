@@ -3302,37 +3302,44 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  max_segment_size:
-                    type: string
-                    format: uint64
-                    title: >-
-                      max_segment_size is the maximum size of a segment.
-                      default: 16M
-                  redundant_data_chunk_num:
-                    type: integer
-                    format: int64
-                    title: >-
-                      redundant_data_check_num is the num of data chunks of EC
-                      redundancy algorithm
-                  redundant_parity_chunk_num:
-                    type: integer
-                    format: int64
-                    title: >-
-                      redundant_data_check_num is the num of parity chunks of EC
-                      redundancy algorithm
+                  versioned_params:
+                    type: object
+                    properties:
+                      max_segment_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          max_segment_size is the maximum size of a segment.
+                          default: 16M
+                      redundant_data_chunk_num:
+                        type: integer
+                        format: int64
+                        title: >-
+                          redundant_data_check_num is the num of data chunks of
+                          EC redundancy algorithm
+                      redundant_parity_chunk_num:
+                        type: integer
+                        format: int64
+                        title: >-
+                          redundant_data_check_num is the num of parity chunks
+                          of EC redundancy algorithm
+                      min_charge_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          min_charge_size is the minimum charge size of the
+                          payload, objects smaller than this size will be
+                          charged as this size
+                    description: >-
+                      VersionedParams defines the parameters for the storage
+                      module with multi version, each version store with
+                      different timestamp.
                   max_payload_size:
                     type: string
                     format: uint64
                     title: >-
                       max_payload_size is the maximum size of the payload,
                       default: 2G
-                  min_charge_size:
-                    type: string
-                    format: uint64
-                    title: >-
-                      min_charge_size is the minimum charge size of the payload,
-                      objects smaller than this size will be charged as this
-                      size
                   mirror_bucket_relayer_fee:
                     type: string
                     title: relayer fee for the mirror bucket tx
@@ -3385,6 +3392,10 @@ paths:
                     type: string
                     format: uint64
                     title: The max delete objects in each end block
+                  stale_policy_cleanup_max:
+                    type: string
+                    format: uint64
+                    title: The max number for deleting policy in each end block
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3410,6 +3421,189 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Query
+  /greenfield/storage/policy_by_id/{policy_id}:
+    get:
+      summary: Queries a policy by policy id
+      operationId: QueryPolicyById
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              policy:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    title: >-
+                      id is an unique u256 sequence for each policy. It also be
+                      used as NFT tokenID
+                  principal:
+                    title: >-
+                      principal defines the accounts/group which the permission
+                      grants to
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                        enum:
+                          - PRINCIPAL_TYPE_UNSPECIFIED
+                          - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                          - PRINCIPAL_TYPE_GNFD_GROUP
+                        default: PRINCIPAL_TYPE_UNSPECIFIED
+                        description: >-
+                          PrincipalType refers to the identity type of system
+                          users or entities.
+
+                          In Greenfield, it usually refers to accounts or
+                          groups.
+                      value:
+                        type: string
+                        title: >-
+                          When the type is an account, its value is
+                          sdk.AccAddress().String();
+
+                          when the type is a group, its value is
+                          math.Uint().String()
+                    description: >-
+                      Principal define the roles that can grant permissions.
+                      Currently, it can be account or group.
+                  resource_type:
+                    title: >-
+                      resource_type defines the type of resource that grants
+                      permission for
+                    type: string
+                    enum:
+                      - RESOURCE_TYPE_UNSPECIFIED
+                      - RESOURCE_TYPE_BUCKET
+                      - RESOURCE_TYPE_OBJECT
+                      - RESOURCE_TYPE_GROUP
+                    default: RESOURCE_TYPE_UNSPECIFIED
+                  resource_id:
+                    type: string
+                    title: >-
+                      resource_id defines the bucket/object/group id of the
+                      resource that grants permission for
+                  statements:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        effect:
+                          title: >-
+                            effect define the impact of permissions, which can
+                            be Allow/Deny
+                          type: string
+                          enum:
+                            - EFFECT_UNSPECIFIED
+                            - EFFECT_ALLOW
+                            - EFFECT_DENY
+                          default: EFFECT_UNSPECIFIED
+                        actions:
+                          type: array
+                          items:
+                            type: string
+                            enum:
+                              - ACTION_UNSPECIFIED
+                              - ACTION_UPDATE_BUCKET_INFO
+                              - ACTION_DELETE_BUCKET
+                              - ACTION_CREATE_OBJECT
+                              - ACTION_DELETE_OBJECT
+                              - ACTION_COPY_OBJECT
+                              - ACTION_GET_OBJECT
+                              - ACTION_EXECUTE_OBJECT
+                              - ACTION_LIST_OBJECT
+                              - ACTION_UPDATE_GROUP_MEMBER
+                              - ACTION_DELETE_GROUP
+                              - ACTION_UPDATE_OBJECT_INFO
+                              - ACTION_TYPE_ALL
+                            default: ACTION_UNSPECIFIED
+                            title: >-
+                              ActionType defines the operations you can execute
+                              in greenfield storage network
+                          description: >-
+                            action_type define the operation type you can act.
+                            greenfield defines a set of permission
+
+                            that you can specify in a permissionInfo. see
+                            ActionType enum for detail.
+                        resources:
+                          type: array
+                          items:
+                            type: string
+                          description: >-
+                            CAN ONLY USED IN bucket level. Support fuzzy match
+                            and limit to 5
+
+                            If no sub-resource is specified in a statement, then
+                            all objects in the bucket are accessible by the
+                            principal.
+
+                            However, if the sub-resource is defined as
+                            'bucket/test_*,' in the statement, then only objects
+                            with a 'test_'
+
+                            prefix can be accessed by the principal.
+                        expiration_time:
+                          type: string
+                          format: date-time
+                          description: >-
+                            expiration_time defines how long the permission is
+                            valid. If not explicitly specified, it means it will
+                            not expire.
+                        limit_size:
+                          description: >-
+                            limit_size defines the total data size that is
+                            allowed to operate. If not explicitly specified, it
+                            means it will not limit.
+                          type: object
+                          properties:
+                            value:
+                              type: string
+                              format: uint64
+                              description: The uint64 value.
+                    title: >-
+                      statements defines the details content of the permission,
+                      including effect/actions/sub-resources
+                  expiration_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      expiration_time defines the whole expiration time of all
+                      the statements.
+
+                      Notices: Its priority is higher than the expiration time
+                      inside the Statement
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: policy_id
+          in: path
+          required: true
+          type: string
       tags:
         - Query
   /greenfield/storage/policy_for_account/{resource}/{principal_address}:
@@ -7955,16 +8149,6 @@ paths:
 
 
             Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-        - name: resolve_denom
-          description: >-
-            resolve_denom is the flag to resolve the denom into a human-readable
-            form from the metadata.
-
-
-            Since: cosmos-sdk 0.48
           in: query
           required: false
           type: boolean
@@ -13833,7 +14017,7 @@ paths:
   /cosmos/distribution/v1beta1/delegators/{delegator_address}/rewards:
     get:
       summary: |-
-        DelegationTotalRewards queries the total rewards accrued by each
+        DelegationTotalRewards queries the total rewards accrued by a each
         validator.
       operationId: DelegationTotalRewards
       responses:
@@ -27437,13 +27621,7 @@ paths:
                         }
       parameters:
         - name: events
-          description: >-
-            events is the list of transaction event type.
-
-            Deprecated post v0.47.x: use query instead, which should contain a
-            valid
-
-            events query.
+          description: events is the list of transaction event type.
           in: query
           required: false
           type: array
@@ -27508,8 +27686,7 @@ paths:
           type: boolean
         - name: order_by
           description: |2-
-             - ORDER_BY_UNSPECIFIED: ORDER_BY_UNSPECIFIED specifies an unknown sorting order. OrderBy defaults
-            to ASC in this case.
+             - ORDER_BY_UNSPECIFIED: ORDER_BY_UNSPECIFIED specifies an unknown sorting order. OrderBy defaults to ASC in this case.
              - ORDER_BY_ASC: ORDER_BY_ASC defines ascending order
              - ORDER_BY_DESC: ORDER_BY_DESC defines descending order
           in: query
@@ -27521,7 +27698,7 @@ paths:
             - ORDER_BY_DESC
           default: ORDER_BY_UNSPECIFIED
         - name: page
-          description: |-
+          description: >-
             page is the page number to query, starts at 1. If not provided, will
             default to first page.
           in: query
@@ -27538,18 +27715,6 @@ paths:
           required: false
           type: string
           format: uint64
-        - name: query
-          description: >-
-            query defines the transaction event query that is proxied to
-            Tendermint's
-
-            TxSearch RPC method. The query must be valid.
-
-
-            Since Cosmos SDK 0.48
-          in: query
-          required: false
-          type: string
       tags:
         - Service
     post:
@@ -28098,18 +28263,16 @@ paths:
                 default: BROADCAST_MODE_UNSPECIFIED
                 description: >-
                   BroadcastMode specifies the broadcast mode for the
-                  TxService.Broadcast RPC
-
-                  method.
+                  TxService.Broadcast RPC method.
 
                    - BROADCAST_MODE_UNSPECIFIED: zero-value for mode ordering
                    - BROADCAST_MODE_BLOCK: DEPRECATED: use BROADCAST_MODE_SYNC instead,
                   BROADCAST_MODE_BLOCK is not supported by the SDK from v0.47.x
                   onwards.
-                   - BROADCAST_MODE_SYNC: BROADCAST_MODE_SYNC defines a tx broadcasting mode where the client waits
-                  for a CheckTx execution response only.
-                   - BROADCAST_MODE_ASYNC: BROADCAST_MODE_ASYNC defines a tx broadcasting mode where the client
-                  returns immediately.
+                   - BROADCAST_MODE_SYNC: BROADCAST_MODE_SYNC defines a tx broadcasting mode where the client waits for
+                  a CheckTx execution response only.
+                   - BROADCAST_MODE_ASYNC: BROADCAST_MODE_ASYNC defines a tx broadcasting mode where the client returns
+                  immediately.
             description: >-
               BroadcastTxRequest is the request type for the
               Service.BroadcastTxRequest
@@ -30965,32 +31128,38 @@ definitions:
   greenfield.storage.Params:
     type: object
     properties:
-      max_segment_size:
-        type: string
-        format: uint64
-        title: 'max_segment_size is the maximum size of a segment. default: 16M'
-      redundant_data_chunk_num:
-        type: integer
-        format: int64
-        title: >-
-          redundant_data_check_num is the num of data chunks of EC redundancy
-          algorithm
-      redundant_parity_chunk_num:
-        type: integer
-        format: int64
-        title: >-
-          redundant_data_check_num is the num of parity chunks of EC redundancy
-          algorithm
+      versioned_params:
+        type: object
+        properties:
+          max_segment_size:
+            type: string
+            format: uint64
+            title: 'max_segment_size is the maximum size of a segment. default: 16M'
+          redundant_data_chunk_num:
+            type: integer
+            format: int64
+            title: >-
+              redundant_data_check_num is the num of data chunks of EC
+              redundancy algorithm
+          redundant_parity_chunk_num:
+            type: integer
+            format: int64
+            title: >-
+              redundant_data_check_num is the num of parity chunks of EC
+              redundancy algorithm
+          min_charge_size:
+            type: string
+            format: uint64
+            title: >-
+              min_charge_size is the minimum charge size of the payload, objects
+              smaller than this size will be charged as this size
+        description: >-
+          VersionedParams defines the parameters for the storage module with
+          multi version, each version store with different timestamp.
       max_payload_size:
         type: string
         format: uint64
         title: 'max_payload_size is the maximum size of the payload, default: 2G'
-      min_charge_size:
-        type: string
-        format: uint64
-        title: >-
-          min_charge_size is the minimum charge size of the payload, objects
-          smaller than this size will be charged as this size
       mirror_bucket_relayer_fee:
         type: string
         title: relayer fee for the mirror bucket tx
@@ -31033,6 +31202,10 @@ definitions:
         type: string
         format: uint64
         title: The max delete objects in each end block
+      stale_policy_cleanup_max:
+        type: string
+        format: uint64
+        title: The max number for deleting policy in each end block
     description: Params defines the parameters for the module.
   greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -31648,32 +31821,40 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          max_segment_size:
-            type: string
-            format: uint64
-            title: 'max_segment_size is the maximum size of a segment. default: 16M'
-          redundant_data_chunk_num:
-            type: integer
-            format: int64
-            title: >-
-              redundant_data_check_num is the num of data chunks of EC
-              redundancy algorithm
-          redundant_parity_chunk_num:
-            type: integer
-            format: int64
-            title: >-
-              redundant_data_check_num is the num of parity chunks of EC
-              redundancy algorithm
+          versioned_params:
+            type: object
+            properties:
+              max_segment_size:
+                type: string
+                format: uint64
+                title: >-
+                  max_segment_size is the maximum size of a segment. default:
+                  16M
+              redundant_data_chunk_num:
+                type: integer
+                format: int64
+                title: >-
+                  redundant_data_check_num is the num of data chunks of EC
+                  redundancy algorithm
+              redundant_parity_chunk_num:
+                type: integer
+                format: int64
+                title: >-
+                  redundant_data_check_num is the num of parity chunks of EC
+                  redundancy algorithm
+              min_charge_size:
+                type: string
+                format: uint64
+                title: >-
+                  min_charge_size is the minimum charge size of the payload,
+                  objects smaller than this size will be charged as this size
+            description: >-
+              VersionedParams defines the parameters for the storage module with
+              multi version, each version store with different timestamp.
           max_payload_size:
             type: string
             format: uint64
             title: 'max_payload_size is the maximum size of the payload, default: 2G'
-          min_charge_size:
-            type: string
-            format: uint64
-            title: >-
-              min_charge_size is the minimum charge size of the payload, objects
-              smaller than this size will be charged as this size
           mirror_bucket_relayer_fee:
             type: string
             title: relayer fee for the mirror bucket tx
@@ -31722,7 +31903,153 @@ definitions:
             type: string
             format: uint64
             title: The max delete objects in each end block
+          stale_policy_cleanup_max:
+            type: string
+            format: uint64
+            title: The max number for deleting policy in each end block
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.storage.QueryPolicyByIdResponse:
+    type: object
+    properties:
+      policy:
+        type: object
+        properties:
+          id:
+            type: string
+            title: >-
+              id is an unique u256 sequence for each policy. It also be used as
+              NFT tokenID
+          principal:
+            title: >-
+              principal defines the accounts/group which the permission grants
+              to
+            type: object
+            properties:
+              type:
+                type: string
+                enum:
+                  - PRINCIPAL_TYPE_UNSPECIFIED
+                  - PRINCIPAL_TYPE_GNFD_ACCOUNT
+                  - PRINCIPAL_TYPE_GNFD_GROUP
+                default: PRINCIPAL_TYPE_UNSPECIFIED
+                description: >-
+                  PrincipalType refers to the identity type of system users or
+                  entities.
+
+                  In Greenfield, it usually refers to accounts or groups.
+              value:
+                type: string
+                title: >-
+                  When the type is an account, its value is
+                  sdk.AccAddress().String();
+
+                  when the type is a group, its value is math.Uint().String()
+            description: >-
+              Principal define the roles that can grant permissions. Currently,
+              it can be account or group.
+          resource_type:
+            title: >-
+              resource_type defines the type of resource that grants permission
+              for
+            type: string
+            enum:
+              - RESOURCE_TYPE_UNSPECIFIED
+              - RESOURCE_TYPE_BUCKET
+              - RESOURCE_TYPE_OBJECT
+              - RESOURCE_TYPE_GROUP
+            default: RESOURCE_TYPE_UNSPECIFIED
+          resource_id:
+            type: string
+            title: >-
+              resource_id defines the bucket/object/group id of the resource
+              that grants permission for
+          statements:
+            type: array
+            items:
+              type: object
+              properties:
+                effect:
+                  title: >-
+                    effect define the impact of permissions, which can be
+                    Allow/Deny
+                  type: string
+                  enum:
+                    - EFFECT_UNSPECIFIED
+                    - EFFECT_ALLOW
+                    - EFFECT_DENY
+                  default: EFFECT_UNSPECIFIED
+                actions:
+                  type: array
+                  items:
+                    type: string
+                    enum:
+                      - ACTION_UNSPECIFIED
+                      - ACTION_UPDATE_BUCKET_INFO
+                      - ACTION_DELETE_BUCKET
+                      - ACTION_CREATE_OBJECT
+                      - ACTION_DELETE_OBJECT
+                      - ACTION_COPY_OBJECT
+                      - ACTION_GET_OBJECT
+                      - ACTION_EXECUTE_OBJECT
+                      - ACTION_LIST_OBJECT
+                      - ACTION_UPDATE_GROUP_MEMBER
+                      - ACTION_DELETE_GROUP
+                      - ACTION_UPDATE_OBJECT_INFO
+                      - ACTION_TYPE_ALL
+                    default: ACTION_UNSPECIFIED
+                    title: >-
+                      ActionType defines the operations you can execute in
+                      greenfield storage network
+                  description: >-
+                    action_type define the operation type you can act.
+                    greenfield defines a set of permission
+
+                    that you can specify in a permissionInfo. see ActionType
+                    enum for detail.
+                resources:
+                  type: array
+                  items:
+                    type: string
+                  description: >-
+                    CAN ONLY USED IN bucket level. Support fuzzy match and limit
+                    to 5
+
+                    If no sub-resource is specified in a statement, then all
+                    objects in the bucket are accessible by the principal.
+
+                    However, if the sub-resource is defined as 'bucket/test_*,'
+                    in the statement, then only objects with a 'test_'
+
+                    prefix can be accessed by the principal.
+                expiration_time:
+                  type: string
+                  format: date-time
+                  description: >-
+                    expiration_time defines how long the permission is valid. If
+                    not explicitly specified, it means it will not expire.
+                limit_size:
+                  description: >-
+                    limit_size defines the total data size that is allowed to
+                    operate. If not explicitly specified, it means it will not
+                    limit.
+                  type: object
+                  properties:
+                    value:
+                      type: string
+                      format: uint64
+                      description: The uint64 value.
+            title: >-
+              statements defines the details content of the permission,
+              including effect/actions/sub-resources
+          expiration_time:
+            type: string
+            format: date-time
+            title: >-
+              expiration_time defines the whole expiration time of all the
+              statements.
+
+              Notices: Its priority is higher than the expiration time inside
+              the Statement
   greenfield.storage.QueryPolicyForAccountResponse:
     type: object
     properties:
@@ -32057,6 +32384,34 @@ definitions:
         type: string
       value:
         type: string
+  greenfield.storage.VersionedParams:
+    type: object
+    properties:
+      max_segment_size:
+        type: string
+        format: uint64
+        title: 'max_segment_size is the maximum size of a segment. default: 16M'
+      redundant_data_chunk_num:
+        type: integer
+        format: int64
+        title: >-
+          redundant_data_check_num is the num of data chunks of EC redundancy
+          algorithm
+      redundant_parity_chunk_num:
+        type: integer
+        format: int64
+        title: >-
+          redundant_data_check_num is the num of parity chunks of EC redundancy
+          algorithm
+      min_charge_size:
+        type: string
+        format: uint64
+        title: >-
+          min_charge_size is the minimum charge size of the payload, objects
+          smaller than this size will be charged as this size
+    description: >-
+      VersionedParams defines the parameters for the storage module with multi
+      version, each version store with different timestamp.
   greenfield.storage.VisibilityType:
     type: string
     enum:
@@ -48227,9 +48582,7 @@ definitions:
       verified with raw bytes from Tx.
        - SIGN_MODE_TEXTUAL: SIGN_MODE_TEXTUAL is a future signing mode that will verify some
       human-readable textual representation on top of the binary representation
-      from SIGN_MODE_DIRECT. It is currently experimental, and should be used
-      for testing purposes only, until Textual is fully released. Please follow
-      the tracking issue https://github.com/cosmos/cosmos-sdk/issues/11970.
+      from SIGN_MODE_DIRECT. It is currently not supported.
        - SIGN_MODE_DIRECT_AUX: SIGN_MODE_DIRECT_AUX specifies a signing mode which uses
       SignDocDirectAux. As opposed to SIGN_MODE_DIRECT, this sign mode does not
       require signers signing over other signers' `signer_info`. It also allows
@@ -48375,17 +48728,17 @@ definitions:
       - BROADCAST_MODE_SYNC
       - BROADCAST_MODE_ASYNC
     default: BROADCAST_MODE_UNSPECIFIED
-    description: |-
+    description: >-
       BroadcastMode specifies the broadcast mode for the TxService.Broadcast RPC
       method.
 
        - BROADCAST_MODE_UNSPECIFIED: zero-value for mode ordering
        - BROADCAST_MODE_BLOCK: DEPRECATED: use BROADCAST_MODE_SYNC instead,
       BROADCAST_MODE_BLOCK is not supported by the SDK from v0.47.x onwards.
-       - BROADCAST_MODE_SYNC: BROADCAST_MODE_SYNC defines a tx broadcasting mode where the client waits
-      for a CheckTx execution response only.
-       - BROADCAST_MODE_ASYNC: BROADCAST_MODE_ASYNC defines a tx broadcasting mode where the client
-      returns immediately.
+       - BROADCAST_MODE_SYNC: BROADCAST_MODE_SYNC defines a tx broadcasting mode where the client waits for
+      a CheckTx execution response only.
+       - BROADCAST_MODE_ASYNC: BROADCAST_MODE_ASYNC defines a tx broadcasting mode where the client returns
+      immediately.
   cosmos.tx.v1beta1.BroadcastTxRequest:
     type: object
     properties:
@@ -48403,17 +48756,15 @@ definitions:
         default: BROADCAST_MODE_UNSPECIFIED
         description: >-
           BroadcastMode specifies the broadcast mode for the TxService.Broadcast
-          RPC
-
-          method.
+          RPC method.
 
            - BROADCAST_MODE_UNSPECIFIED: zero-value for mode ordering
            - BROADCAST_MODE_BLOCK: DEPRECATED: use BROADCAST_MODE_SYNC instead,
           BROADCAST_MODE_BLOCK is not supported by the SDK from v0.47.x onwards.
-           - BROADCAST_MODE_SYNC: BROADCAST_MODE_SYNC defines a tx broadcasting mode where the client waits
-          for a CheckTx execution response only.
-           - BROADCAST_MODE_ASYNC: BROADCAST_MODE_ASYNC defines a tx broadcasting mode where the client
-          returns immediately.
+           - BROADCAST_MODE_SYNC: BROADCAST_MODE_SYNC defines a tx broadcasting mode where the client waits for
+          a CheckTx execution response only.
+           - BROADCAST_MODE_ASYNC: BROADCAST_MODE_ASYNC defines a tx broadcasting mode where the client returns
+          immediately.
     description: |-
       BroadcastTxRequest is the request type for the Service.BroadcastTxRequest
       RPC method.
@@ -49359,9 +49710,7 @@ definitions:
               was set, its value is undefined otherwise
     description: >-
       GetBlockWithTxsResponse is the response type for the
-      Service.GetBlockWithTxs
-
-      method.
+      Service.GetBlockWithTxs method.
 
 
       Since: cosmos-sdk 0.45.2
@@ -50076,14 +50425,7 @@ definitions:
               human-readable textual representation on top of the binary
               representation
 
-              from SIGN_MODE_DIRECT. It is currently experimental, and should be
-              used
-
-              for testing purposes only, until Textual is fully released. Please
-              follow
-
-              the tracking issue
-              https://github.com/cosmos/cosmos-sdk/issues/11970.
+              from SIGN_MODE_DIRECT. It is currently not supported.
                - SIGN_MODE_DIRECT_AUX: SIGN_MODE_DIRECT_AUX specifies a signing mode which uses
               SignDocDirectAux. As opposed to SIGN_MODE_DIRECT, this sign mode
               does not
@@ -50190,13 +50532,7 @@ definitions:
           human-readable textual representation on top of the binary
           representation
 
-          from SIGN_MODE_DIRECT. It is currently experimental, and should be
-          used
-
-          for testing purposes only, until Textual is fully released. Please
-          follow
-
-          the tracking issue https://github.com/cosmos/cosmos-sdk/issues/11970.
+          from SIGN_MODE_DIRECT. It is currently not supported.
            - SIGN_MODE_DIRECT_AUX: SIGN_MODE_DIRECT_AUX specifies a signing mode which uses
           SignDocDirectAux. As opposed to SIGN_MODE_DIRECT, this sign mode does
           not
@@ -50242,9 +50578,7 @@ definitions:
     default: ORDER_BY_UNSPECIFIED
     description: >-
       - ORDER_BY_UNSPECIFIED: ORDER_BY_UNSPECIFIED specifies an unknown sorting
-      order. OrderBy defaults
-
-      to ASC in this case.
+      order. OrderBy defaults to ASC in this case.
        - ORDER_BY_ASC: ORDER_BY_ASC defines ascending order
        - ORDER_BY_DESC: ORDER_BY_DESC defines descending order
     title: OrderBy defines the sorting order
