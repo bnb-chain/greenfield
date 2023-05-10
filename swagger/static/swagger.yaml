@@ -16629,10 +16629,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /cosmos/gov/v1beta1/params/{params_type}:
+  /cosmos/gov/v1/params/{params_type}:
     get:
       summary: Params queries all parameters of the gov module.
-      operationId: GovParams
+      operationId: GovV1Params
       responses:
         '200':
           description: A successful response.
@@ -16640,14 +16640,18 @@ paths:
             type: object
             properties:
               voting_params:
-                description: voting_params defines the parameters related to voting.
+                description: |-
+                  Deprecated: Prefer to use `params` instead.
+                  voting_params defines the parameters related to voting.
                 type: object
                 properties:
                   voting_period:
                     type: string
                     description: Duration of the voting period.
               deposit_params:
-                description: deposit_params defines the parameters related to deposit.
+                description: |-
+                  Deprecated: Prefer to use `params` instead.
+                  deposit_params defines the parameters related to deposit.
                 type: object
                 properties:
                   min_deposit:
@@ -16676,12 +16680,13 @@ paths:
 
                       months.
               tally_params:
-                description: tally_params defines the parameters related to tally.
+                description: |-
+                  Deprecated: Prefer to use `params` instead.
+                  tally_params defines the parameters related to tally.
                 type: object
                 properties:
                   quorum:
                     type: string
-                    format: byte
                     description: >-
                       Minimum percentage of total stake needed to vote for a
                       result to be
@@ -16689,18 +16694,82 @@ paths:
                       considered valid.
                   threshold:
                     type: string
-                    format: byte
                     description: >-
                       Minimum proportion of Yes votes for proposal to pass.
                       Default value: 0.5.
                   veto_threshold:
                     type: string
-                    format: byte
                     description: >-
                       Minimum value of Veto votes to Total votes ratio for
                       proposal to be
 
                       vetoed. Default value: 1/3.
+              params:
+                description: |-
+                  params defines all the paramaters of x/gov module.
+
+                  Since: cosmos-sdk 0.47
+                type: object
+                properties:
+                  min_deposit:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        denom:
+                          type: string
+                        amount:
+                          type: string
+                      description: >-
+                        Coin defines a token with a denomination and an amount.
+
+
+                        NOTE: The amount field is an Int which implements the
+                        custom method
+
+                        signatures required by gogoproto.
+                    description: Minimum deposit for a proposal to enter voting period.
+                  max_deposit_period:
+                    type: string
+                    description: >-
+                      Maximum period for Atom holders to deposit on a proposal.
+                      Initial value: 2
+
+                      months.
+                  voting_period:
+                    type: string
+                    description: Duration of the voting period.
+                  quorum:
+                    type: string
+                    description: >-
+                      Minimum percentage of total stake needed to vote for a
+                      result to be
+                       considered valid.
+                  threshold:
+                    type: string
+                    description: >-
+                      Minimum proportion of Yes votes for proposal to pass.
+                      Default value: 0.5.
+                  veto_threshold:
+                    type: string
+                    description: >-
+                      Minimum value of Veto votes to Total votes ratio for
+                      proposal to be
+                       vetoed. Default value: 1/3.
+                  min_initial_deposit_ratio:
+                    type: string
+                    description: >-
+                      The ratio representing the proportion of the deposit value
+                      that must be paid at proposal submission.
+                  burn_vote_quorum:
+                    type: boolean
+                    title: burn deposits if a proposal does not meet quorum
+                  burn_proposal_deposit_prevote:
+                    type: boolean
+                    title: burn deposits if the proposal does not enter voting period
+                  burn_vote_veto:
+                    type: boolean
+                    title: burn deposits if quorum with vote type no_veto is met
             description: >-
               QueryParamsResponse is the response type for the Query/Params RPC
               method.
@@ -16907,10 +16976,10 @@ paths:
           type: string
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals:
+  /cosmos/gov/v1/proposals:
     get:
       summary: Proposals queries all proposals based on given status.
-      operationId: Proposals
+      operationId: GovV1Proposal
       responses:
         '200':
           description: A successful response.
@@ -16922,189 +16991,194 @@ paths:
                 items:
                   type: object
                   properties:
-                    proposal_id:
+                    id:
                       type: string
                       format: uint64
-                      description: proposal_id defines the unique id of the proposal.
-                    content:
-                      type: object
-                      properties:
-                        type_url:
-                          type: string
-                          description: >-
-                            A URL/resource name that uniquely identifies the
-                            type of the serialized
+                      description: id defines the unique id of the proposal.
+                    messages:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          type_url:
+                            type: string
+                            description: >-
+                              A URL/resource name that uniquely identifies the
+                              type of the serialized
 
-                            protocol buffer message. This string must contain at
-                            least
+                              protocol buffer message. This string must contain
+                              at least
 
-                            one "/" character. The last segment of the URL's
-                            path must represent
+                              one "/" character. The last segment of the URL's
+                              path must represent
 
-                            the fully qualified name of the type (as in
+                              the fully qualified name of the type (as in
 
-                            `path/google.protobuf.Duration`). The name should be
-                            in a canonical form
+                              `path/google.protobuf.Duration`). The name should
+                              be in a canonical form
 
-                            (e.g., leading "." is not accepted).
-
-
-                            In practice, teams usually precompile into the
-                            binary all types that they
-
-                            expect it to use in the context of Any. However, for
-                            URLs which use the
-
-                            scheme `http`, `https`, or no scheme, one can
-                            optionally set up a type
-
-                            server that maps type URLs to message definitions as
-                            follows:
+                              (e.g., leading "." is not accepted).
 
 
-                            * If no scheme is provided, `https` is assumed.
+                              In practice, teams usually precompile into the
+                              binary all types that they
 
-                            * An HTTP GET on the URL must yield a
-                            [google.protobuf.Type][]
-                              value in binary format, or produce an error.
-                            * Applications are allowed to cache lookup results
-                            based on the
-                              URL, or have them precompiled into a binary to avoid any
-                              lookup. Therefore, binary compatibility needs to be preserved
-                              on changes to types. (Use versioned type names to manage
-                              breaking changes.)
+                              expect it to use in the context of Any. However,
+                              for URLs which use the
 
-                            Note: this functionality is not currently available
-                            in the official
+                              scheme `http`, `https`, or no scheme, one can
+                              optionally set up a type
 
-                            protobuf release, and it is not used for type URLs
-                            beginning with
-
-                            type.googleapis.com.
+                              server that maps type URLs to message definitions
+                              as follows:
 
 
-                            Schemes other than `http`, `https` (or the empty
-                            scheme) might be
+                              * If no scheme is provided, `https` is assumed.
 
-                            used with implementation specific semantics.
-                        value:
-                          type: string
-                          format: byte
-                          description: >-
-                            Must be a valid serialized protocol buffer of the
-                            above specified type.
+                              * An HTTP GET on the URL must yield a
+                              [google.protobuf.Type][]
+                                value in binary format, or produce an error.
+                              * Applications are allowed to cache lookup results
+                              based on the
+                                URL, or have them precompiled into a binary to avoid any
+                                lookup. Therefore, binary compatibility needs to be preserved
+                                on changes to types. (Use versioned type names to manage
+                                breaking changes.)
+
+                              Note: this functionality is not currently
+                              available in the official
+
+                              protobuf release, and it is not used for type URLs
+                              beginning with
+
+                              type.googleapis.com.
+
+
+                              Schemes other than `http`, `https` (or the empty
+                              scheme) might be
+
+                              used with implementation specific semantics.
+                          value:
+                            type: string
+                            format: byte
+                            description: >-
+                              Must be a valid serialized protocol buffer of the
+                              above specified type.
+                        description: >-
+                          `Any` contains an arbitrary serialized protocol buffer
+                          message along with a
+
+                          URL that describes the type of the serialized message.
+
+
+                          Protobuf library provides support to pack/unpack Any
+                          values in the form
+
+                          of utility functions or additional generated methods
+                          of the Any type.
+
+
+                          Example 1: Pack and unpack a message in C++.
+
+                              Foo foo = ...;
+                              Any any;
+                              any.PackFrom(foo);
+                              ...
+                              if (any.UnpackTo(&foo)) {
+                                ...
+                              }
+
+                          Example 2: Pack and unpack a message in Java.
+
+                              Foo foo = ...;
+                              Any any = Any.pack(foo);
+                              ...
+                              if (any.is(Foo.class)) {
+                                foo = any.unpack(Foo.class);
+                              }
+
+                          Example 3: Pack and unpack a message in Python.
+
+                              foo = Foo(...)
+                              any = Any()
+                              any.Pack(foo)
+                              ...
+                              if any.Is(Foo.DESCRIPTOR):
+                                any.Unpack(foo)
+                                ...
+
+                          Example 4: Pack and unpack a message in Go
+
+                               foo := &pb.Foo{...}
+                               any, err := anypb.New(foo)
+                               if err != nil {
+                                 ...
+                               }
+                               ...
+                               foo := &pb.Foo{}
+                               if err := any.UnmarshalTo(foo); err != nil {
+                                 ...
+                               }
+
+                          The pack methods provided by protobuf library will by
+                          default use
+
+                          'type.googleapis.com/full.type.name' as the type URL
+                          and the unpack
+
+                          methods only use the fully qualified type name after
+                          the last '/'
+
+                          in the type URL, for example "foo.bar.com/x/y.z" will
+                          yield type
+
+                          name "y.z".
+
+
+
+                          JSON
+
+
+                          The JSON representation of an `Any` value uses the
+                          regular
+
+                          representation of the deserialized, embedded message,
+                          with an
+
+                          additional field `@type` which contains the type URL.
+                          Example:
+
+                              package google.profile;
+                              message Person {
+                                string first_name = 1;
+                                string last_name = 2;
+                              }
+
+                              {
+                                "@type": "type.googleapis.com/google.profile.Person",
+                                "firstName": <string>,
+                                "lastName": <string>
+                              }
+
+                          If the embedded message type is well-known and has a
+                          custom JSON
+
+                          representation, that representation will be embedded
+                          adding a field
+
+                          `value` which holds the custom JSON in addition to the
+                          `@type`
+
+                          field. Example (for message
+                          [google.protobuf.Duration][]):
+
+                              {
+                                "@type": "type.googleapis.com/google.protobuf.Duration",
+                                "value": "1.212s"
+                              }
                       description: >-
-                        `Any` contains an arbitrary serialized protocol buffer
-                        message along with a
-
-                        URL that describes the type of the serialized message.
-
-
-                        Protobuf library provides support to pack/unpack Any
-                        values in the form
-
-                        of utility functions or additional generated methods of
-                        the Any type.
-
-
-                        Example 1: Pack and unpack a message in C++.
-
-                            Foo foo = ...;
-                            Any any;
-                            any.PackFrom(foo);
-                            ...
-                            if (any.UnpackTo(&foo)) {
-                              ...
-                            }
-
-                        Example 2: Pack and unpack a message in Java.
-
-                            Foo foo = ...;
-                            Any any = Any.pack(foo);
-                            ...
-                            if (any.is(Foo.class)) {
-                              foo = any.unpack(Foo.class);
-                            }
-
-                        Example 3: Pack and unpack a message in Python.
-
-                            foo = Foo(...)
-                            any = Any()
-                            any.Pack(foo)
-                            ...
-                            if any.Is(Foo.DESCRIPTOR):
-                              any.Unpack(foo)
-                              ...
-
-                        Example 4: Pack and unpack a message in Go
-
-                             foo := &pb.Foo{...}
-                             any, err := anypb.New(foo)
-                             if err != nil {
-                               ...
-                             }
-                             ...
-                             foo := &pb.Foo{}
-                             if err := any.UnmarshalTo(foo); err != nil {
-                               ...
-                             }
-
-                        The pack methods provided by protobuf library will by
-                        default use
-
-                        'type.googleapis.com/full.type.name' as the type URL and
-                        the unpack
-
-                        methods only use the fully qualified type name after the
-                        last '/'
-
-                        in the type URL, for example "foo.bar.com/x/y.z" will
-                        yield type
-
-                        name "y.z".
-
-
-
-                        JSON
-
-
-                        The JSON representation of an `Any` value uses the
-                        regular
-
-                        representation of the deserialized, embedded message,
-                        with an
-
-                        additional field `@type` which contains the type URL.
-                        Example:
-
-                            package google.profile;
-                            message Person {
-                              string first_name = 1;
-                              string last_name = 2;
-                            }
-
-                            {
-                              "@type": "type.googleapis.com/google.profile.Person",
-                              "firstName": <string>,
-                              "lastName": <string>
-                            }
-
-                        If the embedded message type is well-known and has a
-                        custom JSON
-
-                        representation, that representation will be embedded
-                        adding a field
-
-                        `value` which holds the custom JSON in addition to the
-                        `@type`
-
-                        field. Example (for message
-                        [google.protobuf.Duration][]):
-
-                            {
-                              "@type": "type.googleapis.com/google.protobuf.Duration",
-                              "value": "1.212s"
-                            }
+                        messages are the arbitrary messages to be executed if
+                        the proposal passes.
                     status:
                       description: status defines the proposal status.
                       type: string
@@ -17127,22 +17201,22 @@ paths:
                         proposal's voting period has ended.
                       type: object
                       properties:
-                        'yes':
+                        yes_count:
                           type: string
-                          description: yes is the number of yes votes on a proposal.
-                        abstain:
+                          description: yes_count is the number of yes votes on a proposal.
+                        abstain_count:
                           type: string
                           description: >-
-                            abstain is the number of abstain votes on a
+                            abstain_count is the number of abstain votes on a
                             proposal.
-                        'no':
+                        no_count:
                           type: string
-                          description: no is the number of no votes on a proposal.
-                        no_with_veto:
+                          description: no_count is the number of no votes on a proposal.
+                        no_with_veto_count:
                           type: string
                           description: >-
-                            no_with_veto is the number of no with veto votes on
-                            a proposal.
+                            no_with_veto_count is the number of no with veto
+                            votes on a proposal.
                     submit_time:
                       type: string
                       format: date-time
@@ -17180,6 +17254,23 @@ paths:
                       type: string
                       format: date-time
                       description: voting_end_time is the end time of voting on a proposal.
+                    metadata:
+                      type: string
+                      description: >-
+                        metadata is any arbitrary metadata attached to the
+                        proposal.
+                    title:
+                      type: string
+                      description: 'Since: cosmos-sdk 0.47'
+                      title: title is the title of the proposal
+                    summary:
+                      type: string
+                      description: 'Since: cosmos-sdk 0.47'
+                      title: summary is a short summary of the proposal
+                    proposer:
+                      type: string
+                      description: 'Since: cosmos-sdk 0.47'
+                      title: Proposer is the address of the proposal sumbitter
                   description: >-
                     Proposal defines the core field members of a governance
                     proposal.
@@ -17494,10 +17585,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals/{proposal_id}:
+  /cosmos/gov/v1/proposals/{proposal_id}:
     get:
       summary: Proposal queries proposal details based on ProposalID.
-      operationId: Proposal
+      operationId: GovV1Proposal
       responses:
         '200':
           description: A successful response.
@@ -17507,187 +17598,194 @@ paths:
               proposal:
                 type: object
                 properties:
-                  proposal_id:
+                  id:
                     type: string
                     format: uint64
-                    description: proposal_id defines the unique id of the proposal.
-                  content:
-                    type: object
-                    properties:
-                      type_url:
-                        type: string
-                        description: >-
-                          A URL/resource name that uniquely identifies the type
-                          of the serialized
+                    description: id defines the unique id of the proposal.
+                  messages:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type_url:
+                          type: string
+                          description: >-
+                            A URL/resource name that uniquely identifies the
+                            type of the serialized
 
-                          protocol buffer message. This string must contain at
-                          least
+                            protocol buffer message. This string must contain at
+                            least
 
-                          one "/" character. The last segment of the URL's path
-                          must represent
+                            one "/" character. The last segment of the URL's
+                            path must represent
 
-                          the fully qualified name of the type (as in
+                            the fully qualified name of the type (as in
 
-                          `path/google.protobuf.Duration`). The name should be
-                          in a canonical form
+                            `path/google.protobuf.Duration`). The name should be
+                            in a canonical form
 
-                          (e.g., leading "." is not accepted).
-
-
-                          In practice, teams usually precompile into the binary
-                          all types that they
-
-                          expect it to use in the context of Any. However, for
-                          URLs which use the
-
-                          scheme `http`, `https`, or no scheme, one can
-                          optionally set up a type
-
-                          server that maps type URLs to message definitions as
-                          follows:
+                            (e.g., leading "." is not accepted).
 
 
-                          * If no scheme is provided, `https` is assumed.
+                            In practice, teams usually precompile into the
+                            binary all types that they
 
-                          * An HTTP GET on the URL must yield a
-                          [google.protobuf.Type][]
-                            value in binary format, or produce an error.
-                          * Applications are allowed to cache lookup results
-                          based on the
-                            URL, or have them precompiled into a binary to avoid any
-                            lookup. Therefore, binary compatibility needs to be preserved
-                            on changes to types. (Use versioned type names to manage
-                            breaking changes.)
+                            expect it to use in the context of Any. However, for
+                            URLs which use the
 
-                          Note: this functionality is not currently available in
-                          the official
+                            scheme `http`, `https`, or no scheme, one can
+                            optionally set up a type
 
-                          protobuf release, and it is not used for type URLs
-                          beginning with
-
-                          type.googleapis.com.
+                            server that maps type URLs to message definitions as
+                            follows:
 
 
-                          Schemes other than `http`, `https` (or the empty
-                          scheme) might be
+                            * If no scheme is provided, `https` is assumed.
 
-                          used with implementation specific semantics.
-                      value:
-                        type: string
-                        format: byte
-                        description: >-
-                          Must be a valid serialized protocol buffer of the
-                          above specified type.
+                            * An HTTP GET on the URL must yield a
+                            [google.protobuf.Type][]
+                              value in binary format, or produce an error.
+                            * Applications are allowed to cache lookup results
+                            based on the
+                              URL, or have them precompiled into a binary to avoid any
+                              lookup. Therefore, binary compatibility needs to be preserved
+                              on changes to types. (Use versioned type names to manage
+                              breaking changes.)
+
+                            Note: this functionality is not currently available
+                            in the official
+
+                            protobuf release, and it is not used for type URLs
+                            beginning with
+
+                            type.googleapis.com.
+
+
+                            Schemes other than `http`, `https` (or the empty
+                            scheme) might be
+
+                            used with implementation specific semantics.
+                        value:
+                          type: string
+                          format: byte
+                          description: >-
+                            Must be a valid serialized protocol buffer of the
+                            above specified type.
+                      description: >-
+                        `Any` contains an arbitrary serialized protocol buffer
+                        message along with a
+
+                        URL that describes the type of the serialized message.
+
+
+                        Protobuf library provides support to pack/unpack Any
+                        values in the form
+
+                        of utility functions or additional generated methods of
+                        the Any type.
+
+
+                        Example 1: Pack and unpack a message in C++.
+
+                            Foo foo = ...;
+                            Any any;
+                            any.PackFrom(foo);
+                            ...
+                            if (any.UnpackTo(&foo)) {
+                              ...
+                            }
+
+                        Example 2: Pack and unpack a message in Java.
+
+                            Foo foo = ...;
+                            Any any = Any.pack(foo);
+                            ...
+                            if (any.is(Foo.class)) {
+                              foo = any.unpack(Foo.class);
+                            }
+
+                        Example 3: Pack and unpack a message in Python.
+
+                            foo = Foo(...)
+                            any = Any()
+                            any.Pack(foo)
+                            ...
+                            if any.Is(Foo.DESCRIPTOR):
+                              any.Unpack(foo)
+                              ...
+
+                        Example 4: Pack and unpack a message in Go
+
+                             foo := &pb.Foo{...}
+                             any, err := anypb.New(foo)
+                             if err != nil {
+                               ...
+                             }
+                             ...
+                             foo := &pb.Foo{}
+                             if err := any.UnmarshalTo(foo); err != nil {
+                               ...
+                             }
+
+                        The pack methods provided by protobuf library will by
+                        default use
+
+                        'type.googleapis.com/full.type.name' as the type URL and
+                        the unpack
+
+                        methods only use the fully qualified type name after the
+                        last '/'
+
+                        in the type URL, for example "foo.bar.com/x/y.z" will
+                        yield type
+
+                        name "y.z".
+
+
+
+                        JSON
+
+
+                        The JSON representation of an `Any` value uses the
+                        regular
+
+                        representation of the deserialized, embedded message,
+                        with an
+
+                        additional field `@type` which contains the type URL.
+                        Example:
+
+                            package google.profile;
+                            message Person {
+                              string first_name = 1;
+                              string last_name = 2;
+                            }
+
+                            {
+                              "@type": "type.googleapis.com/google.profile.Person",
+                              "firstName": <string>,
+                              "lastName": <string>
+                            }
+
+                        If the embedded message type is well-known and has a
+                        custom JSON
+
+                        representation, that representation will be embedded
+                        adding a field
+
+                        `value` which holds the custom JSON in addition to the
+                        `@type`
+
+                        field. Example (for message
+                        [google.protobuf.Duration][]):
+
+                            {
+                              "@type": "type.googleapis.com/google.protobuf.Duration",
+                              "value": "1.212s"
+                            }
                     description: >-
-                      `Any` contains an arbitrary serialized protocol buffer
-                      message along with a
-
-                      URL that describes the type of the serialized message.
-
-
-                      Protobuf library provides support to pack/unpack Any
-                      values in the form
-
-                      of utility functions or additional generated methods of
-                      the Any type.
-
-
-                      Example 1: Pack and unpack a message in C++.
-
-                          Foo foo = ...;
-                          Any any;
-                          any.PackFrom(foo);
-                          ...
-                          if (any.UnpackTo(&foo)) {
-                            ...
-                          }
-
-                      Example 2: Pack and unpack a message in Java.
-
-                          Foo foo = ...;
-                          Any any = Any.pack(foo);
-                          ...
-                          if (any.is(Foo.class)) {
-                            foo = any.unpack(Foo.class);
-                          }
-
-                      Example 3: Pack and unpack a message in Python.
-
-                          foo = Foo(...)
-                          any = Any()
-                          any.Pack(foo)
-                          ...
-                          if any.Is(Foo.DESCRIPTOR):
-                            any.Unpack(foo)
-                            ...
-
-                      Example 4: Pack and unpack a message in Go
-
-                           foo := &pb.Foo{...}
-                           any, err := anypb.New(foo)
-                           if err != nil {
-                             ...
-                           }
-                           ...
-                           foo := &pb.Foo{}
-                           if err := any.UnmarshalTo(foo); err != nil {
-                             ...
-                           }
-
-                      The pack methods provided by protobuf library will by
-                      default use
-
-                      'type.googleapis.com/full.type.name' as the type URL and
-                      the unpack
-
-                      methods only use the fully qualified type name after the
-                      last '/'
-
-                      in the type URL, for example "foo.bar.com/x/y.z" will
-                      yield type
-
-                      name "y.z".
-
-
-
-                      JSON
-
-
-                      The JSON representation of an `Any` value uses the regular
-
-                      representation of the deserialized, embedded message, with
-                      an
-
-                      additional field `@type` which contains the type URL.
-                      Example:
-
-                          package google.profile;
-                          message Person {
-                            string first_name = 1;
-                            string last_name = 2;
-                          }
-
-                          {
-                            "@type": "type.googleapis.com/google.profile.Person",
-                            "firstName": <string>,
-                            "lastName": <string>
-                          }
-
-                      If the embedded message type is well-known and has a
-                      custom JSON
-
-                      representation, that representation will be embedded
-                      adding a field
-
-                      `value` which holds the custom JSON in addition to the
-                      `@type`
-
-                      field. Example (for message [google.protobuf.Duration][]):
-
-                          {
-                            "@type": "type.googleapis.com/google.protobuf.Duration",
-                            "value": "1.212s"
-                          }
+                      messages are the arbitrary messages to be executed if the
+                      proposal passes.
                   status:
                     description: status defines the proposal status.
                     type: string
@@ -17710,20 +17808,22 @@ paths:
                       proposal's voting period has ended.
                     type: object
                     properties:
-                      'yes':
+                      yes_count:
                         type: string
-                        description: yes is the number of yes votes on a proposal.
-                      abstain:
-                        type: string
-                        description: abstain is the number of abstain votes on a proposal.
-                      'no':
-                        type: string
-                        description: no is the number of no votes on a proposal.
-                      no_with_veto:
+                        description: yes_count is the number of yes votes on a proposal.
+                      abstain_count:
                         type: string
                         description: >-
-                          no_with_veto is the number of no with veto votes on a
+                          abstain_count is the number of abstain votes on a
                           proposal.
+                      no_count:
+                        type: string
+                        description: no_count is the number of no votes on a proposal.
+                      no_with_veto_count:
+                        type: string
+                        description: >-
+                          no_with_veto_count is the number of no with veto votes
+                          on a proposal.
                   submit_time:
                     type: string
                     format: date-time
@@ -17760,6 +17860,23 @@ paths:
                     type: string
                     format: date-time
                     description: voting_end_time is the end time of voting on a proposal.
+                  metadata:
+                    type: string
+                    description: >-
+                      metadata is any arbitrary metadata attached to the
+                      proposal.
+                  title:
+                    type: string
+                    description: 'Since: cosmos-sdk 0.47'
+                    title: title is the title of the proposal
+                  summary:
+                    type: string
+                    description: 'Since: cosmos-sdk 0.47'
+                    title: summary is a short summary of the proposal
+                  proposer:
+                    type: string
+                    description: 'Since: cosmos-sdk 0.47'
+                    title: Proposer is the address of the proposal sumbitter
                 description: >-
                   Proposal defines the core field members of a governance
                   proposal.
@@ -17966,10 +18083,10 @@ paths:
           format: uint64
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals/{proposal_id}/deposits:
+  /cosmos/gov/v1/proposals/{proposal_id}/deposits:
     get:
       summary: Deposits queries all deposits of a single proposal.
-      operationId: Deposits
+      operationId: GovV1Deposit
       responses:
         '200':
           description: A successful response.
@@ -18293,12 +18410,12 @@ paths:
           type: boolean
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals/{proposal_id}/deposits/{depositor}:
+  /cosmos/gov/v1/proposals/{proposal_id}/deposits/{depositor}:
     get:
       summary: >-
         Deposit queries single deposit information based proposalID,
         depositAddr.
-      operationId: Deposit
+      operationId: GovV1Deposit
       responses:
         '200':
           description: A successful response.
@@ -18548,10 +18665,10 @@ paths:
           type: string
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals/{proposal_id}/tally:
+  /cosmos/gov/v1/proposals/{proposal_id}/tally:
     get:
       summary: TallyResult queries the tally of a proposal vote.
-      operationId: TallyResult
+      operationId: GovV1TallyResult
       responses:
         '200':
           description: A successful response.
@@ -18562,20 +18679,22 @@ paths:
                 description: tally defines the requested tally.
                 type: object
                 properties:
-                  'yes':
+                  yes_count:
                     type: string
-                    description: yes is the number of yes votes on a proposal.
-                  abstain:
-                    type: string
-                    description: abstain is the number of abstain votes on a proposal.
-                  'no':
-                    type: string
-                    description: no is the number of no votes on a proposal.
-                  no_with_veto:
+                    description: yes_count is the number of yes votes on a proposal.
+                  abstain_count:
                     type: string
                     description: >-
-                      no_with_veto is the number of no with veto votes on a
+                      abstain_count is the number of abstain votes on a
                       proposal.
+                  no_count:
+                    type: string
+                    description: no_count is the number of no votes on a proposal.
+                  no_with_veto_count:
+                    type: string
+                    description: >-
+                      no_with_veto_count is the number of no with veto votes on
+                      a proposal.
             description: >-
               QueryTallyResultResponse is the response type for the Query/Tally
               RPC method.
@@ -18779,10 +18898,10 @@ paths:
           format: uint64
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals/{proposal_id}/votes:
+  /cosmos/gov/v1/proposals/{proposal_id}/votes:
     get:
       summary: Votes queries votes of a given proposal.
-      operationId: Votes
+      operationId: GovV1Votes
       responses:
         '200':
           description: A successful response.
@@ -18801,24 +18920,6 @@ paths:
                     voter:
                       type: string
                       description: voter is the voter address of the proposal.
-                    option:
-                      description: >-
-                        Deprecated: Prefer to use `options` instead. This field
-                        is set in queries
-
-                        if and only if `len(options) == 1` and that option has
-                        weight 1. In all
-
-                        other cases, this field will default to
-                        VOTE_OPTION_UNSPECIFIED.
-                      type: string
-                      enum:
-                        - VOTE_OPTION_UNSPECIFIED
-                        - VOTE_OPTION_YES
-                        - VOTE_OPTION_ABSTAIN
-                        - VOTE_OPTION_NO
-                        - VOTE_OPTION_NO_WITH_VETO
-                      default: VOTE_OPTION_UNSPECIFIED
                     options:
                       type: array
                       items:
@@ -18844,13 +18945,12 @@ paths:
                         description: >-
                           WeightedVoteOption defines a unit of vote for vote
                           split.
-
-
-                          Since: cosmos-sdk 0.43
-                      description: |-
-                        options is the weighted vote options.
-
-                        Since: cosmos-sdk 0.43
+                      description: options is the weighted vote options.
+                    metadata:
+                      type: string
+                      description: >-
+                        metadata is any  arbitrary metadata to attached to the
+                        vote.
                   description: >-
                     Vote defines a vote on a governance proposal.
 
@@ -19135,10 +19235,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /cosmos/gov/v1beta1/proposals/{proposal_id}/votes/{voter}:
+  /cosmos/gov/v1/proposals/{proposal_id}/votes/{voter}:
     get:
       summary: Vote queries voted information based on proposalID, voterAddr.
-      operationId: Vote
+      operationId: GovV1Vote
       responses:
         '200':
           description: A successful response.
@@ -19155,24 +19255,6 @@ paths:
                   voter:
                     type: string
                     description: voter is the voter address of the proposal.
-                  option:
-                    description: >-
-                      Deprecated: Prefer to use `options` instead. This field is
-                      set in queries
-
-                      if and only if `len(options) == 1` and that option has
-                      weight 1. In all
-
-                      other cases, this field will default to
-                      VOTE_OPTION_UNSPECIFIED.
-                    type: string
-                    enum:
-                      - VOTE_OPTION_UNSPECIFIED
-                      - VOTE_OPTION_YES
-                      - VOTE_OPTION_ABSTAIN
-                      - VOTE_OPTION_NO
-                      - VOTE_OPTION_NO_WITH_VETO
-                    default: VOTE_OPTION_UNSPECIFIED
                   options:
                     type: array
                     items:
@@ -19198,13 +19280,12 @@ paths:
                       description: >-
                         WeightedVoteOption defines a unit of vote for vote
                         split.
-
-
-                        Since: cosmos-sdk 0.43
-                    description: |-
-                      options is the weighted vote options.
-
-                      Since: cosmos-sdk 0.43
+                    description: options is the weighted vote options.
+                  metadata:
+                    type: string
+                    description: >-
+                      metadata is any  arbitrary metadata to attached to the
+                      vote.
                 description: >-
                   Vote defines a vote on a governance proposal.
 
@@ -42480,7 +42561,7 @@ definitions:
     description: >-
       QueryAllowancesResponse is the response type for the Query/Allowances RPC
       method.
-  cosmos.gov.v1beta1.Deposit:
+  cosmos.gov.v1.Deposit:
     type: object
     properties:
       proposal_id:
@@ -42508,7 +42589,7 @@ definitions:
     description: |-
       Deposit defines an amount deposited by an account address to an active
       proposal.
-  cosmos.gov.v1beta1.DepositParams:
+  cosmos.gov.v1.DepositParams:
     type: object
     properties:
       min_deposit:
@@ -42534,174 +42615,243 @@ definitions:
 
           months.
     description: DepositParams defines the params for deposits on governance proposals.
-  cosmos.gov.v1beta1.Proposal:
+  cosmos.gov.v1.Params:
     type: object
     properties:
-      proposal_id:
+      min_deposit:
+        type: array
+        items:
+          type: object
+          properties:
+            denom:
+              type: string
+            amount:
+              type: string
+          description: |-
+            Coin defines a token with a denomination and an amount.
+
+            NOTE: The amount field is an Int which implements the custom method
+            signatures required by gogoproto.
+        description: Minimum deposit for a proposal to enter voting period.
+      max_deposit_period:
+        type: string
+        description: >-
+          Maximum period for Atom holders to deposit on a proposal. Initial
+          value: 2
+
+          months.
+      voting_period:
+        type: string
+        description: Duration of the voting period.
+      quorum:
+        type: string
+        description: |-
+          Minimum percentage of total stake needed to vote for a result to be
+           considered valid.
+      threshold:
+        type: string
+        description: >-
+          Minimum proportion of Yes votes for proposal to pass. Default value:
+          0.5.
+      veto_threshold:
+        type: string
+        description: |-
+          Minimum value of Veto votes to Total votes ratio for proposal to be
+           vetoed. Default value: 1/3.
+      min_initial_deposit_ratio:
+        type: string
+        description: >-
+          The ratio representing the proportion of the deposit value that must
+          be paid at proposal submission.
+      burn_vote_quorum:
+        type: boolean
+        title: burn deposits if a proposal does not meet quorum
+      burn_proposal_deposit_prevote:
+        type: boolean
+        title: burn deposits if the proposal does not enter voting period
+      burn_vote_veto:
+        type: boolean
+        title: burn deposits if quorum with vote type no_veto is met
+    description: |-
+      Params defines the parameters for the x/gov module.
+
+      Since: cosmos-sdk 0.47
+  cosmos.gov.v1.Proposal:
+    type: object
+    properties:
+      id:
         type: string
         format: uint64
-        description: proposal_id defines the unique id of the proposal.
-      content:
-        type: object
-        properties:
-          type_url:
-            type: string
-            description: >-
-              A URL/resource name that uniquely identifies the type of the
-              serialized
+        description: id defines the unique id of the proposal.
+      messages:
+        type: array
+        items:
+          type: object
+          properties:
+            type_url:
+              type: string
+              description: >-
+                A URL/resource name that uniquely identifies the type of the
+                serialized
 
-              protocol buffer message. This string must contain at least
+                protocol buffer message. This string must contain at least
 
-              one "/" character. The last segment of the URL's path must
-              represent
+                one "/" character. The last segment of the URL's path must
+                represent
 
-              the fully qualified name of the type (as in
+                the fully qualified name of the type (as in
 
-              `path/google.protobuf.Duration`). The name should be in a
-              canonical form
+                `path/google.protobuf.Duration`). The name should be in a
+                canonical form
 
-              (e.g., leading "." is not accepted).
-
-
-              In practice, teams usually precompile into the binary all types
-              that they
-
-              expect it to use in the context of Any. However, for URLs which
-              use the
-
-              scheme `http`, `https`, or no scheme, one can optionally set up a
-              type
-
-              server that maps type URLs to message definitions as follows:
+                (e.g., leading "." is not accepted).
 
 
-              * If no scheme is provided, `https` is assumed.
+                In practice, teams usually precompile into the binary all types
+                that they
 
-              * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-                value in binary format, or produce an error.
-              * Applications are allowed to cache lookup results based on the
-                URL, or have them precompiled into a binary to avoid any
-                lookup. Therefore, binary compatibility needs to be preserved
-                on changes to types. (Use versioned type names to manage
-                breaking changes.)
+                expect it to use in the context of Any. However, for URLs which
+                use the
 
-              Note: this functionality is not currently available in the
-              official
+                scheme `http`, `https`, or no scheme, one can optionally set up
+                a type
 
-              protobuf release, and it is not used for type URLs beginning with
-
-              type.googleapis.com.
+                server that maps type URLs to message definitions as follows:
 
 
-              Schemes other than `http`, `https` (or the empty scheme) might be
+                * If no scheme is provided, `https` is assumed.
 
-              used with implementation specific semantics.
-          value:
-            type: string
-            format: byte
-            description: >-
-              Must be a valid serialized protocol buffer of the above specified
-              type.
+                * An HTTP GET on the URL must yield a [google.protobuf.Type][]
+                  value in binary format, or produce an error.
+                * Applications are allowed to cache lookup results based on the
+                  URL, or have them precompiled into a binary to avoid any
+                  lookup. Therefore, binary compatibility needs to be preserved
+                  on changes to types. (Use versioned type names to manage
+                  breaking changes.)
+
+                Note: this functionality is not currently available in the
+                official
+
+                protobuf release, and it is not used for type URLs beginning
+                with
+
+                type.googleapis.com.
+
+
+                Schemes other than `http`, `https` (or the empty scheme) might
+                be
+
+                used with implementation specific semantics.
+            value:
+              type: string
+              format: byte
+              description: >-
+                Must be a valid serialized protocol buffer of the above
+                specified type.
+          description: >-
+            `Any` contains an arbitrary serialized protocol buffer message along
+            with a
+
+            URL that describes the type of the serialized message.
+
+
+            Protobuf library provides support to pack/unpack Any values in the
+            form
+
+            of utility functions or additional generated methods of the Any
+            type.
+
+
+            Example 1: Pack and unpack a message in C++.
+
+                Foo foo = ...;
+                Any any;
+                any.PackFrom(foo);
+                ...
+                if (any.UnpackTo(&foo)) {
+                  ...
+                }
+
+            Example 2: Pack and unpack a message in Java.
+
+                Foo foo = ...;
+                Any any = Any.pack(foo);
+                ...
+                if (any.is(Foo.class)) {
+                  foo = any.unpack(Foo.class);
+                }
+
+            Example 3: Pack and unpack a message in Python.
+
+                foo = Foo(...)
+                any = Any()
+                any.Pack(foo)
+                ...
+                if any.Is(Foo.DESCRIPTOR):
+                  any.Unpack(foo)
+                  ...
+
+            Example 4: Pack and unpack a message in Go
+
+                 foo := &pb.Foo{...}
+                 any, err := anypb.New(foo)
+                 if err != nil {
+                   ...
+                 }
+                 ...
+                 foo := &pb.Foo{}
+                 if err := any.UnmarshalTo(foo); err != nil {
+                   ...
+                 }
+
+            The pack methods provided by protobuf library will by default use
+
+            'type.googleapis.com/full.type.name' as the type URL and the unpack
+
+            methods only use the fully qualified type name after the last '/'
+
+            in the type URL, for example "foo.bar.com/x/y.z" will yield type
+
+            name "y.z".
+
+
+
+            JSON
+
+
+            The JSON representation of an `Any` value uses the regular
+
+            representation of the deserialized, embedded message, with an
+
+            additional field `@type` which contains the type URL. Example:
+
+                package google.profile;
+                message Person {
+                  string first_name = 1;
+                  string last_name = 2;
+                }
+
+                {
+                  "@type": "type.googleapis.com/google.profile.Person",
+                  "firstName": <string>,
+                  "lastName": <string>
+                }
+
+            If the embedded message type is well-known and has a custom JSON
+
+            representation, that representation will be embedded adding a field
+
+            `value` which holds the custom JSON in addition to the `@type`
+
+            field. Example (for message [google.protobuf.Duration][]):
+
+                {
+                  "@type": "type.googleapis.com/google.protobuf.Duration",
+                  "value": "1.212s"
+                }
         description: >-
-          `Any` contains an arbitrary serialized protocol buffer message along
-          with a
-
-          URL that describes the type of the serialized message.
-
-
-          Protobuf library provides support to pack/unpack Any values in the
-          form
-
-          of utility functions or additional generated methods of the Any type.
-
-
-          Example 1: Pack and unpack a message in C++.
-
-              Foo foo = ...;
-              Any any;
-              any.PackFrom(foo);
-              ...
-              if (any.UnpackTo(&foo)) {
-                ...
-              }
-
-          Example 2: Pack and unpack a message in Java.
-
-              Foo foo = ...;
-              Any any = Any.pack(foo);
-              ...
-              if (any.is(Foo.class)) {
-                foo = any.unpack(Foo.class);
-              }
-
-          Example 3: Pack and unpack a message in Python.
-
-              foo = Foo(...)
-              any = Any()
-              any.Pack(foo)
-              ...
-              if any.Is(Foo.DESCRIPTOR):
-                any.Unpack(foo)
-                ...
-
-          Example 4: Pack and unpack a message in Go
-
-               foo := &pb.Foo{...}
-               any, err := anypb.New(foo)
-               if err != nil {
-                 ...
-               }
-               ...
-               foo := &pb.Foo{}
-               if err := any.UnmarshalTo(foo); err != nil {
-                 ...
-               }
-
-          The pack methods provided by protobuf library will by default use
-
-          'type.googleapis.com/full.type.name' as the type URL and the unpack
-
-          methods only use the fully qualified type name after the last '/'
-
-          in the type URL, for example "foo.bar.com/x/y.z" will yield type
-
-          name "y.z".
-
-
-
-          JSON
-
-
-          The JSON representation of an `Any` value uses the regular
-
-          representation of the deserialized, embedded message, with an
-
-          additional field `@type` which contains the type URL. Example:
-
-              package google.profile;
-              message Person {
-                string first_name = 1;
-                string last_name = 2;
-              }
-
-              {
-                "@type": "type.googleapis.com/google.profile.Person",
-                "firstName": <string>,
-                "lastName": <string>
-              }
-
-          If the embedded message type is well-known and has a custom JSON
-
-          representation, that representation will be embedded adding a field
-
-          `value` which holds the custom JSON in addition to the `@type`
-
-          field. Example (for message [google.protobuf.Duration][]):
-
-              {
-                "@type": "type.googleapis.com/google.protobuf.Duration",
-                "value": "1.212s"
-              }
+          messages are the arbitrary messages to be executed if the proposal
+          passes.
       status:
         description: status defines the proposal status.
         type: string
@@ -42720,18 +42870,20 @@ definitions:
           proposal's voting period has ended.
         type: object
         properties:
-          'yes':
+          yes_count:
             type: string
-            description: yes is the number of yes votes on a proposal.
-          abstain:
+            description: yes_count is the number of yes votes on a proposal.
+          abstain_count:
             type: string
-            description: abstain is the number of abstain votes on a proposal.
-          'no':
+            description: abstain_count is the number of abstain votes on a proposal.
+          no_count:
             type: string
-            description: no is the number of no votes on a proposal.
-          no_with_veto:
+            description: no_count is the number of no votes on a proposal.
+          no_with_veto_count:
             type: string
-            description: no_with_veto is the number of no with veto votes on a proposal.
+            description: >-
+              no_with_veto_count is the number of no with veto votes on a
+              proposal.
       submit_time:
         type: string
         format: date-time
@@ -42763,8 +42915,23 @@ definitions:
         type: string
         format: date-time
         description: voting_end_time is the end time of voting on a proposal.
+      metadata:
+        type: string
+        description: metadata is any arbitrary metadata attached to the proposal.
+      title:
+        type: string
+        description: 'Since: cosmos-sdk 0.47'
+        title: title is the title of the proposal
+      summary:
+        type: string
+        description: 'Since: cosmos-sdk 0.47'
+        title: summary is a short summary of the proposal
+      proposer:
+        type: string
+        description: 'Since: cosmos-sdk 0.47'
+        title: Proposer is the address of the proposal sumbitter
     description: Proposal defines the core field members of a governance proposal.
-  cosmos.gov.v1beta1.ProposalStatus:
+  cosmos.gov.v1.ProposalStatus:
     type: string
     enum:
       - PROPOSAL_STATUS_UNSPECIFIED
@@ -42788,7 +42955,7 @@ definitions:
       been rejected.
        - PROPOSAL_STATUS_FAILED: PROPOSAL_STATUS_FAILED defines a proposal status of a proposal that has
       failed.
-  cosmos.gov.v1beta1.QueryDepositResponse:
+  cosmos.gov.v1.QueryDepositResponse:
     type: object
     properties:
       deposit:
@@ -42825,7 +42992,7 @@ definitions:
     description: >-
       QueryDepositResponse is the response type for the Query/Deposit RPC
       method.
-  cosmos.gov.v1beta1.QueryDepositsResponse:
+  cosmos.gov.v1.QueryDepositsResponse:
     type: object
     properties:
       deposits:
@@ -42886,18 +43053,22 @@ definitions:
     description: >-
       QueryDepositsResponse is the response type for the Query/Deposits RPC
       method.
-  cosmos.gov.v1beta1.QueryParamsResponse:
+  cosmos.gov.v1.QueryParamsResponse:
     type: object
     properties:
       voting_params:
-        description: voting_params defines the parameters related to voting.
+        description: |-
+          Deprecated: Prefer to use `params` instead.
+          voting_params defines the parameters related to voting.
         type: object
         properties:
           voting_period:
             type: string
             description: Duration of the voting period.
       deposit_params:
-        description: deposit_params defines the parameters related to deposit.
+        description: |-
+          Deprecated: Prefer to use `params` instead.
+          deposit_params defines the parameters related to deposit.
         type: object
         properties:
           min_deposit:
@@ -42926,12 +43097,13 @@ definitions:
 
               months.
       tally_params:
-        description: tally_params defines the parameters related to tally.
+        description: |-
+          Deprecated: Prefer to use `params` instead.
+          tally_params defines the parameters related to tally.
         type: object
         properties:
           quorum:
             type: string
-            format: byte
             description: >-
               Minimum percentage of total stake needed to vote for a result to
               be
@@ -42939,240 +43111,24 @@ definitions:
               considered valid.
           threshold:
             type: string
-            format: byte
             description: >-
               Minimum proportion of Yes votes for proposal to pass. Default
               value: 0.5.
           veto_threshold:
             type: string
-            format: byte
             description: >-
               Minimum value of Veto votes to Total votes ratio for proposal to
               be
 
               vetoed. Default value: 1/3.
-    description: QueryParamsResponse is the response type for the Query/Params RPC method.
-  cosmos.gov.v1beta1.QueryProposalResponse:
-    type: object
-    properties:
-      proposal:
+      params:
+        description: |-
+          params defines all the paramaters of x/gov module.
+
+          Since: cosmos-sdk 0.47
         type: object
         properties:
-          proposal_id:
-            type: string
-            format: uint64
-            description: proposal_id defines the unique id of the proposal.
-          content:
-            type: object
-            properties:
-              type_url:
-                type: string
-                description: >-
-                  A URL/resource name that uniquely identifies the type of the
-                  serialized
-
-                  protocol buffer message. This string must contain at least
-
-                  one "/" character. The last segment of the URL's path must
-                  represent
-
-                  the fully qualified name of the type (as in
-
-                  `path/google.protobuf.Duration`). The name should be in a
-                  canonical form
-
-                  (e.g., leading "." is not accepted).
-
-
-                  In practice, teams usually precompile into the binary all
-                  types that they
-
-                  expect it to use in the context of Any. However, for URLs
-                  which use the
-
-                  scheme `http`, `https`, or no scheme, one can optionally set
-                  up a type
-
-                  server that maps type URLs to message definitions as follows:
-
-
-                  * If no scheme is provided, `https` is assumed.
-
-                  * An HTTP GET on the URL must yield a [google.protobuf.Type][]
-                    value in binary format, or produce an error.
-                  * Applications are allowed to cache lookup results based on
-                  the
-                    URL, or have them precompiled into a binary to avoid any
-                    lookup. Therefore, binary compatibility needs to be preserved
-                    on changes to types. (Use versioned type names to manage
-                    breaking changes.)
-
-                  Note: this functionality is not currently available in the
-                  official
-
-                  protobuf release, and it is not used for type URLs beginning
-                  with
-
-                  type.googleapis.com.
-
-
-                  Schemes other than `http`, `https` (or the empty scheme) might
-                  be
-
-                  used with implementation specific semantics.
-              value:
-                type: string
-                format: byte
-                description: >-
-                  Must be a valid serialized protocol buffer of the above
-                  specified type.
-            description: >-
-              `Any` contains an arbitrary serialized protocol buffer message
-              along with a
-
-              URL that describes the type of the serialized message.
-
-
-              Protobuf library provides support to pack/unpack Any values in the
-              form
-
-              of utility functions or additional generated methods of the Any
-              type.
-
-
-              Example 1: Pack and unpack a message in C++.
-
-                  Foo foo = ...;
-                  Any any;
-                  any.PackFrom(foo);
-                  ...
-                  if (any.UnpackTo(&foo)) {
-                    ...
-                  }
-
-              Example 2: Pack and unpack a message in Java.
-
-                  Foo foo = ...;
-                  Any any = Any.pack(foo);
-                  ...
-                  if (any.is(Foo.class)) {
-                    foo = any.unpack(Foo.class);
-                  }
-
-              Example 3: Pack and unpack a message in Python.
-
-                  foo = Foo(...)
-                  any = Any()
-                  any.Pack(foo)
-                  ...
-                  if any.Is(Foo.DESCRIPTOR):
-                    any.Unpack(foo)
-                    ...
-
-              Example 4: Pack and unpack a message in Go
-
-                   foo := &pb.Foo{...}
-                   any, err := anypb.New(foo)
-                   if err != nil {
-                     ...
-                   }
-                   ...
-                   foo := &pb.Foo{}
-                   if err := any.UnmarshalTo(foo); err != nil {
-                     ...
-                   }
-
-              The pack methods provided by protobuf library will by default use
-
-              'type.googleapis.com/full.type.name' as the type URL and the
-              unpack
-
-              methods only use the fully qualified type name after the last '/'
-
-              in the type URL, for example "foo.bar.com/x/y.z" will yield type
-
-              name "y.z".
-
-
-
-              JSON
-
-
-              The JSON representation of an `Any` value uses the regular
-
-              representation of the deserialized, embedded message, with an
-
-              additional field `@type` which contains the type URL. Example:
-
-                  package google.profile;
-                  message Person {
-                    string first_name = 1;
-                    string last_name = 2;
-                  }
-
-                  {
-                    "@type": "type.googleapis.com/google.profile.Person",
-                    "firstName": <string>,
-                    "lastName": <string>
-                  }
-
-              If the embedded message type is well-known and has a custom JSON
-
-              representation, that representation will be embedded adding a
-              field
-
-              `value` which holds the custom JSON in addition to the `@type`
-
-              field. Example (for message [google.protobuf.Duration][]):
-
-                  {
-                    "@type": "type.googleapis.com/google.protobuf.Duration",
-                    "value": "1.212s"
-                  }
-          status:
-            description: status defines the proposal status.
-            type: string
-            enum:
-              - PROPOSAL_STATUS_UNSPECIFIED
-              - PROPOSAL_STATUS_DEPOSIT_PERIOD
-              - PROPOSAL_STATUS_VOTING_PERIOD
-              - PROPOSAL_STATUS_PASSED
-              - PROPOSAL_STATUS_REJECTED
-              - PROPOSAL_STATUS_FAILED
-            default: PROPOSAL_STATUS_UNSPECIFIED
-          final_tally_result:
-            description: >-
-              final_tally_result is the final tally result of the proposal. When
-
-              querying a proposal via gRPC, this field is not populated until
-              the
-
-              proposal's voting period has ended.
-            type: object
-            properties:
-              'yes':
-                type: string
-                description: yes is the number of yes votes on a proposal.
-              abstain:
-                type: string
-                description: abstain is the number of abstain votes on a proposal.
-              'no':
-                type: string
-                description: no is the number of no votes on a proposal.
-              no_with_veto:
-                type: string
-                description: >-
-                  no_with_veto is the number of no with veto votes on a
-                  proposal.
-          submit_time:
-            type: string
-            format: date-time
-            description: submit_time is the time of proposal submission.
-          deposit_end_time:
-            type: string
-            format: date-time
-            description: deposit_end_time is the end time for deposition.
-          total_deposit:
+          min_deposit:
             type: array
             items:
               type: object
@@ -43189,32 +43145,62 @@ definitions:
                 method
 
                 signatures required by gogoproto.
-            description: total_deposit is the total deposit on the proposal.
-          voting_start_time:
+            description: Minimum deposit for a proposal to enter voting period.
+          max_deposit_period:
             type: string
-            format: date-time
-            description: voting_start_time is the starting time to vote on a proposal.
-          voting_end_time:
+            description: >-
+              Maximum period for Atom holders to deposit on a proposal. Initial
+              value: 2
+
+              months.
+          voting_period:
             type: string
-            format: date-time
-            description: voting_end_time is the end time of voting on a proposal.
-        description: Proposal defines the core field members of a governance proposal.
-    description: >-
-      QueryProposalResponse is the response type for the Query/Proposal RPC
-      method.
-  cosmos.gov.v1beta1.QueryProposalsResponse:
+            description: Duration of the voting period.
+          quorum:
+            type: string
+            description: >-
+              Minimum percentage of total stake needed to vote for a result to
+              be
+               considered valid.
+          threshold:
+            type: string
+            description: >-
+              Minimum proportion of Yes votes for proposal to pass. Default
+              value: 0.5.
+          veto_threshold:
+            type: string
+            description: >-
+              Minimum value of Veto votes to Total votes ratio for proposal to
+              be
+               vetoed. Default value: 1/3.
+          min_initial_deposit_ratio:
+            type: string
+            description: >-
+              The ratio representing the proportion of the deposit value that
+              must be paid at proposal submission.
+          burn_vote_quorum:
+            type: boolean
+            title: burn deposits if a proposal does not meet quorum
+          burn_proposal_deposit_prevote:
+            type: boolean
+            title: burn deposits if the proposal does not enter voting period
+          burn_vote_veto:
+            type: boolean
+            title: burn deposits if quorum with vote type no_veto is met
+    description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  cosmos.gov.v1.QueryProposalResponse:
     type: object
     properties:
-      proposals:
-        type: array
-        items:
-          type: object
-          properties:
-            proposal_id:
-              type: string
-              format: uint64
-              description: proposal_id defines the unique id of the proposal.
-            content:
+      proposal:
+        type: object
+        properties:
+          id:
+            type: string
+            format: uint64
+            description: id defines the unique id of the proposal.
+          messages:
+            type: array
+            items:
               type: object
               properties:
                 type_url:
@@ -43385,6 +43371,287 @@ definitions:
                       "@type": "type.googleapis.com/google.protobuf.Duration",
                       "value": "1.212s"
                     }
+            description: >-
+              messages are the arbitrary messages to be executed if the proposal
+              passes.
+          status:
+            description: status defines the proposal status.
+            type: string
+            enum:
+              - PROPOSAL_STATUS_UNSPECIFIED
+              - PROPOSAL_STATUS_DEPOSIT_PERIOD
+              - PROPOSAL_STATUS_VOTING_PERIOD
+              - PROPOSAL_STATUS_PASSED
+              - PROPOSAL_STATUS_REJECTED
+              - PROPOSAL_STATUS_FAILED
+            default: PROPOSAL_STATUS_UNSPECIFIED
+          final_tally_result:
+            description: >-
+              final_tally_result is the final tally result of the proposal. When
+
+              querying a proposal via gRPC, this field is not populated until
+              the
+
+              proposal's voting period has ended.
+            type: object
+            properties:
+              yes_count:
+                type: string
+                description: yes_count is the number of yes votes on a proposal.
+              abstain_count:
+                type: string
+                description: abstain_count is the number of abstain votes on a proposal.
+              no_count:
+                type: string
+                description: no_count is the number of no votes on a proposal.
+              no_with_veto_count:
+                type: string
+                description: >-
+                  no_with_veto_count is the number of no with veto votes on a
+                  proposal.
+          submit_time:
+            type: string
+            format: date-time
+            description: submit_time is the time of proposal submission.
+          deposit_end_time:
+            type: string
+            format: date-time
+            description: deposit_end_time is the end time for deposition.
+          total_deposit:
+            type: array
+            items:
+              type: object
+              properties:
+                denom:
+                  type: string
+                amount:
+                  type: string
+              description: >-
+                Coin defines a token with a denomination and an amount.
+
+
+                NOTE: The amount field is an Int which implements the custom
+                method
+
+                signatures required by gogoproto.
+            description: total_deposit is the total deposit on the proposal.
+          voting_start_time:
+            type: string
+            format: date-time
+            description: voting_start_time is the starting time to vote on a proposal.
+          voting_end_time:
+            type: string
+            format: date-time
+            description: voting_end_time is the end time of voting on a proposal.
+          metadata:
+            type: string
+            description: metadata is any arbitrary metadata attached to the proposal.
+          title:
+            type: string
+            description: 'Since: cosmos-sdk 0.47'
+            title: title is the title of the proposal
+          summary:
+            type: string
+            description: 'Since: cosmos-sdk 0.47'
+            title: summary is a short summary of the proposal
+          proposer:
+            type: string
+            description: 'Since: cosmos-sdk 0.47'
+            title: Proposer is the address of the proposal sumbitter
+        description: Proposal defines the core field members of a governance proposal.
+    description: >-
+      QueryProposalResponse is the response type for the Query/Proposal RPC
+      method.
+  cosmos.gov.v1.QueryProposalsResponse:
+    type: object
+    properties:
+      proposals:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uint64
+              description: id defines the unique id of the proposal.
+            messages:
+              type: array
+              items:
+                type: object
+                properties:
+                  type_url:
+                    type: string
+                    description: >-
+                      A URL/resource name that uniquely identifies the type of
+                      the serialized
+
+                      protocol buffer message. This string must contain at least
+
+                      one "/" character. The last segment of the URL's path must
+                      represent
+
+                      the fully qualified name of the type (as in
+
+                      `path/google.protobuf.Duration`). The name should be in a
+                      canonical form
+
+                      (e.g., leading "." is not accepted).
+
+
+                      In practice, teams usually precompile into the binary all
+                      types that they
+
+                      expect it to use in the context of Any. However, for URLs
+                      which use the
+
+                      scheme `http`, `https`, or no scheme, one can optionally
+                      set up a type
+
+                      server that maps type URLs to message definitions as
+                      follows:
+
+
+                      * If no scheme is provided, `https` is assumed.
+
+                      * An HTTP GET on the URL must yield a
+                      [google.protobuf.Type][]
+                        value in binary format, or produce an error.
+                      * Applications are allowed to cache lookup results based
+                      on the
+                        URL, or have them precompiled into a binary to avoid any
+                        lookup. Therefore, binary compatibility needs to be preserved
+                        on changes to types. (Use versioned type names to manage
+                        breaking changes.)
+
+                      Note: this functionality is not currently available in the
+                      official
+
+                      protobuf release, and it is not used for type URLs
+                      beginning with
+
+                      type.googleapis.com.
+
+
+                      Schemes other than `http`, `https` (or the empty scheme)
+                      might be
+
+                      used with implementation specific semantics.
+                  value:
+                    type: string
+                    format: byte
+                    description: >-
+                      Must be a valid serialized protocol buffer of the above
+                      specified type.
+                description: >-
+                  `Any` contains an arbitrary serialized protocol buffer message
+                  along with a
+
+                  URL that describes the type of the serialized message.
+
+
+                  Protobuf library provides support to pack/unpack Any values in
+                  the form
+
+                  of utility functions or additional generated methods of the
+                  Any type.
+
+
+                  Example 1: Pack and unpack a message in C++.
+
+                      Foo foo = ...;
+                      Any any;
+                      any.PackFrom(foo);
+                      ...
+                      if (any.UnpackTo(&foo)) {
+                        ...
+                      }
+
+                  Example 2: Pack and unpack a message in Java.
+
+                      Foo foo = ...;
+                      Any any = Any.pack(foo);
+                      ...
+                      if (any.is(Foo.class)) {
+                        foo = any.unpack(Foo.class);
+                      }
+
+                  Example 3: Pack and unpack a message in Python.
+
+                      foo = Foo(...)
+                      any = Any()
+                      any.Pack(foo)
+                      ...
+                      if any.Is(Foo.DESCRIPTOR):
+                        any.Unpack(foo)
+                        ...
+
+                  Example 4: Pack and unpack a message in Go
+
+                       foo := &pb.Foo{...}
+                       any, err := anypb.New(foo)
+                       if err != nil {
+                         ...
+                       }
+                       ...
+                       foo := &pb.Foo{}
+                       if err := any.UnmarshalTo(foo); err != nil {
+                         ...
+                       }
+
+                  The pack methods provided by protobuf library will by default
+                  use
+
+                  'type.googleapis.com/full.type.name' as the type URL and the
+                  unpack
+
+                  methods only use the fully qualified type name after the last
+                  '/'
+
+                  in the type URL, for example "foo.bar.com/x/y.z" will yield
+                  type
+
+                  name "y.z".
+
+
+
+                  JSON
+
+
+                  The JSON representation of an `Any` value uses the regular
+
+                  representation of the deserialized, embedded message, with an
+
+                  additional field `@type` which contains the type URL. Example:
+
+                      package google.profile;
+                      message Person {
+                        string first_name = 1;
+                        string last_name = 2;
+                      }
+
+                      {
+                        "@type": "type.googleapis.com/google.profile.Person",
+                        "firstName": <string>,
+                        "lastName": <string>
+                      }
+
+                  If the embedded message type is well-known and has a custom
+                  JSON
+
+                  representation, that representation will be embedded adding a
+                  field
+
+                  `value` which holds the custom JSON in addition to the `@type`
+
+                  field. Example (for message [google.protobuf.Duration][]):
+
+                      {
+                        "@type": "type.googleapis.com/google.protobuf.Duration",
+                        "value": "1.212s"
+                      }
+              description: >-
+                messages are the arbitrary messages to be executed if the
+                proposal passes.
             status:
               description: status defines the proposal status.
               type: string
@@ -43407,19 +43674,19 @@ definitions:
                 proposal's voting period has ended.
               type: object
               properties:
-                'yes':
+                yes_count:
                   type: string
-                  description: yes is the number of yes votes on a proposal.
-                abstain:
+                  description: yes_count is the number of yes votes on a proposal.
+                abstain_count:
                   type: string
-                  description: abstain is the number of abstain votes on a proposal.
-                'no':
+                  description: abstain_count is the number of abstain votes on a proposal.
+                no_count:
                   type: string
-                  description: no is the number of no votes on a proposal.
-                no_with_veto:
+                  description: no_count is the number of no votes on a proposal.
+                no_with_veto_count:
                   type: string
                   description: >-
-                    no_with_veto is the number of no with veto votes on a
+                    no_with_veto_count is the number of no with veto votes on a
                     proposal.
             submit_time:
               type: string
@@ -43455,6 +43722,21 @@ definitions:
               type: string
               format: date-time
               description: voting_end_time is the end time of voting on a proposal.
+            metadata:
+              type: string
+              description: metadata is any arbitrary metadata attached to the proposal.
+            title:
+              type: string
+              description: 'Since: cosmos-sdk 0.47'
+              title: title is the title of the proposal
+            summary:
+              type: string
+              description: 'Since: cosmos-sdk 0.47'
+              title: summary is a short summary of the proposal
+            proposer:
+              type: string
+              description: 'Since: cosmos-sdk 0.47'
+              title: Proposer is the address of the proposal sumbitter
           description: Proposal defines the core field members of a governance proposal.
         description: proposals defines all the requested governance proposals.
       pagination:
@@ -43479,29 +43761,31 @@ definitions:
     description: |-
       QueryProposalsResponse is the response type for the Query/Proposals RPC
       method.
-  cosmos.gov.v1beta1.QueryTallyResultResponse:
+  cosmos.gov.v1.QueryTallyResultResponse:
     type: object
     properties:
       tally:
         description: tally defines the requested tally.
         type: object
         properties:
-          'yes':
+          yes_count:
             type: string
-            description: yes is the number of yes votes on a proposal.
-          abstain:
+            description: yes_count is the number of yes votes on a proposal.
+          abstain_count:
             type: string
-            description: abstain is the number of abstain votes on a proposal.
-          'no':
+            description: abstain_count is the number of abstain votes on a proposal.
+          no_count:
             type: string
-            description: no is the number of no votes on a proposal.
-          no_with_veto:
+            description: no_count is the number of no votes on a proposal.
+          no_with_veto_count:
             type: string
-            description: no_with_veto is the number of no with veto votes on a proposal.
+            description: >-
+              no_with_veto_count is the number of no with veto votes on a
+              proposal.
     description: >-
       QueryTallyResultResponse is the response type for the Query/Tally RPC
       method.
-  cosmos.gov.v1beta1.QueryVoteResponse:
+  cosmos.gov.v1.QueryVoteResponse:
     type: object
     properties:
       vote:
@@ -43514,23 +43798,6 @@ definitions:
           voter:
             type: string
             description: voter is the voter address of the proposal.
-          option:
-            description: >-
-              Deprecated: Prefer to use `options` instead. This field is set in
-              queries
-
-              if and only if `len(options) == 1` and that option has weight 1.
-              In all
-
-              other cases, this field will default to VOTE_OPTION_UNSPECIFIED.
-            type: string
-            enum:
-              - VOTE_OPTION_UNSPECIFIED
-              - VOTE_OPTION_YES
-              - VOTE_OPTION_ABSTAIN
-              - VOTE_OPTION_NO
-              - VOTE_OPTION_NO_WITH_VETO
-            default: VOTE_OPTION_UNSPECIFIED
           options:
             type: array
             items:
@@ -43551,19 +43818,16 @@ definitions:
                 weight:
                   type: string
                   description: weight is the vote weight associated with the vote option.
-              description: |-
-                WeightedVoteOption defines a unit of vote for vote split.
-
-                Since: cosmos-sdk 0.43
-            description: |-
-              options is the weighted vote options.
-
-              Since: cosmos-sdk 0.43
+              description: WeightedVoteOption defines a unit of vote for vote split.
+            description: options is the weighted vote options.
+          metadata:
+            type: string
+            description: metadata is any  arbitrary metadata to attached to the vote.
         description: |-
           Vote defines a vote on a governance proposal.
           A Vote consists of a proposal ID, the voter, and the vote option.
     description: QueryVoteResponse is the response type for the Query/Vote RPC method.
-  cosmos.gov.v1beta1.QueryVotesResponse:
+  cosmos.gov.v1.QueryVotesResponse:
     type: object
     properties:
       votes:
@@ -43578,23 +43842,6 @@ definitions:
             voter:
               type: string
               description: voter is the voter address of the proposal.
-            option:
-              description: >-
-                Deprecated: Prefer to use `options` instead. This field is set
-                in queries
-
-                if and only if `len(options) == 1` and that option has weight 1.
-                In all
-
-                other cases, this field will default to VOTE_OPTION_UNSPECIFIED.
-              type: string
-              enum:
-                - VOTE_OPTION_UNSPECIFIED
-                - VOTE_OPTION_YES
-                - VOTE_OPTION_ABSTAIN
-                - VOTE_OPTION_NO
-                - VOTE_OPTION_NO_WITH_VETO
-              default: VOTE_OPTION_UNSPECIFIED
             options:
               type: array
               items:
@@ -43615,14 +43862,11 @@ definitions:
                   weight:
                     type: string
                     description: weight is the vote weight associated with the vote option.
-                description: |-
-                  WeightedVoteOption defines a unit of vote for vote split.
-
-                  Since: cosmos-sdk 0.43
-              description: |-
-                options is the weighted vote options.
-
-                Since: cosmos-sdk 0.43
+                description: WeightedVoteOption defines a unit of vote for vote split.
+              description: options is the weighted vote options.
+            metadata:
+              type: string
+              description: metadata is any  arbitrary metadata to attached to the vote.
           description: |-
             Vote defines a vote on a governance proposal.
             A Vote consists of a proposal ID, the voter, and the vote option.
@@ -43647,45 +43891,42 @@ definitions:
 
               was set, its value is undefined otherwise
     description: QueryVotesResponse is the response type for the Query/Votes RPC method.
-  cosmos.gov.v1beta1.TallyParams:
+  cosmos.gov.v1.TallyParams:
     type: object
     properties:
       quorum:
         type: string
-        format: byte
         description: |-
           Minimum percentage of total stake needed to vote for a result to be
           considered valid.
       threshold:
         type: string
-        format: byte
         description: >-
           Minimum proportion of Yes votes for proposal to pass. Default value:
           0.5.
       veto_threshold:
         type: string
-        format: byte
         description: |-
           Minimum value of Veto votes to Total votes ratio for proposal to be
           vetoed. Default value: 1/3.
     description: TallyParams defines the params for tallying votes on governance proposals.
-  cosmos.gov.v1beta1.TallyResult:
+  cosmos.gov.v1.TallyResult:
     type: object
     properties:
-      'yes':
+      yes_count:
         type: string
-        description: yes is the number of yes votes on a proposal.
-      abstain:
+        description: yes_count is the number of yes votes on a proposal.
+      abstain_count:
         type: string
-        description: abstain is the number of abstain votes on a proposal.
-      'no':
+        description: abstain_count is the number of abstain votes on a proposal.
+      no_count:
         type: string
-        description: no is the number of no votes on a proposal.
-      no_with_veto:
+        description: no_count is the number of no votes on a proposal.
+      no_with_veto_count:
         type: string
-        description: no_with_veto is the number of no with veto votes on a proposal.
+        description: no_with_veto_count is the number of no with veto votes on a proposal.
     description: TallyResult defines a standard tally for a governance proposal.
-  cosmos.gov.v1beta1.Vote:
+  cosmos.gov.v1.Vote:
     type: object
     properties:
       proposal_id:
@@ -43695,23 +43936,6 @@ definitions:
       voter:
         type: string
         description: voter is the voter address of the proposal.
-      option:
-        description: >-
-          Deprecated: Prefer to use `options` instead. This field is set in
-          queries
-
-          if and only if `len(options) == 1` and that option has weight 1. In
-          all
-
-          other cases, this field will default to VOTE_OPTION_UNSPECIFIED.
-        type: string
-        enum:
-          - VOTE_OPTION_UNSPECIFIED
-          - VOTE_OPTION_YES
-          - VOTE_OPTION_ABSTAIN
-          - VOTE_OPTION_NO
-          - VOTE_OPTION_NO_WITH_VETO
-        default: VOTE_OPTION_UNSPECIFIED
       options:
         type: array
         items:
@@ -43732,18 +43956,15 @@ definitions:
             weight:
               type: string
               description: weight is the vote weight associated with the vote option.
-          description: |-
-            WeightedVoteOption defines a unit of vote for vote split.
-
-            Since: cosmos-sdk 0.43
-        description: |-
-          options is the weighted vote options.
-
-          Since: cosmos-sdk 0.43
+          description: WeightedVoteOption defines a unit of vote for vote split.
+        description: options is the weighted vote options.
+      metadata:
+        type: string
+        description: metadata is any  arbitrary metadata to attached to the vote.
     description: |-
       Vote defines a vote on a governance proposal.
       A Vote consists of a proposal ID, the voter, and the vote option.
-  cosmos.gov.v1beta1.VoteOption:
+  cosmos.gov.v1.VoteOption:
     type: string
     enum:
       - VOTE_OPTION_UNSPECIFIED
@@ -43761,14 +43982,14 @@ definitions:
        - VOTE_OPTION_ABSTAIN: VOTE_OPTION_ABSTAIN defines an abstain vote option.
        - VOTE_OPTION_NO: VOTE_OPTION_NO defines a no vote option.
        - VOTE_OPTION_NO_WITH_VETO: VOTE_OPTION_NO_WITH_VETO defines a no with veto vote option.
-  cosmos.gov.v1beta1.VotingParams:
+  cosmos.gov.v1.VotingParams:
     type: object
     properties:
       voting_period:
         type: string
         description: Duration of the voting period.
     description: VotingParams defines the params for voting on governance proposals.
-  cosmos.gov.v1beta1.WeightedVoteOption:
+  cosmos.gov.v1.WeightedVoteOption:
     type: object
     properties:
       option:
@@ -43786,10 +44007,7 @@ definitions:
       weight:
         type: string
         description: weight is the vote weight associated with the vote option.
-    description: |-
-      WeightedVoteOption defines a unit of vote for vote split.
-
-      Since: cosmos-sdk 0.43
+    description: WeightedVoteOption defines a unit of vote for vote split.
   cosmos.mint.v1beta1.Params:
     type: object
     properties:
