@@ -106,6 +106,7 @@ import (
 	storagemodule "github.com/bnb-chain/greenfield/x/storage"
 	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
+	_ "github.com/ghodss/yaml"
 )
 
 const (

@@ -32,6 +32,7 @@ require (
 
 require (
 	cosmossdk.io/api v0.4.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/mock v1.6.0
 	github.com/rakyll/statik v0.1.7
