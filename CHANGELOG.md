@@ -1,4 +1,15 @@
 # Changelog
+## v0.2.0
+This release updates the greenfield-cosmos-sdk dependency. As the cosmos-sdk v0.47.2 is a huge breaking upgrade,
+we decide to cherry-pick the recent contributed commits and apply to the v0.47.2. The commit history previous
+releases are archived and the branch is backed up in the `master_back` branch on the [greenfield-cosmos-sdk repository](https://github.com/bnb-chain/greenfield-cosmos-sdk/).
+
+Notable breaking changes:
+1. The previous keyring is replaced by the new keyring. Please regenerate them, otherwise you will get error.
+
+Other notable changes, please refer to the [changelogs of cosmos-sdk v0.47.1](https://github.com/cosmos/cosmos-sdk/blob/v0.47.1/CHANGELOG.md)
+and [changelogs of cosmos-sdk v0.47.2](https://github.com/cosmos/cosmos-sdk/blob/v0.47.2/CHANGELOG.md).
+
 
 ## v0.1.0
 * [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments for events.proto in storage (created_at field shows block timestamp instead of block number)
