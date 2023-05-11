@@ -26,6 +26,6 @@ jobs:
       - name: Test protobuf changes generates new go files
         run: |
           export PATH="$PATH:$(go env GOPATH)/bin"
-          go install github.com/regen-network/cosmos-proto/protoc-gen-gocosmos
+          go install github.com/cosmos/gogoproto/protoc-gen-gocosmos
           go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
           make proto-gen-check
