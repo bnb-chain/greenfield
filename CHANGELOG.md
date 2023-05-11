@@ -26,7 +26,7 @@ This release updates the greenfield-cosmos-sdk dependency. Please refer to the [
 * [#225](https://github.com/bnb-chain/greenfield/pull/225) fix: fix the banner issue and sync a tiny pr
 * [#224](https://github.com/bnb-chain/greenfield/pull/224) feat: add support for EVM json-rpc request
 * [#226](https://github.com/bnb-chain/greenfield/pull/222) fix nil pointer panic
-* [#231](https://github.com/bnb-chain/greenfield/pull/231) Merge pull request
+* [#231](https://github.com/bnb-chain/greenfield/pull/231) feat: update cosmos sdk to v0.47.2  
 * [#232](https://github.com/bnb-chain/greenfield/pull/232) fix: fix challenge random issue
 * [#218](https://github.com/bnb-chain/greenfield/pull/218) feat: support multi version params for storage module
 * [#234](https://github.com/bnb-chain/greenfield/pull/234) fix: sp staking ledger error when slash
