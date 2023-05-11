@@ -1,15 +1,39 @@
 # Changelog
 ## v0.2.0
-This release updates the greenfield-cosmos-sdk dependency. As the cosmos-sdk v0.47.2 is a huge breaking upgrade,
-we decide to cherry-pick the recent contributed commits and apply to the v0.47.2. The commit history previous
-releases are archived and the branch is backed up in the `master_back` branch on the [greenfield-cosmos-sdk repository](https://github.com/bnb-chain/greenfield-cosmos-sdk/).
-
-Notable breaking changes:
-1. The previous keyring is replaced by the new keyring. Please regenerate them, otherwise you will get error.
-
-Other notable changes, please refer to the [changelogs of cosmos-sdk v0.47.1](https://github.com/cosmos/cosmos-sdk/blob/v0.47.1/CHANGELOG.md)
-and [changelogs of cosmos-sdk v0.47.2](https://github.com/cosmos/cosmos-sdk/blob/v0.47.2/CHANGELOG.md).
-
+This release updates the greenfield-cosmos-sdk dependency. Please refer to the [greenfield-cosmos-sdk repository](https://github.com/bnb-chain/greenfield-cosmos-sdk/) for the update details.
+* [#188](https://github.com/bnb-chain/greenfield/pull/188) feat: integrate greenfield with cosmos sdk v0.47
+* [#190](https://github.com/bnb-chain/greenfield/pull/190) feat: add more fields to sp events
+* [#191](https://github.com/bnb-chain/greenfield/pull/191) feat: define the turn for submitting attestation
+* [#197](https://github.com/bnb-chain/greenfield/pull/197) fix: fix e2e issues due to km refactor
+* [#199](https://github.com/bnb-chain/greenfield/pull/199) feat: migrate challenge module to cosmos sdk v0.47
+* [#194](https://github.com/bnb-chain/greenfield/pull/194) feat: fix the issues of commands
+* [#200](https://github.com/bnb-chain/greenfield/pull/200) feat: migrate challenge e2e tests
+* [#203](https://github.com/bnb-chain/greenfield/pull/203) chore: fix ante test
+* [#205](https://github.com/bnb-chain/greenfield/pull/205) ci: run ci jobs for every pull request
+* [#206](https://github.com/bnb-chain/greenfield/pull/206) fix init
+* [#207](https://github.com/bnb-chain/greenfield/pull/207) fix: init app with upgrade handlers
+* [#208](https://github.com/bnb-chain/greenfield/pull/208) docs: fix localup scripts in document
+* [#210](https://github.com/bnb-chain/greenfield/pull/210) feat: remove amino dependencies for GetSignBytes
+* [#212](https://github.com/bnb-chain/greenfield/pull/212) feat: add export key for localup script
+* [#196](https://github.com/bnb-chain/greenfield/pull/196) feat: modify sp module & storage module & permission module to adapt cosmos sdk v0.47
+* [#214](https://github.com/bnb-chain/greenfield/pull/214) fix: fix e2e test for gashub
+* [#216](https://github.com/bnb-chain/greenfield/pull/216) feat: payment adapt to cosmos-sdk v0.47
+* [#215](https://github.com/bnb-chain/greenfield/pull/215) feat: add update-object-info for updateobject's visibility (cherry pick #138)
+* [#220](https://github.com/bnb-chain/greenfield/pull/220) feat: support empty operator for verifypermission
+* [#219](https://github.com/bnb-chain/greenfield/pull/219) fix: sp & storage & permission module's cli bug
+* [#217](https://github.com/bnb-chain/greenfield/pull/217) feat: remove dependency for params module
+* [#221](https://github.com/bnb-chain/greenfield/pull/221) fix: bring back the swagger server
+* [#225](https://github.com/bnb-chain/greenfield/pull/225) fix: fix the banner issue and sync a tiny pr
+* [#224](https://github.com/bnb-chain/greenfield/pull/224) feat: add support for EVM json-rpc request
+* [#226](https://github.com/bnb-chain/greenfield/pull/222) fix nil pointer panic
+* [#231](https://github.com/bnb-chain/greenfield/pull/231) Merge pull request
+* [#232](https://github.com/bnb-chain/greenfield/pull/232) fix: fix challenge random issue
+* [#218](https://github.com/bnb-chain/greenfield/pull/218) feat: support multi version params for storage module
+* [#234](https://github.com/bnb-chain/greenfield/pull/234) fix: sp staking ledger error when slash
+* [#223](https://github.com/bnb-chain/greenfield/pull/223) feat: enable stale permission GC
+* [#235](https://github.com/bnb-chain/greenfield/pull/235) feat: update dependency for the cosmos-sdk
+* [#236](https://github.com/bnb-chain/greenfield/pull/236) fix: update swagger file based on the latest cosmos-sdk
+* [#237](https://github.com/bnb-chain/greenfield/pull/237) swagger: replace gov v1beta1 by v1
 
 ## v0.1.0
 * [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments for events.proto in storage (created_at field shows block timestamp instead of block number)
