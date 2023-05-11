@@ -1,6 +1,6 @@
 module github.com/bnb-chain/greenfield
 
-go 1.20
+go 1.19
 
 require (
 	cosmossdk.io/errors v1.0.0-beta.7
