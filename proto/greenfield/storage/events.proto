@@ -6,7 +6,6 @@ import "gogoproto/gogo.proto";
 import "greenfield/storage/common.proto";
 import "greenfield/storage/types.proto";
 
-
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // EventCreateBucket is emitted on MsgCreateBucket
@@ -430,5 +429,5 @@ message EventMirrorGroupResult {
 // EventStalePolicyCleanup is emitted when specified block height's stale policies need to be Garbage collected
 message EventStalePolicyCleanup {
   int64 blockNum = 1;
-  DeleteInfo delete_info =2;
+  DeleteInfo delete_info = 2;
 }
