@@ -10,7 +10,7 @@ This release updates the greenfield-cosmos-sdk dependency. Please refer to the [
 * [#200](https://github.com/bnb-chain/greenfield/pull/200) feat: migrate challenge e2e tests
 * [#203](https://github.com/bnb-chain/greenfield/pull/203) chore: fix ante test
 * [#205](https://github.com/bnb-chain/greenfield/pull/205) ci: run ci jobs for every pull request
-* [#206](https://github.com/bnb-chain/greenfield/pull/206) fix init
+* [#206](https://github.com/bnb-chain/greenfield/pull/206) fix: migrate sdk fix to v0.47_latest
 * [#207](https://github.com/bnb-chain/greenfield/pull/207) fix: init app with upgrade handlers
 * [#208](https://github.com/bnb-chain/greenfield/pull/208) docs: fix localup scripts in document
 * [#210](https://github.com/bnb-chain/greenfield/pull/210) feat: remove amino dependencies for GetSignBytes
