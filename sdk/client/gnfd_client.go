@@ -23,7 +23,7 @@ import (
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-	grpc1 "github.com/gogo/protobuf/grpc"
+	grpc1 "github.com/cosmos/gogoproto/grpc"
 	"google.golang.org/grpc"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
