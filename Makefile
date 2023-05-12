@@ -17,9 +17,10 @@ format:
 
 tools:
 	go install github.com/cosmos/gogoproto/protoc-gen-gocosmos
+	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
 
 proto-gen:
-	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  &&rm -rf github.com
+	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  &&rm -rf github.com && go mod tidy
 
 proto-swagger-gen:
 	sh ./scripts/protoc-swagger-gen.sh
