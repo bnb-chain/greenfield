@@ -34,6 +34,7 @@ This release updates the greenfield-cosmos-sdk dependency. Please refer to the [
 * [#235](https://github.com/bnb-chain/greenfield/pull/235) feat: update dependency for the cosmos-sdk
 * [#236](https://github.com/bnb-chain/greenfield/pull/236) fix: update swagger file based on the latest cosmos-sdk
 * [#237](https://github.com/bnb-chain/greenfield/pull/237) swagger: replace gov v1beta1 by v1
+* [#242](https://github.com/bnb-chain/greenfield/pull/242) fix: replace github.com/gogo/protobuf with github.com/cosmos/gogoproto 
 
 ## v0.1.0
 * [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments for events.proto in storage (created_at field shows block timestamp instead of block number)
