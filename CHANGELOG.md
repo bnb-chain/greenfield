@@ -36,6 +36,34 @@ This release updates the greenfield-cosmos-sdk dependency. Please refer to the [
 * [#237](https://github.com/bnb-chain/greenfield/pull/237) swagger: replace gov v1beta1 by v1
 * [#242](https://github.com/bnb-chain/greenfield/pull/242) fix: replace github.com/gogo/protobuf with github.com/cosmos/gogoproto 
 
+## v0.1.2
+* [\#195](https://github.com/bnb-chain/greenfield/pull/195) feat: make sp receive storage fee with funding addr
+* [\#167](https://github.com/bnb-chain/greenfield/pull/167) chore: change default sp price
+* [\#164](https://github.com/bnb-chain/greenfield/pull/164) feat: update relayer fee for mirror transactions
+* [\#168](https://github.com/bnb-chain/greenfield/pull/168) fix: list group error
+* [\#170](https://github.com/bnb-chain/greenfield/pull/170) chore: rename the name of buf buf.yaml
+* [\#171](https://github.com/bnb-chain/greenfield/pull/171) ci: add testnet_config to release page and fix issues of release flow
+* [\#172](https://github.com/bnb-chain/greenfield/pull/172) fix: unify property field names of events
+* [\#152](https://github.com/bnb-chain/greenfield/pull/152) feat: add empty object feature for chain
+* [\#137](https://github.com/bnb-chain/greenfield/pull/137) feat: allow sp to stop serving objects
+* [\#175](https://github.com/bnb-chain/greenfield/pull/175) fix: add ErrInvalidApproval errorcode for sp’s approval invalid
+* [\#150](https://github.com/bnb-chain/greenfield/pull/150) feat: refactor key manager to hide private key.
+* [\#176](https://github.com/bnb-chain/greenfield/pull/176) fix: init tmclient
+* [\#177](https://github.com/bnb-chain/greenfield/pull/177) feat: add more fields to sp events
+* [\#165](https://github.com/bnb-chain/greenfield/pull/165) feat: define the turn for submitting attestation
+* [\#179](https://github.com/bnb-chain/greenfield/pull/179) fix: fix e2e issues of challenge
+* [\#182](https://github.com/bnb-chain/greenfield/pull/182) docs: fix localup scripts in document
+* [\#138](https://github.com/bnb-chain/greenfield/pull/138) feat: add update-object-info for updateobject’s visibility (#c)
+* [\#180](https://github.com/bnb-chain/greenfield/pull/180) feat: add export key for localup script
+* [\#184](https://github.com/bnb-chain/greenfield/pull/184) feat: implement queries and events for frontend
+* [\#183](https://github.com/bnb-chain/greenfield/pull/183) fix: remove randomized params from challenge module
+* [\#178](https://github.com/bnb-chain/greenfield/pull/178) feat: remove amino dependencies for GetSignBytes
+* [\#185](https://github.com/bnb-chain/greenfield/pull/185) fix: sp & storage & permission module’s cli bug
+* [\#187](https://github.com/bnb-chain/greenfield/pull/187) feat: support empty operator for verifypermission
+
+## v0.1.1
+* [\#166](https://github.com/bnb-chain/greenfield/pull/166) fix: gashub causes state sync to fail to synchronize
+
 ## v0.1.0
 * [\#141](https://github.com/bnb-chain/greenfield/pull/141) fix wrong comments for events.proto in storage (created_at field shows block timestamp instead of block number)
 * [\#149](https://github.com/bnb-chain/greenfield/pull/149) fix: get price boundary logic, remove useless query, enhance ci
