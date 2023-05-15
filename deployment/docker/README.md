@@ -12,7 +12,7 @@
 
 ## Setting up a working envrionment
 
-| Please check the [greenfield repo](https://github.com/bnb-chain/greenfield) for information on the testnet, including the correct version of the binaries to use and details about the config file. |
+| Please check the [Release Note](https://greenfield.bnbchain.org/docs/release-note/) for information on the testnet, and find details in [Greenfield Repo](https://github.com/bnb-chain/greenfield).
 | --- |
 
 ### 1. Make a working directory $NODE_HOME (i.e. ~/.gnfd)
@@ -21,6 +21,10 @@
 $ mkdir ~/.gnfd
 $ mkdir ~/.gnfd/config
 $ mkdir ~/.gnfd/data
+
+# Assigning permissions to config and data folders.
+$ chmod 777 -R ~/.gnfd/config
+$ chmod 777 -R ~/.gnfd/data
 ```
 
 ### 2. Download testnet configuration files from https://github.com/bnb-chain/greenfield/releases and copy them into $NODE_HOME/config
@@ -41,16 +45,8 @@ moniker = "<your_custom_moniker>"
 ### 3. docker-compose up
 
 ```bash
+# The docker compose file can be found at https://github.com/bnb-chain/greenfield/tree/master/deployment/docker
+$ wget https://raw.githubusercontent.com/bnb-chain/greenfield/master/deployment/docker/docker-compose.yaml
+
 $ docker-compose up
 ```
-
----
-**Tips** 
-
-```bash
-# Assigning permissions to config and data folders.
-$ chmod 777 -R ~/.gnfd/config
-$ chmod 777 -R ~/.gnfd/data
-```
-
----
