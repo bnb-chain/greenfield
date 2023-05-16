@@ -4,11 +4,11 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
-	types2 "github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
+	types2 "github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
