@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/stretchr/testify/require"
 	"math"
 	"sort"
 	"strconv"
@@ -1576,4 +1579,45 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
 	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.ContentType, contextType)
 	s.Require().Equal(len(queryCopyObjectHeadObjectResponse.ObjectInfo.SecondarySpAddresses), 0)
+}
+
+func (s *StorageTestSuite) TestUpdateParams() {
+	var err error
+	// CreateBucket
+	sp := s.StorageProviders[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(msgCreateBucket, user)
+
+	ctx := context.Background()
+	queryParamsRequest := storagetypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.StorageQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+
+	newParams := queryParamsResponse.GetParams()
+	newParams.VersionedParams.MaxSegmentSize = 2048
+	newParams.VersionedParams.MinChargeSize = 4096
+
+	msgUpdateParams := storagetypes.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params:    newParams,
+	}
+
+	s.Require().NoError(err)
+	s.SendTxBlock(&msgUpdateParams, user)
+
+	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
+	blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+	queryVersionedParamsRequest := storagetypes.QueryVersionedParamsRequest{CurrentTimestamp: blockTime}
+	queryVersionedParamsResponse, err := s.Client.StorageQueryClient.VersionedParams(ctx, &queryVersionedParamsRequest)
+	s.Require().NoError(err)
+	require.EqualValues(s.T(), queryVersionedParamsResponse.GetVersionedParams().MaxSegmentSize, 2048)
+
 }

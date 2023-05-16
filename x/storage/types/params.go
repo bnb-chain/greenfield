@@ -200,6 +200,34 @@ func (p VersionedParams) String() string {
 	return string(out)
 }
 
+func (p *Params) GetMaxSegmentSize() uint64 {
+	if p != nil {
+		return p.VersionedParams.MaxSegmentSize
+	}
+	return 0
+}
+
+func (p *Params) GetRedundantDataChunkNum() uint32 {
+	if p != nil {
+		return p.VersionedParams.RedundantDataChunkNum
+	}
+	return 0
+}
+
+func (p *Params) GetRedundantParityChunkNum() uint32 {
+	if p != nil {
+		return p.VersionedParams.RedundantParityChunkNum
+	}
+	return 0
+}
+
+func (p *Params) GetMinChargeSize() uint64 {
+	if p != nil {
+		return p.VersionedParams.MinChargeSize
+	}
+	return 0
+}
+
 func validateMaxSegmentSize(i interface{}) error {
 	v, ok := i.(uint64)
 	if !ok {
