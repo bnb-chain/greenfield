@@ -1586,7 +1586,6 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 func (s *StorageTestSuite) TestUpdateParams() {
 	var err error
 	validator := s.Validator.GetAddr()
-	//user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	ctx := context.Background()
 	queryParamsRequest := storagetypes.QueryParamsRequest{}
