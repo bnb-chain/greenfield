@@ -21,16 +21,18 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
 }
 
-func (k Keeper) VersionedParams(c context.Context, req *types.QueryVersionedParamsRequest) (*types.QueryVersionedParamsResponse, error) {
+func (k Keeper) QueryParamsByTimestamp(c context.Context, req *types.QueryParamsByTimestampRequest) (*types.QueryParamsByTimestampResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	params := k.GetParams(ctx)
 	versionedParams, err := k.GetVersionedParamsWithTs(ctx, req.GetTimestamp())
+	params.VersionedParams = versionedParams
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryVersionedParamsResponse{VersionedParams: versionedParams}, nil
+	return &types.QueryParamsByTimestampResponse{Params: params}, nil
 }

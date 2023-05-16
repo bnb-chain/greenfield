@@ -1651,8 +1651,8 @@ func (s *StorageTestSuite) TestUpdateParams() {
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
 	s.Require().NoError(err)
 	blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
-	queryVersionedParamsRequest := storagetypes.QueryVersionedParamsRequest{Timestamp: blockTime}
-	queryVersionedParamsResponse, err := s.Client.StorageQueryClient.VersionedParams(ctx, &queryVersionedParamsRequest)
+	queryVersionedParamsRequest := storagetypes.QueryParamsByTimestampRequest{Timestamp: blockTime}
+	queryVersionedParamsResponse, err := s.Client.StorageQueryClient.QueryParamsByTimestamp(ctx, &queryVersionedParamsRequest)
 	s.Require().NoError(err)
-	require.EqualValues(s.T(), queryVersionedParamsResponse.GetVersionedParams().MaxSegmentSize, 2048)
+	require.EqualValues(s.T(), queryVersionedParamsResponse.GetParams().VersionedParams.MaxSegmentSize, 2048)
 }
