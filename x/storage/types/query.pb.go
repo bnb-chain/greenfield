@@ -117,7 +117,7 @@ func (m *QueryParamsResponse) GetParams() Params {
 
 // QueryVersionedParamsRequest is request type for the Query/Params RPC method.
 type QueryVersionedParamsRequest struct {
-	// the timestamp of the block time
+	// the timestamp of the block time you want to query
 	Timestamp int64 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
 }
 
