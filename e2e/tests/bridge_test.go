@@ -54,7 +54,7 @@ func (s *BridgeTestSuite) TestTransferOut() {
 
 	s.T().Logf("balance before: %s %s", from.GetAddr().String(), moduleBalanceBefore.Balance.String())
 
-	txRes := s.SendTxBlock(msgTransferOut, from)
+	txRes := s.SendTxBlock(from, msgTransferOut)
 	s.T().Log(txRes.RawLog)
 
 	moduleBalanceAfter, err := s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{

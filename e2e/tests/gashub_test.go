@@ -46,7 +46,7 @@ func (s *GashubTestSuite) TestUpdateParams() {
 	)
 	s.Require().NoError(err)
 
-	txRes := s.SendTxBlock(msgProposal, s.Validator)
+	txRes := s.SendTxBlock(s.Validator, msgProposal)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 2. query proposal
@@ -71,7 +71,7 @@ func (s *GashubTestSuite) TestUpdateParams() {
 
 	// 3. submit MsgVote and wait the proposal exec
 	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
-	txRes = s.SendTxBlock(msgVote, s.Validator)
+	txRes = s.SendTxBlock(s.Validator, msgVote)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	for {
