@@ -248,7 +248,7 @@ func CmdCancelCreateObject() *cobra.Command {
 func CmdCreateObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-object [bucket-name] [object-name] [payload-size] [content-type]",
-		Short: "create a new object in the bucket, checksums split by ','",
+		Short: "Create a new object in the bucket, checksums split by ','",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -756,11 +756,13 @@ $ %s tx delete-policy 3
 
 func CmdMirrorBucket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-bucket [bucket-id]",
+		Use:   "mirror-bucket [bucket-id] [bucket-name]",
 		Short: "Mirror an existing bucket to the destination chain",
-		Args:  cobra.ExactArgs(1),
+		Long:  "If [bucket-id] is greater than 0, [bucket-name] will be ignored; otherwise [bucket-id] is ignored",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketId := args[0]
+			argBucketName := args[1]
 
 			bucketId, ok := big.NewInt(0).SetString(argBucketId, 10)
 			if !ok {
@@ -769,6 +771,7 @@ func CmdMirrorBucket() *cobra.Command {
 			if bucketId.Cmp(big.NewInt(0)) < 0 {
 				return fmt.Errorf("bucket id should not be negative")
 			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -777,6 +780,7 @@ func CmdMirrorBucket() *cobra.Command {
 			msg := types.NewMsgMirrorBucket(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(bucketId),
+				argBucketName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -823,11 +827,14 @@ func CmdDiscontinueBucket() *cobra.Command {
 
 func CmdMirrorObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-object [object-id]",
+		Use:   "mirror-object [object-id] [bucket-name] [object-name]",
 		Short: "Mirror the object to the destination chain",
-		Args:  cobra.ExactArgs(1),
+		Long:  "If [object-id] is greater than 0, [bucket-name] [object-name] will be ignored; otherwise [object-id] is ignored",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argObjectId := args[0]
+			argBucketName := args[1]
+			argObjectName := args[2]
 
 			objectId, ok := big.NewInt(0).SetString(argObjectId, 10)
 			if !ok {
@@ -845,6 +852,8 @@ func CmdMirrorObject() *cobra.Command {
 			msg := types.NewMsgMirrorObject(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(objectId),
+				argBucketName,
+				argObjectName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -860,11 +869,13 @@ func CmdMirrorObject() *cobra.Command {
 
 func CmdMirrorGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-group [group-id]",
+		Use:   "mirror-group [group-id] [group-name]",
 		Short: "Mirror an existing group to the destination chain",
-		Args:  cobra.ExactArgs(1),
+		Long:  "If [group-id] is greater than 0, [group-name] will be ignored; otherwise [group-id] is ignored",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupId := args[0]
+			argGroupName := args[1]
 
 			groupId, ok := big.NewInt(0).SetString(argGroupId, 10)
 			if !ok {
@@ -882,6 +893,7 @@ func CmdMirrorGroup() *cobra.Command {
 			msg := types.NewMsgMirrorGroup(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(groupId),
+				argGroupName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
