@@ -77,4 +77,10 @@ func TestVersionedParamsQuery(t *testing.T) {
 	require.Equal(t, &types.QueryParamsByTimestampResponse{Params: paramsT2}, responseT2)
 	p := responseT2.GetParams()
 	require.EqualValues(t, p.GetMaxSegmentSize(), 2)
+
+	responseT3, err := k.QueryParamsByTimestamp(ctx, &types.QueryParamsByTimestampRequest{Timestamp: 0})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryParamsByTimestampResponse{Params: paramsT2}, responseT3)
+	p = responseT2.GetParams()
+	require.EqualValues(t, p.GetMaxSegmentSize(), 2)
 }
