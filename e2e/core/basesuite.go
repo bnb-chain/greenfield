@@ -2,6 +2,7 @@ package core
 
 import (
 	"context"
+	"cosmossdk.io/math"
 	"errors"
 	"fmt"
 	"strings"
@@ -142,9 +143,12 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 	if balance == 0 {
 		return
 	}
+	// prevent int64 multiplication overflow
+	balanceInt := types.NewIntFromInt64WithDecimal(balance, types.DecimalBNB)
+	nInt := math.NewInt(int64(n))
 	in := banktypes.Input{
 		Address: s.Validator.GetAddr().String(),
-		Coins:   []sdk.Coin{{Denom: denom, Amount: types.NewIntFromInt64WithDecimal(balance*int64(n), types.DecimalBNB)}},
+		Coins:   []sdk.Coin{{Denom: denom, Amount: balanceInt.Mul(nInt)}},
 	}
 	msg := banktypes.MsgMultiSend{
 		Inputs:  []banktypes.Input{in},
