@@ -153,10 +153,11 @@ type Statement struct {
 	// action_type define the operation type you can act. greenfield defines a set of permission
 	// that you can specify in a permissionInfo. see ActionType enum for detail.
 	Actions []ActionType `protobuf:"varint,2,rep,packed,name=actions,proto3,enum=greenfield.permission.ActionType" json:"actions,omitempty"`
-	// CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
-	// If no sub-resource is specified in a statement, then all objects in the bucket are accessible by the principal.
-	// However, if the sub-resource is defined as 'bucket/test_*,' in the statement, then only objects with a 'test_'
-	// prefix can be accessed by the principal.
+	// CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5.
+	// The sub-resource name must comply with the standard specified in the greenfield/types/grn.go file for Greenfield resource names.
+	// If the sub-resources include 'grn:o:{bucket_name}/*' in the statement, it indicates that specific permissions is granted to all objects within the specified bucket.
+	// If the sub-resources include 'grn:o:{bucket_name}/test_*' in the statement, it indicates that specific permissions is granted to all objects with the `test_` prefix within the specified bucket.
+	// If the sub-resources is empty, when you need to operate(excluding CreateObject) a specified subresource, it will be denied because it cannot match any subresource.
 	Resources []string `protobuf:"bytes,3,rep,name=resources,proto3" json:"resources,omitempty"`
 	// expiration_time defines how long the permission is valid. If not explicitly specified, it means it will not expire.
 	ExpirationTime *time.Time `protobuf:"bytes,4,opt,name=expiration_time,json=expirationTime,proto3,stdtime" json:"expiration_time,omitempty"`
