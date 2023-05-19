@@ -19,7 +19,6 @@ import (
 	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	govv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types/proposal"
 	slashingtypes "github.com/cosmos/cosmos-sdk/x/slashing/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
@@ -77,9 +76,6 @@ type GovQueryClientV1 = govv1.QueryClient
 // OracleQueryClient is a type to define the oracle types Query Client
 type OracleQueryClient = oracletypes.QueryClient
 
-// ParamsQueryClient is a type to define the parameters proposal types Query Client
-type ParamsQueryClient = paramstypes.QueryClient
-
 // SlashingQueryClient is a type to define the slashing types Query Client
 type SlashingQueryClient = slashingtypes.QueryClient
 
@@ -125,8 +121,6 @@ type GreenfieldClient struct {
 	GovQueryClientV1
 	// OracleQueryClient holds the oracle query client.
 	OracleQueryClient
-	// ParamsQueryClient holds the params query client.
-	ParamsQueryClient
 	// SlashingQueryClient holds the slashing query client.
 	SlashingQueryClient
 	// StakingQueryClient holds the staking query client.
@@ -196,7 +190,6 @@ func setClientsConn(c *GreenfieldClient, conn grpc1.ClientConn) {
 	c.StorageQueryClient = storagetypes.NewQueryClient(conn)
 	c.GovQueryClientV1 = govv1.NewQueryClient(conn)
 	c.OracleQueryClient = oracletypes.NewQueryClient(conn)
-	c.ParamsQueryClient = paramstypes.NewQueryClient(conn)
 	c.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
 	c.StakingQueryClient = stakingtypes.NewQueryClient(conn)
 	c.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
