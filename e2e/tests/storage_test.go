@@ -14,12 +14,17 @@ import (
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	"github.com/bnb-chain/greenfield/types/common"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
@@ -1576,4 +1581,78 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
 	s.Require().Equal(queryCopyObjectHeadObjectResponse.ObjectInfo.ContentType, contextType)
 	s.Require().Equal(len(queryCopyObjectHeadObjectResponse.ObjectInfo.SecondarySpAddresses), 0)
+}
+
+func (s *StorageTestSuite) TestUpdateParams() {
+	var err error
+	validator := s.Validator.GetAddr()
+
+	ctx := context.Background()
+	queryParamsRequest := storagetypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.StorageQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+
+	newParams := queryParamsResponse.GetParams()
+	newParams.VersionedParams.MaxSegmentSize = 2048
+	newParams.VersionedParams.MinChargeSize = 4096
+
+	msgUpdateParams := &storagetypes.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params:    newParams,
+	}
+
+	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{msgUpdateParams},
+		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
+		validator.String(),
+		"test", "test", "test",
+	)
+	s.Require().NoError(err)
+
+	txRes := s.SendTxBlock(msgProposal, s.Validator)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	// 3. query proposal and get proposal ID
+	var proposalId uint64
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "submit_proposal" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "proposal_id" {
+					proposalId, err = strconv.ParseUint(attr.Value, 10, 0)
+					s.Require().NoError(err)
+					break
+				}
+			}
+			break
+		}
+	}
+	s.Require().True(proposalId != 0)
+
+	queryProposal := &govtypesv1.QueryProposalRequest{ProposalId: proposalId}
+	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+
+	// 4. submit MsgVote and wait the proposal exec
+	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
+	txRes = s.SendTxBlock(msgVote, s.Validator)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
+	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
+	s.Require().NoError(err)
+
+	// 5. wait a voting period and confirm that the proposal success.
+	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
+	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
+
+	statusRes, err := s.TmClient.TmClient.Status(context.Background())
+	s.Require().NoError(err)
+	blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+	queryVersionedParamsRequest := storagetypes.QueryParamsByTimestampRequest{Timestamp: blockTime}
+	queryVersionedParamsResponse, err := s.Client.StorageQueryClient.QueryParamsByTimestamp(ctx, &queryVersionedParamsRequest)
+	s.Require().NoError(err)
+	require.EqualValues(s.T(), queryVersionedParamsResponse.GetParams().VersionedParams.MaxSegmentSize, 2048)
 }
