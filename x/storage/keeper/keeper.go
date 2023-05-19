@@ -242,6 +242,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		if err := k.doDeleteObject(ctx, sp, bucketInfo, &objectInfo); err != nil {
 			return false, deleted, err
 		}
+		deleted++
 	}
 
 	if !iter.Valid() {
