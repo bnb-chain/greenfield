@@ -22,6 +22,11 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/params";
   }
 
+  // Parameters queries the parameters of the module.
+  rpc QueryParamsByTimestamp(QueryParamsByTimestampRequest) returns (QueryParamsByTimestampResponse) {
+    option (google.api.http).get = "/greenfield/storage/params/{timestamp}";
+  }
+
   // Queries a bucket with specify name.
   rpc HeadBucket(QueryHeadBucketRequest) returns (QueryHeadBucketResponse) {
     option (google.api.http).get = "/greenfield/storage/head_bucket/{bucket_name}";
@@ -115,6 +120,18 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryVersionedParamsRequest is request type for the Query/Params RPC method with timestamp.
+message QueryParamsByTimestampRequest {
+  // the timestamp of the block time you want to query
+  int64 timestamp = 1;
+}
+
+// QueryVersionedParamsResponse is response type for the Query/Params RPC method with timestamp.
+message QueryParamsByTimestampResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }
