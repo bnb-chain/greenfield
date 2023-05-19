@@ -756,20 +756,27 @@ $ %s tx delete-policy 3
 
 func CmdMirrorBucket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-bucket [bucket-id] [bucket-name]",
+		Use:   "mirror-bucket",
 		Short: "Mirror an existing bucket to the destination chain",
-		Long:  "If [bucket-id] is greater than 0, [bucket-name] will be ignored; otherwise [bucket-id] is ignored",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argBucketId := args[0]
-			argBucketName := args[1]
+			argBucketId, _ := cmd.Flags().GetString(FlagBucketId)
+			argBucketName, _ := cmd.Flags().GetString(FlagBucketName)
 
-			bucketId, ok := big.NewInt(0).SetString(argBucketId, 10)
-			if !ok {
-				return fmt.Errorf("invalid bucket id: %s", argBucketId)
-			}
-			if bucketId.Cmp(big.NewInt(0)) < 0 {
-				return fmt.Errorf("bucket id should not be negative")
+			bucketId := big.NewInt(0)
+			if argBucketId == "" && argBucketName == "" {
+				return fmt.Errorf("bucket id or bucket name should be provided")
+			} else if argBucketId != "" && argBucketName != "" {
+				return fmt.Errorf("bucket id and bucket name should not be provided together")
+			} else if argBucketId != "" {
+				ok := false
+				bucketId, ok = big.NewInt(0).SetString(argBucketId, 10)
+				if !ok {
+					return fmt.Errorf("invalid bucket id: %s", argBucketId)
+				}
+				if bucketId.Cmp(big.NewInt(0)) <= 0 {
+					return fmt.Errorf("bucket id should be positive")
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -789,6 +796,8 @@ func CmdMirrorBucket() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagBucketId, "", "Id of the bucket to mirror")
+	cmd.Flags().String(FlagBucketName, "", "Name of the bucket to mirror")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -827,21 +836,30 @@ func CmdDiscontinueBucket() *cobra.Command {
 
 func CmdMirrorObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-object [object-id] [bucket-name] [object-name]",
+		Use:   "mirror-object",
 		Short: "Mirror the object to the destination chain",
-		Long:  "If [object-id] is greater than 0, [bucket-name] [object-name] will be ignored; otherwise [object-id] is ignored",
-		Args:  cobra.ExactArgs(3),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argObjectId := args[0]
-			argBucketName := args[1]
-			argObjectName := args[2]
+			argObjectId, _ := cmd.Flags().GetString(FlagObjectId)
+			argBucketName, _ := cmd.Flags().GetString(FlagBucketName)
+			argObjectName, _ := cmd.Flags().GetString(FlagObjectName)
 
-			objectId, ok := big.NewInt(0).SetString(argObjectId, 10)
-			if !ok {
-				return fmt.Errorf("invalid object id: %s", argObjectId)
-			}
-			if objectId.Cmp(big.NewInt(0)) < 0 {
-				return fmt.Errorf("object id should not be negative")
+			objectId := big.NewInt(0)
+			if argObjectId == "" && argObjectName == "" {
+				return fmt.Errorf("object id or object name should be provided")
+			} else if argObjectId != "" && argObjectName != "" {
+				return fmt.Errorf("object id and object name should not be provided together")
+			} else if argObjectId != "" {
+				ok := false
+				objectId, ok = big.NewInt(0).SetString(argObjectId, 10)
+				if !ok {
+					return fmt.Errorf("invalid object id: %s", argObjectId)
+				}
+				if objectId.Cmp(big.NewInt(0)) <= 0 {
+					return fmt.Errorf("object id should be positive")
+				}
+			} else if argObjectName != "" && argBucketName == "" {
+				return fmt.Errorf("object name and bucket name should not be provided together")
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -862,6 +880,9 @@ func CmdMirrorObject() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagObjectId, "", "Id of the object to mirror")
+	cmd.Flags().String(FlagObjectName, "", "Name of the object to mirror")
+	cmd.Flags().String(FlagBucketName, "", "Name of the bucket that the object belongs to")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -869,20 +890,27 @@ func CmdMirrorObject() *cobra.Command {
 
 func CmdMirrorGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-group [group-id] [group-name]",
+		Use:   "mirror-group",
 		Short: "Mirror an existing group to the destination chain",
-		Long:  "If [group-id] is greater than 0, [group-name] will be ignored; otherwise [group-id] is ignored",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argGroupId := args[0]
-			argGroupName := args[1]
+			argGroupId, _ := cmd.Flags().GetString(FlagGroupId)
+			argGroupName, _ := cmd.Flags().GetString(FlagGroupName)
 
-			groupId, ok := big.NewInt(0).SetString(argGroupId, 10)
-			if !ok {
-				return fmt.Errorf("invalid groupd id: %s", argGroupId)
-			}
-			if groupId.Cmp(big.NewInt(0)) < 0 {
-				return fmt.Errorf("groupd id should not be negative")
+			groupId := big.NewInt(0)
+			if argGroupId == "" && argGroupName == "" {
+				return fmt.Errorf("group id or group name should be provided")
+			} else if argGroupId != "" && argGroupName != "" {
+				return fmt.Errorf("group id and group name should not be provided together")
+			} else if argGroupId != "" {
+				ok := false
+				groupId, ok = big.NewInt(0).SetString(argGroupId, 10)
+				if !ok {
+					return fmt.Errorf("invalid groupd id: %s", argGroupId)
+				}
+				if groupId.Cmp(big.NewInt(0)) <= 0 {
+					return fmt.Errorf("groupd id should be positive")
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -902,6 +930,8 @@ func CmdMirrorGroup() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagGroupId, "", "Id of the group to mirror")
+	cmd.Flags().String(FlagGroupName, "", "Name of the group to mirror")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

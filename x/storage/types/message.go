@@ -1224,6 +1224,9 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 	}
 
 	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
 		return nil
 	}
 
@@ -1278,6 +1281,12 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 	}
 
 	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
+		if msg.ObjectName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name should be empty")
+		}
 		return nil
 	}
 
@@ -1336,6 +1345,9 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 	}
 
 	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.GroupName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
+		}
 		return nil
 	}
 
