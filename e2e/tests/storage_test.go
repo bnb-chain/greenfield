@@ -1609,7 +1609,7 @@ func (s *StorageTestSuite) TestUpdateParams() {
 	)
 	s.Require().NoError(err)
 
-	txRes := s.SendTxBlock(msgProposal, s.Validator)
+	txRes := s.SendTxBlock(s.Validator, msgProposal)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 3. query proposal and get proposal ID
@@ -1634,7 +1634,7 @@ func (s *StorageTestSuite) TestUpdateParams() {
 
 	// 4. submit MsgVote and wait the proposal exec
 	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
-	txRes = s.SendTxBlock(msgVote, s.Validator)
+	txRes = s.SendTxBlock(s.Validator, msgVote)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
