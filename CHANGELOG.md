@@ -1,4 +1,11 @@
 # Changelog
+
+## v0.2.1
+This is a hot fix release for v0.2.0
+
+* [#256](https://github.com/bnb-chain/greenfield/pull/256) dep: bump cosmos-sdk to v0.2.1
+
+
 ## v0.2.0
 This release updates the greenfield-cosmos-sdk dependency. Please refer to the [greenfield-cosmos-sdk repository](https://github.com/bnb-chain/greenfield-cosmos-sdk/) for the update details.
 * [#188](https://github.com/bnb-chain/greenfield/pull/188) feat: integrate greenfield with cosmos sdk v0.47
