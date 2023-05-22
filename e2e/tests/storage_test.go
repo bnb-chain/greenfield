@@ -75,7 +75,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -95,7 +95,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
 		user.GetAddr(), bucketName, nil, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().NoError(err)
-	s.SendTxBlock(msgUpdateBucketInfo, user)
+	s.SendTxBlock(user, msgUpdateBucketInfo)
 	s.Require().NoError(err)
 
 	// verify modified bucketinfo
@@ -105,7 +105,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
-	s.SendTxBlock(msgDeleteBucket, user)
+	s.SendTxBlock(user, msgDeleteBucket)
 }
 
 func (s *StorageTestSuite) TestCreateObject() {
@@ -119,7 +119,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -150,7 +150,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -187,7 +187,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, sp.SealKey)
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// ListBuckets
 	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
@@ -208,7 +208,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	updateObjectInfo := storagetypes.NewMsgUpdateObjectInfo(
 		user.GetAddr(), bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
 	s.Require().NoError(err)
-	s.SendTxBlock(updateObjectInfo, user)
+	s.SendTxBlock(user, updateObjectInfo)
 	s.Require().NoError(err)
 
 	// verify modified objectinfo
@@ -219,11 +219,11 @@ func (s *StorageTestSuite) TestCreateObject() {
 
 	// DeleteObject
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
-	s.SendTxBlock(msgDeleteObject, user)
+	s.SendTxBlock(user, msgDeleteObject)
 
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
-	s.SendTxBlock(msgDeleteBucket, user)
+	s.SendTxBlock(user, msgDeleteBucket)
 }
 
 func (s *StorageTestSuite) TestCreateGroup() {
@@ -235,7 +235,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 
 	// 1. CreateGroup
 	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
-	s.SendTxBlock(msgCreateGroup, owner)
+	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 
 	// 2. HeadGroup
@@ -266,7 +266,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
 	membersToDelete := []sdk.AccAddress{member.GetAddr()}
 	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
-	s.SendTxBlock(msgUpdateGroupMember, owner)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// 5. HeadGroupMember (delete)
 	queryHeadGroupMemberReqDelete := storagetypes.QueryHeadGroupMemberRequest{
@@ -303,7 +303,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	msgCreateBucket1.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket1.
 		GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket1, user)
+	s.SendTxBlock(user, msgCreateBucket1)
 
 	// 2. CreateBucket2
 	bucketName2 := storageutils.GenRandomBucketName()
@@ -313,7 +313,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	msgCreateBucket2.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket2.
 		GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket2, user)
+	s.SendTxBlock(user, msgCreateBucket2)
 
 	// 3. Create object into bucket1
 	// CreateObject
@@ -332,7 +332,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 		storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// head object
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -361,19 +361,19 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, sp.SealKey)
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// 4. Delete bucket2
 	msgDeleteBucket2 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName2)
-	s.SendTxBlock(msgDeleteBucket2, user)
+	s.SendTxBlock(user, msgDeleteBucket2)
 
 	// 5. Delete object
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName1, objectName)
-	s.SendTxBlock(msgDeleteObject, user)
+	s.SendTxBlock(user, msgDeleteObject)
 
 	// 6. delete bucket1
 	msgDeleteBucket1 := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName1)
-	s.SendTxBlock(msgDeleteBucket1, user)
+	s.SendTxBlock(user, msgDeleteBucket1)
 }
 
 func (s *StorageTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamRecord) {
@@ -463,7 +463,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	msgCreateBucket.ChargedReadQuota = bucketChargedReadQuota
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// check bill after creating bucket
 	userBankAccount, err := s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
@@ -535,7 +535,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 		}
 	}
 	s.Require().True(feePreviewEventEmitted)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// check lock balance
 	queryHeadBucketResponseAfterCreateObj, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
@@ -582,7 +582,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	})
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, sp.SealKey)
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// check bill after seal
 	streamRecordsAfterSeal := s.GetStreamRecords()
@@ -612,7 +612,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	msgCreateEmptyObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, emptyObjectName, uint64(emptyPayloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, emptyExpectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateEmptyObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateEmptyObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateEmptyObject, user)
+	s.SendTxBlock(user, msgCreateEmptyObject)
 
 	streamRecordsAfterCreateEmptyObject := s.GetStreamRecords()
 	s.T().Logf("streamRecordsAfterCreateEmptyObject %s", core.YamlString(streamRecordsAfterCreateEmptyObject))
@@ -645,7 +645,7 @@ func (s *StorageTestSuite) TestPayment_DeleteBucketWithReadQuota() {
 		nil, math.MaxUint, nil, chargedReadQuota)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	streamRecordsBeforeDelete := s.GetStreamRecords()
 	s.T().Logf("streamRecordsBeforeDelete: %s", core.YamlString(streamRecordsBeforeDelete))
@@ -653,7 +653,7 @@ func (s *StorageTestSuite) TestPayment_DeleteBucketWithReadQuota() {
 
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
-	s.SendTxBlock(msgDeleteBucket, user)
+	s.SendTxBlock(user, msgDeleteBucket)
 
 	// check the billing change
 	streamRecordsAfterDelete := s.GetStreamRecords()
@@ -690,7 +690,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
 		Creator: userAddr,
 	}
-	_ = s.SendTxBlock(msgCreatePaymentAccount, user)
+	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
 	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
 	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
@@ -702,7 +702,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 		To:      paymentAddr,
 		Amount:  paymentAccountBNBNeeded,
 	}
-	_ = s.SendTxBlock(msgDeposit, user)
+	_ = s.SendTxBlock(user, msgDeposit)
 
 	// create bucket from payment account
 	bucketName := storageutils.GenRandomBucketName()
@@ -711,7 +711,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, bucketChargedReadQuota)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 	// check payment account stream record
 	paymentAccountStreamRecord := s.GetStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecord %s", core.YamlString(paymentAccountStreamRecord))
@@ -734,7 +734,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	msgCreateBucket.PaymentAddress = ""
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	res := s.SendTxBlock(msgCreateBucket, user)
+	res := s.SendTxBlock(user, msgCreateBucket)
 	s.T().Logf("res %s", res.String())
 	// check user stream record
 	userStreamRecord := s.GetStreamRecord(userAddr)
@@ -790,7 +790,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 		To:      paymentAddr,
 		Amount:  depositAmount1,
 	}
-	_ = s.SendTxBlock(msgDeposit1, user)
+	_ = s.SendTxBlock(user, msgDeposit1)
 	// check payment account stream record
 	paymentAccountStreamRecordAfterDeposit1 := s.GetStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecordAfterDeposit1 %s", core.YamlString(paymentAccountStreamRecordAfterDeposit1))
@@ -804,7 +804,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 		To:      paymentAddr,
 		Amount:  depositAmount2,
 	}
-	s.SendTxBlock(msgDeposit2, user)
+	s.SendTxBlock(user, msgDeposit2)
 	// check payment account stream record
 	paymentAccountStreamRecordAfterDeposit2 := s.GetStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecordAfterDeposit2 %s", core.YamlString(paymentAccountStreamRecordAfterDeposit2))
@@ -836,7 +836,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -854,7 +854,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 
 	// Mirror bucket
 	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), queryHeadBucketResponse.BucketInfo.Id)
-	s.SendTxBlock(msgMirrorBucket, user)
+	s.SendTxBlock(user, msgMirrorBucket)
 }
 
 func (s *StorageTestSuite) TestMirrorObject() {
@@ -868,7 +868,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -899,7 +899,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -936,7 +936,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, sp.SealKey)
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// ListBuckets
 	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
@@ -955,7 +955,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 
 	// Mirror object
 	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id)
-	s.SendTxBlock(msgMirrorObject, user)
+	s.SendTxBlock(user, msgMirrorObject)
 }
 
 func (s *StorageTestSuite) TestMirrorGroup() {
@@ -967,7 +967,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 
 	// 1. CreateGroup
 	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
-	s.SendTxBlock(msgCreateGroup, owner)
+	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 
 	// 2. HeadGroup
@@ -979,7 +979,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 
 	// Mirror group
 	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), queryHeadGroupResp.GroupInfo.Id)
-	s.SendTxBlock(msgMirrorGroup, owner)
+	s.SendTxBlock(owner, msgMirrorGroup)
 }
 
 func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
@@ -988,12 +988,12 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 
 	// DiscontinueObject
 	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp1.GcKey.GetAddr(), bucketName1, []sdkmath.Uint{objectId1}, "test")
-	txRes1 := s.SendTxBlock(msgDiscontinueObject, sp1.GcKey)
+	txRes1 := s.SendTxBlock(sp1.GcKey, msgDiscontinueObject)
 	deleteAt1 := int64(filterDiscontinueObjectEventFromTx(txRes1).DeleteAt)
 
 	time.Sleep(3 * time.Second)
 	msgDiscontinueObject2 := storagetypes.NewMsgDiscontinueObject(sp2.GcKey.GetAddr(), bucketName2, []sdkmath.Uint{objectId2}, "test")
-	txRes2 := s.SendTxBlock(msgDiscontinueObject2, sp2.GcKey)
+	txRes2 := s.SendTxBlock(sp2.GcKey, msgDiscontinueObject2)
 	deleteAt2 := int64(filterDiscontinueObjectEventFromTx(txRes2).DeleteAt)
 
 	// Wait after the delete timestamp for first discontinue request
@@ -1074,12 +1074,12 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 
 	// DiscontinueObject
 	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp.GcKey.GetAddr(), bucketName, []sdkmath.Uint{objectId}, "test")
-	txRes := s.SendTxBlock(msgDiscontinueObject, sp.GcKey)
+	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueObject)
 	deleteAt := filterDiscontinueObjectEventFromTx(txRes).DeleteAt
 
 	// DeleteObject before discontinue confirm window
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
-	txRes = s.SendTxBlock(msgDeleteObject, user)
+	txRes = s.SendTxBlock(user, msgDeleteObject)
 	event := filterDeleteObjectEventFromTx(txRes)
 	s.Require().Equal(event.ObjectId, objectId)
 
@@ -1131,12 +1131,12 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 
 	// DiscontinueBucket
 	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName1, "test")
-	txRes1 := s.SendTxBlock(msgDiscontinueBucket, sp1.GcKey)
+	txRes1 := s.SendTxBlock(sp1.GcKey, msgDiscontinueBucket)
 	deleteAt1 := filterDiscontinueBucketEventFromTx(txRes1).DeleteAt
 
 	time.Sleep(3 * time.Second)
 	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName2, "test")
-	txRes2 := s.SendTxBlock(msgDiscontinueBucket2, sp2.GcKey)
+	txRes2 := s.SendTxBlock(sp2.GcKey, msgDiscontinueBucket2)
 	deleteAt2 := filterDiscontinueBucketEventFromTx(txRes2).DeleteAt
 
 	// Wait after the delete timestamp for the first discontinue request
@@ -1218,14 +1218,14 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 
 	// DiscontinueBucket
 	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
-	txRes := s.SendTxBlock(msgDiscontinueBucket, sp.GcKey)
+	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
 	deleteAt := int64(filterDiscontinueBucketEventFromTx(txRes).DeleteAt)
 
 	// DeleteBucket before discontinue confirm window
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
-	s.SendTxBlock(msgDeleteObject, user)
+	s.SendTxBlock(user, msgDeleteObject)
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
-	txRes = s.SendTxBlock(msgDeleteBucket, user)
+	txRes = s.SendTxBlock(user, msgDeleteBucket)
 	event := filterDeleteBucketEventFromTx(txRes)
 	s.Require().Equal(event.BucketId, bucketId)
 
@@ -1287,7 +1287,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -1328,7 +1328,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), v, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -1365,7 +1365,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.T().Logf("msg %s", msgSealObject.String())
-	s.SendTxBlock(msgSealObject, sp.SealKey)
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// ListBuckets
 	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
@@ -1507,7 +1507,7 @@ func (s *StorageTestSuite) TestCancelCreateObject() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -1538,7 +1538,7 @@ func (s *StorageTestSuite) TestCancelCreateObject() {
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -1561,7 +1561,7 @@ func (s *StorageTestSuite) TestCancelCreateObject() {
 	// CancelCreateObject
 	msgCancelCreateObject := storagetypes.NewMsgCancelCreateObject(user.GetAddr(), bucketName, objectName)
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCancelCreateObject, user)
+	s.SendTxBlock(user, msgCancelCreateObject)
 }
 
 func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
@@ -1575,7 +1575,7 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -1603,7 +1603,7 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -1630,7 +1630,7 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 	msgCopyObject := storagetypes.NewMsgCopyObject(user.GetAddr(), bucketName, dstBucketName, objectName, dstObjectName, math.MaxUint, nil)
 	msgCopyObject.DstPrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCopyObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCopyObject, user)
+	s.SendTxBlock(user, msgCopyObject)
 
 	// HeadObject
 	queryCopyObjectHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -1678,7 +1678,7 @@ func (s *StorageTestSuite) TestUpdateParams() {
 	)
 	s.Require().NoError(err)
 
-	txRes := s.SendTxBlock(msgProposal, s.Validator)
+	txRes := s.SendTxBlock(s.Validator, msgProposal)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 3. query proposal and get proposal ID
@@ -1703,7 +1703,7 @@ func (s *StorageTestSuite) TestUpdateParams() {
 
 	// 4. submit MsgVote and wait the proposal exec
 	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
-	txRes = s.SendTxBlock(msgVote, s.Validator)
+	txRes = s.SendTxBlock(s.Validator, msgVote)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}

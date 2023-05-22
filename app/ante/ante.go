@@ -43,7 +43,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 
 	anteDecorators := []sdk.AnteDecorator{
 		ante.NewSetUpContextDecorator(),               // outermost AnteDecorator. SetUpContext must be called first
-		SingleMessageDecorator{},                      // Only one msg is allowed in EIP712 tx
 		NewSignModeDecorator(options.SignModeHandler), // Only SignMode_SIGN_MODE_EIP_712 is allowed
 		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
 		ante.NewValidateBasicDecorator(),
@@ -59,19 +58,6 @@ func NewAnteHandler(options HandlerOptions) (sdk.AnteHandler, error) {
 	}
 
 	return sdk.ChainAnteDecorators(anteDecorators...), nil
-}
-
-// SingleMessageDecorator prevents tx with multi msgs from being executed
-type SingleMessageDecorator struct{}
-
-// AnteHandle rejects txs that includes more than one msgs
-func (smd SingleMessageDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	if msgs := tx.GetMsgs(); len(msgs) != 1 {
-		return ctx, errors.Wrapf(
-			sdkerrors.ErrInvalidType, "Only one msg is allowed",
-		)
-	}
-	return next(ctx, tx, simulate)
 }
 
 // SignModeDecorator only allow EIP712 tx to be executed

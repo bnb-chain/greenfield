@@ -67,14 +67,14 @@ func (s *BaseSuite) SetupSuite() {
 	}
 }
 
-func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) *sdk.TxResponse {
+func (s *BaseSuite) SendTxBlock(from keys.KeyManager, msg ...sdk.Msg) *sdk.TxResponse {
 	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
+	response, err := s.Client.BroadcastTx(context.Background(), append([]sdk.Msg{}, msg...), txOpt)
 	s.Require().NoError(err)
 
 	s.Require().NoError(s.CheckTxCode(response.TxResponse.TxHash, uint32(0)), "tx failed")
@@ -150,7 +150,7 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 		Inputs:  []banktypes.Input{in},
 		Outputs: outputs,
 	}
-	_ = s.SendTxBlock(&msg, s.Validator)
+	_ = s.SendTxBlock(s.Validator, &msg)
 	return accounts
 }
 
