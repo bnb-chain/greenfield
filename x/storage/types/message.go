@@ -1183,10 +1183,11 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 }
 
 // NewMsgMirrorBucket creates a new MsgMirrorBucket instance
-func NewMsgMirrorBucket(operator sdk.AccAddress, id Uint) *MsgMirrorBucket {
+func NewMsgMirrorBucket(operator sdk.AccAddress, id Uint, bucketName string) *MsgMirrorBucket {
 	return &MsgMirrorBucket{
-		Operator: operator.String(),
-		Id:       id,
+		Operator:   operator.String(),
+		Id:         id,
+		BucketName: bucketName,
 	}
 }
 
@@ -1222,14 +1223,28 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
+		return nil
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // NewMsgMirrorObject creates a new MsgMirrorObject instance
-func NewMsgMirrorObject(operator sdk.AccAddress, id Uint) *MsgMirrorObject {
+func NewMsgMirrorObject(operator sdk.AccAddress, id Uint, bucketName, objectName string) *MsgMirrorObject {
 	return &MsgMirrorObject{
-		Operator: operator.String(),
-		Id:       id,
+		Operator:   operator.String(),
+		Id:         id,
+		BucketName: bucketName,
+		ObjectName: objectName,
 	}
 }
 
@@ -1265,14 +1280,35 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
+		if msg.ObjectName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name should be empty")
+		}
+		return nil
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // NewMsgMirrorGroup creates a new MsgMirrorGroup instance
-func NewMsgMirrorGroup(operator sdk.AccAddress, id Uint) *MsgMirrorGroup {
+func NewMsgMirrorGroup(operator sdk.AccAddress, id Uint, groupName string) *MsgMirrorGroup {
 	return &MsgMirrorGroup{
-		Operator: operator.String(),
-		Id:       id,
+		Operator:  operator.String(),
+		Id:        id,
+		GroupName: groupName,
 	}
 }
 
@@ -1306,6 +1342,18 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.GroupName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
+		}
+		return nil
+	}
+
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return gnfderrors.ErrInvalidGroupName.Wrapf("invalid groupName (%s)", err)
 	}
 
 	return nil

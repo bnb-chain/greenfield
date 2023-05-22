@@ -852,8 +852,21 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
-	// Mirror bucket
-	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), queryHeadBucketResponse.BucketInfo.Id)
+	// MirrorBucket using id
+	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), queryHeadBucketResponse.BucketInfo.Id, "")
+	s.SendTxBlock(user, msgMirrorBucket)
+
+	// CreateBucket
+	bucketName = storageutils.GenRandomBucketName()
+	msgCreateBucket = storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	// MirrorBucket using name
+	msgMirrorBucket = storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.NewUint(0), bucketName)
 	s.SendTxBlock(user, msgMirrorBucket)
 }
 
@@ -953,8 +966,39 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
 	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
 
-	// Mirror object
-	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id)
+	// MirrorObject using id
+	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, "", "")
+	s.SendTxBlock(user, msgMirrorObject)
+
+	// CreateObject
+	objectName = storageutils.GenRandomObjectName()
+	msgCreateObject = storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateObject)
+
+	queryHeadObjectRequest = storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+
+	// SealObject
+	msgSealObject = storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
+	sr = storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	secondarySig, err = sp.ApprovalKey.Sign(sr.GetSignBytes())
+	s.Require().NoError(err)
+	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
+		secondarySig)
+	s.Require().NoError(err)
+
+	secondarySigs = [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
+	msgSealObject.SecondarySpSignatures = secondarySigs
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	// MirrorObject using names
+	msgMirrorObject = storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.NewUint(0), bucketName, objectName)
 	s.SendTxBlock(user, msgMirrorObject)
 }
 
@@ -977,8 +1021,17 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.GroupName, groupName)
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
 
-	// Mirror group
-	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), queryHeadGroupResp.GroupInfo.Id)
+	// MirrorGroup using id
+	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), queryHeadGroupResp.GroupInfo.Id, "")
+	s.SendTxBlock(owner, msgMirrorGroup)
+
+	// CreateGroup
+	groupName = storageutils.GenRandomGroupName()
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	s.SendTxBlock(owner, msgCreateGroup)
+
+	// MirrorGroup using name
+	msgMirrorGroup = storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.NewUint(0), groupName)
 	s.SendTxBlock(owner, msgMirrorGroup)
 }
 

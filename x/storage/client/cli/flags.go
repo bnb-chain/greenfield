@@ -21,6 +21,12 @@ const (
 	FlagApproveSignature     = "approve-signature"
 	FlagApproveTimeoutHeight = "approve-timeout-height"
 	FlagChargedReadQuota     = "charged-read-quota"
+	FlagBucketId             = "bucket-id"
+	FlagBucketName           = "bucket-name"
+	FlagObjectId             = "object-id"
+	FlagObjectName           = "object-name"
+	FlagGroupId              = "group-id"
+	FlagGroupName            = "group-name"
 )
 
 func GetVisibilityType(str string) (storagetypes.VisibilityType, error) {
