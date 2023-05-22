@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/sdk/client"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/bnb-chain/greenfield/sdk/client"
-	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 type SPKeyManagers struct {
@@ -142,9 +142,12 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 	if balance == 0 {
 		return
 	}
+	// prevent int64 multiplication overflow
+	balanceInt := types.NewIntFromInt64WithDecimal(balance, types.DecimalBNB)
+	nInt := math.NewInt(int64(n))
 	in := banktypes.Input{
 		Address: s.Validator.GetAddr().String(),
-		Coins:   []sdk.Coin{{Denom: denom, Amount: types.NewIntFromInt64WithDecimal(balance*int64(n), types.DecimalBNB)}},
+		Coins:   []sdk.Coin{{Denom: denom, Amount: balanceInt.Mul(nInt)}},
 	}
 	msg := banktypes.MsgMultiSend{
 		Inputs:  []banktypes.Input{in},
