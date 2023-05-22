@@ -49,7 +49,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user)
+	s.SendTxBlock(user, msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -85,7 +85,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user)
+	s.SendTxBlock(user, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -114,7 +114,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
-	s.SendTxBlock(msgSealObject, sp.SealKey)
+	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
 	s.Require().NoError(err)
@@ -130,7 +130,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
-	txRes := s.SendTxBlock(msgSubmit, user)
+	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
@@ -138,7 +138,7 @@ func (s *ChallengeTestSuite) TestSubmit() {
 
 	bucketName, objectName, _, secondarySps := s.createObject()
 	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), secondarySps[0], bucketName, objectName, false, 0)
-	txRes = s.SendTxBlock(msgSubmit, user)
+	txRes = s.SendTxBlock(user, msgSubmit)
 	event = filterChallengeEventFromTx(txRes)
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().Equal(event.SegmentIndex, uint32(0))
@@ -169,7 +169,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
-	txRes := s.SendTxBlock(msgSubmit, user)
+	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
@@ -202,7 +202,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	}
 
 	// submit attest
-	txRes = s.SendTxBlock(msgAttest, s.Challenger)
+	txRes = s.SendTxBlock(s.Challenger, msgAttest)
 	s.Require().True(txRes.Code == 0)
 
 	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
@@ -280,7 +280,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	}
 
 	// submit attest
-	txRes := s.SendTxBlock(msgAttest, s.Challenger)
+	txRes := s.SendTxBlock(s.Challenger, msgAttest)
 	s.Require().True(txRes.Code == 0)
 
 	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
@@ -300,7 +300,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 
 	bucketName, objectName, primarySp, _ := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
-	txRes := s.SendTxBlock(msgSubmit, user)
+	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)
 
 	statusRes, err := s.TmClient.TmClient.Status(context.Background())
