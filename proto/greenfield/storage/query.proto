@@ -84,7 +84,7 @@ service Query {
 
   // Queries a list of VerifyPermission items.
   rpc VerifyPermission(QueryVerifyPermissionRequest) returns (QueryVerifyPermissionResponse) {
-    option (google.api.http).get = "/greenfield/storage/verify_permission/{operator}/{bucket_name}/{object_name}/{action_type}";
+    option (google.api.http).get = "/greenfield/storage/verify_permission/{operator}/{bucket_name}/{action_type}";
   }
 
   // Queries a group with specify owner and name .

@@ -3423,6 +3423,148 @@ paths:
                       format: byte
       tags:
         - Query
+  /greenfield/storage/params/{timestamp}:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: QueryParamsByTimestamp
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  versioned_params:
+                    type: object
+                    properties:
+                      max_segment_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          max_segment_size is the maximum size of a segment.
+                          default: 16M
+                      redundant_data_chunk_num:
+                        type: integer
+                        format: int64
+                        title: >-
+                          redundant_data_check_num is the num of data chunks of
+                          EC redundancy algorithm
+                      redundant_parity_chunk_num:
+                        type: integer
+                        format: int64
+                        title: >-
+                          redundant_data_check_num is the num of parity chunks
+                          of EC redundancy algorithm
+                      min_charge_size:
+                        type: string
+                        format: uint64
+                        title: >-
+                          min_charge_size is the minimum charge size of the
+                          payload, objects smaller than this size will be
+                          charged as this size
+                    description: >-
+                      VersionedParams defines the parameters for the storage
+                      module with multi version, each version store with
+                      different timestamp.
+                  max_payload_size:
+                    type: string
+                    format: uint64
+                    title: >-
+                      max_payload_size is the maximum size of the payload,
+                      default: 2G
+                  mirror_bucket_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror bucket tx
+                  mirror_bucket_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      relayer fee for the ACK or FAIL_ACK package of the mirror
+                      bucket tx
+                  mirror_object_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx
+                  mirror_object_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx
+                  mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx
+                  mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx
+                  max_buckets_per_account:
+                    type: integer
+                    format: int64
+                    title: >-
+                      The maximum number of buckets that can be created per
+                      account
+                  discontinue_counting_window:
+                    type: string
+                    format: uint64
+                    title: The window to count the discontinued objects or buckets
+                  discontinue_object_max:
+                    type: string
+                    format: uint64
+                    title: The max objects can be requested in a window
+                  discontinue_bucket_max:
+                    type: string
+                    format: uint64
+                    title: The max buckets can be requested in a window
+                  discontinue_confirm_period:
+                    type: string
+                    format: int64
+                    title: >-
+                      The object will be deleted after the confirm period in
+                      seconds
+                  discontinue_deletion_max:
+                    type: string
+                    format: uint64
+                    title: The max delete objects in each end block
+                  stale_policy_cleanup_max:
+                    type: string
+                    format: uint64
+                    title: The max number for deleting policy in each end block
+            description: >-
+              QueryVersionedParamsResponse is response type for the Query/Params
+              RPC method with timestamp.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: timestamp
+          description: the timestamp of the block time you want to query
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - Query
   /greenfield/storage/policy_by_id/{policy_id}:
     get:
       summary: Queries a policy by policy id
@@ -3980,7 +4122,7 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/storage/verify_permission/{operator}/{bucket_name}/{object_name}/{action_type}:
+  /greenfield/storage/verify_permission/{operator}/{bucket_name}/{action_type}:
     get:
       summary: Queries a list of VerifyPermission items.
       operationId: VerifyPermission
@@ -4031,10 +4173,6 @@ paths:
           in: path
           required: true
           type: string
-        - name: object_name
-          in: path
-          required: true
-          type: string
         - name: action_type
           in: path
           required: true
@@ -4053,6 +4191,10 @@ paths:
             - ACTION_DELETE_GROUP
             - ACTION_UPDATE_OBJECT_INFO
             - ACTION_TYPE_ALL
+        - name: object_name
+          in: query
+          required: false
+          type: string
       tags:
         - Query
   /cosmos/auth/v1beta1/account_info/{address}:
@@ -31771,6 +31913,102 @@ definitions:
                 value:
                   type: string
             title: attributes
+  greenfield.storage.QueryParamsByTimestampResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          versioned_params:
+            type: object
+            properties:
+              max_segment_size:
+                type: string
+                format: uint64
+                title: >-
+                  max_segment_size is the maximum size of a segment. default:
+                  16M
+              redundant_data_chunk_num:
+                type: integer
+                format: int64
+                title: >-
+                  redundant_data_check_num is the num of data chunks of EC
+                  redundancy algorithm
+              redundant_parity_chunk_num:
+                type: integer
+                format: int64
+                title: >-
+                  redundant_data_check_num is the num of parity chunks of EC
+                  redundancy algorithm
+              min_charge_size:
+                type: string
+                format: uint64
+                title: >-
+                  min_charge_size is the minimum charge size of the payload,
+                  objects smaller than this size will be charged as this size
+            description: >-
+              VersionedParams defines the parameters for the storage module with
+              multi version, each version store with different timestamp.
+          max_payload_size:
+            type: string
+            format: uint64
+            title: 'max_payload_size is the maximum size of the payload, default: 2G'
+          mirror_bucket_relayer_fee:
+            type: string
+            title: relayer fee for the mirror bucket tx
+          mirror_bucket_ack_relayer_fee:
+            type: string
+            title: >-
+              relayer fee for the ACK or FAIL_ACK package of the mirror bucket
+              tx
+          mirror_object_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx
+          mirror_object_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx
+          mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx
+          mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx
+          max_buckets_per_account:
+            type: integer
+            format: int64
+            title: The maximum number of buckets that can be created per account
+          discontinue_counting_window:
+            type: string
+            format: uint64
+            title: The window to count the discontinued objects or buckets
+          discontinue_object_max:
+            type: string
+            format: uint64
+            title: The max objects can be requested in a window
+          discontinue_bucket_max:
+            type: string
+            format: uint64
+            title: The max buckets can be requested in a window
+          discontinue_confirm_period:
+            type: string
+            format: int64
+            title: The object will be deleted after the confirm period in seconds
+          discontinue_deletion_max:
+            type: string
+            format: uint64
+            title: The max delete objects in each end block
+          stale_policy_cleanup_max:
+            type: string
+            format: uint64
+            title: The max number for deleting policy in each end block
+    description: >-
+      QueryVersionedParamsResponse is response type for the Query/Params RPC
+      method with timestamp.
   greenfield.storage.QueryParamsResponse:
     type: object
     properties:
