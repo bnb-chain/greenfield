@@ -1,0 +1,18 @@
+version: "3.9"
+services:
+    validator:
+        image: ghcr.io/bnb-chain/greenfield:0.1.1
+        ports:
+        - "26656:26656/udp"
+        - "26657:26657"
+        - "26658:26658"
+        - "8545:8545"
+        - "26660:26660"
+        - "1317:1317"
+        volumes:
+        - ./config:/server/data-seed/config:rw
+        - ./data:/server/data-seed/data:rw
+        entrypoint: ["/app/gnfd", "start"]
+        command: ["--home", "/server/data-seed/"]
+volumes:
+    data:
