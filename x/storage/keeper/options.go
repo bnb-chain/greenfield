@@ -52,6 +52,7 @@ type CopyObjectOptions struct {
 type CreateGroupOptions struct {
 	Members    []string
 	SourceType types.SourceType
+	Extra      string
 }
 type LeaveGroupOptions struct {
 	SourceType types.SourceType

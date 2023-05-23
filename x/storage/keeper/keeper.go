@@ -1067,6 +1067,7 @@ func (k Keeper) CreateGroup(
 		SourceType: opts.SourceType,
 		Id:         k.GenNextGroupId(ctx),
 		GroupName:  groupName,
+		Extra:      opts.Extra,
 	}
 
 	// Can not create a group with the same name.

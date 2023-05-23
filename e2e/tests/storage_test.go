@@ -234,7 +234,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	groupName := storageutils.GenRandomGroupName()
 
 	// 1. CreateGroup
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 
@@ -287,7 +287,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
 
 	// 6. Create a group with the same name
-	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
 	s.SendTxBlockWithExpectErrorString(msgCreateGroup, owner, "exists")
 }
 
@@ -1010,7 +1010,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	groupName := storageutils.GenRandomGroupName()
 
 	// 1. CreateGroup
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 
@@ -1027,7 +1027,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 
 	// CreateGroup
 	groupName = storageutils.GenRandomGroupName()
-	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()})
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// MirrorGroup using name

@@ -104,6 +104,8 @@ message GroupInfo {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // extra is used to store extra info for the group
+  string extra = 5;
 }
 
 message Trait {

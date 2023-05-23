@@ -236,6 +236,8 @@ message MsgCreateGroup {
   string group_name = 2;
   // member_request defines a list of member which to be add or remove
   repeated string members = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // extra defines extra info for the group
+  string extra = 4;
 }
 
 message MsgCreateGroupResponse {

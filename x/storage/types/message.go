@@ -846,7 +846,7 @@ func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sdk.AccAddress) *MsgCreateGroup {
+func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sdk.AccAddress, extra string) *MsgCreateGroup {
 	var members []string
 	for _, member := range membersAcc {
 		members = append(members, member.String())
@@ -855,6 +855,7 @@ func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sd
 		Creator:   creator.String(),
 		GroupName: groupName,
 		Members:   members,
+		Extra:     extra,
 	}
 }
 

@@ -516,12 +516,13 @@ func CmdDiscontinueObject() *cobra.Command {
 
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-group [group-name] [member-list]",
+		Use:   "create-group [group-name] [member-list [extra]",
 		Short: "Create a new group with several initial members, split member addresses by ','",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
 			argMemberList := args[1]
+			extra := args[2]
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -541,6 +542,7 @@ func CmdCreateGroup() *cobra.Command {
 				clientCtx.GetFromAddress(),
 				argGroupName,
 				memberAddrs,
+				extra,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

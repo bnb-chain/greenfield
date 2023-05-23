@@ -286,6 +286,8 @@ message EventCreateGroup {
   SourceType source_type = 4;
   // members define the all the address of the members.
   repeated string members = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // extra defines extra info for the group
+  string extra = 6;
 }
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
