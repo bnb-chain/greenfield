@@ -2,7 +2,7 @@
 
 ## v0.2.1
 This is a hot fix release for v0.2.0
-
+* [#251](https://github.com/bnb-chain/greenfield/pull/251) fix: correct the counting of deleted objects
 * [#256](https://github.com/bnb-chain/greenfield/pull/256) dep: bump cosmos-sdk to v0.2.1
 
 
