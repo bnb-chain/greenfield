@@ -340,8 +340,8 @@ enable = true
 # For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
 # weeks) during which they can be financially punished (slashed) for misbehavior.
 rpc_servers = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443,http://k8s-gnfdfull-gnfdfull-514c3179cd-d1c316adcbfbfd3c.elb.us-east-1.amazonaws.com:26657"
-trust_height = 300000
-trust_hash = "CAD3B7C4CDF76F963777C413EDBD65C6262B61CEDE5A64A983F08F1A720B0EB5"
+trust_height = 4000
+trust_hash = "7324698910D156A5C34CE358E475D412678F07CD8FB410D5032BE800E25BCEBF"
 trust_period = "2542085h0m0s"
 
 # Time to spend discovering snapshots before initiating a restore.
