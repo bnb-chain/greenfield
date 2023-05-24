@@ -1731,7 +1731,7 @@ func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
 	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
 
 	// Update the extra to empty
-	newExtra := "newExtra"
+	newExtra := ""
 	msgUpdateGroup := storagetypes.NewMsgUpdateGroupExtra(owner.GetAddr(), owner.GetAddr(), testGroupName, newExtra)
 	s.SendTxBlock(owner, msgUpdateGroup)
 
@@ -1744,4 +1744,17 @@ func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
 	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
 	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
 
+	// Update the extra
+	newExtra = "something"
+	msgUpdateGroup = storagetypes.NewMsgUpdateGroupExtra(owner.GetAddr(), owner.GetAddr(), testGroupName, newExtra)
+	s.SendTxBlock(owner, msgUpdateGroup)
+
+	// Head Group
+	headGroupRequest = storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err = s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
 }

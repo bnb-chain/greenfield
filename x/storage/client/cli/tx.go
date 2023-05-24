@@ -517,13 +517,13 @@ func CmdDiscontinueObject() *cobra.Command {
 
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-group [group-name] [member-list [extra]",
-		Short: "Create a new group with several initial members, split member addresses by ','",
-		Args:  cobra.ExactArgs(3),
+		Use:   "create-group [group-name]",
+		Short: "Create a new group with optional members, split member addresses by ','",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
-			argMemberList := args[1]
-			extra := args[2]
+			argMemberList, _ := cmd.Flags().GetString(FlagMemberList)
+			extra, _ := cmd.Flags().GetString(FlagExtra)
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -531,13 +531,15 @@ func CmdCreateGroup() *cobra.Command {
 			}
 
 			var memberAddrs []sdk.AccAddress
-			members := strings.Split(argMemberList, ",")
-			for _, member := range members {
-				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
-				if err != nil {
-					return err
+			if argMemberList != "" {
+				members := strings.Split(argMemberList, ",")
+				for _, member := range members {
+					memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+					if err != nil {
+						return err
+					}
+					memberAddrs = append(memberAddrs, memberAddr)
 				}
-				memberAddrs = append(memberAddrs, memberAddr)
 			}
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
@@ -552,6 +554,8 @@ func CmdCreateGroup() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagExtra, "", "extra info for the group")
+	cmd.Flags().String(FlagMemberList, "", "init members of the group")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

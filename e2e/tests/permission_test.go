@@ -1350,7 +1350,7 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 	}
 }
 
-func (s *StorageTestSuite) TestUpdateGroupExtra() {
+func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
 	var err error
 	ctx := context.Background()
 
