@@ -79,7 +79,7 @@ func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	bz := store.Get(memberKey)
 	if bz == nil {
-		return storagetypes.ErrNoSuchGroup
+		return storagetypes.ErrNoSuchGroupMember
 	}
 	store.Delete(memberKey)
 	store.Delete(types.GetGroupMemberByIDKey(sequence.DecodeSequence(bz)))
