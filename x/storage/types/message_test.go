@@ -522,6 +522,44 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 	}
 }
 
+func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgUpdateGroupExtra
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgUpdateGroupExtra{
+				Operator:   sample.AccAddress(),
+				GroupOwner: sample.AccAddress(),
+				GroupName:  testGroupName,
+				Extra:      "testExtra",
+			},
+		},
+		{
+			name: "extra field is too long",
+			msg: MsgUpdateGroupExtra{
+				Operator:   sample.AccAddress(),
+				GroupOwner: sample.AccAddress(),
+				GroupName:  testGroupName,
+				Extra:      "testExtratesttestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtra",
+			},
+			err: ErrInvalidParameter,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestMsgPutPolicy_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string

@@ -2005,6 +2005,9 @@ paths:
                   id:
                     type: string
                     title: id is the unique identifier of group
+                  extra:
+                    type: string
+                    title: extra is used to store extra info for the group
         default:
           description: An unexpected error response.
           schema:
@@ -2775,6 +2778,9 @@ paths:
                     id:
                       type: string
                       title: id is the unique identifier of group
+                    extra:
+                      type: string
+                      title: extra is used to store extra info for the group
         default:
           description: An unexpected error response.
           schema:
@@ -3661,6 +3667,7 @@ paths:
                               - ACTION_UPDATE_GROUP_MEMBER
                               - ACTION_DELETE_GROUP
                               - ACTION_UPDATE_OBJECT_INFO
+                              - ACTION_UPDATE_GROUP_EXTRA
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -3678,17 +3685,27 @@ paths:
                             type: string
                           description: >-
                             CAN ONLY USED IN bucket level. Support fuzzy match
-                            and limit to 5
+                            and limit to 5.
 
-                            If no sub-resource is specified in a statement, then
-                            all objects in the bucket are accessible by the
-                            principal.
+                            The sub-resource name must comply with the standard
+                            specified in the greenfield/types/grn.go file for
+                            Greenfield resource names.
 
-                            However, if the sub-resource is defined as
-                            'bucket/test_*,' in the statement, then only objects
-                            with a 'test_'
+                            If the sub-resources include 'grn:o:{bucket_name}/*'
+                            in the statement, it indicates that specific
+                            permissions is granted to all objects within the
+                            specified bucket.
 
-                            prefix can be accessed by the principal.
+                            If the sub-resources include
+                            'grn:o:{bucket_name}/test_*' in the statement, it
+                            indicates that specific permissions is granted to
+                            all objects with the `test_` prefix within the
+                            specified bucket.
+
+                            If the sub-resources is empty, when you need to
+                            operate(excluding CreateObject) a specified
+                            subresource, it will be denied because it cannot
+                            match any subresource.
                         expiration_time:
                           type: string
                           format: date-time
@@ -3844,6 +3861,7 @@ paths:
                               - ACTION_UPDATE_GROUP_MEMBER
                               - ACTION_DELETE_GROUP
                               - ACTION_UPDATE_OBJECT_INFO
+                              - ACTION_UPDATE_GROUP_EXTRA
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -3861,17 +3879,27 @@ paths:
                             type: string
                           description: >-
                             CAN ONLY USED IN bucket level. Support fuzzy match
-                            and limit to 5
+                            and limit to 5.
 
-                            If no sub-resource is specified in a statement, then
-                            all objects in the bucket are accessible by the
-                            principal.
+                            The sub-resource name must comply with the standard
+                            specified in the greenfield/types/grn.go file for
+                            Greenfield resource names.
 
-                            However, if the sub-resource is defined as
-                            'bucket/test_*,' in the statement, then only objects
-                            with a 'test_'
+                            If the sub-resources include 'grn:o:{bucket_name}/*'
+                            in the statement, it indicates that specific
+                            permissions is granted to all objects within the
+                            specified bucket.
 
-                            prefix can be accessed by the principal.
+                            If the sub-resources include
+                            'grn:o:{bucket_name}/test_*' in the statement, it
+                            indicates that specific permissions is granted to
+                            all objects with the `test_` prefix within the
+                            specified bucket.
+
+                            If the sub-resources is empty, when you need to
+                            operate(excluding CreateObject) a specified
+                            subresource, it will be denied because it cannot
+                            match any subresource.
                         expiration_time:
                           type: string
                           format: date-time
@@ -4031,6 +4059,7 @@ paths:
                               - ACTION_UPDATE_GROUP_MEMBER
                               - ACTION_DELETE_GROUP
                               - ACTION_UPDATE_OBJECT_INFO
+                              - ACTION_UPDATE_GROUP_EXTRA
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -4048,17 +4077,27 @@ paths:
                             type: string
                           description: >-
                             CAN ONLY USED IN bucket level. Support fuzzy match
-                            and limit to 5
+                            and limit to 5.
 
-                            If no sub-resource is specified in a statement, then
-                            all objects in the bucket are accessible by the
-                            principal.
+                            The sub-resource name must comply with the standard
+                            specified in the greenfield/types/grn.go file for
+                            Greenfield resource names.
 
-                            However, if the sub-resource is defined as
-                            'bucket/test_*,' in the statement, then only objects
-                            with a 'test_'
+                            If the sub-resources include 'grn:o:{bucket_name}/*'
+                            in the statement, it indicates that specific
+                            permissions is granted to all objects within the
+                            specified bucket.
 
-                            prefix can be accessed by the principal.
+                            If the sub-resources include
+                            'grn:o:{bucket_name}/test_*' in the statement, it
+                            indicates that specific permissions is granted to
+                            all objects with the `test_` prefix within the
+                            specified bucket.
+
+                            If the sub-resources is empty, when you need to
+                            operate(excluding CreateObject) a specified
+                            subresource, it will be denied because it cannot
+                            match any subresource.
                         expiration_time:
                           type: string
                           format: date-time
@@ -4190,6 +4229,7 @@ paths:
             - ACTION_UPDATE_GROUP_MEMBER
             - ACTION_DELETE_GROUP
             - ACTION_UPDATE_OBJECT_INFO
+            - ACTION_UPDATE_GROUP_EXTRA
             - ACTION_TYPE_ALL
         - name: object_name
           in: query
@@ -30618,6 +30658,7 @@ definitions:
       - ACTION_UPDATE_GROUP_MEMBER
       - ACTION_DELETE_GROUP
       - ACTION_UPDATE_OBJECT_INFO
+      - ACTION_UPDATE_GROUP_EXTRA
       - ACTION_TYPE_ALL
     default: ACTION_UNSPECIFIED
     title: >-
@@ -30725,6 +30766,7 @@ definitions:
                   - ACTION_UPDATE_GROUP_MEMBER
                   - ACTION_DELETE_GROUP
                   - ACTION_UPDATE_OBJECT_INFO
+                  - ACTION_UPDATE_GROUP_EXTRA
                   - ACTION_TYPE_ALL
                 default: ACTION_UNSPECIFIED
                 title: >-
@@ -30742,15 +30784,22 @@ definitions:
                 type: string
               description: >-
                 CAN ONLY USED IN bucket level. Support fuzzy match and limit to
-                5
+                5.
 
-                If no sub-resource is specified in a statement, then all objects
-                in the bucket are accessible by the principal.
+                The sub-resource name must comply with the standard specified in
+                the greenfield/types/grn.go file for Greenfield resource names.
 
-                However, if the sub-resource is defined as 'bucket/test_*,' in
-                the statement, then only objects with a 'test_'
+                If the sub-resources include 'grn:o:{bucket_name}/*' in the
+                statement, it indicates that specific permissions is granted to
+                all objects within the specified bucket.
 
-                prefix can be accessed by the principal.
+                If the sub-resources include 'grn:o:{bucket_name}/test_*' in the
+                statement, it indicates that specific permissions is granted to
+                all objects with the `test_` prefix within the specified bucket.
+
+                If the sub-resources is empty, when you need to
+                operate(excluding CreateObject) a specified subresource, it will
+                be denied because it cannot match any subresource.
             expiration_time:
               type: string
               format: date-time
@@ -30839,6 +30888,7 @@ definitions:
             - ACTION_UPDATE_GROUP_MEMBER
             - ACTION_DELETE_GROUP
             - ACTION_UPDATE_OBJECT_INFO
+            - ACTION_UPDATE_GROUP_EXTRA
             - ACTION_TYPE_ALL
           default: ACTION_UNSPECIFIED
           title: >-
@@ -30855,15 +30905,22 @@ definitions:
         items:
           type: string
         description: >-
-          CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5
+          CAN ONLY USED IN bucket level. Support fuzzy match and limit to 5.
 
-          If no sub-resource is specified in a statement, then all objects in
-          the bucket are accessible by the principal.
+          The sub-resource name must comply with the standard specified in the
+          greenfield/types/grn.go file for Greenfield resource names.
 
-          However, if the sub-resource is defined as 'bucket/test_*,' in the
-          statement, then only objects with a 'test_'
+          If the sub-resources include 'grn:o:{bucket_name}/*' in the statement,
+          it indicates that specific permissions is granted to all objects
+          within the specified bucket.
 
-          prefix can be accessed by the principal.
+          If the sub-resources include 'grn:o:{bucket_name}/test_*' in the
+          statement, it indicates that specific permissions is granted to all
+          objects with the `test_` prefix within the specified bucket.
+
+          If the sub-resources is empty, when you need to operate(excluding
+          CreateObject) a specified subresource, it will be denied because it
+          cannot match any subresource.
       expiration_time:
         type: string
         format: date-time
@@ -31074,6 +31131,9 @@ definitions:
       id:
         type: string
         title: id is the unique identifier of group
+      extra:
+        type: string
+        title: extra is used to store extra info for the group
   greenfield.storage.GroupMetaData:
     type: object
     properties:
@@ -31506,6 +31566,9 @@ definitions:
           id:
             type: string
             title: id is the unique identifier of group
+          extra:
+            type: string
+            title: extra is used to store extra info for the group
   greenfield.storage.QueryHeadObjectResponse:
     type: object
     properties:
@@ -31773,6 +31836,9 @@ definitions:
             id:
               type: string
               title: id is the unique identifier of group
+            extra:
+              type: string
+              title: extra is used to store extra info for the group
   greenfield.storage.QueryListObjectsResponse:
     type: object
     properties:
@@ -32190,6 +32256,7 @@ definitions:
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
                       - ACTION_UPDATE_OBJECT_INFO
+                      - ACTION_UPDATE_GROUP_EXTRA
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -32207,15 +32274,24 @@ definitions:
                     type: string
                   description: >-
                     CAN ONLY USED IN bucket level. Support fuzzy match and limit
-                    to 5
+                    to 5.
 
-                    If no sub-resource is specified in a statement, then all
-                    objects in the bucket are accessible by the principal.
+                    The sub-resource name must comply with the standard
+                    specified in the greenfield/types/grn.go file for Greenfield
+                    resource names.
 
-                    However, if the sub-resource is defined as 'bucket/test_*,'
-                    in the statement, then only objects with a 'test_'
+                    If the sub-resources include 'grn:o:{bucket_name}/*' in the
+                    statement, it indicates that specific permissions is granted
+                    to all objects within the specified bucket.
 
-                    prefix can be accessed by the principal.
+                    If the sub-resources include 'grn:o:{bucket_name}/test_*' in
+                    the statement, it indicates that specific permissions is
+                    granted to all objects with the `test_` prefix within the
+                    specified bucket.
+
+                    If the sub-resources is empty, when you need to
+                    operate(excluding CreateObject) a specified subresource, it
+                    will be denied because it cannot match any subresource.
                 expiration_time:
                   type: string
                   format: date-time
@@ -32332,6 +32408,7 @@ definitions:
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
                       - ACTION_UPDATE_OBJECT_INFO
+                      - ACTION_UPDATE_GROUP_EXTRA
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -32349,15 +32426,24 @@ definitions:
                     type: string
                   description: >-
                     CAN ONLY USED IN bucket level. Support fuzzy match and limit
-                    to 5
+                    to 5.
 
-                    If no sub-resource is specified in a statement, then all
-                    objects in the bucket are accessible by the principal.
+                    The sub-resource name must comply with the standard
+                    specified in the greenfield/types/grn.go file for Greenfield
+                    resource names.
 
-                    However, if the sub-resource is defined as 'bucket/test_*,'
-                    in the statement, then only objects with a 'test_'
+                    If the sub-resources include 'grn:o:{bucket_name}/*' in the
+                    statement, it indicates that specific permissions is granted
+                    to all objects within the specified bucket.
 
-                    prefix can be accessed by the principal.
+                    If the sub-resources include 'grn:o:{bucket_name}/test_*' in
+                    the statement, it indicates that specific permissions is
+                    granted to all objects with the `test_` prefix within the
+                    specified bucket.
+
+                    If the sub-resources is empty, when you need to
+                    operate(excluding CreateObject) a specified subresource, it
+                    will be denied because it cannot match any subresource.
                 expiration_time:
                   type: string
                   format: date-time
@@ -32474,6 +32560,7 @@ definitions:
                       - ACTION_UPDATE_GROUP_MEMBER
                       - ACTION_DELETE_GROUP
                       - ACTION_UPDATE_OBJECT_INFO
+                      - ACTION_UPDATE_GROUP_EXTRA
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -32491,15 +32578,24 @@ definitions:
                     type: string
                   description: >-
                     CAN ONLY USED IN bucket level. Support fuzzy match and limit
-                    to 5
+                    to 5.
 
-                    If no sub-resource is specified in a statement, then all
-                    objects in the bucket are accessible by the principal.
+                    The sub-resource name must comply with the standard
+                    specified in the greenfield/types/grn.go file for Greenfield
+                    resource names.
 
-                    However, if the sub-resource is defined as 'bucket/test_*,'
-                    in the statement, then only objects with a 'test_'
+                    If the sub-resources include 'grn:o:{bucket_name}/*' in the
+                    statement, it indicates that specific permissions is granted
+                    to all objects within the specified bucket.
 
-                    prefix can be accessed by the principal.
+                    If the sub-resources include 'grn:o:{bucket_name}/test_*' in
+                    the statement, it indicates that specific permissions is
+                    granted to all objects with the `test_` prefix within the
+                    specified bucket.
+
+                    If the sub-resources is empty, when you need to
+                    operate(excluding CreateObject) a specified subresource, it
+                    will be denied because it cannot match any subresource.
                 expiration_time:
                   type: string
                   format: date-time

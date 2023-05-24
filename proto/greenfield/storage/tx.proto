@@ -38,6 +38,7 @@ service Msg {
   rpc CreateGroup(MsgCreateGroup) returns (MsgCreateGroupResponse);
   rpc DeleteGroup(MsgDeleteGroup) returns (MsgDeleteGroupResponse);
   rpc UpdateGroupMember(MsgUpdateGroupMember) returns (MsgUpdateGroupMemberResponse);
+  rpc UpdateGroupExtra(MsgUpdateGroupExtra) returns (MsgUpdateGroupExtraResponse);
   rpc LeaveGroup(MsgLeaveGroup) returns (MsgLeaveGroupResponse);
   rpc MirrorGroup(MsgMirrorGroup) returns (MsgMirrorGroupResponse);
   // basic operation of policy
@@ -275,6 +276,21 @@ message MsgUpdateGroupMember {
 }
 
 message MsgUpdateGroupMemberResponse {}
+
+message MsgUpdateGroupExtra {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator defines the account address of the operator who has the UpdateGroupMember permission of the group.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_owner defines the account address of the group owner
+  string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name defines the name of the group which to be updated
+  string group_name = 3;
+  // extra defines extra info for the group to update
+  string Extra = 4;
+}
+
+message MsgUpdateGroupExtraResponse {}
 
 message MsgLeaveGroup {
   option (cosmos.msg.v1.signer) = "member";

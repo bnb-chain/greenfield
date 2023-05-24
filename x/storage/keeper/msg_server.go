@@ -303,6 +303,25 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	return &types.MsgUpdateGroupMemberResponse{}, nil
 }
 
+func (k msgServer) UpdateGroupExtra(goCtx context.Context, msg *types.MsgUpdateGroupExtra) (*types.MsgUpdateGroupExtraResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+	err := k.Keeper.UpdateGroupExtra(ctx, operator, groupInfo, msg.Extra)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateGroupExtraResponse{}, nil
+}
+
 func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*types.MsgPutPolicyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

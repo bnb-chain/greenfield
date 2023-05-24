@@ -51,6 +51,7 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateGroup(),
 		CmdDeleteGroup(),
 		CmdUpdateGroupMember(),
+		CmdUpdateGroupExtra(),
 		CmdLeaveGroup(),
 		CmdMirrorGroup(),
 	)
@@ -659,6 +660,37 @@ func CmdUpdateGroupMember() *cobra.Command {
 				argGroupName,
 				memberAddrsToAdd,
 				memberAddrsToDelete,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateGroupExtra() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-group-extra [group-name] [extra]",
+		Short: "Update the extra info of the group",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argGroupName := args[0]
+			argExtra := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgUpdateGroupExtra(
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
+				argGroupName,
+				argExtra,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

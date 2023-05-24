@@ -42,7 +42,10 @@ const (
 	TypeMsgDeleteGroup       = "delete_group"
 	TypeMsgLeaveGroup        = "leave_group"
 	TypeMsgUpdateGroupMember = "update_group_member"
+	TypeMsgUpdateGroupExtra  = "update_group_extra"
 	TypeMsgMirrorGroup       = "mirror_group"
+
+	MaxGroupExtraInfoLimit = 256
 
 	// For permission policy
 	TypeMsgPutPolicy    = "put_policy"
@@ -76,6 +79,7 @@ var (
 	_ sdk.Msg = &MsgDeleteGroup{}
 	_ sdk.Msg = &MsgLeaveGroup{}
 	_ sdk.Msg = &MsgUpdateGroupMember{}
+	_ sdk.Msg = &MsgUpdateGroupExtra{}
 	_ sdk.Msg = &MsgMirrorGroup{}
 
 	// For permission policy
@@ -1070,6 +1074,63 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
 		}
 	}
+	return nil
+}
+
+func NewMsgUpdateGroupExtra(operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName, extra string) *MsgUpdateGroupExtra {
+	return &MsgUpdateGroupExtra{
+		Operator:   operator.String(),
+		GroupOwner: groupOwner.String(),
+		GroupName:  groupName,
+		Extra:      extra,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) Type() string {
+	return TypeMsgUpdateGroupExtra
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgUpdateGroupExtra) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
+	}
+
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return err
+	}
+	if len(msg.Extra) > MaxGroupExtraInfoLimit {
+		return errors.Wrapf(ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
+	}
+
 	return nil
 }
 

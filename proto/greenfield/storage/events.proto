@@ -340,6 +340,24 @@ message EventUpdateGroupMember {
   repeated string members_to_delete = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
+// EventUpdateGroupExtra is emitted on MsgUpdateGroupExtra
+message EventUpdateGroupExtra {
+  // operator define the account address of operator who update the group member
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
+  string group_name = 3;
+  // id define an u256 id for group
+  string group_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // extra defines extra info for the group to update
+  string extra = 5;
+}
+
 // EventMirrorBucket is emitted on MirrorBucket
 message EventMirrorBucket {
   // operator define the account address of operator who mirror the bucket

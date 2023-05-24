@@ -1709,3 +1709,39 @@ func (s *StorageTestSuite) TestUpdateParams() {
 	s.Require().NoError(err)
 	require.EqualValues(s.T(), queryVersionedParamsResponse.GetParams().VersionedParams.MaxSegmentSize, 2048)
 }
+
+func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
+	var err error
+	ctx := context.Background()
+	owner := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	// Create a group without members
+	testGroupName := "appName/bucketName"
+	extra := "{\"description\":\"no description\",\"imageUrl\":\"www.images.com/image1\"}"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, nil, extra)
+	s.SendTxBlock(owner, msgCreateGroup)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.Require().Equal(headGroupResponse.GroupInfo.Extra, extra)
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Update the extra to empty
+	newExtra := "newExtra"
+	msgUpdateGroup := storagetypes.NewMsgUpdateGroupExtra(owner.GetAddr(), owner.GetAddr(), testGroupName, newExtra)
+	s.SendTxBlock(owner, msgUpdateGroup)
+
+	// Head Group
+	headGroupRequest = storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err = s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+}

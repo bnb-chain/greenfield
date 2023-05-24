@@ -1250,6 +1250,34 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	return nil
 }
 
+func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, extra string) error {
+
+	// check permission
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_EXTRA)
+	if effect != permtypes.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no UpdateGroupExtra permission of the group(%s), operator(%s)",
+			operator.String(), groupInfo.GroupName, groupInfo.Owner)
+	}
+
+	if extra != groupInfo.Extra {
+		groupInfo.Extra = extra
+		obz := k.cdc.MustMarshal(groupInfo)
+		ctx.KVStore(k.storeKey).Set(types.GetGroupByIDKey(groupInfo.Id), obz)
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupExtra{
+		Operator:  operator.String(),
+		Owner:     groupInfo.Owner,
+		GroupName: groupInfo.GroupName,
+		GroupId:   groupInfo.Id,
+		Extra:     extra,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
 	if !found {
