@@ -3,7 +3,7 @@
 
 # NOTE: Any path below can be absolute (e.g. "/var/myawesomeapp/data") or
 # relative to the home directory (e.g. "data"). The home directory is
-# "$HOME/.tendermint" by default, but could be changed via $TMHOME env variable
+# "$HOME/.cometbft" by default, but could be changed via $CMTHOME env variable
 # or --home cmd flag.
 
 #######################################################################
@@ -11,16 +11,19 @@
 #######################################################################
 
 # TCP or UNIX socket address of the ABCI application,
-# or the name of an ABCI application compiled in with the Tendermint binary
+# or the name of an ABCI application compiled in with the CometBFT binary
 proxy_app = "tcp://0.0.0.0:26658"
 
 # A custom human readable name for this node
 moniker = "node"
 
-# If this node is many blocks behind the tip of the chain, FastSync
+# If this node is many blocks behind the tip of the chain, BlockSync
 # allows them to catchup quickly by downloading blocks in parallel
 # and verifying their commits
-fast_sync = true
+#
+# Deprecated: this key will be removed and BlockSync will be enabled 
+# unconditionally in the next major release.
+block_sync = true
 
 # Database backend: goleveldb | cleveldb | boltdb | rocksdb | badgerdb
 # * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
@@ -63,7 +66,7 @@ priv_validator_key_file = "config/priv_validator_key.json"
 # Path to the JSON file containing the last sign state of a validator
 priv_validator_state_file = "data/priv_validator_state.json"
 
-# TCP or UNIX socket address for Tendermint to listen on for
+# TCP or UNIX socket address for CometBFT to listen on for
 # connections from an external PrivValidator process
 priv_validator_laddr = ""
 
@@ -160,7 +163,7 @@ experimental_websocket_write_buffer_size = 200
 #
 # Enabling this experimental parameter will cause the WebSocket connection to
 # be closed instead if it cannot read fast enough, allowing for greater
-# predictability in subscription behaviour.
+# predictability in subscription behavior.
 experimental_close_on_slow_client = false
 
 # How long to wait for a tx to be committed during /broadcast_tx_commit.
@@ -176,17 +179,17 @@ max_body_bytes = 1000000
 max_header_bytes = 1048576
 
 # The path to a file containing certificate that is used to create the HTTPS server.
-# Might be either absolute path or path related to Tendermint's config directory.
+# Might be either absolute path or path related to CometBFT's config directory.
 # If the certificate is signed by a certificate authority,
 # the certFile should be the concatenation of the server's certificate, any intermediates,
 # and the CA's certificate.
-# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
+# NOTE: both tls_cert_file and tls_key_file must be present for CometBFT to create HTTPS server.
 # Otherwise, HTTP server is run.
 tls_cert_file = ""
 
 # The path to a file containing matching private key that is used to create the HTTPS server.
-# Might be either absolute path or path related to Tendermint's config directory.
-# NOTE: both tls-cert-file and tls-key-file must be present for Tendermint to create HTTPS server.
+# Might be either absolute path or path related to CometBFT's config directory.
+# NOTE: both tls-cert-file and tls-key-file must be present for CometBFT to create HTTPS server.
 # Otherwise, HTTP server is run.
 tls_key_file = ""
 
@@ -212,7 +215,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "7a635c262955a2e85c654615f390f3a3e9c71328@k8s-gnfdfull-gnfdfull-514c3179cd-d1c316adcbfbfd3c.elb.us-east-1.amazonaws.com:26656,f811d0f87415bcc5daba37ec925b137a1b403372@k8s-gnfdfull-gnfdfull-92f4e91ef7-3d981d8d310e48f1.elb.ap-northeast-1.amazonaws.com:26656"
+persistent_peers = "0217308d88a87af875f8545d568e1b78d702da4e@k8s-gnfdfull-gnfdfull-5caecaf140-3641960911e9b27b.elb.ap-northeast-1.amazonaws.com:26656,70931d2c33094a824c9a95496deaf79ee7999787@k8s-gnfdfull-gnfdfull-915e53c8f7-bca52664efa2d3fe.elb.us-east-1.amazonaws.com:26656"
 
 # UPNP port forwarding
 upnp = false
@@ -274,7 +277,7 @@ dial_timeout = "3s"
 
 # Mempool version to use:
 #   1) "v0" - (default) FIFO mempool.
-#   2) "v1" - prioritized mempool.
+#   2) "v1" - prioritized mempool (deprecated; will be removed in the next release).
 version = "v0"
 
 recheck = true
@@ -331,7 +334,7 @@ ttl-num-blocks = 0
 # the network to take and serve state machine snapshots. State sync is not attempted if the node
 # has any local state (LastBlockHeight > 0). The node will have a truncated block history,
 # starting from the height of the snapshot.
-enable = true
+enable = false
 
 # RPC servers (comma-separated) for light client verification of the synced state machine and
 # retrieval of state data for node bootstrapping. Also needs a trusted height and corresponding
@@ -339,10 +342,10 @@ enable = true
 #
 # For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
 # weeks) during which they can be financially punished (slashed) for misbehavior.
-rpc_servers = "https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443,http://k8s-gnfdfull-gnfdfull-514c3179cd-d1c316adcbfbfd3c.elb.us-east-1.amazonaws.com:26657"
-trust_height = 4000
-trust_hash = "7324698910D156A5C34CE358E475D412678F07CD8FB410D5032BE800E25BCEBF"
-trust_period = "2542085h0m0s"
+rpc_servers = ""
+trust_height = 0
+trust_hash = ""
+trust_period = "168h0m0s"
 
 # Time to spend discovering snapshots before initiating a restore.
 discovery_time = "15s"
@@ -359,14 +362,16 @@ chunk_request_timeout = "10s"
 chunk_fetchers = "4"
 
 #######################################################
-###       Fast Sync Configuration Connections       ###
+###       Block Sync Configuration Options          ###
 #######################################################
-[fastsync]
+[blocksync]
 
-# Fast Sync version to use:
-#   1) "v0" (default) - the legacy fast sync implementation
-#   2) "v1" - refactor of v0 version for better testability
-#   2) "v2" - complete redesign of v0, optimized for testability & readability
+# Block Sync version to use:
+# 
+# In v0.37, v1 and v2 of the block sync protocols were deprecated.
+# Please use v0 instead.
+#
+#   1) "v0" - the default block sync implementation
 version = "v0"
 
 #######################################################
@@ -391,7 +396,7 @@ timeout_precommit_delta = "500ms"
 # How long we wait after committing a block, before starting on the new
 # height (this gives us a chance to receive some more precommits, even
 # though we already have +2/3).
-timeout_commit = "5s"
+timeout_commit = "2s"
 
 # How many blocks to look back to check existence of the node's consensus votes before joining consensus
 # When non-zero, the node will panic upon restart
@@ -404,7 +409,7 @@ skip_timeout_commit = false
 
 # EmptyBlocks mode and possible interval between empty blocks
 create_empty_blocks = true
-create_empty_blocks_interval = "0s"
+create_empty_blocks_interval = "2s"
 
 # Reactor sleep duration parameters
 peer_gossip_sleep_duration = "100ms"
