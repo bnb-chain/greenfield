@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -508,6 +509,45 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 				MembersToAdd:    []string{sample.AccAddress(), sample.AccAddress()},
 				MembersToDelete: []string{sample.AccAddress(), sample.AccAddress()},
 			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
+
+	tests := []struct {
+		name string
+		msg  MsgUpdateGroupExtra
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgUpdateGroupExtra{
+				Operator:   sample.AccAddress(),
+				GroupOwner: sample.AccAddress(),
+				GroupName:  testGroupName,
+				Extra:      "testExtra",
+			},
+		},
+		{
+			name: "extra field is too long",
+			msg: MsgUpdateGroupExtra{
+				Operator:   sample.AccAddress(),
+				GroupOwner: sample.AccAddress(),
+				GroupName:  testGroupName,
+				Extra:      strings.Repeat("abcdefg", 80),
+			},
+			err: ErrInvalidParameter,
 		},
 	}
 	for _, tt := range tests {

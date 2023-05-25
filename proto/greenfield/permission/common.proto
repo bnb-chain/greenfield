@@ -28,6 +28,8 @@ enum ActionType {
 
   ACTION_UPDATE_OBJECT_INFO = 11;
 
+  ACTION_UPDATE_GROUP_EXTRA = 12;
+
   ACTION_TYPE_ALL = 99;
 }
 

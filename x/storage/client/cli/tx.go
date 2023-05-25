@@ -51,6 +51,7 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateGroup(),
 		CmdDeleteGroup(),
 		CmdUpdateGroupMember(),
+		CmdUpdateGroupExtra(),
 		CmdLeaveGroup(),
 		CmdMirrorGroup(),
 	)
@@ -516,12 +517,13 @@ func CmdDiscontinueObject() *cobra.Command {
 
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-group [group-name] [member-list]",
-		Short: "Create a new group with several initial members, split member addresses by ','",
-		Args:  cobra.ExactArgs(2),
+		Use:   "create-group [group-name]",
+		Short: "Create a new group with optional members, split member addresses by ','",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
-			argMemberList := args[1]
+			argMemberList, _ := cmd.Flags().GetString(FlagMemberList)
+			extra, _ := cmd.Flags().GetString(FlagExtra)
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -529,18 +531,21 @@ func CmdCreateGroup() *cobra.Command {
 			}
 
 			var memberAddrs []sdk.AccAddress
-			members := strings.Split(argMemberList, ",")
-			for _, member := range members {
-				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
-				if err != nil {
-					return err
+			if argMemberList != "" {
+				members := strings.Split(argMemberList, ",")
+				for _, member := range members {
+					memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+					if err != nil {
+						return err
+					}
+					memberAddrs = append(memberAddrs, memberAddr)
 				}
-				memberAddrs = append(memberAddrs, memberAddr)
 			}
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
 				memberAddrs,
+				extra,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -549,6 +554,8 @@ func CmdCreateGroup() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagExtra, "", "extra info for the group")
+	cmd.Flags().String(FlagMemberList, "", "init members of the group")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -657,6 +664,37 @@ func CmdUpdateGroupMember() *cobra.Command {
 				argGroupName,
 				memberAddrsToAdd,
 				memberAddrsToDelete,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdUpdateGroupExtra() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-group-extra [group-name] [extra]",
+		Short: "Update the extra info of the group",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argGroupName := args[0]
+			argExtra := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgUpdateGroupExtra(
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
+				argGroupName,
+				argExtra,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

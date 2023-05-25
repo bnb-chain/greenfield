@@ -653,7 +653,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()})
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()}, "")
 	s.SendTxBlock(user[0], msgCreateGroup)
 
 	// Head Group
@@ -1092,7 +1092,7 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()})
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()}, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
@@ -1190,7 +1190,8 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 	// Create Group
 	testGroupName := "testGroup"
 	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()})
+		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
+		"")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
@@ -1347,4 +1348,57 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 		s.Require().Error(err)
 		s.Require().ErrorContains(err, "No such Policy")
 	}
+}
+
+func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
+	var err error
+	ctx := context.Background()
+
+	user := s.GenAndChargeAccounts(4, 1000000)
+	owner := user[0]
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
+		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
+		"")
+	s.SendTxBlock(owner, msgCreateGroup)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Put policy
+	groupStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_GROUP_EXTRA},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), testGroupName).String(),
+		types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{groupStatement}, nil)
+	s.SendTxBlock(owner, msgPutGroupPolicy)
+
+	// user1 update the extra of group is allowed
+	newExtra := "newExtra"
+	msgUpdateGroup := storagetypes.NewMsgUpdateGroupExtra(user[1].GetAddr(), owner.GetAddr(), testGroupName, newExtra)
+	s.SendTxBlock(user[1], msgUpdateGroup)
+
+	// Head Group
+	headGroupRequest = storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err = s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// user2 update the extra of group is not allowed
+	newExtra = "newExtra2"
+	msgUpdateGroup2 := storagetypes.NewMsgUpdateGroupExtra(user[2].GetAddr(), owner.GetAddr(), testGroupName, newExtra)
+	_, err = s.SendTxBlockWithoutCheck(msgUpdateGroup2, user[2])
+	s.Require().Error(err)
+
 }
