@@ -252,6 +252,16 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	s.Require().Equal(newReadPrice, spStoragePrice2.SpStoragePrice.ReadPrice)
 	s.Require().Equal(newStorePrice, spStoragePrice2.SpStoragePrice.StorePrice)
 	s.CheckSecondarySpPrice()
+	// query sp storage price by time before it exists, expect error
+	_, err = s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
+		Timestamp: 1,
+	})
+	s.Require().Error(err)
+	_, err = s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    spAddr,
+		Timestamp: 1,
+	})
+	s.Require().Error(err)
 }
 
 func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
