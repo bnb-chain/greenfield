@@ -45,7 +45,7 @@ const (
 	TypeMsgUpdateGroupExtra  = "update_group_extra"
 	TypeMsgMirrorGroup       = "mirror_group"
 
-	MaxGroupExtraInfoLimit = 256
+	MaxGroupExtraInfoLimit = 512
 
 	// For permission policy
 	TypeMsgPutPolicy    = "put_policy"

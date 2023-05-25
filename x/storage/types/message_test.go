@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strings"
 	"testing"
 
 	"cosmossdk.io/math"
@@ -523,6 +524,7 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
+
 	tests := []struct {
 		name string
 		msg  MsgUpdateGroupExtra
@@ -543,7 +545,7 @@ func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
 				Operator:   sample.AccAddress(),
 				GroupOwner: sample.AccAddress(),
 				GroupName:  testGroupName,
-				Extra:      "testExtratesttestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtratestExtra",
+				Extra:      strings.Repeat("abcdefg", 80),
 			},
 			err: ErrInvalidParameter,
 		},
