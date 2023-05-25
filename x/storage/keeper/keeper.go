@@ -208,6 +208,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		return true, 0, nil
 	}
 
+	bucketDeleted := false
 	sp := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
 
 	store := ctx.KVStore(k.storeKey)
@@ -223,7 +224,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 
 		bz := store.Get(types.GetObjectByIDKey(types.DecodeSequence(iter.Value())))
 		if bz == nil {
-			break
+			panic("should not happen")
 		}
 
 		var objectInfo types.ObjectInfo
@@ -257,9 +258,10 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			ctx.Logger().Error("do delete bucket error", "err", err)
 			return false, deleted, err
 		}
+		bucketDeleted = true
 	}
 
-	return true, deleted, nil
+	return bucketDeleted, deleted, nil
 }
 
 func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts UpdateBucketOptions) error {
