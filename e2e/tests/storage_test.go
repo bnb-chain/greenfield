@@ -983,25 +983,26 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 
 	// DiscontinueObject
 	msgDiscontinueObject := storagetypes.NewMsgDiscontinueObject(sp1.GcKey.GetAddr(), bucketName1, []sdkmath.Uint{objectId1}, "test")
-	txRes := s.SendTxBlock(msgDiscontinueObject, sp1.GcKey)
-	deleteAt := int64(filterDiscontinueObjectEventFromTx(txRes).DeleteAt)
+	txRes1 := s.SendTxBlock(msgDiscontinueObject, sp1.GcKey)
+	deleteAt1 := int64(filterDiscontinueObjectEventFromTx(txRes1).DeleteAt)
 
-	time.Sleep(5 * time.Second)
+	time.Sleep(3 * time.Second)
 	msgDiscontinueObject2 := storagetypes.NewMsgDiscontinueObject(sp2.GcKey.GetAddr(), bucketName2, []sdkmath.Uint{objectId2}, "test")
-	s.SendTxBlock(msgDiscontinueObject2, sp2.GcKey)
+	txRes2 := s.SendTxBlock(msgDiscontinueObject2, sp2.GcKey)
+	deleteAt2 := int64(filterDiscontinueObjectEventFromTx(txRes2).DeleteAt)
 
-	// Wait after the delete timestamp
-	heightBefore := txRes.Height
+	// Wait after the delete timestamp for first discontinue request
+	heightBefore := txRes1.Height
 	heightAfter := int64(0)
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
 
-		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt1)
 
-		if blockTime >= deleteAt {
+		if blockTime >= deleteAt1 {
 			heightAfter = statusRes.SyncInfo.LatestBlockHeight
 			break
 		} else {
@@ -1028,6 +1029,39 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 	}
 	s.Require().True(object1Found)
 	s.Require().True(!object2Found)
+
+	// Wait after the delete timestamp for second discontinue request
+	heightBefore = heightAfter
+	heightAfter = int64(0)
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt2)
+
+		if blockTime >= deleteAt2 {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
+			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
+		}
+	}
+
+	events = make([]storagetypes.EventDeleteObject, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteObjectEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+	for _, event := range events {
+		if event.ObjectId.Equal(objectId2) {
+			object2Found = true
+		}
+	}
+	s.Require().True(object2Found)
 }
 
 func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
@@ -1092,25 +1126,26 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 
 	// DiscontinueBucket
 	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName1, "test")
-	txRes := s.SendTxBlock(msgDiscontinueBucket, sp1.GcKey)
-	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
+	txRes1 := s.SendTxBlock(msgDiscontinueBucket, sp1.GcKey)
+	deleteAt1 := filterDiscontinueBucketEventFromTx(txRes1).DeleteAt
 
 	time.Sleep(3 * time.Second)
 	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName2, "test")
-	s.SendTxBlock(msgDiscontinueBucket2, sp2.GcKey)
+	txRes2 := s.SendTxBlock(msgDiscontinueBucket2, sp2.GcKey)
+	deleteAt2 := filterDiscontinueBucketEventFromTx(txRes2).DeleteAt
 
-	// Wait after the delete timestamp
-	heightBefore := txRes.Height
+	// Wait after the delete timestamp for the first discontinue request
+	heightBefore := txRes1.Height
 	heightAfter := int64(0)
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
 
-		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt1)
 
-		if blockTime >= deleteAt {
+		if blockTime >= deleteAt1 {
 			heightAfter = statusRes.SyncInfo.LatestBlockHeight
 			break
 		} else {
@@ -1137,6 +1172,40 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 	}
 	s.Require().True(bucket1Found)
 	s.Require().True(!bucket2Found)
+
+	// Wait after the delete timestamp for the second discontinue request
+	heightBefore = heightAfter
+	heightAfter = int64(0)
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt2)
+
+		if blockTime >= deleteAt2 {
+			heightAfter = statusRes.SyncInfo.LatestBlockHeight
+			break
+		} else {
+			heightBefore = statusRes.SyncInfo.LatestBlockHeight
+		}
+	}
+
+	events = make([]storagetypes.EventDeleteBucket, 0)
+	for heightBefore <= heightAfter {
+		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
+		s.Require().NoError(err)
+		events = append(events, filterDeleteBucketEventFromBlock(blockRes)...)
+		heightBefore++
+	}
+
+	for _, event := range events {
+		if event.BucketId.Equal(bucketId2) {
+			bucket2Found = true
+		}
+	}
+	s.Require().True(bucket2Found)
 }
 
 func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {

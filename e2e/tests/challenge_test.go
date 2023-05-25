@@ -251,7 +251,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 		if len(events) > 0 {
 			s.T().Logf("current challenge id: %d", events[len(events)-1].ChallengeId)
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 	}
 
 	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.PubKey().String())
@@ -308,7 +308,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 
 	expiredHeight := event.ExpiredHeight
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		height := statusRes.SyncInfo.LatestBlockHeight
