@@ -90,8 +90,11 @@ func (k Keeper) GetSpStoragePriceByTime(
 		return val, fmt.Errorf("no price found")
 	}
 
+	spAddrRes, UpdateTimeSec := types.ParseSpStoragePriceKey(iterator.Key())
+	if !spAddrRes.Equals(spAddr) {
+		return val, fmt.Errorf("no price found")
+	}
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
-	_, UpdateTimeSec := types.ParseSpStoragePriceKey(iterator.Key())
 	val.SpAddress = spAddr.String()
 	val.UpdateTimeSec = UpdateTimeSec
 
