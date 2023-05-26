@@ -54,7 +54,7 @@ func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
 	grantMsg, err := authz.NewMsgGrant(
 		newSP.FundingKey.GetAddr(), govAddr, authorization, &now)
 	s.Require().NoError(err)
-	s.SendTxBlock(grantMsg, newSP.FundingKey)
+	s.SendTxBlock(newSP.FundingKey, grantMsg)
 
 	return newSP
 }
@@ -94,7 +94,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	)
 	s.Require().NoError(err)
 
-	txRes := s.SendTxBlock(msgProposal, s.Validator)
+	txRes := s.SendTxBlock(s.Validator, msgProposal)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 3. query proposal and get proposal ID
@@ -119,7 +119,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 	// 4. submit MsgVote and wait the proposal exec
 	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
-	txRes = s.SendTxBlock(msgVote, s.Validator)
+	txRes = s.SendTxBlock(s.Validator, msgVote)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
@@ -177,7 +177,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
 		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
-	txRes := s.SendTxBlock(msgEditSP, sp.OperatorKey)
+	txRes := s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 3. query modifyed storage provider
@@ -193,7 +193,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
 		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
-	txRes = s.SendTxBlock(msgEditSP, sp.OperatorKey)
+	txRes = s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 
 	// 5. query revert storage provider again
@@ -216,7 +216,7 @@ func (s *StorageProviderTestSuite) TestDeposit() {
 
 	msgDeposit := sptypes.NewMsgDeposit(
 		sp.FundingKey.GetAddr(), sp.OperatorKey.GetAddr(), deposit)
-	txRes := s.SendTxBlock(msgDeposit, sp.FundingKey)
+	txRes := s.SendTxBlock(sp.FundingKey, msgDeposit)
 	s.Require().Equal(txRes.Code, uint32(0))
 }
 
@@ -240,7 +240,7 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 		StorePrice:    newStorePrice,
 		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
 	}
-	_ = s.SendTxBlock(msgUpdateSpStoragePrice, sp.OperatorKey)
+	_ = s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
 	// query and assert
 	spStoragePrice2, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr:    spAddr,
@@ -252,6 +252,16 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	s.Require().Equal(newReadPrice, spStoragePrice2.SpStoragePrice.ReadPrice)
 	s.Require().Equal(newStorePrice, spStoragePrice2.SpStoragePrice.StorePrice)
 	s.CheckSecondarySpPrice()
+	// query sp storage price by time before it exists, expect error
+	_, err = s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
+		Timestamp: 1,
+	})
+	s.Require().Error(err)
+	_, err = s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    spAddr,
+		Timestamp: 1,
+	})
+	s.Require().Error(err)
 }
 
 func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {

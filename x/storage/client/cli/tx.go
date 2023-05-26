@@ -51,6 +51,7 @@ func GetTxCmd() *cobra.Command {
 		CmdCreateGroup(),
 		CmdDeleteGroup(),
 		CmdUpdateGroupMember(),
+		CmdUpdateGroupExtra(),
 		CmdLeaveGroup(),
 		CmdMirrorGroup(),
 	)
@@ -248,7 +249,7 @@ func CmdCancelCreateObject() *cobra.Command {
 func CmdCreateObject() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-object [bucket-name] [object-name] [payload-size] [content-type]",
-		Short: "create a new object in the bucket, checksums split by ','",
+		Short: "Create a new object in the bucket, checksums split by ','",
 		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketName := args[0]
@@ -516,12 +517,13 @@ func CmdDiscontinueObject() *cobra.Command {
 
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-group [group-name] [member-list]",
-		Short: "Create a new group with several initial members, split member addresses by ','",
-		Args:  cobra.ExactArgs(2),
+		Use:   "create-group [group-name]",
+		Short: "Create a new group with optional members, split member addresses by ','",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
-			argMemberList := args[1]
+			argMemberList, _ := cmd.Flags().GetString(FlagMemberList)
+			extra, _ := cmd.Flags().GetString(FlagExtra)
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -529,18 +531,21 @@ func CmdCreateGroup() *cobra.Command {
 			}
 
 			var memberAddrs []sdk.AccAddress
-			members := strings.Split(argMemberList, ",")
-			for _, member := range members {
-				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
-				if err != nil {
-					return err
+			if argMemberList != "" {
+				members := strings.Split(argMemberList, ",")
+				for _, member := range members {
+					memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+					if err != nil {
+						return err
+					}
+					memberAddrs = append(memberAddrs, memberAddr)
 				}
-				memberAddrs = append(memberAddrs, memberAddr)
 			}
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
 				memberAddrs,
+				extra,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -549,6 +554,8 @@ func CmdCreateGroup() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagExtra, "", "extra info for the group")
+	cmd.Flags().String(FlagMemberList, "", "init members of the group")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -670,6 +677,37 @@ func CmdUpdateGroupMember() *cobra.Command {
 	return cmd
 }
 
+func CmdUpdateGroupExtra() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-group-extra [group-name] [extra]",
+		Short: "Update the extra info of the group",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argGroupName := args[0]
+			argExtra := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			msg := types.NewMsgUpdateGroupExtra(
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
+				argGroupName,
+				argExtra,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func CmdPutPolicy() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "put-policy [principle-value] [resource]",
@@ -756,19 +794,29 @@ $ %s tx delete-policy 3
 
 func CmdMirrorBucket() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-bucket [bucket-id]",
+		Use:   "mirror-bucket",
 		Short: "Mirror an existing bucket to the destination chain",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argBucketId := args[0]
+			argBucketId, _ := cmd.Flags().GetString(FlagBucketId)
+			argBucketName, _ := cmd.Flags().GetString(FlagBucketName)
 
-			bucketId, ok := big.NewInt(0).SetString(argBucketId, 10)
-			if !ok {
-				return fmt.Errorf("invalid bucket id: %s", argBucketId)
+			bucketId := big.NewInt(0)
+			if argBucketId == "" && argBucketName == "" {
+				return fmt.Errorf("bucket id or bucket name should be provided")
+			} else if argBucketId != "" && argBucketName != "" {
+				return fmt.Errorf("bucket id and bucket name should not be provided together")
+			} else if argBucketId != "" {
+				ok := false
+				bucketId, ok = big.NewInt(0).SetString(argBucketId, 10)
+				if !ok {
+					return fmt.Errorf("invalid bucket id: %s", argBucketId)
+				}
+				if bucketId.Cmp(big.NewInt(0)) <= 0 {
+					return fmt.Errorf("bucket id should be positive")
+				}
 			}
-			if bucketId.Cmp(big.NewInt(0)) < 0 {
-				return fmt.Errorf("bucket id should not be negative")
-			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -777,6 +825,7 @@ func CmdMirrorBucket() *cobra.Command {
 			msg := types.NewMsgMirrorBucket(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(bucketId),
+				argBucketName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -785,6 +834,8 @@ func CmdMirrorBucket() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagBucketId, "", "Id of the bucket to mirror")
+	cmd.Flags().String(FlagBucketName, "", "Name of the bucket to mirror")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -823,18 +874,30 @@ func CmdDiscontinueBucket() *cobra.Command {
 
 func CmdMirrorObject() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-object [object-id]",
+		Use:   "mirror-object",
 		Short: "Mirror the object to the destination chain",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argObjectId := args[0]
+			argObjectId, _ := cmd.Flags().GetString(FlagObjectId)
+			argBucketName, _ := cmd.Flags().GetString(FlagBucketName)
+			argObjectName, _ := cmd.Flags().GetString(FlagObjectName)
 
-			objectId, ok := big.NewInt(0).SetString(argObjectId, 10)
-			if !ok {
-				return fmt.Errorf("invalid object id: %s", argObjectId)
-			}
-			if objectId.Cmp(big.NewInt(0)) < 0 {
-				return fmt.Errorf("object id should not be negative")
+			objectId := big.NewInt(0)
+			if argObjectId == "" && argObjectName == "" {
+				return fmt.Errorf("object id or object name should be provided")
+			} else if argObjectId != "" && argObjectName != "" {
+				return fmt.Errorf("object id and object name should not be provided together")
+			} else if argObjectId != "" {
+				ok := false
+				objectId, ok = big.NewInt(0).SetString(argObjectId, 10)
+				if !ok {
+					return fmt.Errorf("invalid object id: %s", argObjectId)
+				}
+				if objectId.Cmp(big.NewInt(0)) <= 0 {
+					return fmt.Errorf("object id should be positive")
+				}
+			} else if argObjectName != "" && argBucketName == "" {
+				return fmt.Errorf("object name and bucket name should not be provided together")
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -845,6 +908,8 @@ func CmdMirrorObject() *cobra.Command {
 			msg := types.NewMsgMirrorObject(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(objectId),
+				argBucketName,
+				argObjectName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -853,6 +918,9 @@ func CmdMirrorObject() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagObjectId, "", "Id of the object to mirror")
+	cmd.Flags().String(FlagObjectName, "", "Name of the object to mirror")
+	cmd.Flags().String(FlagBucketName, "", "Name of the bucket that the object belongs to")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -860,18 +928,27 @@ func CmdMirrorObject() *cobra.Command {
 
 func CmdMirrorGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "mirror-group [group-id]",
+		Use:   "mirror-group",
 		Short: "Mirror an existing group to the destination chain",
-		Args:  cobra.ExactArgs(1),
+		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			argGroupId := args[0]
+			argGroupId, _ := cmd.Flags().GetString(FlagGroupId)
+			argGroupName, _ := cmd.Flags().GetString(FlagGroupName)
 
-			groupId, ok := big.NewInt(0).SetString(argGroupId, 10)
-			if !ok {
-				return fmt.Errorf("invalid groupd id: %s", argGroupId)
-			}
-			if groupId.Cmp(big.NewInt(0)) < 0 {
-				return fmt.Errorf("groupd id should not be negative")
+			groupId := big.NewInt(0)
+			if argGroupId == "" && argGroupName == "" {
+				return fmt.Errorf("group id or group name should be provided")
+			} else if argGroupId != "" && argGroupName != "" {
+				return fmt.Errorf("group id and group name should not be provided together")
+			} else if argGroupId != "" {
+				ok := false
+				groupId, ok = big.NewInt(0).SetString(argGroupId, 10)
+				if !ok {
+					return fmt.Errorf("invalid groupd id: %s", argGroupId)
+				}
+				if groupId.Cmp(big.NewInt(0)) <= 0 {
+					return fmt.Errorf("groupd id should be positive")
+				}
 			}
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -882,6 +959,7 @@ func CmdMirrorGroup() *cobra.Command {
 			msg := types.NewMsgMirrorGroup(
 				clientCtx.GetFromAddress(),
 				cmath.NewUintFromBigInt(groupId),
+				argGroupName,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -890,6 +968,8 @@ func CmdMirrorGroup() *cobra.Command {
 		},
 	}
 
+	cmd.Flags().String(FlagGroupId, "", "Id of the group to mirror")
+	cmd.Flags().String(FlagGroupName, "", "Name of the group to mirror")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

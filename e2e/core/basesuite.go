@@ -7,14 +7,14 @@ import (
 	"strings"
 	"time"
 
+	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/sdk/client"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
-
-	"github.com/bnb-chain/greenfield/sdk/client"
-	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
 type SPKeyManagers struct {
@@ -67,14 +67,14 @@ func (s *BaseSuite) SetupSuite() {
 	}
 }
 
-func (s *BaseSuite) SendTxBlock(msg sdk.Msg, from keys.KeyManager) *sdk.TxResponse {
+func (s *BaseSuite) SendTxBlock(from keys.KeyManager, msg ...sdk.Msg) *sdk.TxResponse {
 	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	txOpt := &types.TxOption{
 		Mode: &mode,
 		Memo: "",
 	}
 	s.Client.SetKeyManager(from)
-	response, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
+	response, err := s.Client.BroadcastTx(context.Background(), append([]sdk.Msg{}, msg...), txOpt)
 	s.Require().NoError(err)
 
 	s.Require().NoError(s.CheckTxCode(response.TxResponse.TxHash, uint32(0)), "tx failed")
@@ -142,15 +142,18 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 	if balance == 0 {
 		return
 	}
+	// prevent int64 multiplication overflow
+	balanceInt := types.NewIntFromInt64WithDecimal(balance, types.DecimalBNB)
+	nInt := math.NewInt(int64(n))
 	in := banktypes.Input{
 		Address: s.Validator.GetAddr().String(),
-		Coins:   []sdk.Coin{{Denom: denom, Amount: types.NewIntFromInt64WithDecimal(balance*int64(n), types.DecimalBNB)}},
+		Coins:   []sdk.Coin{{Denom: denom, Amount: balanceInt.Mul(nInt)}},
 	}
 	msg := banktypes.MsgMultiSend{
 		Inputs:  []banktypes.Input{in},
 		Outputs: outputs,
 	}
-	_ = s.SendTxBlock(&msg, s.Validator)
+	_ = s.SendTxBlock(s.Validator, &msg)
 	return accounts
 }
 

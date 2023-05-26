@@ -2,6 +2,7 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -39,12 +40,47 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 }
 
 func TestParamsQuery(t *testing.T) {
-	keeper, ctx := makeKeeper(t)
+	k, ctx := makeKeeper(t)
 	params := types.DefaultParams()
-	err := keeper.SetParams(ctx, params)
+	err := k.SetParams(ctx, params)
 	require.NoError(t, err)
 
-	response, err := keeper.Params(ctx, &types.QueryParamsRequest{})
+	response, err := k.Params(ctx, &types.QueryParamsRequest{})
 	require.NoError(t, err)
 	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
+}
+
+func TestVersionedParamsQuery(t *testing.T) {
+	k, ctx := makeKeeper(t)
+	params := types.DefaultParams()
+	params.VersionedParams.MaxSegmentSize = 1
+	blockTimeT1 := ctx.BlockTime().Unix()
+	paramsT1 := params
+	err := k.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(1 * time.Hour))
+	blockTimeT2 := ctx.BlockTime().Unix()
+	params.VersionedParams.MaxSegmentSize = 2
+	paramsT2 := params
+	err = k.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	responseT1, err := k.QueryParamsByTimestamp(ctx, &types.QueryParamsByTimestampRequest{Timestamp: blockTimeT1})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryParamsByTimestampResponse{Params: paramsT1}, responseT1)
+	getParams := responseT1.GetParams()
+	require.EqualValues(t, getParams.GetMaxSegmentSize(), 1)
+
+	responseT2, err := k.QueryParamsByTimestamp(ctx, &types.QueryParamsByTimestampRequest{Timestamp: blockTimeT2})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryParamsByTimestampResponse{Params: paramsT2}, responseT2)
+	p := responseT2.GetParams()
+	require.EqualValues(t, p.GetMaxSegmentSize(), 2)
+
+	responseT3, err := k.QueryParamsByTimestamp(ctx, &types.QueryParamsByTimestampRequest{Timestamp: 0})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryParamsByTimestampResponse{Params: paramsT2}, responseT3)
+	p = responseT2.GetParams()
+	require.EqualValues(t, p.GetMaxSegmentSize(), 2)
 }

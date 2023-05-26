@@ -27,7 +27,7 @@ func (s *PaymentTestSuite) TestPaymentAccount() {
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
 		Creator: user.GetAddr().String(),
 	}
-	_ = s.SendTxBlock(msgCreatePaymentAccount, user)
+	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
 	// query user's payment accounts
 	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryGetPaymentAccountsByOwnerRequest{
 		Owner: user.GetAddr().String(),
@@ -51,7 +51,7 @@ func (s *PaymentTestSuite) TestPaymentAccount() {
 		Owner: user.GetAddr().String(),
 		Addr:  paymentAccountAddr,
 	}
-	_ = s.SendTxBlock(msgDisableRefund, user)
+	_ = s.SendTxBlock(user, msgDisableRefund)
 	// query this payment account
 	paymentAccount, err = s.Client.PaymentAccount(ctx, &queryGetPaymentAccountRequest)
 	s.Require().NoError(err)

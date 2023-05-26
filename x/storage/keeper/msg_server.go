@@ -243,7 +243,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, CreateGroupOptions{Members: msg.Members})
+	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, CreateGroupOptions{Members: msg.Members, Extra: msg.Extra})
 	if err != nil {
 		return nil, err
 	}
@@ -301,6 +301,25 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil
+}
+
+func (k msgServer) UpdateGroupExtra(goCtx context.Context, msg *types.MsgUpdateGroupExtra) (*types.MsgUpdateGroupExtraResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+	err := k.Keeper.UpdateGroupExtra(ctx, operator, groupInfo, msg.Extra)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateGroupExtraResponse{}, nil
 }
 
 func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*types.MsgPutPolicyResponse, error) {
@@ -362,7 +381,13 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
-	objectInfo, found := k.Keeper.GetObjectInfoById(ctx, msg.Id)
+	var objectInfo *types.ObjectInfo
+	found := false
+	if msg.Id.GT(sdk.NewUint(0)) {
+		objectInfo, found = k.Keeper.GetObjectInfoById(ctx, msg.Id)
+	} else {
+		objectInfo, found = k.Keeper.GetObjectInfo(ctx, msg.BucketName, msg.ObjectName)
+	}
 	if !found {
 		return nil, types.ErrNoSuchObject
 	}
@@ -429,7 +454,13 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
-	bucketInfo, found := k.Keeper.GetBucketInfoById(ctx, msg.Id)
+	var bucketInfo *types.BucketInfo
+	found := false
+	if msg.Id.GT(sdk.NewUint(0)) {
+		bucketInfo, found = k.Keeper.GetBucketInfoById(ctx, msg.Id)
+	} else {
+		bucketInfo, found = k.Keeper.GetBucketInfo(ctx, msg.BucketName)
+	}
 	if !found {
 		return nil, types.ErrNoSuchBucket
 	}
@@ -495,7 +526,13 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
-	groupInfo, found := k.Keeper.GetGroupInfoById(ctx, msg.Id)
+	var groupInfo *types.GroupInfo
+	found := false
+	if msg.Id.GT(sdk.NewUint(0)) {
+		groupInfo, found = k.Keeper.GetGroupInfoById(ctx, msg.Id)
+	} else {
+		groupInfo, found = k.Keeper.GetGroupInfo(ctx, operator, msg.GroupName)
+	}
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}

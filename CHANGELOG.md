@@ -1,10 +1,27 @@
 # Changelog
 
+## v0.2.1-alpha.1
+
+This release enable two features:
+- support multiple messages in single tx
+- allow mirror bucket/object/group using name
+
+Features
+* [#250](https://github.com/bnb-chain/greenfield/pull/250) feat: allow mirror bucket/object/group using name
+* [#249](https://github.com/bnb-chain/greenfield/pull/249) feat: support multiple messages in single tx for EIP712
+
+Fix
+* [#248](https://github.com/bnb-chain/greenfield/pull/248) fix: add versioned params e2e's test
+* [#252](https://github.com/bnb-chain/greenfield/pull/252) fix: remove paramsclient from sdk and swagger
+* [#255](https://github.com/bnb-chain/greenfield/pull/255) fix: verify permission openapi params
+* [#254](https://github.com/bnb-chain/greenfield/pull/254) fix: fix potential int64 multiplication overflow
+* [#263](https://github.com/bnb-chain/greenfield/pull/263) fix: QueryGetSecondarySpStorePriceByTime may wrong data
+
+
 ## v0.2.1
 This is a hot fix release for v0.2.0
 * [#251](https://github.com/bnb-chain/greenfield/pull/251) fix: correct the counting of deleted objects
 * [#256](https://github.com/bnb-chain/greenfield/pull/256) dep: bump cosmos-sdk to v0.2.1
-
 
 ## v0.2.0
 This release updates the greenfield-cosmos-sdk dependency. Please refer to the [greenfield-cosmos-sdk repository](https://github.com/bnb-chain/greenfield-cosmos-sdk/) for the update details.

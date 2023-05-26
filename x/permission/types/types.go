@@ -47,6 +47,7 @@ var (
 	}
 	GroupAllowedActions = map[ActionType]bool{
 		ACTION_UPDATE_GROUP_MEMBER: true,
+		ACTION_UPDATE_GROUP_EXTRA:  true,
 		ACTION_DELETE_GROUP:        true,
 
 		ACTION_TYPE_ALL: true,

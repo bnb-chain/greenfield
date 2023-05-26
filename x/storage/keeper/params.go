@@ -200,7 +200,7 @@ func (k Keeper) GetVersionedParamsWithTs(ctx sdk.Context, ts int64) (verParams t
 	iterator := store.ReverseIterator(nil, startKey)
 	defer iterator.Close()
 	if !iterator.Valid() {
-		return verParams, fmt.Errorf("no versioned params found")
+		return verParams, fmt.Errorf("no versioned params found, ts:%d", uint64(ts))
 	}
 
 	k.cdc.MustUnmarshal(iterator.Value(), &verParams)

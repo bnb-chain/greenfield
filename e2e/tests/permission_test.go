@@ -8,7 +8,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	sdktype "github.com/bnb-chain/greenfield/sdk/types"
@@ -32,7 +31,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user[0])
+	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -67,7 +66,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, nil)
-	s.SendTxBlock(msgPutPolicy, user[0])
+	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -91,7 +90,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user[1].GetAddr(), bucketName)
-	s.SendTxBlock(msgDeleteBucket, user[1])
+	s.SendTxBlock(user[1], msgDeleteBucket)
 
 }
 
@@ -107,7 +106,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user[0])
+	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -142,7 +141,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, nil)
-	s.SendTxBlock(msgPutPolicy, user[0])
+	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -168,7 +167,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	chargedReadQuota := uint64(100000)
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(user[1].GetAddr(), bucketName, &chargedReadQuota,
 		sdk.MustAccAddressFromHex(queryHeadBucketResponse.BucketInfo.PaymentAddress), storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
-	s.SendTxBlock(msgUpdateBucketInfo, user[1])
+	s.SendTxBlock(user[1], msgUpdateBucketInfo)
 
 	// Query BucketInfo
 	queryHeadBucketRequest = storagetypes.QueryHeadBucketRequest{
@@ -181,7 +180,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.ChargedReadQuota, uint64(100000))
 	// Delete bucket Policy
 	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(user[0].GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
-	s.SendTxBlock(msgDeletePolicy, user[0])
+	s.SendTxBlock(user[0], msgDeletePolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -207,7 +206,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user[0])
+	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -243,7 +242,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, nil)
-	s.SendTxBlock(msgPutPolicy, user[0])
+	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -291,7 +290,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 		storagetypes.VISIBILITY_TYPE_PUBLIC_READ, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user[1])
+	s.SendTxBlock(user[1], msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -321,14 +320,14 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	// CancelCreateObject
 	msgCancelCreateObject = storagetypes.NewMsgCancelCreateObject(user[1].GetAddr(), bucketName, objectName)
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCancelCreateObject, user[1])
+	s.SendTxBlock(user[1], msgCancelCreateObject)
 
 	// CreateObject
 	msgCreateObject = storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName, uint64(payloadSize),
 		storagetypes.VISIBILITY_TYPE_PUBLIC_READ, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateObject, user[1])
+	s.SendTxBlock(user[1], msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest = storagetypes.QueryHeadObjectRequest{
@@ -353,11 +352,11 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	// Owner cancel
 	msgCancelCreateObject = storagetypes.NewMsgCancelCreateObject(user[0].GetAddr(), bucketName, objectName)
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCancelCreateObject, user[0])
+	s.SendTxBlock(user[0], msgCancelCreateObject)
 
 	// Delete bucket Policy
 	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(user[0].GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
-	s.SendTxBlock(msgDeletePolicy, user[0])
+	s.SendTxBlock(user[0], msgDeletePolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -383,7 +382,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user[0])
+	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -422,7 +421,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, &expirationTime)
-	s.SendTxBlock(msgPutPolicy, user[0])
+	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -475,7 +474,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 
 	// Delete bucket Policy
 	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(user[0].GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
-	s.SendTxBlock(msgDeletePolicy, user[0])
+	s.SendTxBlock(user[0], msgDeletePolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -501,7 +500,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user[0])
+	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -538,7 +537,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, nil)
-	s.SendTxBlock(msgPutPolicy, user[0])
+	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -588,7 +587,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.T().Logf("Message: %s", msgCreateObject.String())
-	s.SendTxBlock(msgCreateObject, user[1])
+	s.SendTxBlock(user[1], msgCreateObject)
 
 	objectName2 := storageutil.GenRandomObjectName()
 	msgCreateObject = storagetypes.NewMsgCreateObject(user[1].GetAddr(), bucketName, objectName2, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PUBLIC_READ, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
@@ -599,7 +598,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 
 	// Delete bucket Policy
 	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(user[0].GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
-	s.SendTxBlock(msgDeletePolicy, user[0])
+	s.SendTxBlock(user[0], msgDeletePolicy)
 
 	// verify permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -625,7 +624,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(msgCreateBucket, user[0])
+	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
 	ctx := context.Background()
@@ -654,8 +653,8 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()})
-	s.SendTxBlock(msgCreateGroup, user[0])
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()}, "")
+	s.SendTxBlock(user[0], msgCreateGroup)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
@@ -679,7 +678,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	principal := types.NewPrincipalWithGroup(headGroupResponse.GroupInfo.Id)
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, nil)
-	s.SendTxBlock(msgPutPolicy, user[0])
+	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify allow permission
 	verifyPermReq = storagetypes.QueryVerifyPermissionRequest{
@@ -736,7 +735,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 			nil, math.MaxUint, nil, 0)
 		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 		s.Require().NoError(err)
-		s.SendTxBlock(msgCreateBucket, user[0])
+		s.SendTxBlock(user[0], msgCreateBucket)
 	}
 
 	// object0:public object1:private object2:default
@@ -831,7 +830,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 		msgCreateObject0 := storagetypes.NewMsgCreateObject(user[0].GetAddr(), object.BucketName, object.ObjectName, uint64(payloadSize), object.PublicType, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 		msgCreateObject0.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject0.GetApprovalBytes())
 		s.Require().NoError(err)
-		s.SendTxBlock(msgCreateObject0, user[0])
+		s.SendTxBlock(user[0], msgCreateObject0)
 
 		// verify permission
 		verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
@@ -886,7 +885,7 @@ func (s *StorageTestSuite) TestEmptyPermission() {
 			nil, math.MaxUint, nil, 0)
 		msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 		s.Require().NoError(err)
-		s.SendTxBlock(msgCreateBucket, user[0])
+		s.SendTxBlock(user[0], msgCreateBucket)
 
 		// verify permission for empty operator address
 		verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
@@ -990,7 +989,7 @@ func (s *StorageTestSuite) TestEmptyPermission() {
 		msgCreateObject0 := storagetypes.NewMsgCreateObject(user[0].GetAddr(), object.BucketName, object.ObjectName, uint64(payloadSize), object.PublicType, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
 		msgCreateObject0.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject0.GetApprovalBytes())
 		s.Require().NoError(err)
-		s.SendTxBlock(msgCreateObject0, user[0])
+		s.SendTxBlock(user[0], msgCreateObject0)
 
 		// verify permission
 		verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
@@ -1024,7 +1023,7 @@ func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
 	}
 	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{bucketStatement}, nil)
-	s.SendTxBlock(msgPutBucketPolicy, owner)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
 
 	// Put Object policy
 	objectStatement := &types.Statement{
@@ -1033,7 +1032,7 @@ func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
 	}
 	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
 		principal, []*types.Statement{objectStatement}, nil)
-	s.SendTxBlock(msgPutObjectPolicy, owner)
+	s.SendTxBlock(owner, msgPutObjectPolicy)
 
 	// Query the policy which is enforced on bucket and object
 	grn := types2.NewBucketGRN(bucketName)
@@ -1053,11 +1052,11 @@ func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
 
 	// user1 deletes the object
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user1.GetAddr(), bucketName, objectName)
-	s.SendTxBlock(msgDeleteObject, user1)
+	s.SendTxBlock(user1, msgDeleteObject)
 
 	// user1 deletes the bucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user1.GetAddr(), bucketName)
-	s.SendTxBlock(msgDeleteBucket, user1)
+	s.SendTxBlock(user1, msgDeleteBucket)
 
 	// bucket and object dont exist after deletion
 	headObjectReq := storagetypes.QueryHeadObjectRequest{
@@ -1093,8 +1092,8 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()})
-	s.SendTxBlock(msgCreateGroup, owner)
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()}, "")
+	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1112,7 +1111,7 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 	}
 	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{bucketStatement}, nil)
-	s.SendTxBlock(msgPutBucketPolicy, owner)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
 
 	// Put Object policy for group
 	objectStatement := &types.Statement{
@@ -1121,7 +1120,7 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 	}
 	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
 		principal, []*types.Statement{objectStatement}, nil)
-	s.SendTxBlock(msgPutObjectPolicy, owner)
+	s.SendTxBlock(owner, msgPutObjectPolicy)
 
 	// Query bucket policy for group
 	grn := types2.NewBucketGRN(bucketName)
@@ -1147,11 +1146,11 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// user1 deletes the object
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user[1].GetAddr(), bucketName, objectName)
-	s.SendTxBlock(msgDeleteObject, user[1])
+	s.SendTxBlock(user[1], msgDeleteObject)
 
 	// user1 deletes the bucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user[1].GetAddr(), bucketName)
-	s.SendTxBlock(msgDeleteBucket, user[1])
+	s.SendTxBlock(user[1], msgDeleteBucket)
 
 	// bucket and object dont exist after deletion
 	headObjectReq := storagetypes.QueryHeadObjectRequest{
@@ -1191,8 +1190,9 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 	// Create Group
 	testGroupName := "testGroup"
 	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()})
-	s.SendTxBlock(msgCreateGroup, owner)
+		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
+		"")
+	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1209,7 +1209,7 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 	}
 	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), testGroupName).String(),
 		types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{groupStatement}, nil)
-	s.SendTxBlock(msgPutGroupPolicy, owner)
+	s.SendTxBlock(owner, msgPutGroupPolicy)
 
 	// Query for policy
 	grn := types2.NewGroupGRN(owner.GetAddr(), testGroupName)
@@ -1236,7 +1236,7 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 
 	// the owner deletes the group
 	msgDeleteGroup := storagetypes.NewMsgDeleteGroup(owner.GetAddr(), testGroupName)
-	s.SendTxBlock(msgDeleteGroup, owner)
+	s.SendTxBlock(owner, msgDeleteGroup)
 
 	// policy is GC
 	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: policyID.String()})
@@ -1348,4 +1348,57 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 		s.Require().Error(err)
 		s.Require().ErrorContains(err, "No such Policy")
 	}
+}
+
+func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
+	var err error
+	ctx := context.Background()
+
+	user := s.GenAndChargeAccounts(4, 1000000)
+	owner := user[0]
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
+		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
+		"")
+	s.SendTxBlock(owner, msgCreateGroup)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Put policy
+	groupStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_GROUP_EXTRA},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), testGroupName).String(),
+		types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{groupStatement}, nil)
+	s.SendTxBlock(owner, msgPutGroupPolicy)
+
+	// user1 update the extra of group is allowed
+	newExtra := "newExtra"
+	msgUpdateGroup := storagetypes.NewMsgUpdateGroupExtra(user[1].GetAddr(), owner.GetAddr(), testGroupName, newExtra)
+	s.SendTxBlock(user[1], msgUpdateGroup)
+
+	// Head Group
+	headGroupRequest = storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err = s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// user2 update the extra of group is not allowed
+	newExtra = "newExtra2"
+	msgUpdateGroup2 := storagetypes.NewMsgUpdateGroupExtra(user[2].GetAddr(), owner.GetAddr(), testGroupName, newExtra)
+	_, err = s.SendTxBlockWithoutCheck(msgUpdateGroup2, user[2])
+	s.Require().Error(err)
+
 }

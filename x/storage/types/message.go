@@ -42,7 +42,10 @@ const (
 	TypeMsgDeleteGroup       = "delete_group"
 	TypeMsgLeaveGroup        = "leave_group"
 	TypeMsgUpdateGroupMember = "update_group_member"
+	TypeMsgUpdateGroupExtra  = "update_group_extra"
 	TypeMsgMirrorGroup       = "mirror_group"
+
+	MaxGroupExtraInfoLimit = 512
 
 	// For permission policy
 	TypeMsgPutPolicy    = "put_policy"
@@ -76,6 +79,7 @@ var (
 	_ sdk.Msg = &MsgDeleteGroup{}
 	_ sdk.Msg = &MsgLeaveGroup{}
 	_ sdk.Msg = &MsgUpdateGroupMember{}
+	_ sdk.Msg = &MsgUpdateGroupExtra{}
 	_ sdk.Msg = &MsgMirrorGroup{}
 
 	// For permission policy
@@ -846,7 +850,7 @@ func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sdk.AccAddress) *MsgCreateGroup {
+func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sdk.AccAddress, extra string) *MsgCreateGroup {
 	var members []string
 	for _, member := range membersAcc {
 		members = append(members, member.String())
@@ -855,6 +859,7 @@ func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sd
 		Creator:   creator.String(),
 		GroupName: groupName,
 		Members:   members,
+		Extra:     extra,
 	}
 }
 
@@ -1072,6 +1077,63 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 	return nil
 }
 
+func NewMsgUpdateGroupExtra(operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName, extra string) *MsgUpdateGroupExtra {
+	return &MsgUpdateGroupExtra{
+		Operator:   operator.String(),
+		GroupOwner: groupOwner.String(),
+		GroupName:  groupName,
+		Extra:      extra,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) Type() string {
+	return TypeMsgUpdateGroupExtra
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgUpdateGroupExtra) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
+	}
+
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return err
+	}
+	if len(msg.Extra) > MaxGroupExtraInfoLimit {
+		return errors.Wrapf(ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
+	}
+
+	return nil
+}
+
 func NewMsgPutPolicy(operator sdk.AccAddress, resource string,
 	principal *permtypes.Principal, statements []*permtypes.Statement, expirationTime *time.Time) *MsgPutPolicy {
 	return &MsgPutPolicy{
@@ -1183,10 +1245,11 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 }
 
 // NewMsgMirrorBucket creates a new MsgMirrorBucket instance
-func NewMsgMirrorBucket(operator sdk.AccAddress, id Uint) *MsgMirrorBucket {
+func NewMsgMirrorBucket(operator sdk.AccAddress, id Uint, bucketName string) *MsgMirrorBucket {
 	return &MsgMirrorBucket{
-		Operator: operator.String(),
-		Id:       id,
+		Operator:   operator.String(),
+		Id:         id,
+		BucketName: bucketName,
 	}
 }
 
@@ -1222,14 +1285,28 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
+		return nil
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // NewMsgMirrorObject creates a new MsgMirrorObject instance
-func NewMsgMirrorObject(operator sdk.AccAddress, id Uint) *MsgMirrorObject {
+func NewMsgMirrorObject(operator sdk.AccAddress, id Uint, bucketName, objectName string) *MsgMirrorObject {
 	return &MsgMirrorObject{
-		Operator: operator.String(),
-		Id:       id,
+		Operator:   operator.String(),
+		Id:         id,
+		BucketName: bucketName,
+		ObjectName: objectName,
 	}
 }
 
@@ -1265,14 +1342,35 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.BucketName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
+		}
+		if msg.ObjectName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidObjectName, "Object name should be empty")
+		}
+		return nil
+	}
+
+	err = s3util.CheckValidBucketName(msg.BucketName)
+	if err != nil {
+		return err
+	}
+
+	err = s3util.CheckValidObjectName(msg.ObjectName)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
 // NewMsgMirrorGroup creates a new MsgMirrorGroup instance
-func NewMsgMirrorGroup(operator sdk.AccAddress, id Uint) *MsgMirrorGroup {
+func NewMsgMirrorGroup(operator sdk.AccAddress, id Uint, groupName string) *MsgMirrorGroup {
 	return &MsgMirrorGroup{
-		Operator: operator.String(),
-		Id:       id,
+		Operator:  operator.String(),
+		Id:        id,
+		GroupName: groupName,
 	}
 }
 
@@ -1306,6 +1404,18 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if msg.Id.GT(sdk.NewUint(0)) {
+		if msg.GroupName != "" {
+			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
+		}
+		return nil
+	}
+
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return gnfderrors.ErrInvalidGroupName.Wrapf("invalid groupName (%s)", err)
 	}
 
 	return nil
