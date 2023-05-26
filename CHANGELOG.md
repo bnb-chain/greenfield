@@ -15,6 +15,7 @@ Fix
 * [#252](https://github.com/bnb-chain/greenfield/pull/252) fix: remove paramsclient from sdk and swagger
 * [#255](https://github.com/bnb-chain/greenfield/pull/255) fix: verify permission openapi params
 * [#254](https://github.com/bnb-chain/greenfield/pull/254) fix: fix potential int64 multiplication overflow
+* [#263](https://github.com/bnb-chain/greenfield/pull/263) fix: QueryGetSecondarySpStorePriceByTime may wrong data
 
 
 ## v0.2.1
