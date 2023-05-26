@@ -10,3 +10,7 @@ var (
 	GovernanceAddress       = sdk.AccAddress(address.Module(ModuleName, []byte("governance"))[:sdk.EthAddressLength])
 	ValidatorTaxPoolAddress = sdk.AccAddress(address.Module(ModuleName, []byte("validator-tax-pool"))[:sdk.EthAddressLength])
 )
+
+const (
+	ForceUpdateFrozenStreamRecordKey = "force_update_frozen_stream_record"
+)

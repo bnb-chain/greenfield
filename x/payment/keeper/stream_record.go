@@ -96,8 +96,33 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 	return
 }
 
+// UpdateFrozenStreamRecord updates frozen streamRecord in `force delete` scenarios
+// it only handles the lock balance change and ignore the other changes(since the streams are already changed and the
+// accumulated OutFlows are changed outside this function)
+func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
+	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_FROZEN {
+		return fmt.Errorf("stream account %s is not frozen", streamRecord.Account)
+	}
+	currentTimestamp := ctx.BlockTime().Unix()
+	streamRecord.CrudTimestamp = currentTimestamp
+	// update lock balance
+	if !change.LockBalanceChange.IsZero() {
+		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
+		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(change.LockBalanceChange)
+		if streamRecord.LockBalance.IsNegative() {
+			return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
+		}
+	}
+	return nil
+}
+
 func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange, autoSettle bool) error {
 	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_ACTIVE {
+		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN {
+			if forced, ok := ctx.Value(types.ForceUpdateFrozenStreamRecordKey).(bool); forced && ok {
+				return k.UpdateFrozenStreamRecord(ctx, streamRecord, change)
+			}
+		}
 		return fmt.Errorf("stream account %s is frozen", streamRecord.Account)
 	}
 	isPay := change.StaticBalanceChange.IsNegative() || change.RateChange.IsNegative()
