@@ -1,9 +1,10 @@
 package keeper_test
 
 import (
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"testing"
 	"time"
+
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
