@@ -5,18 +5,18 @@ on:
     branches:
       - master
       - develop
+    tags: [ "v*.*.*" ]
   pull_request:
 
 env:
-  IMAGE_NAME: ghcr.io/bnb-chain/greenfield
+  DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+  IMAGE_NAME: meirgenuine/greenfield
   IMAGE_SOURCE: https://github.com/bnb-chain/greenfield
 
 jobs:
-  # Push image to GitHub Packages.
   push:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-
     steps:
       - uses: actions/checkout@v3
 
@@ -30,10 +30,10 @@ jobs:
           --label "org.opencontainers.image.licenses=LGPL-3.0,AGPL-3.0" \
           -f ./Dockerfile -t "${IMAGE_NAME}"
 
-      - name: Log into registry
-        run: echo "${{ secrets.GH_ACCESS_SECRET }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Log into Docker Hub registry
+        run: echo "${DOCKER_PASSWORD}" | docker login -u $DOCKER_USERNAME --password-stdin
 
-      - name: Push image
+      - name: Push image to Docker Hub
         run: |
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
