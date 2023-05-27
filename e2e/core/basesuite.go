@@ -219,6 +219,7 @@ func (s *BaseSuite) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, e
 	}
 }
 
+// Returns latest height
 func (s *BaseSuite) LatestHeight() (int64, error) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
