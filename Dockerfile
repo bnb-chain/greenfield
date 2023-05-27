@@ -40,10 +40,10 @@ WORKDIR ${WORKDIR}
 
 COPY --from=builder /greenfield/. ${WORKDIR}/
 COPY --from=builder /greenfield/build/bin/gnfd ${WORKDIR}/
-RUN chown -R ${USER_UID}:${USER_GID} ${WORKDIR}
-USER ${USER_UID}:${USER_GID}
 RUN chmod +x  ${WORKDIR}/deployment/localup/localup.sh \
     ${WORKDIR}/deployment/localup/localup_fullnode.sh \
     ${WORKDIR}/deployment/localup/utils.sh
+RUN chown -R ${USER_UID}:${USER_GID} ${WORKDIR}
+USER ${USER_UID}:${USER_GID}
 
 EXPOSE 26656 26657 9090 1317 6060 4500
