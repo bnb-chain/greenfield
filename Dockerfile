@@ -40,6 +40,9 @@ WORKDIR ${WORKDIR}
 
 COPY --from=builder /greenfield/. ${WORKDIR}/
 COPY --from=builder /greenfield/build/bin/gnfd ${WORKDIR}/
+RUN chmod +x  ${WORKDIR}/deployment/localup/localup.sh \
+    ${WORKDIR}/deployment/localup/localup_fullnode.sh \
+    ${WORKDIR}/deployment/localup/utils.sh
 RUN chown -R ${USER_UID}:${USER_GID} ${WORKDIR}
 USER ${USER_UID}:${USER_GID}
 
