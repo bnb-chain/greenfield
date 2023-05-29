@@ -4,6 +4,8 @@ import (
 	"testing"
 	"time"
 
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -137,6 +139,21 @@ func (s *IntegrationTestSuiteWithoutMock) TestCreateCreateBucket_Payment() {
 	readRate := primaryStorePriceRes.ReadPrice.MulInt(sdk.NewIntFromUint64(ChargedReadQuota)).TruncateInt()
 	s.T().Logf("primarySpRateDiff: %s, expectedRate: %s, readRate: %s", primarySpRateDiff, expectedRate, readRate)
 	s.Require().Equal(expectedRate.String(), primarySpRateDiff.String())
+
+	// force delete
+	err = s.depKeepers.PaymentKeeper.ForceSettle(ctx, userStreamRecordSealObject)
+	s.Require().NoError(err)
+	s.depKeepers.PaymentKeeper.SetStreamRecord(ctx, userStreamRecordSealObject)
+	userStreamRecordSealObject, found = s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
+	s.Require().True(found)
+	s.T().Logf("userStreamRecordSealObject: %+v", userStreamRecordSealObject)
+	s.Require().Equal(userStreamRecordSealObject.Status, paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
+	bucket.ChargedReadQuota += 100000000
+	err = s.keeper.ChargeDeleteObject(ctx, &bucket, &object)
+	s.Require().ErrorContains(err, "is frozen")
+	ctx = ctx.WithValue(paymenttypes.ForceUpdateFrozenStreamRecordKey, true)
+	err = s.keeper.ChargeDeleteObject(ctx, &bucket, &object)
+	s.Require().NoError(err)
 }
 
 func TestKeeperTestSuiteWithoutMock(t *testing.T) {

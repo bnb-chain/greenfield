@@ -1,6 +1,7 @@
 package storage
 
 import (
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	k "github.com/bnb-chain/greenfield/x/storage/keeper"
@@ -22,6 +23,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	}
 
 	blockTime := ctx.BlockTime().Unix()
+	// set ForceUpdateFrozenStreamRecordKey to true in context to force update frozen stream record
+	ctx = ctx.WithValue(paymenttypes.ForceUpdateFrozenStreamRecordKey, true)
 	// delete objects
 	deleted, err := keeper.DeleteDiscontinueObjectsUntil(ctx, blockTime, deletionMax)
 	if err != nil {
