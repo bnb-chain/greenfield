@@ -34,6 +34,16 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgDeleteBucket{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateBucketInfo{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMirrorBucket{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgDiscontinueBucket{},
+	)
+
+	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateObject{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
@@ -43,8 +53,24 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgRejectSealObject{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCopyObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDeleteObject{},
 	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCancelCreateObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgMirrorObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgDiscontinueObject{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateObjectInfo{},
+	)
+
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateGroup{},
 	)
@@ -61,13 +87,11 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 		&MsgLeaveGroup{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCopyObject{},
+		&MsgMirrorGroup{},
 	)
+
 	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgUpdateBucketInfo{},
-	)
-	registry.RegisterImplementations((*sdk.Msg)(nil),
-		&MsgCancelCreateObject{},
+		&MsgPutPolicy{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgDeletePolicy{},
