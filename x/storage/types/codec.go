@@ -23,6 +23,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgUpdateBucketInfo{}, "storage/UpdateBucketInfo", nil)
 	cdc.RegisterConcrete(&MsgCancelCreateObject{}, "storage/CancelCreateObject", nil)
 	cdc.RegisterConcrete(&MsgDeletePolicy{}, "storage/DeletePolicy", nil)
+	cdc.RegisterConcrete(&MsgUpdateParams{}, "storage/MsgUpdateParams", nil)
 	// this line is used by starport scaffolding # 2
 }
 

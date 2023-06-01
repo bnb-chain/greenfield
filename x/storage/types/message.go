@@ -64,22 +64,25 @@ var (
 	_ sdk.Msg = &MsgDeleteBucket{}
 	_ sdk.Msg = &MsgUpdateBucketInfo{}
 	_ sdk.Msg = &MsgMirrorBucket{}
+	_ sdk.Msg = &MsgDiscontinueBucket{}
 
 	// For object
 	_ sdk.Msg = &MsgCreateObject{}
-	_ sdk.Msg = &MsgDeleteObject{}
 	_ sdk.Msg = &MsgSealObject{}
-	_ sdk.Msg = &MsgCopyObject{}
 	_ sdk.Msg = &MsgRejectSealObject{}
+	_ sdk.Msg = &MsgCopyObject{}
+	_ sdk.Msg = &MsgDeleteObject{}
 	_ sdk.Msg = &MsgCancelCreateObject{}
 	_ sdk.Msg = &MsgMirrorObject{}
+	_ sdk.Msg = &MsgDiscontinueObject{}
+	_ sdk.Msg = &MsgUpdateObjectInfo{}
 
 	// For group
 	_ sdk.Msg = &MsgCreateGroup{}
 	_ sdk.Msg = &MsgDeleteGroup{}
-	_ sdk.Msg = &MsgLeaveGroup{}
 	_ sdk.Msg = &MsgUpdateGroupMember{}
 	_ sdk.Msg = &MsgUpdateGroupExtra{}
+	_ sdk.Msg = &MsgLeaveGroup{}
 	_ sdk.Msg = &MsgMirrorGroup{}
 
 	// For permission policy
