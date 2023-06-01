@@ -109,8 +109,6 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 		TotalDeposit:    math.NewIntWithDecimal(2010, types2.DecimalBNB),
 	}
 
-	fmt.Printf(sp.TotalDeposit.String())
-
 	k.SetStorageProvider(ctx, sp)
 	_, found := k.GetStorageProvider(ctx, spAcc)
 	if !found {
