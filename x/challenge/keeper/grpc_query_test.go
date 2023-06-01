@@ -33,8 +33,8 @@ func TestLatestAttestedChallengesQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
 	err := keeper.SetParams(ctx, types.DefaultParams())
 	require.NoError(t, err)
-	c100 := &types.AttestedChallenge{100, types.CHALLENGE_SUCCEED}
-	c200 := &types.AttestedChallenge{200, types.CHALLENGE_FAILED}
+	c100 := &types.AttestedChallenge{Id: 100, Result: types.CHALLENGE_SUCCEED}
+	c200 := &types.AttestedChallenge{Id: 200, Result: types.CHALLENGE_FAILED}
 	keeper.AppendAttestedChallenge(ctx, c100)
 	keeper.AppendAttestedChallenge(ctx, c200)
 

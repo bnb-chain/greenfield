@@ -1,9 +1,9 @@
 package storage
 
 import (
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	k "github.com/bnb-chain/greenfield/x/storage/keeper"
 )
 

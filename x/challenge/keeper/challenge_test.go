@@ -35,18 +35,18 @@ func TestAttestedChallenges(t *testing.T) {
 	err := keeper.SetParams(ctx, params)
 	require.NoError(t, err)
 
-	c1 := &types.AttestedChallenge{1, types.CHALLENGE_FAILED}
-	c2 := &types.AttestedChallenge{2, types.CHALLENGE_SUCCEED}
-	c3 := &types.AttestedChallenge{3, types.CHALLENGE_FAILED}
+	c1 := &types.AttestedChallenge{Id: 1, Result: types.CHALLENGE_FAILED}
+	c2 := &types.AttestedChallenge{Id: 2, Result: types.CHALLENGE_SUCCEED}
+	c3 := &types.AttestedChallenge{Id: 3, Result: types.CHALLENGE_FAILED}
 
 	keeper.AppendAttestedChallenge(ctx, c1)
 	keeper.AppendAttestedChallenge(ctx, c2)
 	keeper.AppendAttestedChallenge(ctx, c3)
 	require.Equal(t, []*types.AttestedChallenge{c1, c2, c3}, keeper.GetAttestedChallenges(ctx))
 
-	c4 := &types.AttestedChallenge{4, types.CHALLENGE_FAILED}
-	c5 := &types.AttestedChallenge{5, types.CHALLENGE_FAILED}
-	c6 := &types.AttestedChallenge{6, types.CHALLENGE_SUCCEED}
+	c4 := &types.AttestedChallenge{Id: 4, Result: types.CHALLENGE_FAILED}
+	c5 := &types.AttestedChallenge{Id: 5, Result: types.CHALLENGE_FAILED}
+	c6 := &types.AttestedChallenge{Id: 6, Result: types.CHALLENGE_SUCCEED}
 
 	keeper.AppendAttestedChallenge(ctx, c4)
 	keeper.AppendAttestedChallenge(ctx, c5)
@@ -56,8 +56,8 @@ func TestAttestedChallenges(t *testing.T) {
 	params.AttestationKeptCount = 8
 	err = keeper.SetParams(ctx, params)
 	require.NoError(t, err)
-	c7 := &types.AttestedChallenge{7, types.CHALLENGE_FAILED}
-	c8 := &types.AttestedChallenge{8, types.CHALLENGE_SUCCEED}
+	c7 := &types.AttestedChallenge{Id: 7, Result: types.CHALLENGE_FAILED}
+	c8 := &types.AttestedChallenge{Id: 8, Result: types.CHALLENGE_SUCCEED}
 	keeper.AppendAttestedChallenge(ctx, c7)
 	keeper.AppendAttestedChallenge(ctx, c8)
 	require.Equal(t, []*types.AttestedChallenge{c2, c3, c4, c5, c6, c7, c8}, keeper.GetAttestedChallenges(ctx))
@@ -65,14 +65,14 @@ func TestAttestedChallenges(t *testing.T) {
 	params.AttestationKeptCount = 3
 	err = keeper.SetParams(ctx, params)
 	require.NoError(t, err)
-	c9 := &types.AttestedChallenge{9, types.CHALLENGE_SUCCEED}
+	c9 := &types.AttestedChallenge{Id: 9, Result: types.CHALLENGE_SUCCEED}
 	keeper.AppendAttestedChallenge(ctx, c9)
 	require.Equal(t, []*types.AttestedChallenge{c7, c8, c9}, keeper.GetAttestedChallenges(ctx))
 
 	params.AttestationKeptCount = 5
 	err = keeper.SetParams(ctx, params)
 	require.NoError(t, err)
-	c10 := &types.AttestedChallenge{10, types.CHALLENGE_SUCCEED}
+	c10 := &types.AttestedChallenge{Id: 10, Result: types.CHALLENGE_SUCCEED}
 	keeper.AppendAttestedChallenge(ctx, c10)
 	require.Equal(t, []*types.AttestedChallenge{c7, c8, c9, c10}, keeper.GetAttestedChallenges(ctx))
 }
