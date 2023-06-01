@@ -19,9 +19,9 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/greenfield/challenge/params";
   }
-  // Queries the latest attested challenge ids.
+  // Queries the latest attested challenges.
   rpc LatestAttestedChallenges(QueryLatestAttestedChallengesRequest) returns (QueryLatestAttestedChallengesResponse) {
-    option (google.api.http).get = "/greenfield/challenge/latest_attested_challenge";
+    option (google.api.http).get = "/greenfield/challenge/latest_attested_challenges";
   }
   // Queries the inturn challenger.
   rpc InturnAttestationSubmitter(QueryInturnAttestationSubmitterRequest) returns (QueryInturnAttestationSubmitterResponse) {

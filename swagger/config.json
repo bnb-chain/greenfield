@@ -15,6 +15,14 @@
       }
     },
     {
+      "url": "./tmp-swagger-gen/greenfield/challenge/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ChallengeParams"
+        }
+      }
+    },
+    {
       "url": "./tmp-swagger-gen/greenfield/payment/query.swagger.json",
       "operationIds": {
         "rename": {
