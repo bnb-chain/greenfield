@@ -1068,6 +1068,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteObject, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1107,6 +1108,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events = make([]storagetypes.EventDeleteObject, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1140,7 +1142,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 	heightBefore := txRes.Height
 	heightAfter := int64(0)
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
@@ -1155,6 +1157,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteObject, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1211,6 +1214,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteBucket, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1250,6 +1254,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events = make([]storagetypes.EventDeleteBucket, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1286,7 +1291,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 	heightBefore := txRes.Height
 	heightAfter := int64(0)
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
@@ -1301,6 +1306,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteBucket, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
