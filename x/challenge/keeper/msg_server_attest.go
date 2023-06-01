@@ -91,7 +91,10 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 			return nil, err
 		}
 	}
-	k.AppendAttestChallengeId(ctx, msg.ChallengeId)
+	k.AppendAttestedChallenge(ctx, &types.AttestedChallenge{
+		Id:     msg.ChallengeId,
+		Result: msg.VoteResult,
+	})
 
 	return &types.MsgAttestResponse{}, nil
 }

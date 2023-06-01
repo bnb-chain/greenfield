@@ -29,10 +29,10 @@ func (k Keeper) LatestAttestedChallenges(goCtx context.Context, req *types.Query
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	challengeId := k.GetAttestChallengeIds(ctx)
+	challenges := k.GetAttestedChallenges(ctx)
 
 	return &types.QueryLatestAttestedChallengesResponse{
-		ChallengeIds: challengeId,
+		Challenges: challenges,
 	}, nil
 }
 

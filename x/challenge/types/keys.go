@@ -37,12 +37,12 @@ var (
 	// The data is stored in transient store.
 	CurrentBlockChallengeCountKey = []byte{0x14}
 
-	// AttestChallengeIdsPrefix is the prefix to record the latest attested challenge ids.
-	AttestChallengeIdsPrefix = []byte{0x15}
+	// AttestedChallengesPrefix is the prefix to record the latest attested challenges.
+	AttestedChallengesPrefix = []byte{0x15}
 
-	// AttestChallengeIdsSizeKey is the key to record the size of latest attested challenge ids.
-	AttestChallengeIdsSizeKey = []byte{0x16}
+	// AttestedChallengesSizeKey is the key to record the size of latest attested challenges.
+	AttestedChallengesSizeKey = []byte{0x16}
 
-	// AttestChallengeIdsCursorKey is the key to retrieve the latest attested challenge ids.
-	AttestChallengeIdsCursorKey = []byte{0x17}
+	// AttestedChallengesCursorKey is the key to retrieve the latest attested challenges.
+	AttestedChallengesCursorKey = []byte{0x17}
 )

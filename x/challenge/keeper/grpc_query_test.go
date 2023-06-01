@@ -33,12 +33,14 @@ func TestLatestAttestedChallengesQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
 	err := keeper.SetParams(ctx, types.DefaultParams())
 	require.NoError(t, err)
-	keeper.AppendAttestChallengeId(ctx, 100)
-	keeper.AppendAttestChallengeId(ctx, 200)
+	c100 := &types.AttestedChallenge{100, types.CHALLENGE_SUCCEED}
+	c200 := &types.AttestedChallenge{200, types.CHALLENGE_FAILED}
+	keeper.AppendAttestedChallenge(ctx, c100)
+	keeper.AppendAttestedChallenge(ctx, c200)
 
 	response, err := keeper.LatestAttestedChallenges(ctx, &types.QueryLatestAttestedChallengesRequest{})
 	require.NoError(t, err)
-	require.Equal(t, &types.QueryLatestAttestedChallengesResponse{ChallengeIds: []uint64{100, 200}}, response)
+	require.Equal(t, &types.QueryLatestAttestedChallengesResponse{Challenges: []*types.AttestedChallenge{c100, c200}}, response)
 }
 
 func TestInturnAttestationSubmitterQuery(t *testing.T) {

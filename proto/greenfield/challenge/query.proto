@@ -45,7 +45,7 @@ message QueryLatestAttestedChallengesRequest {}
 
 // QueryLatestAttestedChallengesResponse is response type for the Query/LatestAttestedChallenges RPC method.
 message QueryLatestAttestedChallengesResponse {
-  repeated uint64 challengeIds = 1;
+  repeated AttestedChallenge challenges = 1;
 }
 
 // QueryInturnAttestationSubmitterRequest is request type for the Query/InturnAttestationSubmitter RPC method.
