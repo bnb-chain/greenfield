@@ -208,6 +208,8 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		return true, 0, nil
 	}
 
+	ctx.Logger().Info("DDug1 ForceDeleteBucket", "bucket name", bucketInfo.BucketName)
+
 	bucketDeleted := false
 	sp := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
 
@@ -230,6 +232,10 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		var objectInfo types.ObjectInfo
 		k.cdc.MustUnmarshal(bz, &objectInfo)
 
+		ctx.Logger().Info("DDug2 ForceDeleteBucket", "bucket name", bucketInfo.BucketName,
+			"object name", objectInfo.ObjectName, "object id", objectInfo.Id,
+			"object status", objectInfo.ObjectStatus)
+
 		if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
 			if err := k.UnlockStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("unlock store fee error", "err", err)
@@ -248,18 +254,28 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		deleted++
 	}
 
+	ctx.Logger().Info("DDug3 ForceDeleteBucket", "bucket name", bucketInfo.BucketName,
+		"iter.Valid", iter.Valid())
+
 	it := objectPrefixStore.Iterator(nil, nil)
 	defer it.Close()
+
+	ctx.Logger().Info("DDug4 ForceDeleteBucket", "bucket name", bucketInfo.BucketName,
+		"it.Valid", it.Valid())
+
 	if !it.Valid() {
+		ctx.Logger().Info("DDug5 ForceDeleteBucket", "bucket name", bucketInfo.BucketName)
 		if err := k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
 			ctx.Logger().Error("charge delete bucket error", "err", err)
 			return false, deleted, err
 		}
 
+		ctx.Logger().Info("DDug6 ForceDeleteBucket", "bucket name", bucketInfo.BucketName)
 		if err := k.doDeleteBucket(ctx, sp, bucketInfo); err != nil {
 			ctx.Logger().Error("do delete bucket error", "err", err)
 			return false, deleted, err
 		}
+
 		bucketDeleted = true
 	}
 
