@@ -223,6 +223,10 @@ func (msg *MsgDeposit) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
+	}
+
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
