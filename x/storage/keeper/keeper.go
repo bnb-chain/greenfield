@@ -219,7 +219,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	deleted := uint64(0) // deleted object count
 	for ; iter.Valid(); iter.Next() {
 		if deleted >= cap {
-			break
+			return false, deleted, nil
 		}
 
 		bz := store.Get(types.GetObjectByIDKey(types.DecodeSequence(iter.Value())))
