@@ -248,7 +248,9 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		deleted++
 	}
 
-	if !iter.Valid() {
+	it := objectPrefixStore.Iterator(nil, nil)
+	defer it.Close()
+	if !it.Valid() {
 		if err := k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
 			ctx.Logger().Error("charge delete bucket error", "err", err)
 			return false, deleted, err
