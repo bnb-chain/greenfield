@@ -220,7 +220,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	deleted := uint64(0) // deleted object count
 	for ; iter.Valid(); iter.Next() {
 		if deleted >= cap {
-			return false, deleted, nil
+			return false, deleted, nil // break is also fine here
 		}
 
 		bz := store.Get(types.GetObjectByIDKey(types.DecodeSequence(iter.Value())))
@@ -232,7 +232,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		k.cdc.MustUnmarshal(bz, &objectInfo)
 
 		// An object cannot be discontinued if the bucket is already discontinued,
-		// which means that when deleting a bucket the objects in it should be in
+		// which means that after deleting objects when deleting a bucket the objects in it should be in
 		// OBJECT_STATUS_CREATED or OBJECT_STATUS_SEALED status.
 		// However, when updating the deletion confirm period parameter, it can lead to that
 		// the discontinued bucket can be deleted earlier, then its objects could be in
