@@ -4,8 +4,6 @@ import (
 	"testing"
 	"time"
 
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -14,6 +12,7 @@ import (
 
 	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"

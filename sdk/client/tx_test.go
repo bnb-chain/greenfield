@@ -148,6 +148,7 @@ func TestSendTokenWithOverrideAccount(t *testing.T) {
 	km, err := keys.NewPrivateKeyManager("2a3f0f19fbcb057e053696879207324c24f601ab47db92676cc4958ea9089761")
 	assert.NoError(t, err)
 	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
+	assert.NoError(t, err)
 
 	km2, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)

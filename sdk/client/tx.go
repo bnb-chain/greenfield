@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"github.com/bnb-chain/greenfield/sdk/keys"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
@@ -14,6 +13,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc"
 
+	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 )
 

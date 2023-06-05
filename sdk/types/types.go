@@ -1,12 +1,13 @@
 package types
 
 import (
-	"github.com/bnb-chain/greenfield/sdk/keys"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+
+	"github.com/bnb-chain/greenfield/sdk/keys"
 )
 
 const (
