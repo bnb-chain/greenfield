@@ -1,6 +1,7 @@
 package types
 
 import (
+	"github.com/bnb-chain/greenfield/sdk/keys"
 	"math/big"
 
 	sdkmath "cosmossdk.io/math"
@@ -19,15 +20,21 @@ const (
 )
 
 type TxOption struct {
-	Mode       *tx.BroadcastMode
-	NoSimulate bool
-	GasLimit   uint64
-	FeeAmount  sdk.Coins
-	Nonce      uint64
-	FeePayer   sdk.AccAddress
-	FeeGranter sdk.AccAddress
-	Tip        *tx.Tip
-	Memo       string
+	Mode            *tx.BroadcastMode
+	NoSimulate      bool
+	GasLimit        uint64
+	FeeAmount       sdk.Coins
+	Nonce           uint64
+	FeePayer        sdk.AccAddress
+	FeeGranter      sdk.AccAddress
+	Tip             *tx.Tip
+	Memo            string
+	OverrideAccount *Account
+}
+
+type Account struct {
+	Num *uint64
+	Km  *keys.KeyManager
 }
 
 func NewIntFromInt64WithDecimal(amount int64, decimal int64) sdkmath.Int {

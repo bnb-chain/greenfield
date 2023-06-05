@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"github.com/bnb-chain/greenfield/sdk/keys"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
@@ -101,23 +102,45 @@ func (c *GreenfieldClient) SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *ty
 }
 
 func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig, txBuilder client.TxBuilder, txOpt *types.TxOption) ([]byte, error) {
-	km, err := c.GetKeyManager()
-	if err != nil {
-		return nil, err
+	var km keys.KeyManager
+	var accountNum uint64
+	var account authtypes.AccountI
+	hasOverrideAccount := false
+
+	var err error
+
+	if txOpt == nil || txOpt.OverrideAccount == nil || (*txOpt.OverrideAccount).Km == nil || (*txOpt.OverrideAccount).Num == nil {
+		km, err = c.GetKeyManager()
+		if err != nil {
+			return nil, err
+		}
+		account, err = c.getAccount()
+		if err != nil {
+			return nil, err
+		}
+		accountNum = account.GetAccountNumber()
+	} else {
+		km = *txOpt.OverrideAccount.Km
+		accountNum = *txOpt.OverrideAccount.Num
+		hasOverrideAccount = true
 	}
+
 	var nonce uint64
-	account, err := c.getAccount()
-	if err != nil {
-		return nil, err
-	}
-	nonce = account.GetSequence()
 	if txOpt != nil && txOpt.Nonce != 0 {
 		nonce = txOpt.Nonce
+	} else {
+		if hasOverrideAccount {
+			account, err = c.getAccountByAddr(km.GetAddr())
+		}
+		if err != nil {
+			return nil, err
+		}
+		nonce = account.GetSequence()
 	}
 
 	signerData := xauthsigning.SignerData{
 		ChainID:       c.chainId,
-		AccountNumber: account.GetAccountNumber(),
+		AccountNumber: accountNum,
 		Sequence:      nonce,
 	}
 	sig, err := clitx.SignWithPrivKey(
@@ -144,19 +167,40 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 
 // setSingerInfo gathers the signer info by doing "empty signature" hack, and inject it into txBuilder
 func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *types.TxOption) error {
-	km, err := c.GetKeyManager()
-	if err != nil {
-		return err
+
+	var km keys.KeyManager
+	var err error
+
+	hasOverrideAccount := false
+
+	if txOpt == nil || txOpt.OverrideAccount == nil || (*txOpt.OverrideAccount).Km == nil ||
+		(*txOpt.OverrideAccount).Num == nil {
+
+		km, err = c.GetKeyManager()
+		if err != nil {
+			return err
+		}
+	} else {
+		hasOverrideAccount = true
+		km = *txOpt.OverrideAccount.Km
 	}
+
 	var nonce uint64
-	account, err := c.getAccount()
-	if err != nil {
-		return err
-	}
-	nonce = account.GetSequence()
 	if txOpt != nil && txOpt.Nonce != 0 {
 		nonce = txOpt.Nonce
+	} else {
+		var account authtypes.AccountI
+		if hasOverrideAccount {
+			account, err = c.getAccountByAddr(km.GetAddr())
+		} else {
+			account, err = c.getAccount()
+		}
+		if err != nil {
+			return err
+		}
+		nonce = account.GetSequence()
 	}
+
 	sig := signing.SignatureV2{
 		PubKey: km.PubKey(),
 		Data: &signing.SingleSignatureData{
@@ -254,7 +298,11 @@ func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
 	if err != nil {
 		return nil, err
 	}
-	acct, err := c.AuthQueryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: km.GetAddr().String()})
+	return c.getAccountByAddr(km.GetAddr())
+}
+
+func (c *GreenfieldClient) getAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error) {
+	acct, err := c.AuthQueryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: addr.String()})
 	if err != nil {
 		return nil, err
 	}
