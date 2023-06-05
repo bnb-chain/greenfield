@@ -15,9 +15,11 @@ const (
 
 var (
 	_ sdk.Msg = &MsgCreateStorageProvider{}
-	_ sdk.Msg = &MsgEditStorageProvider{}
 	_ sdk.Msg = &MsgDeposit{}
+
+	_ sdk.Msg = &MsgEditStorageProvider{}
 	_ sdk.Msg = &MsgUpdateSpStoragePrice{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // NewMsgCreateStorageProvider creates a new MsgCreateStorageProvider instance.

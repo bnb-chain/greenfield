@@ -30,6 +30,10 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateSpStoragePrice{},
 	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateParams{},
+	)
+
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),
 		&DepositAuthorization{},
