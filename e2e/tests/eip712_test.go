@@ -5,10 +5,11 @@ import (
 	"math"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/bnb-chain/greenfield/e2e/core"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type Eip712TestSuite struct {

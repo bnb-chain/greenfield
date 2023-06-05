@@ -155,8 +155,14 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 	_, err := s.msgServer.Attest(s.ctx, attestMsg)
 	require.NoError(s.T(), err)
 
-	attestIds := s.challengeKeeper.GetAttestChallengeIds(s.ctx)
-	s.Require().Contains(attestIds, challengeId)
+	attestedChallenges := s.challengeKeeper.GetAttestedChallenges(s.ctx)
+	found := false
+	for _, c := range attestedChallenges {
+		if c.Id == challengeId {
+			found = true
+		}
+	}
+	s.Require().True(found)
 }
 
 func (s *TestSuite) TestAttest_Normal() {
@@ -211,7 +217,13 @@ func (s *TestSuite) TestAttest_Normal() {
 	_, err := s.msgServer.Attest(s.ctx, attestMsg)
 	require.NoError(s.T(), err)
 
-	attestIds := s.challengeKeeper.GetAttestChallengeIds(s.ctx)
-	s.Require().Contains(attestIds, challengeId)
+	attestedChallenges := s.challengeKeeper.GetAttestedChallenges(s.ctx)
+	found := false
+	for _, c := range attestedChallenges {
+		if c.Id == challengeId {
+			found = true
+		}
+	}
+	s.Require().True(found)
 	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, spOperatorAcc, attestMsg.ObjectId))
 }
