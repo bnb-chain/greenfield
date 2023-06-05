@@ -240,7 +240,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 
 		objectStatus := objectInfo.ObjectStatus
 		if objectStatus == types.OBJECT_STATUS_DISCONTINUED {
-			objectStatus, err = k.getDiscontinueObjectStatus(ctx, objectInfo.Id)
+			objectStatus, err = k.getAndDeleteDiscontinueObjectStatus(ctx, objectInfo.Id)
 			if err != nil {
 				return false, deleted, err
 			}
@@ -799,7 +799,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		return types.ErrNoSuchBucket
 	}
 
-	objectStatus, err := k.getDiscontinueObjectStatus(ctx, objectId)
+	objectStatus, err := k.getAndDeleteDiscontinueObjectStatus(ctx, objectId)
 	if err != nil {
 		return err
 	}
@@ -1521,7 +1521,7 @@ func (k Keeper) saveDiscontinueObjectStatus(ctx sdk.Context, object *types.Objec
 	store.Set(types.GetDiscontinueObjectStatusKey(object.Id), bz)
 }
 
-func (k Keeper) getDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint) (types.ObjectStatus, error) {
+func (k Keeper) getAndDeleteDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint) (types.ObjectStatus, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetDiscontinueObjectStatusKey(objectId))
 	if bz == nil {
