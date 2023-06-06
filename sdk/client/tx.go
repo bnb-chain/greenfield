@@ -3,6 +3,8 @@ package client
 import (
 	"context"
 
+	"github.com/bnb-chain/greenfield/sdk/keys"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -21,6 +23,8 @@ type TransactionClient interface {
 	SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
 	SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
 	GetNonce() (uint64, error)
+	GetNonceByAddr(addr sdk.AccAddress) (uint64, error)
+	GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error)
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
@@ -101,16 +105,24 @@ func (c *GreenfieldClient) SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *ty
 }
 
 func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig, txBuilder client.TxBuilder, txOpt *types.TxOption) ([]byte, error) {
-	km, err := c.GetKeyManager()
+
+	var km keys.KeyManager
+	var err error
+
+	if txOpt != nil && txOpt.OverrideKeyManager != nil {
+		km = *txOpt.OverrideKeyManager
+	} else {
+		km, err = c.GetKeyManager()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	account, err := c.GetAccountByAddr(km.GetAddr())
 	if err != nil {
 		return nil, err
 	}
-	var nonce uint64
-	account, err := c.getAccount()
-	if err != nil {
-		return nil, err
-	}
-	nonce = account.GetSequence()
+	nonce := account.GetSequence()
 	if txOpt != nil && txOpt.Nonce != 0 {
 		nonce = txOpt.Nonce
 	}
@@ -144,16 +156,22 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 
 // setSingerInfo gathers the signer info by doing "empty signature" hack, and inject it into txBuilder
 func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *types.TxOption) error {
-	km, err := c.GetKeyManager()
+
+	var km keys.KeyManager
+	var err error
+	if txOpt != nil && txOpt.OverrideKeyManager != nil {
+		km = *txOpt.OverrideKeyManager
+	} else {
+		km, err = c.GetKeyManager()
+		if err != nil {
+			return err
+		}
+	}
+	account, err := c.GetAccountByAddr(km.GetAddr())
 	if err != nil {
 		return err
 	}
-	var nonce uint64
-	account, err := c.getAccount()
-	if err != nil {
-		return err
-	}
-	nonce = account.GetSequence()
+	nonce := account.GetSequence()
 	if txOpt != nil && txOpt.Nonce != 0 {
 		nonce = txOpt.Nonce
 	}
@@ -242,19 +260,27 @@ func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sd
 }
 
 func (c *GreenfieldClient) GetNonce() (uint64, error) {
-	account, err := c.getAccount()
+	km, err := c.GetKeyManager()
+	if err != nil {
+		return 0, err
+	}
+	account, err := c.GetAccountByAddr(km.GetAddr())
 	if err != nil {
 		return 0, err
 	}
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
-	km, err := c.GetKeyManager()
+func (c *GreenfieldClient) GetNonceByAddr(addr sdk.AccAddress) (uint64, error) {
+	account, err := c.GetAccountByAddr(addr)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	acct, err := c.AuthQueryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: km.GetAddr().String()})
+	return account.GetSequence(), nil
+}
+
+func (c *GreenfieldClient) GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error) {
+	acct, err := c.AuthQueryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: addr.String()})
 	if err != nil {
 		return nil, err
 	}
