@@ -216,10 +216,11 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	iter := objectPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
 
+	var err error
 	deleted := uint64(0) // deleted object count
 	for ; iter.Valid(); iter.Next() {
 		if deleted >= cap {
-			break
+			return false, deleted, nil // break is also fine here
 		}
 
 		bz := store.Get(types.GetObjectByIDKey(types.DecodeSequence(iter.Value())))
@@ -230,31 +231,46 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		var objectInfo types.ObjectInfo
 		k.cdc.MustUnmarshal(bz, &objectInfo)
 
-		if objectInfo.ObjectStatus == types.OBJECT_STATUS_CREATED {
-			if err := k.UnlockStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
+		// An object cannot be discontinued if the bucket is already discontinued,
+		// which means that after deleting objects when deleting a bucket the objects in it should be in
+		// OBJECT_STATUS_CREATED or OBJECT_STATUS_SEALED status.
+		// However, when updating the deletion confirm period parameter, it can lead to that
+		// the discontinued bucket can be deleted earlier, then its objects could be in
+		// OBJECT_STATUS_DISCONTINUED status.
+
+		objectStatus := objectInfo.ObjectStatus
+		if objectStatus == types.OBJECT_STATUS_DISCONTINUED {
+			objectStatus, err = k.getAndDeleteDiscontinueObjectStatus(ctx, objectInfo.Id)
+			if err != nil {
+				return false, deleted, err
+			}
+		}
+
+		if objectStatus == types.OBJECT_STATUS_CREATED {
+			if err = k.UnlockStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("unlock store fee error", "err", err)
 				return false, deleted, err
 			}
-		} else if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
-			if err := k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo); err != nil {
+		} else if objectStatus == types.OBJECT_STATUS_SEALED {
+			if err = k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("charge delete object error", "err", err)
 				return false, deleted, err
 			}
 		}
-		if err := k.doDeleteObject(ctx, sp, bucketInfo, &objectInfo); err != nil {
-			ctx.Logger().Error("do delete object err", "err", err)
+		if err = k.doDeleteObject(ctx, sp, bucketInfo, &objectInfo); err != nil {
+			ctx.Logger().Error("do delete object error", "err", err)
 			return false, deleted, err
 		}
 		deleted++
 	}
 
 	if !iter.Valid() {
-		if err := k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
+		if err = k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
 			ctx.Logger().Error("charge delete bucket error", "err", err)
 			return false, deleted, err
 		}
 
-		if err := k.doDeleteBucket(ctx, sp, bucketInfo); err != nil {
+		if err = k.doDeleteBucket(ctx, sp, bucketInfo); err != nil {
 			ctx.Logger().Error("do delete bucket error", "err", err)
 			return false, deleted, err
 		}
@@ -783,7 +799,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		return types.ErrNoSuchBucket
 	}
 
-	objectStatus, err := k.getDiscontinueObjectStatus(ctx, objectId)
+	objectStatus, err := k.getAndDeleteDiscontinueObjectStatus(ctx, objectId)
 	if err != nil {
 		return err
 	}
@@ -791,12 +807,13 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 	if objectStatus == types.OBJECT_STATUS_CREATED {
 		err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 		if err != nil {
+			ctx.Logger().Error("unlock store fee error", "err", err)
 			return err
 		}
 	} else if objectStatus == types.OBJECT_STATUS_SEALED {
 		err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
 		if err != nil {
-			ctx.Logger().Error("ChargeDeleteObject error", "err", err)
+			ctx.Logger().Error("charge delete object error", "err", err)
 			return err
 		}
 	}
@@ -1504,10 +1521,11 @@ func (k Keeper) saveDiscontinueObjectStatus(ctx sdk.Context, object *types.Objec
 	store.Set(types.GetDiscontinueObjectStatusKey(object.Id), bz)
 }
 
-func (k Keeper) getDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint) (types.ObjectStatus, error) {
+func (k Keeper) getAndDeleteDiscontinueObjectStatus(ctx sdk.Context, objectId types.Uint) (types.ObjectStatus, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetDiscontinueObjectStatusKey(objectId))
 	if bz == nil {
+		ctx.Logger().Error("fail to get discontinued object status", "object id", objectId)
 		return types.OBJECT_STATUS_DISCONTINUED, errors.Wrapf(types.ErrInvalidObjectStatus, "object id: %s", objectId)
 	}
 	status := int32(binary.BigEndian.Uint32(bz))
