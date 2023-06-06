@@ -64,6 +64,8 @@ message MsgCreateStorageProvider {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // bls_key is the bls public key in hex format
+  string bls_key            = 13;
 }
 
 // MsgCreateStorageProviderResponse defines the Msg/CreateStorageProvider response type.

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
@@ -75,6 +76,15 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// check to see if the gc address has been registered before
 	if _, found := k.GetStorageProviderByGcAddr(ctx, gcAcc); found {
 		return nil, types.ErrStorageProviderGcAddrExists
+	}
+
+	// check to see if the bls pubkey has been registered before
+	blsPk, err := hex.DecodeString(msg.BlsKey)
+	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
+		return nil, types.ErrValidatorInvalidBlsKey
+	}
+	if _, found := k.GetValidatorByBlsKey(ctx, blsPk); found {
+		return nil, types.ErrValidatorBlsKeyExists
 	}
 
 	if err := msg.Description.EnsureLength(); err != nil {
