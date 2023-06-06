@@ -260,7 +260,11 @@ func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sd
 }
 
 func (c *GreenfieldClient) GetNonce() (uint64, error) {
-	account, err := c.GetAccountByAddr(c.keyManager.GetAddr())
+	km, err := c.GetKeyManager()
+	if err != nil {
+		return 0, err
+	}
+	account, err := c.GetAccountByAddr(km.GetAddr())
 	if err != nil {
 		return 0, err
 	}
