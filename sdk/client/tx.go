@@ -23,7 +23,7 @@ type TransactionClient interface {
 	SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
 	SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
 	GetNonce() (uint64, error)
-	GetNonceByKeyManager(km keys.KeyManager) (uint64, error)
+	GetNonceByAddr(addr sdk.AccAddress) (uint64, error)
 	GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error)
 }
 
@@ -118,7 +118,7 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 		}
 	}
 
-	account, err := c.getAccount(&km)
+	account, err := c.GetAccountByAddr(km.GetAddr())
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *type
 			return err
 		}
 	}
-	account, err := c.getAccount(&km)
+	account, err := c.GetAccountByAddr(km.GetAddr())
 	if err != nil {
 		return err
 	}
@@ -260,33 +260,19 @@ func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sd
 }
 
 func (c *GreenfieldClient) GetNonce() (uint64, error) {
-	account, err := c.getAccount(nil)
+	account, err := c.GetAccountByAddr(c.keyManager.GetAddr())
 	if err != nil {
 		return 0, err
 	}
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) GetNonceByKeyManager(km keys.KeyManager) (uint64, error) {
-	account, err := c.getAccount(&km)
+func (c *GreenfieldClient) GetNonceByAddr(addr sdk.AccAddress) (uint64, error) {
+	account, err := c.GetAccountByAddr(addr)
 	if err != nil {
 		return 0, err
 	}
 	return account.GetSequence(), nil
-}
-
-func (c *GreenfieldClient) getAccount(overrideKm *keys.KeyManager) (authtypes.AccountI, error) {
-	var km keys.KeyManager
-	var err error
-	if overrideKm != nil {
-		km = *overrideKm
-	} else {
-		km, err = c.GetKeyManager()
-		if err != nil {
-			return nil, err
-		}
-	}
-	return c.GetAccountByAddr(km.GetAddr())
 }
 
 func (c *GreenfieldClient) GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error) {
