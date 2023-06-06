@@ -131,9 +131,9 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 	} else {
 		if hasOverrideAccount {
 			account, err = c.getAccountByAddr(km.GetAddr())
-		}
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
 		}
 		nonce = account.GetSequence()
 	}
