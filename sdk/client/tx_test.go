@@ -161,19 +161,14 @@ func TestSendTokenWithOverrideAccount(t *testing.T) {
 	assert.NoError(t, err)
 	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
 	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(10000000000000)))) // gasPrice * gasLimit
-	accountNum := uint64(1)
-	acct := types.Account{
-		Num: &accountNum,
-		Km:  &km2,
-	}
 	txOpt := &types.TxOption{
-		Mode:            &mode,
-		NoSimulate:      true,
-		GasLimit:        2000,
-		Memo:            "test",
-		FeePayer:        payerAddr,
-		FeeAmount:       feeAmt, // 2000 * 5000000000
-		OverrideAccount: &acct,
+		Mode:               &mode,
+		NoSimulate:         true,
+		GasLimit:           2000,
+		Memo:               "test",
+		FeePayer:           payerAddr,
+		FeeAmount:          feeAmt, // 2000 * 5000000000
+		OverrideKeyManager: &km2,
 	}
 	response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, txOpt)
 	assert.NoError(t, err)

@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"github.com/bnb-chain/greenfield/sdk/keys"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
@@ -13,7 +14,6 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"google.golang.org/grpc"
 
-	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
@@ -22,6 +22,8 @@ type TransactionClient interface {
 	SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
 	SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
 	GetNonce() (uint64, error)
+	GetNonceByKeyManager(km keys.KeyManager) (uint64, error)
+	GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error)
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
@@ -102,45 +104,31 @@ func (c *GreenfieldClient) SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *ty
 }
 
 func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig, txBuilder client.TxBuilder, txOpt *types.TxOption) ([]byte, error) {
-	var km keys.KeyManager
-	var accountNum uint64
-	var account authtypes.AccountI
-	hasOverrideAccount := false
 
+	var km keys.KeyManager
 	var err error
 
-	if txOpt == nil || txOpt.OverrideAccount == nil || (*txOpt.OverrideAccount).Km == nil || (*txOpt.OverrideAccount).Num == nil {
+	if txOpt != nil && txOpt.OverrideKeyManager != nil {
+		km = *txOpt.OverrideKeyManager
+	} else {
 		km, err = c.GetKeyManager()
 		if err != nil {
 			return nil, err
 		}
-		account, err = c.getAccount()
-		if err != nil {
-			return nil, err
-		}
-		accountNum = account.GetAccountNumber()
-	} else {
-		km = *txOpt.OverrideAccount.Km
-		accountNum = *txOpt.OverrideAccount.Num
-		hasOverrideAccount = true
 	}
 
-	var nonce uint64
+	account, err := c.getAccount(&km)
+	if err != nil {
+		return nil, err
+	}
+	nonce := account.GetSequence()
 	if txOpt != nil && txOpt.Nonce != 0 {
 		nonce = txOpt.Nonce
-	} else {
-		if hasOverrideAccount {
-			account, err = c.getAccountByAddr(km.GetAddr())
-			if err != nil {
-				return nil, err
-			}
-		}
-		nonce = account.GetSequence()
 	}
 
 	signerData := xauthsigning.SignerData{
 		ChainID:       c.chainId,
-		AccountNumber: accountNum,
+		AccountNumber: account.GetAccountNumber(),
 		Sequence:      nonce,
 	}
 	sig, err := clitx.SignWithPrivKey(
@@ -170,37 +158,22 @@ func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *type
 
 	var km keys.KeyManager
 	var err error
-
-	hasOverrideAccount := false
-
-	if txOpt == nil || txOpt.OverrideAccount == nil || (*txOpt.OverrideAccount).Km == nil ||
-		(*txOpt.OverrideAccount).Num == nil {
-
+	if txOpt != nil && txOpt.OverrideKeyManager != nil {
+		km = *txOpt.OverrideKeyManager
+	} else {
 		km, err = c.GetKeyManager()
 		if err != nil {
 			return err
 		}
-	} else {
-		hasOverrideAccount = true
-		km = *txOpt.OverrideAccount.Km
 	}
-
-	var nonce uint64
+	account, err := c.getAccount(&km)
+	if err != nil {
+		return err
+	}
+	nonce := account.GetSequence()
 	if txOpt != nil && txOpt.Nonce != 0 {
 		nonce = txOpt.Nonce
-	} else {
-		var account authtypes.AccountI
-		if hasOverrideAccount {
-			account, err = c.getAccountByAddr(km.GetAddr())
-		} else {
-			account, err = c.getAccount()
-		}
-		if err != nil {
-			return err
-		}
-		nonce = account.GetSequence()
 	}
-
 	sig := signing.SignatureV2{
 		PubKey: km.PubKey(),
 		Data: &signing.SingleSignatureData{
@@ -286,22 +259,36 @@ func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sd
 }
 
 func (c *GreenfieldClient) GetNonce() (uint64, error) {
-	account, err := c.getAccount()
+	account, err := c.getAccount(nil)
 	if err != nil {
 		return 0, err
 	}
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) getAccount() (authtypes.AccountI, error) {
-	km, err := c.GetKeyManager()
+func (c *GreenfieldClient) GetNonceByKeyManager(km keys.KeyManager) (uint64, error) {
+	account, err := c.getAccount(&km)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
-	return c.getAccountByAddr(km.GetAddr())
+	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) getAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error) {
+func (c *GreenfieldClient) getAccount(overrideKm *keys.KeyManager) (authtypes.AccountI, error) {
+	var km keys.KeyManager
+	var err error
+	if overrideKm != nil {
+		km = *overrideKm
+	} else {
+		km, err = c.GetKeyManager()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return c.GetAccountByAddr(km.GetAddr())
+}
+
+func (c *GreenfieldClient) GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error) {
 	acct, err := c.AuthQueryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: addr.String()})
 	if err != nil {
 		return nil, err
