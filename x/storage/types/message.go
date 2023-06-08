@@ -103,7 +103,7 @@ func NewMsgCreateBucket(
 		Visibility:        Visibility,
 		PaymentAddress:    paymentAddress.String(),
 		PrimarySpAddress:  primarySPAddress.String(),
-		PrimarySpApproval: &Approval{timeoutHeight, sig},
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 		ChargedReadQuota:  chargedReadQuota,
 	}
 }
@@ -299,7 +299,7 @@ func NewMsgCreateObject(
 		PayloadSize:                payloadSize,
 		Visibility:                 Visibility,
 		ContentType:                contentType,
-		PrimarySpApproval:          &Approval{timeoutHeight, sig},
+		PrimarySpApproval:          &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 		ExpectChecksums:            expectChecksums,
 		RedundancyType:             redundancyType,
 		ExpectSecondarySpAddresses: secSPAddrs,
@@ -565,7 +565,7 @@ func NewMsgCopyObject(
 		DstBucketName:        dstBucketName,
 		SrcObjectName:        srcObjectName,
 		DstObjectName:        dstObjectName,
-		DstPrimarySpApproval: &Approval{timeoutHeight, sig},
+		DstPrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 	}
 }
 

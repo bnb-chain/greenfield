@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -231,7 +232,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 			SourceType:       types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
 			PaymentAddress:   createBucketPackage.PaymentAddress.String(),
-			PrimarySpApproval: &types.Approval{
+			PrimarySpApproval: &common.Approval{
 				ExpiredHeight: createBucketPackage.PrimarySpApprovalExpiredHeight,
 				Sig:           createBucketPackage.PrimarySpApprovalSignature,
 			},
