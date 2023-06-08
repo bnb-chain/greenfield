@@ -208,13 +208,16 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
 	s.Require().NoError(err)
 	found := false
-	for _, challengeId := range queryRes.ChallengeIds {
-		if challengeId == event.ChallengeId {
+	result := challengetypes.CHALLENGE_FAILED
+	for _, challenge := range queryRes.Challenges {
+		if challenge.Id == event.ChallengeId {
 			found = true
+			result = challenge.Result
 			break
 		}
 	}
 	s.Require().True(found)
+	s.Require().True(result == challengetypes.CHALLENGE_SUCCEED)
 }
 
 func (s *ChallengeTestSuite) TestHeartbeatAttest() {
@@ -286,13 +289,16 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 	queryRes, err := s.Client.ChallengeQueryClient.LatestAttestedChallenges(context.Background(), &challengetypes.QueryLatestAttestedChallengesRequest{})
 	s.Require().NoError(err)
 	found = false
-	for _, challengeId := range queryRes.ChallengeIds {
-		if challengeId == event.ChallengeId {
+	result := challengetypes.CHALLENGE_SUCCEED
+	for _, challenge := range queryRes.Challenges {
+		if challenge.Id == event.ChallengeId {
 			found = true
+			result = challenge.Result
 			break
 		}
 	}
 	s.Require().True(found)
+	s.Require().True(result == challengetypes.CHALLENGE_FAILED)
 }
 
 func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {

@@ -943,7 +943,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	}
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, operator)
-	if found {
+	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", operator.String())
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {

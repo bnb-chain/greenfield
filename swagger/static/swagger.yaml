@@ -16811,6 +16811,259 @@ paths:
           type: boolean
       tags:
         - Query
+  /cosmos/gashub/v1beta1/msg_gas_params:
+    get:
+      summary: MsgGasParams queries for MsgGasParams entries.
+      description: >-
+        This query only returns params that have specific MsgGasParams settings.
+
+        Any msg type that does not have a specific setting will not be returned
+        by this query.
+      operationId: MsgGasParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              msg_gas_params:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    msg_type_url:
+                      type: string
+                    fixed_type:
+                      description: fixed_type specifies fixed type gas params.
+                      type: object
+                      properties:
+                        fixed_gas:
+                          type: string
+                          format: uint64
+                          title: fixed_gas is the gas cost for a fixed type msg
+                    grant_type:
+                      description: >-
+                        grant_type specifies dynamic type gas params for
+                        msg/grant.
+                      type: object
+                      properties:
+                        fixed_gas:
+                          type: string
+                          format: uint64
+                          title: >-
+                            fixed_gas is the base gas cost for a dynamic type
+                            msg
+                        gas_per_item:
+                          type: string
+                          format: uint64
+                          title: >-
+                            gas_per_item is the gas cost for a dynamic type msg
+                            per item
+                    multi_send_type:
+                      description: >-
+                        grant_type specifies dynamic type gas params for
+                        msg/multiSend.
+                      type: object
+                      properties:
+                        fixed_gas:
+                          type: string
+                          format: uint64
+                          title: >-
+                            fixed_gas is the base gas cost for a dynamic type
+                            msg
+                        gas_per_item:
+                          type: string
+                          format: uint64
+                          title: >-
+                            gas_per_item is the gas cost for a dynamic type msg
+                            per item
+                    grant_allowance_type:
+                      description: >-
+                        grant_type specifies dynamic type gas params for
+                        msg/grantAllowance.
+                      type: object
+                      properties:
+                        fixed_gas:
+                          type: string
+                          format: uint64
+                          title: >-
+                            fixed_gas is the base gas cost for a dynamic type
+                            msg
+                        gas_per_item:
+                          type: string
+                          format: uint64
+                          title: >-
+                            gas_per_item is the gas cost for a dynamic type msg
+                            per item
+                  title: MsgGasParams defines gas consumption for a msg type
+              pagination:
+                description: >-
+                  pagination defines the pagination in the response. This field
+                  is only
+
+                  populated if the msg_type_urls field in the request is empty.
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+            description: >-
+              QueryMsgGasParamsResponse defines the RPC response of a
+              MsgGasParams query.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: msg_type_urls
+          description: >-
+            msg_type_urls is the specific type urls you want look up. Leave
+            empty to get all entries.
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /cosmos/gashub/v1beta1/params:
+    get:
+      summary: Params queries the parameters of x/gashub module.
+      operationId: GashubParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                type: object
+                properties:
+                  max_tx_size:
+                    type: string
+                    format: uint64
+                    description: max_tx_size is the maximum size of a transaction's bytes.
+                  min_gas_per_byte:
+                    type: string
+                    format: uint64
+                    title: >-
+                      min_gas_per_byte is the minimum gas to be paid per byte of
+                      a transaction's
+                description: Params defines the parameters for the gashub module.
+            description: >-
+              QueryParamsResponse defines the response type for querying
+              x/gashub parameters.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /cosmos/gov/v1/params/{params_type}:
     get:
       summary: Params queries all parameters of the gov module.
@@ -42771,6 +43024,191 @@ definitions:
     description: >-
       QueryAllowancesResponse is the response type for the Query/Allowances RPC
       method.
+  cosmos.gashub.v1beta1.MsgGasParams:
+    type: object
+    properties:
+      msg_type_url:
+        type: string
+      fixed_type:
+        description: fixed_type specifies fixed type gas params.
+        type: object
+        properties:
+          fixed_gas:
+            type: string
+            format: uint64
+            title: fixed_gas is the gas cost for a fixed type msg
+      grant_type:
+        description: grant_type specifies dynamic type gas params for msg/grant.
+        type: object
+        properties:
+          fixed_gas:
+            type: string
+            format: uint64
+            title: fixed_gas is the base gas cost for a dynamic type msg
+          gas_per_item:
+            type: string
+            format: uint64
+            title: gas_per_item is the gas cost for a dynamic type msg per item
+      multi_send_type:
+        description: grant_type specifies dynamic type gas params for msg/multiSend.
+        type: object
+        properties:
+          fixed_gas:
+            type: string
+            format: uint64
+            title: fixed_gas is the base gas cost for a dynamic type msg
+          gas_per_item:
+            type: string
+            format: uint64
+            title: gas_per_item is the gas cost for a dynamic type msg per item
+      grant_allowance_type:
+        description: grant_type specifies dynamic type gas params for msg/grantAllowance.
+        type: object
+        properties:
+          fixed_gas:
+            type: string
+            format: uint64
+            title: fixed_gas is the base gas cost for a dynamic type msg
+          gas_per_item:
+            type: string
+            format: uint64
+            title: gas_per_item is the gas cost for a dynamic type msg per item
+    title: MsgGasParams defines gas consumption for a msg type
+  cosmos.gashub.v1beta1.MsgGasParams.DynamicGasParams:
+    type: object
+    properties:
+      fixed_gas:
+        type: string
+        format: uint64
+        title: fixed_gas is the base gas cost for a dynamic type msg
+      gas_per_item:
+        type: string
+        format: uint64
+        title: gas_per_item is the gas cost for a dynamic type msg per item
+    description: DynamicGasParams defines the parameters for dynamic gas type.
+  cosmos.gashub.v1beta1.MsgGasParams.FixedGasParams:
+    type: object
+    properties:
+      fixed_gas:
+        type: string
+        format: uint64
+        title: fixed_gas is the gas cost for a fixed type msg
+    description: FixedGasParams defines the parameters for fixed gas type.
+  cosmos.gashub.v1beta1.Params:
+    type: object
+    properties:
+      max_tx_size:
+        type: string
+        format: uint64
+        description: max_tx_size is the maximum size of a transaction's bytes.
+      min_gas_per_byte:
+        type: string
+        format: uint64
+        title: >-
+          min_gas_per_byte is the minimum gas to be paid per byte of a
+          transaction's
+    description: Params defines the parameters for the gashub module.
+  cosmos.gashub.v1beta1.QueryMsgGasParamsResponse:
+    type: object
+    properties:
+      msg_gas_params:
+        type: array
+        items:
+          type: object
+          properties:
+            msg_type_url:
+              type: string
+            fixed_type:
+              description: fixed_type specifies fixed type gas params.
+              type: object
+              properties:
+                fixed_gas:
+                  type: string
+                  format: uint64
+                  title: fixed_gas is the gas cost for a fixed type msg
+            grant_type:
+              description: grant_type specifies dynamic type gas params for msg/grant.
+              type: object
+              properties:
+                fixed_gas:
+                  type: string
+                  format: uint64
+                  title: fixed_gas is the base gas cost for a dynamic type msg
+                gas_per_item:
+                  type: string
+                  format: uint64
+                  title: gas_per_item is the gas cost for a dynamic type msg per item
+            multi_send_type:
+              description: grant_type specifies dynamic type gas params for msg/multiSend.
+              type: object
+              properties:
+                fixed_gas:
+                  type: string
+                  format: uint64
+                  title: fixed_gas is the base gas cost for a dynamic type msg
+                gas_per_item:
+                  type: string
+                  format: uint64
+                  title: gas_per_item is the gas cost for a dynamic type msg per item
+            grant_allowance_type:
+              description: >-
+                grant_type specifies dynamic type gas params for
+                msg/grantAllowance.
+              type: object
+              properties:
+                fixed_gas:
+                  type: string
+                  format: uint64
+                  title: fixed_gas is the base gas cost for a dynamic type msg
+                gas_per_item:
+                  type: string
+                  format: uint64
+                  title: gas_per_item is the gas cost for a dynamic type msg per item
+          title: MsgGasParams defines gas consumption for a msg type
+      pagination:
+        description: |-
+          pagination defines the pagination in the response. This field is only
+          populated if the msg_type_urls field in the request is empty.
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+    description: >-
+      QueryMsgGasParamsResponse defines the RPC response of a MsgGasParams
+      query.
+  cosmos.gashub.v1beta1.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        type: object
+        properties:
+          max_tx_size:
+            type: string
+            format: uint64
+            description: max_tx_size is the maximum size of a transaction's bytes.
+          min_gas_per_byte:
+            type: string
+            format: uint64
+            title: >-
+              min_gas_per_byte is the minimum gas to be paid per byte of a
+              transaction's
+        description: Params defines the parameters for the gashub module.
+    description: >-
+      QueryParamsResponse defines the response type for querying x/gashub
+      parameters.
   cosmos.gov.v1.Deposit:
     type: object
     properties:

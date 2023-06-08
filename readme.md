@@ -57,7 +57,7 @@ Visit our official [documentation site](https://greenfield.bnbchain.org/docs/gui
 
 ## Quick Started
 
-*Note*: Requires [Go 1.18+](https://go.dev/dl/)
+*Note*: Requires [Go 1.19+](https://go.dev/dl/)
 
 ```
 ## Build from source
@@ -104,7 +104,7 @@ And the following modules are in cosmos-sdk:
 - `x/staking`:  based on the Proof-of-Stake logic. The elected validators are responsible for the security of the Greenfield blockchain. 
 They get involved in the governance and staking of the blockchain.
 
-Refer to the [docs](docs/readme.md) to dive deep into these modules.
+Refer to the [docs](https://greenfield.bnbchain.org/docs/guide/greenfield-blockchain/modules/storage-module.html) to dive deep into these modules.
 
 ## Running node
 

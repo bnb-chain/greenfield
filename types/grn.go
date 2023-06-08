@@ -27,7 +27,7 @@ var (
 //
 //	bucket: "grn:b::bucketName"
 //	object: "grn:o::bucketName/objectName"
-//	group: "grn:g:ownerAddress/groupName"
+//	group: "grn:g:ownerAddress:groupName"
 //
 // Notice: all the name support wildcards
 type GRN struct {

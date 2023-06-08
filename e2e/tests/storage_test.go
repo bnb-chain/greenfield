@@ -1068,6 +1068,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteObject, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1107,6 +1108,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events = make([]storagetypes.EventDeleteObject, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1140,7 +1142,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 	heightBefore := txRes.Height
 	heightAfter := int64(0)
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
@@ -1155,6 +1157,7 @@ func (s *StorageTestSuite) TestDiscontinueObject_UserDeleted() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteObject, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1211,6 +1214,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteBucket, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1250,6 +1254,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events = make([]storagetypes.EventDeleteBucket, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1286,7 +1291,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 	heightBefore := txRes.Height
 	heightAfter := int64(0)
 	for {
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 		statusRes, err := s.TmClient.TmClient.Status(context.Background())
 		s.Require().NoError(err)
 		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
@@ -1301,6 +1306,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 		}
 	}
 
+	time.Sleep(200 * time.Millisecond)
 	events := make([]storagetypes.EventDeleteBucket, 0)
 	for heightBefore <= heightAfter {
 		blockRes, err := s.TmClient.TmClient.BlockResults(context.Background(), &heightBefore)
@@ -1826,4 +1832,80 @@ func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
 	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
 	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
 	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+}
+
+func (s *StorageTestSuite) TestRejectSealObject() {
+	var err error
+	// CreateBucket
+	sp := s.StorageProviders[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpAddress, sp.OperatorKey.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// CreateObject
+	objectName := storageutils.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateObject)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
+	s.Require().Equal(len(queryHeadObjectResponse.ObjectInfo.SecondarySpAddresses), 0)
+	// RejectSealObject
+	msgRejectSealObject := storagetypes.NewMsgRejectUnsealedObject(sp.SealKey.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(sp.SealKey, msgRejectSealObject)
+
+	// HeadObject
+	queryHeadObjectRequest1 := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	_, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest1)
+	s.Require().Error(err)
+	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchObject.Error()))
 }

@@ -231,6 +231,10 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		return nil, types.ErrStorageProviderNotFound
 	}
 
+	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(msg.SpAddress)) {
+		return nil, types.ErrDepositAccountNotAllowed.Wrap("the sp address mismatch")
+	}
+
 	depositDenom := k.DepositDenomForSP(ctx)
 	if depositDenom != msg.Deposit.GetDenom() {
 		return nil, errors.Wrapf(types.ErrInvalidDenom, "invalid coin denomination: got %s, expected %s", msg.Deposit.Denom, depositDenom)

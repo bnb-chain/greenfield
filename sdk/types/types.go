@@ -6,6 +6,8 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+
+	"github.com/bnb-chain/greenfield/sdk/keys"
 )
 
 const (
@@ -19,15 +21,16 @@ const (
 )
 
 type TxOption struct {
-	Mode       *tx.BroadcastMode
-	NoSimulate bool
-	GasLimit   uint64
-	FeeAmount  sdk.Coins
-	Nonce      uint64
-	FeePayer   sdk.AccAddress
-	FeeGranter sdk.AccAddress
-	Tip        *tx.Tip
-	Memo       string
+	Mode               *tx.BroadcastMode
+	NoSimulate         bool
+	GasLimit           uint64
+	FeeAmount          sdk.Coins
+	Nonce              uint64
+	FeePayer           sdk.AccAddress
+	FeeGranter         sdk.AccAddress
+	Tip                *tx.Tip
+	Memo               string
+	OverrideKeyManager *keys.KeyManager
 }
 
 func NewIntFromInt64WithDecimal(amount int64, decimal int64) sdkmath.Int {

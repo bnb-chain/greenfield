@@ -15,9 +15,11 @@ const (
 
 var (
 	_ sdk.Msg = &MsgCreateStorageProvider{}
-	_ sdk.Msg = &MsgEditStorageProvider{}
 	_ sdk.Msg = &MsgDeposit{}
+
+	_ sdk.Msg = &MsgEditStorageProvider{}
 	_ sdk.Msg = &MsgUpdateSpStoragePrice{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // NewMsgCreateStorageProvider creates a new MsgCreateStorageProvider instance.
@@ -221,6 +223,10 @@ func (msg *MsgDeposit) GetSignBytes() []byte {
 func (msg *MsgDeposit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Creator); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
 	}
 
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {

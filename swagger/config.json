@@ -10,7 +10,15 @@
       "url": "./tmp-swagger-gen/greenfield/bridge/query.swagger.json",
       "operationIds": {
         "rename": {
-          "Params": "BridgeParams",
+          "Params": "BridgeParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/greenfield/challenge/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "ChallengeParams"
         }
       }
     },
@@ -99,6 +107,14 @@
       "operationIds": {
         "rename": {
           "Params": "FeegrantParams"
+        }
+      }
+    },
+    {
+      "url": "./tmp-swagger-gen/cosmos/gashub/v1beta1/query.swagger.json",
+      "operationIds": {
+        "rename": {
+          "Params": "GashubParams"
         }
       }
     },
