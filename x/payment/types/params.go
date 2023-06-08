@@ -40,7 +40,7 @@ func NewParams(
 	validatorTaxRate sdk.Dec,
 ) Params {
 	return Params{
-		ReserveTime:              reserveTime,
+		VersionedParams:          VersionedParams{ReserveTime: reserveTime},
 		ForcedSettleTime:         forcedSettleTime,
 		PaymentAccountCountLimit: paymentAccountCountLimit,
 		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
@@ -64,7 +64,7 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyReserveTime, &p.ReserveTime, validateReserveTime),
+		paramtypes.NewParamSetPair(KeyReserveTime, &p.VersionedParams.ReserveTime, validateReserveTime),
 		paramtypes.NewParamSetPair(KeyForcedSettleTime, &p.ForcedSettleTime, validateForcedSettleTime),
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
 		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
@@ -75,7 +75,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	if err := validateReserveTime(p.ReserveTime); err != nil {
+	if err := validateReserveTime(p.VersionedParams.ReserveTime); err != nil {
 		return err
 	}
 
