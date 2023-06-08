@@ -6,7 +6,10 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	common "github.com/bnb-chain/greenfield/types/common"
 	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
@@ -125,36 +128,620 @@ func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
+type MsgCreateGlobalVirtualGroup struct {
+	// primary_sp_address defines the account address of the primary storage provider who creates the global virtual group.
+	PrimarySpAddress string `protobuf:"bytes,1,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// family_id is the identifier for the virtual group's family.
+	FamilyId uint32 `protobuf:"varint,2,opt,name=family_id,json=familyId,proto3" json:"family_id,omitempty"`
+	// secondary_sp_id is a list of secondary storage provider IDs associated with the virtual group.
+	SecondarySpId []uint32 `protobuf:"varint,3,rep,packed,name=secondary_sp_id,json=secondarySpId,proto3" json:"secondary_sp_id,omitempty"`
+	// total_deposit is the total deposit amount required for the virtual group.
+	// The tokens needs deposited and the size of storage are correlated.
+	TotalDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=total_deposit,json=totalDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_deposit"`
+	// stored_size is the size of the data stored by the virtual group.
+	StoredSize uint64 `protobuf:"varint,5,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+}
+
+func (m *MsgCreateGlobalVirtualGroup) Reset()         { *m = MsgCreateGlobalVirtualGroup{} }
+func (m *MsgCreateGlobalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateGlobalVirtualGroup) ProtoMessage()    {}
+func (*MsgCreateGlobalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{2}
+}
+func (m *MsgCreateGlobalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCreateGlobalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCreateGlobalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCreateGlobalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateGlobalVirtualGroup.Merge(m, src)
+}
+func (m *MsgCreateGlobalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCreateGlobalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateGlobalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCreateGlobalVirtualGroup proto.InternalMessageInfo
+
+func (m *MsgCreateGlobalVirtualGroup) GetPrimarySpAddress() string {
+	if m != nil {
+		return m.PrimarySpAddress
+	}
+	return ""
+}
+
+func (m *MsgCreateGlobalVirtualGroup) GetFamilyId() uint32 {
+	if m != nil {
+		return m.FamilyId
+	}
+	return 0
+}
+
+func (m *MsgCreateGlobalVirtualGroup) GetSecondarySpId() []uint32 {
+	if m != nil {
+		return m.SecondarySpId
+	}
+	return nil
+}
+
+func (m *MsgCreateGlobalVirtualGroup) GetStoredSize() uint64 {
+	if m != nil {
+		return m.StoredSize
+	}
+	return 0
+}
+
+type MsgCreateGlobalVirtualGroupResponse struct {
+}
+
+func (m *MsgCreateGlobalVirtualGroupResponse) Reset()         { *m = MsgCreateGlobalVirtualGroupResponse{} }
+func (m *MsgCreateGlobalVirtualGroupResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateGlobalVirtualGroupResponse) ProtoMessage()    {}
+func (*MsgCreateGlobalVirtualGroupResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{3}
+}
+func (m *MsgCreateGlobalVirtualGroupResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgCreateGlobalVirtualGroupResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgCreateGlobalVirtualGroupResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgCreateGlobalVirtualGroupResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateGlobalVirtualGroupResponse.Merge(m, src)
+}
+func (m *MsgCreateGlobalVirtualGroupResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgCreateGlobalVirtualGroupResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateGlobalVirtualGroupResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgCreateGlobalVirtualGroupResponse proto.InternalMessageInfo
+
+type MsgDeleteGlobalVirtualGroup struct {
+	// primary_sp_address defines the account address of the primary storage provider who creates the global virtual group.
+	PrimarySpAddress string `protobuf:"bytes,1,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// global_virtual_group_id is the identifier of the global virtual group.
+	GlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+}
+
+func (m *MsgDeleteGlobalVirtualGroup) Reset()         { *m = MsgDeleteGlobalVirtualGroup{} }
+func (m *MsgDeleteGlobalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*MsgDeleteGlobalVirtualGroup) ProtoMessage()    {}
+func (*MsgDeleteGlobalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{4}
+}
+func (m *MsgDeleteGlobalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeleteGlobalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeleteGlobalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeleteGlobalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeleteGlobalVirtualGroup.Merge(m, src)
+}
+func (m *MsgDeleteGlobalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeleteGlobalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeleteGlobalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeleteGlobalVirtualGroup proto.InternalMessageInfo
+
+func (m *MsgDeleteGlobalVirtualGroup) GetPrimarySpAddress() string {
+	if m != nil {
+		return m.PrimarySpAddress
+	}
+	return ""
+}
+
+func (m *MsgDeleteGlobalVirtualGroup) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+type MsgDeleteGlobalVirtualGroupResponse struct {
+}
+
+func (m *MsgDeleteGlobalVirtualGroupResponse) Reset()         { *m = MsgDeleteGlobalVirtualGroupResponse{} }
+func (m *MsgDeleteGlobalVirtualGroupResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDeleteGlobalVirtualGroupResponse) ProtoMessage()    {}
+func (*MsgDeleteGlobalVirtualGroupResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{5}
+}
+func (m *MsgDeleteGlobalVirtualGroupResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeleteGlobalVirtualGroupResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeleteGlobalVirtualGroupResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeleteGlobalVirtualGroupResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeleteGlobalVirtualGroupResponse.Merge(m, src)
+}
+func (m *MsgDeleteGlobalVirtualGroupResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeleteGlobalVirtualGroupResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeleteGlobalVirtualGroupResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeleteGlobalVirtualGroupResponse proto.InternalMessageInfo
+
+type MsgDeposit struct {
+	// funding_address is the account address from which the deposit is made.
+	// The funding address must correspond to the funding address of the primary storage provider of the global virtual group.
+	FundingAddress string `protobuf:"bytes,1,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
+	// global_virtual_group_id is the identifier of the global virtual group.
+	GlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	// deposit is the amount of tokens being deposited for the global virtual group.
+	Deposit types.Coin `protobuf:"bytes,3,opt,name=deposit,proto3" json:"deposit"`
+}
+
+func (m *MsgDeposit) Reset()         { *m = MsgDeposit{} }
+func (m *MsgDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgDeposit) ProtoMessage()    {}
+func (*MsgDeposit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{6}
+}
+func (m *MsgDeposit) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDeposit.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDeposit.Merge(m, src)
+}
+func (m *MsgDeposit) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDeposit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDeposit proto.InternalMessageInfo
+
+func (m *MsgDeposit) GetFundingAddress() string {
+	if m != nil {
+		return m.FundingAddress
+	}
+	return ""
+}
+
+func (m *MsgDeposit) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *MsgDeposit) GetDeposit() types.Coin {
+	if m != nil {
+		return m.Deposit
+	}
+	return types.Coin{}
+}
+
+type MsgDepositResponse struct {
+}
+
+func (m *MsgDepositResponse) Reset()         { *m = MsgDepositResponse{} }
+func (m *MsgDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgDepositResponse) ProtoMessage()    {}
+func (*MsgDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{7}
+}
+func (m *MsgDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgDepositResponse.Merge(m, src)
+}
+func (m *MsgDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgDepositResponse proto.InternalMessageInfo
+
+type MsgWithdraw struct {
+	// funding_address is the account address for withdrawing funds.
+	FundingAddress string `protobuf:"bytes,1,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
+	// global_virtual_group_id is the identifier of the global virtual group.
+	GlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	// withdraw is the amount of coins to be withdrawn.
+	// The amount needs to be smaller than stored_size * storage_staking_price
+	Withdraw types.Coin `protobuf:"bytes,3,opt,name=withdraw,proto3" json:"withdraw"`
+}
+
+func (m *MsgWithdraw) Reset()         { *m = MsgWithdraw{} }
+func (m *MsgWithdraw) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdraw) ProtoMessage()    {}
+func (*MsgWithdraw) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{8}
+}
+func (m *MsgWithdraw) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdraw) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdraw.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdraw) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdraw.Merge(m, src)
+}
+func (m *MsgWithdraw) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdraw) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdraw.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdraw proto.InternalMessageInfo
+
+func (m *MsgWithdraw) GetFundingAddress() string {
+	if m != nil {
+		return m.FundingAddress
+	}
+	return ""
+}
+
+func (m *MsgWithdraw) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *MsgWithdraw) GetWithdraw() types.Coin {
+	if m != nil {
+		return m.Withdraw
+	}
+	return types.Coin{}
+}
+
+type MsgWithdrawResponse struct {
+}
+
+func (m *MsgWithdrawResponse) Reset()         { *m = MsgWithdrawResponse{} }
+func (m *MsgWithdrawResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawResponse) ProtoMessage()    {}
+func (*MsgWithdrawResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{9}
+}
+func (m *MsgWithdrawResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawResponse.Merge(m, src)
+}
+func (m *MsgWithdrawResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawResponse proto.InternalMessageInfo
+
+type MsgSwapOut struct {
+	// sp_address is the account address of the storage provider initiating the swap out.
+	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// virtual_group_family_id is the identifier of the virtual group family.
+	VirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=virtual_group_family_id,json=virtualGroupFamilyId,proto3" json:"virtual_group_family_id,omitempty"`
+	// global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
+	GlobalVirtualGroupIds []uint32 `protobuf:"varint,3,rep,packed,name=global_virtual_group_ids,json=globalVirtualGroupIds,proto3" json:"global_virtual_group_ids,omitempty"`
+	// successor_sp_id is the account address of the successor storage provider.
+	SuccessorSpId string `protobuf:"bytes,4,opt,name=successor_sp_id,json=successorSpId,proto3" json:"successor_sp_id,omitempty"`
+	// successor_virtual_group_family_id is the identifier of the virtual group family for the successor storage provider.
+	SuccessorVirtualGroupFamilyId uint32 `protobuf:"varint,5,opt,name=successor_virtual_group_family_id,json=successorVirtualGroupFamilyId,proto3" json:"successor_virtual_group_family_id,omitempty"`
+	// dst_global_virtual_group_ids is a list of global virtual group IDs to which the data is being swapped.
+	DstGlobalVirtualGroupIds []uint32 `protobuf:"varint,6,rep,packed,name=dst_global_virtual_group_ids,json=dstGlobalVirtualGroupIds,proto3" json:"dst_global_virtual_group_ids,omitempty"`
+	// approval includes an expiration time and a signature.
+	// The fields to be signed with contains the necessary information of the successor.
+	Approval *common.Approval `protobuf:"bytes,7,opt,name=approval,proto3" json:"approval,omitempty"`
+}
+
+func (m *MsgSwapOut) Reset()         { *m = MsgSwapOut{} }
+func (m *MsgSwapOut) String() string { return proto.CompactTextString(m) }
+func (*MsgSwapOut) ProtoMessage()    {}
+func (*MsgSwapOut) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{10}
+}
+func (m *MsgSwapOut) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSwapOut) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSwapOut.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSwapOut) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSwapOut.Merge(m, src)
+}
+func (m *MsgSwapOut) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSwapOut) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSwapOut.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSwapOut proto.InternalMessageInfo
+
+func (m *MsgSwapOut) GetSpAddress() string {
+	if m != nil {
+		return m.SpAddress
+	}
+	return ""
+}
+
+func (m *MsgSwapOut) GetVirtualGroupFamilyId() uint32 {
+	if m != nil {
+		return m.VirtualGroupFamilyId
+	}
+	return 0
+}
+
+func (m *MsgSwapOut) GetGlobalVirtualGroupIds() []uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupIds
+	}
+	return nil
+}
+
+func (m *MsgSwapOut) GetSuccessorSpId() string {
+	if m != nil {
+		return m.SuccessorSpId
+	}
+	return ""
+}
+
+func (m *MsgSwapOut) GetSuccessorVirtualGroupFamilyId() uint32 {
+	if m != nil {
+		return m.SuccessorVirtualGroupFamilyId
+	}
+	return 0
+}
+
+func (m *MsgSwapOut) GetDstGlobalVirtualGroupIds() []uint32 {
+	if m != nil {
+		return m.DstGlobalVirtualGroupIds
+	}
+	return nil
+}
+
+func (m *MsgSwapOut) GetApproval() *common.Approval {
+	if m != nil {
+		return m.Approval
+	}
+	return nil
+}
+
+type MsgSwapOutResponse struct {
+}
+
+func (m *MsgSwapOutResponse) Reset()         { *m = MsgSwapOutResponse{} }
+func (m *MsgSwapOutResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgSwapOutResponse) ProtoMessage()    {}
+func (*MsgSwapOutResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{11}
+}
+func (m *MsgSwapOutResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgSwapOutResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgSwapOutResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgSwapOutResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgSwapOutResponse.Merge(m, src)
+}
+func (m *MsgSwapOutResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgSwapOutResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgSwapOutResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgSwapOutResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "greenfield.virtualgroup.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "greenfield.virtualgroup.MsgUpdateParamsResponse")
+	proto.RegisterType((*MsgCreateGlobalVirtualGroup)(nil), "greenfield.virtualgroup.MsgCreateGlobalVirtualGroup")
+	proto.RegisterType((*MsgCreateGlobalVirtualGroupResponse)(nil), "greenfield.virtualgroup.MsgCreateGlobalVirtualGroupResponse")
+	proto.RegisterType((*MsgDeleteGlobalVirtualGroup)(nil), "greenfield.virtualgroup.MsgDeleteGlobalVirtualGroup")
+	proto.RegisterType((*MsgDeleteGlobalVirtualGroupResponse)(nil), "greenfield.virtualgroup.MsgDeleteGlobalVirtualGroupResponse")
+	proto.RegisterType((*MsgDeposit)(nil), "greenfield.virtualgroup.MsgDeposit")
+	proto.RegisterType((*MsgDepositResponse)(nil), "greenfield.virtualgroup.MsgDepositResponse")
+	proto.RegisterType((*MsgWithdraw)(nil), "greenfield.virtualgroup.MsgWithdraw")
+	proto.RegisterType((*MsgWithdrawResponse)(nil), "greenfield.virtualgroup.MsgWithdrawResponse")
+	proto.RegisterType((*MsgSwapOut)(nil), "greenfield.virtualgroup.MsgSwapOut")
+	proto.RegisterType((*MsgSwapOutResponse)(nil), "greenfield.virtualgroup.MsgSwapOutResponse")
 }
 
 func init() { proto.RegisterFile("greenfield/virtualgroup/tx.proto", fileDescriptor_478f7001009bf3f2) }
 
 var fileDescriptor_478f7001009bf3f2 = []byte{
-	// 321 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x48, 0x2f, 0x4a, 0x4d,
-	0xcd, 0x4b, 0xcb, 0x4c, 0xcd, 0x49, 0xd1, 0x2f, 0xcb, 0x2c, 0x2a, 0x29, 0x4d, 0xcc, 0x49, 0x2f,
-	0xca, 0x2f, 0x2d, 0xd0, 0x2f, 0xa9, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x12, 0x47, 0xa8,
-	0xd0, 0x43, 0x56, 0x21, 0x25, 0x9e, 0x9c, 0x5f, 0x9c, 0x9b, 0x5f, 0xac, 0x9f, 0x5b, 0x9c, 0xae,
-	0x5f, 0x66, 0x08, 0xa2, 0x20, 0x3a, 0xa4, 0x24, 0x21, 0x12, 0xf1, 0x60, 0x9e, 0x3e, 0x84, 0x03,
-	0x95, 0x12, 0x49, 0xcf, 0x4f, 0xcf, 0x87, 0x88, 0x83, 0x58, 0x50, 0x51, 0x15, 0x5c, 0x8e, 0x28,
-	0x48, 0x2c, 0x4a, 0xcc, 0x85, 0xea, 0x55, 0x9a, 0xc1, 0xc8, 0xc5, 0xef, 0x5b, 0x9c, 0x1e, 0x5a,
-	0x90, 0x92, 0x58, 0x92, 0x1a, 0x00, 0x96, 0x11, 0x32, 0xe3, 0xe2, 0x4c, 0x2c, 0x2d, 0xc9, 0xc8,
-	0x2f, 0xca, 0x2c, 0xa9, 0x94, 0x60, 0x54, 0x60, 0xd4, 0xe0, 0x74, 0x92, 0xb8, 0xb4, 0x45, 0x57,
-	0x04, 0x6a, 0xa9, 0x63, 0x4a, 0x4a, 0x51, 0x6a, 0x71, 0x71, 0x70, 0x49, 0x51, 0x66, 0x5e, 0x7a,
-	0x10, 0x42, 0xa9, 0x90, 0x2d, 0x17, 0x1b, 0xc4, 0x6c, 0x09, 0x26, 0x05, 0x46, 0x0d, 0x6e, 0x23,
-	0x79, 0x3d, 0x1c, 0xbe, 0xd4, 0x83, 0x58, 0xe4, 0xc4, 0x72, 0xe2, 0x9e, 0x3c, 0x43, 0x10, 0x54,
-	0x93, 0x15, 0x5f, 0xd3, 0xf3, 0x0d, 0x5a, 0x08, 0xe3, 0x94, 0x24, 0xb9, 0xc4, 0xd1, 0x5c, 0x16,
-	0x94, 0x5a, 0x5c, 0x90, 0x9f, 0x57, 0x9c, 0x6a, 0x54, 0xc8, 0xc5, 0xec, 0x5b, 0x9c, 0x2e, 0x94,
-	0xc5, 0xc5, 0x83, 0xe2, 0x70, 0x0d, 0x9c, 0x16, 0xa2, 0x19, 0x24, 0x65, 0x40, 0xac, 0x4a, 0x98,
-	0x95, 0x4e, 0x7e, 0x27, 0x1e, 0xc9, 0x31, 0x5e, 0x78, 0x24, 0xc7, 0xf8, 0xe0, 0x91, 0x1c, 0xe3,
-	0x84, 0xc7, 0x72, 0x0c, 0x17, 0x1e, 0xcb, 0x31, 0xdc, 0x78, 0x2c, 0xc7, 0x10, 0x65, 0x92, 0x9e,
-	0x59, 0x92, 0x51, 0x9a, 0xa4, 0x97, 0x9c, 0x9f, 0xab, 0x9f, 0x94, 0x97, 0xa4, 0x9b, 0x9c, 0x91,
-	0x98, 0x99, 0xa7, 0x8f, 0x14, 0xfa, 0x15, 0x68, 0x89, 0xa0, 0xb2, 0x20, 0xb5, 0x38, 0x89, 0x0d,
-	0x1c, 0xfe, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0xab, 0xec, 0xc2, 0x2e, 0x2c, 0x02, 0x00,
-	0x00,
+	// 915 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x56, 0x4f, 0x6f, 0x1b, 0x45,
+	0x14, 0xcf, 0xd6, 0xf9, 0xfb, 0x52, 0xd7, 0x68, 0x70, 0xe5, 0x8d, 0x03, 0x8e, 0x71, 0x4b, 0x65,
+	0x01, 0xd9, 0x25, 0xa5, 0x10, 0x11, 0x0a, 0x22, 0x69, 0xd5, 0xe0, 0x43, 0x00, 0xd9, 0xa2, 0x48,
+	0x20, 0xb1, 0x1a, 0x7b, 0x26, 0x9b, 0x01, 0x7b, 0x67, 0xb5, 0x33, 0x76, 0x9a, 0x1e, 0xf9, 0x00,
+	0x88, 0x23, 0x5f, 0x02, 0x89, 0x43, 0xf9, 0x0c, 0x54, 0xe2, 0x52, 0xf5, 0x02, 0xea, 0xa1, 0x42,
+	0xc9, 0x81, 0xaf, 0x81, 0x76, 0x76, 0x76, 0xbd, 0x35, 0xd9, 0xb5, 0x01, 0xa1, 0x9e, 0xec, 0x9d,
+	0xf9, 0xbd, 0x37, 0xbf, 0xdf, 0x7b, 0x6f, 0xde, 0x3c, 0xa8, 0xbb, 0x01, 0xa5, 0xde, 0x21, 0xa3,
+	0x7d, 0x62, 0x8f, 0x58, 0x20, 0x87, 0xb8, 0xef, 0x06, 0x7c, 0xe8, 0xdb, 0xf2, 0x9e, 0xe5, 0x07,
+	0x5c, 0x72, 0x54, 0x19, 0x23, 0xac, 0x34, 0xa2, 0x5a, 0xeb, 0x71, 0x31, 0xe0, 0xc2, 0xee, 0x62,
+	0x41, 0xed, 0xd1, 0x56, 0x97, 0x4a, 0xbc, 0x65, 0xf7, 0x38, 0xf3, 0x22, 0xc3, 0x6a, 0x45, 0xef,
+	0x0f, 0x84, 0x6b, 0x8f, 0xb6, 0xc2, 0x1f, 0xbd, 0xb1, 0x16, 0x6d, 0x38, 0xea, 0xcb, 0x8e, 0x3e,
+	0xf4, 0x56, 0xd9, 0xe5, 0x2e, 0x8f, 0xd6, 0xc3, 0x7f, 0x7a, 0x35, 0x4d, 0xb2, 0xc7, 0x07, 0x03,
+	0xee, 0xd9, 0xd8, 0xf7, 0x03, 0x3e, 0xc2, 0x7d, 0x8d, 0xb8, 0x9a, 0x25, 0xc3, 0xc7, 0x01, 0x1e,
+	0x68, 0xef, 0x8d, 0x1f, 0x0c, 0x28, 0x1d, 0x08, 0xf7, 0x33, 0x9f, 0x60, 0x49, 0x3f, 0x55, 0x3b,
+	0xe8, 0x1d, 0x58, 0xc1, 0x43, 0x79, 0xc4, 0x03, 0x26, 0x4f, 0x4c, 0xa3, 0x6e, 0x34, 0x57, 0xf6,
+	0xcc, 0xc7, 0x0f, 0x36, 0xcb, 0x9a, 0xd6, 0x2e, 0x21, 0x01, 0x15, 0xa2, 0x23, 0x03, 0xe6, 0xb9,
+	0xed, 0x31, 0x14, 0xbd, 0x0f, 0x8b, 0x91, 0x6f, 0xf3, 0x42, 0xdd, 0x68, 0xae, 0x5e, 0xdf, 0xb0,
+	0x32, 0xe2, 0x64, 0x45, 0x07, 0xed, 0xcd, 0x3f, 0x7c, 0xba, 0x31, 0xd7, 0xd6, 0x46, 0x3b, 0x97,
+	0xbe, 0xfd, 0xf3, 0xa7, 0xd7, 0xc6, 0xee, 0x1a, 0x6b, 0x50, 0x99, 0x60, 0xd6, 0xa6, 0xc2, 0xe7,
+	0x9e, 0xa0, 0x8d, 0x5f, 0x2e, 0xc0, 0xfa, 0x81, 0x70, 0x6f, 0x05, 0x14, 0x4b, 0xba, 0xdf, 0xe7,
+	0x5d, 0xdc, 0xbf, 0x1b, 0xf9, 0xdf, 0x0f, 0xfd, 0xa3, 0x3b, 0x80, 0xfc, 0x80, 0x0d, 0x70, 0x70,
+	0xe2, 0x08, 0xdf, 0xc1, 0x11, 0xe1, 0xa9, 0x52, 0x5e, 0xd0, 0x36, 0x1d, 0x5f, 0xaf, 0xa3, 0x75,
+	0x58, 0x39, 0xc4, 0x03, 0xd6, 0x3f, 0x71, 0x18, 0x51, 0xa2, 0x8a, 0xed, 0xe5, 0x68, 0xa1, 0x45,
+	0xd0, 0x35, 0x28, 0x09, 0xda, 0xe3, 0x1e, 0xd1, 0xc7, 0x30, 0x62, 0x16, 0xea, 0x85, 0x66, 0xb1,
+	0x5d, 0x4c, 0x96, 0x3b, 0x7e, 0x8b, 0x20, 0x0c, 0x45, 0xc9, 0x25, 0xee, 0x3b, 0x84, 0xfa, 0x5c,
+	0x30, 0x69, 0xce, 0x2b, 0x1e, 0x37, 0x43, 0xf1, 0x4f, 0x9e, 0x6e, 0x5c, 0x73, 0x99, 0x3c, 0x1a,
+	0x76, 0xad, 0x1e, 0x1f, 0xe8, 0xc4, 0xeb, 0x9f, 0x4d, 0x41, 0xbe, 0xb1, 0xe5, 0x89, 0x4f, 0x85,
+	0xd5, 0xf2, 0xe4, 0xe3, 0x07, 0x9b, 0xa0, 0x59, 0xb7, 0x3c, 0xd9, 0xbe, 0xa8, 0x5c, 0xde, 0x8e,
+	0x3c, 0xa2, 0x0d, 0x58, 0x15, 0x92, 0x07, 0x94, 0x38, 0x82, 0xdd, 0xa7, 0xe6, 0x42, 0xdd, 0x68,
+	0xce, 0xb7, 0x21, 0x5a, 0xea, 0xb0, 0xfb, 0x74, 0xa7, 0x12, 0xc6, 0xf6, 0x9c, 0x98, 0x34, 0x5e,
+	0x85, 0x2b, 0x39, 0x81, 0x4c, 0x02, 0xfe, 0xb3, 0xa1, 0x02, 0x7e, 0x9b, 0xf6, 0xe9, 0xff, 0x1a,
+	0xf0, 0xb7, 0xa1, 0xe2, 0x2a, 0xef, 0x8e, 0xae, 0x17, 0x47, 0x15, 0xcc, 0x38, 0xfc, 0x65, 0xf7,
+	0x6f, 0x87, 0xb7, 0xc8, 0x34, 0x79, 0x59, 0xb4, 0x13, 0x79, 0xbf, 0x19, 0x00, 0x0a, 0x17, 0x85,
+	0x73, 0x17, 0x4a, 0x87, 0x43, 0x8f, 0x30, 0xcf, 0x9d, 0x59, 0xca, 0x25, 0x6d, 0xf0, 0xdf, 0x84,
+	0xa0, 0x77, 0x61, 0x29, 0xae, 0x92, 0x82, 0xba, 0x43, 0x6b, 0x96, 0x3e, 0x2e, 0x6c, 0x29, 0x96,
+	0x6e, 0x29, 0xd6, 0x2d, 0xce, 0x3c, 0x7d, 0x7b, 0x62, 0xfc, 0x4e, 0x39, 0x8c, 0xc1, 0x24, 0xef,
+	0x46, 0x19, 0xd0, 0x58, 0x58, 0xa2, 0xf7, 0x89, 0x01, 0xab, 0x07, 0xc2, 0xfd, 0x9c, 0xc9, 0x23,
+	0x12, 0xe0, 0xe3, 0xe7, 0x28, 0xf8, 0x3d, 0x58, 0x3e, 0xd6, 0x2c, 0x66, 0x55, 0x9c, 0x18, 0x64,
+	0x48, 0xbe, 0x0c, 0x2f, 0xa6, 0xb4, 0x25, 0x9a, 0x7f, 0x2d, 0xa8, 0x1c, 0x77, 0x8e, 0xb1, 0xff,
+	0xc9, 0x50, 0xa2, 0x6d, 0x80, 0x7f, 0x50, 0xa9, 0x2b, 0x22, 0x5d, 0xa2, 0xcf, 0x2a, 0x9c, 0xec,
+	0x10, 0xe5, 0x51, 0x4a, 0xe2, 0x9d, 0xb8, 0x5b, 0x6c, 0x83, 0x99, 0x11, 0x1f, 0xa1, 0xdb, 0xc6,
+	0xe5, 0xf3, 0x02, 0x24, 0xd0, 0x87, 0x50, 0x12, 0xc3, 0x5e, 0x8f, 0x0a, 0xc1, 0x03, 0xdd, 0x66,
+	0xe6, 0xa7, 0xb0, 0x2d, 0x26, 0x06, 0xaa, 0x01, 0x7d, 0x04, 0xaf, 0x8c, 0x3d, 0x64, 0x71, 0x5f,
+	0x50, 0xdc, 0x5f, 0x4e, 0x80, 0x77, 0xcf, 0x13, 0xf1, 0x01, 0xbc, 0x44, 0x84, 0x74, 0x32, 0x85,
+	0x2c, 0x2a, 0x21, 0x26, 0x11, 0x72, 0xff, 0x5c, 0x2d, 0xdb, 0xb0, 0x1c, 0xbf, 0x52, 0xe6, 0x92,
+	0xca, 0xf6, 0x7a, 0xfa, 0x8d, 0x88, 0x1e, 0x32, 0x6b, 0x57, 0x43, 0xda, 0x09, 0x78, 0xa7, 0x14,
+	0x66, 0x3a, 0x95, 0x30, 0x5d, 0xd7, 0x3a, 0x99, 0x71, 0x8e, 0xaf, 0xff, 0xb8, 0x00, 0x85, 0x03,
+	0xe1, 0xa2, 0xef, 0x0c, 0x30, 0x33, 0x1f, 0x87, 0x1b, 0x99, 0xcf, 0x52, 0x4e, 0x27, 0xac, 0xde,
+	0xfc, 0x37, 0x56, 0x31, 0x31, 0x45, 0x28, 0xb3, 0x79, 0xe6, 0x12, 0xca, 0xb2, 0xca, 0x27, 0x34,
+	0xad, 0xe3, 0xa1, 0x2f, 0x61, 0x29, 0xee, 0x76, 0x57, 0xf2, 0x1d, 0x29, 0x50, 0xf5, 0xf5, 0x19,
+	0x40, 0x89, 0xf3, 0xaf, 0x60, 0x39, 0x69, 0x2d, 0x57, 0xf3, 0x0c, 0x63, 0x54, 0xf5, 0x8d, 0x59,
+	0x50, 0x69, 0xf2, 0xf1, 0x35, 0xce, 0x25, 0xaf, 0x41, 0xf9, 0xe4, 0x27, 0x6a, 0x08, 0x7d, 0x0d,
+	0x17, 0x9f, 0x99, 0x86, 0x9a, 0x79, 0xc6, 0x69, 0x64, 0xf5, 0xcd, 0x59, 0x91, 0xf1, 0x59, 0x7b,
+	0x1f, 0x3f, 0x3c, 0xad, 0x19, 0x8f, 0x4e, 0x6b, 0xc6, 0x1f, 0xa7, 0x35, 0xe3, 0xfb, 0xb3, 0xda,
+	0xdc, 0xa3, 0xb3, 0xda, 0xdc, 0xef, 0x67, 0xb5, 0xb9, 0x2f, 0x6e, 0xa4, 0xa6, 0x82, 0xae, 0xd7,
+	0xdd, 0xec, 0x1d, 0x61, 0xe6, 0xd9, 0xa9, 0x91, 0xee, 0xde, 0xc4, 0x6c, 0x1a, 0xce, 0x09, 0xdd,
+	0x45, 0x35, 0xd4, 0xbd, 0xf5, 0x57, 0x00, 0x00, 0x00, 0xff, 0xff, 0x73, 0xbb, 0x6e, 0xfd, 0xc3,
+	0x0a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -169,6 +756,11 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
+	CreateGlobalVirtualGroup(ctx context.Context, in *MsgCreateGlobalVirtualGroup, opts ...grpc.CallOption) (*MsgCreateGlobalVirtualGroupResponse, error)
+	DeleteGlobalVirtualGroup(ctx context.Context, in *MsgDeleteGlobalVirtualGroup, opts ...grpc.CallOption) (*MsgDeleteGlobalVirtualGroupResponse, error)
+	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
+	Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error)
+	SwapOut(ctx context.Context, in *MsgSwapOut, opts ...grpc.CallOption) (*MsgSwapOutResponse, error)
 	// UpdateParams defines a governance operation for updating the x/sp module parameters.
 	// The authority is defined in the keeper.
 	//
@@ -184,6 +776,51 @@ func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
+func (c *msgClient) CreateGlobalVirtualGroup(ctx context.Context, in *MsgCreateGlobalVirtualGroup, opts ...grpc.CallOption) (*MsgCreateGlobalVirtualGroupResponse, error) {
+	out := new(MsgCreateGlobalVirtualGroupResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/CreateGlobalVirtualGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) DeleteGlobalVirtualGroup(ctx context.Context, in *MsgDeleteGlobalVirtualGroup, opts ...grpc.CallOption) (*MsgDeleteGlobalVirtualGroupResponse, error) {
+	out := new(MsgDeleteGlobalVirtualGroupResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/DeleteGlobalVirtualGroup", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error) {
+	out := new(MsgDepositResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/Deposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error) {
+	out := new(MsgWithdrawResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/Withdraw", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) SwapOut(ctx context.Context, in *MsgSwapOut, opts ...grpc.CallOption) (*MsgSwapOutResponse, error) {
+	out := new(MsgSwapOutResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/SwapOut", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/UpdateParams", in, out, opts...)
@@ -195,6 +832,11 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
+	CreateGlobalVirtualGroup(context.Context, *MsgCreateGlobalVirtualGroup) (*MsgCreateGlobalVirtualGroupResponse, error)
+	DeleteGlobalVirtualGroup(context.Context, *MsgDeleteGlobalVirtualGroup) (*MsgDeleteGlobalVirtualGroupResponse, error)
+	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
+	Withdraw(context.Context, *MsgWithdraw) (*MsgWithdrawResponse, error)
+	SwapOut(context.Context, *MsgSwapOut) (*MsgSwapOutResponse, error)
 	// UpdateParams defines a governance operation for updating the x/sp module parameters.
 	// The authority is defined in the keeper.
 	//
@@ -206,12 +848,117 @@ type MsgServer interface {
 type UnimplementedMsgServer struct {
 }
 
+func (*UnimplementedMsgServer) CreateGlobalVirtualGroup(ctx context.Context, req *MsgCreateGlobalVirtualGroup) (*MsgCreateGlobalVirtualGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateGlobalVirtualGroup not implemented")
+}
+func (*UnimplementedMsgServer) DeleteGlobalVirtualGroup(ctx context.Context, req *MsgDeleteGlobalVirtualGroup) (*MsgDeleteGlobalVirtualGroupResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteGlobalVirtualGroup not implemented")
+}
+func (*UnimplementedMsgServer) Deposit(ctx context.Context, req *MsgDeposit) (*MsgDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Deposit not implemented")
+}
+func (*UnimplementedMsgServer) Withdraw(ctx context.Context, req *MsgWithdraw) (*MsgWithdrawResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Withdraw not implemented")
+}
+func (*UnimplementedMsgServer) SwapOut(ctx context.Context, req *MsgSwapOut) (*MsgSwapOutResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SwapOut not implemented")
+}
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
+}
+
+func _Msg_CreateGlobalVirtualGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateGlobalVirtualGroup)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).CreateGlobalVirtualGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/CreateGlobalVirtualGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).CreateGlobalVirtualGroup(ctx, req.(*MsgCreateGlobalVirtualGroup))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_DeleteGlobalVirtualGroup_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeleteGlobalVirtualGroup)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).DeleteGlobalVirtualGroup(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/DeleteGlobalVirtualGroup",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).DeleteGlobalVirtualGroup(ctx, req.(*MsgDeleteGlobalVirtualGroup))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_Deposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgDeposit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).Deposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/Deposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).Deposit(ctx, req.(*MsgDeposit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_Withdraw_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdraw)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).Withdraw(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/Withdraw",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).Withdraw(ctx, req.(*MsgWithdraw))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_SwapOut_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgSwapOut)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).SwapOut(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/SwapOut",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).SwapOut(ctx, req.(*MsgSwapOut))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -236,6 +983,26 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "greenfield.virtualgroup.Msg",
 	HandlerType: (*MsgServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateGlobalVirtualGroup",
+			Handler:    _Msg_CreateGlobalVirtualGroup_Handler,
+		},
+		{
+			MethodName: "DeleteGlobalVirtualGroup",
+			Handler:    _Msg_DeleteGlobalVirtualGroup_Handler,
+		},
+		{
+			MethodName: "Deposit",
+			Handler:    _Msg_Deposit_Handler,
+		},
+		{
+			MethodName: "Withdraw",
+			Handler:    _Msg_Withdraw_Handler,
+		},
+		{
+			MethodName: "SwapOut",
+			Handler:    _Msg_SwapOut_Handler,
+		},
 		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
@@ -308,6 +1075,409 @@ func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgCreateGlobalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCreateGlobalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCreateGlobalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.StoredSize != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.StoredSize))
+		i--
+		dAtA[i] = 0x28
+	}
+	{
+		size := m.TotalDeposit.Size()
+		i -= size
+		if _, err := m.TotalDeposit.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x22
+	if len(m.SecondarySpId) > 0 {
+		dAtA3 := make([]byte, len(m.SecondarySpId)*10)
+		var j2 int
+		for _, num := range m.SecondarySpId {
+			for num >= 1<<7 {
+				dAtA3[j2] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j2++
+			}
+			dAtA3[j2] = uint8(num)
+			j2++
+		}
+		i -= j2
+		copy(dAtA[i:], dAtA3[:j2])
+		i = encodeVarintTx(dAtA, i, uint64(j2))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.FamilyId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.FamilyId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.PrimarySpAddress) > 0 {
+		i -= len(m.PrimarySpAddress)
+		copy(dAtA[i:], m.PrimarySpAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PrimarySpAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgCreateGlobalVirtualGroupResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgCreateGlobalVirtualGroupResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgCreateGlobalVirtualGroupResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeleteGlobalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeleteGlobalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeleteGlobalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.PrimarySpAddress) > 0 {
+		i -= len(m.PrimarySpAddress)
+		copy(dAtA[i:], m.PrimarySpAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.PrimarySpAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeleteGlobalVirtualGroupResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeleteGlobalVirtualGroupResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeleteGlobalVirtualGroupResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDeposit) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDeposit) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Deposit.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.FundingAddress) > 0 {
+		i -= len(m.FundingAddress)
+		copy(dAtA[i:], m.FundingAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FundingAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdraw) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdraw) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdraw) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Withdraw.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.FundingAddress) > 0 {
+		i -= len(m.FundingAddress)
+		copy(dAtA[i:], m.FundingAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FundingAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSwapOut) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSwapOut) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSwapOut) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Approval != nil {
+		{
+			size, err := m.Approval.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintTx(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x3a
+	}
+	if len(m.DstGlobalVirtualGroupIds) > 0 {
+		dAtA8 := make([]byte, len(m.DstGlobalVirtualGroupIds)*10)
+		var j7 int
+		for _, num := range m.DstGlobalVirtualGroupIds {
+			for num >= 1<<7 {
+				dAtA8[j7] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j7++
+			}
+			dAtA8[j7] = uint8(num)
+			j7++
+		}
+		i -= j7
+		copy(dAtA[i:], dAtA8[:j7])
+		i = encodeVarintTx(dAtA, i, uint64(j7))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.SuccessorVirtualGroupFamilyId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.SuccessorVirtualGroupFamilyId))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.SuccessorSpId) > 0 {
+		i -= len(m.SuccessorSpId)
+		copy(dAtA[i:], m.SuccessorSpId)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.SuccessorSpId)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if len(m.GlobalVirtualGroupIds) > 0 {
+		dAtA10 := make([]byte, len(m.GlobalVirtualGroupIds)*10)
+		var j9 int
+		for _, num := range m.GlobalVirtualGroupIds {
+			for num >= 1<<7 {
+				dAtA10[j9] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j9++
+			}
+			dAtA10[j9] = uint8(num)
+			j9++
+		}
+		i -= j9
+		copy(dAtA[i:], dAtA10[:j9])
+		i = encodeVarintTx(dAtA, i, uint64(j9))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.VirtualGroupFamilyId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.VirtualGroupFamilyId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.SpAddress) > 0 {
+		i -= len(m.SpAddress)
+		copy(dAtA[i:], m.SpAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.SpAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgSwapOutResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgSwapOutResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgSwapOutResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -335,6 +1505,172 @@ func (m *MsgUpdateParams) Size() (n int) {
 }
 
 func (m *MsgUpdateParamsResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgCreateGlobalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PrimarySpAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.FamilyId != 0 {
+		n += 1 + sovTx(uint64(m.FamilyId))
+	}
+	if len(m.SecondarySpId) > 0 {
+		l = 0
+		for _, e := range m.SecondarySpId {
+			l += sovTx(uint64(e))
+		}
+		n += 1 + sovTx(uint64(l)) + l
+	}
+	l = m.TotalDeposit.Size()
+	n += 1 + l + sovTx(uint64(l))
+	if m.StoredSize != 0 {
+		n += 1 + sovTx(uint64(m.StoredSize))
+	}
+	return n
+}
+
+func (m *MsgCreateGlobalVirtualGroupResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgDeleteGlobalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.PrimarySpAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovTx(uint64(m.GlobalVirtualGroupId))
+	}
+	return n
+}
+
+func (m *MsgDeleteGlobalVirtualGroupResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgDeposit) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FundingAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovTx(uint64(m.GlobalVirtualGroupId))
+	}
+	l = m.Deposit.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgDepositResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgWithdraw) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FundingAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovTx(uint64(m.GlobalVirtualGroupId))
+	}
+	l = m.Withdraw.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgWithdrawResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgSwapOut) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.SpAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.VirtualGroupFamilyId != 0 {
+		n += 1 + sovTx(uint64(m.VirtualGroupFamilyId))
+	}
+	if len(m.GlobalVirtualGroupIds) > 0 {
+		l = 0
+		for _, e := range m.GlobalVirtualGroupIds {
+			l += sovTx(uint64(e))
+		}
+		n += 1 + sovTx(uint64(l)) + l
+	}
+	l = len(m.SuccessorSpId)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.SuccessorVirtualGroupFamilyId != 0 {
+		n += 1 + sovTx(uint64(m.SuccessorVirtualGroupFamilyId))
+	}
+	if len(m.DstGlobalVirtualGroupIds) > 0 {
+		l = 0
+		for _, e := range m.DstGlobalVirtualGroupIds {
+			l += sovTx(uint64(e))
+		}
+		n += 1 + sovTx(uint64(l)) + l
+	}
+	if m.Approval != nil {
+		l = m.Approval.Size()
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgSwapOutResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -491,6 +1827,1195 @@ func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCreateGlobalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCreateGlobalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCreateGlobalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FamilyId", wireType)
+			}
+			m.FamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.SecondarySpId = append(m.SecondarySpId, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthTx
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthTx
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.SecondarySpId) == 0 {
+					m.SecondarySpId = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowTx
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.SecondarySpId = append(m.SecondarySpId, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field SecondarySpId", wireType)
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalDeposit", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TotalDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StoredSize", wireType)
+			}
+			m.StoredSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StoredSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgCreateGlobalVirtualGroupResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgCreateGlobalVirtualGroupResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgCreateGlobalVirtualGroupResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeleteGlobalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeleteGlobalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeleteGlobalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeleteGlobalVirtualGroupResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeleteGlobalVirtualGroupResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeleteGlobalVirtualGroupResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDeposit) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDeposit: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FundingAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FundingAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Deposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Deposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdraw) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdraw: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdraw: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FundingAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FundingAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Withdraw", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Withdraw.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSwapOut) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSwapOut: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSwapOut: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SpAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VirtualGroupFamilyId", wireType)
+			}
+			m.VirtualGroupFamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.VirtualGroupFamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.GlobalVirtualGroupIds = append(m.GlobalVirtualGroupIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthTx
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthTx
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.GlobalVirtualGroupIds) == 0 {
+					m.GlobalVirtualGroupIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowTx
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.GlobalVirtualGroupIds = append(m.GlobalVirtualGroupIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupIds", wireType)
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SuccessorSpId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SuccessorSpId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SuccessorVirtualGroupFamilyId", wireType)
+			}
+			m.SuccessorVirtualGroupFamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SuccessorVirtualGroupFamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.DstGlobalVirtualGroupIds = append(m.DstGlobalVirtualGroupIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTx
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthTx
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthTx
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.DstGlobalVirtualGroupIds) == 0 {
+					m.DstGlobalVirtualGroupIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowTx
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.DstGlobalVirtualGroupIds = append(m.DstGlobalVirtualGroupIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field DstGlobalVirtualGroupIds", wireType)
+			}
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Approval", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Approval == nil {
+				m.Approval = &common.Approval{}
+			}
+			if err := m.Approval.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgSwapOutResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgSwapOutResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgSwapOutResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
