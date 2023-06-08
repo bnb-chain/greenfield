@@ -106,6 +106,9 @@ import (
 	storagemodule "github.com/bnb-chain/greenfield/x/storage"
 	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
+	virtualgroupmodulekeeper "github.com/bnb-chain/greenfield/x/virtualgroup/keeper"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 const (
@@ -157,22 +160,24 @@ var (
 		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
 		permissionmodule.AppModuleBasic{},
+		virtualgroupmodule.AppModuleBasic{},
 		storagemodule.AppModuleBasic{},
 		challengemodule.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:       nil,
-		distrtypes.ModuleName:            nil,
-		stakingtypes.BondedPoolName:      {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:   {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:              {authtypes.Burner},
-		paymentmoduletypes.ModuleName:    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-		crosschaintypes.ModuleName:       {authtypes.Minter},
-		permissionmoduletypes.ModuleName: nil,
-		bridgemoduletypes.ModuleName:     nil,
-		spmoduletypes.ModuleName:         {authtypes.Staking},
+		authtypes.FeeCollectorName:         nil,
+		distrtypes.ModuleName:              nil,
+		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                {authtypes.Burner},
+		paymentmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		crosschaintypes.ModuleName:         {authtypes.Minter},
+		permissionmoduletypes.ModuleName:   nil,
+		bridgemoduletypes.ModuleName:       nil,
+		spmoduletypes.ModuleName:           {authtypes.Staking},
+		virtualgroupmoduletypes.ModuleName: nil,
 	}
 )
 
@@ -229,6 +234,7 @@ type App struct {
 	PaymentKeeper          paymentmodulekeeper.Keeper
 	ChallengeKeeper        challengemodulekeeper.Keeper
 	PermissionmoduleKeeper permissionmodulekeeper.Keeper
+	VirtualgroupKeeper     virtualgroupmodulekeeper.Keeper
 	StorageKeeper          storagemodulekeeper.Keeper
 
 	// mm is the module manager
@@ -283,6 +289,7 @@ func New(
 		bridgemoduletypes.StoreKey,
 		gashubtypes.StoreKey,
 		spmoduletypes.StoreKey,
+		virtualgroupmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
 		permissionmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
@@ -443,6 +450,14 @@ func New(
 	)
 	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.VirtualgroupKeeper = *virtualgroupmodulekeeper.NewKeeper(
+		appCodec,
+		keys[virtualgroupmoduletypes.StoreKey],
+		tKeys[virtualgroupmoduletypes.TStoreKey],
+		authtypes.NewModuleAddress(virtualgroupmoduletypes.ModuleName).String(),
+	)
+	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper)
+
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
 		keys[paymentmoduletypes.StoreKey],
@@ -519,6 +534,7 @@ func New(
 		bridgeModule,
 		gashubModule,
 		spModule,
+		virtualgroupModule,
 		paymentModule,
 		permissionModule,
 		storageModule,
@@ -547,6 +563,7 @@ func New(
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
+		virtualgroupmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
@@ -571,6 +588,7 @@ func New(
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
+		virtualgroupmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
@@ -600,6 +618,7 @@ func New(
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		spmoduletypes.ModuleName,
+		virtualgroupmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,

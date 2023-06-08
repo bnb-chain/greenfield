@@ -1,0 +1,44 @@
+syntax = "proto3";
+package greenfield.virtualgroup;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
+
+// A global virtual group consists of one primary SP (SP) and multiple secondary SP.
+// Every global virtual group must belong to a GVG family, and the objects of each
+// bucket must be stored in a GVG within a group family.
+message GlobalVirtualGroup {
+  uint64 id = 1;
+  uint32 family_id = 2;
+
+  uint32 primary_sp_id = 3;
+  repeated uint32 secondary_sp_id = 4;
+
+  uint64 stored_size = 5;
+  string virtual_payment_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// Local virtual group(LVG) uniquely associated with a global virtual group.
+// Each bucket maintains a mapping from local virtual group to global virtual group
+// Each local virtual group is associated with a unique virtual payment account,
+// where all object fees are streamed to.
+message LocalVirtualGroup {
+  uint32 id = 1;
+
+  uint32 global_virtual_group_id = 2;
+  uint64 stored_size = 3;
+
+  string virtual_payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+// Global virtual group family serve as a means of grouping global virtual groups.
+// Each bucket must be associated with a unique global virtual group family and cannot cross families.
+message GlobalVirtualGroupFamily {
+  uint32 id = 1;
+
+  repeated uint64 global_virtual_group_ids = 2;
+
+  string virtual_payment_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
