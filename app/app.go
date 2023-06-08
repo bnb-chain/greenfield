@@ -456,7 +456,7 @@ func New(
 		tKeys[virtualgroupmoduletypes.TStoreKey],
 		authtypes.NewModuleAddress(virtualgroupmoduletypes.ModuleName).String(),
 	)
-	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper)
+	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
 
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
