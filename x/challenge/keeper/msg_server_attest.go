@@ -226,12 +226,14 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, vo
 	validatorReward, submitterReward := sdkmath.NewInt(0), sdkmath.NewInt(0)
 	if !totalAmount.IsZero() {
 		validatorReward, submitterReward = k.calculateHeartbeatRewards(ctx, totalAmount)
-		if validatorReward.IsPositive() && submitterReward.IsPositive() {
+		if validatorReward.IsPositive() {
 			distModuleAcc := authtypes.NewModuleAddress(distributiontypes.ModuleName)
 			err = k.paymentKeeper.Withdraw(ctx, paymentmoduletypes.ValidatorTaxPoolAddress, distModuleAcc, validatorReward)
 			if err != nil {
 				return err
 			}
+		}
+		if submitterReward.IsPositive() {
 			err = k.paymentKeeper.Withdraw(ctx, paymentmoduletypes.ValidatorTaxPoolAddress, submitter, submitterReward)
 			if err != nil {
 				return err
