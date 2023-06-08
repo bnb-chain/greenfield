@@ -26,5 +26,4 @@ jobs:
       - name: Test protobuf changes generates new go files
         run: |
           export PATH="$PATH:$(go env GOPATH)/bin"
-          go get github.com/ghodss/yaml
           make tools proto-gen-check

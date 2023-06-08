@@ -9,7 +9,7 @@ require (
 	github.com/cometbft/cometbft v0.37.1
 	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.47.0-rc2.0.20230220103612-f094a0c33410
+	github.com/cosmos/cosmos-sdk v0.47.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.8
 	github.com/ethereum/go-ethereum v1.10.22
@@ -32,6 +32,7 @@ require (
 
 require (
 	cosmossdk.io/api v0.4.0
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/rakyll/statik v0.1.7
 )
