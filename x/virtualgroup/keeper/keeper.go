@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -16,6 +17,11 @@ type (
 		storeKey  storetypes.StoreKey
 		tStoreKey storetypes.StoreKey
 		authority string
+
+		// sequence
+		lvgSequence       sequence.Sequence[uint32]
+		gvgSequence       sequence.Sequence[uint32]
+		gvgFamilySequence sequence.Sequence[uint32]
 	}
 )
 
@@ -32,6 +38,10 @@ func NewKeeper(
 		tStoreKey: tStoreKey,
 		authority: authority,
 	}
+
+	k.lvgSequence = sequence.NewSequence[uint32](types.LVGSequencePrefix)
+	k.gvgSequence = sequence.NewSequence[uint32](types.GVGSequencePrefix)
+	k.gvgFamilySequence = sequence.NewSequence[uint32](types.GVGFamilySequencePrefix)
 
 	return &k
 }

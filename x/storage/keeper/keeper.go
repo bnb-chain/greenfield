@@ -32,9 +32,9 @@ type (
 		crossChainKeeper types.CrossChainKeeper
 
 		// sequence
-		bucketSeq sequence.U256
-		objectSeq sequence.U256
-		groupSeq  sequence.U256
+		bucketSeq sequence.Sequence[sdkmath.Uint]
+		objectSeq sequence.Sequence[sdkmath.Uint]
+		groupSeq  sequence.Sequence[sdkmath.Uint]
 
 		authority string
 	}
@@ -64,9 +64,9 @@ func NewKeeper(
 		authority:        authority,
 	}
 
-	k.bucketSeq = sequence.NewSequence256(types.BucketSequencePrefix)
-	k.objectSeq = sequence.NewSequence256(types.ObjectSequencePrefix)
-	k.groupSeq = sequence.NewSequence256(types.GroupSequencePrefix)
+	k.bucketSeq = sequence.NewSequence[sdkmath.Uint](types.BucketSequencePrefix)
+	k.objectSeq = sequence.NewSequence[sdkmath.Uint](types.ObjectSequencePrefix)
+	k.groupSeq = sequence.NewSequence[sdkmath.Uint](types.GroupSequencePrefix)
 	return &k
 }
 
@@ -129,7 +129,7 @@ func (k Keeper) CreateBucket(
 
 	// store the bucket
 	bz := k.cdc.MustMarshal(&bucketInfo)
-	store.Set(bucketKey, sequence.EncodeSequence(bucketInfo.Id))
+	store.Set(bucketKey, k.bucketSeq.EncodeSequence(bucketInfo.Id))
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 
 	// emit CreateBucket Event
@@ -214,7 +214,12 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	store := ctx.KVStore(k.storeKey)
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 	iter := objectPrefixStore.Iterator(nil, nil)
-	defer iter.Close()
+	defer func(iter storetypes.Iterator) {
+		err := iter.Close()
+		if err != nil {
+
+		}
+	}(iter)
 
 	deleted := uint64(0) // deleted object count
 	for ; iter.Valid(); iter.Next() {
@@ -390,7 +395,7 @@ func (k Keeper) GetBucketInfo(ctx sdk.Context, bucketName string) (*types.Bucket
 		return nil, false
 	}
 
-	return k.GetBucketInfoById(ctx, sequence.DecodeSequence(bz))
+	return k.GetBucketInfoById(ctx, k.bucketSeq.DecodeSequence(bz))
 }
 
 func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*types.BucketInfo, bool) {
@@ -512,7 +517,7 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(objectKey, sequence.EncodeSequence(objectInfo.Id))
+	store.Set(objectKey, k.objectSeq.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
@@ -559,7 +564,7 @@ func (k Keeper) GetObjectInfo(ctx sdk.Context, bucketName string, objectName str
 		return nil, false
 	}
 
-	return k.GetObjectInfoById(ctx, sequence.DecodeSequence(bz))
+	return k.GetObjectInfoById(ctx, k.objectSeq.DecodeSequence(bz))
 }
 
 func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*types.ObjectInfo, bool) {
@@ -893,7 +898,7 @@ func (k Keeper) CopyObject(
 	store.Set(types.GetBucketByIDKey(dstBucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(&objectInfo)
-	store.Set(types.GetObjectKey(dstBucketName, dstObjectName), sequence.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectKey(dstBucketName, dstObjectName), k.objectSeq.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
@@ -1082,7 +1087,7 @@ func (k Keeper) CreateGroup(
 	}
 
 	gbz := k.cdc.MustMarshal(&groupInfo)
-	store.Set(groupKey, sequence.EncodeSequence(groupInfo.Id))
+	store.Set(groupKey, k.groupSeq.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
 	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
@@ -1124,7 +1129,7 @@ func (k Keeper) GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress,
 		return nil, false
 	}
 
-	return k.GetGroupInfoById(ctx, sequence.DecodeSequence(bz))
+	return k.GetGroupInfoById(ctx, k.groupSeq.DecodeSequence(bz))
 }
 
 func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*types.GroupInfo, bool) {

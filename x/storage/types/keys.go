@@ -88,17 +88,20 @@ func GetGroupKeyOnlyOwnerPrefix(owner sdk.AccAddress) []byte {
 
 // GetBucketByIDKey return the bucketID store key
 func GetBucketByIDKey(bucketId math.Uint) []byte {
-	return append(BucketByIDPrefix, sequence.EncodeSequence(bucketId)...)
+	var seq sequence.Sequence[math.Uint]
+	return append(BucketByIDPrefix, seq.EncodeSequence(bucketId)...)
 }
 
 // GetObjectByIDKey return the objectId store key
 func GetObjectByIDKey(objectId math.Uint) []byte {
-	return append(ObjectByIDPrefix, sequence.EncodeSequence(objectId)...)
+	var seq sequence.Sequence[math.Uint]
+	return append(ObjectByIDPrefix, seq.EncodeSequence(objectId)...)
 }
 
 // GetGroupByIDKey return the groupId store key
 func GetGroupByIDKey(groupId math.Uint) []byte {
-	return append(GroupByIDPrefix, sequence.EncodeSequence(groupId)...)
+	var seq sequence.Sequence[math.Uint]
+	return append(GroupByIDPrefix, seq.EncodeSequence(groupId)...)
 }
 
 // GetDiscontinueObjectIdsKey return discontinue object store key
@@ -117,7 +120,8 @@ func GetDiscontinueBucketIdsKey(timestamp int64) []byte {
 
 // GetDiscontinueObjectStatusKey return discontinue object status store key
 func GetDiscontinueObjectStatusKey(objectId math.Uint) []byte {
-	return append(DiscontinueObjectStatusPrefix, sequence.EncodeSequence(objectId)...)
+	var seq sequence.Sequence[math.Uint]
+	return append(DiscontinueObjectStatusPrefix, seq.EncodeSequence(objectId)...)
 }
 
 // GetParamsKeyWithTimestamp return multi-version params store key

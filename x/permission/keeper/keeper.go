@@ -23,8 +23,8 @@ type (
 		accountKeeper types.AccountKeeper
 
 		// policy sequence
-		policySeq      sequence.U256
-		groupMemberSeq sequence.U256
+		policySeq      sequence.Sequence[math.Uint]
+		groupMemberSeq sequence.Sequence[math.Uint]
 
 		authority string
 	}
@@ -45,8 +45,8 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		authority:     authority,
 	}
-	k.policySeq = sequence.NewSequence256(types.PolicySequencePrefix)
-	k.groupMemberSeq = sequence.NewSequence256(types.GroupMemberSequencePrefix)
+	k.policySeq = sequence.NewSequence[math.Uint](types.PolicySequencePrefix)
+	k.groupMemberSeq = sequence.NewSequence[math.Uint](types.GroupMemberSequencePrefix)
 	return k
 }
 
@@ -82,7 +82,7 @@ func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk
 		return storagetypes.ErrNoSuchGroupMember
 	}
 	store.Delete(memberKey)
-	store.Delete(types.GetGroupMemberByIDKey(sequence.DecodeSequence(bz)))
+	store.Delete(types.GetGroupMemberByIDKey(k.groupMemberSeq.DecodeSequence(bz)))
 	return nil
 }
 
@@ -94,7 +94,7 @@ func (k Keeper) GetGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 		return nil, false
 	}
 
-	return k.GetGroupMemberByID(ctx, sequence.DecodeSequence(bz))
+	return k.GetGroupMemberByID(ctx, k.groupMemberSeq.DecodeSequence(bz))
 }
 
 func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*types.GroupMember, bool) {
@@ -125,12 +125,12 @@ func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, err
 			policy.Principal.MustGetAccountAddress())
 		bz := store.Get(policyKey)
 		if bz != nil {
-			id := sequence.DecodeSequence(bz)
+			id := k.policySeq.DecodeSequence(bz)
 			// override write
 			newPolicy = k.updatePolicy(ctx, k.MustGetPolicyByID(ctx, id), policy)
 		} else {
 			policy.Id = k.policySeq.NextVal(store)
-			store.Set(policyKey, sequence.EncodeSequence(policy.Id))
+			store.Set(policyKey, k.policySeq.EncodeSequence(policy.Id))
 			bz := k.cdc.MustMarshal(policy)
 			store.Set(types.GetPolicyByIDKey(policy.Id), bz)
 			newPolicy = policy
@@ -221,7 +221,7 @@ func (k Keeper) GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 		return policy, false
 	}
 
-	return k.GetPolicyByID(ctx, sequence.DecodeSequence(bz))
+	return k.GetPolicyByID(ctx, k.policySeq.DecodeSequence(bz))
 }
 
 func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
@@ -318,7 +318,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		accAddr := sdk.MustAccAddressFromHex(principal.Value)
 		policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, accAddr)
 		bz := store.Get(policyKey)
-		policyID = sequence.DecodeSequence(bz)
+		policyID = k.policySeq.DecodeSequence(bz)
 		if bz != nil {
 			store.Delete(policyKey)
 			store.Delete(types.GetPolicyByIDKey(policyID))
@@ -372,7 +372,7 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 
 	for ; iterator.Valid(); iterator.Next() {
 		// delete mapping policyId -> policy
-		policyID := sequence.DecodeSequence(iterator.Value())
+		policyID := k.policySeq.DecodeSequence(iterator.Value())
 		store.Delete(types.GetPolicyByIDKey(policyID))
 		// delete mapping policyKey -> policyId
 		resourceAccountsPolicyStore.Delete(iterator.Key())
@@ -427,7 +427,7 @@ func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, maxDelete, deletedTotal
 	iter := groupMembersPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		memberID := sequence.DecodeSequence(iter.Value())
+		memberID := k.groupMemberSeq.DecodeSequence(iter.Value())
 		// delete GroupMemberByIDPrefix_id -> groupMember
 		store.Delete(types.GetGroupMemberByIDKey(memberID))
 		// delete GroupMemberPrefix_groupId_memberAddr -> memberSequence(id)

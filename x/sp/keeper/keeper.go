@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -19,7 +20,8 @@ type (
 		bankKeeper    types.BankKeeper
 		authzKeeper   types.AuthzKeeper
 
-		authority string
+		spSequence sequence.Sequence[uint32]
+		authority  string
 	}
 )
 
@@ -33,7 +35,7 @@ func NewKeeper(
 
 ) *Keeper {
 
-	return &Keeper{
+	k := &Keeper{
 		cdc:           cdc,
 		storeKey:      key,
 		accountKeeper: ak,
@@ -41,6 +43,9 @@ func NewKeeper(
 		authzKeeper:   azk,
 		authority:     authority,
 	}
+
+	k.spSequence = sequence.NewSequence[uint32](types.StorageProviderSequenceKey)
+	return k
 }
 
 func (k Keeper) GetAuthority() string {

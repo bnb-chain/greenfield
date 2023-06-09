@@ -7,6 +7,6 @@ import (
 
 type SpKeeper interface {
 	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
-	GetStorageProviderByFundingAddress(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
+	GetStorageProviderByFundingAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
 }
