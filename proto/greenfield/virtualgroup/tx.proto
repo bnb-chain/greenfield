@@ -51,18 +51,11 @@ message MsgCreateGlobalVirtualGroup {
   uint32 family_id = 2;
 
   // secondary_sp_id is a list of secondary storage provider IDs associated with the virtual group.
-  repeated uint32 secondary_sp_id = 3;
+  repeated uint32 secondary_sp_ids = 3;
 
   // total_deposit is the total deposit amount required for the virtual group.
   // The tokens needs deposited and the size of storage are correlated.
-  string total_deposit = 4 [
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
-  ];
-
-  // stored_size is the size of the data stored by the virtual group.
-  uint64 stored_size = 5;
+  cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false];
 }
 
 message MsgCreateGlobalVirtualGroupResponse {}
