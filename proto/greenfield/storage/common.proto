@@ -74,7 +74,11 @@ message Approval {
 // Then the primary SP can challenge and slash the secondary SP.
 // So the id of the object is needed to prevent this.
 message SecondarySpSignDoc {
-  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string global_group_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
   string object_id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",

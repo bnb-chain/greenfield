@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"context"
-
-	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -147,20 +145,15 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx)
-	if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
-		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect (%d), but (%d)", expectSecondarySPNum,
-			len(msg.SecondarySpAddresses))
-	}
-
-	if len(msg.SecondarySpSignatures) != (int)(expectSecondarySPNum) {
-		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "Missing SP signatures, expect (%d), but (%d)",
-			expectSecondarySPNum, len(msg.SecondarySpSignatures))
-	}
+	//expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx)
+	//if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
+	//	return nil, errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect (%d), but (%d)", expectSecondarySPNum,
+	//		len(msg.SecondarySpAddresses))
+	//}
 
 	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
-		SecondarySpAddresses:  msg.SecondarySpAddresses,
-		SecondarySpSignatures: msg.SecondarySpSignatures,
+		GvgId:                    msg.GvgId,
+		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
 	})
 
 	if err != nil {

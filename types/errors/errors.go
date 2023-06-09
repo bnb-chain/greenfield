@@ -20,6 +20,7 @@ var (
 	ErrInvalidVisibilityType = errors.Register(RootCodespace, 1010, "Invalid public type")
 	ErrInvalidActionType     = errors.Register(RootCodespace, 1011, "Invalid action type")
 	ErrInvalidPrincipalType  = errors.Register(RootCodespace, 1012, "Invalid principal type")
+	ErrInvalidBlsSignature   = errors.Register(RootCodespace, 1013, "bls signature is invalid")
 
 	ErrGRNTypeMismatch = errors.Register(RootCodespace, 2000, "Greenfield resource type mismatch")
 )

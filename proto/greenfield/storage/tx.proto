@@ -149,18 +149,17 @@ message MsgSealObject {
   string bucket_name = 2;
   // object_name defines the name of object to be sealed.
   string object_name = 3;
-  // secondary_sp_addresses defines a list of storage provider which store the redundant data.
-  repeated string secondary_sp_addresses = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // secondary_sp_bls_agg_signatures defines the bls aggregate signature of the secondary sp that can
-  // acknowledge that the payload data has received and stored.
-  repeated bytes secondary_sp_bls_agg_signatures = 5;
 
   // gvg_id defines the id of global virtual group which object bind to.
-  string gvg_id = 6 [
+  string gvg_id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+
+  // secondary_sp_bls_agg_signatures defines the bls aggregate signature of the secondary sp that can
+  // acknowledge that the payload data has received and stored.
+  bytes secondary_sp_bls_agg_signatures = 5;
 }
 
 message MsgSealObjectResponse {}

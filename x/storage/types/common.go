@@ -2,18 +2,29 @@ package types
 
 import (
 	"cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewSecondarySpSignDoc(spAddress sdk.AccAddress, objectID math.Uint, checksum []byte) *SecondarySpSignDoc {
+func NewSecondarySpSignDoc(objectID math.Uint, gvgId math.Uint, checkSums [][]byte) *SecondarySpSignDoc {
+	css := make([]byte, 0)
+	for _, cs := range checkSums {
+		css = append(css, cs...)
+	}
 	return &SecondarySpSignDoc{
-		SpAddress: spAddress.String(),
-		ObjectId:  objectID,
-		Checksum:  checksum,
+		GlobalGroupId: gvgId,
+		ObjectId:      objectID,
+		Checksum:      css,
 	}
 }
 
-func (sr *SecondarySpSignDoc) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(sr)
-	return sdk.MustSortJSON(bz)
+// GetSignBytes get the event hash
+func (c *SecondarySpSignDoc) GetSignBytes() [32]byte {
+	bts, err := rlp.EncodeToBytes(c)
+	if err != nil {
+		panic(err)
+	}
+
+	btsHash := sdk.Keccak256Hash(bts)
+	return btsHash
 }

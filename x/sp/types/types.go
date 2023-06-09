@@ -3,6 +3,7 @@ package types
 import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -19,7 +20,14 @@ func NewStorageProvider(
 	operator sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
 	totalDeposit math.Int, endpoint string,
-	description Description) (StorageProvider, error) {
+	description Description,
+	blsKey string) (StorageProvider, error) {
+
+	blsKeyBytes, err := hex.DecodeString(blsKey)
+	if err != nil {
+		return StorageProvider{}, err
+	}
+
 	return StorageProvider{
 		OperatorAddress: operator.String(),
 		FundingAddress:  fundingAddress.String(),
@@ -29,6 +37,7 @@ func NewStorageProvider(
 		TotalDeposit:    totalDeposit,
 		Endpoint:        endpoint,
 		Description:     description,
+		BlsKey:          blsKeyBytes,
 	}, nil
 }
 

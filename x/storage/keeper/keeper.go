@@ -3,6 +3,8 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -576,8 +578,8 @@ func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*type
 }
 
 type SealObjectOptions struct {
-	SecondarySpAddresses  []string
-	SecondarySpSignatures [][]byte
+	GvgId                    sdkmath.Uint
+	SecondarySpBlsSignatures []byte
 }
 
 func (k Keeper) SealObject(
@@ -607,22 +609,24 @@ func (k Keeper) SealObject(
 		return types.ErrObjectAlreadySealed
 	}
 
-	// check the signature of secondary sps
-	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
-	var secondarySps []string
-	for i, spAddr := range opts.SecondarySpAddresses {
-		spAcc := sdk.MustAccAddressFromHex(spAddr)
-		secondarySps = append(secondarySps, spAcc.String())
-		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Id, objectInfo.Checksums[i+1])
-		err := k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
-		if err != nil {
-			return err
-		}
+	// TODO get gvg by id, fetch each sp's bls pub key
+	secondSpBlsPubKeys := make([]bls.PublicKey, 0)
+	secondarySps := make([]string, 0)
+	// for _, sp := gvg {
+	//	secondSpBlsPubKeys = append(secondSpBlsPubKeys, bls.PublicKeyFromBytes(sp.blsPubkey))
+	//  secondarySps = append(secondarySps, sp.address)
+	// }
+
+	// TODO verify signature
+	err := k.verifySecondarySpsBlsSignature(opts.GvgId, objectInfo, secondSpBlsPubKeys, opts.SecondarySpBlsSignatures)
+	if err != nil {
+		return err
 	}
+
 	objectInfo.SecondarySpAddresses = secondarySps
 
 	// unlock and charge store fee
-	err := k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
+	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -1648,4 +1652,19 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 		}
 	}
 	return deletedTotal, true
+}
+
+func (k Keeper) verifySecondarySpsBlsSignature(gvgId sdkmath.Uint, objectInfo *types.ObjectInfo, secondSpBlsPubKeys []bls.PublicKey, blsSig []byte) error {
+	// Verify the aggregated signature.
+	aggSig, err := bls.SignatureFromBytes(blsSig)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature converts failed: %v", err)
+	}
+
+	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, objectInfo.Checksums)
+
+	if !aggSig.FastAggregateVerify(secondSpBlsPubKeys[:], blsSignDoc.GetSignBytes()) {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verify failed")
+	}
+	return nil
 }

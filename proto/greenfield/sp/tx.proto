@@ -99,6 +99,8 @@ message MsgEditStorageProvider {
   string approval_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose
   string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bls_key is the bls public key in hex format
+  string         bls_key            = 7;
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.
