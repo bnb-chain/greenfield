@@ -36,12 +36,13 @@ var (
 		ACTION_TYPE_ALL: true,
 	}
 	ObjectAllowedActions = map[ActionType]bool{
-		ACTION_CREATE_OBJECT:  true,
-		ACTION_DELETE_OBJECT:  true,
-		ACTION_GET_OBJECT:     true,
-		ACTION_COPY_OBJECT:    true,
-		ACTION_EXECUTE_OBJECT: true,
-		ACTION_LIST_OBJECT:    true,
+		ACTION_UPDATE_OBJECT_INFO: true,
+		ACTION_CREATE_OBJECT:      true,
+		ACTION_DELETE_OBJECT:      true,
+		ACTION_GET_OBJECT:         true,
+		ACTION_COPY_OBJECT:        true,
+		ACTION_EXECUTE_OBJECT:     true,
+		ACTION_LIST_OBJECT:        true,
 
 		ACTION_TYPE_ALL: true,
 	}
