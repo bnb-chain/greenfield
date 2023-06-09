@@ -19,6 +19,10 @@ const (
 
 var (
 	ParamsKey = []byte{0x01}
+
+	LVGSequencePrefix       = []byte{0x31}
+	GVGSequencePrefix       = []byte{0x32}
+	GVGFamilySequencePrefix = []byte{0x33}
 )
 
 func KeyPrefix(p string) []byte {

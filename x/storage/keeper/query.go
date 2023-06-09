@@ -12,7 +12,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfd "github.com/bnb-chain/greenfield/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -133,7 +132,7 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(req.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
-		objectInfo, found := k.GetObjectInfoById(ctx, sequence.DecodeSequence(value))
+		objectInfo, found := k.GetObjectInfoById(ctx, k.objectSeq.DecodeSequence(value))
 		if found {
 			objectInfos = append(objectInfos, objectInfo)
 		}
@@ -369,7 +368,7 @@ func (k Keeper) ListGroup(goCtx context.Context, req *types.QueryListGroupReques
 	groupStore := prefix.NewStore(store, types.GetGroupKeyOnlyOwnerPrefix(owner))
 
 	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key []byte, value []byte) error {
-		groupInfo, found := k.GetGroupInfoById(ctx, sequence.DecodeSequence(value))
+		groupInfo, found := k.GetGroupInfoById(ctx, k.groupSeq.DecodeSequence(value))
 		if found {
 			groupInfos = append(groupInfos, groupInfo)
 		}

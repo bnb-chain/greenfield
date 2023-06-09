@@ -31,6 +31,8 @@ var (
 	StorageProviderByGcAddrKey       = []byte{0x25} // prefix for each key to a storage provider index, by gc address
 	SpStoragePriceKeyPrefix          = []byte{0x26}
 	SecondarySpStorePriceKeyPrefix   = []byte{0x27}
+
+	StorageProviderSequenceKey = []byte{0x31}
 )
 
 // GetStorageProviderKey creates the key for the provider with address

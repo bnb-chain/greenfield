@@ -28,12 +28,9 @@ require (
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.3.0
-)
-
-require (
 	cosmossdk.io/api v0.4.0
-	github.com/golang/mock v1.6.0
-	github.com/rakyll/statik v0.1.7
+    github.com/golang/mock v1.6.0
+    github.com/rakyll/statik v0.1.7
 )
 
 require (
