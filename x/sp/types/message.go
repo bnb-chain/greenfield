@@ -11,6 +11,7 @@ const (
 	TypeMsgEditStorageProvider   = "edit_storage_provider"
 	TypeMsgDeposit               = "deposit"
 	TypeMsgUpdateSpStoragePrice  = "update_sp_storage_price"
+	TypeMsgUpdateParams          = "update_params"
 )
 
 var (
@@ -270,8 +271,6 @@ func (msg *MsgUpdateSpStoragePrice) ValidateBasic() error {
 	}
 	return nil
 }
-
-var _ sdk.Msg = &MsgUpdateParams{}
 
 // GetSignBytes implements the LegacyMsg interface.
 func (m MsgUpdateParams) GetSignBytes() []byte {
