@@ -195,8 +195,11 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		})
 		totalUserOutRate = totalUserOutRate.Add(rate)
 	}
-	params := k.paymentKeeper.GetParams(ctx)
-	validatorTaxRate := params.ValidatorTaxRate.MulInt(totalUserOutRate).TruncateInt()
+	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, bucketInfo.BillingInfo.PriceTime)
+	if err != nil {
+		return userFlows, fmt.Errorf("failed to get validator tax rate: %w, time: %d", err, bucketInfo.BillingInfo.PriceTime)
+	}
+	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(totalUserOutRate).TruncateInt()
 	if validatorTaxRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: types.ValidatorTaxPoolAddress.String(),

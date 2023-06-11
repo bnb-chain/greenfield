@@ -492,7 +492,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
 	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
-	userTaxRate := paymentParams.Params.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
+	userTaxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
 	userTotalRate := readChargeRate.Add(userTaxRate)
 	s.Require().Equal(usr.NetflowRate.Abs(), userTotalRate)
 	expectedOutFlows := []paymenttypes.OutFlow{
@@ -681,7 +681,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := paymentParams.Params.ValidatorTaxRate
+	taxRateParam := paymentParams.Params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
 	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))

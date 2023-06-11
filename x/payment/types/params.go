@@ -17,12 +17,13 @@ var (
 	KeyFeeDenom                 = []byte("FeeDenom")
 	KeyValidatorTaxRate         = []byte("ValidatorTaxRate")
 
-	DefaultReserveTime              uint64  = 180 * 24 * 60 * 60 // 180 days
-	DefaultForcedSettleTime         uint64  = 24 * 60 * 60       // 1 day
-	DefaultPaymentAccountCountLimit uint64  = 200
-	DefaultMaxAutoForceSettleNum    uint64  = 100
-	DefaultFeeDenom                 string  = "BNB"
-	DefaultValidatorTaxRate         sdk.Dec = sdk.NewDecWithPrec(1, 2) // 1%
+	DefaultReserveTime      uint64  = 180 * 24 * 60 * 60       // 180 days
+	DefaultValidatorTaxRate sdk.Dec = sdk.NewDecWithPrec(1, 2) // 1%
+
+	DefaultForcedSettleTime         uint64 = 24 * 60 * 60 // 1 day
+	DefaultPaymentAccountCountLimit uint64 = 200
+	DefaultMaxAutoForceSettleNum    uint64 = 100
+	DefaultFeeDenom                 string = "BNB"
 )
 
 // ParamKeyTable the param key table for launch module
@@ -33,19 +34,18 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(
 	reserveTime uint64,
+	validatorTaxRate sdk.Dec,
 	forcedSettleTime uint64,
 	paymentAccountCountLimit uint64,
 	maxAutoForceSettleNum uint64,
 	feeDenom string,
-	validatorTaxRate sdk.Dec,
 ) Params {
 	return Params{
-		VersionedParams:          VersionedParams{ReserveTime: reserveTime},
+		VersionedParams:          VersionedParams{ReserveTime: reserveTime, ValidatorTaxRate: validatorTaxRate},
 		ForcedSettleTime:         forcedSettleTime,
 		PaymentAccountCountLimit: paymentAccountCountLimit,
 		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
 		FeeDenom:                 feeDenom,
-		ValidatorTaxRate:         validatorTaxRate,
 	}
 }
 
@@ -53,11 +53,11 @@ func NewParams(
 func DefaultParams() Params {
 	return NewParams(
 		DefaultReserveTime,
+		DefaultValidatorTaxRate,
 		DefaultForcedSettleTime,
 		DefaultPaymentAccountCountLimit,
 		DefaultMaxAutoForceSettleNum,
 		DefaultFeeDenom,
-		DefaultValidatorTaxRate,
 	)
 }
 
@@ -65,17 +65,21 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyReserveTime, &p.VersionedParams.ReserveTime, validateReserveTime),
+		paramtypes.NewParamSetPair(KeyValidatorTaxRate, &p.VersionedParams.ValidatorTaxRate, validateValidatorTaxRate),
 		paramtypes.NewParamSetPair(KeyForcedSettleTime, &p.ForcedSettleTime, validateForcedSettleTime),
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
 		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
 		paramtypes.NewParamSetPair(KeyFeeDenom, &p.FeeDenom, validateFeeDenom),
-		paramtypes.NewParamSetPair(KeyValidatorTaxRate, &p.ValidatorTaxRate, validateValidatorTaxRate),
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
 	if err := validateReserveTime(p.VersionedParams.ReserveTime); err != nil {
+		return err
+	}
+
+	if err := validateValidatorTaxRate(p.VersionedParams.ValidatorTaxRate); err != nil {
 		return err
 	}
 
@@ -95,9 +99,6 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validateValidatorTaxRate(p.ValidatorTaxRate); err != nil {
-		return err
-	}
 	return nil
 }
 
