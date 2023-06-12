@@ -11,7 +11,7 @@ import (
 )
 
 type SpKeeper interface {
-	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *sp.StorageProvider, found bool)
+	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sp.StorageProvider, found bool)
 	DepositDenomForSP(ctx sdk.Context) (res string)
 	Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []sp.RewardInfo) error
 }

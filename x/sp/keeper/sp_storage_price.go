@@ -126,7 +126,7 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 		if sp.Status != types.STATUS_IN_SERVICE {
 			continue
 		}
-		price, err := k.GetSpStoragePriceByTime(ctx, sp.GetOperator(), current+1)
+		price, err := k.GetSpStoragePriceByTime(ctx, sp.GetOperatorAccAddress(), current+1)
 		if err != nil {
 			return err
 		}

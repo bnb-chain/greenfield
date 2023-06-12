@@ -14,6 +14,7 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	if err != nil {
 		panic(err)
 	}
+	k.InitGenesis(ctx, genState)
 }
 
 // ExportGenesis returns the module's exported genesis

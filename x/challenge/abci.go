@@ -82,7 +82,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		if err != nil {
 			continue
 		}
-		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorAddr)
+		sp, found := keeper.SpKeeper.GetStorageProviderByOperatorAddr(ctx, spOperatorAddr)
 		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
 			continue
 		}

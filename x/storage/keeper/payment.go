@@ -13,7 +13,7 @@ import (
 )
 
 func (k Keeper) GetFundingAddressBySpAddr(ctx sdk.Context, spAddr sdk.AccAddress) (string, error) {
-	sp, found := k.spKeeper.GetStorageProvider(ctx, spAddr)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
 		return "", fmt.Errorf("storage provider %s not found", spAddr)
 	}

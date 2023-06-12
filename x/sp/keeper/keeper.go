@@ -55,3 +55,10 @@ func (k Keeper) GetAuthority() string {
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
+
+func (k Keeper) GetNextSpID(ctx sdk.Context) uint32 {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.spSequence.NextVal(store)
+	return seq
+}

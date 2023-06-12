@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestSetGetStorageProvider() {
 	require.EqualValues(s.T(), found, true)
 }
 
-// TestStorageProviderBasics tests GetStorageProvider, GetStorageProviderByFundingAddr,
+// TestStorageProviderBasics tests GetStorageProviderByOperatorAddr, GetStorageProviderByFundingAddr,
 // GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr
 func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	k := s.spKeeper

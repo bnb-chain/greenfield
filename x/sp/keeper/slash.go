@@ -8,7 +8,7 @@ import (
 )
 
 func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types.RewardInfo) error {
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAcc)
 	if !found {
 		return types.ErrStorageProviderNotFound
 	}
