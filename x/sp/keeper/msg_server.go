@@ -53,7 +53,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		}
 	}
 
-	if _, found := k.GetStorageProvider(ctx, spAcc); found {
+	if _, found := k.GetStorageProviderByOperatorAddr(ctx, spAcc); found {
 		return nil, types.ErrStorageProviderOwnerExists
 	}
 
@@ -108,13 +108,14 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	sp, err := types.NewStorageProvider(spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
+	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
 		msg.Deposit.Amount, msg.Endpoint, msg.Description)
 	if err != nil {
 		return nil, err
 	}
 
 	k.SetStorageProvider(ctx, &sp)
+	k.SetStorageProviderByOperatorAddr(ctx, &sp)
 	k.SetStorageProviderByApprovalAddr(ctx, &sp)
 	k.SetStorageProviderByFundingAddr(ctx, &sp)
 	k.SetStorageProviderBySealAddr(ctx, &sp)
@@ -154,9 +155,9 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEditStorageProvider) (*types.MsgEditStorageProviderResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
+	operatorAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
 
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, operatorAcc)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}
@@ -207,7 +208,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	k.SetStorageProviderByGcAddr(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
-		SpAddress:       spAcc.String(),
+		SpAddress:       operatorAcc.String(),
 		Endpoint:        sp.Endpoint,
 		Description:     sp.Description,
 		ApprovalAddress: sp.ApprovalAddress,

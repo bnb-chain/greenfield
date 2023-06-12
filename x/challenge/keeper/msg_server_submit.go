@@ -18,7 +18,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	challenger := sdk.MustAccAddressFromHex(msg.Challenger)
 
 	// check sp status
-	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperator)
+	sp, found := k.SpKeeper.GetStorageProviderByOperatorAddr(ctx, spOperator)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}

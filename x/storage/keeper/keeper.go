@@ -22,14 +22,15 @@ import (
 
 type (
 	Keeper struct {
-		cdc              codec.BinaryCodec
-		storeKey         storetypes.StoreKey
-		tStoreKey        storetypes.StoreKey
-		spKeeper         types.SpKeeper
-		paymentKeeper    types.PaymentKeeper
-		accountKeeper    types.AccountKeeper
-		permKeeper       types.PermissionKeeper
-		crossChainKeeper types.CrossChainKeeper
+		cdc                codec.BinaryCodec
+		storeKey           storetypes.StoreKey
+		tStoreKey          storetypes.StoreKey
+		spKeeper           types.SpKeeper
+		paymentKeeper      types.PaymentKeeper
+		accountKeeper      types.AccountKeeper
+		permKeeper         types.PermissionKeeper
+		crossChainKeeper   types.CrossChainKeeper
+		virtualGroupKeeper types.VirtualGroupKeeper
 
 		// sequence
 		bucketSeq sequence.Sequence[sdkmath.Uint]
@@ -49,19 +50,21 @@ func NewKeeper(
 	paymentKeeper types.PaymentKeeper,
 	permKeeper types.PermissionKeeper,
 	crossChainKeeper types.CrossChainKeeper,
+	virtualGroupKeeper types.VirtualGroupKeeper,
 	authority string,
 ) *Keeper {
 
 	k := Keeper{
-		cdc:              cdc,
-		storeKey:         storeKey,
-		tStoreKey:        tStoreKey,
-		accountKeeper:    accountKeeper,
-		spKeeper:         spKeeper,
-		paymentKeeper:    paymentKeeper,
-		permKeeper:       permKeeper,
-		crossChainKeeper: crossChainKeeper,
-		authority:        authority,
+		cdc:                cdc,
+		storeKey:           storeKey,
+		tStoreKey:          tStoreKey,
+		accountKeeper:      accountKeeper,
+		spKeeper:           spKeeper,
+		paymentKeeper:      paymentKeeper,
+		permKeeper:         permKeeper,
+		crossChainKeeper:   crossChainKeeper,
+		virtualGroupKeeper: virtualGroupKeeper,
+		authority:          authority,
 	}
 
 	k.bucketSeq = sequence.NewSequence[sdkmath.Uint](types.BucketSequencePrefix)
@@ -1289,7 +1292,7 @@ func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, group
 }
 
 func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
-	sp, found := k.spKeeper.GetStorageProvider(ctx, spAcc)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAcc)
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP operator address: %s", spAcc.String())
 	}

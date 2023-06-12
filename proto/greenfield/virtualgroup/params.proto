@@ -8,5 +8,23 @@ option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 
 // Params defines the parameters for the module.
 message Params {
+  option (gogoproto.equal) = true;
   option (gogoproto.goproto_stringer) = false;
+
+  // deposit_denom defines the staking coin denomination.
+  string deposit_denom = 1;
+
+  // store price, in bnb wei per charge byte
+  string gvg_staking_price = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+
+  // min_deposit defines the minimum deposit amount for storage providers.
+  string min_deposit = 3 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }

@@ -455,6 +455,9 @@ func New(
 		keys[virtualgroupmoduletypes.StoreKey],
 		tKeys[virtualgroupmoduletypes.TStoreKey],
 		authtypes.NewModuleAddress(virtualgroupmoduletypes.ModuleName).String(),
+		app.SpKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
 	)
 	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
 
@@ -487,6 +490,7 @@ func New(
 		app.PaymentKeeper,
 		app.PermissionmoduleKeeper,
 		app.CrossChainKeeper,
+		app.VirtualgroupKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)

@@ -62,13 +62,13 @@ func (s Sequence[T]) InitVal(store storetypes.KVStore, seq T) error {
 	return nil
 }
 
-func (s Sequence[T]) ToUint32(seq T) (uint32, error) {
+func (s Sequence[T]) ToUint32(seq T) uint32 {
 	var t T
 	switch ret := any(t).(type) {
 	case uint32:
-		return ret, nil
+		return ret
 	default:
-		return 0, nil
+		return 0
 	}
 }
 

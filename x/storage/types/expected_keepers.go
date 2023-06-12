@@ -31,7 +31,7 @@ type BankKeeper interface {
 }
 
 type SpKeeper interface {
-	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
+	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderByGcAddr(ctx sdk.Context, gcAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
@@ -78,4 +78,7 @@ type CrossChainKeeper interface {
 	) (uint64, error)
 
 	RegisterChannel(name string, id sdk.ChannelID, app sdk.CrossChainApplication) error
+}
+
+type VirtualGroupKeeper interface {
 }
