@@ -1772,6 +1772,7 @@ func (s *StorageTestSuite) TestUpdateParams() {
 	// 5. wait a voting period and confirm that the proposal success.
 	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
 	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(1 * time.Second)
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)

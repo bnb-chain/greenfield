@@ -79,6 +79,11 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 
 	ctx := context.Background()
 
+	ts := time.Now().Unix()
+	queryParamsRequest := &paymenttypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, queryParamsRequest)
+	s.Require().NoError(err)
+
 	msgUpdateParams := &paymenttypes.MsgUpdateParams{
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 		Params:    params,
@@ -131,6 +136,12 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
+
+	queryParamsByTimestampRequest := &paymenttypes.QueryParamsByTimestampRequest{Timestamp: ts}
+	queryParamsByTimestampResponse, err := s.Client.PaymentQueryClient.ParamsByTimestamp(ctx, queryParamsByTimestampRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryParamsResponse.Params.VersionedParams.ReserveTime,
+		queryParamsByTimestampResponse.Params.VersionedParams.ReserveTime)
 }
 
 func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, storagetypes.Uint, []byte) {
