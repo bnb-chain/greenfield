@@ -126,6 +126,7 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagDetails, types.DoNotModifyDesc, "The storage provider's (optional) details")
 
 	cmd.Flags().String(FlagSealAddress, "", "The seal address of storage provider")
+	cmd.Flags().String(FlagBlsPubKey, "", "The Bls public key of storage provider")
 	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
 	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
 
@@ -288,6 +289,7 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagOperatorAddress, "", "The operator address of storage provider")
 	fsCreateStorageProvider.String(FlagFundingAddress, "", "The funding address of storage provider")
 	fsCreateStorageProvider.String(FlagSealAddress, "", "The seal address of storage provider")
+	fsCreateStorageProvider.String(FlagBlsPubKey, "", "The bls public key of storage provider")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
 	fsCreateStorageProvider.String(FlagGcAddress, "", "The gc address of storage provider")
 
@@ -316,6 +318,7 @@ type TxCreateStorageProviderConfig struct {
 	SpAddress       sdk.AccAddress
 	FundingAddress  sdk.AccAddress
 	SealAddress     sdk.AccAddress
+	BlsPubKey       string
 	ApprovalAddress sdk.AccAddress
 	GcAddress       sdk.AccAddress
 
@@ -407,6 +410,16 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.SealAddress = addr
 
+	// bls key
+	blsPubKey, err := flagSet.GetString(FlagBlsPubKey)
+	if err != nil {
+		return c, err
+	}
+	if len(blsPubKey) != 2*sdk.BLSPubKeyLength {
+		return c, fmt.Errorf("invalid bls pubkey")
+	}
+	c.BlsPubKey = blsPubKey
+
 	// approval address
 	approvalAddress, err := flagSet.GetString(FlagApprovalAddress)
 	if err != nil {
@@ -484,6 +497,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 		config.Creator, config.SpAddress, config.FundingAddress,
 		config.SealAddress, config.ApprovalAddress, config.GcAddress, description,
 		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
+		config.BlsPubKey,
 	)
 	if err != nil {
 		return txBldr, msg, err
