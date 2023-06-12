@@ -11,6 +11,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
@@ -214,17 +215,13 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 }
 
-func (s *PaymentTestSuite) TestVersionedParams() {
+// TestVersionedParams_SealAfterReserveTimeChange will cover the following case:
+// create an object, increase the reserve time, seal the object without error.
+func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange() {
 	ctx := context.Background()
 	queryParamsRequest := paymenttypes.QueryParamsRequest{}
 	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
 	s.Require().NoError(err)
-
-	queryStreamRequest := paymenttypes.QueryGetStreamRecordRequest{Account: paymenttypes.ValidatorTaxPoolAddress.String()}
-	queryStreamResponse, err := s.Client.PaymentQueryClient.StreamRecord(ctx, &queryStreamRequest)
-	s.Require().NoError(err)
-	validatorTaxPoolRate := queryStreamResponse.StreamRecord.NetflowRate
-	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
 
 	// create bucket, create object
 	user, bucketName, objectName, objectId, checksum := s.createObject()
@@ -247,6 +244,64 @@ func (s *PaymentTestSuite) TestVersionedParams() {
 	// seal object
 	s.sealObject(bucketName, objectName, objectId, checksum)
 
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+
+	// delete object
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(user, msgDeleteObject)
+
+	// delete bucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(user, msgDeleteBucket)
+
+	// revert params
+	params.VersionedParams.ReserveTime = oldReserveTime
+	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
+	s.updateParams(params)
+}
+
+// TestVersionedParams_DeleteAfterValidatorTaxRateChange will cover the following case:
+// create a bucket with non-zero read quota, change the validator tax rate, delete the bucket.
+// The rate of the validator tax address should be correct.
+func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRateChange() {
+	ctx := context.Background()
+	queryParamsRequest := paymenttypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+
+	queryStreamRequest := paymenttypes.QueryGetStreamRecordRequest{Account: paymenttypes.ValidatorTaxPoolAddress.String()}
+	queryStreamResponse, err := s.Client.PaymentQueryClient.StreamRecord(ctx, &queryStreamRequest)
+	s.Require().NoError(err)
+	validatorTaxPoolRate := queryStreamResponse.StreamRecord.NetflowRate
+	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
+
+	// create bucket, create object
+	user, bucketName, objectName, objectId, checksum := s.createObject()
+
+	// seal object
+	s.sealObject(bucketName, objectName, objectId, checksum)
+
+	// update params
+	params := queryParamsResponse.GetParams()
+	oldReserveTime := params.VersionedParams.ReserveTime
+	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
+	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
+
+	params.VersionedParams.ReserveTime = oldReserveTime / 2
+	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
+
+	s.updateParams(params)
+	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+	params = queryParamsResponse.GetParams()
+	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
+
 	// delete object
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
 	s.SendTxBlock(user, msgDeleteObject)
@@ -258,6 +313,96 @@ func (s *PaymentTestSuite) TestVersionedParams() {
 	queryStreamResponse, err = s.Client.PaymentQueryClient.StreamRecord(ctx, &queryStreamRequest)
 	s.Require().NoError(err)
 	s.Require().Equal(validatorTaxPoolRate, queryStreamResponse.StreamRecord.NetflowRate)
+
+	// revert params
+	params.VersionedParams.ReserveTime = oldReserveTime
+	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
+	s.updateParams(params)
+}
+
+// TestVersionedParams_DeleteObjectAfterReserveTimeChange will cover the following case:
+// create an object, change the reserve time, the object can be force deleted even the object's own has no enough balance.
+func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChange() {
+	ctx := context.Background()
+	queryParamsRequest := paymenttypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+
+	// create bucket, create object
+	user, bucketName, objectName, objectId, checksum := s.createObject()
+
+	// seal object
+	s.sealObject(bucketName, objectName, objectId, checksum)
+
+	// for payment
+	time.Sleep(2 * time.Second)
+
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: user.GetAddr().String()}
+	queryBalanceResponse, err := s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+
+	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.SubRaw(5*types.DecimalGwei)),
+	))
+
+	simulateResponse := s.SimulateTx(msgSend, user)
+	gasLimit := simulateResponse.GasInfo.GetGasUsed()
+	gasPrice, err := sdk.ParseCoinNormalized(simulateResponse.GasInfo.GetMinGasPrice())
+	s.Require().NoError(err)
+
+	msgSend.Amount = sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.Sub(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))),
+	)
+	s.SendTxBlock(user, msgSend)
+	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(int64(0), queryBalanceResponse.Balance.Amount.Int64())
+
+	// update params
+	params := queryParamsResponse.GetParams()
+	oldReserveTime := params.VersionedParams.ReserveTime
+	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
+	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
+
+	params.VersionedParams.ReserveTime = oldReserveTime * 2
+	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
+
+	s.updateParams(params)
+	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+	params = queryParamsResponse.GetParams()
+	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
+
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+
+	sp := s.StorageProviders[0]
+
+	// force delete bucket
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
+	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime > deleteAt {
+			break
+		}
+	}
+
+	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().ErrorContains(err, "No such object")
 
 	// revert params
 	params.VersionedParams.ReserveTime = oldReserveTime
