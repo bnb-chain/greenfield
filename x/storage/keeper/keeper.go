@@ -99,7 +99,7 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
-	// check sp
+	// check sp and its status
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primarySpAcc)
 	if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist or not in service")
