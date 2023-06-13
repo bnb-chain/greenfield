@@ -43,6 +43,6 @@ var (
 	ErrInvalidObjectStatus = errors.Register(ModuleName, 3105, "invalid object status")
 	ErrInvalidBucketStatus = errors.Register(ModuleName, 3106, "invalid bucket status")
 
-	ErrKeyNotExist     = errors.Register(ModuleName, 3201, "DeletePermissionKey not exist")
-	ErrInvalidResource = errors.Register(ModuleName, 3202, "invalid resource type")
+	ErrInvalidResource  = errors.Register(ModuleName, 3201, "invalid resource type")
+	ErrInvalidBlsPubKey = errors.Register(ModuleName, 3202, "invalid bls public key")
 )

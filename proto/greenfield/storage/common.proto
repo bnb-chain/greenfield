@@ -70,5 +70,6 @@ message SecondarySpSignDoc {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // checksums is the slice of integrate hash of secondary sps
   repeated bytes checksums = 3;
 }

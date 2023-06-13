@@ -78,7 +78,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, types.ErrStorageProviderGcAddrExists
 	}
 
-	// check to see if the bls pubkey has been registered before
+	// check if the bls pubkey has been registered before
 	blsPk, err := hex.DecodeString(msg.BlsKey)
 	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 		return nil, types.ErrStorageProviderInvalidBlsKey

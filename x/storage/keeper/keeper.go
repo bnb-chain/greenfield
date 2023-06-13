@@ -616,14 +616,6 @@ func (k Keeper) SealObject(
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectAlreadySealed
 	}
-
-	// todo
-	secondSpBlsPubKeys := make([]bls.PublicKey, 0)
-	err := k.verifySecondarySpsBlsSignature(opts.GlobalVirtualGroupId, objectInfo, secondSpBlsPubKeys, opts.SecondarySpBlsSignatures)
-	if err != nil {
-		return err
-	}
-
 	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, bucketInfo.PrimarySpId, opts.GlobalVirtualGroupId)
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGNotExist
@@ -632,6 +624,24 @@ func (k Keeper) SealObject(
 	if int(expectSecondarySPNum) != len(gvg.SecondarySpIds) {
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
+	}
+	// validate bls sig
+	secondSpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
+	for _, spId := range gvg.GetSecondarySpIds() {
+		sp, found = k.spKeeper.GetStorageProvider(ctx, spId)
+		if !found {
+			panic("should not happen")
+		}
+		spBlsPubKey, err := bls.PublicKeyFromBytes(sp.BlsKey)
+		if err != nil {
+			return errors.Wrapf(types.ErrInvalidBlsPubKey, "BLS public key converts failed: %v", err)
+		}
+		secondSpBlsPubKeys = append(secondSpBlsPubKeys, spBlsPubKey)
+	}
+
+	err := k.verifySecondarySpsBlsSignature(opts.GlobalVirtualGroupId, objectInfo, secondSpBlsPubKeys, opts.SecondarySpBlsSignatures)
+	if err != nil {
+		return err
 	}
 
 	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)
