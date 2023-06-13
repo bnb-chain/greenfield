@@ -20,11 +20,12 @@ type (
 		storeKey storetypes.StoreKey
 		tKey     storetypes.StoreKey
 
-		bankKeeper    types.BankKeeper
-		StorageKeeper types.StorageKeeper
-		SpKeeper      types.SpKeeper
-		stakingKeeper types.StakingKeeper
-		paymentKeeper types.PaymentKeeper
+		bankKeeper         types.BankKeeper
+		StorageKeeper      types.StorageKeeper
+		SpKeeper           types.SpKeeper
+		stakingKeeper      types.StakingKeeper
+		paymentKeeper      types.PaymentKeeper
+		VirtualGroupKeeper types.VirtualGroupKeeper
 
 		authority string
 	}
@@ -38,18 +39,20 @@ func NewKeeper(
 	spKeeper types.SpKeeper,
 	stakingKeeper types.StakingKeeper,
 	paymentKeeper types.PaymentKeeper,
+	virtualGroupKeeper types.VirtualGroupKeeper,
 	authority string,
 ) *Keeper {
 	return &Keeper{
-		cdc:           cdc,
-		storeKey:      storeKey,
-		tKey:          tKey,
-		bankKeeper:    bankKeeper,
-		StorageKeeper: storageKeeper,
-		SpKeeper:      spKeeper,
-		stakingKeeper: stakingKeeper,
-		paymentKeeper: paymentKeeper,
-		authority:     authority,
+		cdc:                cdc,
+		storeKey:           storeKey,
+		tKey:               tKey,
+		bankKeeper:         bankKeeper,
+		StorageKeeper:      storageKeeper,
+		SpKeeper:           spKeeper,
+		stakingKeeper:      stakingKeeper,
+		paymentKeeper:      paymentKeeper,
+		VirtualGroupKeeper: virtualGroupKeeper,
+		authority:          authority,
 	}
 }
 
