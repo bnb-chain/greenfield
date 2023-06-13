@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
+	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -242,7 +243,7 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 		Visibility:       VisibilityType(p.Visibility),
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
-		PrimarySpApproval: &Approval{
+		PrimarySpApproval: &common.Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
@@ -259,7 +260,7 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 		Visibility:       VisibilityType(p.Visibility),
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
-		PrimarySpApproval: &Approval{
+		PrimarySpApproval: &common.Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},

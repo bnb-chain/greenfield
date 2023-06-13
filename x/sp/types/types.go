@@ -17,7 +17,7 @@ const (
 
 // NewStorageProvider constructs a new StorageProvider
 func NewStorageProvider(
-	operator sdk.AccAddress, fundingAddress sdk.AccAddress,
+	spID uint32, operator sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
 	totalDeposit math.Int, endpoint string,
 	description Description,
@@ -29,6 +29,7 @@ func NewStorageProvider(
 	}
 
 	return StorageProvider{
+		Id:              spID,
 		OperatorAddress: operator.String(),
 		FundingAddress:  fundingAddress.String(),
 		SealAddress:     sealAddress.String(),
@@ -41,7 +42,7 @@ func NewStorageProvider(
 	}, nil
 }
 
-func (sp *StorageProvider) GetOperator() sdk.AccAddress {
+func (sp *StorageProvider) GetOperatorAccAddress() sdk.AccAddress {
 	addr := sdk.MustAccAddressFromHex(sp.OperatorAddress)
 	return addr
 }

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"cosmossdk.io/math"
 	"fmt"
 	"strings"
 	"time"
@@ -105,7 +104,7 @@ func NewMsgCreateBucket(
 		Visibility:        Visibility,
 		PaymentAddress:    paymentAddress.String(),
 		PrimarySpAddress:  primarySPAddress.String(),
-		PrimarySpApproval: &Approval{timeoutHeight, sig},
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 		ChargedReadQuota:  chargedReadQuota,
 	}
 }
@@ -287,24 +286,19 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
 	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
-	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
-
-	var secSPAddrs []string
-	for _, secondarySP := range secondarySPAccs {
-		secSPAddrs = append(secSPAddrs, secondarySP.String())
-	}
+	globalVirtualGroupId uint32) *MsgCreateObject {
 
 	return &MsgCreateObject{
-		Creator:                    creator.String(),
-		BucketName:                 bucketName,
-		ObjectName:                 objectName,
-		PayloadSize:                payloadSize,
-		Visibility:                 Visibility,
-		ContentType:                contentType,
-		PrimarySpApproval:          &Approval{timeoutHeight, sig},
-		ExpectChecksums:            expectChecksums,
-		RedundancyType:             redundancyType,
-		ExpectSecondarySpAddresses: secSPAddrs,
+		Creator:              creator.String(),
+		BucketName:           bucketName,
+		ObjectName:           objectName,
+		PayloadSize:          payloadSize,
+		Visibility:           Visibility,
+		ContentType:          contentType,
+		PrimarySpApproval:    &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
+		ExpectChecksums:      expectChecksums,
+		RedundancyType:       redundancyType,
+		GlobalVirtualGroupId: globalVirtualGroupId,
 	}
 }
 
@@ -364,10 +358,8 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 		return err
 	}
 
-	for _, spAddress := range msg.ExpectSecondarySpAddresses {
-		if _, err = sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
-		}
+	if msg.GlobalVirtualGroupId == 0 {
+		return errors.Wrapf(ErrInvalidParameter, "global group virtual group id can not be zero")
 	}
 
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
@@ -484,14 +476,14 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 
 func NewMsgSealObject(
 	operator sdk.AccAddress, bucketName string, objectName string,
-	globalGroupId math.Uint, secondarySpBlsAggSignatures []byte) *MsgSealObject {
+	globalVirtualGroupID uint32, secondarySpBlsSignatures []byte) *MsgSealObject {
 
 	return &MsgSealObject{
 		Operator:                    operator.String(),
 		BucketName:                  bucketName,
 		ObjectName:                  objectName,
-		GvgId:                       globalGroupId,
-		SecondarySpBlsAggSignatures: secondarySpBlsAggSignatures,
+		GlobalVirtualGroupId:        globalVirtualGroupID,
+		SecondarySpBlsAggSignatures: secondarySpBlsSignatures,
 	}
 }
 
@@ -537,7 +529,7 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return err
 	}
 
-	if len(msg.SecondarySpBlsAggSignatures) != BLSSignatureLength {
+	if len(msg.GetSecondarySpBlsAggSignatures()) != BLSSignatureLength {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest,
 			fmt.Sprintf("length of signature should be %d", BLSSignatureLength),
 		)
@@ -555,7 +547,7 @@ func NewMsgCopyObject(
 		DstBucketName:        dstBucketName,
 		SrcObjectName:        srcObjectName,
 		DstObjectName:        dstObjectName,
-		DstPrimarySpApproval: &Approval{timeoutHeight, sig},
+		DstPrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 	}
 }
 

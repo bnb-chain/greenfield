@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -102,21 +103,20 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx)) {
+	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
 		return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
 			1+k.Keeper.RedundantParityChunkNum(ctx)+k.Keeper.RedundantParityChunkNum(ctx),
 			len(msg.ExpectChecksums))
 	}
 
 	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, CreateObjectOptions{
-		SourceType:           types.SOURCE_TYPE_ORIGIN,
-		Visibility:           msg.Visibility,
-		ContentType:          msg.ContentType,
-		RedundancyType:       msg.RedundancyType,
-		Checksums:            msg.ExpectChecksums,
-		PrimarySpApproval:    msg.PrimarySpApproval,
-		ApprovalMsgBytes:     msg.GetApprovalBytes(),
-		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
+		SourceType:        types.SOURCE_TYPE_ORIGIN,
+		Visibility:        msg.Visibility,
+		ContentType:       msg.ContentType,
+		RedundancyType:    msg.RedundancyType,
+		Checksums:         msg.ExpectChecksums,
+		PrimarySpApproval: msg.PrimarySpApproval,
+		ApprovalMsgBytes:  msg.GetApprovalBytes(),
 	})
 	if err != nil {
 		return nil, err
@@ -145,14 +145,8 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	//expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx)
-	//if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
-	//	return nil, errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect (%d), but (%d)", expectSecondarySPNum,
-	//		len(msg.SecondarySpAddresses))
-	//}
-
 	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
-		GvgId:                    msg.GvgId,
+		GlobalVirtualGroupId:     msg.GlobalVirtualGroupId,
 		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
 	})
 

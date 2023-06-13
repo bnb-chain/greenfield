@@ -18,7 +18,11 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	challenger := sdk.MustAccAddressFromHex(msg.Challenger)
 
 	// check sp status
-	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperator)
+	bucketInfo, found := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrUnknownObject
+	}
+	sp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}
@@ -35,17 +39,36 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrInvalidObjectStatus
 	}
 
-	// check whether the sp stores the object info
+	// check whether the sp stores the object info, generate redundancy index
 	stored := false
-	for _, sp := range objectInfo.GetSecondarySpAddresses() {
-		if spOperator.Equals(sdk.MustAccAddressFromHex(sp)) {
+	redundancyIndex := types.RedundancyIndexPrimary
+
+	lvg, found := k.VirtualGroupKeeper.GetLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+	if !found {
+		panic("should not happen")
+	}
+	gvg, found := k.VirtualGroupKeeper.GetGVG(ctx, bucketInfo.PrimarySpId, lvg.GlobalVirtualGroupId)
+	if !found {
+		panic("should not happen")
+	}
+
+	for i, spId := range gvg.SecondarySpIds {
+		sp, found := k.SpKeeper.GetStorageProvider(ctx, spId)
+		if !found {
+			panic("should not happen")
+		}
+		if spOperator.Equals(sdk.MustAccAddressFromHex(sp.OperatorAddress)) {
+			redundancyIndex = int32(i)
 			stored = true
 			break
 		}
 	}
 	if !stored {
-		bucket, _ := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
-		if !spOperator.Equals(sdk.MustAccAddressFromHex(bucket.GetPrimarySpAddress())) {
+		sp, found := k.SpKeeper.GetStorageProvider(ctx, gvg.PrimarySpId)
+		if !found {
+			panic("should not happen")
+		}
+		if !spOperator.Equals(sdk.MustAccAddressFromHex(sp.OperatorAddress)) {
 			return nil, types.ErrNotStoredOnSp
 		}
 	}
@@ -53,15 +76,6 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	// check sp recent slash
 	if k.ExistsSlash(ctx, spOperator, objectInfo.Id) {
 		return nil, types.ErrExistsRecentSlash
-	}
-
-	// generate redundancy index
-	redundancyIndex := types.RedundancyIndexPrimary
-	for i, sp := range objectInfo.GetSecondarySpAddresses() {
-		if spOperator.Equals(sdk.MustAccAddressFromHex(sp)) {
-			redundancyIndex = int32(i)
-			break
-		}
 	}
 
 	// generate segment index

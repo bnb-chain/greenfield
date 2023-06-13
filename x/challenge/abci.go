@@ -64,30 +64,37 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// random redundancy index (sp address)
-		var spOperatorAddress string
-		secondarySpAddresses := objectInfo.SecondarySpAddresses
+		var spOperatorId uint32
 
-		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(secondarySpAddresses)+1))
-		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
-			bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
-			if !found {
-				continue
-			}
-			spOperatorAddress = bucket.PrimarySpAddress
-		} else {
-			spOperatorAddress = secondarySpAddresses[redundancyIndex]
-		}
-
-		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(spOperatorAddress)
-		if err != nil {
+		bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
+		if !found {
 			continue
 		}
-		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorAddr)
+		lvg, found := keeper.VirtualGroupKeeper.GetLVG(ctx, bucket.Id, objectInfo.LocalVirtualGroupId)
+		if !found {
+			continue
+		}
+		gvg, found := keeper.VirtualGroupKeeper.GetGVG(ctx, bucket.PrimarySpId, lvg.GlobalVirtualGroupId)
+		if !found {
+			continue
+		}
+		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(gvg.SecondarySpIds)+1))
+		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
+			spOperatorId = bucket.PrimarySpId
+		} else {
+			spOperatorId = gvg.SecondarySpIds[redundancyIndex]
+		}
+
+		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorId)
 		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
 			continue
 		}
+		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(sp.OperatorAddress)
+		if err != nil {
+			continue
+		}
 
-		mapKey := fmt.Sprintf("%s-%s", spOperatorAddress, objectInfo.Id.String())
+		mapKey := fmt.Sprintf("%d-%s", spOperatorId, objectInfo.Id.String())
 		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
 			continue
 		}
@@ -112,7 +119,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,
 			SegmentIndex:      segmentIndex,
-			SpOperatorAddress: spOperatorAddress,
+			SpOperatorAddress: spOperatorAddr.String(),
 			RedundancyIndex:   redundancyIndex,
 			ChallengerAddress: "",
 			ExpiredHeight:     expiredHeight,

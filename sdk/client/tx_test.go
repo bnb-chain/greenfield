@@ -141,3 +141,37 @@ func TestSendTxWithGrpcConn(t *testing.T) {
 	assert.Equal(t, uint32(0), response.TxResponse.Code)
 	t.Log(response.TxResponse.String())
 }
+
+func TestSendTokenWithOverrideAccount(t *testing.T) {
+
+	// which is not being used to send tx
+	km, err := keys.NewPrivateKeyManager("2a3f0f19fbcb057e053696879207324c24f601ab47db92676cc4958ea9089761")
+	assert.NoError(t, err)
+	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
+	assert.NoError(t, err)
+
+	km2, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
+	assert.NoError(t, err)
+
+	assert.NoError(t, err)
+	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
+	assert.NoError(t, err)
+	transfer := banktypes.NewMsgSend(km2.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
+	payerAddr, err := sdk.AccAddressFromHexUnsafe(km2.GetAddr().String())
+	assert.NoError(t, err)
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
+	feeAmt := sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(int64(10000000000000)))) // gasPrice * gasLimit
+	txOpt := &types.TxOption{
+		Mode:               &mode,
+		NoSimulate:         true,
+		GasLimit:           2000,
+		Memo:               "test",
+		FeePayer:           payerAddr,
+		FeeAmount:          feeAmt, // 2000 * 5000000000
+		OverrideKeyManager: &km2,
+	}
+	response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, txOpt)
+	assert.NoError(t, err)
+	assert.Equal(t, uint32(0), response.TxResponse.Code)
+	t.Log(response.TxResponse.String())
+}

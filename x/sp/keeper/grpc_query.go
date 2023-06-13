@@ -86,7 +86,7 @@ func (k Keeper) StorageProvider(goCtx context.Context, req *types.QueryStoragePr
 	if err != nil {
 		return nil, err
 	}
-	sp, found := k.GetStorageProvider(ctx, spAddr)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}

@@ -42,17 +42,17 @@ func TestSequenceUniqueConstraint(t *testing.T) {
 	ctx := NewMockContext()
 	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
 
-	seq := sequence.NewSequence256([]byte{0x1})
-	err := seq.InitVal(store, math.NewUint(0))
+	seq := sequence.NewSequence[uint32]([]byte{0x1})
+	err := seq.InitVal(store, 0)
 	require.NoError(t, err)
-	err = seq.InitVal(store, math.NewUint(1))
+	err = seq.InitVal(store, 1)
 	require.True(t, sequence.ErrSequenceUniqueConstraint.Is(err))
 }
 
-func TestSequenceIncrements(t *testing.T) {
+func TestSequenceIncrementsUint256(t *testing.T) {
 	ctx := NewMockContext()
 	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
-	seq := sequence.NewSequence256([]byte{0x1})
+	seq := sequence.NewSequence[math.Uint]([]byte{0x1})
 	max := math.NewUint(10)
 	i := math.ZeroUint()
 	for i.LT(max) {
@@ -63,4 +63,42 @@ func TestSequenceIncrements(t *testing.T) {
 		assert.True(t, i.Equal(curId))
 		fmt.Print("i= ", i.Uint64(), "id=", id.Uint64(), "curID", curId.Uint64())
 	}
+}
+
+func TestSequenceIncrementsU32(t *testing.T) {
+	ctx := NewMockContext()
+	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
+	seq := sequence.NewSequence[uint32]([]byte{0x1})
+	max := uint32(10)
+	i := uint32(0)
+	for i < max {
+		id := seq.NextVal(store)
+		curId := seq.CurVal(store)
+		i++
+		assert.Equal(t, i, id)
+		assert.Equal(t, i, curId)
+		fmt.Print("i= ", i, "id=", id, "curID", curId)
+	}
+}
+
+func TestSequenceU32(t *testing.T) {
+	ctx := NewMockContext()
+	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
+
+	seq := sequence.NewSequence[uint32]([]byte{0x1})
+	err := seq.InitVal(store, 0)
+	require.NoError(t, err)
+	n := seq.NextVal(store)
+	require.Equal(t, n, uint32(1))
+}
+
+func TestSequenceU256(t *testing.T) {
+	ctx := NewMockContext()
+	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
+
+	seq := sequence.NewSequence[math.Uint]([]byte{0x1})
+	err := seq.InitVal(store, math.ZeroUint())
+	require.NoError(t, err)
+	n := seq.NextVal(store)
+	require.Equal(t, n, math.OneUint())
 }

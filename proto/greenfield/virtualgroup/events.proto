@@ -1,0 +1,6 @@
+syntax = "proto3";
+package greenfield.virtualgroup;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";

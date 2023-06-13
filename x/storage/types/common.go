@@ -6,15 +6,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-func NewSecondarySpSignDoc(objectID math.Uint, gvgId math.Uint, checkSums [][]byte) *SecondarySpSignDoc {
-	css := make([]byte, 0)
-	for _, cs := range checkSums {
-		css = append(css, cs...)
-	}
+// NewSecondarySpSignDoc creating the dec for all secondary sps bls signing,
+// checksums is a slice of integrity hash contributed by secondary sp
+func NewSecondarySpSignDoc(objectID math.Uint, gvgId uint32, checksums [][]byte) *SecondarySpSignDoc {
 	return &SecondarySpSignDoc{
 		GlobalGroupId: gvgId,
 		ObjectId:      objectID,
-		Checksum:      css,
+		Checksums:     checksums,
 	}
 }
 

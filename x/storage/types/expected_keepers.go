@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -31,7 +32,9 @@ type BankKeeper interface {
 }
 
 type SpKeeper interface {
-	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
+	GetStorageProvider(ctx sdk.Context, id uint32) (*sptypes.StorageProvider, bool)
+	MustGetStorageProvider(ctx sdk.Context, id uint32) *sptypes.StorageProvider
+	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderByGcAddr(ctx sdk.Context, gcAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
@@ -78,4 +81,11 @@ type CrossChainKeeper interface {
 	) (uint64, error)
 
 	RegisterChannel(name string, id sdk.ChannelID, app sdk.CrossChainApplication) error
+}
+
+type VirtualGroupKeeper interface {
+	UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, primarySPID, lvgID uint32, payloadSize uint64) error
+	BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, gvgFamilyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error)
+	GetGVG(ctx sdk.Context, primarySpID, gvgID uint32) (*types.GlobalVirtualGroup, bool)
+	UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) error
 }
