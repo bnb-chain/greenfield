@@ -33,10 +33,16 @@ message GlobalVirtualGroup {
 message LocalVirtualGroup {
   uint32 id = 1;
 
-  uint32 global_virtual_group_id = 2;
-  uint64 stored_size = 3;
+  // id is the unique identification for bucket.
+  string bucket_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  uint32 global_virtual_group_id = 3;
+  uint64 stored_size = 4;
 
-  string virtual_payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string virtual_payment_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 // Global virtual group family serve as a means of grouping global virtual groups.
@@ -45,6 +51,18 @@ message GlobalVirtualGroupFamily {
   uint32 id = 1;
 
   repeated uint32 global_virtual_group_ids = 2;
-
-  string virtual_payment_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string virtual_payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
+
+message GlobalVirtualGroupsBindingOnBucket {
+  // id is the unique identification for bucket.
+  string bucket_id = 1 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  repeated uint32 global_virtual_group_ids = 2;
+  repeated uint32 local_virtual_group_ids = 3;
+}
+
+

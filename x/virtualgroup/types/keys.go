@@ -34,9 +34,10 @@ const (
 var (
 	ParamsKey = []byte{0x01}
 
-	LVGKey       = []byte{0x21}
-	GVGKey       = []byte{0x22}
-	GVGFamilyKey = []byte{0x23}
+	GVGKey                  = []byte{0x21}
+	GVGFamilyKey            = []byte{0x22}
+	LVGKey                  = []byte{0x23}
+	GVGsBindingOnBucketGKey = []byte{0x24}
 
 	LVGSequencePrefix       = []byte{0x31}
 	GVGSequencePrefix       = []byte{0x32}
@@ -57,4 +58,9 @@ func GetGVGKey(spID uint32, gvgID uint32) []byte {
 func GetGVGFamilyKey(spID uint32, familyID uint32) []byte {
 	var uint32Seq sequence.Sequence[uint32]
 	return append(GVGFamilyKey, append(uint32Seq.EncodeSequence(spID), uint32Seq.EncodeSequence(familyID)...)...)
+}
+
+func GetGVGsBindingOnBucketKey(bucketID math.Uint) []byte {
+	var uint256Seq sequence.Sequence[math.Uint]
+	return append(GVGsBindingOnBucketGKey, uint256Seq.EncodeSequence(bucketID)...)
 }

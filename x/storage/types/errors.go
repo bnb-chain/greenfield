@@ -26,9 +26,10 @@ var (
 	ErrChargeFailed             = errors.Register(ModuleName, 1117, "charge failed error")
 	ErrInvalidVisibility        = errors.Register(ModuleName, 1118, "Invalid type of visibility")
 
-	ErrNoSuchPolicy          = errors.Register(ModuleName, 1120, "No such Policy")
-	ErrInvalidParameter      = errors.Register(ModuleName, 1121, "Invalid parameter")
-	ErrInvalidRedundancyType = errors.Register(ModuleName, 1122, "Invalid redundancy type")
+	ErrNoSuchPolicy              = errors.Register(ModuleName, 1120, "No such Policy")
+	ErrInvalidParameter          = errors.Register(ModuleName, 1121, "Invalid parameter")
+	ErrInvalidRedundancyType     = errors.Register(ModuleName, 1122, "Invalid redundancy type")
+	ErrInvalidGlobalVirtualGroup = errors.Register(ModuleName, 1123, "invalid global virtual group")
 
 	ErrInvalidCrossChainPackage = errors.Register(ModuleName, 3000, "invalid cross chain package")
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")

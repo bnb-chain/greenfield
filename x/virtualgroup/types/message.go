@@ -152,8 +152,12 @@ func (msg *MsgDeposit) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgWithdraw() *MsgWithdraw {
-	return &MsgWithdraw{}
+func NewMsgWithdraw(fundingAddress sdk.AccAddress, globalVirtualGroupID uint32, withdraw sdk.Coin) *MsgWithdraw {
+	return &MsgWithdraw{
+		FundingAddress:       fundingAddress.String(),
+		GlobalVirtualGroupId: globalVirtualGroupID,
+		Withdraw:             withdraw,
+	}
 }
 
 func (msg *MsgWithdraw) Route() string {
@@ -177,6 +181,14 @@ func (msg *MsgWithdraw) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgWithdraw) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	if err != nil {
+		return err
+	}
+
+	if !msg.Withdraw.IsValid() || msg.Withdraw.Amount.IsNegative() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
+	}
 	return nil
 }
 

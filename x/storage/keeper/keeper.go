@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -98,25 +99,32 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
+	// check sp
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primarySpAcc)
+	if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
+		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist or not in service")
+	}
+
 	// check primary sp approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
-	err = k.VerifySPAndSignature(ctx, primarySpAcc, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, sp.Id, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
 
 	bucketInfo := types.BucketInfo{
-		Owner:            ownerAcc.String(),
-		BucketName:       bucketName,
-		Visibility:       opts.Visibility,
-		CreateAt:         ctx.BlockTime().Unix(),
-		SourceType:       opts.SourceType,
-		BucketStatus:     types.BUCKET_STATUS_CREATED,
-		ChargedReadQuota: opts.ChargedReadQuota,
-		PaymentAddress:   paymentAcc.String(),
-		PrimarySpAddress: primarySpAcc.String(),
+		Owner:                      ownerAcc.String(),
+		BucketName:                 bucketName,
+		Visibility:                 opts.Visibility,
+		CreateAt:                   ctx.BlockTime().Unix(),
+		SourceType:                 opts.SourceType,
+		BucketStatus:               types.BUCKET_STATUS_CREATED,
+		ChargedReadQuota:           opts.ChargedReadQuota,
+		PaymentAddress:             paymentAcc.String(),
+		PrimarySpId:                sp.Id,
+		GlobalVirtualGroupFamilyId: opts.PrimarySpApproval.GlobalVirtualGroupFamilyId,
 	}
 
 	// charge by read quota
@@ -146,7 +154,7 @@ func (k Keeper) CreateBucket(
 		Status:           bucketInfo.BucketStatus,
 		ChargedReadQuota: bucketInfo.ChargedReadQuota,
 		PaymentAddress:   bucketInfo.PaymentAddress,
-		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+		PrimarySpId:      bucketInfo.PrimarySpId,
 	}); err != nil {
 		return sdkmath.Uint{}, err
 	}
@@ -189,15 +197,20 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(bucketKey)
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 
-	if err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id); err != nil {
+	err := k.virtualGroupKeeper.UnBindingBucketFromGVG(ctx, bucketInfo.Id)
+	if err != nil {
 		return err
 	}
-	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
-		Operator:         operator.String(),
-		Owner:            bucketInfo.Owner,
-		BucketName:       bucketInfo.BucketName,
-		BucketId:         bucketInfo.Id,
-		PrimarySpAddress: bucketInfo.PrimarySpAddress,
+	err = k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
+	if err != nil {
+		return err
+	}
+	err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
+		Operator:    operator.String(),
+		Owner:       bucketInfo.Owner,
+		BucketName:  bucketInfo.BucketName,
+		BucketId:    bucketInfo.Id,
+		PrimarySpId: bucketInfo.PrimarySpId,
 	})
 	return err
 }
@@ -212,17 +225,14 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	}
 
 	bucketDeleted := false
-	sp := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
+
+	sp := k.spKeeper.MustGetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	spOperatorAddr := sdk.MustAccAddressFromHex(sp.OperatorAddress)
 
 	store := ctx.KVStore(k.storeKey)
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 	iter := objectPrefixStore.Iterator(nil, nil)
-	defer func(iter storetypes.Iterator) {
-		err := iter.Close()
-		if err != nil {
-
-		}
-	}(iter)
+	defer iter.Close()
 
 	deleted := uint64(0) // deleted object count
 	for ; iter.Valid(); iter.Next() {
@@ -249,7 +259,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 				return false, deleted, err
 			}
 		}
-		if err := k.doDeleteObject(ctx, sp, bucketInfo, &objectInfo); err != nil {
+		if err := k.doDeleteObject(ctx, spOperatorAddr, bucketInfo, &objectInfo); err != nil {
 			ctx.Logger().Error("do delete object err", "err", err)
 			return false, deleted, err
 		}
@@ -262,7 +272,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			return false, deleted, err
 		}
 
-		if err := k.doDeleteBucket(ctx, sp, bucketInfo); err != nil {
+		if err := k.doDeleteBucket(ctx, spOperatorAddr, bucketInfo); err != nil {
 			ctx.Logger().Error("do delete bucket error", "err", err)
 			return false, deleted, err
 		}
@@ -350,8 +360,9 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 		return types.ErrInvalidBucketStatus
 	}
 
-	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
-		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue bucket")
+	if sp.Id != bucketInfo.PrimarySpId {
+		return errors.Wrapf(types.ErrAccessDenied,
+			"only primary sp is allowed to do discontinue bucket, expect sp id : %d", bucketInfo.PrimarySpId)
 	}
 
 	count := k.getDiscontinueBucketCount(ctx, operator)
@@ -444,20 +455,10 @@ func (k Keeper) CreateObject(
 			operator.String(), bucketName)
 	}
 
-	// check secondary sps
-	var secondarySPs []string
-	for _, sp := range opts.SecondarySpAddresses {
-		spAcc := sdk.MustAccAddressFromHex(sp)
-		err := k.spKeeper.IsStorageProviderExistAndInService(ctx, spAcc)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-		secondarySPs = append(secondarySPs, spAcc.String())
-	}
-
 	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
+	var uploader sdk.AccAddress
 	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
-		secondarySPs = append(secondarySPs, operator.String())
+		uploader = operator
 	}
 
 	// check approval
@@ -465,8 +466,7 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
-		opts.PrimarySpApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpId, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -487,19 +487,19 @@ func (k Keeper) CreateObject(
 
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
-		Owner:                bucketInfo.Owner,
-		BucketName:           bucketName,
-		ObjectName:           objectName,
-		PayloadSize:          payloadSize,
-		Visibility:           opts.Visibility,
-		ContentType:          opts.ContentType,
-		Id:                   k.GenNextObjectID(ctx),
-		CreateAt:             ctx.BlockTime().Unix(),
-		ObjectStatus:         objectStatus,
-		RedundancyType:       opts.RedundancyType,
-		SourceType:           opts.SourceType,
-		Checksums:            opts.Checksums,
-		SecondarySpAddresses: secondarySPs,
+		Owner:          bucketInfo.Owner,
+		Uploader:       uploader.String(),
+		BucketName:     bucketName,
+		ObjectName:     objectName,
+		PayloadSize:    payloadSize,
+		Visibility:     opts.Visibility,
+		ContentType:    opts.ContentType,
+		Id:             k.GenNextObjectID(ctx),
+		CreateAt:       ctx.BlockTime().Unix(),
+		ObjectStatus:   objectStatus,
+		RedundancyType: opts.RedundancyType,
+		SourceType:     opts.SourceType,
+		Checksums:      opts.Checksums,
 	}
 
 	if objectInfo.PayloadSize == 0 {
@@ -524,21 +524,21 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		Creator:          operator.String(),
-		Owner:            objectInfo.Owner,
-		BucketName:       bucketInfo.BucketName,
-		ObjectName:       objectInfo.ObjectName,
-		BucketId:         bucketInfo.Id,
-		ObjectId:         objectInfo.Id,
-		CreateAt:         objectInfo.CreateAt,
-		PayloadSize:      objectInfo.PayloadSize,
-		Visibility:       objectInfo.Visibility,
-		PrimarySpAddress: bucketInfo.PrimarySpAddress,
-		ContentType:      objectInfo.ContentType,
-		Status:           objectInfo.ObjectStatus,
-		RedundancyType:   objectInfo.RedundancyType,
-		SourceType:       objectInfo.SourceType,
-		Checksums:        objectInfo.Checksums,
+		Creator:        operator.String(),
+		Owner:          objectInfo.Owner,
+		BucketName:     bucketInfo.BucketName,
+		ObjectName:     objectInfo.ObjectName,
+		BucketId:       bucketInfo.Id,
+		ObjectId:       objectInfo.Id,
+		CreateAt:       objectInfo.CreateAt,
+		PayloadSize:    objectInfo.PayloadSize,
+		Visibility:     objectInfo.Visibility,
+		PrimarySpId:    bucketInfo.PrimarySpId,
+		ContentType:    objectInfo.ContentType,
+		Status:         objectInfo.ObjectStatus,
+		RedundancyType: objectInfo.RedundancyType,
+		SourceType:     objectInfo.SourceType,
+		Checksums:      objectInfo.Checksums,
 	}); err != nil {
 		return objectInfo.Id, err
 	}
@@ -584,7 +584,7 @@ func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*type
 }
 
 type SealObjectOptions struct {
-	SecondarySpAddresses  []string
+	GlobalVirtualGroupId  uint32
 	SecondarySpSignatures [][]byte
 }
 
@@ -602,7 +602,7 @@ func (k Keeper) SealObject(
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", spSealAcc.String())
 	}
 
-	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
+	if sp.Id != bucketInfo.PrimarySpId {
 		return errors.Wrapf(types.ErrAccessDenied, "Only SP's seal address is allowed to SealObject")
 	}
 
@@ -615,22 +615,23 @@ func (k Keeper) SealObject(
 		return types.ErrObjectAlreadySealed
 	}
 
-	// check the signature of secondary sps
-	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
-	var secondarySps []string
-	for i, spAddr := range opts.SecondarySpAddresses {
-		spAcc := sdk.MustAccAddressFromHex(spAddr)
-		secondarySps = append(secondarySps, spAcc.String())
-		sr := types.NewSecondarySpSignDoc(spAcc, objectInfo.Id, objectInfo.Checksums[i+1])
-		err := k.VerifySPAndSignature(ctx, spAcc, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
-		if err != nil {
-			return err
-		}
+	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, bucketInfo.PrimarySpId, opts.GlobalVirtualGroupId)
+	if !found {
+		return virtualgroupmoduletypes.ErrGVGNotExist
 	}
-	objectInfo.SecondarySpAddresses = secondarySps
+	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx, objectInfo.CreateAt)
+	if int(expectSecondarySPNum) != len(gvg.SecondarySpIds) {
+		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
+			expectSecondarySPNum, len(gvg.SecondarySpIds))
+	}
 
+	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)
+	if err != nil {
+		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
+	}
+	objectInfo.LocalVirtualGroupId = lvg.Id
 	// unlock and charge store fee
-	err := k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
+	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -650,7 +651,8 @@ func (k Keeper) SealObject(
 		ObjectName:           objectInfo.ObjectName,
 		ObjectId:             objectInfo.Id,
 		Status:               objectInfo.ObjectStatus,
-		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
+		GlobalVirtualGroupId: opts.GlobalVirtualGroupId,
+		LocalVirtualGroupId:  objectInfo.LocalVirtualGroupId,
 	}); err != nil {
 		return err
 	}
@@ -678,16 +680,12 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	var creator sdk.AccAddress
-	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
-	// if the operator is not the creator, we should return access deny
-	if len(objectInfo.SecondarySpAddresses) >= 1 {
-		creator = sdk.MustAccAddressFromHex(objectInfo.SecondarySpAddresses[len(objectInfo.SecondarySpAddresses)-1])
+	uploader := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if objectInfo.Uploader != "" {
+		uploader = sdk.MustAccAddressFromHex(objectInfo.Uploader)
 	}
-	// By default, the creator is the owner
-	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
-	if !operator.Equals(creator) && !operator.Equals(owner) {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
+	if !operator.Equals(uploader) {
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/uploader to do cancel create object")
 	}
 
 	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
@@ -702,11 +700,11 @@ func (k Keeper) CancelCreateObject(
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelCreateObject{
-		Operator:         operator.String(),
-		BucketName:       bucketInfo.BucketName,
-		ObjectName:       objectInfo.ObjectName,
-		PrimarySpAddress: bucketInfo.PrimarySpAddress,
-		ObjectId:         objectInfo.Id,
+		Operator:    operator.String(),
+		BucketName:  bucketInfo.BucketName,
+		ObjectName:  objectInfo.ObjectName,
+		ObjectId:    objectInfo.Id,
+		PrimarySpId: bucketInfo.PrimarySpId,
 	}); err != nil {
 		return err
 	}
@@ -764,17 +762,22 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	if err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_OBJECT, objectInfo.Id); err != nil {
+	err := k.virtualGroupKeeper.UnBindingObjectFromLVG(ctx, bucketInfo.Id, bucketInfo.PrimarySpId, objectInfo.LocalVirtualGroupId, objectInfo.PayloadSize)
+	if err != nil {
 		return err
 	}
 
-	err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
-		Operator:             operator.String(),
-		BucketName:           bucketInfo.BucketName,
-		ObjectName:           objectInfo.ObjectName,
-		ObjectId:             objectInfo.Id,
-		PrimarySpAddress:     bucketInfo.PrimarySpAddress,
-		SecondarySpAddresses: objectInfo.SecondarySpAddresses,
+	err = k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_OBJECT, objectInfo.Id)
+	if err != nil {
+		return err
+	}
+
+	err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteObject{
+		Operator:            operator.String(),
+		BucketName:          bucketInfo.BucketName,
+		ObjectName:          objectInfo.ObjectName,
+		ObjectId:            objectInfo.Id,
+		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
 	})
 	return err
 }
@@ -796,6 +799,10 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		return err
 	}
 
+	sp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	if !found {
+		return sptypes.ErrStorageProviderNotFound
+	}
 	if objectStatus == types.OBJECT_STATUS_CREATED {
 		err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
 		if err != nil {
@@ -809,8 +816,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		}
 	}
 
-	sp := sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)
-	err = k.doDeleteObject(ctx, sp, bucketInfo, objectInfo)
+	err = k.doDeleteObject(ctx, sdk.MustAccAddressFromHex(sp.OperatorAddress), bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -854,9 +860,7 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(dstBucketInfo.PrimarySpAddress),
-		opts.ApprovalMsgBytes,
-		opts.PrimarySpApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpId, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -940,7 +944,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
 	}
-	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
+	if sp.Id != bucketInfo.PrimarySpId {
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary SP to do cancel create object")
 	}
 
@@ -984,7 +988,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		return types.ErrInvalidBucketStatus
 	}
 
-	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress)) {
+	if sp.Id != bucketInfo.PrimarySpId {
 		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 	}
 
@@ -1291,10 +1295,10 @@ func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, group
 	return nil
 }
 
-func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spAcc sdk.AccAddress, sigData []byte, signature []byte) error {
-	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAcc)
+func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spID uint32, sigData []byte, signature []byte) error {
+	sp, found := k.spKeeper.GetStorageProvider(ctx, spID)
 	if !found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP operator address: %s", spAcc.String())
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP id: %s", spID)
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService

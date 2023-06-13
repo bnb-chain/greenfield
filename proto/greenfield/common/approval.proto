@@ -12,4 +12,7 @@ message Approval {
   uint64 expired_height = 1;
   // The signature needs to conform to the EIP 712 specification.
   bytes sig = 2;
+  // global_virtual_group_family_id defines the unique id of gvg family
+  // This is only used in the approval of CreateBucket
+  uint32 global_virtual_group_family_id = 3;
 }

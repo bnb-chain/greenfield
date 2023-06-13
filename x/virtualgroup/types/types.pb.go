@@ -119,10 +119,12 @@ func (m *GlobalVirtualGroup) GetVirtualPaymentAddress() string {
 // Each local virtual group is associated with a unique virtual payment account,
 // where all object fees are streamed to.
 type LocalVirtualGroup struct {
-	Id                    uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	GlobalVirtualGroupId  uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
-	StoredSize            uint64 `protobuf:"varint,3,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
-	VirtualPaymentAddress string `protobuf:"bytes,4,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// id is the unique identification for bucket.
+	BucketId              Uint   `protobuf:"bytes,2,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	GlobalVirtualGroupId  uint32 `protobuf:"varint,3,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	StoredSize            uint64 `protobuf:"varint,4,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+	VirtualPaymentAddress string `protobuf:"bytes,5,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
 }
 
 func (m *LocalVirtualGroup) Reset()         { *m = LocalVirtualGroup{} }
@@ -191,7 +193,7 @@ func (m *LocalVirtualGroup) GetVirtualPaymentAddress() string {
 type GlobalVirtualGroupFamily struct {
 	Id                    uint32   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	GlobalVirtualGroupIds []uint32 `protobuf:"varint,2,rep,packed,name=global_virtual_group_ids,json=globalVirtualGroupIds,proto3" json:"global_virtual_group_ids,omitempty"`
-	VirtualPaymentAddress string   `protobuf:"bytes,3,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
+	VirtualPaymentAddress string   `protobuf:"bytes,4,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
 }
 
 func (m *GlobalVirtualGroupFamily) Reset()         { *m = GlobalVirtualGroupFamily{} }
@@ -248,10 +250,65 @@ func (m *GlobalVirtualGroupFamily) GetVirtualPaymentAddress() string {
 	return ""
 }
 
+type GlobalVirtualGroupsBindingOnBucket struct {
+	// id is the unique identification for bucket.
+	BucketId              Uint     `protobuf:"bytes,1,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	GlobalVirtualGroupIds []uint32 `protobuf:"varint,2,rep,packed,name=global_virtual_group_ids,json=globalVirtualGroupIds,proto3" json:"global_virtual_group_ids,omitempty"`
+	LocalVirtualGroupIds  []uint32 `protobuf:"varint,3,rep,packed,name=local_virtual_group_ids,json=localVirtualGroupIds,proto3" json:"local_virtual_group_ids,omitempty"`
+}
+
+func (m *GlobalVirtualGroupsBindingOnBucket) Reset()         { *m = GlobalVirtualGroupsBindingOnBucket{} }
+func (m *GlobalVirtualGroupsBindingOnBucket) String() string { return proto.CompactTextString(m) }
+func (*GlobalVirtualGroupsBindingOnBucket) ProtoMessage()    {}
+func (*GlobalVirtualGroupsBindingOnBucket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_1fe6fc664532d0c3, []int{3}
+}
+func (m *GlobalVirtualGroupsBindingOnBucket) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GlobalVirtualGroupsBindingOnBucket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GlobalVirtualGroupsBindingOnBucket.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GlobalVirtualGroupsBindingOnBucket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GlobalVirtualGroupsBindingOnBucket.Merge(m, src)
+}
+func (m *GlobalVirtualGroupsBindingOnBucket) XXX_Size() int {
+	return m.Size()
+}
+func (m *GlobalVirtualGroupsBindingOnBucket) XXX_DiscardUnknown() {
+	xxx_messageInfo_GlobalVirtualGroupsBindingOnBucket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GlobalVirtualGroupsBindingOnBucket proto.InternalMessageInfo
+
+func (m *GlobalVirtualGroupsBindingOnBucket) GetGlobalVirtualGroupIds() []uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupIds
+	}
+	return nil
+}
+
+func (m *GlobalVirtualGroupsBindingOnBucket) GetLocalVirtualGroupIds() []uint32 {
+	if m != nil {
+		return m.LocalVirtualGroupIds
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GlobalVirtualGroup)(nil), "greenfield.virtualgroup.GlobalVirtualGroup")
 	proto.RegisterType((*LocalVirtualGroup)(nil), "greenfield.virtualgroup.LocalVirtualGroup")
 	proto.RegisterType((*GlobalVirtualGroupFamily)(nil), "greenfield.virtualgroup.GlobalVirtualGroupFamily")
+	proto.RegisterType((*GlobalVirtualGroupsBindingOnBucket)(nil), "greenfield.virtualgroup.GlobalVirtualGroupsBindingOnBucket")
 }
 
 func init() {
@@ -259,37 +316,42 @@ func init() {
 }
 
 var fileDescriptor_1fe6fc664532d0c3 = []byte{
-	// 474 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x53, 0x41, 0x6b, 0x13, 0x41,
-	0x18, 0xcd, 0x6c, 0x62, 0xb5, 0x53, 0x53, 0x74, 0x48, 0xc9, 0x58, 0x61, 0x13, 0x22, 0xc8, 0x5e,
-	0x92, 0x1c, 0x54, 0xbc, 0x78, 0xb1, 0x04, 0x4b, 0x40, 0xa4, 0x6c, 0xc0, 0x83, 0x97, 0x65, 0x76,
-	0x67, 0xba, 0x1d, 0xdc, 0xdd, 0x19, 0x66, 0x26, 0x62, 0xfa, 0x2b, 0xfc, 0x31, 0xf5, 0x3f, 0xf4,
-	0x22, 0x94, 0x9e, 0xc4, 0x43, 0x91, 0x04, 0xff, 0x87, 0x64, 0x66, 0x6c, 0x83, 0xa9, 0x8a, 0x3d,
-	0xed, 0xee, 0x9b, 0xf7, 0x7d, 0x3b, 0xef, 0xbd, 0xef, 0x83, 0x8f, 0x72, 0xc5, 0x58, 0x75, 0xc8,
-	0x59, 0x41, 0x87, 0x1f, 0xb8, 0x32, 0x53, 0x52, 0xe4, 0x4a, 0x4c, 0xe5, 0xd0, 0xcc, 0x24, 0xd3,
-	0x03, 0xa9, 0x84, 0x11, 0xa8, 0x7d, 0x45, 0x1a, 0xac, 0x92, 0x76, 0x1f, 0x64, 0x42, 0x97, 0x42,
-	0x27, 0x96, 0x36, 0x74, 0x1f, 0xae, 0x66, 0xb7, 0x95, 0x8b, 0x5c, 0x38, 0x7c, 0xf9, 0xe6, 0xd0,
-	0xde, 0x8f, 0x00, 0xa2, 0xfd, 0x42, 0xa4, 0xa4, 0x78, 0xeb, 0xfa, 0xec, 0x2f, 0xfb, 0xa0, 0x6d,
-	0x18, 0x70, 0x8a, 0x41, 0x17, 0x44, 0xcd, 0x38, 0xe0, 0x14, 0x3d, 0x84, 0x9b, 0x87, 0xa4, 0xe4,
-	0xc5, 0x2c, 0xe1, 0x14, 0x07, 0x16, 0xbe, 0xe3, 0x80, 0x31, 0x45, 0x3d, 0xd8, 0x94, 0x8a, 0x97,
-	0x44, 0xcd, 0x12, 0x2d, 0x97, 0x84, 0xba, 0x25, 0x6c, 0x79, 0x70, 0x22, 0xc7, 0x14, 0x45, 0xf0,
-	0x9e, 0x66, 0x99, 0xa8, 0xe8, 0x25, 0x4b, 0xe3, 0x46, 0xb7, 0x1e, 0x35, 0xe3, 0xed, 0x4b, 0x7c,
-	0x49, 0xd4, 0xa8, 0x03, 0xb7, 0xb4, 0x11, 0x8a, 0xd1, 0x44, 0xf3, 0x63, 0x86, 0x6f, 0x75, 0x41,
-	0xd4, 0x88, 0xa1, 0x83, 0x26, 0xfc, 0x98, 0xa1, 0x03, 0xd8, 0xf6, 0x9a, 0x13, 0x49, 0x66, 0x25,
-	0xab, 0x4c, 0x42, 0x28, 0x55, 0x4c, 0x6b, 0xbc, 0xd1, 0x05, 0xd1, 0xe6, 0x1e, 0x3e, 0x3f, 0xe9,
-	0xb7, 0xbc, 0xf6, 0x97, 0xee, 0x64, 0x62, 0x14, 0xaf, 0xf2, 0x78, 0xc7, 0x17, 0x1e, 0xb8, 0x3a,
-	0x7f, 0x88, 0x08, 0x6c, 0x1a, 0x61, 0x48, 0x91, 0x50, 0x26, 0x85, 0xe6, 0x06, 0xdf, 0xb6, 0x7d,
-	0x5e, 0x9c, 0x5e, 0x74, 0x6a, 0xdf, 0x2e, 0x3a, 0x8f, 0x73, 0x6e, 0x8e, 0xa6, 0xe9, 0x20, 0x13,
-	0xa5, 0xb7, 0xd4, 0x3f, 0xfa, 0x9a, 0xbe, 0xf7, 0xb9, 0x8c, 0x58, 0x76, 0x7e, 0xd2, 0x87, 0xfe,
-	0xaf, 0x23, 0x96, 0xc5, 0x77, 0x6d, 0xcb, 0x91, 0xeb, 0xd8, 0xfb, 0x02, 0xe0, 0xfd, 0xd7, 0x22,
-	0xfb, 0x87, 0xcd, 0xcf, 0x60, 0x3b, 0xb7, 0x61, 0x24, 0xbf, 0x14, 0xda, 0x58, 0xaf, 0x4c, 0x6f,
-	0xe5, 0x6b, 0x59, 0x8d, 0xe9, 0xef, 0x96, 0xd5, 0xff, 0xc7, 0xb2, 0xc6, 0x8d, 0x2c, 0xeb, 0x7d,
-	0x06, 0x10, 0xaf, 0xcf, 0xcd, 0x2b, 0x3b, 0x12, 0x6b, 0xb2, 0x9e, 0x43, 0xfc, 0x07, 0x59, 0x1a,
-	0x07, 0x76, 0x08, 0x76, 0xae, 0xd3, 0xa5, 0xff, 0x76, 0xef, 0xfa, 0x8d, 0xee, 0xbd, 0xf7, 0xe6,
-	0x74, 0x1e, 0x82, 0xb3, 0x79, 0x08, 0xbe, 0xcf, 0x43, 0xf0, 0x69, 0x11, 0xd6, 0xce, 0x16, 0x61,
-	0xed, 0xeb, 0x22, 0xac, 0xbd, 0x7b, 0xba, 0x92, 0x72, 0x5a, 0xa5, 0xfd, 0xec, 0x88, 0xf0, 0x6a,
-	0xb8, 0xb2, 0x8d, 0x1f, 0xaf, 0xd9, 0xc7, 0x74, 0xc3, 0xae, 0xd1, 0x93, 0x9f, 0x01, 0x00, 0x00,
-	0xff, 0xff, 0xec, 0x62, 0x15, 0x11, 0xb7, 0x03, 0x00, 0x00,
+	// 549 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x54, 0x41, 0x6f, 0x12, 0x41,
+	0x18, 0x65, 0x17, 0x5a, 0xcb, 0x20, 0x8d, 0x4e, 0x68, 0x18, 0xdb, 0x64, 0x21, 0x98, 0x18, 0x2e,
+	0xc0, 0x41, 0x1b, 0x3d, 0x78, 0x91, 0x10, 0x1b, 0x12, 0xa3, 0xcd, 0x12, 0x3d, 0x78, 0xd9, 0xec,
+	0xee, 0x4c, 0xb7, 0x93, 0x2e, 0x33, 0x9b, 0x9d, 0xc1, 0x48, 0xff, 0x80, 0x57, 0x7f, 0x0c, 0xfe,
+	0x87, 0x9e, 0x4c, 0xc3, 0xc9, 0x78, 0x68, 0x0c, 0xc4, 0xff, 0x61, 0x76, 0x66, 0xda, 0x62, 0x41,
+	0x9b, 0x72, 0x82, 0x7d, 0xf3, 0xbe, 0x6f, 0xbe, 0xef, 0xbd, 0x97, 0x01, 0x8f, 0xa3, 0x94, 0x10,
+	0x76, 0x44, 0x49, 0x8c, 0x3b, 0x9f, 0x68, 0x2a, 0x47, 0x7e, 0x1c, 0xa5, 0x7c, 0x94, 0x74, 0xe4,
+	0x38, 0x21, 0xa2, 0x9d, 0xa4, 0x5c, 0x72, 0x58, 0xbd, 0x26, 0xb5, 0x17, 0x49, 0xbb, 0x8f, 0x42,
+	0x2e, 0x86, 0x5c, 0x78, 0x8a, 0xd6, 0xd1, 0x1f, 0xba, 0x66, 0xb7, 0x12, 0xf1, 0x88, 0x6b, 0x3c,
+	0xfb, 0xa7, 0xd1, 0xc6, 0x6f, 0x1b, 0xc0, 0x83, 0x98, 0x07, 0x7e, 0xfc, 0x41, 0xf7, 0x39, 0xc8,
+	0xfa, 0xc0, 0x6d, 0x60, 0x53, 0x8c, 0xac, 0xba, 0xd5, 0x2c, 0xbb, 0x36, 0xc5, 0x70, 0x0f, 0x14,
+	0x8f, 0xfc, 0x21, 0x8d, 0xc7, 0x1e, 0xc5, 0xc8, 0x56, 0xf0, 0x96, 0x06, 0xfa, 0x18, 0x36, 0x40,
+	0x39, 0x49, 0xe9, 0xd0, 0x4f, 0xc7, 0x9e, 0x48, 0x32, 0x42, 0x5e, 0x11, 0x4a, 0x06, 0x1c, 0x24,
+	0x7d, 0x0c, 0x9b, 0xe0, 0x81, 0x20, 0x21, 0x67, 0xf8, 0x8a, 0x25, 0x50, 0xa1, 0x9e, 0x6f, 0x96,
+	0xdd, 0xed, 0x2b, 0x3c, 0x23, 0x0a, 0x58, 0x03, 0x25, 0x21, 0x79, 0x4a, 0xb0, 0x27, 0xe8, 0x29,
+	0x41, 0x1b, 0x75, 0xab, 0x59, 0x70, 0x81, 0x86, 0x06, 0xf4, 0x94, 0xc0, 0x43, 0x50, 0x35, 0x3b,
+	0x7b, 0x89, 0x3f, 0x1e, 0x12, 0x26, 0x3d, 0x1f, 0xe3, 0x94, 0x08, 0x81, 0x36, 0xeb, 0x56, 0xb3,
+	0xd8, 0x45, 0xd3, 0x49, 0xab, 0x62, 0x76, 0x7f, 0xa5, 0x4f, 0x06, 0x32, 0xa5, 0x2c, 0x72, 0x77,
+	0x4c, 0xe1, 0xa1, 0xae, 0x33, 0x87, 0xd0, 0x07, 0x65, 0xc9, 0xa5, 0x1f, 0x7b, 0x98, 0x24, 0x5c,
+	0x50, 0x89, 0xee, 0xa9, 0x3e, 0x2f, 0xcf, 0x2e, 0x6a, 0xb9, 0x9f, 0x17, 0xb5, 0x27, 0x11, 0x95,
+	0xc7, 0xa3, 0xa0, 0x1d, 0xf2, 0xa1, 0x91, 0xd4, 0xfc, 0xb4, 0x04, 0x3e, 0x31, 0xbe, 0xf4, 0x48,
+	0x38, 0x9d, 0xb4, 0x80, 0xb9, 0xb5, 0x47, 0x42, 0xf7, 0xbe, 0x6a, 0xd9, 0xd3, 0x1d, 0x1b, 0x5f,
+	0x6c, 0xf0, 0xf0, 0x0d, 0x0f, 0x6f, 0x91, 0xf9, 0x05, 0x28, 0x06, 0xa3, 0xf0, 0x84, 0xc8, 0x4b,
+	0x99, 0x8b, 0xdd, 0x3d, 0x33, 0x44, 0xe1, 0x3d, 0x65, 0x72, 0x3a, 0x69, 0x95, 0xcc, 0x15, 0xd9,
+	0xa7, 0xbb, 0xa5, 0xd9, 0x7d, 0x0c, 0xf7, 0x41, 0x35, 0x52, 0x36, 0x7a, 0x97, 0xda, 0xa8, 0x40,
+	0x5c, 0xbb, 0x51, 0x89, 0x96, 0x5c, 0xee, 0xe3, 0x9b, 0x62, 0x17, 0xee, 0x22, 0xf6, 0xc6, 0x5a,
+	0x62, 0x37, 0xbe, 0x59, 0x00, 0x2d, 0x27, 0xee, 0xb5, 0x0a, 0xd3, 0x92, 0x20, 0xcf, 0x01, 0xfa,
+	0xc7, 0x5a, 0x02, 0xd9, 0x2a, 0x3e, 0x3b, 0xab, 0xf6, 0x12, 0xff, 0x9b, 0xbb, 0xb0, 0xde, 0xdc,
+	0xdf, 0x2d, 0xd0, 0x58, 0x9e, 0x5b, 0x74, 0x29, 0xc3, 0x94, 0x45, 0xef, 0x58, 0x57, 0x59, 0xf1,
+	0xb7, 0x85, 0xd6, 0x5d, 0x2c, 0x5c, 0x7b, 0xd7, 0x7d, 0x50, 0x8d, 0xb3, 0x68, 0xad, 0xa8, 0xcb,
+	0xab, 0xba, 0x4a, 0x7c, 0x33, 0x79, 0x7d, 0x2c, 0xba, 0x6f, 0xcf, 0x66, 0x8e, 0x75, 0x3e, 0x73,
+	0xac, 0x5f, 0x33, 0xc7, 0xfa, 0x3a, 0x77, 0x72, 0xe7, 0x73, 0x27, 0xf7, 0x63, 0xee, 0xe4, 0x3e,
+	0x3e, 0x5b, 0x08, 0x7c, 0xc0, 0x82, 0x56, 0x78, 0xec, 0x53, 0xd6, 0x59, 0x78, 0x98, 0x3e, 0xaf,
+	0x78, 0x9a, 0x82, 0x4d, 0xf5, 0xa2, 0x3c, 0xfd, 0x13, 0x00, 0x00, 0xff, 0xff, 0x19, 0xbf, 0x42,
+	0x07, 0xc2, 0x04, 0x00, 0x00,
 }
 
 func (m *GlobalVirtualGroup) Marshal() (dAtA []byte, err error) {
@@ -395,18 +457,28 @@ func (m *LocalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.VirtualPaymentAddress)
 		i = encodeVarintTypes(dAtA, i, uint64(len(m.VirtualPaymentAddress)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	if m.StoredSize != 0 {
 		i = encodeVarintTypes(dAtA, i, uint64(m.StoredSize))
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x20
 	}
 	if m.GlobalVirtualGroupId != 0 {
 		i = encodeVarintTypes(dAtA, i, uint64(m.GlobalVirtualGroupId))
 		i--
-		dAtA[i] = 0x10
+		dAtA[i] = 0x18
 	}
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
 	if m.Id != 0 {
 		i = encodeVarintTypes(dAtA, i, uint64(m.Id))
 		i--
@@ -440,7 +512,7 @@ func (m *GlobalVirtualGroupFamily) MarshalToSizedBuffer(dAtA []byte) (int, error
 		copy(dAtA[i:], m.VirtualPaymentAddress)
 		i = encodeVarintTypes(dAtA, i, uint64(len(m.VirtualPaymentAddress)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.GlobalVirtualGroupIds) > 0 {
 		dAtA4 := make([]byte, len(m.GlobalVirtualGroupIds)*10)
@@ -465,6 +537,75 @@ func (m *GlobalVirtualGroupFamily) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i--
 		dAtA[i] = 0x8
 	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GlobalVirtualGroupsBindingOnBucket) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GlobalVirtualGroupsBindingOnBucket) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GlobalVirtualGroupsBindingOnBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.LocalVirtualGroupIds) > 0 {
+		dAtA6 := make([]byte, len(m.LocalVirtualGroupIds)*10)
+		var j5 int
+		for _, num := range m.LocalVirtualGroupIds {
+			for num >= 1<<7 {
+				dAtA6[j5] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j5++
+			}
+			dAtA6[j5] = uint8(num)
+			j5++
+		}
+		i -= j5
+		copy(dAtA[i:], dAtA6[:j5])
+		i = encodeVarintTypes(dAtA, i, uint64(j5))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.GlobalVirtualGroupIds) > 0 {
+		dAtA8 := make([]byte, len(m.GlobalVirtualGroupIds)*10)
+		var j7 int
+		for _, num := range m.GlobalVirtualGroupIds {
+			for num >= 1<<7 {
+				dAtA8[j7] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j7++
+			}
+			dAtA8[j7] = uint8(num)
+			j7++
+		}
+		i -= j7
+		copy(dAtA[i:], dAtA8[:j7])
+		i = encodeVarintTypes(dAtA, i, uint64(j7))
+		i--
+		dAtA[i] = 0x12
+	}
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintTypes(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -522,6 +663,8 @@ func (m *LocalVirtualGroup) Size() (n int) {
 	if m.Id != 0 {
 		n += 1 + sovTypes(uint64(m.Id))
 	}
+	l = m.BucketId.Size()
+	n += 1 + l + sovTypes(uint64(l))
 	if m.GlobalVirtualGroupId != 0 {
 		n += 1 + sovTypes(uint64(m.GlobalVirtualGroupId))
 	}
@@ -554,6 +697,31 @@ func (m *GlobalVirtualGroupFamily) Size() (n int) {
 	l = len(m.VirtualPaymentAddress)
 	if l > 0 {
 		n += 1 + l + sovTypes(uint64(l))
+	}
+	return n
+}
+
+func (m *GlobalVirtualGroupsBindingOnBucket) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.BucketId.Size()
+	n += 1 + l + sovTypes(uint64(l))
+	if len(m.GlobalVirtualGroupIds) > 0 {
+		l = 0
+		for _, e := range m.GlobalVirtualGroupIds {
+			l += sovTypes(uint64(e))
+		}
+		n += 1 + sovTypes(uint64(l)) + l
+	}
+	if len(m.LocalVirtualGroupIds) > 0 {
+		l = 0
+		for _, e := range m.LocalVirtualGroupIds {
+			l += sovTypes(uint64(e))
+		}
+		n += 1 + sovTypes(uint64(l)) + l
 	}
 	return n
 }
@@ -881,6 +1049,40 @@ func (m *LocalVirtualGroup) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
 			}
@@ -899,7 +1101,7 @@ func (m *LocalVirtualGroup) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 3:
+		case 4:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field StoredSize", wireType)
 			}
@@ -918,7 +1120,7 @@ func (m *LocalVirtualGroup) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field VirtualPaymentAddress", wireType)
 			}
@@ -1095,7 +1297,7 @@ func (m *GlobalVirtualGroupFamily) Unmarshal(dAtA []byte) error {
 			} else {
 				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupIds", wireType)
 			}
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field VirtualPaymentAddress", wireType)
 			}
@@ -1127,6 +1329,242 @@ func (m *GlobalVirtualGroupFamily) Unmarshal(dAtA []byte) error {
 			}
 			m.VirtualPaymentAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTypes(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GlobalVirtualGroupsBindingOnBucket) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTypes
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GlobalVirtualGroupsBindingOnBucket: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GlobalVirtualGroupsBindingOnBucket: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTypes
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTypes
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTypes
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTypes
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.GlobalVirtualGroupIds = append(m.GlobalVirtualGroupIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTypes
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthTypes
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthTypes
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.GlobalVirtualGroupIds) == 0 {
+					m.GlobalVirtualGroupIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowTypes
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.GlobalVirtualGroupIds = append(m.GlobalVirtualGroupIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupIds", wireType)
+			}
+		case 3:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTypes
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.LocalVirtualGroupIds = append(m.LocalVirtualGroupIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowTypes
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthTypes
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthTypes
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.LocalVirtualGroupIds) == 0 {
+					m.LocalVirtualGroupIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowTypes
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.LocalVirtualGroupIds = append(m.LocalVirtualGroupIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field LocalVirtualGroupIds", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTypes(dAtA[iNdEx:])
