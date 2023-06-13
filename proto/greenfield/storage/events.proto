@@ -30,8 +30,8 @@ message EventCreateBucket {
   uint64 charged_read_quota = 7;
   // payment_address is the address of the payment account
   string payment_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // primary_sp_address is the operator address of the primary sp.
-  string primary_sp_address = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id is the unique id of primary so.
+  uint32 primary_sp_id = 9;
   // status define the status of the bucket.
   BucketStatus status = 10;
 }
@@ -50,8 +50,8 @@ message EventDeleteBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_address define the account address of primary sp
-  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id is the unique id of primary so.
+  uint32 primary_sp_id = 5;
 }
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
@@ -111,13 +111,12 @@ message EventCreateObject {
     (gogoproto.nullable) = false
   ];
   // object_id define an u256 id for object
-  string object_id = 7 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
+  string object_id = 7 [(cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_address define the account address of primary sp
-  string primary_sp_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id define the unique id of primary sp
+  uint32 primary_sp_id = 8;
   // payload_size define the size of payload data which you want upload
   uint64 payload_size = 9;
   // visibility defines the highest permission of object.
@@ -144,8 +143,8 @@ message EventCancelCreateObject {
   string bucket_name = 2;
   // object_name define the name of the object
   string object_name = 3;
-  // primary_sp_address define the operator account address of the sp
-  string primary_sp_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id define the unique id of primary sp
+  uint32 primary_sp_id = 4;
   // id define an u256 id for object
   string object_id = 6 [
     (cosmos_proto.scalar) = "cosmos.Uint",
@@ -170,8 +169,11 @@ message EventSealObject {
   ];
   // status define the status of the object. INIT or IN_SERVICE or others
   ObjectStatus status = 6;
-  // secondary_sp_address define all the operator address of the secondary sps
-  repeated string secondary_sp_addresses = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // global_virtual_group_id defines the unique id of gvg which the object stored
+  uint32 global_virtual_group_id = 7;
+  // local_virtual_group_id defines the unique id of lvg which the object stored
+  uint32 local_virtual_group_id = 8;
+
 }
 
 // EventCopyObject is emitted on MsgCopyObject
@@ -214,10 +216,8 @@ message EventDeleteObject {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_address define the operator account address of the sp
-  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // secondary_sp_address define all the operator address of the secondary sps
-  repeated string secondary_sp_addresses = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // local_virtual_group_id defines the unique id of lvg which the object stored
+  uint32 local_virtual_group_id = 7;
 }
 
 // EventRejectSealObject is emitted on MsgRejectSealObject

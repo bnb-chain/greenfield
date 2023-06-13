@@ -31,6 +31,14 @@ func (k Keeper) GetStorageProvider(ctx sdk.Context, id uint32) (sp *types.Storag
 	return sp, true
 }
 
+func (k Keeper) MustGetStorageProvider(ctx sdk.Context, id uint32) *types.StorageProvider {
+	sp, found := k.GetStorageProvider(ctx, id)
+	if !found {
+		panic("must get storage provider, but it not exist")
+	}
+	return sp
+}
+
 func (k Keeper) GetStorageProviderByOperatorAddr(ctx sdk.Context, opAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 

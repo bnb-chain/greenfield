@@ -26,14 +26,13 @@ type UpdateBucketOptions struct {
 }
 
 type CreateObjectOptions struct {
-	Visibility           types.VisibilityType
-	ContentType          string
-	SourceType           types.SourceType
-	RedundancyType       types.RedundancyType
-	Checksums            [][]byte
-	SecondarySpAddresses []string
-	PrimarySpApproval    *common.Approval
-	ApprovalMsgBytes     []byte
+	Visibility        types.VisibilityType
+	ContentType       string
+	SourceType        types.SourceType
+	RedundancyType    types.RedundancyType
+	Checksums         [][]byte
+	PrimarySpApproval *common.Approval
+	ApprovalMsgBytes  []byte
 }
 
 type CancelCreateObjectOptions struct {
