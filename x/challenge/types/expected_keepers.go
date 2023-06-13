@@ -8,12 +8,18 @@ import (
 
 	sp "github.com/bnb-chain/greenfield/x/sp/types"
 	storage "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type SpKeeper interface {
-	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sp.StorageProvider, found bool)
+	GetStorageProvider(ctx sdk.Context, id uint32) (*sp.StorageProvider, bool)
 	DepositDenomForSP(ctx sdk.Context) (res string)
 	Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []sp.RewardInfo) error
+}
+
+type VirtualGroupKeeper interface {
+	GetLVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
+	GetGVG(ctx sdk.Context, primarySpID, gvgID uint32) (*types.GlobalVirtualGroup, bool)
 }
 
 type StakingKeeper interface {

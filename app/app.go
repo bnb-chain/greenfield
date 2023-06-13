@@ -504,6 +504,7 @@ func New(
 		app.SpKeeper,
 		app.StakingKeeper,
 		app.PaymentKeeper,
+		app.VirtualgroupKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
