@@ -24,10 +24,10 @@ var (
 	_ sdk.Msg = &MsgUpdateParams{}
 )
 
-func NewMsgCreateGlobalVirtualGroup(primarySpAddress sdk.AccAddress, familyId uint32, secondarySpIds []uint32, deposit sdk.Coin) *MsgCreateGlobalVirtualGroup {
+func NewMsgCreateGlobalVirtualGroup(primarySpAddress sdk.AccAddress, globalVirtualFamilyId uint32, secondarySpIds []uint32, deposit sdk.Coin) *MsgCreateGlobalVirtualGroup {
 	return &MsgCreateGlobalVirtualGroup{
 		PrimarySpAddress: primarySpAddress.String(),
-		FamilyId:         familyId,
+		FamilyId:         globalVirtualFamilyId,
 		SecondarySpIds:   secondarySpIds,
 		Deposit:          deposit,
 	}
