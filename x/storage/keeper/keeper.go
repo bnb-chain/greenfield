@@ -101,7 +101,7 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
-	// check sp
+	// check sp and its status
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primarySpAcc)
 	if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist or not in service")
@@ -1689,7 +1689,7 @@ func (k Keeper) verifySecondarySpsBlsSignature(gvgId uint32, objectInfo *types.O
 		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature converts failed: %v", err)
 	}
 
-	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, objectInfo.Checksums)
+	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateIntegrityHash(objectInfo.Checksums[1:]))
 
 	if !aggSig.FastAggregateVerify(secondSpBlsPubKeys[:], blsSignDoc.GetSignBytes()) {
 		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verify failed")

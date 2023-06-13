@@ -318,7 +318,6 @@ func CmdCreateObject() *cobra.Command {
 				redundancyType,
 				approveTimeoutHeight,
 				approveSignatureBytes,
-				nil,
 			)
 			primarySP, err := cmd.Flags().GetString(FlagPrimarySP)
 			if err != nil {

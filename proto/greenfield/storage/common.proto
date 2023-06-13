@@ -64,12 +64,12 @@ enum VisibilityType {
 // Then the primary SP can challenge and slash the secondary SP.
 // So the id of the object is needed to prevent this.
 message SecondarySpSignDoc {
-  uint32 global_group_id = 1;
+  uint32 global_virtual_group_id = 1;
   string object_id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // checksums is the slice of integrate hash of secondary sps
-  repeated bytes checksums = 3;
+  // checksums is the integrity Hash of slice of integrity hash from secondary sps
+  bytes checksums = 3;
 }

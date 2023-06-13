@@ -285,20 +285,18 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
-	globalVirtualGroupId uint32) *MsgCreateObject {
+	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte) *MsgCreateObject {
 
 	return &MsgCreateObject{
-		Creator:              creator.String(),
-		BucketName:           bucketName,
-		ObjectName:           objectName,
-		PayloadSize:          payloadSize,
-		Visibility:           Visibility,
-		ContentType:          contentType,
-		PrimarySpApproval:    &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
-		ExpectChecksums:      expectChecksums,
-		RedundancyType:       redundancyType,
-		GlobalVirtualGroupId: globalVirtualGroupId,
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		ObjectName:        objectName,
+		PayloadSize:       payloadSize,
+		Visibility:        Visibility,
+		ContentType:       contentType,
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
+		ExpectChecksums:   expectChecksums,
+		RedundancyType:    redundancyType,
 	}
 }
 
@@ -356,10 +354,6 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	err = s3util.CheckValidContentType(msg.ContentType)
 	if err != nil {
 		return err
-	}
-
-	if msg.GlobalVirtualGroupId == 0 {
-		return errors.Wrapf(ErrInvalidParameter, "global group virtual group id can not be zero")
 	}
 
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {

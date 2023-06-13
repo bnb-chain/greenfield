@@ -12,14 +12,6 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-func (k Keeper) GetFundingAddressBySpAddr(ctx sdk.Context, spAddr sdk.AccAddress) (string, error) {
-	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAddr)
-	if !found {
-		return "", fmt.Errorf("storage provider %s not found", spAddr)
-	}
-	return sp.FundingAddress, nil
-}
-
 func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
 	if bucketInfo.ChargedReadQuota == 0 {
 		return nil
@@ -29,7 +21,7 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed: %w", err)
 	}
-	return k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
+	return k.paymentKeeper.ApplyUserFlowsList(ctx, bill)
 }
 
 func (k Keeper) ChargeDeleteBucket(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) error {
@@ -37,15 +29,18 @@ func (k Keeper) ChargeDeleteBucket(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	if err != nil {
 		return err
 	}
-	if len(bill.Flows) == 0 {
+	if len(bill) == 0 {
 		return nil
 	}
+	// TODO: fixme
 	// should only remain at most 2 flows: charged_read_quota fee and tax
-	if len(bill.Flows) > 2 {
-		panic(fmt.Sprintf("unexpected left flow number: %d", len(bill.Flows)))
+	//if len(bill.Flows) > 2 {
+	//	panic(fmt.Sprintf("unexpected left flow number: %d", len(bill.Flows)))
+	//}
+	for _, f := range bill {
+		f.Flows = GetNegFlows(f.Flows)
 	}
-	bill.Flows = GetNegFlows(bill.Flows)
-	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, bill)
 	return err
 }
 
@@ -63,7 +58,11 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 
 func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	if !found {
+		return fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
+	}
+	amount, err := k.GetObjectLockFee(ctx, primarySp.OperatorAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if ctx.IsCheckTx() {
 		_ = ctx.EventManager().EmitTypedEvents(&types.EventFeePreview{
 			Account:        paymentAddr.String(),
@@ -87,7 +86,11 @@ func (k Keeper) LockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInf
 
 // UnlockStoreFee unlock store fee if the object is deleted in INIT state
 func (k Keeper) UnlockStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	lockedBalance, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	if !found {
+		return fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
+	}
+	lockedBalance, err := k.GetObjectLockFee(ctx, primarySp.OperatorAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
@@ -117,14 +120,29 @@ func (k Keeper) ChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 	}
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize += chargeSize
-		secondarySpObjectsSize := bi.BillingInfo.SecondarySpObjectsSize
-		for _, sp := range objectInfo.SecondarySpAddresses {
-			secondarySpObjectsSize = append(secondarySpObjectsSize, storagetypes.SecondarySpObjectsSize{
-				SpAddress:       sp,
-				TotalChargeSize: chargeSize,
-			})
+		lvgObjectsSize := bi.BillingInfo.LvgObjectsSize
+		lvgObjectsSize = append(lvgObjectsSize, storagetypes.LVGObjectsSize{
+			LvgId:           objectInfo.LocalVirtualGroupId,
+			TotalChargeSize: chargeSize,
+		})
+		bi.BillingInfo.LvgObjectsSize = MergeSecondarySpObjectsSize(lvgObjectsSize)
+		return nil
+	})
+}
+
+func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	chargeSize, err := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
+	if err != nil {
+		return fmt.Errorf("get charge size error: %w", err)
+	}
+	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
+		bi.BillingInfo.TotalChargeSize -= chargeSize
+		toBeSub := []storagetypes.LVGObjectsSize{
+			storagetypes.LVGObjectsSize{
+				LvgId:           objectInfo.LocalVirtualGroupId,
+				TotalChargeSize: chargeSize},
 		}
-		bi.BillingInfo.SecondarySpObjectsSize = MergeSecondarySpObjectsSize(secondarySpObjectsSize)
+		bi.BillingInfo.LvgObjectsSize = SubSecondarySpObjectsSize(bi.BillingInfo.LvgObjectsSize, toBeSub)
 		return nil
 	})
 }
@@ -153,85 +171,140 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	return nil
 }
 
-func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
-	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) ([]types.UserFlows, error) {
+	flows := []types.UserFlows{}
+
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
-		return userFlows, nil
+		return flows, nil
+	}
+	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	if !found {
+		return flows, fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
 	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: bucketInfo.PrimarySpAddress,
+		PrimarySp: primarySp.OperatorAddress,
 		PriceTime: bucketInfo.BillingInfo.PriceTime,
 	})
 	if err != nil {
-		return userFlows, fmt.Errorf("get storage price failed: %w", err)
+		return flows, fmt.Errorf("get storage price failed: %w", err)
 	}
-	primarySpFundingAddr, err := k.GetFundingAddressBySpAddr(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress))
-	if err != nil {
-		return userFlows, fmt.Errorf("get funding address by sp address failed: %w, sp: %s", err, bucketInfo.PrimarySpAddress)
-	}
-	totalUserOutRate := sdkmath.ZeroInt()
-	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
-	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
-	primarySpRate := readFlowRate.Add(primaryStoreFlowRate)
-	if primarySpRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: primarySpFundingAddr,
-			Rate:      primarySpRate,
-		})
-		totalUserOutRate = totalUserOutRate.Add(primarySpRate)
-	}
-	for _, spObjectsSize := range bucketInfo.BillingInfo.SecondarySpObjectsSize {
-		rate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(spObjectsSize.TotalChargeSize)).TruncateInt()
-		if rate.IsZero() {
-			continue
-		}
-		spFundingAddr, err := k.GetFundingAddressBySpAddr(ctx, sdk.MustAccAddressFromHex(spObjectsSize.SpAddress))
-		if err != nil {
-			return userFlows, fmt.Errorf("get funding address by sp address failed: %w, sp: %s", err, spObjectsSize.SpAddress)
-		}
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: spFundingAddr,
-			Rate:      rate,
-		})
-		totalUserOutRate = totalUserOutRate.Add(rate)
-	}
+
 	params := k.paymentKeeper.GetParams(ctx)
-	validatorTaxRate := params.ValidatorTaxRate.MulInt(totalUserOutRate).TruncateInt()
-	if validatorTaxRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: types.ValidatorTaxPoolAddress.String(),
-			Rate:      validatorTaxRate,
-		})
+
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return flows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
-	return userFlows, nil
+	gvgFamilyFlows := types.UserFlows{From: sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)}
+	userFlows := types.UserFlows{From: sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)}
+
+	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
+	// read flow: 1. payment account -> GVG family -> primary sp, 2. payment account -> GVG family -> validator tax pool
+	if readFlowRate.IsPositive() {
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: gvgFamily.VirtualPaymentAddress,
+			Rate:      readFlowRate,
+		})
+		gvgFamilyFlows.Flows = append(gvgFamilyFlows.Flows, types.OutFlow{
+			ToAddress: primarySp.FundingAddress,
+			Rate:      readFlowRate,
+		})
+
+		validatorTaxRate := params.ValidatorTaxRate.MulInt(readFlowRate).TruncateInt()
+		if validatorTaxRate.IsPositive() {
+			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+				ToAddress: gvgFamily.VirtualPaymentAddress,
+				Rate:      validatorTaxRate,
+			})
+			gvgFamilyFlows.Flows = append(gvgFamilyFlows.Flows, types.OutFlow{
+				ToAddress: types.ValidatorTaxPoolAddress.String(),
+				Rate:      validatorTaxRate,
+			})
+		}
+	}
+
+	// store flows: 1. payment account -> GVG -> sps, 2. payment account -> GVG -> validator tax pool
+	gvgFlows := make([]types.UserFlows, 0)
+	storeFlowRate := sdkmath.ZeroInt()
+	for _, lvgStoreSize := range bucketInfo.BillingInfo.LvgObjectsSize {
+		lvg, found := k.virtualGroupKeeper.GetLVG(ctx, bucketInfo.Id, lvgStoreSize.LvgId)
+		if !found {
+			return flows, fmt.Errorf("get LVG failed: %d", lvgStoreSize.LvgId)
+		}
+
+		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, primarySp.Id, lvg.GlobalVirtualGroupId)
+		if !found {
+			return flows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
+		}
+		gvgFlow := types.UserFlows{From: sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress)}
+
+		// primary sp
+		primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
+		storeFlowRate = storeFlowRate.Add(primaryStoreFlowRate)
+		if primaryStoreFlowRate.IsPositive() {
+			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+				ToAddress: gvg.VirtualPaymentAddress,
+				Rate:      primaryStoreFlowRate,
+			})
+			gvgFlow.Flows = append(gvgFlow.Flows, types.OutFlow{
+				ToAddress: primarySp.FundingAddress,
+				Rate:      primaryStoreFlowRate,
+			})
+		}
+
+		//secondary sp
+		secondaryStoreFlowRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
+		if secondaryStoreFlowRate.IsPositive() {
+			for _, id := range gvg.SecondarySpIds {
+				sp, found := k.spKeeper.GetStorageProvider(ctx, id)
+				if !found {
+					return flows, fmt.Errorf("get sp failed: %d", id)
+				}
+				userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+					ToAddress: gvg.VirtualPaymentAddress,
+					Rate:      secondaryStoreFlowRate,
+				})
+				gvgFlow.Flows = append(gvgFlow.Flows, types.OutFlow{
+					ToAddress: sp.FundingAddress,
+					Rate:      secondaryStoreFlowRate,
+				})
+				storeFlowRate = storeFlowRate.Add(secondaryStoreFlowRate)
+			}
+		}
+
+		// validator tax pool
+		validatorTaxRate := params.ValidatorTaxRate.MulInt(storeFlowRate).TruncateInt()
+		if validatorTaxRate.IsPositive() {
+			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+				ToAddress: gvg.VirtualPaymentAddress,
+				Rate:      validatorTaxRate,
+			})
+			gvgFlow.Flows = append(userFlows.Flows, types.OutFlow{
+				ToAddress: types.ValidatorTaxPoolAddress.String(),
+				Rate:      validatorTaxRate,
+			})
+		}
+		gvgFlows = append(gvgFlows, gvgFlow)
+	}
+
+	flows = append(flows, userFlows, gvgFamilyFlows)
+	flows = append(flows, gvgFlows...)
+
+	return flows, nil
 }
 
-func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prev, current types.UserFlows) error {
-	prev.Flows = GetNegFlows(prev.Flows)
-	err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prev, current})
+func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prevFlows, currentFlows []types.UserFlows) error {
+	for _, pre := range prevFlows {
+		pre.Flows = GetNegFlows(pre.Flows)
+	}
+	flows := make([]types.UserFlows, 0)
+	flows = append(flows, prevFlows...)
+	flows = append(flows, currentFlows...)
+	err := k.paymentKeeper.ApplyUserFlowsList(ctx, flows)
 	if err != nil {
 		return fmt.Errorf("apply user flows list failed: %w", err)
 	}
 	return nil
-}
-
-func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	chargeSize, err := k.GetChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
-	if err != nil {
-		return fmt.Errorf("get charge size error: %w", err)
-	}
-	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
-		bi.BillingInfo.TotalChargeSize -= chargeSize
-		var toBeSub []storagetypes.SecondarySpObjectsSize
-		for _, sp := range objectInfo.SecondarySpAddresses {
-			toBeSub = append(toBeSub, storagetypes.SecondarySpObjectsSize{
-				SpAddress:       sp,
-				TotalChargeSize: chargeSize,
-			})
-		}
-		bi.BillingInfo.SecondarySpObjectsSize = SubSecondarySpObjectsSize(bi.BillingInfo.SecondarySpObjectsSize, toBeSub)
-		return nil
-	})
 }
 
 func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
@@ -242,56 +315,56 @@ func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	return negFlows
 }
 
-func MergeSecondarySpObjectsSize(list []storagetypes.SecondarySpObjectsSize) []storagetypes.SecondarySpObjectsSize {
+func MergeSecondarySpObjectsSize(list []storagetypes.LVGObjectsSize) []storagetypes.LVGObjectsSize {
 	if len(list) <= 1 {
 		return list
 	}
-	helperMap := make(map[string]uint64)
-	for _, spObjectsSize := range list {
-		helperMap[spObjectsSize.SpAddress] += spObjectsSize.TotalChargeSize
+	helperMap := make(map[uint32]uint64)
+	for _, objectsSize := range list {
+		helperMap[objectsSize.LvgId] += objectsSize.TotalChargeSize
 	}
-	res := make([]storagetypes.SecondarySpObjectsSize, 0, len(helperMap))
-	for sp, size := range helperMap {
+	res := make([]storagetypes.LVGObjectsSize, 0, len(helperMap))
+	for id, size := range helperMap {
 		if size == 0 {
 			continue
 		}
-		res = append(res, storagetypes.SecondarySpObjectsSize{
-			SpAddress:       sp,
+		res = append(res, storagetypes.LVGObjectsSize{
+			LvgId:           id,
 			TotalChargeSize: size,
 		})
 	}
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].SpAddress < res[j].SpAddress
+		return res[i].LvgId < res[j].LvgId
 	})
 	return res
 }
 
-func SubSecondarySpObjectsSize(prev []storagetypes.SecondarySpObjectsSize, toBeSub []storagetypes.SecondarySpObjectsSize) []storagetypes.SecondarySpObjectsSize {
+func SubSecondarySpObjectsSize(prev []storagetypes.LVGObjectsSize, toBeSub []storagetypes.LVGObjectsSize) []storagetypes.LVGObjectsSize {
 	if len(toBeSub) == 0 {
 		return prev
 	}
-	helperMap := make(map[string]uint64)
+	helperMap := make(map[uint32]uint64)
 	// merge prev
-	for _, spObjectsSize := range prev {
-		helperMap[spObjectsSize.SpAddress] += spObjectsSize.TotalChargeSize
+	for _, objectsSize := range prev {
+		helperMap[objectsSize.LvgId] += objectsSize.TotalChargeSize
 	}
 	// sub toBeSub
-	for _, spObjectsSize := range toBeSub {
-		helperMap[spObjectsSize.SpAddress] -= spObjectsSize.TotalChargeSize
+	for _, objectsSize := range toBeSub {
+		helperMap[objectsSize.LvgId] -= objectsSize.TotalChargeSize
 	}
 	// merge the result
-	res := make([]storagetypes.SecondarySpObjectsSize, 0, len(helperMap))
+	res := make([]storagetypes.LVGObjectsSize, 0, len(helperMap))
 	for sp, size := range helperMap {
 		if size == 0 {
 			continue
 		}
-		res = append(res, storagetypes.SecondarySpObjectsSize{
-			SpAddress:       sp,
+		res = append(res, storagetypes.LVGObjectsSize{
+			LvgId:           sp,
 			TotalChargeSize: size,
 		})
 	}
 	sort.Slice(res, func(i, j int) bool {
-		return res[i].SpAddress < res[j].SpAddress
+		return res[i].LvgId < res[j].LvgId
 	})
 	return res
 }

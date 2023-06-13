@@ -130,9 +130,6 @@ message MsgCreateObject {
   repeated bytes expect_checksums = 8;
   // redundancy_type can be ec or replica
   RedundancyType redundancy_type = 9;
-  // global_virtual_group_id defines actual storage provider group of the object storage.
-  // It contains one primary sp and several secondary sp
-  uint32 global_virtual_group_id = 10;
 }
 
 message MsgCreateObjectResponse {
