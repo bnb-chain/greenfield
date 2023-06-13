@@ -67,6 +67,7 @@ func TestInturnAttestationSubmitterQuery(t *testing.T) {
 		&types.MockSpKeeper{},
 		stakingKeeper,
 		&types.MockPaymentKeeper{},
+		&types.MockVirtualGroupKeeper{},
 		authtypes.NewModuleAddress(types.ModuleName).String(),
 	)
 
