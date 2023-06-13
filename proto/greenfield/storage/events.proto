@@ -111,7 +111,8 @@ message EventCreateObject {
     (gogoproto.nullable) = false
   ];
   // object_id define an u256 id for object
-  string object_id = 7 [(cosmos_proto.scalar) = "cosmos.Uint",
+  string object_id = 7 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
@@ -173,7 +174,6 @@ message EventSealObject {
   uint32 global_virtual_group_id = 7;
   // local_virtual_group_id defines the unique id of lvg which the object stored
   uint32 local_virtual_group_id = 8;
-
 }
 
 // EventCopyObject is emitted on MsgCopyObject
