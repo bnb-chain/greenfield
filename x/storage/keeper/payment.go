@@ -138,7 +138,7 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize -= chargeSize
 		toBeSub := []storagetypes.LVGObjectsSize{
-			storagetypes.LVGObjectsSize{
+			{
 				LvgId:           objectInfo.LocalVirtualGroupId,
 				TotalChargeSize: chargeSize},
 		}

@@ -16,14 +16,13 @@ import (
 func (s *KeeperTestSuite) TestSetGetStorageProvider() {
 	keeper := s.spKeeper
 	ctx := s.ctx
-	sp := &types.StorageProvider{}
+	sp := &types.StorageProvider{Id: 100}
 	spAccStr := sample.AccAddress()
 	spAcc := sdk.MustAccAddressFromHex(spAccStr)
-
 	sp.OperatorAddress = spAcc.String()
 
 	keeper.SetStorageProvider(ctx, sp)
-	_, found := keeper.GetStorageProvider(ctx, spAcc)
+	_, found := keeper.GetStorageProvider(ctx, 100)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
@@ -48,6 +47,7 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
 	sp := &types.StorageProvider{
+		Id:              100,
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
@@ -55,7 +55,7 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	_, found := k.GetStorageProvider(ctx, spAcc)
+	_, found := k.GetStorageProvider(ctx, 100)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
@@ -102,6 +102,7 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
 	sp := &types.StorageProvider{
+		Id:              100,
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
@@ -110,7 +111,7 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	_, found := k.GetStorageProvider(ctx, spAcc)
+	_, found := k.GetStorageProvider(ctx, 100)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
@@ -124,7 +125,7 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 	err := k.Slash(ctx, spAcc, []types.RewardInfo{rewardInfo})
 	require.NoError(s.T(), err)
 
-	spAfterSlash, found := k.GetStorageProvider(ctx, spAcc)
+	spAfterSlash, found := k.GetStorageProvider(ctx, 100)
 	require.True(s.T(), found)
 	s.T().Logf("%s", spAfterSlash.TotalDeposit.String())
 	require.True(s.T(), spAfterSlash.TotalDeposit.Equal(math.NewIntWithDecimal(2000, types2.DecimalBNB)))

@@ -1298,7 +1298,7 @@ func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, group
 func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spID uint32, sigData []byte, signature []byte) error {
 	sp, found := k.spKeeper.GetStorageProvider(ctx, spID)
 	if !found {
-		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP id: %s", spID)
+		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP id: %d", spID)
 	}
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
 		return sptypes.ErrStorageProviderNotInService
