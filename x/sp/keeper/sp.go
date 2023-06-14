@@ -147,14 +147,14 @@ func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProv
 func (k Keeper) SetStorageProviderByBlsKey(ctx sdk.Context, sp *types.StorageProvider) {
 	blsPk := sp.GetBlsKey()
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetStorageProviderByBlsKeyKey(blsPk), sp.GetOperator())
+	store.Set(types.GetStorageProviderByBlsKeyKey(blsPk), k.spSequence.EncodeSequence(sp.Id))
 }
 
 func (k Keeper) GetStorageProviderByBlsKey(ctx sdk.Context, blsPk []byte) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	opAddr := store.Get(types.GetStorageProviderByBlsKeyKey(blsPk))
-	if opAddr == nil {
+	id := store.Get(types.GetStorageProviderByBlsKeyKey(blsPk))
+	if id == nil {
 		return sp, false
 	}
-	return k.GetStorageProvider(ctx, opAddr)
+	return k.GetStorageProvider(ctx, k.spSequence.DecodeSequence(id))
 }

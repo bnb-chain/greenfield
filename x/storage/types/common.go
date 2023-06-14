@@ -18,7 +18,6 @@ func NewSecondarySpSignDoc(objectID math.Uint, gvgId uint32, checksums []byte) *
 	}
 }
 
-// GetSignBytes get the event hash
 func (c *SecondarySpSignDoc) GetSignBytes() [32]byte {
 	bts, err := rlp.EncodeToBytes(c)
 	if err != nil {
