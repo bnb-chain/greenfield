@@ -55,7 +55,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		secondarySpIds = append(secondarySpIds, ssp.Id)
 	}
 
-	gvgFamily, err := k.GetOrCreateEmptyGVGFamily(ctx, sp.Id, req.FamilyId)
+	gvgFamily, err := k.GetOrCreateEmptyGVGFamily(ctx, req.FamilyId, sp.Id)
 
 	if err != nil {
 		return nil, err

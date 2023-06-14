@@ -24,11 +24,11 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 
 	sp := s.StorageProviders[0]
 
-	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: sp.OperatorKey.GetAddr().String(),
+	querySPReq := sptypes.QueryStorageProviderByOperatorAddressRequest{
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
 	}
 
-	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
+	querySPResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &querySPReq)
 
 	genSP := &sptypes.StorageProvider{
 		OperatorAddress: sp.OperatorKey.GetAddr().String(),

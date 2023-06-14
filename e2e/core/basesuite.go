@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -18,13 +20,14 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/types"
 )
 
-type SPKeyManagers struct {
-	OperatorKey keys.KeyManager
-	SealKey     keys.KeyManager
-	FundingKey  keys.KeyManager
-	ApprovalKey keys.KeyManager
-	GcKey       keys.KeyManager
-	ID          uint32
+type StorageProvider struct {
+	OperatorKey                keys.KeyManager
+	SealKey                    keys.KeyManager
+	FundingKey                 keys.KeyManager
+	ApprovalKey                keys.KeyManager
+	GcKey                      keys.KeyManager
+	Info                       *sptypes.StorageProvider
+	GlobalVirtualGroupFamilies map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup
 }
 
 type BaseSuite struct {
@@ -36,7 +39,7 @@ type BaseSuite struct {
 	ValidatorBLS     keys.KeyManager
 	Relayer          keys.KeyManager
 	Challenger       keys.KeyManager
-	StorageProviders []SPKeyManagers
+	StorageProviders []StorageProvider
 }
 
 func (s *BaseSuite) SetupSuite() {
@@ -53,19 +56,57 @@ func (s *BaseSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.Challenger, err = keys.NewMnemonicKeyManager(s.Config.ChallengerMnemonic)
 	s.Require().NoError(err)
+
+	var spIDs []uint32
 	for _, spMnemonics := range s.Config.SPMnemonics {
-		sPKeyManagers := SPKeyManagers{}
-		sPKeyManagers.OperatorKey, err = keys.NewMnemonicKeyManager(spMnemonics.OperatorMnemonic)
+		sp := StorageProvider{}
+		sp.OperatorKey, err = keys.NewMnemonicKeyManager(spMnemonics.OperatorMnemonic)
 		s.Require().NoError(err)
-		sPKeyManagers.SealKey, err = keys.NewMnemonicKeyManager(spMnemonics.SealMnemonic)
+		sp.SealKey, err = keys.NewMnemonicKeyManager(spMnemonics.SealMnemonic)
 		s.Require().NoError(err)
-		sPKeyManagers.FundingKey, err = keys.NewMnemonicKeyManager(spMnemonics.FundingMnemonic)
+		sp.FundingKey, err = keys.NewMnemonicKeyManager(spMnemonics.FundingMnemonic)
 		s.Require().NoError(err)
-		sPKeyManagers.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
+		sp.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
 		s.Require().NoError(err)
-		sPKeyManagers.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
+		sp.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
 		s.Require().NoError(err)
-		s.StorageProviders = append(s.StorageProviders, sPKeyManagers)
+		var resp *sptypes.QueryStorageProviderByOperatorAddressResponse
+		resp, err = s.Client.StorageProviderByOperatorAddress(context.Background(), &sptypes.QueryStorageProviderByOperatorAddressRequest{
+			OperatorAddress: sp.OperatorKey.GetAddr().String(),
+		})
+		s.Require().NoError(err)
+		sp.Info = resp.StorageProvider
+		sp.GlobalVirtualGroupFamilies = make(map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup)
+		s.StorageProviders = append(s.StorageProviders, sp)
+
+		spIDs = append(spIDs, sp.Info.Id)
+	}
+
+	for i, sp := range s.StorageProviders {
+		// Create a GVG for each sp by default
+		deposit := sdk.Coin{
+			Denom:  s.Config.Denom,
+			Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
+		}
+		secondaryIds := append(spIDs[:i], spIDs[i+1:]...)
+		msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
+			PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
+			SecondarySpIds:   secondaryIds,
+			Deposit:          deposit,
+		}
+		s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
+
+		resp, err2 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
+		s.Require().NoError(err2)
+		for _, family := range resp.GlobalVirtualGroupFamilies {
+			gvgsResp, err3 := s.Client.GlobalVirtualGroupByFamilyID(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{
+				StorageProviderId:          sp.Info.Id,
+				GlobalVirtualGroupFamilyId: family.Id,
+			})
+			s.Require().NoError(err3)
+			sp.GlobalVirtualGroupFamilies[family.Id] = gvgsResp.GlobalVirtualGroups
+			s.StorageProviders[i] = sp
+		}
 	}
 }
 
@@ -242,4 +283,13 @@ func (s *BaseSuite) LatestHeight() (int64, error) {
 			}
 		}
 	}
+}
+
+func (sp *StorageProvider) GetFirstGlobalVirtualGroup() (*virtualgroupmoduletypes.GlobalVirtualGroup, bool) {
+	for _, family := range sp.GlobalVirtualGroupFamilies {
+		if len(family) != 0 {
+			return family[0], true
+		}
+	}
+	return nil, false
 }

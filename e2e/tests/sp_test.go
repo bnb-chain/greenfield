@@ -29,7 +29,7 @@ func (s *StorageProviderTestSuite) SetupSuite() {
 func (s *StorageProviderTestSuite) SetupTest() {
 }
 
-func (s *StorageProviderTestSuite) NewSpAcc() *core.SPKeyManagers {
+func (s *StorageProviderTestSuite) NewSpAcc() *core.StorageProvider {
 	userAccs := s.GenAndChargeAccounts(5, 1000000)
 	operatorAcc := userAccs[0]
 	fundingAcc := userAccs[1]
@@ -37,11 +37,11 @@ func (s *StorageProviderTestSuite) NewSpAcc() *core.SPKeyManagers {
 	sealAcc := userAccs[3]
 	gcAcc := userAccs[4]
 
-	return &core.SPKeyManagers{OperatorKey: operatorAcc, SealKey: fundingAcc,
+	return &core.StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
 		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc}
 }
 
-func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
+func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.StorageProvider {
 	// 1. create new newStorageProvider
 	newSP := s.NewSpAcc()
 
@@ -190,7 +190,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 3. query modified storage provider
 	querySPReq := sptypes.QueryStorageProviderRequest{
-		Id: sp.ID,
+		Id: sp.Info.Id,
 	}
 
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
@@ -206,7 +206,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 5. query revert storage provider again
 	querySPReq = sptypes.QueryStorageProviderRequest{
-		Id: sp.ID,
+		Id: sp.Info.Id,
 	}
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)

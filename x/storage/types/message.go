@@ -468,13 +468,7 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 }
 
 func NewMsgSealObject(
-	operator sdk.AccAddress, bucketName string, objectName string, globalVirtualGroupID uint32,
-	secondarySPAccs []sdk.AccAddress, secondarySpSignatures [][]byte) *MsgSealObject {
-
-	var secondarySPAddresses []string
-	for _, secondarySP := range secondarySPAccs {
-		secondarySPAddresses = append(secondarySPAddresses, secondarySP.String())
-	}
+	operator sdk.AccAddress, bucketName string, objectName string, globalVirtualGroupID uint32, secondarySpSignatures [][]byte) *MsgSealObject {
 
 	return &MsgSealObject{
 		Operator:              operator.String(),

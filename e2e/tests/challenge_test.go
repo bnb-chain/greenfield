@@ -41,12 +41,15 @@ func TestChallengeTestSuite(t *testing.T) {
 func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []sdk.AccAddress) {
 	var err error
 	sp := s.StorageProviders[0]
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := "ch" + storagetestutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(user, msgCreateBucket)
@@ -82,7 +85,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(user, msgCreateObject)
@@ -103,7 +106,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
-	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
