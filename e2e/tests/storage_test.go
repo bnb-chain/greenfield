@@ -175,7 +175,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	gvgId := uint32(0)
 
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 	secondarySig, err := sp.BlsKey.Sign(sr[:])
 	s.Require().NoError(err)
 	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
@@ -358,7 +358,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName1, objectName,
 		gvgId, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 	secondarySig, err := sp.BlsKey.Sign(sr[:])
 	s.Require().NoError(err)
 	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
@@ -595,7 +595,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	gvgId := uint32(0)
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
 	secondarySigs := lo.Map(secondaryStorageProviders, func(sp core.SPKeyManagers, i int) []byte {
-		sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+		sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 		secondarySig, err := sp.BlsKey.Sign(sr[:])
 		s.Require().NoError(err)
 		pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
@@ -614,7 +614,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	s.Require().NoError(err)
 	aggBlsSig := bls.AggregateSignatures(blsSigs).Marshal()
 	err = storagetypes.VerifyBlsAggSignature(secondarySPBlsPubKeys,
-		storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes(),
+		storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes(),
 		aggBlsSig)
 	s.Require().NoError(err)
 
@@ -974,7 +974,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	// SealObject
 	gvgId := uint32(0)
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 	secondarySig, err := sp.BlsKey.Sign(sr[:])
 	s.Require().NoError(err)
 	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
@@ -1034,7 +1034,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	// SealObject
 	gvgId := uint32(0)
 	msgSealObject = storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
-	sr = storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	sr = storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 	secondarySig, err = sp.BlsKey.Sign(sr[:])
 	s.Require().NoError(err)
 	pubKey, err = bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
@@ -1470,7 +1470,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 	// SealObject
 	gvgId := uint32(0)
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 	secondarySig, err := sp.BlsKey.Sign(sr[:])
 	s.Require().NoError(err)
 	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())

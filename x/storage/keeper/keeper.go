@@ -1682,6 +1682,6 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 }
 
 func (k Keeper) verifySecondarySpsBlsSignature(gvgId uint32, objectInfo *types.ObjectInfo, secondSpBlsPubKeys []bls.PublicKey, blsSig []byte) error {
-	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateIntegrityHash(objectInfo.Checksums[1:]))
+	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateIntegrityHash(objectInfo.Checksums[:]))
 	return types.VerifyBlsAggSignature(secondSpBlsPubKeys, blsSignDoc.GetSignBytes(), blsSig)
 }

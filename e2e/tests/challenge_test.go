@@ -101,7 +101,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	// SealObject
 	gvgId := uint32(0)
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, 0, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[:])).GetSignBytes()
 	secondarySig, err := sp.BlsKey.Sign(sr[:])
 	s.Require().NoError(err)
 	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
