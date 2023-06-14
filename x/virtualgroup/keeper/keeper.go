@@ -260,6 +260,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 			GlobalVirtualGroupId:  gvgID,
 			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.LVGName, lvgID).String(),
 			StoredSize:            payloadSize,
+			BucketId:              bucketID,
 		}
 		gvgsBindingOnBucket = &types.GlobalVirtualGroupsBindingOnBucket{}
 		gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
@@ -273,6 +274,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 				GlobalVirtualGroupId:  gvgID,
 				VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.LVGName, lvgID).String(),
 				StoredSize:            payloadSize,
+				BucketId:              bucketID,
 			}
 			gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
 		} else {
