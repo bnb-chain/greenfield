@@ -8,7 +8,7 @@ import (
 )
 
 func (k Keeper) IsStorageProviderExistAndInService(ctx sdk.Context, spAddr sdk.AccAddress) error {
-	sp, found := k.GetStorageProviderByApprovalAddr(ctx, spAddr)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
 		return types.ErrStorageProviderNotFound
 	}

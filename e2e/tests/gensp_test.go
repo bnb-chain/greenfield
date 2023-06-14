@@ -47,6 +47,7 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 	}
 
 	s.Require().NoError(err)
+	genSP.Id = querySPResp.StorageProvider.Id
 	s.Require().Equal(querySPResp.StorageProvider, genSP)
 }
 

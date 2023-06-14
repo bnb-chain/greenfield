@@ -195,6 +195,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
+	newSP.Id = querySPResp.StorageProvider.Id
 	s.Require().Equal(querySPResp.StorageProvider, newSP)
 
 	// 4. revert storage provider info

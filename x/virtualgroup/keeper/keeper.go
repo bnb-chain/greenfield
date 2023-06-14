@@ -262,7 +262,9 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 			StoredSize:            payloadSize,
 			BucketId:              bucketID,
 		}
-		gvgsBindingOnBucket = &types.GlobalVirtualGroupsBindingOnBucket{}
+		gvgsBindingOnBucket = &types.GlobalVirtualGroupsBindingOnBucket{
+			BucketId: bucketID,
+		}
 		gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
 	} else {
 		lvgID := gvgsBindingOnBucket.GetLVGIDByGVGID(gvgID)
