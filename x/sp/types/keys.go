@@ -2,8 +2,6 @@ package types
 
 import (
 	"encoding/binary"
-	"github.com/cosmos/cosmos-sdk/types/address"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -76,7 +74,7 @@ func GetStorageProviderByGcAddrKey(spAddr sdk.AccAddress) []byte {
 
 // GetStorageProviderByBlsKeyKey creates the key for the storage provider with bls pub key
 func GetStorageProviderByBlsKeyKey(blsPk []byte) []byte {
-	return append(StorageProviderByBlsPubKeyKey, address.MustLengthPrefix(blsPk)...)
+	return append(StorageProviderByBlsPubKeyKey, blsPk...)
 }
 
 func UnmarshalStorageProvider(cdc codec.BinaryCodec, value []byte) (sp *StorageProvider, err error) {

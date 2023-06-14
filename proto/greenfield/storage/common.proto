@@ -70,6 +70,6 @@ message SecondarySpSignDoc {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // checksums is the integrity Hash of slice of integrity hash from secondary sps
-  bytes checksums = 3;
+  // checksum is the integrity Hash of slice of integrity hash from secondary sps
+  bytes checksum = 3;
 }

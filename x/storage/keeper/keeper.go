@@ -586,7 +586,7 @@ func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*type
 }
 
 type SealObjectOptions struct {
-	GlobalVirtualGroupId  uint32
+	GlobalVirtualGroupId     uint32
 	SecondarySpBlsSignatures []byte
 }
 
@@ -627,7 +627,7 @@ func (k Keeper) SealObject(
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
 	// validate bls sig
-	secondSpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
+	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
 		sp, found = k.spKeeper.GetStorageProvider(ctx, spId)
 		if !found {
@@ -637,10 +637,10 @@ func (k Keeper) SealObject(
 		if err != nil {
 			return errors.Wrapf(types.ErrInvalidBlsPubKey, "BLS public key converts failed: %v", err)
 		}
-		secondSpBlsPubKeys = append(secondSpBlsPubKeys, spBlsPubKey)
+		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
 
-	err := k.verifySecondarySpsBlsSignature(opts.GlobalVirtualGroupId, objectInfo, secondSpBlsPubKeys, opts.SecondarySpBlsSignatures)
+	err := k.verifySecondarySpsBlsSignature(opts.GlobalVirtualGroupId, objectInfo, secondarySpBlsPubKeys, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}

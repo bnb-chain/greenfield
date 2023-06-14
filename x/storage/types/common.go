@@ -10,11 +10,11 @@ import (
 
 // NewSecondarySpSignDoc creating the doc for all secondary sps bls signings,
 // checksums is the integrity hash of slice of integrity hash(objectInfo checkSums) contributed by secondary sps
-func NewSecondarySpSignDoc(objectID math.Uint, gvgId uint32, checksums []byte) *SecondarySpSignDoc {
+func NewSecondarySpSignDoc(objectID math.Uint, gvgId uint32, checksum []byte) *SecondarySpSignDoc {
 	return &SecondarySpSignDoc{
 		GlobalVirtualGroupId: gvgId,
 		ObjectId:             objectID,
-		Checksums:            checksums,
+		Checksum:             checksum,
 	}
 }
 
