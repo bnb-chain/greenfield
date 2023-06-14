@@ -5,14 +5,14 @@ go 1.19
 require (
 	cosmossdk.io/api v0.4.0
 	cosmossdk.io/errors v1.0.0-beta.7
-	cosmossdk.io/math v1.0.1
+	cosmossdk.io/math v1.0.0
 	github.com/bits-and-blooms/bitset v1.2.0
 	github.com/cometbft/cometbft v0.37.1
 	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
 	github.com/cosmos/cosmos-sdk v0.47.2
 	github.com/cosmos/go-bip39 v1.0.0
-	github.com/cosmos/gogoproto v1.4.10
+	github.com/cosmos/gogoproto v1.4.8
 	github.com/ethereum/go-ethereum v1.10.22
 	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.6.0
