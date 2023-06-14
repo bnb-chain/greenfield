@@ -182,9 +182,9 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 
 func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketInfo *types.BucketInfo) error {
 	store := ctx.KVStore(k.storeKey)
-	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
-	store.Delete(bucketKey)
+	store.Delete(types.GetBucketKey(bucketInfo.BucketName))
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
+	store.Delete(types.GetQuotaKey(bucketInfo.Id))
 
 	if err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id); err != nil {
 		return err
@@ -284,6 +284,20 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	// handle fields not changed
 	if opts.ChargedReadQuota == nil {
 		opts.ChargedReadQuota = &bucketInfo.ChargedReadQuota
+	} else if *opts.ChargedReadQuota != bucketInfo.ChargedReadQuota {
+		blockTime := uint64(ctx.BlockTime().Unix())
+		if *opts.ChargedReadQuota < bucketInfo.ChargedReadQuota {
+			minInterval := k.GetParams(ctx).MinQuotaUpdateInterval
+			lastUpdateTime, found := k.getQuotaUpdateTime(ctx, bucketInfo.Id)
+			if !found {
+				return types.ErrUpdateQuotaFailed
+			}
+			if lastUpdateTime+minInterval > blockTime {
+				return types.ErrUpdateQuotaFailed.Wrapf("The quota can be smaller before %d", lastUpdateTime+minInterval)
+			}
+		}
+		// save quota update time
+		k.setQuotaUpdateTime(ctx, bucketInfo.Id, blockTime)
 	}
 
 	if opts.Visibility != types.VISIBILITY_TYPE_UNSPECIFIED {
@@ -1648,4 +1662,24 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 		}
 	}
 	return deletedTotal, true
+}
+
+func (k Keeper) setQuotaUpdateTime(ctx sdk.Context, bucketId types.Uint, timestamp uint64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, timestamp)
+	store.Set(types.GetQuotaKey(bucketId), bz)
+}
+
+func (k Keeper) getQuotaUpdateTime(ctx sdk.Context, bucketId types.Uint) (uint64, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetQuotaKey(bucketId))
+	if bz != nil {
+		return binary.BigEndian.Uint64(bz), true
+	}
+	bucketInfo, found := k.GetBucketInfoById(ctx, bucketId)
+	if !found {
+		return 0, false
+	}
+	return uint64(bucketInfo.CreateAt), true
 }
