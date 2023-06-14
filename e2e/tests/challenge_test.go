@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"math"
 	"strconv"
 	"strings"
@@ -98,22 +99,30 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 
 	// SealObject
-	secondarySPs := []sdk.AccAddress{
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
+	gvgId := uint32(0)
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, 0, nil)
+	sr := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(expectChecksum[1:])).GetSignBytes()
+	secondarySig, err := sp.BlsKey.Sign(sr[:])
+	s.Require().NoError(err)
+	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
+	s.Require().NoError(err)
+	err = storagetypes.VerifyBlsSignature(pubKey, sr, secondarySig)
+	s.Require().NoError(err)
+
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	for i := 0; i < len(s.StorageProviders); i++ {
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, secondarySPs, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
-	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
-	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
-	s.Require().NoError(err)
-
-	s.Require().NoError(err)
-
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
-	msgSealObject.SecondarySpSignatures = secondarySigs
+	blsSigs, err := bls.MultipleSignaturesFromBytes(secondarySigs)
+	s.Require().NoError(err)
+	aggBlsSig := bls.AggregateSignatures(blsSigs).Marshal()
+	err = storagetypes.VerifyBlsAggSignature(secondarySPBlsPubKeys, sr, aggBlsSig)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
@@ -167,7 +176,7 @@ func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, blsKey strin
 func (s *ChallengeTestSuite) TestNormalAttest() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, _ := s.createObject()
+	bucketName, objectName, primarySp := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)

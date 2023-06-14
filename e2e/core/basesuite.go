@@ -24,6 +24,7 @@ type SPKeyManagers struct {
 	FundingKey  keys.KeyManager
 	ApprovalKey keys.KeyManager
 	GcKey       keys.KeyManager
+	BlsKey      keys.KeyManager
 	ID          uint32
 }
 
@@ -53,7 +54,7 @@ func (s *BaseSuite) SetupSuite() {
 	s.Require().NoError(err)
 	s.Challenger, err = keys.NewMnemonicKeyManager(s.Config.ChallengerMnemonic)
 	s.Require().NoError(err)
-	for _, spMnemonics := range s.Config.SPMnemonics {
+	for i, spMnemonics := range s.Config.SPMnemonics {
 		sPKeyManagers := SPKeyManagers{}
 		sPKeyManagers.OperatorKey, err = keys.NewMnemonicKeyManager(spMnemonics.OperatorMnemonic)
 		s.Require().NoError(err)
@@ -64,6 +65,8 @@ func (s *BaseSuite) SetupSuite() {
 		sPKeyManagers.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
 		s.Require().NoError(err)
 		sPKeyManagers.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
+		s.Require().NoError(err)
+		sPKeyManagers.BlsKey, err = keys.NewBlsMnemonicKeyManager(s.Config.SPBLSMnemonic[i])
 		s.Require().NoError(err)
 		s.StorageProviders = append(s.StorageProviders, sPKeyManagers)
 	}

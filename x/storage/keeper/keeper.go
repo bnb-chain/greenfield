@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
@@ -1683,16 +1682,6 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 }
 
 func (k Keeper) verifySecondarySpsBlsSignature(gvgId uint32, objectInfo *types.ObjectInfo, secondSpBlsPubKeys []bls.PublicKey, blsSig []byte) error {
-	// Verify the aggregated signature.
-	aggSig, err := bls.SignatureFromBytes(blsSig)
-	if err != nil {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature converts failed: %v", err)
-	}
-
 	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateIntegrityHash(objectInfo.Checksums[1:]))
-
-	if !aggSig.FastAggregateVerify(secondSpBlsPubKeys[:], blsSignDoc.GetSignBytes()) {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verify failed")
-	}
-	return nil
+	return types.VerifyBlsAggSignature(secondSpBlsPubKeys, blsSignDoc.GetSignBytes(), blsSig)
 }

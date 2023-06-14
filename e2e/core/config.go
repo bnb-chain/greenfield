@@ -24,6 +24,7 @@ type Config struct {
 	RelayerMnemonic      string        `yaml:"RelayerMnemonic"`    // relayer mnemonic
 	ChallengerMnemonic   string        `yaml:"ChallengerMnemonic"` // challenger mnemonic
 	SPMnemonics          []SPMnemonics `yaml:"SPMnemonics"`
+	SPBLSMnemonic        []string      `yaml:"SPBLSMnemonic"`
 	Denom                string        `yaml:"Denom"`
 }
 
