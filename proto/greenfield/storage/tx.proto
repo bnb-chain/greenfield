@@ -45,6 +45,10 @@ service Msg {
   rpc PutPolicy(MsgPutPolicy) returns (MsgPutPolicyResponse);
   rpc DeletePolicy(MsgDeletePolicy) returns (MsgDeletePolicyResponse);
 
+  // executable
+  rpc InvokeExecution(MsgInvokeExecution) returns (MsgInvokeExecutionResponse);
+  rpc SubmitExecutionResult(MsgSubmitExecutionResult) returns (MsgSubmitExecutionResultResponse);
+
   // UpdateParams defines a governance operation for updating the x/storage module parameters.
   // The authority is defined in the keeper.
   //
@@ -466,5 +470,62 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
+
+message MsgInvokeExecution {
+  option (cosmos.msg.v1.signer) = "operator";
+  // creator defines the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // executable_object_id defines the executable object id.
+  string executable_object_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // input_object_ids defines the input object ids.
+  repeated string input_object_ids = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // max_gas defines the max gas for the execution.
+  string max_gas = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // method defines the method for the execution.
+  string method = 5;
+
+  // params defines the encoded params for the method.
+  bytes params = 6;
+}
+
+message MsgInvokeExecutionResponse {
+  // id defines the unique u256 for execution task id.
+  string task_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message MsgSubmitExecutionResult {
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator defines the submitter of the execution result
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // id defines the unique u256 for execution task id.
+  string task_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // status defines the execution status, 0 for failed, 1 for successful.
+  uint32 status = 3;
+  // result_data_uri defines the uri for the result data
+  string result_data_uri = 4;
+}
+
+message MsgSubmitExecutionResultResponse {}
+
 
 // this line is used by starport scaffolding # proto/tx/message

@@ -44,4 +44,7 @@ var (
 
 	ErrKeyNotExist     = errors.Register(ModuleName, 3201, "DeletePermissionKey not exist")
 	ErrInvalidResource = errors.Register(ModuleName, 3202, "invalid resource type")
+
+	ErrInvalidTaskId            = errors.Register(ModuleName, 3301, "invalid task id")
+	ErrExecutionResultSubmitted = errors.Register(ModuleName, 3302, "execution result submitted")
 )

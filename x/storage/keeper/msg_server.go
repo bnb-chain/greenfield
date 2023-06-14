@@ -600,3 +600,39 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 	return &types.MsgUpdateParamsResponse{}, nil
 }
+
+func (k msgServer) InvokeExecution(goCtx context.Context, req *types.MsgInvokeExecution) (*types.MsgInvokeExecutionResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(req.Operator)
+
+	err := k.Keeper.CheckInvokePermissions(ctx, req.ExecutableObjectId, req.InputObjectIds)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.Keeper.InvokeExecution(ctx, operator, req.ExecutableObjectId, InvokeExecutionOptions{
+		InputObjectIds: req.InputObjectIds,
+		MaxGas:         req.MaxGas,
+		Method:         req.Method,
+		Params:         req.Params,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgInvokeExecutionResponse{}, nil
+}
+
+func (k msgServer) SubmitExecutionResult(goCtx context.Context, req *types.MsgSubmitExecutionResult) (*types.MsgSubmitExecutionResultResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(req.Operator)
+
+	err := k.Keeper.SubmitExecutionResult(ctx, operator, req.TaskId, req.Status, req.ResultDataUri)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgSubmitExecutionResultResponse{}, nil
+}

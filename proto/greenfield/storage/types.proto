@@ -166,3 +166,7 @@ message DeleteInfo {
   Ids object_ids = 2;
   Ids group_ids = 3;
 }
+
+message ExecutionResult {
+  uint32 status = 1;
+}

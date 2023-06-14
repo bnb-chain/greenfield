@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
+
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -62,4 +64,11 @@ type UpdateGroupMemberOptions struct {
 	SourceType      types.SourceType
 	MembersToAdd    []string
 	MembersToDelete []string
+}
+
+type InvokeExecutionOptions struct {
+	InputObjectIds []sdkmath.Uint
+	MaxGas         sdkmath.Uint
+	Method         string
+	Params         []byte
 }

@@ -56,6 +56,10 @@ const (
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
 	MaxDiscontinueObjects   = 128
+
+	// For executable
+	TypeMsgInvokeExecution       = "invoke_execution"
+	TypeMsgSubmitExecutionResult = "submit_execution_result"
 )
 
 var (
@@ -1440,6 +1444,66 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 
 	if err := m.Params.Validate(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgInvokeExecution) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgInvokeExecution) Type() string {
+	return TypeMsgInvokeExecution
+}
+
+// GetSignBytes implements the LegacyMsg interface.
+func (m MsgInvokeExecution) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (m *MsgInvokeExecution) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromHexUnsafe(m.Operator)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic does a sanity check on the provided data.
+func (m *MsgInvokeExecution) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromHexUnsafe(m.Operator); err != nil {
+		return errors.Wrap(err, "invalid operator address")
+	}
+
+	return nil
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgSubmitExecutionResult) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgSubmitExecutionResult) Type() string {
+	return TypeMsgSubmitExecutionResult
+}
+
+// GetSignBytes implements the LegacyMsg interface.
+func (m MsgSubmitExecutionResult) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
+}
+
+// GetSigners returns the expected signers for a MsgUpdateParams message.
+func (m *MsgSubmitExecutionResult) GetSigners() []sdk.AccAddress {
+	addr, _ := sdk.AccAddressFromHexUnsafe(m.Operator)
+	return []sdk.AccAddress{addr}
+}
+
+// ValidateBasic does a sanity check on the provided data.
+func (m *MsgSubmitExecutionResult) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromHexUnsafe(m.Operator); err != nil {
+		return errors.Wrap(err, "invalid operator address")
 	}
 
 	return nil

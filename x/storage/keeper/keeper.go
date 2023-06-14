@@ -32,9 +32,10 @@ type (
 		crossChainKeeper types.CrossChainKeeper
 
 		// sequence
-		bucketSeq sequence.U256
-		objectSeq sequence.U256
-		groupSeq  sequence.U256
+		bucketSeq        sequence.U256
+		objectSeq        sequence.U256
+		groupSeq         sequence.U256
+		executionTaskSeq sequence.U256
 
 		authority string
 	}
@@ -67,6 +68,7 @@ func NewKeeper(
 	k.bucketSeq = sequence.NewSequence256(types.BucketSequencePrefix)
 	k.objectSeq = sequence.NewSequence256(types.ObjectSequencePrefix)
 	k.groupSeq = sequence.NewSequence256(types.GroupSequencePrefix)
+	k.executionTaskSeq = sequence.NewSequence256(types.ExecutionTaskSequencePrefix)
 	return &k
 }
 
@@ -1322,6 +1324,13 @@ func (k Keeper) GenNextGroupId(ctx sdk.Context) sdkmath.Uint {
 	return seq
 }
 
+func (k Keeper) GenNextExecutionTaskId(ctx sdk.Context) sdkmath.Uint {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.executionTaskSeq.NextVal(store)
+	return seq
+}
+
 func (k Keeper) isNonEmptyBucket(ctx sdk.Context, bucketName string) bool {
 	store := ctx.KVStore(k.storeKey)
 	objectStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketName))
@@ -1648,4 +1657,80 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 		}
 	}
 	return deletedTotal, true
+}
+
+func (k Keeper) CheckInvokePermissions(ctx sdk.Context, executableId sdkmath.Uint, inputIds []sdkmath.Uint) error {
+	_, exist := k.GetObjectInfoById(ctx, executableId)
+	if !exist {
+		return types.ErrNoSuchObject.Wrapf("executable id %d", executableId)
+	}
+
+	for _, inputId := range inputIds {
+		_, exist := k.GetObjectInfoById(ctx, inputId)
+		if !exist {
+			return types.ErrNoSuchObject.Wrapf("input id %d", inputId)
+		}
+	}
+
+	// todo: check further persmissions if needed
+	return nil
+}
+
+func (k Keeper) InvokeExecution(ctx sdk.Context, operator sdk.AccAddress, executableObjectId sdkmath.Uint, ops InvokeExecutionOptions) error {
+	taskId := k.GenNextExecutionTaskId(ctx)
+
+	_ = ctx.EventManager().EmitTypedEvents(&types.EventExecutionTask{
+		TaskId:             taskId,
+		Operator:           operator.String(),
+		ExecutableObjectId: executableObjectId,
+		InputObjectIds:     ops.InputObjectIds,
+		MaxGas:             ops.MaxGas,
+		Method:             ops.Method,
+		Params:             ops.Params,
+	})
+
+	return nil
+}
+
+func (k Keeper) SubmitExecutionResult(ctx sdk.Context, operator sdk.AccAddress, taskId sdkmath.Uint, status uint32, dataUri string) error {
+	if taskId.Equal(sdkmath.ZeroUint()) || taskId.GT(k.executionTaskSeq.CurVal(ctx.KVStore(k.storeKey))) {
+		return types.ErrInvalidTaskId
+	}
+	executionResult, exist := k.GetExecutionResult(ctx, taskId)
+	if exist {
+		return types.ErrExecutionResultSubmitted
+	}
+
+	executionResult = &types.ExecutionResult{
+		Status: status,
+	}
+	k.SetExecutionResult(ctx, taskId, executionResult)
+
+	_ = ctx.EventManager().EmitTypedEvents(&types.EventExecutionResult{
+		TaskId:        taskId,
+		Operator:      operator.String(),
+		Status:        status,
+		ResultDataUri: dataUri,
+	})
+
+	return nil
+}
+
+func (k Keeper) GetExecutionResult(ctx sdk.Context, taskId sdkmath.Uint) (*types.ExecutionResult, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetExecutionResultKey(taskId))
+	if bz == nil {
+		return nil, false
+	}
+
+	var executionResult types.ExecutionResult
+	k.cdc.MustUnmarshal(bz, &executionResult)
+
+	return &executionResult, true
+}
+
+func (k Keeper) SetExecutionResult(ctx sdk.Context, taskId sdkmath.Uint, executionResult *types.ExecutionResult) {
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetExecutionResultKey(taskId), k.cdc.MustMarshal(executionResult))
 }

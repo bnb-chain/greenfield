@@ -40,9 +40,10 @@ var (
 	ObjectByIDPrefix = []byte{0x22}
 	GroupByIDPrefix  = []byte{0x23}
 
-	BucketSequencePrefix = []byte{0x31}
-	ObjectSequencePrefix = []byte{0x32}
-	GroupSequencePrefix  = []byte{0x33}
+	BucketSequencePrefix        = []byte{0x31}
+	ObjectSequencePrefix        = []byte{0x32}
+	GroupSequencePrefix         = []byte{0x33}
+	ExecutionTaskSequencePrefix = []byte{0x34}
 
 	DiscontinueObjectCountPrefix  = []byte{0x41}
 	DiscontinueBucketCountPrefix  = []byte{0x42}
@@ -56,6 +57,8 @@ var (
 	CurrentBlockDeleteStalePoliciesKey = []byte{0x51}
 
 	DeleteStalePoliciesPrefix = []byte{0x52}
+
+	ExecutionResultPrefix = []byte{0x61}
 )
 
 // GetBucketKey return the bucket name store key
@@ -132,4 +135,9 @@ func GetDeleteStalePoliciesKey(height int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(height))
 	return append(DeleteStalePoliciesPrefix, bz...)
+}
+
+// GetExecutionResultKey return execution result store key
+func GetExecutionResultKey(taskId math.Uint) []byte {
+	return append(ExecutionResultPrefix, sequence.EncodeSequence(taskId)...)
 }
