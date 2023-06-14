@@ -24,6 +24,7 @@ type SPKeyManagers struct {
 	FundingKey  keys.KeyManager
 	ApprovalKey keys.KeyManager
 	GcKey       keys.KeyManager
+	ID          uint32
 }
 
 type BaseSuite struct {

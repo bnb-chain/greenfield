@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.2.2-alpha.2
+
+This release enables 2 features:
+- record challenge attestation result
+- allow user to pass keyManager into Txopt  
+
+* [#267](https://github.com/bnb-chain/greenfield/pull/267) chore: update swagger 
+* [#268](https://github.com/bnb-chain/greenfield/pull/268) feat: record challenge attestation result 
+* [#271](https://github.com/bnb-chain/greenfield/pull/271) fix: check every module's Msg 
+* [#270](https://github.com/bnb-chain/greenfield/pull/270) fix: sp check when reject seal object 
+* [#269](https://github.com/bnb-chain/greenfield/pull/269) fix: fix wrong link in readme 
+* [#274](https://github.com/bnb-chain/greenfield/pull/274) fix: add sp address check when deposit 
+* [#276](https://github.com/bnb-chain/greenfield/pull/276) feat: allow user to pass keyManager into Txopt 
+
 ## v0.2.1-alpha.1
 
 This release enable two features:

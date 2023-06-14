@@ -188,7 +188,7 @@ func (p Params) Validate() error {
 	}
 
 	if p.RewardValidatorRatio.Add(p.RewardSubmitterRatio).GT(sdk.NewDec(1)) {
-		return errors.New("the sum of validator and challenger reward ratio should be equal to or less than one")
+		return errors.New("the sum of validator and submitter reward ratio should be equal to or less than one")
 	}
 
 	if err := validateHeartbeatInterval(p.HeartbeatInterval); err != nil {

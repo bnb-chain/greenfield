@@ -10,10 +10,11 @@ require (
 	github.com/cometbft/cometbft v0.37.1
 	github.com/cometbft/cometbft-db v0.7.0
 	github.com/cosmos/cosmos-proto v1.0.0-beta.3
-	github.com/cosmos/cosmos-sdk v0.47.0-rc2.0.20230220103612-f094a0c33410
+	github.com/cosmos/cosmos-sdk v0.47.2
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.8
 	github.com/ethereum/go-ethereum v1.10.22
+	github.com/ghodss/yaml v1.0.0
 	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
@@ -173,6 +174,6 @@ replace (
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.0
 	github.com/cometbft/cometbft => github.com/bnb-chain/greenfield-cometbft v0.0.1
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.2.2-0.20230530084133-3c554961c3e4
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.2.2-alpha.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )

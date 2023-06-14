@@ -134,16 +134,24 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
 
 	// 6. query storage provider
+	querySPByOperatorAddrReq := sptypes.QueryStorageProviderByOperatorAddressRequest{
+		OperatorAddress: newSP.OperatorKey.GetAddr().String(),
+	}
+	querySPByOperatorAddrResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &querySPByOperatorAddrReq)
+	s.Require().NoError(err)
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.OperatorAddress, newSP.OperatorKey.GetAddr().String())
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.FundingAddress, newSP.FundingKey.GetAddr().String())
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Endpoint, endpoint)
+
+	//7 query sp by id
 	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: newSP.OperatorKey.GetAddr().String(),
+		Id: querySPByOperatorAddrResp.StorageProvider.Id,
 	}
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
-	s.Require().Equal(querySPResp.StorageProvider.OperatorAddress, newSP.OperatorKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.FundingAddress, newSP.FundingKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
-	s.Require().Equal(querySPResp.StorageProvider.Endpoint, endpoint)
+	s.Require().Equal(querySPResp.StorageProvider, querySPResp.StorageProvider)
 }
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
@@ -151,13 +159,13 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	sp := s.StorageProviders[0]
 
 	// 1. query previous storage provider
-	querySPReq := sptypes.QueryStorageProviderRequest{
-		SpAddress: sp.OperatorKey.GetAddr().String(),
+	querySPByOperatorAddressReq := sptypes.QueryStorageProviderByOperatorAddressRequest{
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
 	}
 
-	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
+	querySPByOperatorAddressResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &querySPByOperatorAddressReq)
 	s.Require().NoError(err)
-	prevSP := querySPResp.StorageProvider
+	prevSP := querySPByOperatorAddressResp.StorageProvider
 
 	// 2. edit storage provider
 	newSP := &sptypes.StorageProvider{
@@ -180,12 +188,12 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	txRes := s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 
-	// 3. query modifyed storage provider
-	querySPReq = sptypes.QueryStorageProviderRequest{
-		SpAddress: sp.OperatorKey.GetAddr().String(),
+	// 3. query modified storage provider
+	querySPReq := sptypes.QueryStorageProviderRequest{
+		Id: sp.ID,
 	}
 
-	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
+	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
 	s.Require().Equal(querySPResp.StorageProvider, newSP)
 
@@ -198,7 +206,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 5. query revert storage provider again
 	querySPReq = sptypes.QueryStorageProviderRequest{
-		SpAddress: sp.OperatorKey.GetAddr().String(),
+		Id: sp.ID,
 	}
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)

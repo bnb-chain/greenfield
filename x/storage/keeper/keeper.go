@@ -586,7 +586,7 @@ func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*type
 }
 
 type SealObjectOptions struct {
-	GlobalVirtualGroupId     uint32
+	GlobalVirtualGroupId  uint32
 	SecondarySpBlsSignatures []byte
 }
 
@@ -616,6 +616,7 @@ func (k Keeper) SealObject(
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectAlreadySealed
 	}
+
 	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, bucketInfo.PrimarySpId, opts.GlobalVirtualGroupId)
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGNotExist
@@ -649,7 +650,6 @@ func (k Keeper) SealObject(
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
 	}
 	objectInfo.LocalVirtualGroupId = lvg.Id
-
 	// unlock and charge store fee
 	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {

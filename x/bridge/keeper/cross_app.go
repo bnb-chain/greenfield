@@ -115,6 +115,12 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 		}
 	}
 
+	if transferOutPackage.Amount.Cmp(big.NewInt(0)) < 0 {
+		return sdk.ExecuteResult{
+			Err: errors.Wrapf(types.ErrInvalidAmount, "amount to refund should not be negative"),
+		}
+	}
+
 	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx) // only support native token so far
 	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, transferOutPackage.RefundAddress,
 		sdk.Coins{

@@ -13,7 +13,7 @@ var (
 	ErrGenSequenceIDError     = errors.Register(ModuleName, 1104, "generate sequence id error.")
 	ErrWithdrawAmountTooLarge = errors.Register(ModuleName, 1105, "withdrawal amount is too large.")
 
-	ErrLVGNotExist = errors.Register(ModuleName, 1105, "local virtual group not exist.")
+	ErrLVGNotExist = errors.Register(ModuleName, 1106, "local virtual group not exist.")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

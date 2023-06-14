@@ -7,6 +7,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	_ "github.com/ghodss/yaml"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"

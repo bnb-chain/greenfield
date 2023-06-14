@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"testing"
 
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+
 	"cosmossdk.io/math"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -15,11 +17,9 @@ import (
 
 func (s *TestSuite) TestSubmit() {
 	existSpAddr := sample.RandAccAddress()
-	existSp := &sptypes.StorageProvider{Status: sptypes.STATUS_IN_SERVICE}
-	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(existSpAddr)).
+	existSp := &sptypes.StorageProvider{Status: sptypes.STATUS_IN_SERVICE, Id: 100, OperatorAddress: existSpAddr.String()}
+	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(existSp.Id)).
 		Return(existSp, true).AnyTimes()
-	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Any()).
-		Return(nil, false).AnyTimes()
 
 	existBucketName, existObjectName := "existbucket", "existobject"
 	existObject := &storagetypes.ObjectInfo{
@@ -34,12 +34,22 @@ func (s *TestSuite) TestSubmit() {
 		Return(nil, false).AnyTimes()
 
 	existBucket := &storagetypes.BucketInfo{
-		BucketName:       existBucketName,
-		PrimarySpAddress: existSpAddr.String()}
+		BucketName:  existBucketName,
+		PrimarySpId: existSp.Id}
 	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucketName)).
 		Return(existBucket, true).AnyTimes()
+	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Any()).
+		Return(nil, false).AnyTimes()
 
 	s.storageKeeper.EXPECT().MaxSegmentSize(gomock.Any()).Return(uint64(10000)).AnyTimes()
+
+	lvg := &virtualgrouptypes.LocalVirtualGroup{}
+	s.virtualGroupKeeper.EXPECT().GetLVG(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(lvg, true).AnyTimes()
+
+	gvg := &virtualgrouptypes.GlobalVirtualGroup{PrimarySpId: 100}
+	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(gvg, true).AnyTimes()
 
 	tests := []struct {
 		name string
@@ -47,17 +57,20 @@ func (s *TestSuite) TestSubmit() {
 		err  error
 	}{
 		{
-			name: "unknown sp",
+			name: "not store on the sp",
 			msg: types.MsgSubmit{
 				Challenger:        sample.AccAddress(),
 				SpOperatorAddress: sample.AccAddress(),
+				BucketName:        existBucketName,
+				ObjectName:        existObjectName,
 			},
-			err: types.ErrUnknownSp,
+			err: types.ErrNotStoredOnSp,
 		}, {
 			name: "unknown object",
 			msg: types.MsgSubmit{
 				Challenger:        sample.AccAddress(),
 				SpOperatorAddress: existSpAddr.String(),
+				BucketName:        existBucketName,
 				ObjectName:        "nonexistobject",
 			},
 			err: types.ErrUnknownObject,

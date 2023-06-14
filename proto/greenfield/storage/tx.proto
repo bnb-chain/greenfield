@@ -151,7 +151,7 @@ message MsgSealObject {
   string object_name = 3;
   // global_virtual_group_id defines the id of global virtual group
   uint32 global_virtual_group_id = 4;
-  // secondary_sp_bls_agg_signatures defines the signature of the secondary sp that can
+  // secondary_sp_signatures defines the signature of the secondary sp that can
   // acknowledge that the payload data has received and stored.
   bytes secondary_sp_bls_agg_signatures = 5;
 }
