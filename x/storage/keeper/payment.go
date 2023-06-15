@@ -19,7 +19,7 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	bucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
 	bill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("get bucket bill failed: %w", err)
+		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %w", err)
 	}
 	return k.paymentKeeper.ApplyUserFlowsList(ctx, bill)
 }
@@ -138,7 +138,7 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize -= chargeSize
 		toBeSub := []storagetypes.LVGObjectsSize{
-			storagetypes.LVGObjectsSize{
+			{
 				LvgId:           objectInfo.LocalVirtualGroupId,
 				TotalChargeSize: chargeSize},
 		}
@@ -151,7 +151,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	// get previous bill
 	prevBill, err := k.GetBucketBill(ctx, bucketInfo)
 	if err != nil {
-		return fmt.Errorf("get bucket bill failed: %w", err)
+		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %w", err)
 	}
 	// change bucket billing info
 	if err = changeFunc(bucketInfo); err != nil {
@@ -166,7 +166,8 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	// charge according to bill change
 	err = k.ChargeAccordingToBillChange(ctx, prevBill, newBill)
 	if err != nil {
-		return fmt.Errorf("charge according to bill change failed: %w", err)
+		// TODO: handle this
+		ctx.Logger().Error("charge according to bill change failed", "err", err.Error())
 	}
 	return nil
 }

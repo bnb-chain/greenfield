@@ -4,157 +4,123 @@ import (
 	"testing"
 	"time"
 
-	sdkmath "cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/samber/lo"
-	"github.com/stretchr/testify/suite"
-
-	keepertest "github.com/bnb-chain/greenfield/testutil/keeper"
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+
+	"github.com/bnb-chain/greenfield/x/challenge"
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/cosmos/cosmos-sdk/baseapp"
+	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/testutil"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/suite"
 )
 
-type IntegrationTestSuiteWithoutMock struct {
+type TestSuite struct {
 	suite.Suite
 
-	keeper               *keeper.Keeper
-	depKeepers           keepertest.StorageDepKeepers
-	ctx                  sdk.Context
-	PrimarySpAddr        sdk.AccAddress
-	PrimarySpFundingAddr sdk.AccAddress
-	PrimarySp            sptypes.StorageProvider
-	SecondarySps         []sptypes.StorageProvider
-	UserAddr             sdk.AccAddress
-	Denom                string
+	cdc           codec.Codec
+	storageKeeper *keeper.Keeper
+
+	accountKeeper      *types.MockAccountKeeper
+	spKeeper           *types.MockSpKeeper
+	permissionKeeper   *types.MockPermissionKeeper
+	crosschainKeeper   *types.MockCrossChainKeeper
+	paymentKeeper      *types.MockPaymentKeeper
+	virtualGroupKeeper *types.MockVirtualGroupKeeper
+
+	ctx         sdk.Context
+	queryClient types.QueryClient
+	msgServer   types.MsgServer
 }
 
-func (s *IntegrationTestSuiteWithoutMock) SetupTest() {
-	s.Denom = "BNB"
-	s.keeper, s.depKeepers, s.ctx = keepertest.StorageKeeper(s.T())
-	ctx := s.ctx.WithBlockTime(time.Now())
-	// init data
-	s.PrimarySpAddr = sample.RandAccAddress()
-	s.PrimarySpFundingAddr = sample.RandAccAddress()
-	s.UserAddr = sample.RandAccAddress()
-	sp := sptypes.StorageProvider{
-		OperatorAddress: s.PrimarySpAddr.String(),
-		FundingAddress:  s.PrimarySpFundingAddr.String(),
+func (s *TestSuite) SetupTest() {
+	encCfg := moduletestutil.MakeTestEncodingConfig(challenge.AppModuleBasic{})
+	key := storetypes.NewKVStoreKey(types.StoreKey)
+	testCtx := testutil.DefaultContextWithDB(s.T(), key, storetypes.NewTransientStoreKey("transient_test"))
+	header := testCtx.Ctx.BlockHeader()
+	header.Time = time.Now()
+	testCtx = testutil.TestContext{
+		Ctx: sdk.NewContext(testCtx.CMS, header, false, nil, testCtx.Ctx.Logger()),
+		DB:  testCtx.DB,
+		CMS: testCtx.CMS,
 	}
-	s.depKeepers.SpKeeper.SetStorageProvider(ctx, &sp)
-	for i := 0; i < 6; i++ {
-		secondarySpAddr := sample.RandAccAddress()
-		secondarySpFundingAddr := sample.RandAccAddress()
-		secondarySp := sptypes.StorageProvider{
-			OperatorAddress: secondarySpAddr.String(),
-			FundingAddress:  secondarySpFundingAddr.String(),
-		}
-		s.SecondarySps = append(s.SecondarySps, secondarySp)
-		s.depKeepers.SpKeeper.SetStorageProvider(ctx, &secondarySp)
-	}
-	s.depKeepers.SpKeeper.SetSpStoragePrice(ctx, sptypes.SpStoragePrice{
-		SpAddress:     s.PrimarySpAddr.String(),
-		UpdateTimeSec: 1,
-		ReadPrice:     sdk.NewDec(2),
-		StorePrice:    sdk.NewDec(5),
-		FreeReadQuota: 10000,
-	})
-	s.depKeepers.SpKeeper.SetSecondarySpStorePrice(ctx, sptypes.SecondarySpStorePrice{
-		UpdateTimeSec: 1,
-		StorePrice:    sdk.NewDec(4),
-	})
-	coins := sdk.Coins{sdk.Coin{Denom: s.Denom, Amount: sdkmath.NewInt(1e18)}}
-	bankKeeper := s.depKeepers.BankKeeper
-	balances := bankKeeper.GetAllBalances(ctx, s.depKeepers.AccountKeeper.GetModuleAddress(authtypes.Minter))
-	s.T().Logf("Minter module balances: %s", balances)
-	err := bankKeeper.SendCoinsFromModuleToAccount(ctx, authtypes.Minter, s.UserAddr, coins)
+	s.ctx = testCtx.Ctx
+
+	ctrl := gomock.NewController(s.T())
+
+	accountKeeper := types.NewMockAccountKeeper(ctrl)
+	spKeeper := types.NewMockSpKeeper(ctrl)
+	permissionKeeper := types.NewMockPermissionKeeper(ctrl)
+	crosschainKeeper := types.NewMockCrossChainKeeper(ctrl)
+	paymentKeeper := types.NewMockPaymentKeeper(ctrl)
+	virtualGroupKeeper := types.NewMockVirtualGroupKeeper(ctrl)
+
+	s.storageKeeper = keeper.NewKeeper(
+		encCfg.Codec,
+		key,
+		key,
+		accountKeeper,
+		spKeeper,
+		paymentKeeper,
+		permissionKeeper,
+		crosschainKeeper,
+		virtualGroupKeeper,
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	s.cdc = encCfg.Codec
+	s.accountKeeper = accountKeeper
+	s.spKeeper = spKeeper
+	s.permissionKeeper = permissionKeeper
+	s.crosschainKeeper = crosschainKeeper
+	s.paymentKeeper = paymentKeeper
+	s.virtualGroupKeeper = virtualGroupKeeper
+
+	err := s.storageKeeper.SetParams(s.ctx, types.DefaultParams())
 	s.Require().NoError(err)
-	balance := bankKeeper.GetBalance(ctx, s.UserAddr, "BNB")
-	s.T().Logf("s.UserAddr: %s, balance: %s", s.UserAddr, balance)
+
+	queryHelper := baseapp.NewQueryServerTestHelper(testCtx.Ctx, encCfg.InterfaceRegistry)
+	types.RegisterQueryServer(queryHelper, s.storageKeeper)
+
+	s.queryClient = types.NewQueryClient(queryHelper)
+	s.msgServer = keeper.NewMsgServerImpl(*s.storageKeeper)
 }
 
-func (s *IntegrationTestSuiteWithoutMock) TestCreateCreateBucket_Payment() {
-	ctx := s.ctx.WithBlockTime(time.Now())
-	// mock create bucket
-	ChargedReadQuota := uint64(1000)
-	bucket := types.BucketInfo{
-		ChargedReadQuota: ChargedReadQuota,
-		PaymentAddress:   s.UserAddr.String(),
-		PrimarySpAddress: s.PrimarySpAddr.String(),
-	}
-	t1 := int64(200)
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(t1) * time.Second))
-	err := s.keeper.ChargeInitialReadFee(ctx, &bucket)
-	s.Require().NoError(err)
-	userStreamRecordCreateBucket, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
-	s.Require().True(found)
-	s.T().Logf("userStreamRecordCreateBucket: %+v", userStreamRecordCreateBucket)
-	spStreamRecordCreateBucket, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpFundingAddr)
-	s.Require().True(found)
-	s.T().Logf("spStreamRecordCreateBucket: %+v", spStreamRecordCreateBucket)
-
-	// mock add a object
-	t2 := t1 + 5000
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(t2) * time.Second))
-	bucket.BillingInfo.PriceTime = t2
-	object := types.ObjectInfo{
-		PayloadSize: 100,
-		CreateAt:    ctx.BlockTime().Unix(),
-	}
-	err = s.keeper.LockStoreFee(ctx, &bucket, &object)
-	s.Require().NoError(err)
-	s.T().Logf("create object")
-	userStreamRecordCreateObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
-	s.Require().True(found)
-	s.T().Logf("userStreamRecordCreateObject: %+v", userStreamRecordCreateObject)
-	spStreamRecordCreateObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpFundingAddr)
-	s.Require().True(found)
-	s.T().Logf("spStreamRecordCreateObject: %+v", spStreamRecordCreateObject)
-
-	// mock seal object
-	secondarySpAddresses := lo.Map(s.SecondarySps, func(sp sptypes.StorageProvider, index int) string {
-		return sp.OperatorAddress
-	})
-	object.SecondarySpAddresses = secondarySpAddresses
-	err = s.keeper.UnlockAndChargeStoreFee(ctx, &bucket, &object)
-	s.Require().NoError(err)
-	s.T().Logf("seal object")
-	userStreamRecordSealObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
-	s.Require().True(found)
-	s.T().Logf("userStreamRecordSealObject: %+v", userStreamRecordSealObject)
-	spStreamRecordSealObject, found := s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.PrimarySpFundingAddr)
-	s.Require().True(found)
-	s.T().Logf("spStreamRecordSealObject: %+v", spStreamRecordSealObject)
-
-	// check
-	primaryStorePriceRes, err := s.depKeepers.SpKeeper.GetSpStoragePriceByTime(ctx, s.PrimarySpAddr, t2)
-	s.Require().NoError(err)
-	s.T().Logf("primaryStorePriceRes: %+v", primaryStorePriceRes)
-	primarySpRateDiff := spStreamRecordSealObject.NetflowRate.Sub(spStreamRecordCreateBucket.NetflowRate)
-	expectedRate := primaryStorePriceRes.StorePrice.MulInt(sdk.NewIntFromUint64(bucket.BillingInfo.TotalChargeSize)).TruncateInt()
-	readRate := primaryStorePriceRes.ReadPrice.MulInt(sdk.NewIntFromUint64(ChargedReadQuota)).TruncateInt()
-	s.T().Logf("primarySpRateDiff: %s, expectedRate: %s, readRate: %s", primarySpRateDiff, expectedRate, readRate)
-	s.Require().Equal(expectedRate.String(), primarySpRateDiff.String())
-
-	// force delete
-	err = s.depKeepers.PaymentKeeper.ForceSettle(ctx, userStreamRecordSealObject)
-	s.Require().NoError(err)
-	s.depKeepers.PaymentKeeper.SetStreamRecord(ctx, userStreamRecordSealObject)
-	userStreamRecordSealObject, found = s.depKeepers.PaymentKeeper.GetStreamRecord(ctx, s.UserAddr)
-	s.Require().True(found)
-	s.T().Logf("userStreamRecordSealObject: %+v", userStreamRecordSealObject)
-	s.Require().Equal(userStreamRecordSealObject.Status, paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
-	bucket.ChargedReadQuota += 100000000
-	err = s.keeper.ChargeDeleteObject(ctx, &bucket, &object)
-	s.Require().ErrorContains(err, "is frozen")
-	ctx = ctx.WithValue(paymenttypes.ForceUpdateFrozenStreamRecordKey, true)
-	err = s.keeper.ChargeDeleteObject(ctx, &bucket, &object)
-	s.Require().NoError(err)
+func TestTestSuite(t *testing.T) {
+	suite.Run(t, new(TestSuite))
 }
 
-func TestKeeperTestSuiteWithoutMock(t *testing.T) {
-	suite.Run(t, new(IntegrationTestSuiteWithoutMock))
+func (s *TestSuite) TestGetObjectLockFee() {
+	primarySp := &sptypes.StorageProvider{Status: sptypes.STATUS_IN_SERVICE, Id: 100, OperatorAddress: sample.RandAccAddress().String()}
+	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
+		Return(primarySp, true).AnyTimes()
+
+	price := paymenttypes.StoragePrice{
+		ReadPrice:           sdk.NewDec(100),
+		PrimaryStorePrice:   sdk.NewDec(1000),
+		SecondaryStorePrice: sdk.NewDec(500),
+	}
+	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
+		Return(price, nil).AnyTimes()
+	params := paymenttypes.DefaultParams()
+	s.paymentKeeper.EXPECT().GetParams(gomock.Any()).
+		Return(params).AnyTimes()
+
+	// verify lock fee calculation
+	payloadSize := int64(10 * 1024 * 1024)
+	amount, err := s.storageKeeper.GetObjectLockFee(s.ctx, sample.RandAccAddress().String(), time.Now().Unix(), uint64(payloadSize))
+	s.Require().NoError(err)
+	expectedAmount := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(types.SecondarySPNum)).
+		MulInt64(payloadSize).MulInt64(int64(params.ReserveTime)).TruncateInt()
+	s.Require().True(amount.Equal(expectedAmount))
 }
+
+// TODO: add more tests

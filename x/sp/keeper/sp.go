@@ -8,7 +8,7 @@ import (
 )
 
 func (k Keeper) IsStorageProviderExistAndInService(ctx sdk.Context, spAddr sdk.AccAddress) error {
-	sp, found := k.GetStorageProviderByApprovalAddr(ctx, spAddr)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
 		return types.ErrStorageProviderNotFound
 	}
@@ -42,7 +42,7 @@ func (k Keeper) MustGetStorageProvider(ctx sdk.Context, id uint32) *types.Storag
 func (k Keeper) GetStorageProviderByOperatorAddr(ctx sdk.Context, opAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	id := store.Get(types.GetStorageProviderByFundingAddrKey(opAddr))
+	id := store.Get(types.GetStorageProviderByOperatorAddrKey(opAddr))
 	if id == nil {
 		return sp, false
 	}

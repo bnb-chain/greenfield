@@ -4,6 +4,7 @@ import (
 	_ "encoding/json"
 	"strings"
 
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -88,6 +89,9 @@ type TxClient = tx.ServiceClient
 // UpgradeQueryClient is a type to define the upgrade types Query Client
 type UpgradeQueryClient = upgradetypes.QueryClient
 
+// VirtualGroupQueryClient is a type to define the virtual group types Query Client
+type VirtualGroupQueryClient = virtualgroupmoduletypes.QueryClient
+
 // TmClient is a type to define the tendermint service client
 type TmClient = tmservice.ServiceClient
 
@@ -127,6 +131,8 @@ type GreenfieldClient struct {
 	StakingQueryClient
 	// UpgradeQueryClient holds the upgrade query client.
 	UpgradeQueryClient
+	// VirtualGroupQueryClient holds the virtual group query client
+	VirtualGroupQueryClient
 	// TxClient holds the tx service client.
 	TxClient
 	// TmService holds the tendermint service client
@@ -193,6 +199,7 @@ func setClientsConn(c *GreenfieldClient, conn grpc1.ClientConn) {
 	c.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
 	c.StakingQueryClient = stakingtypes.NewQueryClient(conn)
 	c.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
+	c.VirtualGroupQueryClient = virtualgroupmoduletypes.NewQueryClient(conn)
 	c.TmClient = tmservice.NewServiceClient(conn)
 	c.TxClient = tx.NewServiceClient(conn)
 }

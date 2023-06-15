@@ -46,6 +46,7 @@ func InitE2eConfig() *Config {
 	}
 	for i := 0; i < 7; i++ {
 		config.SPMnemonics = append(config.SPMnemonics, ParseSPMnemonics(i))
+		config.SPBLSMnemonic = append(config.SPBLSMnemonic, ParseSPBLSMnemonics(i))
 	}
 	return config
 }
@@ -79,7 +80,11 @@ func ParseSPMnemonics(i int) SPMnemonics {
 		ApprovalMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/approval_info", i)),
 		GcMnemonic:       ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/gc_info", i)),
 	}
+}
 
+// ParseSPBLSMnemonics read the sp bls mnemonics from file
+func ParseSPBLSMnemonics(i int) string {
+	return ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/bls_info", i))
 }
 
 func ParseMnemonicFromFile(fileName string) string {

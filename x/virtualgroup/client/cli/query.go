@@ -12,7 +12,7 @@ import (
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string) *cobra.Command {
 	// Group storage queries under a subcommand
-	virtualgroupQueryCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -20,5 +20,12 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	return virtualgroupQueryCmd
+	cmd.AddCommand(CmdGlobalVirtualGroup())
+	cmd.AddCommand(CmdGlobalVirtualGroupBySPID())
+	cmd.AddCommand(CmdGlobalVirtualGroupByFamilyID())
+	cmd.AddCommand(CmdGlobalVirtualGroupFamilies())
+	cmd.AddCommand(CmdGlobalVirtualGroupFamily())
+
+	// this line is used by starport scaffolding # 1
+	return cmd
 }

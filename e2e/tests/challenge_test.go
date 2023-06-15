@@ -39,15 +39,18 @@ func TestChallengeTestSuite(t *testing.T) {
 	suite.Run(t, new(ChallengeTestSuite))
 }
 
-func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []sdk.AccAddress) {
+func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 	var err error
 	sp := s.StorageProviders[0]
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := "ch" + storagetestutil.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(user, msgCreateBucket)
@@ -83,7 +86,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(user, msgCreateObject)
@@ -99,8 +102,8 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 
 	// SealObject
-	gvgId := uint32(0)
-	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, 0, nil)
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
@@ -117,7 +120,6 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
-
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
@@ -126,13 +128,13 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
-	return bucketName, objectName, sp.OperatorKey.GetAddr(), secondarySPs
+	return bucketName, objectName, sp.OperatorKey.GetAddr()
 }
 
 func (s *ChallengeTestSuite) TestSubmit() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, _ := s.createObject()
+	bucketName, objectName, primarySp := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
@@ -140,13 +142,12 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
 	s.Require().Equal(event.SpOperatorAddress, primarySp.String())
 
-	bucketName, objectName, _, secondarySps := s.createObject()
-	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), secondarySps[0], bucketName, objectName, false, 0)
+	bucketName, objectName, _ = s.createObject()
+	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), s.StorageProviders[0].OperatorKey.GetAddr(), bucketName, objectName, false, 0)
 	txRes = s.SendTxBlock(user, msgSubmit)
 	event = filterChallengeEventFromTx(txRes)
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().Equal(event.SegmentIndex, uint32(0))
-	s.Require().Equal(event.SpOperatorAddress, secondarySps[0].String())
 }
 
 func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, blsKey string) *bitset.BitSet {
@@ -308,7 +309,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, _ := s.createObject()
+	bucketName, objectName, primarySp := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)

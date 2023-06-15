@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"encoding/hex"
 	"strconv"
 	"testing"
 	"time"
@@ -29,7 +30,7 @@ func (s *StorageProviderTestSuite) SetupSuite() {
 func (s *StorageProviderTestSuite) SetupTest() {
 }
 
-func (s *StorageProviderTestSuite) NewSpAcc() *core.SPKeyManagers {
+func (s *StorageProviderTestSuite) NewSpAcc() *core.StorageProvider {
 	userAccs := s.GenAndChargeAccounts(5, 1000000)
 	operatorAcc := userAccs[0]
 	fundingAcc := userAccs[1]
@@ -37,11 +38,12 @@ func (s *StorageProviderTestSuite) NewSpAcc() *core.SPKeyManagers {
 	sealAcc := userAccs[3]
 	gcAcc := userAccs[4]
 
-	return &core.SPKeyManagers{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc}
+	blsKm := s.GenRandomBlsKeyManager()
+	return &core.StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, BlsKey: blsKm}
 }
 
-func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.SPKeyManagers {
+func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.StorageProvider {
 	// 1. create new newStorageProvider
 	newSP := s.NewSpAcc()
 
@@ -80,12 +82,15 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	endpoint := "http://127.0.0.1:9034"
 	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
 	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
+
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(),
 		newSP.GcKey.GetAddr(), description,
-		endpoint, deposit, newReadPrice, 10000, newStorePrice)
+		endpoint, deposit, newReadPrice, 10000, newStorePrice,
+		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()))
+
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
@@ -190,11 +195,12 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 3. query modified storage provider
 	querySPReq := sptypes.QueryStorageProviderRequest{
-		Id: sp.ID,
+		Id: sp.Info.Id,
 	}
 
 	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
 	s.Require().NoError(err)
+	newSP.Id = querySPResp.StorageProvider.Id
 	s.Require().Equal(querySPResp.StorageProvider, newSP)
 
 	// 4. revert storage provider info
@@ -206,7 +212,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	// 5. query revert storage provider again
 	querySPReq = sptypes.QueryStorageProviderRequest{
-		Id: sp.ID,
+		Id: sp.Info.Id,
 	}
 
 	querySPResp, err = s.Client.StorageProvider(ctx, &querySPReq)
