@@ -12,6 +12,7 @@ var (
 	ErrGVGNotEmpty            = errors.Register(ModuleName, 1103, "the store size of gvg is not zero")
 	ErrGenSequenceIDError     = errors.Register(ModuleName, 1104, "generate sequence id error.")
 	ErrWithdrawAmountTooLarge = errors.Register(ModuleName, 1105, "withdrawal amount is too large.")
+	ErrSwapoutFailed          = errors.Register(ModuleName, 1106, "swap out failed.")
 
 	ErrLVGNotExist = errors.Register(ModuleName, 1106, "local virtual group not exist.")
 

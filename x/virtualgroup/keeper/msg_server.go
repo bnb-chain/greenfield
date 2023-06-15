@@ -185,12 +185,29 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 
 func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types.MsgSwapOutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	operatorAddr := sdk.MustAccAddressFromHex(req.OperatorAddress)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound
+	}
+
+	successorSP, found := k.spKeeper.GetStorageProvider(ctx, req.SuccessorSpId)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("successor sp not found.")
+	}
 	if req.VirtualGroupFamilyId == types.NoSpecifiedFamilyId {
 		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
+		err := k.SwapOutAsSecondarySP(ctx, sp.Id, successorSP.Id, req.GlobalVirtualGroupIds)
+		if err != nil {
+			return nil, err
+		}
 	} else {
 		// if the family id is specified, it means that the SP will swap out as a primary SP and the successor sp will
 		// take over all the gvg of this family
+		err := k.SwapOutAsPrimarySP(ctx, sp.Id, req.VirtualGroupFamilyId, successorSP.Id)
+		if err != nil {
+			return nil, err
+		}
 	}
-	_ = ctx
 	return &types.MsgSwapOutResponse{}, nil
 }

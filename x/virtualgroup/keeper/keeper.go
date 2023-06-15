@@ -350,6 +350,50 @@ func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, pri
 	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
 }
 
-func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context) {
+func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, successorSPID uint32) error {
+	store := ctx.KVStore(k.storeKey)
 
+	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
+	if !found {
+		return types.ErrGVGFamilyNotExist
+	}
+	var gvgs []*types.GlobalVirtualGroup
+	for _, gvgID := range family.GlobalVirtualGroupIds {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			return types.ErrGVGNotExist
+		}
+		if gvg.PrimarySpId != primarySPID {
+			return types.ErrSwapoutFailed.Wrapf(
+				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySPID)
+		}
+		gvg.PrimarySpId = primarySPID
+		gvgs = append(gvgs, gvg)
+	}
+	k.SetGVGFamily(ctx, successorSPID, family)
+	for _, gvg := range gvgs {
+		k.SetGVG(ctx, gvg)
+	}
+	store.Delete(types.GetGVGFamilyKey(primarySPID, familyID))
+	return nil
+}
+
+func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSPID uint32, gvgIDs []uint32) error {
+	var gvgs []*types.GlobalVirtualGroup
+	for _, gvgID := range gvgIDs {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			return types.ErrGVGNotExist
+		}
+		for i, spID := range gvg.SecondarySpIds {
+			if spID == secondarySPID {
+				gvg.SecondarySpIds = append(gvg.SecondarySpIds[:i], gvg.SecondarySpIds[i+1:]...)
+				gvgs = append(gvgs, gvg)
+			}
+		}
+	}
+	for _, gvg := range gvgs {
+		k.SetGVG(ctx, gvg)
+	}
+	return nil
 }
