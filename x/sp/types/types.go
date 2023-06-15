@@ -1,9 +1,10 @@
 package types
 
 import (
+	"encoding/hex"
+
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -38,7 +39,7 @@ func NewStorageProvider(
 		TotalDeposit:    totalDeposit,
 		Endpoint:        endpoint,
 		Description:     description,
-		BlsKey:          blsKeyBytes,
+		SealBlsKey:      blsKeyBytes,
 	}, nil
 }
 

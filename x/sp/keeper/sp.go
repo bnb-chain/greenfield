@@ -145,7 +145,7 @@ func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProv
 }
 
 func (k Keeper) SetStorageProviderByBlsKey(ctx sdk.Context, sp *types.StorageProvider) {
-	blsPk := sp.GetBlsKey()
+	blsPk := sp.GetSealBlsKey()
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetStorageProviderByBlsKeyKey(blsPk), k.spSequence.EncodeSequence(sp.Id))
 }

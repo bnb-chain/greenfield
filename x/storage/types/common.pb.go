@@ -183,7 +183,7 @@ func (VisibilityType) EnumDescriptor() ([]byte, []int) {
 type SecondarySpSignDoc struct {
 	GlobalVirtualGroupId uint32 `protobuf:"varint,1,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
 	ObjectId             Uint   `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
-	// checksum is the integrity Hash of slice of integrity hash from secondary sps
+	// checksum is the sha256 hash of slice of integrity hash from secondary sps
 	Checksum []byte `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
 }
 

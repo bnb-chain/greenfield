@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
@@ -182,17 +183,17 @@ func (s *StorageTestSuite) TestCreateObject() {
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp sign the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvgId)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())
@@ -363,17 +364,17 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 		gvg.Id, nil)
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp sign the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvgId)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 
@@ -594,18 +595,18 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	})
 
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
-	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvg.Id, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvg.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 
 	secondarySigs := lo.Map(secondaryStorageProviders, func(sp core.StorageProvider, i int) []byte {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvg.Id)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 		return sig
 	})
-	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())
@@ -977,17 +978,17 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvg.Id, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvg.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp sign the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvg.Id)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())
@@ -1031,17 +1032,17 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	msgSealObject = storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvgId, nil)
 	secondarySigs = make([][]byte, 0)
 	secondarySPBlsPubKeys = make([]bls.PublicKey, 0)
-	signBz = storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz = storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp sign the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvgId)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err = aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err = blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.SendTxBlock(sp.SealKey, msgSealObject)
@@ -1465,17 +1466,17 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp sign the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvgId)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 
@@ -1973,8 +1974,8 @@ func (s *StorageTestSuite) TestRejectSealObject() {
 	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchObject.Error()))
 }
 
-func signAndVerifyCheckSum(sp core.StorageProvider, sr [32]byte, gvgId uint32) ([]byte, error) {
-	secondarySig, err := sp.BlsKey.Sign(sr[:])
+func blsSignAndVerify(sp core.StorageProvider, signBz [32]byte) ([]byte, error) {
+	secondarySig, err := sp.BlsKey.Sign(signBz[:])
 	if err != nil {
 		return nil, err
 	}
@@ -1982,20 +1983,20 @@ func signAndVerifyCheckSum(sp core.StorageProvider, sr [32]byte, gvgId uint32) (
 	if err != nil {
 		return nil, err
 	}
-	err = storagetypes.VerifyBlsSignature(pubKey, sr, secondarySig)
+	err = storagetypes.VerifyBlsSignature(pubKey, signBz, secondarySig)
 	if err != nil {
 		return nil, err
 	}
 	return secondarySig, nil
 }
 
-func aggregateAndVerifyBlsSig(secondarySPBlsPubKeys []bls.PublicKey, sr [32]byte, secondarySigs [][]byte) ([]byte, error) {
+func blsAggregateAndVerify(secondarySPBlsPubKeys []bls.PublicKey, signBz [32]byte, secondarySigs [][]byte) ([]byte, error) {
 	blsSigs, err := bls.MultipleSignaturesFromBytes(secondarySigs)
 	if err != nil {
 		return nil, err
 	}
 	aggBlsSig := bls.AggregateSignatures(blsSigs).Marshal()
-	err = storagetypes.VerifyBlsAggSignature(secondarySPBlsPubKeys, sr, aggBlsSig)
+	err = storagetypes.VerifyBlsAggSignature(secondarySPBlsPubKeys, signBz, aggBlsSig)
 	if err != nil {
 		return nil, err
 	}

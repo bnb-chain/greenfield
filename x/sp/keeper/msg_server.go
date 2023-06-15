@@ -79,7 +79,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	// check if the bls pubkey has been registered before
-	blsPk, err := hex.DecodeString(msg.BlsKey)
+	blsPk, err := hex.DecodeString(msg.SealBlsKey)
 	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 		return nil, types.ErrStorageProviderInvalidBlsKey
 	}
@@ -119,7 +119,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
-		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.BlsKey)
+		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.SealBlsKey)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		TotalDeposit:    &msg.Deposit,
 		Status:          sp.Status,
 		Description:     sp.Description,
-		BlsKey:          hex.EncodeToString(sp.BlsKey),
+		SealBlsKey:      hex.EncodeToString(sp.SealBlsKey),
 	}); err != nil {
 		return nil, err
 	}
@@ -209,12 +209,12 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		changed = true
 	}
 
-	if msg.BlsKey != "" {
-		blsPk, err := hex.DecodeString(msg.BlsKey)
+	if msg.SealBlsKey != "" {
+		blsPk, err := hex.DecodeString(msg.SealBlsKey)
 		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 			return nil, types.ErrStorageProviderInvalidBlsKey
 		}
-		sp.BlsKey = blsPk
+		sp.SealBlsKey = blsPk
 		changed = true
 	}
 
@@ -236,7 +236,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		ApprovalAddress: sp.ApprovalAddress,
 		SealAddress:     sp.SealAddress,
 		GcAddress:       sp.GcAddress,
-		BlsKey:          hex.EncodeToString(sp.BlsKey),
+		SealBlsKey:      hex.EncodeToString(sp.SealBlsKey),
 	}); err != nil {
 		return nil, err
 	}

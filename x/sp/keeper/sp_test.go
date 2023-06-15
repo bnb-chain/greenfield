@@ -30,7 +30,7 @@ func (s *KeeperTestSuite) TestSetGetStorageProvider() {
 }
 
 // TestStorageProviderBasics tests GetStorageProviderByOperatorAddr, GetStorageProviderByFundingAddr,
-// GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr
+// GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr, GetStorageProviderByBlsKey
 func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	k := s.spKeeper
 	ctx := s.ctx
@@ -46,12 +46,14 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	approvalAccStr := sample.AccAddress()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
+	blsPubKey := sample.RandBlsPubKey()
 	sp := &types.StorageProvider{
 		Id:              100,
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
+		SealBlsKey:      blsPubKey,
 	}
 
 	k.SetStorageProvider(ctx, sp)
@@ -81,6 +83,13 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(s.T(), found, true)
+
+	k.SetStorageProviderByBlsKey(ctx, sp)
+	_, found = k.GetStorageProviderByBlsKey(ctx, blsPubKey)
+	if !found {
+		fmt.Printf("no such sp: %s", spAcc)
+	}
+	require.EqualValues(s.T(), found, true)
 }
 
 func (s *KeeperTestSuite) TestSlashBasic() {
@@ -101,12 +110,15 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 	approvalAccStr := sample.AccAddress()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
+	blsPubKey := sample.RandBlsPubKey()
+
 	sp := &types.StorageProvider{
 		Id:              100,
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
+		SealBlsKey:      blsPubKey,
 		TotalDeposit:    math.NewIntWithDecimal(2010, types2.DecimalBNB),
 	}
 

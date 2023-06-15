@@ -5,9 +5,10 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"strings"
 	"time"
+
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/math"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"

@@ -97,6 +97,15 @@ func CmdEditStorageProvider() *cobra.Command {
 				}
 			}
 
+			// bls key
+			blsPubKey, err := cmd.Flags().GetString(FlagBlsPubKey)
+			if err != nil {
+				return err
+			}
+			if len(blsPubKey) != 2*sdk.BLSPubKeyLength {
+				return fmt.Errorf("invalid bls pubkey")
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -109,6 +118,7 @@ func CmdEditStorageProvider() *cobra.Command {
 				sealAddress,
 				approvalAddress,
 				gcAddress,
+				blsPubKey,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

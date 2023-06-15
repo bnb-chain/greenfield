@@ -2,8 +2,9 @@ package keys
 
 import (
 	"encoding/hex"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"testing"
+
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"github.com/stretchr/testify/assert"
 )

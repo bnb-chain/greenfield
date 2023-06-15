@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
@@ -633,11 +634,11 @@ func (k Keeper) SealObject(
 	// validate bls sig
 	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
-		sp, found = k.spKeeper.GetStorageProvider(ctx, spId)
+		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
 		if !found {
 			panic("should not happen")
 		}
-		spBlsPubKey, err := bls.PublicKeyFromBytes(sp.BlsKey)
+		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.SealBlsKey)
 		if err != nil {
 			return errors.Wrapf(types.ErrInvalidBlsPubKey, "BLS public key converts failed: %v", err)
 		}
@@ -1688,6 +1689,6 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 }
 
 func (k Keeper) verifySecondarySpsBlsSignature(gvgId uint32, objectInfo *types.ObjectInfo, secondSpBlsPubKeys []bls.PublicKey, blsSig []byte) error {
-	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateIntegrityHash(objectInfo.Checksums[:]))
+	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateHash(objectInfo.Checksums[:]))
 	return types.VerifyBlsAggSignature(secondSpBlsPubKeys, blsSignDoc.GetSignBytes(), blsSig)
 }

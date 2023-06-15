@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/binary"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

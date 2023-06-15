@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"math"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
@@ -107,17 +108,17 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateIntegrityHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	signBz := storagetypes.NewSecondarySpSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp sign the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := signAndVerifyCheckSum(s.StorageProviders[i], signBz, gvgId)
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := aggregateAndVerifyBlsSig(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.SendTxBlock(sp.SealKey, msgSealObject)

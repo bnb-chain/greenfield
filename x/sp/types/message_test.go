@@ -3,6 +3,8 @@ package types
 import (
 	"testing"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+
 	"github.com/cometbft/cometbft/crypto/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -17,15 +19,18 @@ var (
 func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
 	spAddr := sdk.AccAddress(pk1.Address())
+	blsPubKey := sample.RandBlsPubKeyHex()
+
 	tests := []struct {
 		name, moniker, identity, website, details                                   string
 		creator, spAddress, fundingAddress, sealAddress, approvalAddress, gcAddress sdk.AccAddress
+		sealBlsKey                                                                  string
 		deposit                                                                     sdk.Coin
 		err                                                                         error
 	}{
-		{"basic", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, coinPos, nil},
-		{"basic_empty", "a", "b", "c", "d", sdk.AccAddress{}, spAddr, spAddr, spAddr, spAddr, spAddr, coinPos, sdkerrors.ErrInvalidAddress},
-		{"zero deposit", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, coinZero, nil},
+		{"basic", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, coinPos, nil},
+		{"basic_empty", "a", "b", "c", "d", sdk.AccAddress{}, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, coinPos, sdkerrors.ErrInvalidAddress},
+		{"zero deposit", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, coinZero, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -37,6 +42,7 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				SealAddress:     tt.sealAddress.String(),
 				ApprovalAddress: tt.approvalAddress.String(),
 				GcAddress:       tt.gcAddress.String(),
+				SealBlsKey:      tt.sealBlsKey,
 				Endpoint:        "http://127.0.0.1:9033",
 				StorePrice:      sdk.ZeroDec(),
 				ReadPrice:       sdk.ZeroDec(),
@@ -55,13 +61,16 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
 	spAddr := sdk.AccAddress(pk1.Address())
+	blsPubKey := sample.RandBlsPubKeyHex()
+
 	tests := []struct {
 		name, moniker, identity, website, details string
 		spAddress                                 sdk.AccAddress
+		sealBlsKey                                string
 		err                                       error
 	}{
-		{"basic", "a1", "b1", "c1", "d1", spAddr, nil},
-		{"empty", "", "", "", "", spAddr, sdkerrors.ErrInvalidRequest},
+		{"basic", "a1", "b1", "c1", "d1", spAddr, blsPubKey, nil},
+		{"empty", "", "", "", "", spAddr, blsPubKey, sdkerrors.ErrInvalidRequest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

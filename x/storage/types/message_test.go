@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -317,6 +319,10 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSealObject_ValidateBasic(t *testing.T) {
+	checksums := [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()}
+	blsSignDoc := NewSecondarySpSignDoc(math.NewUint(1), 1, GenerateHash(checksums[:])).GetSignBytes()
+	blsPrivKey, _ := bls.RandKey()
+	aggSig := blsPrivKey.Sign(blsSignDoc[:]).Marshal()
 	tests := []struct {
 		name string
 		msg  MsgSealObject
@@ -328,7 +334,7 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 				Operator:                    sample.AccAddress(),
 				BucketName:                  testBucketName,
 				ObjectName:                  testObjectName,
-				SecondarySpBlsAggSignatures: GenerateIntegrityHash([][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()}),
+				SecondarySpBlsAggSignatures: aggSig,
 			},
 		},
 	}

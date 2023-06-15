@@ -146,7 +146,7 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
 	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
-		GlobalVirtualGroupId:  msg.GlobalVirtualGroupId,
+		GlobalVirtualGroupId:     msg.GlobalVirtualGroupId,
 		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
 	})
 

@@ -179,6 +179,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 		SealAddress:     prevSP.SealAddress,
 		ApprovalAddress: prevSP.ApprovalAddress,
 		GcAddress:       prevSP.GcAddress,
+		SealBlsKey:      prevSP.SealBlsKey,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
 			Identity: "",
@@ -189,7 +190,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), hex.EncodeToString(sp.BlsKey.PubKey().Bytes()))
 	txRes := s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -206,7 +207,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(),
+		hex.EncodeToString(sp.BlsKey.PubKey().Bytes()))
 	txRes = s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 

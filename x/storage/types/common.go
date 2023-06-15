@@ -2,8 +2,9 @@ package types
 
 import (
 	"bytes"
-	"cosmossdk.io/math"
 	"crypto/sha256"
+
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -28,8 +29,8 @@ func (c *SecondarySpSignDoc) GetSignBytes() [32]byte {
 	return btsHash
 }
 
-// GenerateIntegrityHash generates integrity hash of all piece data checksum
-func GenerateIntegrityHash(checksumList [][]byte) []byte {
+// GenerateHash generates sha256 hash of checksums from objectInfo
+func GenerateHash(checksumList [][]byte) []byte {
 	hash := sha256.New()
 	checksumBytesTotal := bytes.Join(checksumList, []byte(""))
 	hash.Write(checksumBytesTotal)

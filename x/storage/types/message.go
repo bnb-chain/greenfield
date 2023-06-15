@@ -473,10 +473,10 @@ func NewMsgSealObject(
 	secondarySpBlsSignatures []byte) *MsgSealObject {
 
 	return &MsgSealObject{
-		Operator:              operator.String(),
-		BucketName:            bucketName,
-		ObjectName:            objectName,
-		GlobalVirtualGroupId:  globalVirtualGroupID,
+		Operator:                    operator.String(),
+		BucketName:                  bucketName,
+		ObjectName:                  objectName,
+		GlobalVirtualGroupId:        globalVirtualGroupID,
 		SecondarySpBlsAggSignatures: secondarySpBlsSignatures,
 	}
 }

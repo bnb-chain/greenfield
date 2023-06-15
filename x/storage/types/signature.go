@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 

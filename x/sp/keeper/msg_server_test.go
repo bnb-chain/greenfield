@@ -31,6 +31,8 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 	gcAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
 	s.Require().Nil(err, "error should be nil")
 
+	blsPubKeyHex := sample.RandBlsPubKeyHex()
+
 	s.accountKeeper.EXPECT().GetAccount(gomock.Any(), fundingAddr).Return(authtypes.NewBaseAccountWithAddress(fundingAddr)).AnyTimes()
 	s.accountKeeper.EXPECT().GetAccount(gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
@@ -54,6 +56,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				SealBlsKey:      blsPubKeyHex,
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
 					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
@@ -74,6 +77,29 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				SealBlsKey:      blsPubKeyHex,
+				Endpoint:        "sp.io",
+				Deposit: sdk.Coin{
+					Denom:  types.Denom,
+					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
+				},
+			},
+		},
+		{
+			Name:      "invalid bls pub key",
+			ExceptErr: true,
+			req: types.MsgCreateStorageProvider{
+				Creator: govAddr.String(),
+				Description: sptypes.Description{
+					Moniker:  "sp_test",
+					Identity: "",
+				},
+				SpAddress:       operatorAddr.String(),
+				FundingAddress:  fundingAddr.String(),
+				SealAddress:     sealAddr.String(),
+				ApprovalAddress: approvalAddr.String(),
+				GcAddress:       gcAddr.String(),
+				SealBlsKey:      "InValidBlsPubkey",
 				Endpoint:        "sp.io",
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
@@ -95,6 +121,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				SealBlsKey:      blsPubKeyHex,
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
 					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
