@@ -367,7 +367,12 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, succe
 			return types.ErrSwapoutFailed.Wrapf(
 				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySPID)
 		}
-		gvg.PrimarySpId = primarySPID
+		for _, spID := range gvg.SecondarySpIds {
+			if spID == successorSPID {
+				return types.ErrSwapoutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSPID, gvg.String())
+			}
+		}
+		gvg.PrimarySpId = successorSPID
 		gvgs = append(gvgs, gvg)
 	}
 	k.SetGVGFamily(ctx, successorSPID, family)
@@ -384,6 +389,9 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 		gvg, found := k.GetGVG(ctx, gvgID)
 		if !found {
 			return types.ErrGVGNotExist
+		}
+		if gvg.PrimarySpId == successorSPID {
+			return types.ErrSwapoutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
 		}
 		for i, spID := range gvg.SecondarySpIds {
 			if spID == secondarySPID {
