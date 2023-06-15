@@ -20,7 +20,7 @@ func (k Keeper) GlobalVirtualGroup(goCtx context.Context, req *types.QueryGlobal
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	gvg, found := k.GetGVG(ctx, req.StorageProviderId, req.GlobalVirtualGroupId)
+	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
 	if !found {
 		return nil, types.ErrGVGNotExist
 	}

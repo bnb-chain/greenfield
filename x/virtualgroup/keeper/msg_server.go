@@ -55,6 +55,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		secondarySpIds = append(secondarySpIds, ssp.Id)
 	}
 
+	// TODO(fynn): add some limit for gvgs in a family
 	gvgFamily, err := k.GetOrCreateEmptyGVGFamily(ctx, req.FamilyId, sp.Id)
 
 	if err != nil {
@@ -119,7 +120,7 @@ func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	gvg, found := k.GetGVG(ctx, sp.Id, req.GlobalVirtualGroupId)
+	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
 	if !found {
 		return nil, types.ErrGVGNotExist
 	}
@@ -151,7 +152,7 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	gvg, found := k.GetGVG(ctx, sp.Id, req.GlobalVirtualGroupId)
+	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
 	if !found {
 		return nil, types.ErrGVGNotExist
 	}
@@ -183,5 +184,13 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 }
 
 func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types.MsgSwapOutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if req.VirtualGroupFamilyId == types.NoSpecifiedFamilyId {
+		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
+	} else {
+		// if the family id is specified, it means that the SP will swap out as a primary SP and the successor sp will
+		// take over all the gvg of this family
+	}
+	_ = ctx
 	return &types.MsgSwapOutResponse{}, nil
 }

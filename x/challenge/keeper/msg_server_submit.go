@@ -47,7 +47,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	if !found {
 		panic("should not happen")
 	}
-	gvg, found := k.VirtualGroupKeeper.GetGVG(ctx, bucketInfo.PrimarySpId, lvg.GlobalVirtualGroupId)
+	gvg, found := k.VirtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 	if !found {
 		panic("should not happen")
 	}

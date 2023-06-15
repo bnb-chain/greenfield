@@ -93,13 +93,13 @@ func (k Keeper) SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := k.cdc.MustMarshal(gvg)
-	store.Set(types.GetGVGKey(gvg.PrimarySpId, gvg.Id), bz)
+	store.Set(types.GetGVGKey(gvg.Id), bz)
 }
 
 func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 	store := ctx.KVStore(k.storeKey)
 
-	gvg, found := k.GetGVG(ctx, primarySpID, gvgID)
+	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {
 		return types.ErrGVGNotExist
 	}
@@ -118,15 +118,15 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		panic("gvg not found in gvg family when delete gvg")
 	}
 
-	store.Delete(types.GetGVGKey(gvg.PrimarySpId, gvg.Id))
+	store.Delete(types.GetGVGKey(gvg.Id))
 	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
 	return nil
 }
 
-func (k Keeper) GetGVG(ctx sdk.Context, primarySpID, gvgID uint32) (*types.GlobalVirtualGroup, bool) {
+func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(types.GetGVGKey(primarySpID, gvgID))
+	bz := store.Get(types.GetGVGKey(gvgID))
 	if bz == nil {
 		return nil, false
 	}
@@ -198,12 +198,10 @@ func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.Glo
 func (k Keeper) GenerateOrSetLVGForBucket(ctx sdk.Context, bucketID math.Uint, gvgID uint32) {
 }
 
-const NonExistentFamilyId = 0
-
 func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	store := ctx.KVStore(k.storeKey)
 	var gvgFamily types.GlobalVirtualGroupFamily
-	if familyID == NonExistentFamilyId {
+	if familyID == types.NoSpecifiedFamilyId {
 		id := k.GenNextGVGFamilyID(ctx)
 		gvgFamily = types.GlobalVirtualGroupFamily{
 			Id:                    id,
@@ -236,7 +234,7 @@ func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirt
 }
 
 func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error) {
-	gvg, found := k.GetGVG(ctx, primarySPID, gvgID)
+	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {
 		return nil, types.ErrGVGNotExist
 	}
@@ -297,7 +295,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 	return lvg, nil
 }
 
-func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, primarySPID, lvgID uint32, payloadSize uint64) error {
+func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error {
 	lvg, found := k.GetLVG(ctx, bucketID, lvgID)
 	if !found {
 		return types.ErrLVGNotExist
@@ -307,7 +305,7 @@ func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, prim
 		panic(fmt.Sprintf("gvgs binding on bucket mapping not found, bucketID: %s", bucketID.String()))
 	}
 	gvgID := gvgsBindingOnBucket.GetGVGIDByLVGID(lvgID)
-	gvg, found := k.GetGVG(ctx, primarySPID, gvgID)
+	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {
 		ctx.Logger().Error("GVG Not Exist, bucketID: %s, gvgID: %d, lvgID :%d", bucketID.String(), gvgID, lvgID)
 		return types.ErrGVGNotExist
@@ -350,4 +348,8 @@ func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, pri
 	gvgID := family.GlobalVirtualGroupIds[0]
 
 	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
+}
+
+func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context) {
+
 }

@@ -238,7 +238,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 			return flows, fmt.Errorf("get LVG failed: %d", lvgStoreSize.LvgId)
 		}
 
-		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, primarySp.Id, lvg.GlobalVirtualGroupId)
+		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 		if !found {
 			return flows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
 		}

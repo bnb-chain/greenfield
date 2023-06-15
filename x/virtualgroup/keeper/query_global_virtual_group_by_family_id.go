@@ -26,7 +26,7 @@ func (k Keeper) GlobalVirtualGroupByFamilyID(goCtx context.Context, req *types.Q
 	}
 	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
-		gvg, found := k.GetGVG(ctx, req.StorageProviderId, gvgID)
+		gvg, found := k.GetGVG(ctx, gvgID)
 		if !found {
 			panic("gvg not found, but id exists in family")
 		}

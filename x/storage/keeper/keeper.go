@@ -625,7 +625,7 @@ func (k Keeper) SealObject(
 		return types.ErrObjectAlreadySealed
 	}
 
-	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, bucketInfo.PrimarySpId, opts.GlobalVirtualGroupId)
+	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, opts.GlobalVirtualGroupId)
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGNotExist
 	}
@@ -773,7 +773,7 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	err := k.virtualGroupKeeper.UnBindingObjectFromLVG(ctx, bucketInfo.Id, bucketInfo.PrimarySpId, objectInfo.LocalVirtualGroupId, objectInfo.PayloadSize)
+	err := k.virtualGroupKeeper.UnBindingObjectFromLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId, objectInfo.PayloadSize)
 	if err != nil {
 		return err
 	}

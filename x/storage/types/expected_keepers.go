@@ -84,11 +84,11 @@ type CrossChainKeeper interface {
 }
 
 type VirtualGroupKeeper interface {
-	UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, primarySPID, lvgID uint32, payloadSize uint64) error
-	BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, gvgFamilyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error)
+	UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error
+	BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error)
 	UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) error
 	GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, bool)
-	GetGVG(ctx sdk.Context, primarySpID, gvgID uint32) (*types.GlobalVirtualGroup, bool)
+	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
 	GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
 	BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID uint32) (*types.LocalVirtualGroup, error)
 }
