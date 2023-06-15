@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
@@ -242,7 +243,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 
 	gvgFamily, found := k.GetGVGFamily(ctx, primarySPID, familyID)
 	if !found {
-		return nil, types.ErrGVGFamilyNotExist
+		return nil, errors.Wrapf(types.ErrGVGFamilyNotExist, "familyID: %d, primarySPID: %d", familyID, primarySPID)
 	}
 
 	if !gvgFamily.Contains(gvg.Id) {
@@ -280,6 +281,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 			}
 			gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
 		} else {
+			lvg, found = k.GetLVG(ctx, bucketID, lvgID)
+			if !found {
+				return nil, types.ErrLVGNotExist
+			}
 			lvg.StoredSize += payloadSize
 		}
 	}

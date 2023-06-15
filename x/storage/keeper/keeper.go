@@ -115,6 +115,11 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
+	if !found {
+		return sdkmath.ZeroUint(), virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+
 	bucketInfo := types.BucketInfo{
 		Owner:                      ownerAcc.String(),
 		BucketName:                 bucketName,
@@ -125,7 +130,7 @@ func (k Keeper) CreateBucket(
 		ChargedReadQuota:           opts.ChargedReadQuota,
 		PaymentAddress:             paymentAcc.String(),
 		PrimarySpId:                sp.Id,
-		GlobalVirtualGroupFamilyId: opts.PrimarySpApproval.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
 
 	// charge by read quota
@@ -457,9 +462,9 @@ func (k Keeper) CreateObject(
 	}
 
 	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
-	var uploader sdk.AccAddress
+	var creator sdk.AccAddress
 	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
-		uploader = operator
+		creator = operator
 	}
 
 	// check approval
@@ -489,7 +494,7 @@ func (k Keeper) CreateObject(
 	// construct objectInfo
 	objectInfo := types.ObjectInfo{
 		Owner:          bucketInfo.Owner,
-		Uploader:       uploader.String(),
+		Creator:        creator.String(),
 		BucketName:     bucketName,
 		ObjectName:     objectName,
 		PayloadSize:    payloadSize,
@@ -699,12 +704,13 @@ func (k Keeper) CancelCreateObject(
 		return types.ErrSourceTypeMismatch
 	}
 
-	uploader := sdk.MustAccAddressFromHex(objectInfo.Owner)
-	if objectInfo.Uploader != "" {
-		uploader = sdk.MustAccAddressFromHex(objectInfo.Uploader)
+	var creator sdk.AccAddress
+	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if objectInfo.Creator != "" {
+		creator = sdk.MustAccAddressFromHex(objectInfo.Creator)
 	}
-	if !operator.Equals(uploader) {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/uploader to do cancel create object")
+	if !operator.Equals(owner) && !operator.Equals(creator) {
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
 	}
 
 	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)

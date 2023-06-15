@@ -319,7 +319,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Uploader, user[1].GetAddr().String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Creator, user[1].GetAddr().String())
 
 	// CancelCreateObject
 	msgCancelCreateObject := storagetypes.NewMsgCancelCreateObject(user[2].GetAddr(), bucketName, objectName)
@@ -356,7 +356,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Uploader, user[1].GetAddr().String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Creator, user[1].GetAddr().String())
 
 	// Owner cancel
 	msgCancelCreateObject = storagetypes.NewMsgCancelCreateObject(user[0].GetAddr(), bucketName, objectName)
