@@ -298,11 +298,13 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	sp := s.StorageProviders[0]
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
+	s.T().Logf("Global virtual group: %s", gvg.String())
 	// 1. CreateBucket1
 	bucketName1 := storageutils.GenRandomBucketName()
 	msgCreateBucket1 := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName1, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
+	msgCreateBucket1.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket1.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket1.
 		GetApprovalBytes())
 	s.Require().NoError(err)
@@ -313,6 +315,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	msgCreateBucket2 := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName2, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
+	msgCreateBucket2.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket2.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket2.
 		GetApprovalBytes())
 	s.Require().NoError(err)

@@ -114,6 +114,11 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
+	if !found {
+		return sdkmath.ZeroUint(), virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+
 	bucketInfo := types.BucketInfo{
 		Owner:                      ownerAcc.String(),
 		BucketName:                 bucketName,
@@ -124,7 +129,7 @@ func (k Keeper) CreateBucket(
 		ChargedReadQuota:           opts.ChargedReadQuota,
 		PaymentAddress:             paymentAcc.String(),
 		PrimarySpId:                sp.Id,
-		GlobalVirtualGroupFamilyId: opts.PrimarySpApproval.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
 
 	// charge by read quota
