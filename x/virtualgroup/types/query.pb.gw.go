@@ -540,17 +540,17 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GlobalVirtualGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GlobalVirtualGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GlobalVirtualGroupBySPID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_by_spid"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GlobalVirtualGroupBySPID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_by_spid"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GlobalVirtualGroupByFamilyID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_by_family_id"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GlobalVirtualGroupByFamilyID_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_by_family_id"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GlobalVirtualGroupFamilies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_families"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GlobalVirtualGroupFamilies_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_families"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_GlobalVirtualGroupFamily_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_family"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_GlobalVirtualGroupFamily_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "virtualgroup", "global_virtual_group_family"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (

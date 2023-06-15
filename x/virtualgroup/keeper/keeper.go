@@ -336,3 +336,18 @@ func (k Keeper) UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) erro
 	store.Delete(types.GetGVGsBindingOnBucketKey(bucketID))
 	return nil
 }
+
+func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID uint32) (*types.LocalVirtualGroup, error) {
+	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
+	if !found {
+		return nil, types.ErrGVGFamilyNotExist
+	}
+
+	if len(family.GlobalVirtualGroupIds) == 0 {
+		return nil, types.ErrGVGNotExist
+	}
+
+	gvgID := family.GlobalVirtualGroupIds[0]
+
+	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
+}

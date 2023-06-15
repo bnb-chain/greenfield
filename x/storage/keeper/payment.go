@@ -178,7 +178,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 }
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) ([]types.UserFlows, error) {
-	flows := []types.UserFlows{}
+	var flows []types.UserFlows
 
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return flows, nil

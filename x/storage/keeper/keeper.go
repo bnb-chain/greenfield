@@ -508,6 +508,11 @@ func (k Keeper) CreateObject(
 	}
 
 	if objectInfo.PayloadSize == 0 {
+		lvg, err := k.virtualGroupKeeper.BindingEmptyObjectToGVG(ctx, bucketInfo.Id, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+		objectInfo.LocalVirtualGroupId = lvg.Id
 		// charge directly without lock charge
 		err = k.ChargeStoreFee(ctx, bucketInfo, &objectInfo)
 		if err != nil {
@@ -896,6 +901,11 @@ func (k Keeper) CopyObject(
 	}
 
 	if srcObjectInfo.PayloadSize == 0 {
+		lvg, err := k.virtualGroupKeeper.BindingEmptyObjectToGVG(ctx, dstBucketInfo.Id, dstBucketInfo.PrimarySpId, dstBucketInfo.GlobalVirtualGroupFamilyId)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+		objectInfo.LocalVirtualGroupId = lvg.Id
 		err = k.ChargeStoreFee(ctx, dstBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
