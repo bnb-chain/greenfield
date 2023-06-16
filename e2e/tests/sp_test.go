@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"sort"
 	"strconv"
 	"testing"
 	"time"
@@ -277,7 +278,7 @@ func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
 	s.Require().NoError(err)
 	s.T().Logf("sps: %s", sps)
 	spNum := int64(sps.Pagination.Total)
-	total := sdk.ZeroDec()
+	prices := make([]sdk.Dec, 0)
 	for _, sp := range sps.Sps {
 		spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 			SpAddr:    sp.OperatorAddress,
@@ -285,11 +286,19 @@ func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
 		})
 		s.Require().NoError(err)
 		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
-		total = total.Add(spStoragePrice.SpStoragePrice.StorePrice)
+		prices = append(prices, spStoragePrice.SpStoragePrice.StorePrice)
 	}
+	sort.Slice(prices, func(i, j int) bool { return prices[i].LT(prices[j]) })
+	var median sdk.Dec
+	if spNum%2 == 0 {
+		median = prices[spNum/2-1].Add(prices[spNum/2]).QuoInt64(2)
+	} else {
+		median = prices[spNum/2]
+	}
+
 	params, err := s.Client.SpQueryClient.Params(ctx, &sptypes.QueryParamsRequest{})
 	s.Require().NoError(err)
-	expectedSecondarySpStorePrice := params.Params.SecondarySpStorePriceRatio.Mul(total).QuoInt64(spNum)
+	expectedSecondarySpStorePrice := params.Params.SecondarySpStorePriceRatio.Mul(median)
 	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
 }
 

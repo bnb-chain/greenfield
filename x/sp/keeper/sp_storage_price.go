@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"sort"
 
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -119,9 +120,8 @@ func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice 
 // UpdateSecondarySpStorePrice calculate the price of secondary store by the average price of all sp store price
 func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 	sps := k.GetAllStorageProviders(ctx)
-	total := sdk.ZeroDec()
 	current := ctx.BlockTime().Unix()
-	var spNumInService int64
+	prices := make([]sdk.Dec, 0)
 	for _, sp := range sps {
 		if sp.Status != types.STATUS_IN_SERVICE {
 			continue
@@ -130,13 +130,21 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 		if err != nil {
 			return err
 		}
-		spNumInService++
-		total = total.Add(price.StorePrice)
+		prices = append(prices, price.StorePrice)
 	}
-	if spNumInService == 0 {
+	l := len(prices)
+	if l == 0 {
 		return nil
 	}
-	price := k.SecondarySpStorePriceRatio(ctx).Mul(total).QuoInt64(spNumInService)
+
+	sort.Slice(prices, func(i, j int) bool { return prices[i].LT(prices[j]) })
+	var median sdk.Dec
+	if l%2 == 0 {
+		median = prices[l/2-1].Add(prices[l/2]).QuoInt64(2)
+	} else {
+		median = prices[l/2]
+	}
+	price := k.SecondarySpStorePriceRatio(ctx).Mul(median)
 	secondarySpStorePrice := types.SecondarySpStorePrice{
 		StorePrice:    price,
 		UpdateTimeSec: current,
