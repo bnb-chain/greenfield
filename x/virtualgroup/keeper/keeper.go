@@ -266,11 +266,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 		// Create a new key store the gvgs binding on bucket
 		lvgID := k.GenNextLVGID(ctx)
 		lvg = &types.LocalVirtualGroup{
-			Id:                    lvgID,
-			GlobalVirtualGroupId:  gvgID,
-			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.LVGName, lvgID).String(),
-			StoredSize:            payloadSize,
-			BucketId:              bucketID,
+			Id:                   lvgID,
+			GlobalVirtualGroupId: gvgID,
+			StoredSize:           payloadSize,
+			BucketId:             bucketID,
 		}
 		newLVG = true
 		gvgsBindingOnBucket = &types.GlobalVirtualGroupsBindingOnBucket{
@@ -283,11 +282,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 			// not exist
 			lvgID = k.GenNextLVGID(ctx)
 			lvg = &types.LocalVirtualGroup{
-				Id:                    lvgID,
-				GlobalVirtualGroupId:  gvgID,
-				VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.LVGName, lvgID).String(),
-				StoredSize:            payloadSize,
-				BucketId:              bucketID,
+				Id:                   lvgID,
+				GlobalVirtualGroupId: gvgID,
+				StoredSize:           payloadSize,
+				BucketId:             bucketID,
 			}
 			newLVG = true
 			gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
@@ -308,11 +306,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 
 	if newLVG {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateLocalVirtualGroup{
-			Id:                    lvg.Id,
-			BucketId:              lvg.BucketId,
-			GlobalVirtualGroupId:  lvg.GlobalVirtualGroupId,
-			StoredSize:            lvg.StoredSize,
-			VirtualPaymentAddress: lvg.VirtualPaymentAddress,
+			Id:                   lvg.Id,
+			BucketId:             lvg.BucketId,
+			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:           lvg.StoredSize,
 		}); err != nil {
 			return nil, err
 		}

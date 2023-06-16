@@ -84,7 +84,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		PrimarySpId:           sp.Id,
 		SecondarySpIds:        secondarySpIds,
 		StoredSize:            0,
-		VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGName, gvgID).String(),
+		VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGVirtualPaymentAccountName, gvgID).String(),
 		TotalDeposit:          req.Deposit.Amount,
 	}
 

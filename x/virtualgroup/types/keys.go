@@ -21,11 +21,8 @@ const (
 	// TStoreKey defines the transient store key
 	TStoreKey = "transient_storage"
 
-	// LVGName string for derive the virtual payment account for LVG
-	LVGName = "local_virtual_group"
-
-	// GVGName string for derive the virtual payment account for GVG
-	GVGName = "global_virtual_group"
+	// GVGVirtualPaymentAccountName string for derive the virtual payment account for GVG
+	GVGVirtualPaymentAccountName = "global_virtual_group"
 
 	// GVGFamilyName string for derive the virtual payment account for GVG family
 	GVGFamilyName = "global_virtual_group_family"
