@@ -70,7 +70,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
 		// storage fee preview
 		if ctx.IsCheckTx() {
-			reserveTime := k.GetParams(ctx).ReserveTime
+			reserveTime := k.GetParams(ctx).VersionedParams.ReserveTime
 			changeRate := totalRate.Neg()
 			event := &types.EventFeePreview{
 				Account: from.String(),
