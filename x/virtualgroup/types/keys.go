@@ -45,6 +45,8 @@ var (
 	LVGSequencePrefix       = []byte{0x31}
 	GVGSequencePrefix       = []byte{0x32}
 	GVGFamilySequencePrefix = []byte{0x33}
+
+	GVGStatisticsWithinSPKey = []byte{0x41}
 )
 
 func GetLVGKey(bucketID math.Uint, lvgID uint32) []byte {
@@ -66,4 +68,9 @@ func GetGVGFamilyKey(spID uint32, familyID uint32) []byte {
 func GetGVGsBindingOnBucketKey(bucketID math.Uint) []byte {
 	var uint256Seq sequence.Sequence[math.Uint]
 	return append(GVGsBindingOnBucketGKey, uint256Seq.EncodeSequence(bucketID)...)
+}
+
+func GetGVGStatisticsWithinSPKey(spID uint32) []byte {
+	var uint32Seq sequence.Sequence[uint32]
+	return append(GVGStatisticsWithinSPKey, uint32Seq.EncodeSequence(spID)...)
 }

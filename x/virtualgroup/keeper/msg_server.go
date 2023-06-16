@@ -38,6 +38,7 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.MsgCreateGlobalVirtualGroup) (*types.MsgCreateGlobalVirtualGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	var gvgStatisticsWithinSPs []*types.GVGStatisticsWithinSP
 
 	spOperatorAddr := sdk.MustAccAddressFromHex(req.PrimarySpAddress)
 
@@ -45,7 +46,6 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
-
 	var secondarySpIds []uint32
 	for _, id := range req.SecondarySpIds {
 		ssp, found := k.spKeeper.GetStorageProvider(ctx, id)
@@ -53,6 +53,9 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 			return nil, sdkerrors.Wrapf(sptypes.ErrStorageProviderNotFound, "secondary sp not found, ID: %d", id)
 		}
 		secondarySpIds = append(secondarySpIds, ssp.Id)
+		gvgStatisticsWithinSP := k.GetOrCreateGVGStatisticsWithinSP(ctx, ssp.Id)
+		gvgStatisticsWithinSP.SecondaryCount++
+		gvgStatisticsWithinSPs = append(gvgStatisticsWithinSPs, gvgStatisticsWithinSP)
 	}
 
 	// TODO(fynn): add some limit for gvgs in a family
@@ -88,6 +91,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 
 	k.SetGVG(ctx, gvg)
 	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	k.BatchSetGVGStatisticsWithinSP(ctx, gvgStatisticsWithinSPs)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroup{
 		Id:                    gvg.Id,
@@ -117,6 +121,7 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	if err != nil {
 		return nil, err
 	}
+
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroup{
 		Id: req.GlobalVirtualGroupId,
 	}); err != nil {

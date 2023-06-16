@@ -14,7 +14,7 @@ var (
 	ErrWithdrawAmountTooLarge = errors.Register(ModuleName, 1105, "withdrawal amount is too large.")
 	ErrSwapoutFailed          = errors.Register(ModuleName, 1106, "swap out failed.")
 
-	ErrLVGNotExist = errors.Register(ModuleName, 1106, "local virtual group not exist.")
+	ErrLVGNotExist = errors.Register(ModuleName, 1107, "local virtual group not exist.")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

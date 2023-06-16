@@ -25,7 +25,7 @@ func CmdStorageProviderExit() *cobra.Command {
 			}
 
 			msg := types.NewMsgStorageProviderExit(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

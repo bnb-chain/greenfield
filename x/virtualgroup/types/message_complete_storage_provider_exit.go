@@ -9,9 +9,9 @@ const TypeMsgCompleteStorageProviderExit = "complete_storage_provider_exit"
 
 var _ sdk.Msg = &MsgCompleteStorageProviderExit{}
 
-func NewMsgCompleteStorageProviderExit(creator string) *MsgCompleteStorageProviderExit {
+func NewMsgCompleteStorageProviderExit(operator sdk.AccAddress) *MsgCompleteStorageProviderExit {
 	return &MsgCompleteStorageProviderExit{
-		Creator: creator,
+		OperatorAddress: operator.String(),
 	}
 }
 
@@ -24,7 +24,7 @@ func (msg *MsgCompleteStorageProviderExit) Type() string {
 }
 
 func (msg *MsgCompleteStorageProviderExit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func (msg *MsgCompleteStorageProviderExit) GetSignBytes() []byte {
 }
 
 func (msg *MsgCompleteStorageProviderExit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

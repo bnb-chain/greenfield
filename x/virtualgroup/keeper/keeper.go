@@ -97,6 +97,7 @@ func (k Keeper) SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) {
 }
 
 func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
+
 	store := ctx.KVStore(k.storeKey)
 
 	gvg, found := k.GetGVG(ctx, gvgID)
@@ -118,7 +119,14 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		panic("gvg not found in gvg family when delete gvg")
 	}
 
+	for _, secondarySPID := range gvg.SecondarySpIds {
+		gvgStatisticsWithinSP := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+		gvgStatisticsWithinSP.SecondaryCount--
+		k.SetGVGStatisticsWithSP(ctx, gvgStatisticsWithinSP)
+	}
+
 	store.Delete(types.GetGVGKey(gvg.Id))
+
 	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
 	return nil
 }
@@ -427,4 +435,47 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 		k.SetGVG(ctx, gvg)
 	}
 	return nil
+}
+
+func (k Keeper) GetOrCreateGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	ret := &types.GVGStatisticsWithinSP{
+		StorageProviderId: spID,
+		SecondaryCount:    0,
+	}
+	bz := store.Get(types.GetGVGStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return ret
+	}
+
+	k.cdc.MustUnmarshal(bz, ret)
+	return ret
+}
+
+func (k Keeper) MustGetGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGStatisticsWithinSPKey(spID))
+	if bz == nil {
+		panic("must get gvg statistics within sp")
+	}
+
+	var ret types.GVGStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret
+}
+
+func (k Keeper) SetGVGStatisticsWithSP(ctx sdk.Context, gvgsStatisticsWithinSP *types.GVGStatisticsWithinSP) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(gvgsStatisticsWithinSP)
+
+	store.Set(types.GetGVGStatisticsWithinSPKey(gvgsStatisticsWithinSP.StorageProviderId), bz)
+}
+
+func (k Keeper) BatchSetGVGStatisticsWithinSP(ctx sdk.Context, gvgsStatisticsWithinSP []*types.GVGStatisticsWithinSP) {
+	for _, g := range gvgsStatisticsWithinSP {
+		k.SetGVGStatisticsWithSP(ctx, g)
+	}
 }

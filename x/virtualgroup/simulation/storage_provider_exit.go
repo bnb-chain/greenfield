@@ -19,7 +19,7 @@ func SimulateMsgStorageProviderExit(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgStorageProviderExit{
-			Creator: simAccount.Address.String(),
+			OperatorAddress: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the StorageProviderExit simulation
