@@ -34,6 +34,9 @@ proto-format-check:
 build:
 	go build -o build/bin/gnfd -ldflags="$(ldflags)" ./cmd/gnfd/main.go
 
+mock-gen:
+	sh ./scripts/mockgen.sh
+
 docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}
