@@ -59,6 +59,7 @@ service Msg {
   rpc MigrateBucket         (MsgMigrateBucket        ) returns (MsgMigrateBucketResponse        );
   rpc CompleteMigrateBucket (MsgCompleteMigrateBucket) returns (MsgCompleteMigrateBucketResponse);
 }
+
 message MsgCreateBucket {
   option (cosmos.msg.v1.signer) = "creator";
   
