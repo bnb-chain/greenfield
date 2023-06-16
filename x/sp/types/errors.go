@@ -18,6 +18,7 @@ var (
 	ErrStorageProviderGcAddrExists       = errors.Register(ModuleName, 10, "StorageProvider already exist for this gc address; must use new StorageProvider gc address.")
 	ErrStorageProviderPriceExpired       = errors.Register(ModuleName, 11, "StorageProvider price expired")
 	ErrStorageProviderNotChanged         = errors.Register(ModuleName, 12, "StorageProvider not changed")
+	ErrStorageProviderExitFailed         = errors.Register(ModuleName, 13, "StorageProvider exit failed.")
 
 	ErrSignerNotGovModule  = errors.Register(ModuleName, 40, "signer is not gov module account")
 	ErrSignerEmpty         = errors.Register(ModuleName, 41, "signer is empty")

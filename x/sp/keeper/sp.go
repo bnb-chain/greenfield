@@ -143,3 +143,22 @@ func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProv
 	}
 	return sps
 }
+
+func (k Keeper) Exit(ctx sdk.Context, sp *types.StorageProvider) error {
+	store := ctx.KVStore(k.storeKey)
+
+	// send back the total deposit
+	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForSP(ctx), sp.TotalDeposit))
+	err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromHex(sp.FundingAddress), coins)
+	if err != nil {
+		return err
+	}
+
+	store.Delete(types.GetStorageProviderByOperatorAddrKey(sdk.MustAccAddressFromHex(sp.OperatorAddress)))
+	store.Delete(types.GetStorageProviderByFundingAddrKey(sdk.MustAccAddressFromHex(sp.FundingAddress)))
+	store.Delete(types.GetStorageProviderBySealAddrKey(sdk.MustAccAddressFromHex(sp.SealAddress)))
+	store.Delete(types.GetStorageProviderByApprovalAddrKey(sdk.MustAccAddressFromHex(sp.ApprovalAddress)))
+	store.Delete(types.GetStorageProviderByGcAddrKey(sdk.MustAccAddressFromHex(sp.GcAddress)))
+	store.Delete(types.GetStorageProviderKey(k.spSequence.EncodeSequence(sp.Id)))
+	return nil
+}
