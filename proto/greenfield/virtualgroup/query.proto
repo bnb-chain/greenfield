@@ -8,9 +8,9 @@ import "google/api/annotations.proto";
 import "greenfield/virtualgroup/params.proto";
 import "greenfield/virtualgroup/types.proto";
 
-option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
-
 // this line is used by starport scaffolding # 1
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 
 // Query defines the gRPC query service.
 service Query {
@@ -43,6 +43,8 @@ service Query {
   rpc GlobalVirtualGroupFamily(QueryGlobalVirtualGroupFamilyRequest) returns (QueryGlobalVirtualGroupFamilyResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_family";
   }
+
+  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -99,3 +101,4 @@ message QueryGlobalVirtualGroupFamilyRequest {
 message QueryGlobalVirtualGroupFamilyResponse {
   GlobalVirtualGroupFamily global_virtual_group_family = 1;
 }
+// this line is used by starport scaffolding # 3

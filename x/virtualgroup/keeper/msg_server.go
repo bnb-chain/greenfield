@@ -89,6 +89,17 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	k.SetGVG(ctx, gvg)
 	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
 
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroup{
+		Id:                    gvg.Id,
+		FamilyId:              gvg.FamilyId,
+		PrimarySpId:           gvg.PrimarySpId,
+		SecondarySpIds:        gvg.SecondarySpIds,
+		StoredSize:            gvg.StoredSize,
+		VirtualPaymentAddress: gvg.VirtualPaymentAddress,
+		TotalDeposit:          gvg.TotalDeposit,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgCreateGlobalVirtualGroupResponse{}, nil
 }
 
@@ -106,7 +117,11 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	if err != nil {
 		return nil, err
 	}
-
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroup{
+		Id: req.GlobalVirtualGroupId,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgDeleteGlobalVirtualGroupResponse{}, nil
 }
 
@@ -139,6 +154,13 @@ func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types
 	gvg.TotalDeposit = gvg.TotalDeposit.Add(sdk.NewDecFromBigInt(req.Deposit.Amount.BigInt()))
 	k.SetGVG(ctx, gvg)
 
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
+		Id:           req.GlobalVirtualGroupId,
+		StoreSize:    gvg.StoredSize,
+		TotalDeposit: gvg.TotalDeposit,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgDepositResponse{}, nil
 }
 
@@ -177,6 +199,14 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 	// withdraw the deposit token from module account to funding account.
 	coins := sdk.NewCoins(sdk.NewCoin(depositDenom, withdrawTokens))
 	if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sp.GetFundingAccAddress(), coins); err != nil {
+		return nil, err
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
+		Id:           req.GlobalVirtualGroupId,
+		StoreSize:    gvg.StoredSize,
+		TotalDeposit: gvg.TotalDeposit,
+	}); err != nil {
 		return nil, err
 	}
 
