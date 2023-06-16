@@ -17,13 +17,14 @@ func TestMsgCompleteStorageProviderExit_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgCompleteStorageProviderExit{
-				Creator: "invalid_address",
+				OperatorAddress: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCompleteStorageProviderExit{
-				Creator: sample.AccAddress(),
+				OperatorAddress:         sample.AccAddress(),
+				OriginStorageProviderId: 1,
 			},
 		},
 	}

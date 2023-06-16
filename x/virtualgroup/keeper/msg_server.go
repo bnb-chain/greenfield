@@ -70,6 +70,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, sdkerrors.Wrapf(types.ErrGenSequenceIDError, "wrong next gvg id.")
 	}
 
+	// TODO: Add gvg number limit for a family
 	// deposit enough tokens for oncoming objects
 	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), req.Deposit.Amount))
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromHex(sp.FundingAddress), types.ModuleName, coins)
@@ -84,7 +85,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		SecondarySpIds:        secondarySpIds,
 		StoredSize:            0,
 		VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGName, gvgID).String(),
-		TotalDeposit:          sdk.NewDecFromBigInt(req.Deposit.Amount.BigInt()),
+		TotalDeposit:          req.Deposit.Amount,
 	}
 
 	gvgFamily.AppendGVG(gvg.Id)
@@ -156,7 +157,7 @@ func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types
 		return nil, err
 	}
 
-	gvg.TotalDeposit = gvg.TotalDeposit.Add(sdk.NewDecFromBigInt(req.Deposit.Amount.BigInt()))
+	gvg.TotalDeposit = gvg.TotalDeposit.Add(req.Deposit.Amount)
 	k.SetGVG(ctx, gvg)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
@@ -193,9 +194,9 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 
 	availableTokens := k.GetAvailableStakingTokens(ctx, gvg)
 	if req.Withdraw.Amount.IsZero() {
-		withdrawTokens = availableTokens.TruncateInt()
+		withdrawTokens = availableTokens
 	} else {
-		if availableTokens.LT(sdk.NewDecFromBigInt(req.Withdraw.Amount.BigInt())) {
+		if availableTokens.LT(req.Withdraw.Amount) {
 			return nil, types.ErrWithdrawAmountTooLarge
 		}
 		withdrawTokens = req.Withdraw.Amount
@@ -239,7 +240,7 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 	} else {
 		// if the family id is specified, it means that the SP will swap out as a primary SP and the successor sp will
 		// take over all the gvg of this family
-		err := k.SwapOutAsPrimarySP(ctx, sp.Id, req.VirtualGroupFamilyId, successorSP.Id)
+		err := k.SwapOutAsPrimarySP(ctx, sp, successorSP, req.VirtualGroupFamilyId)
 		if err != nil {
 			return nil, err
 		}

@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -234,12 +235,12 @@ func (k Keeper) DeriveVirtualPaymentAccount(groupType string, id uint32) sdk.Acc
 	return address.Module(types.ModuleName, append([]byte(groupType), b...))
 }
 
-func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) sdk.Dec {
+func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) sdk.Int {
 	stakingPrice := k.GVGStakingPrice(ctx)
 
 	mustStakingTokens := stakingPrice.MulInt64(int64(gvg.StoredSize))
 
-	return gvg.TotalDeposit.Sub(mustStakingTokens)
+	return gvg.TotalDeposit.Sub(mustStakingTokens.TruncateInt())
 }
 
 func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error) {
@@ -382,10 +383,10 @@ func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, pri
 	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
 }
 
-func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, successorSPID uint32) error {
+func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes.StorageProvider, familyID uint32) error {
 	store := ctx.KVStore(k.storeKey)
 
-	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
+	family, found := k.GetGVGFamily(ctx, primarySP.Id, familyID)
 	if !found {
 		return types.ErrGVGFamilyNotExist
 	}
@@ -395,23 +396,40 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, succe
 		if !found {
 			return types.ErrGVGNotExist
 		}
-		if gvg.PrimarySpId != primarySPID {
+		if gvg.PrimarySpId != primarySP.Id {
 			return types.ErrSwapOutFailed.Wrapf(
-				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySPID)
+				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySP.Id)
 		}
 		for _, spID := range gvg.SecondarySpIds {
-			if spID == successorSPID {
-				return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSPID, gvg.String())
+			if spID == successorSP.Id {
+				return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSP.Id, gvg.String())
 			}
 		}
-		gvg.PrimarySpId = successorSPID
+
+		// swap deposit
+		if !gvg.TotalDeposit.IsZero() {
+			// send back deposit
+			coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), gvg.TotalDeposit))
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromHex(primarySP.FundingAddress), coins)
+			if err != nil {
+				return err
+			}
+
+			// successor deposit
+			err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromHex(successorSP.FundingAddress), types.ModuleName, coins)
+			if err != nil {
+				return err
+			}
+		}
+
+		gvg.PrimarySpId = successorSP.Id
 		gvgs = append(gvgs, gvg)
 	}
-	k.SetGVGFamily(ctx, successorSPID, family)
+	k.SetGVGFamily(ctx, successorSP.Id, family)
 	for _, gvg := range gvgs {
 		k.SetGVG(ctx, gvg)
 	}
-	store.Delete(types.GetGVGFamilyKey(primarySPID, familyID))
+	store.Delete(types.GetGVGFamilyKey(primarySP.Id, familyID))
 	return nil
 }
 
