@@ -178,7 +178,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 }
 
 func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) ([]types.UserFlows, error) {
-	flows := []types.UserFlows{}
+	var flows []types.UserFlows
 
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return flows, nil
@@ -238,7 +238,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 			return flows, fmt.Errorf("get LVG failed: %d", lvgStoreSize.LvgId)
 		}
 
-		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, primarySp.Id, lvg.GlobalVirtualGroupId)
+		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 		if !found {
 			return flows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
 		}

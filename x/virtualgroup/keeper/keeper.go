@@ -10,6 +10,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -93,13 +94,14 @@ func (k Keeper) SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := k.cdc.MustMarshal(gvg)
-	store.Set(types.GetGVGKey(gvg.PrimarySpId, gvg.Id), bz)
+	store.Set(types.GetGVGKey(gvg.Id), bz)
 }
 
 func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
+
 	store := ctx.KVStore(k.storeKey)
 
-	gvg, found := k.GetGVG(ctx, primarySpID, gvgID)
+	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {
 		return types.ErrGVGNotExist
 	}
@@ -118,15 +120,22 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		panic("gvg not found in gvg family when delete gvg")
 	}
 
-	store.Delete(types.GetGVGKey(gvg.PrimarySpId, gvg.Id))
+	for _, secondarySPID := range gvg.SecondarySpIds {
+		gvgStatisticsWithinSP := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+		gvgStatisticsWithinSP.SecondaryCount--
+		k.SetGVGStatisticsWithSP(ctx, gvgStatisticsWithinSP)
+	}
+
+	store.Delete(types.GetGVGKey(gvg.Id))
+
 	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
 	return nil
 }
 
-func (k Keeper) GetGVG(ctx sdk.Context, primarySpID, gvgID uint32) (*types.GlobalVirtualGroup, bool) {
+func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool) {
 	store := ctx.KVStore(k.storeKey)
 
-	bz := store.Get(types.GetGVGKey(primarySpID, gvgID))
+	bz := store.Get(types.GetGVGKey(gvgID))
 	if bz == nil {
 		return nil, false
 	}
@@ -198,12 +207,10 @@ func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.Glo
 func (k Keeper) GenerateOrSetLVGForBucket(ctx sdk.Context, bucketID math.Uint, gvgID uint32) {
 }
 
-const NonExistentFamilyId = 0
-
 func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	store := ctx.KVStore(k.storeKey)
 	var gvgFamily types.GlobalVirtualGroupFamily
-	if familyID == NonExistentFamilyId {
+	if familyID == types.NoSpecifiedFamilyId {
 		id := k.GenNextGVGFamilyID(ctx)
 		gvgFamily = types.GlobalVirtualGroupFamily{
 			Id:                    id,
@@ -236,7 +243,7 @@ func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirt
 }
 
 func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error) {
-	gvg, found := k.GetGVG(ctx, primarySPID, gvgID)
+	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {
 		return nil, types.ErrGVGNotExist
 	}
@@ -253,6 +260,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 	var gvgsBindingOnBucket *types.GlobalVirtualGroupsBindingOnBucket
 	var lvg *types.LocalVirtualGroup
 	gvgsBindingOnBucket, found = k.GetGVGsBindingOnBucket(ctx, bucketID)
+	var newLVG = false
 	if !found {
 		// Create a new key store the gvgs binding on bucket
 		lvgID := k.GenNextLVGID(ctx)
@@ -263,6 +271,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 			StoredSize:            payloadSize,
 			BucketId:              bucketID,
 		}
+		newLVG = true
 		gvgsBindingOnBucket = &types.GlobalVirtualGroupsBindingOnBucket{
 			BucketId: bucketID,
 		}
@@ -279,6 +288,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 				StoredSize:            payloadSize,
 				BucketId:              bucketID,
 			}
+			newLVG = true
 			gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
 		} else {
 			lvg, found = k.GetLVG(ctx, bucketID, lvgID)
@@ -294,10 +304,30 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 	k.SetGVG(ctx, gvg)
 	k.SetLVG(ctx, lvg)
 	k.SetGVGsBindingOnBucket(ctx, gvgsBindingOnBucket)
+
+	if newLVG {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateLocalVirtualGroup{
+			Id:                    lvg.Id,
+			BucketId:              lvg.BucketId,
+			GlobalVirtualGroupId:  lvg.GlobalVirtualGroupId,
+			StoredSize:            lvg.StoredSize,
+			VirtualPaymentAddress: lvg.VirtualPaymentAddress,
+		}); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateLocalVirtualGroup{
+			Id:                   lvg.Id,
+			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:           lvg.StoredSize,
+		}); err != nil {
+			return nil, err
+		}
+	}
 	return lvg, nil
 }
 
-func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, primarySPID, lvgID uint32, payloadSize uint64) error {
+func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error {
 	lvg, found := k.GetLVG(ctx, bucketID, lvgID)
 	if !found {
 		return types.ErrLVGNotExist
@@ -307,7 +337,7 @@ func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, prim
 		panic(fmt.Sprintf("gvgs binding on bucket mapping not found, bucketID: %s", bucketID.String()))
 	}
 	gvgID := gvgsBindingOnBucket.GetGVGIDByLVGID(lvgID)
-	gvg, found := k.GetGVG(ctx, primarySPID, gvgID)
+	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {
 		ctx.Logger().Error("GVG Not Exist, bucketID: %s, gvgID: %d, lvgID :%d", bucketID.String(), gvgID, lvgID)
 		return types.ErrGVGNotExist
@@ -334,5 +364,143 @@ func (k Keeper) UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) erro
 	}
 
 	store.Delete(types.GetGVGsBindingOnBucketKey(bucketID))
+	return nil
+}
+
+func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID uint32) (*types.LocalVirtualGroup, error) {
+	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
+	if !found {
+		return nil, types.ErrGVGFamilyNotExist
+	}
+
+	if len(family.GlobalVirtualGroupIds) == 0 {
+		return nil, types.ErrGVGNotExist
+	}
+
+	gvgID := family.GlobalVirtualGroupIds[0]
+
+	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
+}
+
+func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, successorSPID uint32) error {
+	store := ctx.KVStore(k.storeKey)
+
+	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
+	if !found {
+		return types.ErrGVGFamilyNotExist
+	}
+	var gvgs []*types.GlobalVirtualGroup
+	for _, gvgID := range family.GlobalVirtualGroupIds {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			return types.ErrGVGNotExist
+		}
+		if gvg.PrimarySpId != primarySPID {
+			return types.ErrSwapOutFailed.Wrapf(
+				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySPID)
+		}
+		for _, spID := range gvg.SecondarySpIds {
+			if spID == successorSPID {
+				return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSPID, gvg.String())
+			}
+		}
+		gvg.PrimarySpId = successorSPID
+		gvgs = append(gvgs, gvg)
+	}
+	k.SetGVGFamily(ctx, successorSPID, family)
+	for _, gvg := range gvgs {
+		k.SetGVG(ctx, gvg)
+	}
+	store.Delete(types.GetGVGFamilyKey(primarySPID, familyID))
+	return nil
+}
+
+func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSPID uint32, gvgIDs []uint32) error {
+	var gvgs []*types.GlobalVirtualGroup
+	for _, gvgID := range gvgIDs {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			return types.ErrGVGNotExist
+		}
+		if gvg.PrimarySpId == successorSPID {
+			return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
+		}
+		for i, spID := range gvg.SecondarySpIds {
+			if spID == secondarySPID {
+				gvg.SecondarySpIds = append(gvg.SecondarySpIds[:i], gvg.SecondarySpIds[i+1:]...)
+				gvgs = append(gvgs, gvg)
+			}
+			origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+			successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
+			origin.SecondaryCount--
+			successor.SecondaryCount++
+			k.SetGVGStatisticsWithSP(ctx, origin)
+			k.SetGVGStatisticsWithSP(ctx, successor)
+		}
+	}
+	for _, gvg := range gvgs {
+		k.SetGVG(ctx, gvg)
+	}
+	return nil
+}
+
+func (k Keeper) GetOrCreateGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	ret := &types.GVGStatisticsWithinSP{
+		StorageProviderId: spID,
+		SecondaryCount:    0,
+	}
+	bz := store.Get(types.GetGVGStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return ret
+	}
+
+	k.cdc.MustUnmarshal(bz, ret)
+	return ret
+}
+
+func (k Keeper) MustGetGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGStatisticsWithinSP {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGStatisticsWithinSPKey(spID))
+	if bz == nil {
+		panic("must get gvg statistics within sp")
+	}
+
+	var ret types.GVGStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret
+}
+
+func (k Keeper) SetGVGStatisticsWithSP(ctx sdk.Context, gvgsStatisticsWithinSP *types.GVGStatisticsWithinSP) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(gvgsStatisticsWithinSP)
+
+	store.Set(types.GetGVGStatisticsWithinSPKey(gvgsStatisticsWithinSP.StorageProviderId), bz)
+}
+
+func (k Keeper) BatchSetGVGStatisticsWithinSP(ctx sdk.Context, gvgsStatisticsWithinSP []*types.GVGStatisticsWithinSP) {
+	for _, g := range gvgsStatisticsWithinSP {
+		k.SetGVGStatisticsWithSP(ctx, g)
+	}
+}
+
+func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
+	store := ctx.KVStore(k.storeKey)
+
+	prefixStore := prefix.NewStore(store, types.GetGVGFamilyPrefixKey(spID))
+	iter := prefixStore.Iterator(nil, nil)
+	if iter.Valid() {
+		var family types.GlobalVirtualGroupFamily
+		k.cdc.MustUnmarshal(iter.Value(), &family)
+		return types.ErrSPCanNotExit.Wrapf("not swap out from all the family, key: %s", family.String())
+	}
+
+	gvgStat := k.MustGetGVGStatisticsWithinSP(ctx, spID)
+	if gvgStat.SecondaryCount != 0 {
+		return types.ErrSPCanNotExit.Wrapf("not seap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
+	}
 	return nil
 }

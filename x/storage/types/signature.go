@@ -53,10 +53,10 @@ func VerifySignature(sigAccAddress sdk.AccAddress, sigHash []byte, sig []byte) e
 func VerifyBlsSignature(blsPubKey bls.PublicKey, sigHash [32]byte, blsSig []byte) error {
 	sig, err := bls.SignatureFromBytes(blsSig)
 	if err != nil {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature converts failed: %v", err)
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature conversion failed: %v", err)
 	}
 	if !sig.Verify(blsPubKey, sigHash[:]) {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verify failed")
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verification failed")
 	}
 	return nil
 }
@@ -64,10 +64,10 @@ func VerifyBlsSignature(blsPubKey bls.PublicKey, sigHash [32]byte, blsSig []byte
 func VerifyBlsAggSignature(blsPubKeys []bls.PublicKey, sigHash [32]byte, blsAggSig []byte) error {
 	aggSig, err := bls.SignatureFromBytes(blsAggSig)
 	if err != nil {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature converts failed: %v", err)
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature conversion failed: %v", err)
 	}
 	if !aggSig.FastAggregateVerify(blsPubKeys[:], sigHash) {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verify failed")
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "aggregated signature verification failed")
 	}
 	return nil
 }

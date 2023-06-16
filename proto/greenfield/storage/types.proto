@@ -6,6 +6,7 @@ import "gogoproto/gogo.proto";
 import "greenfield/payment/base.proto";
 import "greenfield/storage/common.proto";
 
+// this line is used by starport scaffolding # proto/tx/import
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 message BucketInfo {

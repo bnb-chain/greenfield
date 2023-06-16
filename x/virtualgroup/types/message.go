@@ -211,7 +211,7 @@ func (msg *MsgSwapOut) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgSwapOut) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
+	addr, _ := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
 	return []sdk.AccAddress{addr}
 }
 

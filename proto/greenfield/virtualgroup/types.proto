@@ -64,3 +64,9 @@ message GlobalVirtualGroupsBindingOnBucket {
   repeated uint32 global_virtual_group_ids = 2;
   repeated uint32 local_virtual_group_ids = 3;
 }
+
+message GVGStatisticsWithinSP {
+  uint32 storage_provider_id = 1;
+  uint32 secondary_count = 3;
+}
+

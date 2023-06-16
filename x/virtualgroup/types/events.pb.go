@@ -5,9 +5,13 @@ package types
 
 import (
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
+	io "io"
 	math "math"
+	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -21,20 +25,1555 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
+type EventCreateGlobalVirtualGroup struct {
+	Id                    uint32   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	FamilyId              uint32   `protobuf:"varint,2,opt,name=family_id,json=familyId,proto3" json:"family_id,omitempty"`
+	PrimarySpId           uint32   `protobuf:"varint,3,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
+	SecondarySpIds        []uint32 `protobuf:"varint,4,rep,packed,name=secondary_sp_ids,json=secondarySpIds,proto3" json:"secondary_sp_ids,omitempty"`
+	StoredSize            uint64   `protobuf:"varint,5,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+	VirtualPaymentAddress string   `protobuf:"bytes,6,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
+	// total_deposit defines the number of tokens deposited by this storage provider for staking.
+	TotalDeposit github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,7,opt,name=total_deposit,json=totalDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"total_deposit"`
+}
+
+func (m *EventCreateGlobalVirtualGroup) Reset()         { *m = EventCreateGlobalVirtualGroup{} }
+func (m *EventCreateGlobalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*EventCreateGlobalVirtualGroup) ProtoMessage()    {}
+func (*EventCreateGlobalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ece39ea12016bd5b, []int{0}
+}
+func (m *EventCreateGlobalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventCreateGlobalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventCreateGlobalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventCreateGlobalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventCreateGlobalVirtualGroup.Merge(m, src)
+}
+func (m *EventCreateGlobalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventCreateGlobalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventCreateGlobalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventCreateGlobalVirtualGroup proto.InternalMessageInfo
+
+func (m *EventCreateGlobalVirtualGroup) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *EventCreateGlobalVirtualGroup) GetFamilyId() uint32 {
+	if m != nil {
+		return m.FamilyId
+	}
+	return 0
+}
+
+func (m *EventCreateGlobalVirtualGroup) GetPrimarySpId() uint32 {
+	if m != nil {
+		return m.PrimarySpId
+	}
+	return 0
+}
+
+func (m *EventCreateGlobalVirtualGroup) GetSecondarySpIds() []uint32 {
+	if m != nil {
+		return m.SecondarySpIds
+	}
+	return nil
+}
+
+func (m *EventCreateGlobalVirtualGroup) GetStoredSize() uint64 {
+	if m != nil {
+		return m.StoredSize
+	}
+	return 0
+}
+
+func (m *EventCreateGlobalVirtualGroup) GetVirtualPaymentAddress() string {
+	if m != nil {
+		return m.VirtualPaymentAddress
+	}
+	return ""
+}
+
+type EventDeleteGlobalVirtualGroup struct {
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+}
+
+func (m *EventDeleteGlobalVirtualGroup) Reset()         { *m = EventDeleteGlobalVirtualGroup{} }
+func (m *EventDeleteGlobalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*EventDeleteGlobalVirtualGroup) ProtoMessage()    {}
+func (*EventDeleteGlobalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ece39ea12016bd5b, []int{1}
+}
+func (m *EventDeleteGlobalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventDeleteGlobalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventDeleteGlobalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventDeleteGlobalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventDeleteGlobalVirtualGroup.Merge(m, src)
+}
+func (m *EventDeleteGlobalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventDeleteGlobalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventDeleteGlobalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventDeleteGlobalVirtualGroup proto.InternalMessageInfo
+
+func (m *EventDeleteGlobalVirtualGroup) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+type EventUpdateGlobalVirtualGroup struct {
+	Id        uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	StoreSize uint64 `protobuf:"varint,2,opt,name=store_size,json=storeSize,proto3" json:"store_size,omitempty"`
+	// total_deposit defines the number of tokens deposited by this storage provider for staking.
+	TotalDeposit github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,3,opt,name=total_deposit,json=totalDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"total_deposit"`
+}
+
+func (m *EventUpdateGlobalVirtualGroup) Reset()         { *m = EventUpdateGlobalVirtualGroup{} }
+func (m *EventUpdateGlobalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*EventUpdateGlobalVirtualGroup) ProtoMessage()    {}
+func (*EventUpdateGlobalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ece39ea12016bd5b, []int{2}
+}
+func (m *EventUpdateGlobalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventUpdateGlobalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventUpdateGlobalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventUpdateGlobalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventUpdateGlobalVirtualGroup.Merge(m, src)
+}
+func (m *EventUpdateGlobalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventUpdateGlobalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventUpdateGlobalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventUpdateGlobalVirtualGroup proto.InternalMessageInfo
+
+func (m *EventUpdateGlobalVirtualGroup) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *EventUpdateGlobalVirtualGroup) GetStoreSize() uint64 {
+	if m != nil {
+		return m.StoreSize
+	}
+	return 0
+}
+
+type EventCreateLocalVirtualGroup struct {
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// id is the unique identification for bucket.
+	BucketId              Uint   `protobuf:"bytes,2,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	GlobalVirtualGroupId  uint32 `protobuf:"varint,3,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	StoredSize            uint64 `protobuf:"varint,4,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+	VirtualPaymentAddress string `protobuf:"bytes,5,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
+}
+
+func (m *EventCreateLocalVirtualGroup) Reset()         { *m = EventCreateLocalVirtualGroup{} }
+func (m *EventCreateLocalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*EventCreateLocalVirtualGroup) ProtoMessage()    {}
+func (*EventCreateLocalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ece39ea12016bd5b, []int{3}
+}
+func (m *EventCreateLocalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventCreateLocalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventCreateLocalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventCreateLocalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventCreateLocalVirtualGroup.Merge(m, src)
+}
+func (m *EventCreateLocalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventCreateLocalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventCreateLocalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventCreateLocalVirtualGroup proto.InternalMessageInfo
+
+func (m *EventCreateLocalVirtualGroup) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *EventCreateLocalVirtualGroup) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *EventCreateLocalVirtualGroup) GetStoredSize() uint64 {
+	if m != nil {
+		return m.StoredSize
+	}
+	return 0
+}
+
+func (m *EventCreateLocalVirtualGroup) GetVirtualPaymentAddress() string {
+	if m != nil {
+		return m.VirtualPaymentAddress
+	}
+	return ""
+}
+
+type EventUpdateLocalVirtualGroup struct {
+	Id                   uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	GlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	StoredSize           uint64 `protobuf:"varint,3,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+}
+
+func (m *EventUpdateLocalVirtualGroup) Reset()         { *m = EventUpdateLocalVirtualGroup{} }
+func (m *EventUpdateLocalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*EventUpdateLocalVirtualGroup) ProtoMessage()    {}
+func (*EventUpdateLocalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_ece39ea12016bd5b, []int{4}
+}
+func (m *EventUpdateLocalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventUpdateLocalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventUpdateLocalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventUpdateLocalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventUpdateLocalVirtualGroup.Merge(m, src)
+}
+func (m *EventUpdateLocalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventUpdateLocalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventUpdateLocalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventUpdateLocalVirtualGroup proto.InternalMessageInfo
+
+func (m *EventUpdateLocalVirtualGroup) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *EventUpdateLocalVirtualGroup) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *EventUpdateLocalVirtualGroup) GetStoredSize() uint64 {
+	if m != nil {
+		return m.StoredSize
+	}
+	return 0
+}
+
+func init() {
+	proto.RegisterType((*EventCreateGlobalVirtualGroup)(nil), "greenfield.virtualgroup.EventCreateGlobalVirtualGroup")
+	proto.RegisterType((*EventDeleteGlobalVirtualGroup)(nil), "greenfield.virtualgroup.EventDeleteGlobalVirtualGroup")
+	proto.RegisterType((*EventUpdateGlobalVirtualGroup)(nil), "greenfield.virtualgroup.EventUpdateGlobalVirtualGroup")
+	proto.RegisterType((*EventCreateLocalVirtualGroup)(nil), "greenfield.virtualgroup.EventCreateLocalVirtualGroup")
+	proto.RegisterType((*EventUpdateLocalVirtualGroup)(nil), "greenfield.virtualgroup.EventUpdateLocalVirtualGroup")
+}
+
 func init() {
 	proto.RegisterFile("greenfield/virtualgroup/events.proto", fileDescriptor_ece39ea12016bd5b)
 }
 
 var fileDescriptor_ece39ea12016bd5b = []byte{
-	// 148 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x52, 0x49, 0x2f, 0x4a, 0x4d,
-	0xcd, 0x4b, 0xcb, 0x4c, 0xcd, 0x49, 0xd1, 0x2f, 0xcb, 0x2c, 0x2a, 0x29, 0x4d, 0xcc, 0x49, 0x2f,
-	0xca, 0x2f, 0x2d, 0xd0, 0x4f, 0x2d, 0x4b, 0xcd, 0x2b, 0x29, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9,
-	0x17, 0x12, 0x47, 0xa8, 0xd2, 0x43, 0x56, 0x25, 0x25, 0x92, 0x9e, 0x9f, 0x9e, 0x0f, 0x56, 0xa3,
-	0x0f, 0x62, 0x41, 0x94, 0x3b, 0xf9, 0x9d, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c, 0xe3, 0x83,
-	0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1, 0x1c, 0x43,
-	0x94, 0x49, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x7e, 0x52, 0x5e, 0x92,
-	0x6e, 0x72, 0x46, 0x62, 0x66, 0x9e, 0x3e, 0x92, 0x1b, 0x2a, 0x50, 0x5d, 0x51, 0x52, 0x59, 0x90,
-	0x5a, 0x9c, 0xc4, 0x06, 0x36, 0xd6, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xd2, 0x4a, 0x8e, 0xa2,
-	0xad, 0x00, 0x00, 0x00,
+	// 551 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xc1, 0x6a, 0x13, 0x41,
+	0x18, 0xce, 0x6e, 0xd2, 0xda, 0x4c, 0x4c, 0x91, 0x25, 0x92, 0xb5, 0xb5, 0x9b, 0x10, 0x44, 0x72,
+	0x49, 0xf6, 0xa0, 0x82, 0x07, 0x2f, 0xc6, 0x48, 0x09, 0x88, 0x94, 0x0d, 0xf5, 0xe0, 0x65, 0xd9,
+	0xdd, 0xf9, 0xbb, 0x1d, 0xba, 0xd9, 0x59, 0x66, 0x26, 0xc5, 0xf4, 0x01, 0x3c, 0x8b, 0x6f, 0x22,
+	0xe4, 0x21, 0x7a, 0x2c, 0x39, 0x89, 0x87, 0x22, 0xc9, 0x0b, 0xf8, 0x08, 0xb2, 0x33, 0xd3, 0x36,
+	0xb6, 0x60, 0xa3, 0xf4, 0x94, 0xcc, 0x37, 0xdf, 0xff, 0xcf, 0x7c, 0xdf, 0x7c, 0xfb, 0xa3, 0x27,
+	0x31, 0x03, 0x48, 0x0f, 0x08, 0x24, 0xd8, 0x3d, 0x26, 0x4c, 0x8c, 0x83, 0x24, 0x66, 0x74, 0x9c,
+	0xb9, 0x70, 0x0c, 0xa9, 0xe0, 0xdd, 0x8c, 0x51, 0x41, 0xad, 0xfa, 0x15, 0xab, 0xbb, 0xcc, 0xda,
+	0x7a, 0x14, 0x51, 0x3e, 0xa2, 0xdc, 0x97, 0x34, 0x57, 0x2d, 0x54, 0xcd, 0x56, 0x2d, 0xa6, 0x31,
+	0x55, 0x78, 0xfe, 0x4f, 0xa1, 0xad, 0x5f, 0x26, 0xda, 0x79, 0x9b, 0xb7, 0x7e, 0xc3, 0x20, 0x10,
+	0xb0, 0x9b, 0xd0, 0x30, 0x48, 0x3e, 0xa8, 0x96, 0xbb, 0x79, 0x4b, 0x6b, 0x13, 0x99, 0x04, 0xdb,
+	0x46, 0xd3, 0x68, 0x57, 0x3d, 0x93, 0x60, 0x6b, 0x1b, 0x95, 0x0f, 0x82, 0x11, 0x49, 0x26, 0x3e,
+	0xc1, 0xb6, 0x29, 0xe1, 0x0d, 0x05, 0x0c, 0xb0, 0xd5, 0x42, 0xd5, 0x8c, 0x91, 0x51, 0xc0, 0x26,
+	0x3e, 0xcf, 0x72, 0x42, 0x51, 0x12, 0x2a, 0x1a, 0x1c, 0x66, 0x03, 0x6c, 0xb5, 0xd1, 0x03, 0x0e,
+	0x11, 0x4d, 0xf1, 0x25, 0x8b, 0xdb, 0xa5, 0x66, 0xb1, 0x5d, 0xf5, 0x36, 0x2f, 0xf1, 0x9c, 0xc8,
+	0xad, 0x06, 0xaa, 0x70, 0x41, 0x19, 0x60, 0x9f, 0x93, 0x13, 0xb0, 0xd7, 0x9a, 0x46, 0xbb, 0xe4,
+	0x21, 0x05, 0x0d, 0xc9, 0x09, 0x58, 0x7b, 0xa8, 0xae, 0xe5, 0xfb, 0x59, 0x30, 0x19, 0x41, 0x2a,
+	0xfc, 0x00, 0x63, 0x06, 0x9c, 0xdb, 0xeb, 0x4d, 0xa3, 0x5d, 0xee, 0xd9, 0xb3, 0x69, 0xa7, 0xa6,
+	0x6d, 0x78, 0xad, 0x76, 0x86, 0x82, 0x91, 0x34, 0xf6, 0x1e, 0xea, 0xc2, 0x3d, 0x55, 0xa7, 0x37,
+	0xad, 0x00, 0x55, 0x05, 0x15, 0x41, 0xe2, 0x63, 0xc8, 0x28, 0x27, 0xc2, 0xbe, 0x27, 0xfb, 0xbc,
+	0x3a, 0x3d, 0x6f, 0x14, 0x7e, 0x9c, 0x37, 0x9e, 0xc6, 0x44, 0x1c, 0x8e, 0xc3, 0x6e, 0x44, 0x47,
+	0xda, 0x5d, 0xfd, 0xd3, 0xe1, 0xf8, 0xc8, 0x15, 0x93, 0x0c, 0x78, 0xb7, 0x0f, 0xd1, 0x6c, 0xda,
+	0x41, 0xfa, 0xd4, 0x3e, 0x44, 0xde, 0x7d, 0xd9, 0xb2, 0xaf, 0x3a, 0xb6, 0x5c, 0xed, 0x78, 0x1f,
+	0x12, 0x58, 0xc5, 0xf1, 0xd6, 0x37, 0x43, 0x57, 0xec, 0x67, 0x78, 0xb5, 0x37, 0xda, 0x41, 0xca,
+	0x25, 0xe5, 0x9b, 0x29, 0x7d, 0x2b, 0x4b, 0x44, 0xda, 0x76, 0x43, 0x64, 0xf1, 0xce, 0x45, 0x7e,
+	0x35, 0xd1, 0xe3, 0xa5, 0x5c, 0xbd, 0xa3, 0xd1, 0x2d, 0x57, 0x7e, 0x89, 0xca, 0xe1, 0x38, 0x3a,
+	0x02, 0x71, 0x11, 0xab, 0x72, 0x6f, 0x5b, 0xdf, 0xa7, 0xb4, 0x4f, 0x52, 0x31, 0x9b, 0x76, 0x2a,
+	0xfa, 0xb4, 0x7c, 0xe9, 0x6d, 0x28, 0xf6, 0x00, 0x5b, 0x2f, 0x50, 0x3d, 0x96, 0x96, 0xf8, 0x17,
+	0x59, 0x90, 0xdf, 0xc2, 0x55, 0xfa, 0x6a, 0xf1, 0x0d, 0xc7, 0x06, 0xf8, 0x7a, 0xb8, 0x4a, 0xff,
+	0x12, 0xae, 0xb5, 0xff, 0x0a, 0x57, 0xeb, 0xb3, 0xa1, 0x4d, 0x51, 0x0f, 0x79, 0xbb, 0x29, 0x7f,
+	0x91, 0x66, 0xae, 0x2e, 0xad, 0x78, 0x5d, 0x5a, 0xef, 0xfd, 0xe9, 0xdc, 0x31, 0xce, 0xe6, 0x8e,
+	0xf1, 0x73, 0xee, 0x18, 0x5f, 0x16, 0x4e, 0xe1, 0x6c, 0xe1, 0x14, 0xbe, 0x2f, 0x9c, 0xc2, 0xc7,
+	0xe7, 0x4b, 0x6f, 0x1f, 0xa6, 0x61, 0x27, 0x3a, 0x0c, 0x48, 0xea, 0x2e, 0x0d, 0xa5, 0x4f, 0x7f,
+	0x8e, 0x25, 0x99, 0x86, 0x70, 0x5d, 0x0e, 0x93, 0x67, 0xbf, 0x03, 0x00, 0x00, 0xff, 0xff, 0x3f,
+	0x82, 0x68, 0x26, 0xbe, 0x04, 0x00, 0x00,
 }
+
+func (m *EventCreateGlobalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventCreateGlobalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventCreateGlobalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.TotalDeposit.Size()
+		i -= size
+		if _, err := m.TotalDeposit.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
+	if len(m.VirtualPaymentAddress) > 0 {
+		i -= len(m.VirtualPaymentAddress)
+		copy(dAtA[i:], m.VirtualPaymentAddress)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.VirtualPaymentAddress)))
+		i--
+		dAtA[i] = 0x32
+	}
+	if m.StoredSize != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.StoredSize))
+		i--
+		dAtA[i] = 0x28
+	}
+	if len(m.SecondarySpIds) > 0 {
+		dAtA2 := make([]byte, len(m.SecondarySpIds)*10)
+		var j1 int
+		for _, num := range m.SecondarySpIds {
+			for num >= 1<<7 {
+				dAtA2[j1] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j1++
+			}
+			dAtA2[j1] = uint8(num)
+			j1++
+		}
+		i -= j1
+		copy(dAtA[i:], dAtA2[:j1])
+		i = encodeVarintEvents(dAtA, i, uint64(j1))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.PrimarySpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.PrimarySpId))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.FamilyId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.FamilyId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Id != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventDeleteGlobalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventDeleteGlobalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventDeleteGlobalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Id != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventUpdateGlobalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventUpdateGlobalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventUpdateGlobalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.TotalDeposit.Size()
+		i -= size
+		if _, err := m.TotalDeposit.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if m.StoreSize != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.StoreSize))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Id != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventCreateLocalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventCreateLocalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventCreateLocalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.VirtualPaymentAddress) > 0 {
+		i -= len(m.VirtualPaymentAddress)
+		copy(dAtA[i:], m.VirtualPaymentAddress)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.VirtualPaymentAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.StoredSize != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.StoredSize))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x18
+	}
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if m.Id != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventUpdateLocalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventUpdateLocalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventUpdateLocalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.StoredSize != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.StoredSize))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Id != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
+	offset -= sovEvents(v)
+	base := offset
+	for v >= 1<<7 {
+		dAtA[offset] = uint8(v&0x7f | 0x80)
+		v >>= 7
+		offset++
+	}
+	dAtA[offset] = uint8(v)
+	return base
+}
+func (m *EventCreateGlobalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovEvents(uint64(m.Id))
+	}
+	if m.FamilyId != 0 {
+		n += 1 + sovEvents(uint64(m.FamilyId))
+	}
+	if m.PrimarySpId != 0 {
+		n += 1 + sovEvents(uint64(m.PrimarySpId))
+	}
+	if len(m.SecondarySpIds) > 0 {
+		l = 0
+		for _, e := range m.SecondarySpIds {
+			l += sovEvents(uint64(e))
+		}
+		n += 1 + sovEvents(uint64(l)) + l
+	}
+	if m.StoredSize != 0 {
+		n += 1 + sovEvents(uint64(m.StoredSize))
+	}
+	l = len(m.VirtualPaymentAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.TotalDeposit.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	return n
+}
+
+func (m *EventDeleteGlobalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovEvents(uint64(m.Id))
+	}
+	return n
+}
+
+func (m *EventUpdateGlobalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovEvents(uint64(m.Id))
+	}
+	if m.StoreSize != 0 {
+		n += 1 + sovEvents(uint64(m.StoreSize))
+	}
+	l = m.TotalDeposit.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	return n
+}
+
+func (m *EventCreateLocalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovEvents(uint64(m.Id))
+	}
+	l = m.BucketId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovEvents(uint64(m.GlobalVirtualGroupId))
+	}
+	if m.StoredSize != 0 {
+		n += 1 + sovEvents(uint64(m.StoredSize))
+	}
+	l = len(m.VirtualPaymentAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	return n
+}
+
+func (m *EventUpdateLocalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovEvents(uint64(m.Id))
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovEvents(uint64(m.GlobalVirtualGroupId))
+	}
+	if m.StoredSize != 0 {
+		n += 1 + sovEvents(uint64(m.StoredSize))
+	}
+	return n
+}
+
+func sovEvents(x uint64) (n int) {
+	return (math_bits.Len64(x|1) + 6) / 7
+}
+func sozEvents(x uint64) (n int) {
+	return sovEvents(uint64((x << 1) ^ uint64((int64(x) >> 63))))
+}
+func (m *EventCreateGlobalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventCreateGlobalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventCreateGlobalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FamilyId", wireType)
+			}
+			m.FamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.FamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpId", wireType)
+			}
+			m.PrimarySpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.PrimarySpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowEvents
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.SecondarySpIds = append(m.SecondarySpIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowEvents
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthEvents
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthEvents
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.SecondarySpIds) == 0 {
+					m.SecondarySpIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowEvents
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.SecondarySpIds = append(m.SecondarySpIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field SecondarySpIds", wireType)
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StoredSize", wireType)
+			}
+			m.StoredSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StoredSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VirtualPaymentAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VirtualPaymentAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalDeposit", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TotalDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventDeleteGlobalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventDeleteGlobalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventDeleteGlobalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventUpdateGlobalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventUpdateGlobalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventUpdateGlobalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StoreSize", wireType)
+			}
+			m.StoreSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StoreSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalDeposit", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.TotalDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventCreateLocalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventCreateLocalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventCreateLocalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StoredSize", wireType)
+			}
+			m.StoredSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StoredSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VirtualPaymentAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VirtualPaymentAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventUpdateLocalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventUpdateLocalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventUpdateLocalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StoredSize", wireType)
+			}
+			m.StoredSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StoredSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func skipEvents(dAtA []byte) (n int, err error) {
+	l := len(dAtA)
+	iNdEx := 0
+	depth := 0
+	for iNdEx < l {
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return 0, ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return 0, io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		wireType := int(wire & 0x7)
+		switch wireType {
+		case 0:
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return 0, io.ErrUnexpectedEOF
+				}
+				iNdEx++
+				if dAtA[iNdEx-1] < 0x80 {
+					break
+				}
+			}
+		case 1:
+			iNdEx += 8
+		case 2:
+			var length int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return 0, ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return 0, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				length |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if length < 0 {
+				return 0, ErrInvalidLengthEvents
+			}
+			iNdEx += length
+		case 3:
+			depth++
+		case 4:
+			if depth == 0 {
+				return 0, ErrUnexpectedEndOfGroupEvents
+			}
+			depth--
+		case 5:
+			iNdEx += 4
+		default:
+			return 0, fmt.Errorf("proto: illegal wireType %d", wireType)
+		}
+		if iNdEx < 0 {
+			return 0, ErrInvalidLengthEvents
+		}
+		if depth == 0 {
+			return iNdEx, nil
+		}
+	}
+	return 0, io.ErrUnexpectedEOF
+}
+
+var (
+	ErrInvalidLengthEvents        = fmt.Errorf("proto: negative length found during unmarshaling")
+	ErrIntOverflowEvents          = fmt.Errorf("proto: integer overflow")
+	ErrUnexpectedEndOfGroupEvents = fmt.Errorf("proto: unexpected end of group")
+)

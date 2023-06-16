@@ -757,9 +757,9 @@ func (mr *MockVirtualGroupKeeperMockRecorder) BindingObjectToGVG(ctx, bucketID, 
 }
 
 // GetGVG mocks base method.
-func (m *MockVirtualGroupKeeper) GetGVG(ctx types3.Context, primarySpID, gvgID uint32) (*types2.GlobalVirtualGroup, bool) {
+func (m *MockVirtualGroupKeeper) GetGVG(ctx types3.Context, gvgID uint32) (*types2.GlobalVirtualGroup, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGVG", ctx, primarySpID, gvgID)
+	ret := m.ctrl.Call(m, "GetGVG", ctx, gvgID)
 	ret0, _ := ret[0].(*types2.GlobalVirtualGroup)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1

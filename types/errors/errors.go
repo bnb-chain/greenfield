@@ -4,7 +4,7 @@ import (
 	"cosmossdk.io/errors"
 )
 
-const RootCodespace = "greenfiled"
+const RootCodespace = "greenfield"
 
 var (
 	ErrInvalidBucketName     = errors.Register(RootCodespace, 1000, "Invalid bucket name")

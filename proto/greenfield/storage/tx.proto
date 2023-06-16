@@ -42,16 +42,20 @@ service Msg {
   rpc UpdateGroupExtra(MsgUpdateGroupExtra) returns (MsgUpdateGroupExtraResponse);
   rpc LeaveGroup(MsgLeaveGroup) returns (MsgLeaveGroupResponse);
   rpc MirrorGroup(MsgMirrorGroup) returns (MsgMirrorGroupResponse);
+
   // basic operation of policy
   rpc PutPolicy(MsgPutPolicy) returns (MsgPutPolicyResponse);
   rpc DeletePolicy(MsgDeletePolicy) returns (MsgDeletePolicyResponse);
 
   // UpdateParams defines a governance operation for updating the x/storage module parameters.
   // The authority is defined in the keeper.
-  //
+
   // Since: cosmos-sdk 0.47
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
   // this line is used by starport scaffolding # proto/tx/rpc
+  rpc MigrateBucket(MsgMigrateBucket) returns (MsgMigrateBucketResponse);
+  rpc CompleteMigrateBucket(MsgCompleteMigrateBucket) returns (MsgCompleteMigrateBucketResponse);
 }
 
 message MsgCreateBucket {
@@ -59,17 +63,23 @@ message MsgCreateBucket {
 
   // creator defines the account address of bucket creator, it is also the bucket owner.
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines a globally unique name of bucket
   string bucket_name = 2;
+
   // visibility means the bucket is private or public. if private, only bucket owner or grantee can read it,
   // otherwise every greenfield user can read it.
   VisibilityType visibility = 3;
+
   // payment_address defines an account address specified by bucket owner to pay the read fee. Default: creator
   string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // primary_sp_address defines the address of primary sp.
   string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // primary_sp_approval defines the approval info of the primary SP which indicates that primary sp confirm the user's request.
   common.Approval primary_sp_approval = 6;
+
   // charged_read_quota defines the read data that users are charged for, measured in bytes.
   // The available read data for each user is the sum of the free read data provided by SP and
   // the ChargeReadQuota specified here.
@@ -89,6 +99,7 @@ message MsgDeleteBucket {
 
   // creator defines the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket to be deleted.
   string bucket_name = 2;
 }
@@ -100,8 +111,10 @@ message MsgDiscontinueBucket {
 
   // operator is the sp who wants to stop serving the bucket.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket where the object which to be discontinued is stored.
   string bucket_name = 2;
+
   // the reason for the request.
   string reason = 3;
 }
@@ -113,21 +126,29 @@ message MsgCreateObject {
 
   // creator defines the account address of object uploader
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket where the object is stored.
   string bucket_name = 2;
+
   // object_name defines the name of object
   string object_name = 3;
+
   // payload_size defines size of the object's payload
   uint64 payload_size = 4;
+
   // visibility means the object is private or public. if private, only object owner or grantee can access it,
   // otherwise every greenfield user can access it.
   VisibilityType visibility = 5;
+
   // content_type defines a standard MIME type describing the format of the object.
   string content_type = 6;
+
   // primary_sp_approval defines the approval info of the primary SP which indicates that primary sp confirm the user's request.
   common.Approval primary_sp_approval = 7;
+
   // expect_checksums defines a list of hashes which was generate by redundancy algorithm.
   repeated bytes expect_checksums = 8;
+
   // redundancy_type can be ec or replica
   RedundancyType redundancy_type = 9;
 }
@@ -145,12 +166,16 @@ message MsgSealObject {
 
   // operator defines the account address of primary SP
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket where the object is stored.
   string bucket_name = 2;
+
   // object_name defines the name of object to be sealed.
   string object_name = 3;
+
   // global_virtual_group_id defines the id of global virtual group
   uint32 global_virtual_group_id = 4;
+
   // secondary_sp_bls_agg_signatures defines the aggregate bls signature of the secondary sp that can
   // acknowledge that the payload data has received and stored.
   bytes secondary_sp_bls_agg_signatures = 5;
@@ -163,8 +188,10 @@ message MsgRejectSealObject {
 
   // operator defines the account address of the object owner
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket where the object is stored.
   string bucket_name = 2;
+
   // object_name defines the name of unsealed object to be reject.
   string object_name = 3;
 }
@@ -176,14 +203,19 @@ message MsgCopyObject {
 
   // operator defines the account address of the operator who has the CopyObject permission of the object to be deleted.
   string operator = 1;
+
   // src_bucket_name defines the name of the bucket where the object to be copied is located
   string src_bucket_name = 2;
+
   // dst_bucket_name defines the name of the bucket where the object is copied to.
   string dst_bucket_name = 3;
+
   // src_object_name defines the name of the object which to be copied
   string src_object_name = 4;
+
   // dst_object_name defines the name of the object which is copied to
   string dst_object_name = 5;
+
   // primary_sp_approval defines the approval info of the primary SP which indicates that primary sp confirm the user's request.
   common.Approval dst_primary_sp_approval = 6;
 }
@@ -201,8 +233,10 @@ message MsgDeleteObject {
 
   // operator defines the account address of the operator who has the DeleteObject permission of the object to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket where the object which to be deleted is stored.
   string bucket_name = 2;
+
   // object_name defines the name of the object which to be deleted.
   string object_name = 3;
 }
@@ -214,14 +248,17 @@ message MsgDiscontinueObject {
 
   // operator is the sp who wants to stop serving the objects.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket where the object which to be discontinued is stored.
   string bucket_name = 2;
+
   // object_ids are the ids of object info.
   repeated string object_ids = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+
   // the reason for the request.
   string reason = 4;
 }
@@ -233,10 +270,13 @@ message MsgCreateGroup {
 
   // owner defines the account address of group owner who create the group
   string creator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name defines the name of the group. it's not globally unique.
   string group_name = 2;
+
   // member_request defines a list of member which to be add or remove
   repeated string members = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // extra defines extra info for the group
   string extra = 4;
 }
@@ -254,6 +294,7 @@ message MsgDeleteGroup {
 
   // operator defines the account address of the operator who has the DeleteGroup permission of the group to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name defines the name of the group which to be deleted
   string group_name = 2;
 }
@@ -265,12 +306,16 @@ message MsgUpdateGroupMember {
 
   // operator defines the account address of the operator who has the UpdateGroupMember permission of the group.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_owner defines the account address of the group owner
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name defines the name of the group which to be updated
   string group_name = 3;
+
   // members_to_add defines a list of members account address which will be add to the group
   repeated string members_to_add = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // members_to_delete defines a list of members account address which will be remove from the group
   repeated string members_to_delete = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
@@ -282,10 +327,13 @@ message MsgUpdateGroupExtra {
 
   // operator defines the account address of the operator who has the UpdateGroupMember permission of the group.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_owner defines the account address of the group owner
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name defines the name of the group which to be updated
   string group_name = 3;
+
   // extra defines extra info for the group to update
   string extra = 4;
 }
@@ -297,8 +345,10 @@ message MsgLeaveGroup {
 
   // member defines the account address of the member who want to leave the group
   string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_owner defines the owner of the group you want to leave
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // group_name defines the name of the group you want to leave
   string group_name = 3;
 }
@@ -310,14 +360,18 @@ message MsgUpdateBucketInfo {
 
   // operator defines the account address of the operator
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of bucket which you'll update
   string bucket_name = 2;
+
   // charged_read_quota defines the traffic quota that you read from primary sp
   // if read_quota is nil, it means don't change the read_quota
   common.UInt64Value charged_read_quota = 3;
+
   // payment_address defines the account address of the payment account
   // if payment_address is empty, it means don't change the payment_address
   string payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // visibility means the bucket is private or public. if private, only bucket owner or grantee can read it,
   // otherwise every greenfield user can read it.
   VisibilityType visibility = 5;
@@ -330,8 +384,10 @@ message MsgCancelCreateObject {
 
   // operator defines the account address of the operator
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name defines the name of the bucket
   string bucket_name = 2;
+
   // object_name defines the name of the object
   string object_name = 3;
 }
@@ -343,12 +399,16 @@ message MsgPutPolicy {
 
   // operator defines the granter who grant the permission to another principal
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // Principal defines the roles that can grant permissions. Currently, it can be account or group.
   permission.Principal principal = 2;
+
   // resource defines a greenfield standard resource name that can be generated by GRN structure
   string resource = 3;
+
   // statements defines a list of individual statement which describe the detail rules of policy
   repeated permission.Statement statements = 4;
+
   // expiration_time defines the whole expiration time of all the statements.
   // Notices: Its priority is higher than the expiration time inside the Statement
   google.protobuf.Timestamp expiration_time = 7 [
@@ -370,8 +430,10 @@ message MsgDeletePolicy {
 
   // operator defines the granter who grant the permission to another principal
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // Principal defines the roles that can grant permissions. Currently, it can be account or group.
   permission.Principal principal = 2;
+
   // resource defines a greenfield standard resource name that can be generated by GRN structure
   string resource = 3;
 }
@@ -386,16 +448,20 @@ message MsgDeletePolicyResponse {
 
 message MsgMirrorObject {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator defines the account address of the operator who has the DeleteObject permission of the object to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // id defines the unique u256 for object.
   string id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+
   // bucket_name defines the name of the bucket where the object is stored
   string bucket_name = 3;
+
   // object_name defines the name of object
   string object_name = 4;
 }
@@ -404,14 +470,17 @@ message MsgMirrorObjectResponse {}
 
 message MsgMirrorBucket {
   option (cosmos.msg.v1.signer) = "operator";
+
   // creator defines the account address of the grantee who has the DeleteBucket permission of the bucket to be deleted.
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // id defines the unique u256 for bucket.
   string id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+
   // bucket_name defines a globally unique name of bucket
   string bucket_name = 3;
 }
@@ -423,10 +492,13 @@ message MsgUpdateObjectInfo {
 
   // operator defines the account address of the operator
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // bucket_name is the name of the bucket
   string bucket_name = 2;
+
   // object_name defines the name of bucket which you'll update
   string object_name = 3;
+
   // visibility means the object is private or public. if private, only bucket owner or grantee can read it,
   // otherwise every greenfield user can read it.
   VisibilityType visibility = 4;
@@ -436,14 +508,17 @@ message MsgMirrorBucketResponse {}
 
 message MsgMirrorGroup {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator defines the account address of the operator who is the owner of the group
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // id defines the unique u256 for group.
   string id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+
   // group_name defines the name of the group
   string group_name = 3;
 }
@@ -458,7 +533,7 @@ message MsgUpdateParams {
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // params defines the x/storage parameters to update.
-  //
+
   // NOTE: All parameters must be supplied.
   Params params = 2 [(gogoproto.nullable) = false];
 }
@@ -468,3 +543,14 @@ message MsgUpdateParams {
 message MsgUpdateParamsResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
+message MsgMigrateBucket {
+  string creator = 1;
+}
+
+message MsgMigrateBucketResponse {}
+
+message MsgCompleteMigrateBucket {
+  string creator = 1;
+}
+
+message MsgCompleteMigrateBucketResponse {}
