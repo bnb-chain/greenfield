@@ -10,6 +10,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -395,12 +396,12 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, succe
 			return types.ErrGVGNotExist
 		}
 		if gvg.PrimarySpId != primarySPID {
-			return types.ErrSwapoutFailed.Wrapf(
+			return types.ErrSwapOutFailed.Wrapf(
 				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySPID)
 		}
 		for _, spID := range gvg.SecondarySpIds {
 			if spID == successorSPID {
-				return types.ErrSwapoutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSPID, gvg.String())
+				return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSPID, gvg.String())
 			}
 		}
 		gvg.PrimarySpId = successorSPID
@@ -422,13 +423,19 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 			return types.ErrGVGNotExist
 		}
 		if gvg.PrimarySpId == successorSPID {
-			return types.ErrSwapoutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
+			return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
 		}
 		for i, spID := range gvg.SecondarySpIds {
 			if spID == secondarySPID {
 				gvg.SecondarySpIds = append(gvg.SecondarySpIds[:i], gvg.SecondarySpIds[i+1:]...)
 				gvgs = append(gvgs, gvg)
 			}
+			origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+			successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
+			origin.SecondaryCount--
+			successor.SecondaryCount++
+			k.SetGVGStatisticsWithSP(ctx, origin)
+			k.SetGVGStatisticsWithSP(ctx, successor)
 		}
 	}
 	for _, gvg := range gvgs {
@@ -478,4 +485,22 @@ func (k Keeper) BatchSetGVGStatisticsWithinSP(ctx sdk.Context, gvgsStatisticsWit
 	for _, g := range gvgsStatisticsWithinSP {
 		k.SetGVGStatisticsWithSP(ctx, g)
 	}
+}
+
+func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
+	store := ctx.KVStore(k.storeKey)
+
+	prefixStore := prefix.NewStore(store, types.GetGVGFamilyPrefixKey(spID))
+	iter := prefixStore.Iterator(nil, nil)
+	if iter.Valid() {
+		var family types.GlobalVirtualGroupFamily
+		k.cdc.MustUnmarshal(iter.Value(), &family)
+		return types.ErrSPCanNotExit.Wrapf("not swap out from all the family, key: %s", family.String())
+	}
+
+	gvgStat := k.MustGetGVGStatisticsWithinSP(ctx, spID)
+	if gvgStat.SecondaryCount != 0 {
+		return types.ErrSPCanNotExit.Wrapf("not seap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
+	}
+	return nil
 }

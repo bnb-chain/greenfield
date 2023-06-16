@@ -65,6 +65,11 @@ func GetGVGFamilyKey(spID uint32, familyID uint32) []byte {
 	return append(GVGFamilyKey, append(uint32Seq.EncodeSequence(spID), uint32Seq.EncodeSequence(familyID)...)...)
 }
 
+func GetGVGFamilyPrefixKey(spID uint32) []byte {
+	var uint32Seq sequence.Sequence[uint32]
+	return append(GVGFamilyKey, uint32Seq.EncodeSequence(spID)...)
+}
+
 func GetGVGsBindingOnBucketKey(bucketID math.Uint) []byte {
 	var uint256Seq sequence.Sequence[math.Uint]
 	return append(GVGsBindingOnBucketGKey, uint256Seq.EncodeSequence(bucketID)...)
