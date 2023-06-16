@@ -6,7 +6,6 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 
-
 message EventCreateGlobalVirtualGroup {
   uint32 id = 1;
   uint32 family_id = 2;

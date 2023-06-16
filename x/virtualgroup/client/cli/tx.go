@@ -19,6 +19,8 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
+	cmd.AddCommand(CmdStorageProviderExit())
+	cmd.AddCommand(CmdCompleteStorageProviderExit())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

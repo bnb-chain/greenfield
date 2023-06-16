@@ -11,6 +11,7 @@ type SpKeeper interface {
 	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderByFundingAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
+	SetStorageProvider(ctx sdk.Context, sp *sptypes.StorageProvider)
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

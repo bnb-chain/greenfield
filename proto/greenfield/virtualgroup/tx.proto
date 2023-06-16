@@ -1,11 +1,10 @@
 syntax = "proto3";
+
 package greenfield.virtualgroup;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
-
 // this line is used by starport scaffolding # proto/tx/import
-
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "greenfield/common/approval.proto";
@@ -21,12 +20,14 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc SwapOut(MsgSwapOut) returns (MsgSwapOutResponse);
+
   // UpdateParams defines a governance operation for updating the x/virtual module parameters.
   // The authority is defined in the keeper.
-  //
+
   // Since: cosmos-sdk 0.47
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-
+  rpc StorageProviderExit(MsgStorageProviderExit) returns (MsgStorageProviderExitResponse);
+  rpc CompleteStorageProviderExit(MsgCompleteStorageProviderExit) returns (MsgCompleteStorageProviderExitResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -37,7 +38,7 @@ message MsgUpdateParams {
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   // params defines the x/virtualgroup parameters to update.
-  //
+
   // NOTE: All parameters must be supplied.
   Params params = 2 [(gogoproto.nullable) = false];
 }
@@ -83,8 +84,10 @@ message MsgDeposit {
   // funding_address is the account address from which the deposit is made.
   // The funding address must correspond to the funding address of the primary storage provider of the global virtual group.
   string funding_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // global_virtual_group_id is the identifier of the global virtual group.
   uint32 global_virtual_group_id = 2;
+
   // deposit is the amount of tokens being deposited for the global virtual group.
   cosmos.base.v1beta1.Coin deposit = 3 [(gogoproto.nullable) = false];
 }
@@ -97,8 +100,10 @@ message MsgWithdraw {
 
   // funding_address is the account address for withdrawing funds.
   string funding_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // global_virtual_group_id is the identifier of the global virtual group.
   uint32 global_virtual_group_id = 2;
+
   // withdraw is the amount of coins to be withdrawn.
   // The amount needs to be smaller than stored_size * storage_staking_price
   cosmos.base.v1beta1.Coin withdraw = 3 [(gogoproto.nullable) = false];
@@ -111,12 +116,16 @@ message MsgSwapOut {
 
   // sp_address is the account address of the storage provider initiating the swap out.
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // virtual_group_family_id is the identifier of the virtual group family.
   uint32 virtual_group_family_id = 2;
+
   // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
   repeated uint32 global_virtual_group_ids = 3;
+
   // successor_sp_id is the account address of the successor storage provider.
   uint32 successor_sp_id = 4;
+
   // approval includes an expiration time and a signature.
   // The fields to be signed with contains the necessary information of the successor.
   common.Approval successor_approval = 6;
@@ -125,3 +134,24 @@ message MsgSwapOut {
 message MsgSwapOutResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
+message MsgStorageProviderExit {
+  option (cosmos.msg.v1.signer) = "operator_address";
+
+  // sp_address is the account address of the storage provider initiating the swap out.
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgStorageProviderExitResponse {
+
+}
+
+message MsgCompleteStorageProviderExit {
+  option (cosmos.msg.v1.signer) = "operator_address";
+
+  // sp_address is the account address of the storage provider initiating the swap out.
+  string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  string origin_storage_provider_id = 2;
+}
+
+message MsgCompleteStorageProviderExitResponse {}

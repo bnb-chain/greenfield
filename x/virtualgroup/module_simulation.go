@@ -23,7 +23,15 @@ var (
 )
 
 const (
-    // this line is used by starport scaffolding # simapp/module/const
+	opWeightMsgStorageProviderExit = "op_weight_msg_storage_provider_exit"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgStorageProviderExit int = 100
+
+	opWeightMsgCompleteStorageProviderExit = "op_weight_msg_complete_storage_provider_exit"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCompleteStorageProviderExit int = 100
+
+	// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module.
@@ -33,7 +41,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 		accs[i] = acc.Address.String()
 	}
 	virtualgroupGenesis := types.GenesisState{
-		Params:	types.DefaultParams(),
+		Params: types.DefaultParams(),
 		// this line is used by starport scaffolding # simapp/module/genesisState
 	}
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&virtualgroupGenesis)
@@ -51,6 +59,28 @@ func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedP
 func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
 	operations := make([]simtypes.WeightedOperation, 0)
 
+	var weightMsgStorageProviderExit int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgStorageProviderExit, &weightMsgStorageProviderExit, nil,
+		func(_ *rand.Rand) {
+			weightMsgStorageProviderExit = defaultWeightMsgStorageProviderExit
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgStorageProviderExit,
+		virtualgroupsimulation.SimulateMsgStorageProviderExit(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
+	var weightMsgCompleteStorageProviderExit int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCompleteStorageProviderExit, &weightMsgCompleteStorageProviderExit, nil,
+		func(_ *rand.Rand) {
+			weightMsgCompleteStorageProviderExit = defaultWeightMsgCompleteStorageProviderExit
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgCompleteStorageProviderExit,
+		virtualgroupsimulation.SimulateMsgCompleteStorageProviderExit(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
 	// this line is used by starport scaffolding # simapp/module/operation
 
 	return operations
@@ -59,6 +89,22 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 // ProposalMsgs returns msgs used for governance proposals for simulations.
 func (am AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
 	return []simtypes.WeightedProposalMsg{
-	    // this line is used by starport scaffolding # simapp/module/OpMsg
+		simulation.NewWeightedProposalMsg(
+			opWeightMsgStorageProviderExit,
+			defaultWeightMsgStorageProviderExit,
+			func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) sdk.Msg {
+				virtualgroupsimulation.SimulateMsgStorageProviderExit(am.accountKeeper, am.bankKeeper, am.keeper)
+				return nil
+			},
+		),
+		simulation.NewWeightedProposalMsg(
+			opWeightMsgCompleteStorageProviderExit,
+			defaultWeightMsgCompleteStorageProviderExit,
+			func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) sdk.Msg {
+				virtualgroupsimulation.SimulateMsgCompleteStorageProviderExit(am.accountKeeper, am.bankKeeper, am.keeper)
+				return nil
+			},
+		),
+		// this line is used by starport scaffolding # simapp/module/OpMsg
 	}
 }
