@@ -544,7 +544,15 @@ message MsgUpdateParamsResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
 message MsgMigrateBucket {
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "operator";
+
+  string operator = 1;
+
+  string bucket_name = 2;
+
+  string dst_primary_sp_id = 3;
+
+  common.Approval dst_primary_sp_approval = 4;
 }
 
 message MsgMigrateBucketResponse {}

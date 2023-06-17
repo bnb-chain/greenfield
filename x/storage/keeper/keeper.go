@@ -13,6 +13,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
+	gogoprototypes "github.com/cosmos/gogoproto/types"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -114,7 +115,13 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
+	var createBucketExtends *types.CreateBucketApprovalExtends
+	err = gogoprototypes.UnmarshalAny(opts.PrimarySpApproval.Extends, createBucketExtends)
+	if err != nil {
+		return sdkmath.ZeroUint(), err
+	}
+
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, createBucketExtends.GlobalVirtualGroupFamilyId)
 	if !found {
 		return sdkmath.ZeroUint(), virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}

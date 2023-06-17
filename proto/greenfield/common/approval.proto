@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package greenfield.common;
 
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+
 option go_package = "github.com/bnb-chain/greenfield/types/common";
 
 // Approval is the signature information returned by the Primary Storage Provider (SP) to the user
@@ -12,7 +15,6 @@ message Approval {
   uint64 expired_height = 1;
   // The signature needs to conform to the EIP 712 specification.
   bytes sig = 2;
-  // global_virtual_group_family_id defines the unique id of gvg family
-  // This is only used in the approval of CreateBucket
-  uint32 global_virtual_group_family_id = 3;
+  // extends use to add some extends field to the approval
+  google.protobuf.Any extends = 3 [(gogoproto.customtype) = "github.com/cosmos/gogoproto/types.Any"];
 }

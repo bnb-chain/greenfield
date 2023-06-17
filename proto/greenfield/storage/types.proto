@@ -1,6 +1,7 @@
 syntax = "proto3";
 package greenfield.storage;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "greenfield/payment/base.proto";
@@ -170,4 +171,12 @@ message DeleteInfo {
   Ids bucket_ids = 1;
   Ids object_ids = 2;
   Ids group_ids = 3;
+}
+
+message CreateBucketApprovalExtends {
+  uint32 global_virtual_group_family_id = 1;
+}
+
+message MigrationBucketApprovalExtends {
+  cosmos.base.v1beta1.Coin amount = 1 [(gogoproto.nullable) = false];
 }

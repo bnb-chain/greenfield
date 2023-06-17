@@ -67,4 +67,3 @@ message GVGStatisticsWithinSP {
   uint32 storage_provider_id = 1;
   uint32 secondary_count = 3;
 }
-
