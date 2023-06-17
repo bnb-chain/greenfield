@@ -247,21 +247,21 @@ func (s *TestSuite) TestGetBucketBill() {
 
 	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo)
 	s.Require().NoError(err)
-	s.Require().NoError(err)
-	readRate = price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
-	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
-	s.Require().Equal(flows.Flows[0].ToAddress, gvgFamily.VirtualPaymentAddress)
-	s.Require().Equal(flows.Flows[0].Rate, readRate.Add(primaryStoreRate))
 
 	gvg1StoreSize := bucketInfo.BillingInfo.LvgObjectsSize[0].TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
 	gvg1StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg1StoreSize)).TruncateInt()
-	s.Require().Equal(flows.Flows[1].ToAddress, gvg1.VirtualPaymentAddress)
-	s.Require().Equal(flows.Flows[1].Rate, gvg1StoreRate)
+	s.Require().Equal(flows.Flows[0].ToAddress, gvg1.VirtualPaymentAddress)
+	s.Require().Equal(flows.Flows[0].Rate, gvg1StoreRate)
 
 	gvg2StoreSize := bucketInfo.BillingInfo.LvgObjectsSize[1].TotalChargeSize * uint64(len(gvg2.SecondarySpIds))
 	gvg2StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg2StoreSize)).TruncateInt()
-	s.Require().Equal(flows.Flows[2].ToAddress, gvg2.VirtualPaymentAddress)
-	s.Require().Equal(flows.Flows[2].Rate, gvg2StoreRate)
+	s.Require().Equal(flows.Flows[1].ToAddress, gvg2.VirtualPaymentAddress)
+	s.Require().Equal(flows.Flows[1].Rate, gvg2StoreRate)
+
+	readRate = price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
+	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
+	s.Require().Equal(flows.Flows[2].ToAddress, gvgFamily.VirtualPaymentAddress)
+	s.Require().Equal(flows.Flows[2].Rate, readRate.Add(primaryStoreRate))
 
 	totalRate := readRate.Add(primaryStoreRate).Add(gvg1StoreRate).Add(gvg2StoreRate)
 	taxPoolRate = s.paymentKeeper.GetParams(s.ctx).ValidatorTaxRate.MulInt(totalRate).TruncateInt()
