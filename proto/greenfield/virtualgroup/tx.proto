@@ -20,6 +20,8 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
   rpc SwapOut(MsgSwapOut) returns (MsgSwapOutResponse);
+  rpc WithdrawFromGVGFamily(MsgWithdrawFromGVGFamily) returns (MsgWithdrawFromGVGFamilyResponse);
+  rpc WithdrawFromGVG(MsgWithdrawFromGVG) returns (MsgWithdrawFromGVGResponse);
 
   // UpdateParams defines a governance operation for updating the x/virtual module parameters.
   // The authority is defined in the keeper.
@@ -155,3 +157,29 @@ message MsgCompleteStorageProviderExit {
 }
 
 message MsgCompleteStorageProviderExitResponse {}
+
+message MsgWithdrawFromGVGFamily {
+  // option (cosmos.msg.v1.signer) specifies the signer of the message.
+  option (cosmos.msg.v1.signer) = "funding_address";
+
+  // funding_address is the account address for withdrawing funds.
+  string funding_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // global_virtual_group_id is the identifier of the global virtual group.
+  uint32 global_virtual_group_family_id = 2;
+}
+
+message MsgWithdrawFromGVGFamilyResponse {}
+
+message MsgWithdrawFromGVG {
+  // option (cosmos.msg.v1.signer) specifies the signer of the message.
+  option (cosmos.msg.v1.signer) = "funding_address";
+
+  // funding_address is the account address for withdrawing funds.
+  string funding_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // global_virtual_group_id is the identifier of the global virtual group.
+  uint32 global_virtual_group_id = 2;
+}
+
+message MsgWithdrawFromGVGResponse {}

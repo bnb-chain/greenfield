@@ -28,6 +28,7 @@ type (
 		spKeeper      types.SpKeeper
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
+		paymentKeeper types.PaymentKeeper
 		// sequence
 		lvgSequence       sequence.Sequence[uint32]
 		gvgSequence       sequence.Sequence[uint32]
@@ -43,6 +44,7 @@ func NewKeeper(
 	spKeeper types.SpKeeper,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	paymentKeeper types.PaymentKeeper,
 ) *Keeper {
 
 	k := Keeper{
@@ -53,6 +55,7 @@ func NewKeeper(
 		spKeeper:      spKeeper,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
+		paymentKeeper: paymentKeeper,
 	}
 
 	k.lvgSequence = sequence.NewSequence[uint32](types.LVGSequencePrefix)
@@ -403,6 +406,12 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 			}
 		}
 
+		// settlement
+		err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
+		if err != nil {
+			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
+		}
+
 		// swap deposit
 		if !gvg.TotalDeposit.IsZero() {
 			// send back deposit
@@ -439,6 +448,13 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 		if gvg.PrimarySpId == successorSPID {
 			return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
 		}
+
+		// settlement
+		err := k.SettleAndDistributeGVG(ctx, gvg)
+		if err != nil {
+			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
+		}
+
 		for i, spID := range gvg.SecondarySpIds {
 			if spID == secondarySPID {
 				gvg.SecondarySpIds[i] = successorSPID
