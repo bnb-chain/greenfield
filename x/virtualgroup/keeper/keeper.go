@@ -431,7 +431,6 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 }
 
 func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSPID uint32, gvgIDs []uint32) error {
-	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range gvgIDs {
 		gvg, found := k.GetGVG(ctx, gvgID)
 		if !found {
@@ -442,19 +441,17 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 		}
 		for i, spID := range gvg.SecondarySpIds {
 			if spID == secondarySPID {
-				gvg.SecondarySpIds = append(gvg.SecondarySpIds[:i], gvg.SecondarySpIds[i+1:]...)
-				gvgs = append(gvgs, gvg)
+				gvg.SecondarySpIds[i] = successorSPID
+				origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+				successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
+				origin.SecondaryCount--
+				successor.SecondaryCount++
+				k.SetGVGStatisticsWithSP(ctx, origin)
+				k.SetGVGStatisticsWithSP(ctx, successor)
+				k.SetGVG(ctx, gvg)
+				break
 			}
-			origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
-			successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
-			origin.SecondaryCount--
-			successor.SecondaryCount++
-			k.SetGVGStatisticsWithSP(ctx, origin)
-			k.SetGVGStatisticsWithSP(ctx, successor)
 		}
-	}
-	for _, gvg := range gvgs {
-		k.SetGVG(ctx, gvg)
 	}
 	return nil
 }
