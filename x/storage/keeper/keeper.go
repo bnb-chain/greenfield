@@ -6,6 +6,11 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	"github.com/bnb-chain/greenfield/types/resource"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -13,13 +18,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
-	gogoprototypes "github.com/cosmos/gogoproto/types"
-
-	"github.com/bnb-chain/greenfield/internal/sequence"
-	"github.com/bnb-chain/greenfield/types/resource"
-	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type (
@@ -115,13 +113,7 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
-	var createBucketExtends *types.CreateBucketApprovalExtends
-	err = gogoprototypes.UnmarshalAny(opts.PrimarySpApproval.Extends, createBucketExtends)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
-	}
-
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, createBucketExtends.GlobalVirtualGroupFamilyId)
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
 	if !found {
 		return sdkmath.ZeroUint(), virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}
