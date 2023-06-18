@@ -126,8 +126,9 @@ func TestAutoForceSettle(t *testing.T) {
 	userStreamRecord, found = keeper.GetStreamRecord(ctx, user)
 	t.Logf("user stream record: %+v", userStreamRecord)
 	require.True(t, found)
-	require.Equal(t, 1, len(userStreamRecord.OutFlows))
-	require.Equal(t, userStreamRecord.OutFlows[0].ToAddress, sp.String())
+	outFlows := keeper.GetOutFlows(ctx, user)
+	require.Equal(t, 1, len(outFlows))
+	require.Equal(t, outFlows[0].ToAddress, sp.String())
 	spStreamRecord, found := keeper.GetStreamRecord(ctx, sp)
 	t.Logf("sp stream record: %+v", spStreamRecord)
 	require.True(t, found)
@@ -160,13 +161,13 @@ func TestAutoForceSettle(t *testing.T) {
 	autoSettleQueue2 := keeper.GetAllAutoSettleRecord(ctx)
 	t.Logf("auto settle queue: %+v", autoSettleQueue2)
 	require.Equal(t, autoSettleQueue[0].Timestamp+100, autoSettleQueue2[0].Timestamp)
-	// reverve time - forced settle time - 1 day + 101s pass
+	// reserve time - forced settle time - 1 day + 101s pass
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.VersionedParams.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
 	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)
 	usr, _ := keeper.GetStreamRecord(ctx, user)
-	err = keeper.UpdateStreamRecord(ctx, usr, change) //TODO: force settlement here
+	keeper.AutoSettle(ctx)
 	require.NoError(t, err)
 	keeper.SetStreamRecord(ctx, usr)
 	usrAfterForceSettle, found := keeper.GetStreamRecord(ctx, user)

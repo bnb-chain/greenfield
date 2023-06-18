@@ -30,5 +30,3 @@ message OutFlow {
   // status
   OutFlowStatus status = 3;
 }
-
-
