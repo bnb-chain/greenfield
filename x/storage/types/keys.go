@@ -54,8 +54,9 @@ var (
 	//stale permission of these resources needs to be deleted.
 	// it is stored in transient store
 	CurrentBlockDeleteStalePoliciesKey = []byte{0x51}
+	DeleteStalePoliciesPrefix          = []byte{0x52}
 
-	DeleteStalePoliciesPrefix = []byte{0x52}
+	MigrateBucketPrefix = []byte{0x61}
 )
 
 // GetBucketKey return the bucket name store key
@@ -136,4 +137,9 @@ func GetDeleteStalePoliciesKey(height int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(height))
 	return append(DeleteStalePoliciesPrefix, bz...)
+}
+
+func GetMigrationBucketKey(bucketID math.Uint) []byte {
+	var seq sequence.Sequence[math.Uint]
+	return append(MigrateBucketPrefix, seq.EncodeSequence(bucketID)...)
 }

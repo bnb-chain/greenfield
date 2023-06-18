@@ -130,7 +130,7 @@ message MsgSwapOut {
 
   // approval includes an expiration time and a signature.
   // The fields to be signed with contains the necessary information of the successor.
-  common.Approval successor_approval = 6;
+  common.Approval successor_sp_approval = 6;
 }
 
 message MsgSwapOutResponse {}
@@ -139,7 +139,6 @@ message MsgSwapOutResponse {}
 message MsgStorageProviderExit {
   option (cosmos.msg.v1.signer) = "operator_address";
 
-  // sp_address is the account address of the storage provider initiating the swap out.
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
@@ -148,7 +147,6 @@ message MsgStorageProviderExitResponse {}
 message MsgCompleteStorageProviderExit {
   option (cosmos.msg.v1.signer) = "operator_address";
 
-  // sp_address is the account address of the storage provider initiating the swap out.
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   uint32 origin_storage_provider_id = 2;

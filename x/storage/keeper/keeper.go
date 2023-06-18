@@ -634,6 +634,16 @@ func (k Keeper) SealObject(
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
 
+	// check the signature of secondary sps
+	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
+	for i, sspID := range gvg.SecondarySpIds {
+		sr := types.NewSecondarySpSignDoc(sspID, objectInfo.Id, objectInfo.Checksums[i+1])
+		err := k.VerifySPAndSignature(ctx, sspID, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
+		if err != nil {
+			return err
+		}
+	}
+
 	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)
 	if err != nil {
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
@@ -1677,4 +1687,42 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 		}
 	}
 	return deletedTotal, true
+}
+
+func (k Keeper) MigrationBucket(ctx sdk.Context, srcSP, dstSP *sptypes.StorageProvider, bucketInfo *types.BucketInfo) error {
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetMigrationBucketKey(bucketInfo.Id)
+	if store.Has(key) {
+		panic("migration bucket key is existed.")
+	}
+
+	migrationBucketInfo := &types.MigrationBucketInfo{
+		SrcSpId:                       srcSP.Id,
+		DstSpId:                       dstSP.Id,
+		SrcGlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
+		BucketId:                      bucketInfo.Id,
+	}
+
+	bz := k.cdc.MustMarshal(migrationBucketInfo)
+	store.Set(key, bz)
+	return nil
+}
+
+func (k Keeper) GetMigrationBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) (*types.MigrationBucketInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetMigrationBucketKey(bucketID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var migrationBucketInfo types.MigrationBucketInfo
+	k.cdc.MustUnmarshal(bz, &migrationBucketInfo)
+	return &migrationBucketInfo, true
+}
+
+func (k Keeper) DeleteMigrationBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetMigrationBucketKey(bucketID))
 }

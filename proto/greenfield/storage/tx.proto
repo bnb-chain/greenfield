@@ -550,7 +550,7 @@ message MsgMigrateBucket {
 
   string bucket_name = 2;
 
-  string dst_primary_sp_id = 3;
+  uint32 dst_primary_sp_id = 3;
 
   common.Approval dst_primary_sp_approval = 4;
 }
@@ -558,7 +558,13 @@ message MsgMigrateBucket {
 message MsgMigrateBucketResponse {}
 
 message MsgCompleteMigrateBucket {
-  string creator = 1;
+  option (cosmos.msg.v1.signer) = "operator";
+
+  string operator = 1;
+
+  uint32 global_virtual_group_family_id =2;
+
+  string bucket_name = 3;
 }
 
 message MsgCompleteMigrateBucketResponse {}

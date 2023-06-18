@@ -45,4 +45,6 @@ var (
 
 	ErrKeyNotExist     = errors.Register(ModuleName, 3201, "DeletePermissionKey not exist")
 	ErrInvalidResource = errors.Register(ModuleName, 3202, "invalid resource type")
+
+	ErrMigtationBucketFailed = errors.Register(ModuleName, 3203, "migrate bucket failed.")
 )

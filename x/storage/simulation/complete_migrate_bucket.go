@@ -19,7 +19,7 @@ func SimulateMsgCompleteMigrateBucket(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgCompleteMigrateBucket{
-			Creator: simAccount.Address.String(),
+			Operator: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the CompleteMigrateBucket simulation
