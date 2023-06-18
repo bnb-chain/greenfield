@@ -3,7 +3,7 @@ package greenfield.payment;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
+import "greenfield/payment/out_flow.proto";
 import "greenfield/payment/stream_record.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
@@ -53,8 +53,6 @@ message EventStreamRecordUpdate {
   StreamAccountStatus status = 7;
   // the unix timestamp when the stream account will be settled
   int64 settle_timestamp = 8;
-  // the accumulated outflow rates of the stream account
-  repeated OutFlow out_flows = 9 [(gogoproto.nullable) = false];
 }
 
 // EventForceSettle may be emitted on all Msgs and EndBlocker when a payment account's

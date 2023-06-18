@@ -4,7 +4,8 @@ package greenfield.storage;
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
+import "greenfield/payment/out_flow.proto";
+import "greenfield/payment/stream_record.proto";
 import "greenfield/storage/common.proto";
 
 // this line is used by starport scaffolding # proto/tx/import

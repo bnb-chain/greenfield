@@ -331,7 +331,11 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			count++
 		}
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
-		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
+		frozenNetFlowRate := totalRate
+		if streamRecord.FrozenNetflowRate != nil {
+			frozenNetFlowRate = frozenNetFlowRate.Add(*streamRecord.FrozenNetflowRate)
+		}
+		streamRecord.FrozenNetflowRate = &frozenNetFlowRate
 		k.SetStreamRecord(ctx, streamRecord)
 	}
 }
@@ -356,7 +360,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	fmt.Println("streamRecord.OutFlowCount", streamRecord.OutFlowCount, "params.MaxAutoResumeFlowCount", params.MaxAutoResumeFlowCount)
 	if streamRecord.OutFlowCount <= params.MaxAutoResumeFlowCount { //resume directly
 		streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
-		streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(streamRecord.FrozenNetflowRate).Int64() - int64(forcedSettleTime)
+		streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(*streamRecord.FrozenNetflowRate).Int64() - int64(forcedSettleTime)
 		streamRecord.NetflowRate = streamRecord.FrozenNetflowRate.Neg()
 		streamRecord.BufferBalance = expectedBalanceToResume
 		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(expectedBalanceToResume)
