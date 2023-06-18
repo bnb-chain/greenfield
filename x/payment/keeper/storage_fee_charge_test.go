@@ -166,7 +166,7 @@ func TestAutoForceSettle(t *testing.T) {
 	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)
 	usr, _ := keeper.GetStreamRecord(ctx, user)
-	err = keeper.UpdateStreamRecord(ctx, usr, change, true)
+	err = keeper.UpdateStreamRecord(ctx, usr, change) //TODO: force settlement here
 	require.NoError(t, err)
 	keeper.SetStreamRecord(ctx, usr)
 	usrAfterForceSettle, found := keeper.GetStreamRecord(ctx, user)

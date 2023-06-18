@@ -40,6 +40,6 @@ type BankKeeper interface {
 type PaymentKeeper interface {
 	GetParams(ctx sdk.Context) (p paymenttypes.Params)
 	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
-	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange, autoSettle bool) error
+	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
 	SetStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord)
 }

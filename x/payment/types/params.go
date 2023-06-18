@@ -13,14 +13,16 @@ var (
 	KeyReserveTime              = []byte("ReserveTime")
 	KeyForcedSettleTime         = []byte("ForcedSettleTime")
 	KeyPaymentAccountCountLimit = []byte("PaymentAccountCountLimit")
-	KeyMaxAutoForceSettleNum    = []byte("MaxAutoForceSettleNum")
+	KeyMaxAutoSettleFlowCount   = []byte("MaxAutoSettleFlowCount")
+	KeyMaxAutoResumeFlowCount   = []byte("MaxAutoResumeFlowCount")
 	KeyFeeDenom                 = []byte("FeeDenom")
 	KeyValidatorTaxRate         = []byte("ValidatorTaxRate")
 
 	DefaultReserveTime              uint64  = 180 * 24 * 60 * 60 // 180 days
 	DefaultForcedSettleTime         uint64  = 24 * 60 * 60       // 1 day
 	DefaultPaymentAccountCountLimit uint64  = 200
-	DefaultMaxAutoForceSettleNum    uint64  = 100
+	DefaultMaxAutoSettleFlowCount   uint64  = 100
+	DefaultMaxAutoResumeFlowCount   uint64  = 100
 	DefaultFeeDenom                 string  = "BNB"
 	DefaultValidatorTaxRate         sdk.Dec = sdk.NewDecWithPrec(1, 2) // 1%
 )
@@ -35,7 +37,8 @@ func NewParams(
 	reserveTime uint64,
 	forcedSettleTime uint64,
 	paymentAccountCountLimit uint64,
-	maxAutoForceSettleNum uint64,
+	MaxAutoSettleFlowCount uint64,
+	maxAutoResumeFlowCount uint64,
 	feeDenom string,
 	validatorTaxRate sdk.Dec,
 ) Params {
@@ -43,7 +46,8 @@ func NewParams(
 		ReserveTime:              reserveTime,
 		ForcedSettleTime:         forcedSettleTime,
 		PaymentAccountCountLimit: paymentAccountCountLimit,
-		MaxAutoForceSettleNum:    maxAutoForceSettleNum,
+		MaxAutoSettleFlowCount:   MaxAutoSettleFlowCount,
+		MaxAutoResumeFlowCount:   maxAutoResumeFlowCount,
 		FeeDenom:                 feeDenom,
 		ValidatorTaxRate:         validatorTaxRate,
 	}
@@ -55,7 +59,8 @@ func DefaultParams() Params {
 		DefaultReserveTime,
 		DefaultForcedSettleTime,
 		DefaultPaymentAccountCountLimit,
-		DefaultMaxAutoForceSettleNum,
+		DefaultMaxAutoSettleFlowCount,
+		DefaultMaxAutoResumeFlowCount,
 		DefaultFeeDenom,
 		DefaultValidatorTaxRate,
 	)
@@ -67,7 +72,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyReserveTime, &p.ReserveTime, validateReserveTime),
 		paramtypes.NewParamSetPair(KeyForcedSettleTime, &p.ForcedSettleTime, validateForcedSettleTime),
 		paramtypes.NewParamSetPair(KeyPaymentAccountCountLimit, &p.PaymentAccountCountLimit, validatePaymentAccountCountLimit),
-		paramtypes.NewParamSetPair(KeyMaxAutoForceSettleNum, &p.MaxAutoForceSettleNum, validateMaxAutoForceSettleNum),
+		paramtypes.NewParamSetPair(KeyMaxAutoSettleFlowCount, &p.MaxAutoSettleFlowCount, validateMaxAutoSettleFlowCount),
+		paramtypes.NewParamSetPair(KeyMaxAutoResumeFlowCount, &p.MaxAutoResumeFlowCount, validateMaxAutoResumeFlowCount),
 		paramtypes.NewParamSetPair(KeyFeeDenom, &p.FeeDenom, validateFeeDenom),
 		paramtypes.NewParamSetPair(KeyValidatorTaxRate, &p.ValidatorTaxRate, validateValidatorTaxRate),
 	}
@@ -87,7 +93,11 @@ func (p Params) Validate() error {
 		return err
 	}
 
-	if err := validatePaymentAccountCountLimit(p.MaxAutoForceSettleNum); err != nil {
+	if err := validateMaxAutoSettleFlowCount(p.MaxAutoSettleFlowCount); err != nil {
+		return err
+	}
+
+	if err := validateMaxAutoResumeFlowCount(p.MaxAutoResumeFlowCount); err != nil {
 		return err
 	}
 
@@ -142,15 +152,29 @@ func validatePaymentAccountCountLimit(v interface{}) error {
 	return nil
 }
 
-// validateMaxAutoForceSettleNum validates the MaxAutoForceSettleNum param
-func validateMaxAutoForceSettleNum(v interface{}) error {
-	maxAutoForceSettleNum, ok := v.(uint64)
+// validateMaxAutoSettleFlowCount validates the MaxAutoSettleFlowCount param
+func validateMaxAutoSettleFlowCount(v interface{}) error {
+	maxAutoSettleFlowCount, ok := v.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if maxAutoForceSettleNum <= 0 {
-		return fmt.Errorf("max auto force settle num must be positive")
+	if maxAutoSettleFlowCount <= 0 {
+		return fmt.Errorf("max force settle flow count must be positive")
+	}
+
+	return nil
+}
+
+// validateMaxAutoResumeFlowCount validates the MaxAutoResumeFlowCount param
+func validateMaxAutoResumeFlowCount(v interface{}) error {
+	maxAutoResumeFlowCount, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if maxAutoResumeFlowCount <= 0 {
+		return fmt.Errorf("max auto resume flow count must be positive")
 	}
 
 	return nil

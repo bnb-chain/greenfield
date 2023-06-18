@@ -166,22 +166,6 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get new bucket bill failed: %w", err)
 	}
 
-	fmt.Println("prevBill--------------------")
-	fmt.Println(prevBill.From.String())
-	for _, f := range prevBill.Flows {
-		fmt.Println("\t", f.ToAddress)
-		fmt.Println("\t", f.Rate)
-	}
-	fmt.Println("prevBill--------------------")
-
-	fmt.Println("newBill--------------------")
-	fmt.Println(newBill.From.String())
-	for _, f := range newBill.Flows {
-		fmt.Println("\t", f.ToAddress)
-		fmt.Println("\t", f.Rate)
-	}
-	fmt.Println("newBill--------------------")
-
 	// charge according to bill change
 	err = k.ChargeAccordingToBillChange(ctx, prevBill, newBill)
 	if err != nil {
@@ -365,25 +349,4 @@ func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (si
 	} else {
 		return payloadSize, nil
 	}
-}
-
-func (k Keeper) SettleGVGFamily(ctx sdk.Context, spID, familyID uint32) error {
-	family, found := k.virtualGroupKeeper.GetGVGFamily(ctx, spID, familyID)
-	if !found {
-		return fmt.Errorf("fail to find family: %d", familyID)
-	}
-
-	paymentAddress := sdk.MustAccAddressFromHex(family.GetVirtualPaymentAddress())
-	streamRecord, found := k.paymentKeeper.GetStreamRecord(ctx, paymentAddress)
-	if !found {
-		return nil
-	}
-
-	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddress)
-	err := k.paymentKeeper.UpdateStreamRecord(ctx, streamRecord, change, true)
-	if err != nil {
-		return fmt.Errorf("fail to settle gvg family: %d, err: %s", familyID, err.Error())
-	}
-
-	return nil
 }

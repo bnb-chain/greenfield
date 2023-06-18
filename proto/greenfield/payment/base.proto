@@ -6,6 +6,16 @@ import "gogoproto/gogo.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
+// OutFlowStatus defines the status of a out flow
+enum OutFlowStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // OUT_FLOW_STATUS_ACTIVE defines the active status of a out flow.
+  OUT_FLOW_STATUS_ACTIVE = 0;
+  // OUT_FLOW_STATUS_FROZEN defines the frozen status of a out flow.
+  OUT_FLOW_STATUS_FROZEN = 1;
+}
+
 // OutFlow defines the accumulative outflow stream rate in BNB
 // from a stream account to a Storage Provider
 message OutFlow {
@@ -17,6 +27,8 @@ message OutFlow {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // status
+  OutFlowStatus status = 3;
 }
 
 // StreamAccountStatus defines the status of a stream account

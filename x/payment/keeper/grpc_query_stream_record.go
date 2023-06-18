@@ -59,5 +59,7 @@ func (k Keeper) StreamRecord(c context.Context, req *types.QueryGetStreamRecordR
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
+	val.OutFlows = k.GetOutFlows(ctx, account)
+
 	return &types.QueryGetStreamRecordResponse{StreamRecord: *val}, nil
 }

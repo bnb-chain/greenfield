@@ -23,7 +23,7 @@ func (k Keeper) SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, famil
 	}
 
 	change := paymenttypes.NewDefaultStreamRecordChangeWithAddr(paymentAddress).WithStaticBalanceChange(totalBalance.Neg())
-	err := k.paymentKeeper.UpdateStreamRecord(ctx, streamRecord, change, false)
+	err := k.paymentKeeper.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return fmt.Errorf("fail to settle gvg family: %d, err: %s", family.Id, err.Error())
 	}
@@ -60,7 +60,7 @@ func (k Keeper) SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtual
 	}
 
 	change := paymenttypes.NewDefaultStreamRecordChangeWithAddr(paymentAddress).WithStaticBalanceChange(totalBalance)
-	err := k.paymentKeeper.UpdateStreamRecord(ctx, streamRecord, change, true)
+	err := k.paymentKeeper.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return fmt.Errorf("fail to settle gvg gvg: %d, err: %s", gvg.Id, err.Error())
 	}

@@ -45,4 +45,12 @@ message StreamRecord {
   int64 settle_timestamp = 8;
   // the accumulated outflow rates of the stream account
   repeated OutFlow out_flows = 9 [(gogoproto.nullable) = false];
+  // the count of out flows
+  uint64 out_flow_count = 10;
+  // the frozen netflow rate, which is used when resuming stream account
+  string frozen_netflow_rate = 11 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
