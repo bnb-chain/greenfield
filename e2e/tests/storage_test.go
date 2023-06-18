@@ -496,7 +496,7 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
 	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
-	userTaxRate := paymentParams.Params.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
+	userTaxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
 	userTotalRate := readChargeRate.Add(userTaxRate)
 	s.Require().Equal(userStreamRecord.NetflowRate.Abs(), userTotalRate)
 	expectedOutFlows := []paymenttypes.OutFlow{
@@ -564,11 +564,12 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	secondaryStorePrice := queryGetSecondarySpStorePriceByTime.SecondarySpStorePrice.StorePrice
 	chargeSize := s.GetChargeSize(queryHeadObjectResponse.ObjectInfo.PayloadSize)
 	expectedChargeRate := primaryStorePrice.Add(secondaryStorePrice.MulInt64(6)).MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt()
-	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(paymentParams.Params.ReserveTime))
+	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(paymentParams.Params.VersionedParams.ReserveTime))
 
 	streamRecordsAfterCreateObject := s.GetStreamRecords(streamAddresses)
 	s.T().Logf("streamRecordsAfterCreateObject %s", core.YamlString(streamRecordsAfterCreateObject))
 	userStreamAccountAfterCreateObj := streamRecordsAfterCreateObject.User
+
 	s.Require().Equal(expectedLockedBalance.String(), userStreamAccountAfterCreateObj.LockBalance.String())
 
 	// seal object
@@ -693,7 +694,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
-	reserveTime := paymentParams.Params.ReserveTime
+	reserveTime := paymentParams.Params.VersionedParams.ReserveTime
 	forcedSettleTime := paymentParams.Params.ForcedSettleTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr: sp.OperatorKey.GetAddr().String(),
@@ -702,7 +703,7 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := paymentParams.Params.ValidatorTaxRate
+	taxRateParam := paymentParams.Params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
 	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
@@ -1799,6 +1800,7 @@ func (s *StorageTestSuite) TestUpdateParams() {
 	// 5. wait a voting period and confirm that the proposal success.
 	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
 	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(1 * time.Second)
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)

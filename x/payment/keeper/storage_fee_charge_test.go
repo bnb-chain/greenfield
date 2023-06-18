@@ -107,7 +107,7 @@ func TestAutoForceSettle(t *testing.T) {
 	user := sample.RandAccAddress()
 	rate := sdkmath.NewInt(100)
 	sp := sample.RandAccAddress()
-	userInitBalance := sdkmath.NewInt(int64(100*params.ReserveTime) + 1) // just enough for reserve
+	userInitBalance := sdkmath.NewInt(int64(100*params.VersionedParams.ReserveTime) + 1) // just enough for reserve
 	// init balance
 	streamRecordChanges := []types.StreamRecordChange{
 		*types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userInitBalance),
@@ -139,7 +139,7 @@ func TestAutoForceSettle(t *testing.T) {
 	t.Logf("auto settle queue: %+v", autoSettleQueue)
 	require.Equal(t, len(autoSettleQueue), 1)
 	require.Equal(t, autoSettleQueue[0].Addr, user.String())
-	require.Equal(t, autoSettleQueue[0].Timestamp, startTime+int64(params.ReserveTime)-int64(params.ForcedSettleTime))
+	require.Equal(t, autoSettleQueue[0].Timestamp, startTime+int64(params.VersionedParams.ReserveTime)-int64(params.ForcedSettleTime))
 	// 1 day pass
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(86400) * time.Second))
 	// update and deposit to user for extra 100s
@@ -161,7 +161,7 @@ func TestAutoForceSettle(t *testing.T) {
 	t.Logf("auto settle queue: %+v", autoSettleQueue2)
 	require.Equal(t, autoSettleQueue[0].Timestamp+100, autoSettleQueue2[0].Timestamp)
 	// reverve time - forced settle time - 1 day + 101s pass
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
+	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.VersionedParams.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
 	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)

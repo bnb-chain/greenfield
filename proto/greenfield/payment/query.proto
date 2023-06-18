@@ -24,6 +24,11 @@ service Query {
     option (google.api.http).get = "/greenfield/payment/params";
   }
 
+  // ParamsByTimestamp queries the parameters of the module.
+  rpc ParamsByTimestamp(QueryParamsByTimestampRequest) returns (QueryParamsByTimestampResponse) {
+    option (google.api.http).get = "/greenfield/payment/params/{timestamp}";
+  }
+
   // Queries a StreamRecord by index.
   rpc OutFlows(QueryOutFlowsRequest) returns (QueryOutFlowsResponse) {
     option (google.api.http).get = "/greenfield/payment/out_flows/{account}";
@@ -80,6 +85,18 @@ message QueryParamsRequest {}
 
 // QueryParamsResponse is response type for the Query/Params RPC method.
 message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryParamsByTimestampRequest is request type for the Query/ParamsByTimestamp RPC method with timestamp.
+message QueryParamsByTimestampRequest {
+  // the timestamp of the block time you want to query
+  int64 timestamp = 1;
+}
+
+// QueryParamsByTimestampResponse is response type for the Query/ParamsByTimestamp RPC method with timestamp.
+message QueryParamsByTimestampResponse {
   // params holds all the parameters of this module.
   Params params = 1 [(gogoproto.nullable) = false];
 }

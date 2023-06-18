@@ -149,7 +149,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(change.RateChange)
 		newBufferBalance := sdkmath.ZeroInt()
 		if streamRecord.NetflowRate.IsNegative() {
-			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(params.ReserveTime))
+			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(params.VersionedParams.ReserveTime))
 		}
 		if !newBufferBalance.Equal(streamRecord.BufferBalance) {
 			streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(newBufferBalance).Add(streamRecord.BufferBalance)
@@ -346,7 +346,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	}
 	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(depositBalance)
 	params := k.GetParams(ctx)
-	reserveTime := params.ReserveTime
+	reserveTime := params.VersionedParams.ReserveTime
 	forcedSettleTime := params.ForcedSettleTime
 
 	expectedBalanceToResume := streamRecord.FrozenNetflowRate.Mul(sdkmath.NewIntFromUint64(reserveTime))

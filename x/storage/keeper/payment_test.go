@@ -121,7 +121,7 @@ func (s *TestSuite) TestGetObjectLockFee() {
 	amount, err := s.storageKeeper.GetObjectLockFee(s.ctx, sample.RandAccAddress().String(), time.Now().Unix(), uint64(payloadSize))
 	s.Require().NoError(err)
 	expectedAmount := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(types.SecondarySPNum)).
-		MulInt64(payloadSize).MulInt64(int64(params.ReserveTime)).TruncateInt()
+		MulInt64(payloadSize).MulInt64(int64(params.VersionedParams.ReserveTime)).TruncateInt()
 	s.Require().True(amount.Equal(expectedAmount))
 }
 
@@ -187,7 +187,7 @@ func (s *TestSuite) TestGetBucketBill() {
 	readRate := price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	s.Require().Equal(flows.Flows[0].ToAddress, gvgFamily.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[0].Rate, readRate)
-	taxPoolRate := s.paymentKeeper.GetParams(s.ctx).ValidatorTaxRate.MulInt(readRate).TruncateInt()
+	taxPoolRate := s.paymentKeeper.GetParams(s.ctx).VersionedParams.ValidatorTaxRate.MulInt(readRate).TruncateInt()
 	s.Require().Equal(flows.Flows[1].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
 	s.Require().Equal(flows.Flows[1].Rate, taxPoolRate)
 
@@ -264,7 +264,7 @@ func (s *TestSuite) TestGetBucketBill() {
 	s.Require().Equal(flows.Flows[2].Rate, readRate.Add(primaryStoreRate))
 
 	totalRate := readRate.Add(primaryStoreRate).Add(gvg1StoreRate).Add(gvg2StoreRate)
-	taxPoolRate = s.paymentKeeper.GetParams(s.ctx).ValidatorTaxRate.MulInt(totalRate).TruncateInt()
+	taxPoolRate = s.paymentKeeper.GetParams(s.ctx).VersionedParams.ValidatorTaxRate.MulInt(totalRate).TruncateInt()
 	s.Require().Equal(flows.Flows[3].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
 	s.Require().Equal(flows.Flows[3].Rate, taxPoolRate)
 }

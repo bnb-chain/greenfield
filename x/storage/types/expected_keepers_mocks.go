@@ -380,6 +380,21 @@ func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
 }
 
+// GetVersionedParamsWithTs mocks base method.
+func (m *MockPaymentKeeper) GetVersionedParamsWithTs(ctx types3.Context, time int64) (types.VersionedParams, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetVersionedParamsWithTs", ctx, time)
+	ret0, _ := ret[0].(types.VersionedParams)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetVersionedParamsWithTs indicates an expected call of GetVersionedParamsWithTs.
+func (mr *MockPaymentKeeperMockRecorder) GetVersionedParamsWithTs(ctx, time interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetVersionedParamsWithTs", reflect.TypeOf((*MockPaymentKeeper)(nil).GetVersionedParamsWithTs), ctx, time)
+}
+
 // IsPaymentAccountOwner mocks base method.
 func (m *MockPaymentKeeper) IsPaymentAccountOwner(ctx types3.Context, addr, owner types3.AccAddress) bool {
 	m.ctrl.T.Helper()

@@ -113,8 +113,6 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
-	s.Require().NoError(err)
-
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
 	msgSealObject.SecondarySpSignatures = secondarySigs
 	s.SendTxBlock(sp.SealKey, msgSealObject)

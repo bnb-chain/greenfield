@@ -30,6 +30,7 @@ var (
 	PaymentAccountKeyPrefix      = []byte{0x05}
 	OutFlowKeyPrefix             = []byte{0x06}
 	ParamsKey                    = []byte{0x07}
+	VersionedParamsKeyPrefix     = []byte{0x08}
 )
 
 // AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
@@ -132,4 +133,11 @@ func ParseOutFlowValue(value []byte) sdkmath.Int {
 		panic("should not happen")
 	}
 	return rate
+}
+
+// VersionedParamsKey return multi-version params store key
+func VersionedParamsKey(timestamp int64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(timestamp))
+	return append(ParamsKey, bz...)
 }

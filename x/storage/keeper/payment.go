@@ -197,7 +197,6 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
-	params := k.paymentKeeper.GetParams(ctx)
 	// primary sp total rate
 	primaryTotalFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
 
@@ -238,11 +237,16 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 			Rate:      primaryTotalFlowRate,
 		})
 	}
-	validatorTotalFlowRate := params.ValidatorTaxRate.MulInt(primaryTotalFlowRate.Add(secondaryTotalFlowRate)).TruncateInt()
-	if validatorTotalFlowRate.IsPositive() {
+
+	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, bucketInfo.BillingInfo.PriceTime)
+	if err != nil {
+		return userFlows, fmt.Errorf("failed to get validator tax rate: %w, time: %d", err, bucketInfo.BillingInfo.PriceTime)
+	}
+	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryTotalFlowRate.Add(secondaryTotalFlowRate)).TruncateInt()
+	if validatorTaxRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: types.ValidatorTaxPoolAddress.String(),
-			Rate:      validatorTotalFlowRate,
+			Rate:      validatorTaxRate,
 		})
 	}
 
@@ -333,8 +337,11 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 		return amount, fmt.Errorf("get charge size error: %w", err)
 	}
 	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
-	reserveTime := k.paymentKeeper.GetParams(ctx).ReserveTime
-	amount = rate.Mul(sdkmath.NewIntFromUint64(reserveTime))
+	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
+	if err != nil {
+		return amount, fmt.Errorf("get versioned reserve time error: %w", err)
+	}
+	amount = rate.Mul(sdkmath.NewIntFromUint64(versionedParams.ReserveTime))
 	return amount, nil
 }
 

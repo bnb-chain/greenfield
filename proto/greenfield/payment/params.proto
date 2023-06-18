@@ -8,8 +8,7 @@ option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // Params defines the parameters for the module.
 message Params {
-  // Time duration which the buffer balance need to be reserved for NetOutFlow e.g. 6 month
-  uint64 reserve_time = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
+  VersionedParams versioned_params = 1 [(gogoproto.nullable) = false];
   // The maximum number of payment accounts that can be created by one user
   uint64 payment_account_count_limit = 2 [(gogoproto.moretags) = "yaml:\"payment_account_count_limit\""];
   // Time duration threshold of forced settlement.
@@ -21,8 +20,14 @@ message Params {
   uint64 max_auto_resume_flow_count = 5 [(gogoproto.moretags) = "yaml:\"max_auto_resume_flow_count\""];
   // The denom of fee charged in payment module
   string fee_denom = 6 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
+}
+
+// VersionedParams defines the parameters with multiple versions, each version is stored with different timestamp.
+message VersionedParams {
+  // Time duration which the buffer balance need to be reserved for NetOutFlow e.g. 6 month
+  uint64 reserve_time = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
   // The tax rate to pay for validators in storage payment. The default value is 1%(0.01)
-  string validator_tax_rate = 7 [
+  string validator_tax_rate = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
