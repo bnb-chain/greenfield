@@ -633,7 +633,7 @@ func (k Keeper) SealObject(
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
-	// validate bls aggregated sig from secondary sps
+	// validate seal object bls aggregated sig from secondary sps
 	secondarySpsSealObjectSignDoc := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetSignBytes()
 	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg.Id, secondarySpsSealObjectSignDoc, opts.SecondarySpBlsSignatures)
 	if err != nil {

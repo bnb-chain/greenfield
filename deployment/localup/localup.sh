@@ -271,7 +271,7 @@ function export_sps {
     output="${output}\"FundingPrivateKey\": \"${spfund_priv_key}\","
     output="${output}\"SealPrivateKey\": \"${spseal_priv_key}\","
     output="${output}\"ApprovalPrivateKey\": \"${spapproval_priv_key}\","
-    output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\""
+    output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\","
     output="${output}\"BlsPrivateKey\": \"${bls_priv_key}\""
     output="${output}},"
   done

@@ -9,7 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewSecondarySpSealObjectSignDoc creating the doc for all secondary sps bls signings,
+// NewSecondarySpSealObjectSignDoc creates the doc for all secondary sps bls signings,
 // checksums is the hash of slice of integrity hash(objectInfo checkSums) contributed by secondary sps
 func NewSecondarySpSealObjectSignDoc(objectID math.Uint, gvgId uint32, checksum []byte) *SecondarySpSealObjectSignDoc {
 	return &SecondarySpSealObjectSignDoc{
