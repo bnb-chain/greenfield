@@ -249,10 +249,12 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRe
 
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
 	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
-	change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress).WithStaticBalanceChange(totalBalance)
-	_, err := k.UpdateStreamRecordByAddr(ctx, change)
-	if err != nil {
-		return fmt.Errorf("update governance stream record failed: %w", err)
+	if totalBalance.IsPositive() {
+		change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress).WithStaticBalanceChange(totalBalance)
+		_, err := k.UpdateStreamRecordByAddr(ctx, change)
+		if err != nil {
+			return fmt.Errorf("update governance stream record failed: %w", err)
+		}
 	}
 	// force settle
 	streamRecord.StaticBalance = sdkmath.ZeroInt()
@@ -278,14 +280,14 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		if count >= max {
 			return
 		}
-		val := types.ParseAutoSettleRecordKey(iterator.Key())
-		addr := sdk.MustAccAddressFromHex(val.Addr)
-		if val.Timestamp > currentTimestamp {
+		record := types.ParseAutoSettleRecordKey(iterator.Key())
+		addr := sdk.MustAccAddressFromHex(record.Addr)
+		if record.Timestamp > currentTimestamp {
 			return
 		}
 		streamRecord, found := k.GetStreamRecord(ctx, addr)
 		if !found {
-			ctx.Logger().Error("stream record not found", "addr", val.Addr)
+			ctx.Logger().Error("stream record not found", "addr", record.Addr)
 			panic("stream record not found")
 		}
 
@@ -294,11 +296,18 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			if err != nil {
 				panic(err)
 			}
-			count++ // add one for a stream record
+			k.SetStreamRecord(ctx, streamRecord)
 			if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
-				k.SetStreamRecord(ctx, streamRecord)
 				continue
 			}
+			count++ // add one for a stream record
+			if count >= max {
+				return
+			}
+		}
+
+		if k.ExistsAutoResumeRecord(ctx, record.Timestamp, addr) { // this check should be cheap for usually
+			continue //skip the one if the stream account is in resuming
 		}
 
 		activeFlowKey := types.OutFlowKey(addr, types.OUT_FLOW_STATUS_ACTIVE, nil)
@@ -307,32 +316,45 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		defer flowIterator.Close()
 
 		totalRate := sdk.ZeroInt()
+		finished := false
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
 				break
 			}
 			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
 			if outFlow.Status == types.OUT_FLOW_STATUS_FROZEN {
+				finished = true
 				break
 			}
-			rate := types.ParseOutFlowValue(flowIterator.Value())
+			outFlow.Rate = types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
-			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(rate)
+			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(outFlow.Rate.Neg())
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
-				panic(fmt.Sprintf("update %s stream record failed: %s", outFlow.ToAddress, err.Error()))
+				ctx.Logger().Error("update stream record failed", "address", outFlow.ToAddress, "rate", outFlow.Rate.Neg())
 			}
 
 			flowStore.Delete(flowIterator.Key())
 			outFlow.Status = types.OUT_FLOW_STATUS_FROZEN
 			k.SetOutFlow(ctx, addr, &outFlow)
 
-			totalRate = totalRate.Add(rate)
+			totalRate = totalRate.Add(outFlow.Rate)
 			count++
 		}
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
-		streamRecord.FrozenNetflowRate = totalRate.Add(streamRecord.FrozenNetflowRate)
+		if streamRecord.FrozenNetflowRate.IsNil() {
+			streamRecord.FrozenNetflowRate = sdkmath.ZeroInt()
+		}
+		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate.Neg())
+
+		if finished || !flowIterator.Valid() {
+			if !streamRecord.NetflowRate.IsZero() {
+				panic("should not happen") // TODO: assertion for fail quick, remove later
+			}
+			k.RemoveAutoSettleRecord(ctx, record.Timestamp, addr)
+		}
+
 		k.SetStreamRecord(ctx, streamRecord)
 	}
 }
@@ -342,7 +364,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		return fmt.Errorf("stream account %s status is not frozen", streamRecord.Account)
 	}
 
-	if !streamRecord.NetflowRate.IsZero() { // the account is resuming
+	if !streamRecord.NetflowRate.IsNil() && !streamRecord.NetflowRate.IsZero() { // the account is resuming
 		return fmt.Errorf("stream account %s status is resuming, although it is frozen now", streamRecord.Account)
 	}
 
@@ -352,7 +374,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 
 	totalRate := streamRecord.NetflowRate.Add(streamRecord.FrozenNetflowRate)
 	streamRecord.StaticBalance = streamRecord.StaticBalance.Add(depositBalance)
-	expectedBalanceToResume := totalRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
+	expectedBalanceToResume := totalRate.Neg().Mul(sdkmath.NewIntFromUint64(reserveTime))
 	if streamRecord.StaticBalance.LT(expectedBalanceToResume) {
 		// deposit balance is not enough to resume, only add static balance
 		k.SetStreamRecord(ctx, streamRecord)
@@ -360,15 +382,16 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	}
 
 	now := ctx.BlockTime().Unix()
+	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRate).Int64() - int64(forcedSettleTime)
+	streamRecord.BufferBalance = expectedBalanceToResume
+	streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(expectedBalanceToResume)
+	streamRecord.CrudTimestamp = now
+
 	ctx.Logger().Debug("try to resume stream account", "streamRecord.OutFlowCount", streamRecord.OutFlowCount, "params.MaxAutoResumeFlowCount", params.MaxAutoResumeFlowCount)
 	if streamRecord.OutFlowCount <= params.MaxAutoResumeFlowCount { //only rough judgement, resume directly
 		streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
-		streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRate).Int64() - int64(forcedSettleTime)
 		streamRecord.NetflowRate = totalRate
 		streamRecord.FrozenNetflowRate = sdkmath.ZeroInt()
-		streamRecord.BufferBalance = expectedBalanceToResume
-		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(expectedBalanceToResume)
-		streamRecord.CrudTimestamp = now
 
 		addr := sdk.MustAccAddressFromHex(streamRecord.Account)
 		frozenFlowKey := types.OutFlowKey(addr, types.OUT_FLOW_STATUS_FROZEN, nil)
@@ -395,6 +418,8 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), 0, streamRecord.SettleTimestamp)
 		return nil
 	} else { //enqueue for resume in end block
+		k.SetStreamRecord(ctx, streamRecord)
+		k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), 0, streamRecord.SettleTimestamp)
 		k.SetAutoResumeRecord(ctx, &types.AutoResumeRecord{
 			Timestamp: now,
 			Addr:      streamRecord.Account,
@@ -449,14 +474,14 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		}
 
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
-		streamRecord.FrozenNetflowRate = streamRecord.NetflowRate.Add(totalRate)
+		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
 		if !flowIterator.Valid() {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
 				panic("should not happen") // TODO: assertion for fail quick, remove later
 			}
 			streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)
-			_, err := k.UpdateStreamRecordByAddr(ctx, change)
+			err := k.UpdateStreamRecord(ctx, streamRecord, change)
 			if err != nil {
 				panic(fmt.Sprintf("update %s stream record failed: %s", addr, err.Error()))
 			}

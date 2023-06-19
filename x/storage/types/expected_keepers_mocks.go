@@ -845,6 +845,20 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetLVG(ctx, bucketID, lvgID interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetLVG), ctx, bucketID, lvgID)
 }
 
+// RebindingGVGsToBucket mocks base method.
+func (m *MockVirtualGroupKeeper) RebindingGVGsToBucket(ctx types3.Context, bucketID math.Uint, dstSP *types1.StorageProvider, newLVGToGVGMappings []*LVGToGVGMapping) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RebindingGVGsToBucket", ctx, bucketID, dstSP, newLVGToGVGMappings)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RebindingGVGsToBucket indicates an expected call of RebindingGVGsToBucket.
+func (mr *MockVirtualGroupKeeperMockRecorder) RebindingGVGsToBucket(ctx, bucketID, dstSP, newLVGToGVGMappings interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RebindingGVGsToBucket", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).RebindingGVGsToBucket), ctx, bucketID, dstSP, newLVGToGVGMappings)
+}
+
 // SettleAndDistributeGVG mocks base method.
 func (m *MockVirtualGroupKeeper) SettleAndDistributeGVG(ctx types3.Context, gvg *types2.GlobalVirtualGroup) error {
 	m.ctrl.T.Helper()
@@ -902,15 +916,15 @@ func (mr *MockVirtualGroupKeeperMockRecorder) UnBindingObjectFromLVG(ctx, bucket
 }
 
 // VerifyGVGSecondarySPsBlsSignature mocks base method.
-func (m *MockVirtualGroupKeeper) VerifyGVGSecondarySPsBlsSignature(ctx types3.Context, gvgID uint32, signBz [32]byte, signature []byte) error {
+func (m *MockVirtualGroupKeeper) VerifyGVGSecondarySPsBlsSignature(ctx types3.Context, gvgId uint32, signBz [32]byte, signature []byte) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyGVGSecondarySPsBlsSignature", ctx, gvgID, signBz, signature)
+	ret := m.ctrl.Call(m, "VerifyGVGSecondarySPsBlsSignature", ctx, gvgId, signBz, signature)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // VerifyGVGSecondarySPsBlsSignature indicates an expected call of VerifyGVGSecondarySPsBlsSignature.
-func (mr *MockVirtualGroupKeeperMockRecorder) VerifyGVGSecondarySPsBlsSignature(ctx, gvgID, signBz, signature interface{}) *gomock.Call {
+func (mr *MockVirtualGroupKeeperMockRecorder) VerifyGVGSecondarySPsBlsSignature(ctx, gvgId, signBz, signature interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyGVGSecondarySPsBlsSignature", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).VerifyGVGSecondarySPsBlsSignature), ctx, gvgID, signBz, signature)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyGVGSecondarySPsBlsSignature", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).VerifyGVGSecondarySPsBlsSignature), ctx, gvgId, signBz, signature)
 }

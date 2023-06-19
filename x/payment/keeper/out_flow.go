@@ -20,7 +20,24 @@ func (k Keeper) SetOutFlow(ctx sdk.Context, addr sdk.AccAddress, outFlow *types.
 	), bz)
 }
 
-// SetOutFlow set a specific OutFlow in the store from its index
+// GetOutFlow get a specific OutFlow in the store from its index
+func (k Keeper) GetOutFlow(ctx sdk.Context, addr sdk.AccAddress, status types.OutFlowStatus, toAddr sdk.AccAddress) *types.OutFlow {
+	key := types.OutFlowKey(addr, status, toAddr)
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
+
+	value := store.Get(key)
+	if value == nil {
+		return nil
+	}
+
+	return &types.OutFlow{
+		ToAddress: toAddr.String(),
+		Rate:      types.ParseOutFlowValue(value),
+		Status:    status,
+	}
+}
+
+// GetOutFlows get OutFlows for a specific from address
 func (k Keeper) GetOutFlows(ctx sdk.Context, addr sdk.AccAddress) []types.OutFlow {
 	key := types.OutFlowKey(addr, types.OUT_FLOW_STATUS_ACTIVE, nil)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)

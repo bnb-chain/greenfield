@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -51,4 +52,29 @@ func (k Keeper) RemoveAutoResumeRecord(
 		timestamp,
 		addr,
 	))
+}
+
+// ExistsAutoResumeRecord checks whether there exists a autoResumeRecord
+func (k Keeper) ExistsAutoResumeRecord(
+	ctx sdk.Context,
+	timestamp int64,
+	addr sdk.AccAddress,
+) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoResumeRecordKeyPrefix)
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	exists := false
+	for ; iterator.Valid(); iterator.Next() {
+		val := types.ParseAutoResumeRecordKey(iterator.Key())
+		if val.Timestamp > timestamp {
+			break
+		}
+		if sdk.MustAccAddressFromHex(val.Addr).Equals(addr) {
+			exists = true
+			break
+		}
+	}
+
+	return exists
 }
