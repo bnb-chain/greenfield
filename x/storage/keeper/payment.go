@@ -175,7 +175,8 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	return nil
 }
 
-func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
+func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, settle ...bool) (userFlows types.UserFlows, err error) {
+	doSettle := settle != nil && settle[0]
 	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
@@ -195,6 +196,13 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
 	if !found {
 		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
+	}
+
+	if doSettle {
+		err := k.virtualGroupKeeper.SettleAndDistributeGVGFamily(ctx, primarySp.Id, gvgFamily)
+		if err != nil {
+			return userFlows, fmt.Errorf("settle GVG family failed: %d, err: %s", gvgFamily.Id, err.Error())
+		}
 	}
 
 	// primary sp total rate
@@ -218,6 +226,13 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 		if !found {
 			return userFlows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
+		}
+
+		if doSettle {
+			err := k.virtualGroupKeeper.SettleAndDistributeGVG(ctx, gvg)
+			if err != nil {
+				return userFlows, fmt.Errorf("settle GVG failed: %d, err: %s", gvg.Id, err.Error())
+			}
 		}
 
 		secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
@@ -356,4 +371,27 @@ func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (si
 	} else {
 		return payloadSize, nil
 	}
+}
+
+func (k Keeper) ChargeBucketMigration(ctx sdk.Context, oldBucketInfo, newBucketInfo *storagetypes.BucketInfo) error {
+	// settle and get previous bill
+	prevBill, err := k.GetBucketBill(ctx, oldBucketInfo, true)
+	if err != nil {
+		return fmt.Errorf("settle and get bucket bill failed, bucket: %s, err: %s", oldBucketInfo.BucketName, err.Error())
+	}
+
+	newBucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
+	// calculate new bill
+	newBill, err := k.GetBucketBill(ctx, newBucketInfo)
+	if err != nil {
+		return fmt.Errorf("get new bucket bill failed: %w", err)
+	}
+
+	// charge according to bill change
+	err = k.ChargeAccordingToBillChange(ctx, prevBill, newBill)
+	if err != nil {
+		ctx.Logger().Error("charge via bucket change failed", "err", err.Error())
+		return err
+	}
+	return nil
 }

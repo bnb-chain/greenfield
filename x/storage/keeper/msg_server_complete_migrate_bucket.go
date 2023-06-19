@@ -42,10 +42,23 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		return nil, virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}
 
+	oldBucketInfo := &types.BucketInfo{
+		PaymentAddress:             bucketInfo.PaymentAddress,
+		PrimarySpId:                bucketInfo.PrimarySpId,
+		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
+		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
+		BillingInfo:                bucketInfo.BillingInfo,
+	}
+
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
 	k.SetBucketInfo(ctx, bucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
+
+	err := k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
+	if err != nil {
+		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
+	}
 
 	return &types.MsgCompleteMigrateBucketResponse{}, nil
 }
