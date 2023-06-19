@@ -555,7 +555,6 @@ message MsgMigrateBucket {
 
 message MsgMigrateBucketResponse {}
 
-
 message LVGToGVGMapping {
   uint32 local_virtual_group_id = 1;
   uint32 global_virtual_group_id = 2;
@@ -567,7 +566,7 @@ message MsgCompleteMigrateBucket {
 
   string operator = 1;
 
-  uint32 global_virtual_group_family_id =2;
+  uint32 global_virtual_group_family_id = 2;
 
   repeated LVGToGVGMapping new_lvg_to_gvg_mappings = 3;
 

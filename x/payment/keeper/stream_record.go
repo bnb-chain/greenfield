@@ -342,7 +342,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		return fmt.Errorf("stream account %s status is not frozen", streamRecord.Account)
 	}
 
-	if streamRecord.NetflowRate.IsPositive() { // the account is resuming
+	if !streamRecord.NetflowRate.IsZero() { // the account is resuming
 		return fmt.Errorf("stream account %s status is resuming, although it is frozen now", streamRecord.Account)
 	}
 

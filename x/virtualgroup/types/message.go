@@ -14,8 +14,7 @@ const (
 	TypeMsgWithdraw                 = "withdraw"
 	TypeMsgSwapOut                  = "swap_out"
 	TypeMsgUpdateParams             = "update_params"
-	TypeMsgWithdrawFromGVGFamily    = "withdraw_from_gvg_family"
-	TypeMsgWithdrawFromGVG          = "withdraw_from_gvg"
+	TypeMsgSettle                   = "settle"
 )
 
 var (
@@ -25,8 +24,7 @@ var (
 	_ sdk.Msg = &MsgWithdraw{}
 	_ sdk.Msg = &MsgSwapOut{}
 	_ sdk.Msg = &MsgUpdateParams{}
-	_ sdk.Msg = &MsgWithdrawFromGVGFamily{}
-	_ sdk.Msg = &MsgWithdrawFromGVG{}
+	_ sdk.Msg = &MsgSettle{}
 )
 
 func NewMsgCreateGlobalVirtualGroup(primarySpAddress sdk.AccAddress, globalVirtualFamilyId uint32, secondarySpIds []uint32, deposit sdk.Coin) *MsgCreateGlobalVirtualGroup {
@@ -255,72 +253,45 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgWithdrawFromGVGFamily(fundingAddress sdk.AccAddress, globalVirtualGroupFamilyID uint32) *MsgWithdrawFromGVGFamily {
-	return &MsgWithdrawFromGVGFamily{
+func NewMsgSettle(fundingAddress sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32) *MsgSettle {
+	return &MsgSettle{
 		FundingAddress:             fundingAddress.String(),
 		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
+		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
 	}
 }
 
-func (msg *MsgWithdrawFromGVGFamily) Route() string {
+func (msg *MsgSettle) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgWithdrawFromGVGFamily) Type() string {
-	return TypeMsgWithdrawFromGVGFamily
+func (msg *MsgSettle) Type() string {
+	return TypeMsgSettle
 }
 
 // GetSignBytes implements the LegacyMsg interface.
-func (msg *MsgWithdrawFromGVGFamily) GetSignBytes() []byte {
+func (msg *MsgSettle) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgWithdrawFromGVGFamily) GetSigners() []sdk.AccAddress {
+func (msg *MsgSettle) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
 	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic does a sanity check on the provided data.
-func (msg *MsgWithdrawFromGVGFamily) ValidateBasic() error {
+func (msg *MsgSettle) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
 	if err != nil {
 		return err
 	}
-	return nil
-}
 
-func NewMsgWithdrawFromGVG(fundingAddress sdk.AccAddress, globalVirtualGroupID uint32) *MsgWithdrawFromGVG {
-	return &MsgWithdrawFromGVG{
-		FundingAddress:       fundingAddress.String(),
-		GlobalVirtualGroupId: globalVirtualGroupID,
+	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
+		if len(msg.GlobalVirtualGroupIds) == 0 || len(msg.GlobalVirtualGroupIds) > 10 {
+			return ErrInvalidGVGCount
+		}
 	}
-}
 
-func (msg *MsgWithdrawFromGVG) Route() string {
-	return RouterKey
-}
-
-func (msg *MsgWithdrawFromGVG) Type() string {
-	return TypeMsgWithdrawFromGVG
-}
-
-// GetSignBytes implements the LegacyMsg interface.
-func (msg *MsgWithdrawFromGVG) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
-}
-
-// GetSigners returns the expected signers for a MsgUpdateParams message.
-func (msg *MsgWithdrawFromGVG) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
-	return []sdk.AccAddress{addr}
-}
-
-// ValidateBasic does a sanity check on the provided data.
-func (msg *MsgWithdrawFromGVG) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
-	if err != nil {
-		return err
-	}
 	return nil
 }

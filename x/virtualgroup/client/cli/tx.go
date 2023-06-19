@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -25,62 +26,41 @@ func GetTxCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdStorageProviderExit())
 	cmd.AddCommand(CmdCompleteStorageProviderExit())
-	cmd.AddCommand(CmdWithdrawFromGVGFamily())
-	cmd.AddCommand(CmdWithdrawFromGVG())
+	cmd.AddCommand(CmdSettle())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
 }
 
-func CmdWithdrawFromGVGFamily() *cobra.Command {
+func CmdSettle() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "withdraw-from-gvg-family",
-		Short: "Broadcast message WithdrawFromGVGFamily",
-		Args:  cobra.ExactArgs(1),
+		Use:   "settle",
+		Short: "Broadcast message settle",
+		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			id, err := strconv.ParseInt(args[0], 10, 32)
-			if err != nil || id <= 0 {
+			gvgFamilyId, err := strconv.ParseInt(args[0], 10, 32)
+			if err != nil || gvgFamilyId <= 0 {
 				return fmt.Errorf("invalid GVG family id %s", args[1])
 			}
+			gvgIds := make([]uint32, 0)
+			splits := strings.Split(args[1], ",")
+			for _, split := range splits {
+				gvgId, err := strconv.ParseInt(split, 10, 32)
+				if err != nil || gvgFamilyId <= 0 {
+					return fmt.Errorf("invalid GVG id %s", args[1])
+				}
+				gvgIds = append(gvgIds, uint32(gvgId))
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
-			msg := types.NewMsgWithdrawFromGVGFamily(
+			msg := types.NewMsgSettle(
 				clientCtx.GetFromAddress(),
-				uint32(id),
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdWithdrawFromGVG() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "withdraw-from-gvg",
-		Short: "Broadcast message WithdrawFromGVG",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			id, err := strconv.ParseInt(args[0], 10, 32)
-			if err != nil || id <= 0 {
-				return fmt.Errorf("invalid GVG id %s", args[1])
-			}
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgWithdrawFromGVG(
-				clientCtx.GetFromAddress(),
-				uint32(id),
+				uint32(gvgFamilyId),
+				gvgIds,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
