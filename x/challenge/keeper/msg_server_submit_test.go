@@ -48,7 +48,7 @@ func (s *TestSuite) TestSubmit() {
 		Return(lvg, true).AnyTimes()
 
 	gvg := &virtualgrouptypes.GlobalVirtualGroup{PrimarySpId: 100}
-	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gomock.Any(), gomock.Any()).
+	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gomock.Any()).
 		Return(gvg, true).AnyTimes()
 
 	tests := []struct {

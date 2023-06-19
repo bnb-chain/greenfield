@@ -145,10 +145,10 @@ function generate_genesis() {
         sed -i -e "s/\"10000000\"/\"${GOV_MIN_DEPOSIT_AMOUNT}\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"max_bytes\": \"22020096\"/\"max_bytes\": \"1048576\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"challenge_count_per_block\": \"1\"/\"challenge_count_per_block\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"challenge_keep_alive_period\": \"300\"/\"challenge_keep_alive_period\": \"50\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"challenge_keep_alive_period\": \"300\"/\"challenge_keep_alive_period\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"attestation_inturn_interval\": \"120\"/\"attestation_inturn_interval\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"discontinue_confirm_period\": \"604800\"/\"discontinue_confirm_period\": \"15\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"discontinue_confirm_period\": \"604800\"/\"discontinue_confirm_period\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"discontinue_deletion_max\": \"10000\"/\"discontinue_deletion_max\": \"1\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"voting_period\": \"30s\"/\"voting_period\": \"10s\"/g" ${workspace}/.local/validator${i}/config/genesis.json
     done

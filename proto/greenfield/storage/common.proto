@@ -24,6 +24,7 @@ enum BucketStatus {
 
   BUCKET_STATUS_CREATED = 0;
   BUCKET_STATUS_DISCONTINUED = 1;
+  BUCKET_STATUS_MIGRATING = 2;
 }
 
 // RedundancyType represents the redundancy algorithm type for object data,
@@ -58,12 +59,12 @@ enum VisibilityType {
   VISIBILITY_TYPE_INHERIT = 3;
 }
 
-// SecondarySpSignDoc used to generate seal signature of secondary SP
+// SecondarySpSealObjectSignDoc used to generate seal signature of secondary SP
 // If the secondary SP only signs the checksum to declare the object pieces are saved,
 // it might be reused by the primary SP to fake it's declaration.
 // Then the primary SP can challenge and slash the secondary SP.
 // So the id of the object is needed to prevent this.
-message SecondarySpSignDoc {
+message SecondarySpSealObjectSignDoc {
   uint32 global_virtual_group_id = 1;
   string object_id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
@@ -72,4 +73,14 @@ message SecondarySpSignDoc {
   ];
   // checksum is the sha256 hash of slice of integrity hash from secondary sps
   bytes checksum = 3;
+}
+
+message MigrationBucketSignDoc {
+  uint32 src_sp_id = 1;
+  uint32 dst_sp_id = 2;
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
 }

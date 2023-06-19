@@ -3,15 +3,19 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 )
@@ -27,6 +31,7 @@ type (
 		spKeeper      types.SpKeeper
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
+		paymentKeeper types.PaymentKeeper
 		// sequence
 		lvgSequence       sequence.Sequence[uint32]
 		gvgSequence       sequence.Sequence[uint32]
@@ -42,6 +47,7 @@ func NewKeeper(
 	spKeeper types.SpKeeper,
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
+	paymentKeeper types.PaymentKeeper,
 ) *Keeper {
 
 	k := Keeper{
@@ -52,6 +58,7 @@ func NewKeeper(
 		spKeeper:      spKeeper,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
+		paymentKeeper: paymentKeeper,
 	}
 
 	k.lvgSequence = sequence.NewSequence[uint32](types.LVGSequencePrefix)
@@ -234,12 +241,12 @@ func (k Keeper) DeriveVirtualPaymentAccount(groupType string, id uint32) sdk.Acc
 	return address.Module(types.ModuleName, append([]byte(groupType), b...))
 }
 
-func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) sdk.Dec {
+func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) sdk.Int {
 	stakingPrice := k.GVGStakingPrice(ctx)
 
 	mustStakingTokens := stakingPrice.MulInt64(int64(gvg.StoredSize))
 
-	return gvg.TotalDeposit.Sub(mustStakingTokens)
+	return gvg.TotalDeposit.Sub(mustStakingTokens.TruncateInt())
 }
 
 func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error) {
@@ -265,11 +272,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 		// Create a new key store the gvgs binding on bucket
 		lvgID := k.GenNextLVGID(ctx)
 		lvg = &types.LocalVirtualGroup{
-			Id:                    lvgID,
-			GlobalVirtualGroupId:  gvgID,
-			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.LVGName, lvgID).String(),
-			StoredSize:            payloadSize,
-			BucketId:              bucketID,
+			Id:                   lvgID,
+			GlobalVirtualGroupId: gvgID,
+			StoredSize:           payloadSize,
+			BucketId:             bucketID,
 		}
 		newLVG = true
 		gvgsBindingOnBucket = &types.GlobalVirtualGroupsBindingOnBucket{
@@ -282,11 +288,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 			// not exist
 			lvgID = k.GenNextLVGID(ctx)
 			lvg = &types.LocalVirtualGroup{
-				Id:                    lvgID,
-				GlobalVirtualGroupId:  gvgID,
-				VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.LVGName, lvgID).String(),
-				StoredSize:            payloadSize,
-				BucketId:              bucketID,
+				Id:                   lvgID,
+				GlobalVirtualGroupId: gvgID,
+				StoredSize:           payloadSize,
+				BucketId:             bucketID,
 			}
 			newLVG = true
 			gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
@@ -307,11 +312,10 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 
 	if newLVG {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateLocalVirtualGroup{
-			Id:                    lvg.Id,
-			BucketId:              lvg.BucketId,
-			GlobalVirtualGroupId:  lvg.GlobalVirtualGroupId,
-			StoredSize:            lvg.StoredSize,
-			VirtualPaymentAddress: lvg.VirtualPaymentAddress,
+			Id:                   lvg.Id,
+			BucketId:             lvg.BucketId,
+			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:           lvg.StoredSize,
 		}); err != nil {
 			return nil, err
 		}
@@ -382,10 +386,10 @@ func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, pri
 	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
 }
 
-func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, successorSPID uint32) error {
+func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes.StorageProvider, familyID uint32) error {
 	store := ctx.KVStore(k.storeKey)
 
-	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
+	family, found := k.GetGVGFamily(ctx, primarySP.Id, familyID)
 	if !found {
 		return types.ErrGVGFamilyNotExist
 	}
@@ -395,28 +399,50 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySPID, familyID, succe
 		if !found {
 			return types.ErrGVGNotExist
 		}
-		if gvg.PrimarySpId != primarySPID {
+		if gvg.PrimarySpId != primarySP.Id {
 			return types.ErrSwapOutFailed.Wrapf(
-				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySPID)
+				"the primary id (%d) in global virtual group is not match the primary sp id (%d)", gvg.PrimarySpId, primarySP.Id)
 		}
 		for _, spID := range gvg.SecondarySpIds {
-			if spID == successorSPID {
-				return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSPID, gvg.String())
+			if spID == successorSP.Id {
+				return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the secondary sp of gvg(%s).", successorSP.Id, gvg.String())
 			}
 		}
-		gvg.PrimarySpId = successorSPID
+
+		// settlement
+		err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
+		if err != nil {
+			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
+		}
+
+		// swap deposit
+		if !gvg.TotalDeposit.IsZero() {
+			// send back deposit
+			coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), gvg.TotalDeposit))
+			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromHex(primarySP.FundingAddress), coins)
+			if err != nil {
+				return err
+			}
+
+			// successor deposit
+			err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromHex(successorSP.FundingAddress), types.ModuleName, coins)
+			if err != nil {
+				return err
+			}
+		}
+
+		gvg.PrimarySpId = successorSP.Id
 		gvgs = append(gvgs, gvg)
 	}
-	k.SetGVGFamily(ctx, successorSPID, family)
+	k.SetGVGFamily(ctx, successorSP.Id, family)
 	for _, gvg := range gvgs {
 		k.SetGVG(ctx, gvg)
 	}
-	store.Delete(types.GetGVGFamilyKey(primarySPID, familyID))
+	store.Delete(types.GetGVGFamilyKey(primarySP.Id, familyID))
 	return nil
 }
 
 func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSPID uint32, gvgIDs []uint32) error {
-	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range gvgIDs {
 		gvg, found := k.GetGVG(ctx, gvgID)
 		if !found {
@@ -425,21 +451,26 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 		if gvg.PrimarySpId == successorSPID {
 			return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
 		}
+
+		// settlement
+		err := k.SettleAndDistributeGVG(ctx, gvg)
+		if err != nil {
+			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
+		}
+
 		for i, spID := range gvg.SecondarySpIds {
 			if spID == secondarySPID {
-				gvg.SecondarySpIds = append(gvg.SecondarySpIds[:i], gvg.SecondarySpIds[i+1:]...)
-				gvgs = append(gvgs, gvg)
+				gvg.SecondarySpIds[i] = successorSPID
+				origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+				successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
+				origin.SecondaryCount--
+				successor.SecondaryCount++
+				k.SetGVGStatisticsWithSP(ctx, origin)
+				k.SetGVGStatisticsWithSP(ctx, successor)
+				k.SetGVG(ctx, gvg)
+				break
 			}
-			origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
-			successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
-			origin.SecondaryCount--
-			successor.SecondaryCount++
-			k.SetGVGStatisticsWithSP(ctx, origin)
-			k.SetGVGStatisticsWithSP(ctx, successor)
 		}
-	}
-	for _, gvg := range gvgs {
-		k.SetGVG(ctx, gvg)
 	}
 	return nil
 }
@@ -503,4 +534,24 @@ func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
 		return types.ErrSPCanNotExit.Wrapf("not seap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
 	}
 	return nil
+}
+
+func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32, signBz [32]byte, signature []byte) error {
+	gvg, found := k.GetGVG(ctx, gvgId)
+	if !found {
+		return types.ErrGVGNotExist
+	}
+	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
+	for _, spId := range gvg.GetSecondarySpIds() {
+		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
+		if !found {
+			panic("should not happen")
+		}
+		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.SealBlsKey)
+		if err != nil {
+			return types.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
+		}
+		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
+	}
+	return storagetypes.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
 }

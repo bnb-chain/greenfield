@@ -4,10 +4,13 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	"github.com/bnb-chain/greenfield/types/resource"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,12 +18,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
-
-	"github.com/bnb-chain/greenfield/internal/sequence"
-	"github.com/bnb-chain/greenfield/types/resource"
-	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type (
@@ -636,21 +633,9 @@ func (k Keeper) SealObject(
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
-	// validate bls sig
-	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
-	for _, spId := range gvg.GetSecondarySpIds() {
-		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
-		if !found {
-			panic("should not happen")
-		}
-		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.SealBlsKey)
-		if err != nil {
-			return errors.Wrapf(types.ErrInvalidBlsPubKey, "BLS public key converts failed: %v", err)
-		}
-		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
-	}
-
-	err := k.verifySecondarySpsBlsSignature(opts.GlobalVirtualGroupId, objectInfo, secondarySpBlsPubKeys, opts.SecondarySpBlsSignatures)
+	// validate bls aggregated sig from secondary sps
+	secondarySpsSealObjectSignDoc := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetSignBytes()
+	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg.Id, secondarySpsSealObjectSignDoc, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}
@@ -1503,7 +1488,7 @@ func (k Keeper) appendDiscontinueBucketIds(ctx sdk.Context, timestamp int64, buc
 	store.Set(key, k.cdc.MustMarshal(&types.Ids{Id: bucketIds}))
 }
 
-func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, maxObjectsToDelete uint64) (uint64, error) {
+func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, maxToDelete uint64) (uint64, error) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetDiscontinueBucketIdsKey(timestamp)
 	iterator := store.Iterator(types.DiscontinueBucketIdsPrefix, storetypes.InclusiveEndBytes(key))
@@ -1511,7 +1496,7 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 
 	deleted := uint64(0)
 	for ; iterator.Valid(); iterator.Next() {
-		if deleted >= maxObjectsToDelete {
+		if deleted >= maxToDelete {
 			break
 		}
 		var ids types.Ids
@@ -1519,12 +1504,12 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 
 		left := make([]types.Uint, 0)
 		for _, id := range ids.Id {
-			if deleted >= maxObjectsToDelete {
+			if deleted >= maxToDelete {
 				left = append(left, id)
 				continue
 			}
 
-			bucketDeleted, objectDeleted, err := k.ForceDeleteBucket(ctx, id, maxObjectsToDelete-deleted)
+			bucketDeleted, objectDeleted, err := k.ForceDeleteBucket(ctx, id, maxToDelete-deleted)
 			if err != nil {
 				ctx.Logger().Error("force delete bucket error", "err", err)
 				return deleted, err
@@ -1533,6 +1518,8 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 
 			if !bucketDeleted {
 				left = append(left, id)
+			} else {
+				deleted++
 			}
 		}
 		if len(left) > 0 {
@@ -1698,7 +1685,40 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 	return deletedTotal, true
 }
 
-func (k Keeper) verifySecondarySpsBlsSignature(gvgId uint32, objectInfo *types.ObjectInfo, secondarySpBlsPubKeys []bls.PublicKey, blsSig []byte) error {
-	blsSignDoc := types.NewSecondarySpSignDoc(objectInfo.Id, gvgId, types.GenerateHash(objectInfo.Checksums[:]))
-	return types.VerifyBlsAggSignature(secondarySpBlsPubKeys, blsSignDoc.GetSignBytes(), blsSig)
+func (k Keeper) MigrationBucket(ctx sdk.Context, srcSP, dstSP *sptypes.StorageProvider, bucketInfo *types.BucketInfo) error {
+	store := ctx.KVStore(k.storeKey)
+
+	key := types.GetMigrationBucketKey(bucketInfo.Id)
+	if store.Has(key) {
+		panic("migration bucket key is existed.")
+	}
+
+	migrationBucketInfo := &types.MigrationBucketInfo{
+		SrcSpId:                       srcSP.Id,
+		DstSpId:                       dstSP.Id,
+		SrcGlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
+		BucketId:                      bucketInfo.Id,
+	}
+
+	bz := k.cdc.MustMarshal(migrationBucketInfo)
+	store.Set(key, bz)
+	return nil
+}
+
+func (k Keeper) GetMigrationBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) (*types.MigrationBucketInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetMigrationBucketKey(bucketID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var migrationBucketInfo types.MigrationBucketInfo
+	k.cdc.MustUnmarshal(bz, &migrationBucketInfo)
+	return &migrationBucketInfo, true
+}
+
+func (k Keeper) DeleteMigrationBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetMigrationBucketKey(bucketID))
 }

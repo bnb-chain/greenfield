@@ -450,17 +450,6 @@ func New(
 	)
 	spModule := spmodule.NewAppModule(appCodec, app.SpKeeper, app.AccountKeeper, app.BankKeeper)
 
-	app.VirtualgroupKeeper = *virtualgroupmodulekeeper.NewKeeper(
-		appCodec,
-		keys[virtualgroupmoduletypes.StoreKey],
-		tKeys[virtualgroupmoduletypes.TStoreKey],
-		authtypes.NewModuleAddress(virtualgroupmoduletypes.ModuleName).String(),
-		app.SpKeeper,
-		app.AccountKeeper,
-		app.BankKeeper,
-	)
-	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
-
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
 		keys[paymentmoduletypes.StoreKey],
@@ -472,6 +461,18 @@ func New(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
+
+	app.VirtualgroupKeeper = *virtualgroupmodulekeeper.NewKeeper(
+		appCodec,
+		keys[virtualgroupmoduletypes.StoreKey],
+		tKeys[virtualgroupmoduletypes.TStoreKey],
+		authtypes.NewModuleAddress(virtualgroupmoduletypes.ModuleName).String(),
+		app.SpKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.PaymentKeeper,
+	)
+	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
 
 	app.PermissionmoduleKeeper = *permissionmodulekeeper.NewKeeper(
 		appCodec,

@@ -1,6 +1,7 @@
 package types
 
 import (
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -12,6 +13,7 @@ type SpKeeper interface {
 	GetStorageProviderByFundingAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
 	SetStorageProvider(ctx sdk.Context, sp *sptypes.StorageProvider)
+	Exit(ctx sdk.Context, sp *sptypes.StorageProvider) error
 }
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -33,4 +35,11 @@ type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
+}
+
+type PaymentKeeper interface {
+	GetParams(ctx sdk.Context) (p paymenttypes.Params)
+	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
+	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
+	SetStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord)
 }

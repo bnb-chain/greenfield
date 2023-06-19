@@ -27,7 +27,6 @@ type BankKeeper interface {
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-
 	// Methods imported from bank should be defined here
 }
 
@@ -45,12 +44,13 @@ type SpKeeper interface {
 
 type PaymentKeeper interface {
 	GetParams(ctx sdk.Context) paymenttypes.Params
+	GetVersionedParamsWithTs(ctx sdk.Context, time int64) (paymenttypes.VersionedParams, error)
 	IsPaymentAccountOwner(ctx sdk.Context, addr, owner sdk.AccAddress) bool
 	GetStoragePrice(ctx sdk.Context, params paymenttypes.StoragePriceParams) (price paymenttypes.StoragePrice, err error)
 	ApplyUserFlowsList(ctx sdk.Context, userFlows []paymenttypes.UserFlows) (err error)
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
-	// GetStreamRecord
 	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
+	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
 }
 
 type PermissionKeeper interface {
@@ -77,18 +77,20 @@ type PermissionKeeper interface {
 
 type CrossChainKeeper interface {
 	CreateRawIBCPackageWithFee(ctx sdk.Context, channelID sdk.ChannelID, packageType sdk.CrossChainPackageType,
-		packageLoad []byte, relayerFee *big.Int, ackRelayerFee *big.Int,
-	) (uint64, error)
+		packageLoad []byte, relayerFee *big.Int, ackRelayerFee *big.Int) (uint64, error)
 
 	RegisterChannel(name string, id sdk.ChannelID, app sdk.CrossChainApplication) error
 }
 
 type VirtualGroupKeeper interface {
-	UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error
+	BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID uint32) (*types.LocalVirtualGroup, error)
 	BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error)
+	UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error
 	UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) error
 	GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, bool)
 	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
 	GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
-	BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID uint32) (*types.LocalVirtualGroup, error)
+	SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error
+	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
+	VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32, signBz [32]byte, signature []byte) error
 }

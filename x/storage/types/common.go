@@ -9,17 +9,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewSecondarySpSignDoc creating the doc for all secondary sps bls signings,
+// NewSecondarySpSealObjectSignDoc creating the doc for all secondary sps bls signings,
 // checksums is the hash of slice of integrity hash(objectInfo checkSums) contributed by secondary sps
-func NewSecondarySpSignDoc(objectID math.Uint, gvgId uint32, checksum []byte) *SecondarySpSignDoc {
-	return &SecondarySpSignDoc{
+func NewSecondarySpSealObjectSignDoc(objectID math.Uint, gvgId uint32, checksum []byte) *SecondarySpSealObjectSignDoc {
+	return &SecondarySpSealObjectSignDoc{
 		GlobalVirtualGroupId: gvgId,
 		ObjectId:             objectID,
 		Checksum:             checksum,
 	}
 }
 
-func (c *SecondarySpSignDoc) GetSignBytes() [32]byte {
+func (c *SecondarySpSealObjectSignDoc) GetSignBytes() [32]byte {
 	bts, err := rlp.EncodeToBytes(c)
 	if err != nil {
 		panic(err)
@@ -35,4 +35,17 @@ func GenerateHash(checksumList [][]byte) []byte {
 	checksumBytesTotal := bytes.Join(checksumList, []byte(""))
 	hash.Write(checksumBytesTotal)
 	return hash.Sum(nil)
+}
+
+func NewMigrationBucketSignDoc(srcSPID, dspSPID uint32, bucketID math.Uint) *MigrationBucketSignDoc {
+	return &MigrationBucketSignDoc{
+		SrcSpId:  srcSPID,
+		DstSpId:  dspSPID,
+		BucketId: bucketID,
+	}
+}
+
+func (mbs *MigrationBucketSignDoc) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(mbs)
+	return sdk.MustSortJSON(bz)
 }

@@ -8,19 +8,26 @@ option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // Params defines the parameters for the module.
 message Params {
-  // Time duration which the buffer balance need to be reserved for NetOutFlow e.g. 6 month
-  uint64 reserve_time = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
+  VersionedParams versioned_params = 1 [(gogoproto.nullable) = false];
   // The maximum number of payment accounts that can be created by one user
   uint64 payment_account_count_limit = 2 [(gogoproto.moretags) = "yaml:\"payment_account_count_limit\""];
   // Time duration threshold of forced settlement.
   // If dynamic balance is less than NetOutFlowRate * forcedSettleTime, the account can be forced settled.
   uint64 forced_settle_time = 3 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
-  // the maximum number of accounts that will be forced settled in one block
-  uint64 max_auto_force_settle_num = 4 [(gogoproto.moretags) = "yaml:\"max_auto_force_settle_num\""];
+  // the maximum number of flows that will be auto forced settled in one block
+  uint64 max_auto_settle_flow_count = 4 [(gogoproto.moretags) = "yaml:\"max_auto_settle_flow_count\""];
+  // the maximum number of flows that will be auto resumed in one block
+  uint64 max_auto_resume_flow_count = 5 [(gogoproto.moretags) = "yaml:\"max_auto_resume_flow_count\""];
   // The denom of fee charged in payment module
-  string fee_denom = 5 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
+  string fee_denom = 6 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
+}
+
+// VersionedParams defines the parameters with multiple versions, each version is stored with different timestamp.
+message VersionedParams {
+  // Time duration which the buffer balance need to be reserved for NetOutFlow e.g. 6 month
+  uint64 reserve_time = 1 [(gogoproto.moretags) = "yaml:\"reserve_time\""];
   // The tax rate to pay for validators in storage payment. The default value is 1%(0.01)
-  string validator_tax_rate = 6 [
+  string validator_tax_rate = 2 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false

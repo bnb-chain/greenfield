@@ -21,7 +21,7 @@ const (
 	DefaultDiscontinueObjectMax      uint64 = math.MaxUint64
 	DefaultDiscontinueBucketMax      uint64 = math.MaxUint64
 	DefaultDiscontinueConfirmPeriod  int64  = 604800 // 7 days (in second)
-	DefaultDiscontinueDeletionMax    uint64 = 10000
+	DefaultDiscontinueDeletionMax    uint64 = 100
 	DefaultStalePolicyCleanupMax     uint64 = 200
 
 	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025

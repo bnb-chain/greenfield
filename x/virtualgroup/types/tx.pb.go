@@ -535,7 +535,7 @@ type MsgSwapOut struct {
 	SuccessorSpId uint32 `protobuf:"varint,4,opt,name=successor_sp_id,json=successorSpId,proto3" json:"successor_sp_id,omitempty"`
 	// approval includes an expiration time and a signature.
 	// The fields to be signed with contains the necessary information of the successor.
-	SuccessorApproval *common.Approval `protobuf:"bytes,6,opt,name=successor_approval,json=successorApproval,proto3" json:"successor_approval,omitempty"`
+	SuccessorSpApproval *common.Approval `protobuf:"bytes,6,opt,name=successor_sp_approval,json=successorSpApproval,proto3" json:"successor_sp_approval,omitempty"`
 }
 
 func (m *MsgSwapOut) Reset()         { *m = MsgSwapOut{} }
@@ -599,9 +599,9 @@ func (m *MsgSwapOut) GetSuccessorSpId() uint32 {
 	return 0
 }
 
-func (m *MsgSwapOut) GetSuccessorApproval() *common.Approval {
+func (m *MsgSwapOut) GetSuccessorSpApproval() *common.Approval {
 	if m != nil {
-		return m.SuccessorApproval
+		return m.SuccessorSpApproval
 	}
 	return nil
 }
@@ -644,7 +644,6 @@ var xxx_messageInfo_MsgSwapOutResponse proto.InternalMessageInfo
 
 // this line is used by starport scaffolding # proto/tx/message
 type MsgStorageProviderExit struct {
-	// sp_address is the account address of the storage provider initiating the swap out.
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
@@ -725,9 +724,7 @@ func (m *MsgStorageProviderExitResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgStorageProviderExitResponse proto.InternalMessageInfo
 
 type MsgCompleteStorageProviderExit struct {
-	// sp_address is the account address of the storage provider initiating the swap out.
-	OperatorAddress         string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
-	OriginStorageProviderId uint32 `protobuf:"varint,2,opt,name=origin_storage_provider_id,json=originStorageProviderId,proto3" json:"origin_storage_provider_id,omitempty"`
+	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
 func (m *MsgCompleteStorageProviderExit) Reset()         { *m = MsgCompleteStorageProviderExit{} }
@@ -770,13 +767,6 @@ func (m *MsgCompleteStorageProviderExit) GetOperatorAddress() string {
 	return ""
 }
 
-func (m *MsgCompleteStorageProviderExit) GetOriginStorageProviderId() uint32 {
-	if m != nil {
-		return m.OriginStorageProviderId
-	}
-	return 0
-}
-
 type MsgCompleteStorageProviderExitResponse struct {
 }
 
@@ -815,6 +805,186 @@ func (m *MsgCompleteStorageProviderExitResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCompleteStorageProviderExitResponse proto.InternalMessageInfo
 
+type MsgWithdrawFromGVGFamily struct {
+	// funding_address is the account address for withdrawing funds.
+	FundingAddress string `protobuf:"bytes,1,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
+	// global_virtual_group_id is the identifier of the global virtual group.
+	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
+}
+
+func (m *MsgWithdrawFromGVGFamily) Reset()         { *m = MsgWithdrawFromGVGFamily{} }
+func (m *MsgWithdrawFromGVGFamily) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawFromGVGFamily) ProtoMessage()    {}
+func (*MsgWithdrawFromGVGFamily) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{16}
+}
+func (m *MsgWithdrawFromGVGFamily) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawFromGVGFamily) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawFromGVGFamily.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawFromGVGFamily) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawFromGVGFamily.Merge(m, src)
+}
+func (m *MsgWithdrawFromGVGFamily) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawFromGVGFamily) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawFromGVGFamily.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawFromGVGFamily proto.InternalMessageInfo
+
+func (m *MsgWithdrawFromGVGFamily) GetFundingAddress() string {
+	if m != nil {
+		return m.FundingAddress
+	}
+	return ""
+}
+
+func (m *MsgWithdrawFromGVGFamily) GetGlobalVirtualGroupFamilyId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyId
+	}
+	return 0
+}
+
+type MsgWithdrawFromGVGFamilyResponse struct {
+}
+
+func (m *MsgWithdrawFromGVGFamilyResponse) Reset()         { *m = MsgWithdrawFromGVGFamilyResponse{} }
+func (m *MsgWithdrawFromGVGFamilyResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawFromGVGFamilyResponse) ProtoMessage()    {}
+func (*MsgWithdrawFromGVGFamilyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{17}
+}
+func (m *MsgWithdrawFromGVGFamilyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawFromGVGFamilyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawFromGVGFamilyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawFromGVGFamilyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawFromGVGFamilyResponse.Merge(m, src)
+}
+func (m *MsgWithdrawFromGVGFamilyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawFromGVGFamilyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawFromGVGFamilyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawFromGVGFamilyResponse proto.InternalMessageInfo
+
+type MsgWithdrawFromGVG struct {
+	// funding_address is the account address for withdrawing funds.
+	FundingAddress string `protobuf:"bytes,1,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
+	// global_virtual_group_id is the identifier of the global virtual group.
+	GlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+}
+
+func (m *MsgWithdrawFromGVG) Reset()         { *m = MsgWithdrawFromGVG{} }
+func (m *MsgWithdrawFromGVG) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawFromGVG) ProtoMessage()    {}
+func (*MsgWithdrawFromGVG) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{18}
+}
+func (m *MsgWithdrawFromGVG) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawFromGVG) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawFromGVG.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawFromGVG) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawFromGVG.Merge(m, src)
+}
+func (m *MsgWithdrawFromGVG) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawFromGVG) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawFromGVG.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawFromGVG proto.InternalMessageInfo
+
+func (m *MsgWithdrawFromGVG) GetFundingAddress() string {
+	if m != nil {
+		return m.FundingAddress
+	}
+	return ""
+}
+
+func (m *MsgWithdrawFromGVG) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+type MsgWithdrawFromGVGResponse struct {
+}
+
+func (m *MsgWithdrawFromGVGResponse) Reset()         { *m = MsgWithdrawFromGVGResponse{} }
+func (m *MsgWithdrawFromGVGResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawFromGVGResponse) ProtoMessage()    {}
+func (*MsgWithdrawFromGVGResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_478f7001009bf3f2, []int{19}
+}
+func (m *MsgWithdrawFromGVGResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawFromGVGResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawFromGVGResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawFromGVGResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawFromGVGResponse.Merge(m, src)
+}
+func (m *MsgWithdrawFromGVGResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawFromGVGResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawFromGVGResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawFromGVGResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgUpdateParams)(nil), "greenfield.virtualgroup.MsgUpdateParams")
 	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "greenfield.virtualgroup.MsgUpdateParamsResponse")
@@ -832,71 +1002,79 @@ func init() {
 	proto.RegisterType((*MsgStorageProviderExitResponse)(nil), "greenfield.virtualgroup.MsgStorageProviderExitResponse")
 	proto.RegisterType((*MsgCompleteStorageProviderExit)(nil), "greenfield.virtualgroup.MsgCompleteStorageProviderExit")
 	proto.RegisterType((*MsgCompleteStorageProviderExitResponse)(nil), "greenfield.virtualgroup.MsgCompleteStorageProviderExitResponse")
+	proto.RegisterType((*MsgWithdrawFromGVGFamily)(nil), "greenfield.virtualgroup.MsgWithdrawFromGVGFamily")
+	proto.RegisterType((*MsgWithdrawFromGVGFamilyResponse)(nil), "greenfield.virtualgroup.MsgWithdrawFromGVGFamilyResponse")
+	proto.RegisterType((*MsgWithdrawFromGVG)(nil), "greenfield.virtualgroup.MsgWithdrawFromGVG")
+	proto.RegisterType((*MsgWithdrawFromGVGResponse)(nil), "greenfield.virtualgroup.MsgWithdrawFromGVGResponse")
 }
 
 func init() { proto.RegisterFile("greenfield/virtualgroup/tx.proto", fileDescriptor_478f7001009bf3f2) }
 
 var fileDescriptor_478f7001009bf3f2 = []byte{
-	// 932 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x57, 0x4f, 0x6f, 0x1b, 0x45,
-	0x1c, 0xcd, 0x26, 0x55, 0xfe, 0xfc, 0x4a, 0xfe, 0x30, 0x75, 0xb0, 0xb3, 0x91, 0x5c, 0xcb, 0x2d,
-	0x95, 0x05, 0xd4, 0x4b, 0x4a, 0xa1, 0x22, 0x05, 0xa1, 0x24, 0xd0, 0x2a, 0x48, 0x81, 0xca, 0x11,
-	0x20, 0x81, 0x84, 0x35, 0xf6, 0x4e, 0x26, 0x83, 0xbc, 0x3b, 0xa3, 0x99, 0xb1, 0x93, 0x9c, 0x40,
-	0x7c, 0x00, 0xc4, 0x0d, 0x3e, 0x06, 0x07, 0x38, 0xf0, 0x0d, 0x72, 0xe0, 0x50, 0x71, 0x01, 0x71,
-	0x40, 0x28, 0x39, 0xf0, 0x35, 0xd0, 0xce, 0xce, 0xae, 0xb7, 0x4e, 0x76, 0xe3, 0x16, 0x22, 0x4e,
-	0xc9, 0xce, 0xbc, 0xf7, 0x9b, 0xf7, 0xde, 0xec, 0xfc, 0x66, 0x0d, 0x35, 0x2a, 0x09, 0x09, 0xf7,
-	0x18, 0xe9, 0xf9, 0xde, 0x80, 0x49, 0xdd, 0xc7, 0x3d, 0x2a, 0x79, 0x5f, 0x78, 0xfa, 0xb0, 0x29,
-	0x24, 0xd7, 0x1c, 0x95, 0x87, 0x88, 0x66, 0x16, 0xe1, 0x56, 0xbb, 0x5c, 0x05, 0x5c, 0x79, 0x1d,
-	0xac, 0x88, 0x37, 0x58, 0xeb, 0x10, 0x8d, 0xd7, 0xbc, 0x2e, 0x67, 0x61, 0x4c, 0x74, 0xcb, 0x76,
-	0x3e, 0x50, 0xd4, 0x1b, 0xac, 0x45, 0x7f, 0xec, 0xc4, 0x4a, 0x3c, 0xd1, 0x36, 0x4f, 0x5e, 0xfc,
-	0x60, 0xa7, 0x4a, 0x94, 0x53, 0x1e, 0x8f, 0x47, 0xff, 0xd9, 0xd1, 0xac, 0xc8, 0x2e, 0x0f, 0x02,
-	0x1e, 0x7a, 0x58, 0x08, 0xc9, 0x07, 0xb8, 0x67, 0x11, 0x37, 0xf3, 0x6c, 0x08, 0x2c, 0x71, 0x60,
-	0xab, 0xd7, 0xbf, 0x77, 0x60, 0x71, 0x47, 0xd1, 0x8f, 0x84, 0x8f, 0x35, 0x79, 0x64, 0x66, 0xd0,
-	0x1b, 0x30, 0x87, 0xfb, 0x7a, 0x9f, 0x4b, 0xa6, 0x8f, 0x2a, 0x4e, 0xcd, 0x69, 0xcc, 0x6d, 0x56,
-	0x7e, 0xfd, 0xf1, 0x76, 0xc9, 0xca, 0xda, 0xf0, 0x7d, 0x49, 0x94, 0xda, 0xd5, 0x92, 0x85, 0xb4,
-	0x35, 0x84, 0xa2, 0xb7, 0x61, 0x3a, 0xae, 0x5d, 0x99, 0xac, 0x39, 0x8d, 0xab, 0x77, 0xae, 0x37,
-	0x73, 0x72, 0x6a, 0xc6, 0x0b, 0x6d, 0x5e, 0x39, 0xfe, 0xf3, 0xfa, 0x44, 0xcb, 0x92, 0xd6, 0x17,
-	0xbe, 0xfe, 0xfb, 0x87, 0x97, 0x86, 0xe5, 0xea, 0x2b, 0x50, 0x1e, 0x51, 0xd6, 0x22, 0x4a, 0xf0,
-	0x50, 0x91, 0xfa, 0x57, 0x93, 0xb0, 0xba, 0xa3, 0xe8, 0x96, 0x24, 0x58, 0x93, 0x87, 0x3d, 0xde,
-	0xc1, 0xbd, 0x8f, 0xe3, 0xfa, 0x0f, 0xa3, 0xfa, 0xe8, 0x01, 0x20, 0x21, 0x59, 0x80, 0xe5, 0x51,
-	0x5b, 0x89, 0x36, 0x8e, 0x05, 0x5f, 0x68, 0x65, 0xc9, 0x72, 0x76, 0x85, 0x1d, 0x47, 0xab, 0x30,
-	0xb7, 0x87, 0x03, 0xd6, 0x3b, 0x6a, 0x33, 0xdf, 0x98, 0x9a, 0x6f, 0xcd, 0xc6, 0x03, 0xdb, 0x3e,
-	0x6a, 0xc0, 0x92, 0x22, 0x5d, 0x1e, 0xfa, 0x76, 0x19, 0xe6, 0xab, 0xca, 0x54, 0x6d, 0xaa, 0x31,
-	0xdf, 0x5a, 0x48, 0xc7, 0x77, 0xc5, 0xb6, 0xaf, 0xd0, 0x9b, 0x30, 0xe3, 0x13, 0xc1, 0x15, 0xd3,
-	0x95, 0x2b, 0x26, 0x99, 0x95, 0xa6, 0x15, 0x10, 0xbd, 0x28, 0x4d, 0xfb, 0xa2, 0x34, 0xb7, 0x38,
-	0x0b, 0x6d, 0x26, 0x09, 0x7e, 0xbd, 0x1c, 0x85, 0x72, 0x8e, 0x99, 0xfa, 0x8b, 0x70, 0xa3, 0x20,
-	0x81, 0x34, 0xa9, 0x9f, 0x1c, 0x93, 0xd4, 0xbb, 0xa4, 0x47, 0x2e, 0x35, 0xa9, 0xd7, 0xa1, 0x4c,
-	0x4d, 0xf5, 0xb6, 0xdd, 0xe8, 0xb6, 0xd9, 0xe9, 0x61, 0x6e, 0x25, 0x7a, 0x66, 0xf1, 0x6d, 0xff,
-	0x22, 0x7b, 0x79, 0xb2, 0x53, 0x7b, 0xbf, 0x39, 0x00, 0x06, 0x67, 0xd2, 0x42, 0x1b, 0xb0, 0xb8,
-	0xd7, 0x0f, 0x7d, 0x16, 0xd2, 0xb1, 0xad, 0x2c, 0x58, 0xc2, 0xbf, 0x33, 0x92, 0xdd, 0xe2, 0xa9,
-	0xa7, 0xdc, 0xe2, 0x52, 0x94, 0xc1, 0xa8, 0xee, 0x7a, 0x09, 0xd0, 0xd0, 0x58, 0xea, 0xf7, 0x0f,
-	0x07, 0xae, 0xee, 0x28, 0xfa, 0x09, 0xd3, 0xfb, 0xbe, 0xc4, 0x07, 0xff, 0xa3, 0xe1, 0xfb, 0x30,
-	0x7b, 0x60, 0x55, 0x8c, 0xeb, 0x38, 0x25, 0xe4, 0x58, 0x5e, 0x86, 0x6b, 0x19, 0x6f, 0xa9, 0xe7,
-	0x5f, 0x26, 0xcd, 0x1e, 0xef, 0x1e, 0x60, 0xf1, 0x61, 0x5f, 0xa3, 0x2d, 0x58, 0xe2, 0x82, 0x48,
-	0xac, 0xb9, 0x1c, 0xdb, 0xf3, 0x62, 0xc2, 0xc8, 0x98, 0x7e, 0xd2, 0xed, 0xe8, 0x31, 0x2f, 0x0d,
-	0x32, 0x76, 0x1f, 0x24, 0x47, 0xfe, 0x1e, 0x54, 0x72, 0xb2, 0x4a, 0x8e, 0xfe, 0xf2, 0x79, 0x61,
-	0x29, 0x74, 0x0b, 0x16, 0x55, 0xbf, 0xdb, 0x25, 0x4a, 0x71, 0x19, 0xf7, 0x0a, 0xd3, 0x09, 0xe6,
-	0x5b, 0xf3, 0xe9, 0x70, 0xd4, 0x2a, 0xd0, 0xfb, 0x80, 0x86, 0xb8, 0xa4, 0xa1, 0x57, 0xa6, 0x4d,
-	0xbe, 0xab, 0xd9, 0x76, 0x1a, 0xf7, 0xfc, 0xe6, 0x86, 0x85, 0xb4, 0x9e, 0x4f, 0x69, 0xc9, 0xd0,
-	0xfa, 0x72, 0x14, 0xf2, 0x99, 0xac, 0xec, 0x8b, 0x65, 0xd3, 0x4c, 0x43, 0xd6, 0xf0, 0x42, 0x34,
-	0xaa, 0xb9, 0xc4, 0x94, 0x3c, 0x92, 0x7c, 0xc0, 0x7c, 0x22, 0xdf, 0x3b, 0x64, 0xff, 0x4d, 0xde,
-	0x79, 0x5a, 0x6a, 0x50, 0x3d, 0x7f, 0xd5, 0x54, 0xd7, 0xcf, 0x8e, 0x81, 0x6c, 0xf1, 0x40, 0x44,
-	0xad, 0xe0, 0xb2, 0x04, 0xa2, 0xfb, 0xe0, 0x72, 0xc9, 0x28, 0x0b, 0xdb, 0x2a, 0x5e, 0x22, 0xba,
-	0x8a, 0xcd, 0x1a, 0xc3, 0x77, 0xa2, 0x1c, 0x23, 0x46, 0x34, 0x6c, 0xfb, 0x79, 0xee, 0x1a, 0x70,
-	0xab, 0x58, 0x7a, 0xe2, 0xf2, 0xce, 0xf1, 0x0c, 0x4c, 0xed, 0x28, 0x8a, 0xbe, 0x71, 0xa0, 0x92,
-	0x7b, 0xa9, 0xdd, 0xcd, 0xbd, 0x4e, 0x0b, 0x2e, 0x02, 0xf7, 0xad, 0x67, 0x61, 0x25, 0xc2, 0x8c,
-	0xa0, 0xdc, 0xbb, 0xa3, 0x50, 0x50, 0x1e, 0xab, 0x58, 0xd0, 0x45, 0x0d, 0x1f, 0x7d, 0x06, 0x33,
-	0x49, 0xb3, 0xbf, 0x51, 0x5c, 0xc8, 0x80, 0xdc, 0x97, 0xc7, 0x00, 0xa5, 0xc5, 0x3f, 0x87, 0xd9,
-	0xb4, 0xb3, 0xde, 0x2c, 0x22, 0x26, 0x28, 0xf7, 0x95, 0x71, 0x50, 0x59, 0xf1, 0x49, 0x17, 0x2b,
-	0x14, 0x6f, 0x41, 0xc5, 0xe2, 0x47, 0x4e, 0x30, 0xfa, 0x02, 0x9e, 0x7b, 0xe2, 0x2b, 0xae, 0x51,
-	0x44, 0xce, 0x22, 0xdd, 0x57, 0xc7, 0x45, 0xa6, 0x6b, 0x7d, 0x09, 0xd7, 0xce, 0x3b, 0x89, 0x5e,
-	0xa1, 0xde, 0xb3, 0x04, 0xf7, 0xde, 0x53, 0x12, 0x52, 0x01, 0xdf, 0x39, 0xb0, 0x5a, 0xd4, 0x13,
-	0x0a, 0x0b, 0x17, 0x10, 0xdd, 0x77, 0x9e, 0x91, 0x98, 0x28, 0xdb, 0xfc, 0xe0, 0xf8, 0xa4, 0xea,
-	0x3c, 0x3e, 0xa9, 0x3a, 0x7f, 0x9d, 0x54, 0x9d, 0x6f, 0x4f, 0xab, 0x13, 0x8f, 0x4f, 0xab, 0x13,
-	0xbf, 0x9f, 0x56, 0x27, 0x3e, 0xbd, 0x4b, 0x99, 0xde, 0xef, 0x77, 0xa2, 0xd6, 0xed, 0x75, 0xc2,
-	0xce, 0xed, 0xee, 0x3e, 0x66, 0xa1, 0x97, 0xf9, 0x4a, 0x3f, 0x1c, 0xf9, 0xb9, 0x71, 0x24, 0x88,
-	0xea, 0x4c, 0x9b, 0xef, 0xf4, 0xd7, 0xfe, 0x09, 0x00, 0x00, 0xff, 0xff, 0xf1, 0x4e, 0x19, 0x6d,
-	0x96, 0x0c, 0x00, 0x00,
+	// 1003 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xc4, 0x57, 0x41, 0x6f, 0x1b, 0x45,
+	0x1b, 0xce, 0x26, 0x55, 0x9a, 0xbc, 0xfd, 0x12, 0x47, 0x1b, 0xfb, 0xf3, 0x66, 0x83, 0xb6, 0x96,
+	0x5b, 0x2a, 0x8b, 0x52, 0x2f, 0x69, 0x0b, 0x55, 0x03, 0x08, 0x25, 0x81, 0x44, 0x39, 0x84, 0x56,
+	0x8e, 0x28, 0x12, 0x48, 0x58, 0x63, 0xef, 0x64, 0x33, 0xc8, 0xbb, 0xb3, 0x9a, 0x59, 0x3b, 0x89,
+	0x84, 0x04, 0x42, 0xe2, 0x8a, 0xb8, 0xc1, 0x0f, 0xe0, 0x07, 0x70, 0x00, 0xf1, 0x0b, 0x90, 0x7a,
+	0x2c, 0x5c, 0x40, 0x1c, 0x10, 0x4a, 0x0e, 0xfc, 0x0d, 0xb4, 0xb3, 0xb3, 0xe3, 0x8d, 0xed, 0xdd,
+	0xd8, 0xa5, 0xd0, 0x53, 0xe2, 0x99, 0xe7, 0x7d, 0xe7, 0x79, 0x9e, 0x79, 0xe7, 0x9d, 0x1d, 0xa8,
+	0xb8, 0x0c, 0x63, 0xff, 0x80, 0xe0, 0x8e, 0x63, 0xf7, 0x08, 0x0b, 0xbb, 0xa8, 0xe3, 0x32, 0xda,
+	0x0d, 0xec, 0xf0, 0xb8, 0x1e, 0x30, 0x1a, 0x52, 0xbd, 0xdc, 0x47, 0xd4, 0xd3, 0x08, 0xd3, 0x6a,
+	0x53, 0xee, 0x51, 0x6e, 0xb7, 0x10, 0xc7, 0x76, 0x6f, 0xad, 0x85, 0x43, 0xb4, 0x66, 0xb7, 0x29,
+	0xf1, 0xe3, 0x40, 0xb3, 0x2c, 0xe7, 0x3d, 0xee, 0xda, 0xbd, 0xb5, 0xe8, 0x8f, 0x9c, 0x58, 0x89,
+	0x27, 0x9a, 0xe2, 0x97, 0x1d, 0xff, 0x90, 0x53, 0x45, 0x97, 0xba, 0x34, 0x1e, 0x8f, 0xfe, 0x93,
+	0xa3, 0x69, 0x92, 0x6d, 0xea, 0x79, 0xd4, 0xb7, 0x51, 0x10, 0x30, 0xda, 0x43, 0x1d, 0x89, 0xb8,
+	0x9e, 0x25, 0x23, 0x40, 0x0c, 0x79, 0x32, 0x7b, 0xf5, 0x1b, 0x0d, 0x0a, 0x7b, 0xdc, 0x7d, 0x2f,
+	0x70, 0x50, 0x88, 0x1f, 0x8a, 0x19, 0xfd, 0x35, 0x98, 0x47, 0xdd, 0xf0, 0x90, 0x32, 0x12, 0x9e,
+	0x18, 0x5a, 0x45, 0xab, 0xcd, 0x6f, 0x1a, 0xbf, 0x7c, 0x7f, 0xab, 0x28, 0x69, 0x6d, 0x38, 0x0e,
+	0xc3, 0x9c, 0xef, 0x87, 0x8c, 0xf8, 0x6e, 0xa3, 0x0f, 0xd5, 0xdf, 0x84, 0xd9, 0x38, 0xb7, 0x31,
+	0x5d, 0xd1, 0x6a, 0x57, 0x6e, 0x5f, 0xad, 0x67, 0xf8, 0x54, 0x8f, 0x17, 0xda, 0xbc, 0xf4, 0xf8,
+	0x8f, 0xab, 0x53, 0x0d, 0x19, 0xb4, 0xbe, 0xf8, 0xf9, 0x5f, 0xdf, 0xbd, 0xd4, 0x4f, 0x57, 0x5d,
+	0x81, 0xf2, 0x00, 0xb3, 0x06, 0xe6, 0x01, 0xf5, 0x39, 0xae, 0x7e, 0x36, 0x0d, 0xab, 0x7b, 0xdc,
+	0xdd, 0x62, 0x18, 0x85, 0x78, 0xa7, 0x43, 0x5b, 0xa8, 0xf3, 0x28, 0xce, 0xbf, 0x13, 0xe5, 0xd7,
+	0xb7, 0x41, 0x0f, 0x18, 0xf1, 0x10, 0x3b, 0x69, 0xf2, 0xa0, 0x89, 0x62, 0xc2, 0x17, 0x4a, 0x59,
+	0x92, 0x31, 0xfb, 0x81, 0x1c, 0xd7, 0x57, 0x61, 0xfe, 0x00, 0x79, 0xa4, 0x73, 0xd2, 0x24, 0x8e,
+	0x10, 0xb5, 0xd0, 0x98, 0x8b, 0x07, 0x76, 0x1d, 0xbd, 0x06, 0x4b, 0x1c, 0xb7, 0xa9, 0xef, 0xc8,
+	0x65, 0x88, 0xc3, 0x8d, 0x99, 0xca, 0x4c, 0x6d, 0xa1, 0xb1, 0xa8, 0xc6, 0xf7, 0x83, 0x5d, 0x87,
+	0xeb, 0xf7, 0xe1, 0xb2, 0x83, 0x03, 0xca, 0x49, 0x68, 0x5c, 0x12, 0xce, 0xac, 0xd4, 0x25, 0x81,
+	0xa8, 0x50, 0xea, 0xb2, 0x50, 0xea, 0x5b, 0x94, 0xf8, 0xd2, 0x93, 0x04, 0xbf, 0x5e, 0x8e, 0x4c,
+	0x19, 0x21, 0xa6, 0xfa, 0x22, 0x5c, 0xcb, 0x71, 0x40, 0x39, 0xf5, 0x83, 0x26, 0x9c, 0x7a, 0x1b,
+	0x77, 0xf0, 0xbf, 0xea, 0xd4, 0xab, 0x50, 0x76, 0x45, 0xf6, 0xa6, 0xdc, 0xe8, 0xa6, 0xd8, 0xe9,
+	0xbe, 0x6f, 0x45, 0x77, 0x68, 0xf1, 0x5d, 0xe7, 0x22, 0x79, 0x59, 0xb4, 0x95, 0xbc, 0x5f, 0x35,
+	0x00, 0x81, 0x13, 0x6e, 0xe9, 0x1b, 0x50, 0x38, 0xe8, 0xfa, 0x0e, 0xf1, 0xdd, 0xb1, 0xa5, 0x2c,
+	0xca, 0x80, 0x7f, 0x26, 0x24, 0xbd, 0xc5, 0x33, 0x13, 0x6e, 0x71, 0x31, 0xf2, 0x60, 0x90, 0x77,
+	0xb5, 0x08, 0x7a, 0x5f, 0x98, 0xd2, 0xfb, 0xbb, 0x06, 0x57, 0xf6, 0xb8, 0xfb, 0x3e, 0x09, 0x0f,
+	0x1d, 0x86, 0x8e, 0x9e, 0xa3, 0xe0, 0xd7, 0x61, 0xee, 0x48, 0xb2, 0x18, 0x57, 0xb1, 0x0a, 0xc8,
+	0x90, 0x5c, 0x82, 0xe5, 0x94, 0x36, 0xa5, 0xf9, 0xe7, 0x69, 0xb1, 0xc7, 0xfb, 0x47, 0x28, 0x78,
+	0xd0, 0x0d, 0xf5, 0x2d, 0x58, 0xa2, 0x01, 0x66, 0x28, 0xa4, 0x6c, 0x6c, 0xcd, 0x85, 0x24, 0x22,
+	0x25, 0xfa, 0xbc, 0xda, 0xc1, 0x63, 0x5e, 0xec, 0xa5, 0xe4, 0x6e, 0x27, 0x47, 0xfe, 0x1e, 0x18,
+	0x19, 0x5e, 0x25, 0x47, 0xbf, 0x34, 0xca, 0x2c, 0xae, 0xdf, 0x80, 0x02, 0xef, 0xb6, 0xdb, 0x98,
+	0x73, 0xca, 0xe2, 0x5e, 0x21, 0x3a, 0xc1, 0x42, 0x63, 0x41, 0x0d, 0x47, 0xad, 0x42, 0x7f, 0x00,
+	0xa5, 0x73, 0xb8, 0xa4, 0xa7, 0x1b, 0xb3, 0xc2, 0xe2, 0xd5, 0x74, 0x47, 0x8d, 0xdb, 0x7e, 0x7d,
+	0x43, 0x42, 0x1a, 0xcb, 0xa9, 0x54, 0xc9, 0xe0, 0x7a, 0x29, 0x72, 0x7a, 0xc8, 0x30, 0x59, 0x5d,
+	0xd2, 0x52, 0xe5, 0x74, 0x08, 0xff, 0x8f, 0x46, 0x43, 0xca, 0x90, 0x8b, 0x1f, 0x32, 0xda, 0x23,
+	0x0e, 0x66, 0xef, 0x1c, 0x93, 0x67, 0x63, 0x7a, 0x16, 0x97, 0x0a, 0x58, 0xa3, 0x57, 0x55, 0xbc,
+	0x3e, 0x11, 0x88, 0x2d, 0xea, 0x05, 0x51, 0x3b, 0xf8, 0xaf, 0xf9, 0xd5, 0xe0, 0x46, 0xfe, 0xea,
+	0x8a, 0xe7, 0x8f, 0x1a, 0x18, 0xa9, 0x0a, 0xde, 0x66, 0xd4, 0xdb, 0x79, 0xb4, 0x13, 0x57, 0xcf,
+	0xb3, 0x38, 0xaa, 0x9b, 0x60, 0x8d, 0x2c, 0xbf, 0xc1, 0xe2, 0x35, 0x87, 0x8b, 0x30, 0x29, 0xe1,
+	0x8c, 0xa3, 0x57, 0x85, 0x4a, 0x16, 0x71, 0xa5, 0xee, 0x5b, 0x4d, 0x14, 0xcd, 0x00, 0xe8, 0xf9,
+	0xb5, 0xa0, 0x0c, 0x29, 0x2f, 0x80, 0x39, 0xcc, 0x32, 0x11, 0x71, 0xfb, 0xa7, 0x79, 0x98, 0xd9,
+	0xe3, 0xae, 0xfe, 0xa5, 0x06, 0x46, 0xe6, 0xe7, 0xc3, 0xdd, 0xcc, 0x0f, 0x97, 0x9c, 0x2b, 0xd7,
+	0x7c, 0xe3, 0x69, 0xa2, 0x12, 0x62, 0x82, 0x50, 0xe6, 0x2d, 0x9d, 0x4b, 0x28, 0x2b, 0x2a, 0x9f,
+	0xd0, 0x45, 0x57, 0xab, 0xfe, 0x21, 0x5c, 0x4e, 0xae, 0xd5, 0x6b, 0xf9, 0x89, 0x04, 0xc8, 0xbc,
+	0x39, 0x06, 0x48, 0x25, 0xff, 0x08, 0xe6, 0xd4, 0x1d, 0x76, 0x3d, 0x2f, 0x30, 0x41, 0x99, 0x2f,
+	0x8f, 0x83, 0x4a, 0x93, 0x4f, 0xee, 0x8b, 0x5c, 0xf2, 0x12, 0x94, 0x4f, 0x7e, 0xa0, 0x4d, 0xea,
+	0x5f, 0x68, 0x50, 0x1a, 0x7d, 0xc6, 0xd7, 0xc6, 0x21, 0x79, 0x2e, 0xc4, 0xbc, 0x3f, 0x71, 0x88,
+	0xe2, 0xc1, 0xa1, 0x30, 0x78, 0x18, 0x6f, 0x4e, 0x90, 0xcd, 0xbc, 0x33, 0x01, 0x58, 0x2d, 0xfa,
+	0x31, 0xfc, 0xef, 0xdc, 0x63, 0xa1, 0x96, 0x97, 0x24, 0x8d, 0x34, 0x5f, 0x19, 0x17, 0xa9, 0xd6,
+	0xfa, 0x14, 0x96, 0x47, 0x35, 0x7b, 0x3b, 0x77, 0xb3, 0x86, 0x03, 0xcc, 0x7b, 0x13, 0x06, 0x28,
+	0x02, 0x5f, 0x6b, 0xb0, 0x9a, 0x77, 0xed, 0xe4, 0x26, 0xce, 0x09, 0x34, 0xdf, 0x7a, 0xca, 0xc0,
+	0x84, 0xd9, 0xe6, 0xbb, 0x8f, 0x4f, 0x2d, 0xed, 0xc9, 0xa9, 0xa5, 0xfd, 0x79, 0x6a, 0x69, 0x5f,
+	0x9d, 0x59, 0x53, 0x4f, 0xce, 0xac, 0xa9, 0xdf, 0xce, 0xac, 0xa9, 0x0f, 0xee, 0xba, 0x24, 0x3c,
+	0xec, 0xb6, 0xa2, 0xcf, 0x03, 0xbb, 0xe5, 0xb7, 0x6e, 0xb5, 0x0f, 0x11, 0xf1, 0xed, 0xd4, 0x63,
+	0xf0, 0x78, 0xe0, 0x55, 0x7b, 0x12, 0x60, 0xde, 0x9a, 0x15, 0xcf, 0xc1, 0x3b, 0x7f, 0x07, 0x00,
+	0x00, 0xff, 0xff, 0xf8, 0xc8, 0x20, 0x91, 0xfd, 0x0e, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -917,6 +1095,8 @@ type MsgClient interface {
 	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
 	Withdraw(ctx context.Context, in *MsgWithdraw, opts ...grpc.CallOption) (*MsgWithdrawResponse, error)
 	SwapOut(ctx context.Context, in *MsgSwapOut, opts ...grpc.CallOption) (*MsgSwapOutResponse, error)
+	WithdrawFromGVGFamily(ctx context.Context, in *MsgWithdrawFromGVGFamily, opts ...grpc.CallOption) (*MsgWithdrawFromGVGFamilyResponse, error)
+	WithdrawFromGVG(ctx context.Context, in *MsgWithdrawFromGVG, opts ...grpc.CallOption) (*MsgWithdrawFromGVGResponse, error)
 	// Since: cosmos-sdk 0.47
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 	StorageProviderExit(ctx context.Context, in *MsgStorageProviderExit, opts ...grpc.CallOption) (*MsgStorageProviderExitResponse, error)
@@ -976,6 +1156,24 @@ func (c *msgClient) SwapOut(ctx context.Context, in *MsgSwapOut, opts ...grpc.Ca
 	return out, nil
 }
 
+func (c *msgClient) WithdrawFromGVGFamily(ctx context.Context, in *MsgWithdrawFromGVGFamily, opts ...grpc.CallOption) (*MsgWithdrawFromGVGFamilyResponse, error) {
+	out := new(MsgWithdrawFromGVGFamilyResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/WithdrawFromGVGFamily", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) WithdrawFromGVG(ctx context.Context, in *MsgWithdrawFromGVG, opts ...grpc.CallOption) (*MsgWithdrawFromGVGResponse, error) {
+	out := new(MsgWithdrawFromGVGResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/WithdrawFromGVG", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
 	out := new(MsgUpdateParamsResponse)
 	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Msg/UpdateParams", in, out, opts...)
@@ -1011,6 +1209,8 @@ type MsgServer interface {
 	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
 	Withdraw(context.Context, *MsgWithdraw) (*MsgWithdrawResponse, error)
 	SwapOut(context.Context, *MsgSwapOut) (*MsgSwapOutResponse, error)
+	WithdrawFromGVGFamily(context.Context, *MsgWithdrawFromGVGFamily) (*MsgWithdrawFromGVGFamilyResponse, error)
+	WithdrawFromGVG(context.Context, *MsgWithdrawFromGVG) (*MsgWithdrawFromGVGResponse, error)
 	// Since: cosmos-sdk 0.47
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 	StorageProviderExit(context.Context, *MsgStorageProviderExit) (*MsgStorageProviderExitResponse, error)
@@ -1035,6 +1235,12 @@ func (*UnimplementedMsgServer) Withdraw(ctx context.Context, req *MsgWithdraw) (
 }
 func (*UnimplementedMsgServer) SwapOut(ctx context.Context, req *MsgSwapOut) (*MsgSwapOutResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SwapOut not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawFromGVGFamily(ctx context.Context, req *MsgWithdrawFromGVGFamily) (*MsgWithdrawFromGVGFamilyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawFromGVGFamily not implemented")
+}
+func (*UnimplementedMsgServer) WithdrawFromGVG(ctx context.Context, req *MsgWithdrawFromGVG) (*MsgWithdrawFromGVGResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method WithdrawFromGVG not implemented")
 }
 func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -1140,6 +1346,42 @@ func _Msg_SwapOut_Handler(srv interface{}, ctx context.Context, dec func(interfa
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_WithdrawFromGVGFamily_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawFromGVGFamily)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawFromGVGFamily(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/WithdrawFromGVGFamily",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawFromGVGFamily(ctx, req.(*MsgWithdrawFromGVGFamily))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_WithdrawFromGVG_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawFromGVG)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).WithdrawFromGVG(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Msg/WithdrawFromGVG",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).WithdrawFromGVG(ctx, req.(*MsgWithdrawFromGVG))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(MsgUpdateParams)
 	if err := dec(in); err != nil {
@@ -1217,6 +1459,14 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SwapOut",
 			Handler:    _Msg_SwapOut_Handler,
+		},
+		{
+			MethodName: "WithdrawFromGVGFamily",
+			Handler:    _Msg_WithdrawFromGVGFamily_Handler,
+		},
+		{
+			MethodName: "WithdrawFromGVG",
+			Handler:    _Msg_WithdrawFromGVG_Handler,
 		},
 		{
 			MethodName: "UpdateParams",
@@ -1598,9 +1848,9 @@ func (m *MsgSwapOut) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.SuccessorApproval != nil {
+	if m.SuccessorSpApproval != nil {
 		{
-			size, err := m.SuccessorApproval.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.SuccessorSpApproval.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1744,11 +1994,6 @@ func (m *MsgCompleteStorageProviderExit) MarshalToSizedBuffer(dAtA []byte) (int,
 	_ = i
 	var l int
 	_ = l
-	if m.OriginStorageProviderId != 0 {
-		i = encodeVarintTx(dAtA, i, uint64(m.OriginStorageProviderId))
-		i--
-		dAtA[i] = 0x10
-	}
 	if len(m.OperatorAddress) > 0 {
 		i -= len(m.OperatorAddress)
 		copy(dAtA[i:], m.OperatorAddress)
@@ -1775,6 +2020,122 @@ func (m *MsgCompleteStorageProviderExitResponse) MarshalTo(dAtA []byte) (int, er
 }
 
 func (m *MsgCompleteStorageProviderExitResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawFromGVGFamily) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawFromGVGFamily) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawFromGVGFamily) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.GlobalVirtualGroupFamilyId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.FundingAddress) > 0 {
+		i -= len(m.FundingAddress)
+		copy(dAtA[i:], m.FundingAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FundingAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawFromGVGFamilyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawFromGVGFamilyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawFromGVGFamilyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawFromGVG) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawFromGVG) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawFromGVG) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintTx(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.FundingAddress) > 0 {
+		i -= len(m.FundingAddress)
+		copy(dAtA[i:], m.FundingAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.FundingAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawFromGVGResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawFromGVGResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawFromGVGResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1953,8 +2314,8 @@ func (m *MsgSwapOut) Size() (n int) {
 	if m.SuccessorSpId != 0 {
 		n += 1 + sovTx(uint64(m.SuccessorSpId))
 	}
-	if m.SuccessorApproval != nil {
-		l = m.SuccessorApproval.Size()
+	if m.SuccessorSpApproval != nil {
+		l = m.SuccessorSpApproval.Size()
 		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
@@ -2001,13 +2362,60 @@ func (m *MsgCompleteStorageProviderExit) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.OriginStorageProviderId != 0 {
-		n += 1 + sovTx(uint64(m.OriginStorageProviderId))
-	}
 	return n
 }
 
 func (m *MsgCompleteStorageProviderExitResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgWithdrawFromGVGFamily) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FundingAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		n += 1 + sovTx(uint64(m.GlobalVirtualGroupFamilyId))
+	}
+	return n
+}
+
+func (m *MsgWithdrawFromGVGFamilyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgWithdrawFromGVG) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FundingAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovTx(uint64(m.GlobalVirtualGroupId))
+	}
+	return n
+}
+
+func (m *MsgWithdrawFromGVGResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3143,7 +3551,7 @@ func (m *MsgSwapOut) Unmarshal(dAtA []byte) error {
 			}
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SuccessorApproval", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field SuccessorSpApproval", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3170,10 +3578,10 @@ func (m *MsgSwapOut) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.SuccessorApproval == nil {
-				m.SuccessorApproval = &common.Approval{}
+			if m.SuccessorSpApproval == nil {
+				m.SuccessorSpApproval = &common.Approval{}
 			}
-			if err := m.SuccessorApproval.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.SuccessorSpApproval.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3441,25 +3849,6 @@ func (m *MsgCompleteStorageProviderExit) Unmarshal(dAtA []byte) error {
 			}
 			m.OperatorAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OriginStorageProviderId", wireType)
-			}
-			m.OriginStorageProviderId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.OriginStorageProviderId |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipTx(dAtA[iNdEx:])
@@ -3508,6 +3897,308 @@ func (m *MsgCompleteStorageProviderExitResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgCompleteStorageProviderExitResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawFromGVGFamily) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVGFamily: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVGFamily: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FundingAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FundingAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyId", wireType)
+			}
+			m.GlobalVirtualGroupFamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupFamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawFromGVGFamilyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVGFamilyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVGFamilyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawFromGVG) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVG: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVG: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FundingAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FundingAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawFromGVGResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVGResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawFromGVGResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

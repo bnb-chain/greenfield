@@ -21,10 +21,10 @@ func (k Keeper) ChargeInitialReadFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	if err != nil {
 		return fmt.Errorf("charge initial read fee failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
-	err = k.paymentKeeper.ApplyUserFlowsList(ctx, bill)
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 	if err != nil {
-		// TODO: handle this
 		ctx.Logger().Error("charge initial read fee failed", "err", err.Error())
+		return err
 	}
 	return nil
 }
@@ -34,18 +34,15 @@ func (k Keeper) ChargeDeleteBucket(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	if err != nil {
 		return err
 	}
-	if len(bill) == 0 {
+	if len(bill.Flows) == 0 {
 		return nil
 	}
-	// TODO: fixme
-	// should only remain at most 2 flows: charged_read_quota fee and tax
-	//if len(bill.Flows) > 2 {
-	//	panic(fmt.Sprintf("unexpected left flow number: %d", len(bill.Flows)))
-	//}
-	for _, f := range bill {
-		f.Flows = GetNegFlows(f.Flows)
+	//should only remain at most 2 flows: charged_read_quota fee to gvg family and tax to validator pool
+	if len(bill.Flows) > 2 {
+		panic(fmt.Sprintf("unexpected left flow number: %d", len(bill.Flows)))
 	}
-	err = k.paymentKeeper.ApplyUserFlowsList(ctx, bill)
+	bill.Flows = GetNegFlows(bill.Flows)
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 	return err
 }
 
@@ -168,145 +165,97 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	if err != nil {
 		return fmt.Errorf("get new bucket bill failed: %w", err)
 	}
+
 	// charge according to bill change
 	err = k.ChargeAccordingToBillChange(ctx, prevBill, newBill)
 	if err != nil {
-		// TODO: handle this
 		ctx.Logger().Error("charge via bucket change failed", "err", err.Error())
+		return err
 	}
 	return nil
 }
 
-func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) ([]types.UserFlows, error) {
-	var flows []types.UserFlows
-
+func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) (userFlows types.UserFlows, err error) {
+	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	if bucketInfo.BillingInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
-		return flows, nil
+		return userFlows, nil
 	}
 	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
 	if !found {
-		return flows, fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
+		return userFlows, fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
 	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySp.OperatorAddress,
 		PriceTime: bucketInfo.BillingInfo.PriceTime,
 	})
 	if err != nil {
-		return flows, fmt.Errorf("get storage price failed: %w", err)
+		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
-
-	params := k.paymentKeeper.GetParams(ctx)
 
 	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
 	if !found {
-		return flows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
-	}
-	gvgFamilyFlows := types.UserFlows{From: sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)}
-	userFlows := types.UserFlows{From: sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)}
-
-	readFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
-	// read flow: 1. payment account -> GVG family -> primary sp, 2. payment account -> GVG family -> validator tax pool
-	if readFlowRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: gvgFamily.VirtualPaymentAddress,
-			Rate:      readFlowRate,
-		})
-		gvgFamilyFlows.Flows = append(gvgFamilyFlows.Flows, types.OutFlow{
-			ToAddress: primarySp.FundingAddress,
-			Rate:      readFlowRate,
-		})
-
-		validatorTaxRate := params.ValidatorTaxRate.MulInt(readFlowRate).TruncateInt()
-		if validatorTaxRate.IsPositive() {
-			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-				ToAddress: gvgFamily.VirtualPaymentAddress,
-				Rate:      validatorTaxRate,
-			})
-			gvgFamilyFlows.Flows = append(gvgFamilyFlows.Flows, types.OutFlow{
-				ToAddress: types.ValidatorTaxPoolAddress.String(),
-				Rate:      validatorTaxRate,
-			})
-		}
+		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
-	// store flows: 1. payment account -> GVG -> sps, 2. payment account -> GVG -> validator tax pool
-	gvgFlows := make([]types.UserFlows, 0)
-	storeFlowRate := sdkmath.ZeroInt()
+	// primary sp total rate
+	primaryTotalFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
+
+	// secondary sp total rate
+	secondaryTotalFlowRate := sdk.ZeroInt()
+
 	for _, lvgStoreSize := range bucketInfo.BillingInfo.LvgObjectsSize {
-		lvg, found := k.virtualGroupKeeper.GetLVG(ctx, bucketInfo.Id, lvgStoreSize.LvgId)
-		if !found {
-			return flows, fmt.Errorf("get LVG failed: %d", lvgStoreSize.LvgId)
-		}
-
-		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
-		if !found {
-			return flows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
-		}
-		gvgFlow := types.UserFlows{From: sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress)}
-
 		// primary sp
-		primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
-		storeFlowRate = storeFlowRate.Add(primaryStoreFlowRate)
-		if primaryStoreFlowRate.IsPositive() {
-			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-				ToAddress: gvg.VirtualPaymentAddress,
-				Rate:      primaryStoreFlowRate,
-			})
-			gvgFlow.Flows = append(gvgFlow.Flows, types.OutFlow{
-				ToAddress: primarySp.FundingAddress,
-				Rate:      primaryStoreFlowRate,
-			})
+		primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
+		if primaryRate.IsPositive() {
+			primaryTotalFlowRate = primaryTotalFlowRate.Add(primaryRate)
 		}
 
 		//secondary sp
-		secondaryStoreFlowRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
-		if secondaryStoreFlowRate.IsPositive() {
-			for _, id := range gvg.SecondarySpIds {
-				sp, found := k.spKeeper.GetStorageProvider(ctx, id)
-				if !found {
-					return flows, fmt.Errorf("get sp failed: %d", id)
-				}
-				userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-					ToAddress: gvg.VirtualPaymentAddress,
-					Rate:      secondaryStoreFlowRate,
-				})
-				gvgFlow.Flows = append(gvgFlow.Flows, types.OutFlow{
-					ToAddress: sp.FundingAddress,
-					Rate:      secondaryStoreFlowRate,
-				})
-				storeFlowRate = storeFlowRate.Add(secondaryStoreFlowRate)
-			}
+		lvg, found := k.virtualGroupKeeper.GetLVG(ctx, bucketInfo.Id, lvgStoreSize.LvgId)
+		if !found {
+			return userFlows, fmt.Errorf("get LVG failed: %d", lvgStoreSize.LvgId)
+		}
+		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
+		if !found {
+			return userFlows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
 		}
 
-		// validator tax pool
-		validatorTaxRate := params.ValidatorTaxRate.MulInt(storeFlowRate).TruncateInt()
-		if validatorTaxRate.IsPositive() {
+		secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvgStoreSize.TotalChargeSize)).TruncateInt()
+		secondaryRate = secondaryRate.MulRaw(int64(len(gvg.SecondarySpIds)))
+		if secondaryRate.IsPositive() {
 			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 				ToAddress: gvg.VirtualPaymentAddress,
-				Rate:      validatorTaxRate,
+				Rate:      secondaryRate,
 			})
-			gvgFlow.Flows = append(userFlows.Flows, types.OutFlow{
-				ToAddress: types.ValidatorTaxPoolAddress.String(),
-				Rate:      validatorTaxRate,
-			})
+			secondaryTotalFlowRate = secondaryTotalFlowRate.Add(secondaryRate)
 		}
-		gvgFlows = append(gvgFlows, gvgFlow)
 	}
 
-	flows = append(flows, userFlows, gvgFamilyFlows)
-	flows = append(flows, gvgFlows...)
+	if primaryTotalFlowRate.IsPositive() {
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: gvgFamily.VirtualPaymentAddress,
+			Rate:      primaryTotalFlowRate,
+		})
+	}
 
-	return flows, nil
+	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, bucketInfo.BillingInfo.PriceTime)
+	if err != nil {
+		return userFlows, fmt.Errorf("failed to get validator tax rate: %w, time: %d", err, bucketInfo.BillingInfo.PriceTime)
+	}
+	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryTotalFlowRate.Add(secondaryTotalFlowRate)).TruncateInt()
+	if validatorTaxRate.IsPositive() {
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: types.ValidatorTaxPoolAddress.String(),
+			Rate:      validatorTaxRate,
+		})
+	}
+
+	return userFlows, nil
 }
 
-func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prevFlows, currentFlows []types.UserFlows) error {
-	for _, pre := range prevFlows {
-		pre.Flows = GetNegFlows(pre.Flows)
-	}
-	flows := make([]types.UserFlows, 0)
-	flows = append(flows, prevFlows...)
-	flows = append(flows, currentFlows...)
-	err := k.paymentKeeper.ApplyUserFlowsList(ctx, flows)
+func (k Keeper) ChargeAccordingToBillChange(ctx sdk.Context, prevFlows, currentFlows types.UserFlows) error {
+	prevFlows.Flows = GetNegFlows(prevFlows.Flows)
+	err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prevFlows, currentFlows})
 	if err != nil {
 		return fmt.Errorf("apply user flows list failed: %w", err)
 	}
@@ -388,8 +337,11 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 		return amount, fmt.Errorf("get charge size error: %w", err)
 	}
 	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
-	reserveTime := k.paymentKeeper.GetParams(ctx).ReserveTime
-	amount = rate.Mul(sdkmath.NewIntFromUint64(reserveTime))
+	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
+	if err != nil {
+		return amount, fmt.Errorf("get versioned reserve time error: %w", err)
+	}
+	amount = rate.Mul(sdkmath.NewIntFromUint64(versionedParams.ReserveTime))
 	return amount, nil
 }
 

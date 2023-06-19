@@ -1,9 +1,11 @@
 syntax = "proto3";
 package greenfield.storage;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
+import "greenfield/payment/out_flow.proto";
+import "greenfield/payment/stream_record.proto";
 import "greenfield/storage/common.proto";
 
 // this line is used by starport scaffolding # proto/tx/import
@@ -170,4 +172,16 @@ message DeleteInfo {
   Ids bucket_ids = 1;
   Ids object_ids = 2;
   Ids group_ids = 3;
+}
+
+message MigrationBucketInfo {
+  uint32 src_sp_id = 1;
+  uint32 src_global_virtual_group_family_id = 2;
+  uint32 dst_sp_id = 3;
+  // id is the unique identifier of object
+  string bucket_id = 5 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
 }

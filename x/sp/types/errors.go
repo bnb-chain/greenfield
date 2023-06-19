@@ -18,6 +18,7 @@ var (
 	ErrStorageProviderGcAddrExists       = errors.Register(ModuleName, 10, "StorageProvider already exist for this gc address; must use new StorageProvider gc address.")
 	ErrStorageProviderPriceExpired       = errors.Register(ModuleName, 11, "StorageProvider price expired")
 	ErrStorageProviderNotChanged         = errors.Register(ModuleName, 12, "StorageProvider not changed")
+	ErrStorageProviderExitFailed         = errors.Register(ModuleName, 13, "StorageProvider exit failed.")
 	ErrStorageProviderInvalidBlsKey      = errors.Register(ModuleName, 13, "StorageProvider bls pubkey is invalid")
 	ErrStorageProviderBlsKeyExists       = errors.Register(ModuleName, 14, "StorageProvider already exist for this bls pubkey; must use new bls pubkey")
 
