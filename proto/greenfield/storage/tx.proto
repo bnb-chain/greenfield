@@ -564,12 +564,12 @@ message MsgCompleteMigrateBucket {
 
   uint32 global_virtual_group_family_id =2;
 
-  message DstGVGDetail {
+  message DstGVGInfo {
     uint32 local_virtual_group_id = 1;
     uint32 global_virtual_group_id = 2;
     repeated bytes secondary_sp_signature = 3;
   }
-  repeated DstGVGDetail dstGVGDetails = 3;
+  repeated DstGVGInfo dstGVGInfos = 3;
 
   string bucket_name = 4;
 }
