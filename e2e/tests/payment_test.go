@@ -215,7 +215,7 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(objectId, gvgId, storagetypes.GenerateHash(checksums[:])).GetSignBytes()
-	// every secondary sp sign the checksums
+	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
 		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
@@ -301,10 +301,15 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
 	s.Require().NoError(err)
 
+	validatorTaxPoolRate := sdk.ZeroInt()
 	queryStreamRequest := paymenttypes.QueryGetStreamRecordRequest{Account: paymenttypes.ValidatorTaxPoolAddress.String()}
 	queryStreamResponse, err := s.Client.PaymentQueryClient.StreamRecord(ctx, &queryStreamRequest)
-	s.Require().NoError(err)
-	validatorTaxPoolRate := queryStreamResponse.StreamRecord.NetflowRate
+	if err != nil {
+		s.Require().ErrorContains(err, "key not found")
+	} else {
+		s.Require().NoError(err)
+		validatorTaxPoolRate = queryStreamResponse.StreamRecord.NetflowRate
+	}
 	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
 
 	// create bucket, create object

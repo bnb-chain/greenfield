@@ -36,16 +36,3 @@ func GenerateHash(checksumList [][]byte) []byte {
 	hash.Write(checksumBytesTotal)
 	return hash.Sum(nil)
 }
-
-func NewMigrationBucketSignDoc(srcSPID, dspSPID uint32, bucketID math.Uint) *MigrationBucketSignDoc {
-	return &MigrationBucketSignDoc{
-		SrcSpId:  srcSPID,
-		DstSpId:  dspSPID,
-		BucketId: bucketID,
-	}
-}
-
-func (mbs *MigrationBucketSignDoc) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(mbs)
-	return sdk.MustSortJSON(bz)
-}

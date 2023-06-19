@@ -4,6 +4,7 @@ import (
 	"github.com/bnb-chain/greenfield/types/s3util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 const TypeMsgMigrateBucket = "migrate_bucket"
@@ -35,6 +36,12 @@ func (msg *MsgMigrateBucket) GetSigners() []sdk.AccAddress {
 func (msg *MsgMigrateBucket) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgMigrateBucket) GetApprovalBytes() []byte {
+	fakeMsg := proto.Clone(msg).(*MsgMigrateBucket)
+	fakeMsg.DstPrimarySpApproval.Sig = nil
+	return fakeMsg.GetSignBytes()
 }
 
 func (msg *MsgMigrateBucket) ValidateBasic() error {

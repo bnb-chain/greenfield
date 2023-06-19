@@ -31,39 +31,59 @@ message GlobalVirtualGroup {
 // Each local virtual group is associated with a unique virtual payment account,
 // where all object fees are streamed to.
 message LocalVirtualGroup {
+  // id is the identifier of the local virtual group.
   uint32 id = 1;
-
-  // id is the unique identification for bucket.
+  // bucket_id is the unique identification for the bucket.
   string bucket_id = 2 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // global_virtual_group_id is the identifier of the global virtual group.
   uint32 global_virtual_group_id = 3;
+  // stored_size is the size of the stored data in the local virtual group.
   uint64 stored_size = 4;
 }
 
 // Global virtual group family serve as a means of grouping global virtual groups.
 // Each bucket must be associated with a unique global virtual group family and cannot cross families.
 message GlobalVirtualGroupFamily {
+  // id is the identifier of the global virtual group family.
   uint32 id = 1;
-
+  // global_virtual_group_ids is a list of identifiers of the global virtual groups associated with the family.
   repeated uint32 global_virtual_group_ids = 2;
+  // virtual_payment_address is the payment address associated with the global virtual group family.
   string virtual_payment_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message GlobalVirtualGroupsBindingOnBucket {
-  // id is the unique identification for bucket.
+  // bucket_id is the unique identification for the bucket.
   string bucket_id = 1 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // global_virtual_group_ids is a list of identifiers of the global virtual groups associated with the bucket.
   repeated uint32 global_virtual_group_ids = 2;
+  // local_virtual_group_ids is a list of identifiers of the local virtual groups associated with the bucket.
   repeated uint32 local_virtual_group_ids = 3;
 }
 
 message GVGStatisticsWithinSP {
   uint32 storage_provider_id = 1;
+  // secondary_count defines the number of global virtual groups (GVGs) in
+  // which this storage provider serves as a secondary storage provider.
   uint32 secondary_count = 3;
+}
+
+message MigrationBucketSignDoc {
+  uint32 dst_primary_sp_id = 1;
+  uint32 local_virtual_group_id = 2;
+  uint32 src_global_virtual_group_id = 3;
+  uint32 dst_global_virtual_group_id = 4;
+  string bucket_id = 5 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
 }

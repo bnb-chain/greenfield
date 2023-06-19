@@ -74,13 +74,3 @@ message SecondarySpSealObjectSignDoc {
   // checksum is the sha256 hash of slice of integrity hash from secondary sps
   bytes checksum = 3;
 }
-
-message MigrationBucketSignDoc {
-  uint32 src_sp_id = 1;
-  uint32 dst_sp_id = 2;
-  string bucket_id = 3 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-}

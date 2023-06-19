@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -1327,7 +1328,7 @@ func (k Keeper) VerifySPAndSignature(ctx sdk.Context, spID uint32, sigData []byt
 
 	approvalAccAddress := sdk.MustAccAddressFromHex(sp.ApprovalAddress)
 
-	err := types.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
+	err := gnfdtypes.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
 	if err != nil {
 		return errors.Wrapf(types.ErrInvalidApproval, "verify signature error: %s", err)
 	}

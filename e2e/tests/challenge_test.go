@@ -109,7 +109,7 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
-	// every secondary sp sign the checksums
+	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
 		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)

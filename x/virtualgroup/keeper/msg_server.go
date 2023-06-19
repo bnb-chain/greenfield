@@ -5,6 +5,7 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -231,6 +232,13 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("successor sp not found.")
 	}
+
+	// verify the approval
+	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(req.GetApprovalBytes()), req.SuccessorSpApproval.Sig)
+	if err != nil {
+		return nil, err
+	}
+
 	if req.VirtualGroupFamilyId == types.NoSpecifiedFamilyId {
 		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
 		err := k.SwapOutAsSecondarySP(ctx, sp.Id, successorSP.Id, req.GlobalVirtualGroupIds)
@@ -248,7 +256,7 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 	return &types.MsgSwapOutResponse{}, nil
 }
 
-func (k msgServer) WithdrawFromGVGFamily(goCtx context.Context, req *types.MsgWithdrawFromGVGFamily) (*types.MsgWithdrawFromGVGFamilyResponse, error) {
+func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.MsgSettleResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	funcAcc := sdk.MustAccAddressFromHex(req.FundingAddress)
@@ -258,49 +266,93 @@ func (k msgServer) WithdrawFromGVGFamily(goCtx context.Context, req *types.MsgWi
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	family, found := k.GetGVGFamily(ctx, sp.Id, req.GlobalVirtualGroupFamilyId)
-	if !found {
-		return nil, types.ErrGVGFamilyNotExist
-	}
+	if req.GlobalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
+		family, found := k.GetGVGFamily(ctx, sp.Id, req.GlobalVirtualGroupFamilyId)
+		if !found {
+			return nil, types.ErrGVGFamilyNotExist
+		}
 
-	err := k.SettleAndDistributeGVGFamily(ctx, sp.Id, family)
-	if err != nil {
-		return nil, types.ErrWithdrawGVGFailed
-	}
+		err := k.SettleAndDistributeGVGFamily(ctx, sp.Id, family)
+		if err != nil {
+			return nil, types.ErrSettleFailed
+		}
+	} else {
+		m := make(map[uint32]struct{})
+		for _, gvgID := range req.GlobalVirtualGroupIds {
+			m[gvgID] = struct{}{}
+		}
+		for gvgID := range m {
+			gvg, found := k.GetGVG(ctx, gvgID)
+			if !found {
+				return nil, types.ErrGVGNotExist
+			}
 
-	return &types.MsgWithdrawFromGVGFamilyResponse{}, nil
-}
+			permitted := false
+			for _, id := range gvg.SecondarySpIds {
+				if id == sp.Id {
+					permitted = true
+					break
+				}
+			}
+			if !permitted {
+				return nil, sdkerrors.Wrapf(types.ErrSettleFailed, "storage provider %d is not in the group", sp.Id)
+			}
 
-func (k msgServer) WithdrawFromGVG(goCtx context.Context, req *types.MsgWithdrawFromGVG) (*types.MsgWithdrawFromGVGResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	funcAcc := sdk.MustAccAddressFromHex(req.FundingAddress)
-
-	sp, found := k.spKeeper.GetStorageProviderByFundingAddr(ctx, funcAcc)
-	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
-	}
-
-	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
-	if !found {
-		return nil, types.ErrGVGNotExist
-	}
-
-	permitted := false
-	for _, id := range gvg.SecondarySpIds {
-		if id == sp.Id {
-			permitted = true
-			break
+			err := k.SettleAndDistributeGVG(ctx, gvg)
+			if err != nil {
+				return nil, types.ErrSettleFailed
+			}
 		}
 	}
-	if !permitted {
-		return nil, sdkerrors.Wrapf(types.ErrWithdrawGVGFailed, "storage provider %d is not in the group", sp.Id)
+
+	return &types.MsgSettleResponse{}, nil
+}
+
+func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStorageProviderExit) (*types.MsgStorageProviderExitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.OperatorAddress)
+
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	err := k.SettleAndDistributeGVG(ctx, gvg)
+	if sp.Status != sptypes.STATUS_IN_SERVICE {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("sp not in service, status: %s", sp.Status.String())
+	}
+
+	sp.Status = sptypes.STATUS_GRACEFUL_EXITING
+
+	k.spKeeper.SetStorageProvider(ctx, sp)
+
+	return &types.MsgStorageProviderExitResponse{}, nil
+}
+
+func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types.MsgCompleteStorageProviderExit) (*types.MsgCompleteStorageProviderExitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddress := sdk.MustAccAddressFromHex(msg.OperatorAddress)
+
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddress)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound
+	}
+
+	if sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
+			"sp(id : %d, operator address: %s) not in the process of exiting", sp.Id, sp.OperatorAddress)
+	}
+
+	err := k.IsStorageProviderCanExit(ctx, sp.Id)
 	if err != nil {
-		return nil, types.ErrWithdrawGVGFailed
+		return nil, err
 	}
 
-	return &types.MsgWithdrawFromGVGResponse{}, nil
+	err = k.spKeeper.Exit(ctx, sp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCompleteStorageProviderExitResponse{}, nil
 }

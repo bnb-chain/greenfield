@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	types2 "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
@@ -531,8 +532,75 @@ func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
 
 	gvgStat := k.MustGetGVGStatisticsWithinSP(ctx, spID)
 	if gvgStat.SecondaryCount != 0 {
-		return types.ErrSPCanNotExit.Wrapf("not seap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
+		return types.ErrSPCanNotExit.Wrapf("not swap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
 	}
+	return nil
+}
+
+func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, newLVGToGVGMappings []*storagetypes.LVGToGVGMapping) error {
+	gvgsBindingOnBucket, found := k.GetGVGsBindingOnBucket(ctx, bucketID)
+	if !found {
+		// empty bucket. do nothing
+		return nil
+	}
+	var newGVGBindingOnBucket types.GlobalVirtualGroupsBindingOnBucket
+	lvg2gvg := make(map[uint32]uint32)
+	for i, lvgID := range gvgsBindingOnBucket.LocalVirtualGroupIds {
+		lvg2gvg[lvgID] = gvgsBindingOnBucket.GlobalVirtualGroupIds[i]
+	}
+
+	// verify secondary signature
+	for _, newLvg2gvg := range newLVGToGVGMappings {
+		dstGVG, found := k.GetGVG(ctx, newLvg2gvg.GlobalVirtualGroupId)
+		if !found {
+			return types.ErrGVGNotExist.Wrapf("dst gvg not found")
+		}
+
+		lvg, found := k.GetLVG(ctx, bucketID, newLvg2gvg.LocalVirtualGroupId)
+		if !found {
+			return types.ErrGVGNotExist.Wrapf("lvg not found")
+		}
+
+		srcGVGID, exists := lvg2gvg[newLvg2gvg.LocalVirtualGroupId]
+		if exists {
+			return types.ErrMigrationBucketFailed.Wrapf("local virtual group not found, id: %d", newLvg2gvg.LocalVirtualGroupId)
+		}
+
+		srcGVG, found := k.GetGVG(ctx, srcGVGID)
+		if !found {
+			return types.ErrGVGNotExist.Wrapf("src gvg not found, ID: %d", srcGVGID)
+		}
+
+		for i, sspID := range dstGVG.SecondarySpIds {
+			ssp, found := k.spKeeper.GetStorageProvider(ctx, sspID)
+			if !found {
+				return sptypes.ErrStorageProviderNotFound.Wrapf("spID: %d", sspID)
+			}
+
+			migrationBucketSignDoc := types.NewMigrationBucketSignDoc(
+				bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId)
+			err := types2.VerifySignature(sdk.MustAccAddressFromHex(ssp.ApprovalAddress), sdk.Keccak256(migrationBucketSignDoc.GetSignBytes()), newLvg2gvg.SecondarySpSignature[i])
+			if err != nil {
+				return errors.Wrapf(err, "verify signature failed")
+			}
+		}
+
+		dstGVG.StoredSize += lvg.StoredSize
+		srcGVG.StoredSize -= lvg.StoredSize
+		// TODO(fynn): add deposit check
+		newGVGBindingOnBucket.LocalVirtualGroupIds = append(newGVGBindingOnBucket.LocalVirtualGroupIds, newLvg2gvg.LocalVirtualGroupId)
+		newGVGBindingOnBucket.GlobalVirtualGroupIds = append(newGVGBindingOnBucket.GlobalVirtualGroupIds, newLvg2gvg.GlobalVirtualGroupId)
+		delete(lvg2gvg, newLvg2gvg.LocalVirtualGroupId)
+		k.SetGVG(ctx, dstGVG)
+		k.SetGVG(ctx, srcGVG)
+	}
+
+	if len(lvg2gvg) != 0 || len(gvgsBindingOnBucket.LocalVirtualGroupIds) != len(newGVGBindingOnBucket.LocalVirtualGroupIds) {
+		return types.ErrMigrationBucketFailed.Wrapf("LVG is not fully rebinding.")
+	}
+
+	newGVGBindingOnBucket.BucketId = bucketID
+	k.SetGVGsBindingOnBucket(ctx, &newGVGBindingOnBucket)
 	return nil
 }
 
@@ -553,5 +621,5 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32,
 		}
 		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
-	return storagetypes.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
+	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
 }
