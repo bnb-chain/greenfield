@@ -547,12 +547,16 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 		lvg2gvg[lvgID] = gvgsBindingOnBucket.GlobalVirtualGroupIds[i]
 	}
 
-	newGVGBindingOnBucket.BucketId = bucketID
 	// verify secondary signature
 	for _, newLvg2gvg := range newLVGToGVGMappings {
 		dstGVG, found := k.GetGVG(ctx, newLvg2gvg.GlobalVirtualGroupId)
 		if !found {
 			return types.ErrGVGNotExist.Wrapf("dst gvg not found")
+		}
+
+		lvg, found := k.GetLVG(ctx, bucketID, newLvg2gvg.LocalVirtualGroupId)
+		if !found {
+			return types.ErrGVGNotExist.Wrapf("lvg not found")
 		}
 
 		srcGVGID, exists := lvg2gvg[newLvg2gvg.LocalVirtualGroupId]
@@ -579,17 +583,21 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 			}
 		}
 
-		dstGVG.StoredSize += srcGVG.StoredSize
+		dstGVG.StoredSize += lvg.StoredSize
+		srcGVG.StoredSize -= lvg.StoredSize
 		// TODO(fynn): add deposit check
 		newGVGBindingOnBucket.LocalVirtualGroupIds = append(newGVGBindingOnBucket.LocalVirtualGroupIds, newLvg2gvg.LocalVirtualGroupId)
 		newGVGBindingOnBucket.GlobalVirtualGroupIds = append(newGVGBindingOnBucket.GlobalVirtualGroupIds, newLvg2gvg.GlobalVirtualGroupId)
 		delete(lvg2gvg, newLvg2gvg.LocalVirtualGroupId)
 		k.SetGVG(ctx, dstGVG)
+		k.SetGVG(ctx, srcGVG)
 	}
 
 	if len(lvg2gvg) != 0 || len(gvgsBindingOnBucket.LocalVirtualGroupIds) != len(newGVGBindingOnBucket.LocalVirtualGroupIds) {
 		return types.ErrMigrationBucketFailed.Wrapf("LVG is not fully rebinding.")
 	}
+
+	newGVGBindingOnBucket.BucketId = bucketID
 	k.SetGVGsBindingOnBucket(ctx, &newGVGBindingOnBucket)
 	return nil
 }

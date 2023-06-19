@@ -119,11 +119,14 @@ func (m *GlobalVirtualGroup) GetVirtualPaymentAddress() string {
 // Each local virtual group is associated with a unique virtual payment account,
 // where all object fees are streamed to.
 type LocalVirtualGroup struct {
+	// id is the identifier of the local virtual group.
 	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	// id is the unique identification for bucket.
-	BucketId             Uint   `protobuf:"bytes,2,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// bucket_id is the unique identification for the bucket.
+	BucketId Uint `protobuf:"bytes,2,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// global_virtual_group_id is the identifier of the global virtual group.
 	GlobalVirtualGroupId uint32 `protobuf:"varint,3,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
-	StoredSize           uint64 `protobuf:"varint,4,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+	// stored_size is the size of the stored data in the local virtual group.
+	StoredSize uint64 `protobuf:"varint,4,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
 }
 
 func (m *LocalVirtualGroup) Reset()         { *m = LocalVirtualGroup{} }
@@ -183,9 +186,12 @@ func (m *LocalVirtualGroup) GetStoredSize() uint64 {
 // Global virtual group family serve as a means of grouping global virtual groups.
 // Each bucket must be associated with a unique global virtual group family and cannot cross families.
 type GlobalVirtualGroupFamily struct {
-	Id                    uint32   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// id is the identifier of the global virtual group family.
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// global_virtual_group_ids is a list of identifiers of the global virtual groups associated with the family.
 	GlobalVirtualGroupIds []uint32 `protobuf:"varint,2,rep,packed,name=global_virtual_group_ids,json=globalVirtualGroupIds,proto3" json:"global_virtual_group_ids,omitempty"`
-	VirtualPaymentAddress string   `protobuf:"bytes,4,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
+	// virtual_payment_address is the payment address associated with the global virtual group family.
+	VirtualPaymentAddress string `protobuf:"bytes,4,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
 }
 
 func (m *GlobalVirtualGroupFamily) Reset()         { *m = GlobalVirtualGroupFamily{} }
@@ -243,10 +249,12 @@ func (m *GlobalVirtualGroupFamily) GetVirtualPaymentAddress() string {
 }
 
 type GlobalVirtualGroupsBindingOnBucket struct {
-	// id is the unique identification for bucket.
-	BucketId              Uint     `protobuf:"bytes,1,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// bucket_id is the unique identification for the bucket.
+	BucketId Uint `protobuf:"bytes,1,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// global_virtual_group_ids is a list of identifiers of the global virtual groups associated with the bucket.
 	GlobalVirtualGroupIds []uint32 `protobuf:"varint,2,rep,packed,name=global_virtual_group_ids,json=globalVirtualGroupIds,proto3" json:"global_virtual_group_ids,omitempty"`
-	LocalVirtualGroupIds  []uint32 `protobuf:"varint,3,rep,packed,name=local_virtual_group_ids,json=localVirtualGroupIds,proto3" json:"local_virtual_group_ids,omitempty"`
+	// local_virtual_group_ids is a list of identifiers of the local virtual groups associated with the bucket.
+	LocalVirtualGroupIds []uint32 `protobuf:"varint,3,rep,packed,name=local_virtual_group_ids,json=localVirtualGroupIds,proto3" json:"local_virtual_group_ids,omitempty"`
 }
 
 func (m *GlobalVirtualGroupsBindingOnBucket) Reset()         { *m = GlobalVirtualGroupsBindingOnBucket{} }
@@ -298,7 +306,9 @@ func (m *GlobalVirtualGroupsBindingOnBucket) GetLocalVirtualGroupIds() []uint32 
 
 type GVGStatisticsWithinSP struct {
 	StorageProviderId uint32 `protobuf:"varint,1,opt,name=storage_provider_id,json=storageProviderId,proto3" json:"storage_provider_id,omitempty"`
-	SecondaryCount    uint32 `protobuf:"varint,3,opt,name=secondary_count,json=secondaryCount,proto3" json:"secondary_count,omitempty"`
+	// secondary_count defines the number of global virtual groups (GVGs) in
+	// which this storage provider serves as a secondary storage provider.
+	SecondaryCount uint32 `protobuf:"varint,3,opt,name=secondary_count,json=secondaryCount,proto3" json:"secondary_count,omitempty"`
 }
 
 func (m *GVGStatisticsWithinSP) Reset()         { *m = GVGStatisticsWithinSP{} }
