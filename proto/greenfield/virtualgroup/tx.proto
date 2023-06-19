@@ -148,8 +148,6 @@ message MsgCompleteStorageProviderExit {
   option (cosmos.msg.v1.signer) = "operator_address";
 
   string operator_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
-  uint32 origin_storage_provider_id = 2;
 }
 
 message MsgCompleteStorageProviderExitResponse {}

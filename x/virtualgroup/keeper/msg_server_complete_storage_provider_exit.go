@@ -23,7 +23,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 			"sp(id : %d, operator address: %s) not in the process of exiting", sp.Id, sp.OperatorAddress)
 	}
 
-	err := k.IsStorageProviderCanExit(ctx, msg.OriginStorageProviderId)
+	err := k.IsStorageProviderCanExit(ctx, sp.Id)
 	if err != nil {
 		return nil, err
 	}
