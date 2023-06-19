@@ -61,7 +61,6 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 
 	// TODO(fynn): add some limit for gvgs in a family
 	gvgFamily, err := k.GetOrCreateEmptyGVGFamily(ctx, req.FamilyId, sp.Id)
-
 	if err != nil {
 		return nil, err
 	}

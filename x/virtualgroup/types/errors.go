@@ -19,6 +19,7 @@ var (
 	ErrInvalidGVGCount        = errors.Register(ModuleName, 1120, "the count of global virtual group ids is invalid.")
 	ErrMigrationBucketFailed  = errors.Register(ModuleName, 1121, "fail to migration bucket.")
 	ErrInvalidBlsPubKey       = errors.Register(ModuleName, 1122, "invalid bls public key")
+	ErrStoreSizeExceed        = errors.Register(ModuleName, 1123, "store size exceed.")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

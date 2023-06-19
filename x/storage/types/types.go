@@ -40,6 +40,15 @@ func (m *BucketInfo) ToNFTMetadata() *BucketMetaData {
 	}
 }
 
+func (m *BucketInfo) CheckBucketStatus() error {
+	if m.BucketStatus == BUCKET_STATUS_DISCONTINUED {
+		return ErrBucketDiscontinued
+	} else if m.BucketStatus == BUCKET_STATUS_MIGRATING {
+		return ErrBucketMigrating
+	}
+	return nil
+}
+
 func (m *ObjectInfo) ToNFTMetadata() *ObjectMetaData {
 	return &ObjectMetaData{
 		ObjectName: m.ObjectName,

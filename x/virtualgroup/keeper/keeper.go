@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
@@ -231,6 +232,11 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 			return nil, types.ErrGVGFamilyNotExist
 		}
 		k.cdc.MustUnmarshal(bz, &gvgFamily)
+
+		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
+		if storeSize > k.MaxStoreSizePerFamily(ctx) {
+			return nil, types.ErrStoreSizeExceed.Wrapf("A family only allow to store %ld, now: %ld", k.MaxStoreSizePerFamily(ctx), storeSize)
+		}
 		return &gvgFamily, nil
 	}
 }
@@ -622,4 +628,19 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32,
 		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
 	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
+}
+
+// GetStoreSizeOfFamily Rather than calculating the stored size of a Global Virtual Group Family (GVGF) in real-time,
+// it is preferable to calculate it once during the creation of a Global Virtual Group (GVG). This approach is favored
+// because GVG creation is infrequent and occurs with low frequency.
+func (k Keeper) GetStoreSizeOfFamily(ctx sdk.Context, gvgFamily types.GlobalVirtualGroupFamily) uint64 {
+	var totalStoreSize uint64
+	for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			panic("gvg not found when get store size of family")
+		}
+		totalStoreSize += gvg.StoredSize
+	}
+	return totalStoreSize
 }

@@ -446,8 +446,9 @@ func (k Keeper) CreateObject(
 	if !found {
 		return sdkmath.ZeroUint(), types.ErrNoSuchBucket
 	}
-	if bucketInfo.BucketStatus == types.BUCKET_STATUS_DISCONTINUED {
-		return sdkmath.ZeroUint(), types.ErrBucketDiscontinued
+	err := bucketInfo.CheckBucketStatus()
+	if err != nil {
+		return sdkmath.ZeroUint(), err
 	}
 
 	// verify permission
@@ -854,6 +855,11 @@ func (k Keeper) CopyObject(
 	dstBucketInfo, found := k.GetBucketInfo(ctx, dstBucketName)
 	if !found {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrNoSuchBucket, "dst bucket name (%s)", dstBucketName)
+	}
+
+	err := dstBucketInfo.CheckBucketStatus()
+	if err != nil {
+		return sdkmath.ZeroUint(), err
 	}
 
 	srcObjectInfo, found := k.GetObjectInfo(ctx, srcBucketName, srcObjectName)
