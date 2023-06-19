@@ -37,6 +37,7 @@ function init() {
       ${bin} keys add sp${i} --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/info 2>&1
       ${bin} keys add sp${i}_fund --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/fund_info 2>&1
       ${bin} keys add sp${i}_seal --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/seal_info 2>&1
+      ${bin} keys add sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --algo eth_bls > ${workspace}/.local/sp${i}/bls_info 2>&1
       ${bin} keys add sp${i}_approval --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/approval_info 2>&1
       ${bin} keys add sp${i}_gc --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/gc_info 2>&1
     done
@@ -205,6 +206,7 @@ function generate_sp_genesis {
     spoperator_addr=("$(${bin} keys show sp${i} -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    bls_pub_key=("$(${bin} keys show sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --output json | jq -r .pubkey_hex)")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
@@ -215,6 +217,7 @@ function generate_sp_genesis {
       --operator-address=${spoperator_addr} \
       --funding-address=${spfund_addr} \
       --seal-address=${spseal_addr} \
+      --bls-pub-key=${bls_pub_key} \
       --approval-address=${spapproval_addr} \
       --gc-address=${spgc_addr} \
       --keyring-backend=test \
@@ -250,23 +253,26 @@ function export_sps {
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
-
+    bls_pub_key=("$(${bin} keys show sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --output json | jq -r .pubkey_hex)")
     spoperator_priv_key=("$(echo "y" | ${bin} keys export sp${i} --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_priv_key=("$(echo "y" | ${bin} keys export sp${i}_fund --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_priv_key=("$(echo "y" | ${bin} keys export sp${i}_seal --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_priv_key=("$(echo "y" | ${bin} keys export sp${i}_approval --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_priv_key=("$(echo "y" | ${bin} keys export sp${i}_gc --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    bls_priv_key=("$(echo "y" | ${bin} keys export sp${i}_bls --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     output="${output}\"sp${i}\":{"
     output="${output}\"OperatorAddress\": \"${spoperator_addr}\","
     output="${output}\"FundingAddress\": \"${spfund_addr}\","
     output="${output}\"SealAddress\": \"${spseal_addr}\","
     output="${output}\"ApprovalAddress\": \"${spapproval_addr}\","
     output="${output}\"GcAddress\": \"${spgc_addr}\","
+    output="${output}\"BlsPubKey\": \"${bls_pub_key}\","
     output="${output}\"OperatorPrivateKey\": \"${spoperator_priv_key}\","
     output="${output}\"FundingPrivateKey\": \"${spfund_priv_key}\","
     output="${output}\"SealPrivateKey\": \"${spseal_priv_key}\","
     output="${output}\"ApprovalPrivateKey\": \"${spapproval_priv_key}\","
-    output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\""
+    output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\","
+    output="${output}\"BlsPrivateKey\": \"${bls_priv_key}\""
     output="${output}},"
   done
   output="${output%?}}"

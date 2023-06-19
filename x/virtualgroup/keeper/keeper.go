@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -15,6 +16,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
 )
@@ -600,4 +602,24 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 	newGVGBindingOnBucket.BucketId = bucketID
 	k.SetGVGsBindingOnBucket(ctx, &newGVGBindingOnBucket)
 	return nil
+}
+
+func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32, signBz [32]byte, signature []byte) error {
+	gvg, found := k.GetGVG(ctx, gvgId)
+	if !found {
+		return types.ErrGVGNotExist
+	}
+	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
+	for _, spId := range gvg.GetSecondarySpIds() {
+		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
+		if !found {
+			panic("should not happen")
+		}
+		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.SealBlsKey)
+		if err != nil {
+			return types.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
+		}
+		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
+	}
+	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
 }

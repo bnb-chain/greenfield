@@ -57,6 +57,8 @@ message StorageProvider {
   string endpoint = 9;
   // description defines the description terms for the storage provider.
   Description description = 10 [(gogoproto.nullable) = false];
+  // seal_bls_key defines the bls pub key of the Storage provider for sealing object
+  bytes seal_bls_key = 11;
 }
 
 message RewardInfo {

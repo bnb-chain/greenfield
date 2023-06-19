@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -167,56 +169,52 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgCreateObject{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 testBucketName,
-				ObjectName:                 testObjectName,
-				PayloadSize:                1024,
-				Visibility:                 VISIBILITY_TYPE_PRIVATE,
-				ContentType:                "content-type",
-				PrimarySpApproval:          &common.Approval{},
-				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
-				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+				Creator:           sample.AccAddress(),
+				BucketName:        testBucketName,
+				ObjectName:        testObjectName,
+				PayloadSize:       1024,
+				Visibility:        VISIBILITY_TYPE_PRIVATE,
+				ContentType:       "content-type",
+				PrimarySpApproval: &common.Approval{},
+				ExpectChecksums:   [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 			},
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 testBucketName,
-				ObjectName:                 "",
-				PayloadSize:                1024,
-				Visibility:                 VISIBILITY_TYPE_PRIVATE,
-				ContentType:                "content-type",
-				PrimarySpApproval:          &common.Approval{},
-				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
-				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+				Creator:           sample.AccAddress(),
+				BucketName:        testBucketName,
+				ObjectName:        "",
+				PayloadSize:       1024,
+				Visibility:        VISIBILITY_TYPE_PRIVATE,
+				ContentType:       "content-type",
+				PrimarySpApproval: &common.Approval{},
+				ExpectChecksums:   [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 			},
 			err: gnfderrors.ErrInvalidObjectName,
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 testBucketName,
-				ObjectName:                 "../object",
-				PayloadSize:                1024,
-				Visibility:                 VISIBILITY_TYPE_PRIVATE,
-				ContentType:                "content-type",
-				PrimarySpApproval:          &common.Approval{},
-				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
-				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+				Creator:           sample.AccAddress(),
+				BucketName:        testBucketName,
+				ObjectName:        "../object",
+				PayloadSize:       1024,
+				Visibility:        VISIBILITY_TYPE_PRIVATE,
+				ContentType:       "content-type",
+				PrimarySpApproval: &common.Approval{},
+				ExpectChecksums:   [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 			},
 			err: gnfderrors.ErrInvalidObjectName,
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator:                    sample.AccAddress(),
-				BucketName:                 testBucketName,
-				ObjectName:                 "//object",
-				PayloadSize:                1024,
-				Visibility:                 VISIBILITY_TYPE_PRIVATE,
-				ContentType:                "content-type",
-				PrimarySpApproval:          &common.Approval{},
-				ExpectChecksums:            [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
-				ExpectSecondarySpAddresses: []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
+				Creator:           sample.AccAddress(),
+				BucketName:        testBucketName,
+				ObjectName:        "//object",
+				PayloadSize:       1024,
+				Visibility:        VISIBILITY_TYPE_PRIVATE,
+				ContentType:       "content-type",
+				PrimarySpApproval: &common.Approval{},
+				ExpectChecksums:   [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
 			},
 			err: gnfderrors.ErrInvalidObjectName,
 		},
@@ -321,6 +319,10 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgSealObject_ValidateBasic(t *testing.T) {
+	checksums := [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()}
+	blsSignDoc := NewSecondarySpSealObjectSignDoc(math.NewUint(1), 1, GenerateHash(checksums[:])).GetSignBytes()
+	blsPrivKey, _ := bls.RandKey()
+	aggSig := blsPrivKey.Sign(blsSignDoc[:]).Marshal()
 	tests := []struct {
 		name string
 		msg  MsgSealObject
@@ -329,11 +331,10 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgSealObject{
-				Operator:              sample.AccAddress(),
-				BucketName:            testBucketName,
-				ObjectName:            testObjectName,
-				SecondarySpAddresses:  []string{sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress(), sample.AccAddress()},
-				SecondarySpSignatures: [][]byte{sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum(), sample.Checksum()},
+				Operator:                    sample.AccAddress(),
+				BucketName:                  testBucketName,
+				ObjectName:                  testObjectName,
+				SecondarySpBlsAggSignatures: aggSig,
 			},
 		},
 	}

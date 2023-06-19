@@ -162,3 +162,18 @@ func (k Keeper) Exit(ctx sdk.Context, sp *types.StorageProvider) error {
 	store.Delete(types.GetStorageProviderKey(k.spSequence.EncodeSequence(sp.Id)))
 	return nil
 }
+
+func (k Keeper) SetStorageProviderByBlsKey(ctx sdk.Context, sp *types.StorageProvider) {
+	blsPk := sp.GetSealBlsKey()
+	store := ctx.KVStore(k.storeKey)
+	store.Set(types.GetStorageProviderByBlsKeyKey(blsPk), k.spSequence.EncodeSequence(sp.Id))
+}
+
+func (k Keeper) GetStorageProviderByBlsKey(ctx sdk.Context, blsPk []byte) (sp *types.StorageProvider, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	id := store.Get(types.GetStorageProviderByBlsKeyKey(blsPk))
+	if id == nil {
+		return sp, false
+	}
+	return k.GetStorageProvider(ctx, k.spSequence.DecodeSequence(id))
+}

@@ -900,3 +900,17 @@ func (mr *MockVirtualGroupKeeperMockRecorder) UnBindingObjectFromLVG(ctx, bucket
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnBindingObjectFromLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).UnBindingObjectFromLVG), ctx, bucketID, lvgID, payloadSize)
 }
+
+// VerifyGVGSecondarySPsBlsSignature mocks base method.
+func (m *MockVirtualGroupKeeper) VerifyGVGSecondarySPsBlsSignature(ctx types3.Context, gvgID uint32, signBz [32]byte, signature []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "VerifyGVGSecondarySPsBlsSignature", ctx, gvgID, signBz, signature)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// VerifyGVGSecondarySPsBlsSignature indicates an expected call of VerifyGVGSecondarySPsBlsSignature.
+func (mr *MockVirtualGroupKeeperMockRecorder) VerifyGVGSecondarySPsBlsSignature(ctx, gvgID, signBz, signature interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyGVGSecondarySPsBlsSignature", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).VerifyGVGSecondarySPsBlsSignature), ctx, gvgID, signBz, signature)
+}

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
@@ -77,6 +78,15 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, types.ErrStorageProviderGcAddrExists
 	}
 
+	// check if the bls pubkey has been registered before
+	blsPk, err := hex.DecodeString(msg.SealBlsKey)
+	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
+		return nil, types.ErrStorageProviderInvalidBlsKey
+	}
+	if _, found := k.GetStorageProviderByBlsKey(ctx, blsPk); found {
+		return nil, types.ErrStorageProviderBlsKeyExists
+	}
+
 	if err := msg.Description.EnsureLength(); err != nil {
 		return nil, err
 	}
@@ -109,7 +119,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
-		msg.Deposit.Amount, msg.Endpoint, msg.Description)
+		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.SealBlsKey)
 	if err != nil {
 		return nil, err
 	}
@@ -120,6 +130,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	k.SetStorageProviderByFundingAddr(ctx, &sp)
 	k.SetStorageProviderBySealAddr(ctx, &sp)
 	k.SetStorageProviderByGcAddr(ctx, &sp)
+	k.SetStorageProviderByBlsKey(ctx, &sp)
 
 	// set initial sp storage price
 	spStoragePrice := types.SpStoragePrice{
@@ -145,6 +156,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		TotalDeposit:    &msg.Deposit,
 		Status:          sp.Status,
 		Description:     sp.Description,
+		SealBlsKey:      hex.EncodeToString(sp.SealBlsKey),
 	}); err != nil {
 		return nil, err
 	}
@@ -197,6 +209,15 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		changed = true
 	}
 
+	if msg.SealBlsKey != "" {
+		blsPk, err := hex.DecodeString(msg.SealBlsKey)
+		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
+			return nil, types.ErrStorageProviderInvalidBlsKey
+		}
+		sp.SealBlsKey = blsPk
+		changed = true
+	}
+
 	if !changed {
 		return nil, types.ErrStorageProviderNotChanged
 	}
@@ -206,6 +227,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	k.SetStorageProviderBySealAddr(ctx, sp)
 	k.SetStorageProviderByApprovalAddr(ctx, sp)
 	k.SetStorageProviderByGcAddr(ctx, sp)
+	k.SetStorageProviderByBlsKey(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
 		SpAddress:       operatorAcc.String(),
@@ -214,6 +236,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		ApprovalAddress: sp.ApprovalAddress,
 		SealAddress:     sp.SealAddress,
 		GcAddress:       sp.GcAddress,
+		SealBlsKey:      hex.EncodeToString(sp.SealBlsKey),
 	}); err != nil {
 		return nil, err
 	}

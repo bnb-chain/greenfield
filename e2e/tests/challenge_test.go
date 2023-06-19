@@ -11,9 +11,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
-	"github.com/bnb-chain/greenfield/types"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -39,7 +40,7 @@ func TestChallengeTestSuite(t *testing.T) {
 	suite.Run(t, new(ChallengeTestSuite))
 }
 
-func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []sdk.AccAddress) {
+func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 	var err error
 	sp := s.StorageProviders[0]
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -102,20 +103,24 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 
 	// SealObject
-	secondarySPs := []sdk.AccAddress{
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
-	}
+	gvgId := gvg.Id
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
-	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
-	s.Require().NoError(err)
-	err = types.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
-	s.Require().NoError(err)
 
-	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
-	msgSealObject.SecondarySpSignatures = secondarySigs
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	// every secondary sp signs the checksums
+	for i := 1; i < len(s.StorageProviders); i++ {
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
@@ -124,13 +129,13 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
-	return bucketName, objectName, sp.OperatorKey.GetAddr(), secondarySPs
+	return bucketName, objectName, sp.OperatorKey.GetAddr()
 }
 
 func (s *ChallengeTestSuite) TestSubmit() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, _ := s.createObject()
+	bucketName, objectName, primarySp := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
@@ -138,13 +143,12 @@ func (s *ChallengeTestSuite) TestSubmit() {
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
 	s.Require().Equal(event.SpOperatorAddress, primarySp.String())
 
-	bucketName, objectName, _, secondarySps := s.createObject()
-	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), secondarySps[0], bucketName, objectName, false, 0)
+	bucketName, objectName, _ = s.createObject()
+	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), s.StorageProviders[0].OperatorKey.GetAddr(), bucketName, objectName, false, 0)
 	txRes = s.SendTxBlock(user, msgSubmit)
 	event = filterChallengeEventFromTx(txRes)
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().Equal(event.SegmentIndex, uint32(0))
-	s.Require().Equal(event.SpOperatorAddress, secondarySps[0].String())
 }
 
 func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, blsKey string) *bitset.BitSet {
@@ -169,7 +173,7 @@ func (s *ChallengeTestSuite) calculateValidatorBitSet(height int64, blsKey strin
 func (s *ChallengeTestSuite) TestNormalAttest() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, _ := s.createObject()
+	bucketName, objectName, primarySp := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)
@@ -306,7 +310,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName, objectName, primarySp, _ := s.createObject()
+	bucketName, objectName, primarySp := s.createObject()
 	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)

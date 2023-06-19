@@ -2,10 +2,13 @@ package core
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/math"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -26,6 +29,7 @@ type StorageProvider struct {
 	FundingKey                 keys.KeyManager
 	ApprovalKey                keys.KeyManager
 	GcKey                      keys.KeyManager
+	BlsKey                     keys.KeyManager
 	Info                       *sptypes.StorageProvider
 	GlobalVirtualGroupFamilies map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup
 }
@@ -58,7 +62,7 @@ func (s *BaseSuite) SetupSuite() {
 	s.Require().NoError(err)
 
 	var spIDs []uint32
-	for _, spMnemonics := range s.Config.SPMnemonics {
+	for i, spMnemonics := range s.Config.SPMnemonics {
 		sp := StorageProvider{}
 		sp.OperatorKey, err = keys.NewMnemonicKeyManager(spMnemonics.OperatorMnemonic)
 		s.Require().NoError(err)
@@ -69,6 +73,8 @@ func (s *BaseSuite) SetupSuite() {
 		sp.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
 		s.Require().NoError(err)
 		sp.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
+		s.Require().NoError(err)
+		sp.BlsKey, err = keys.NewBlsMnemonicKeyManager(s.Config.SPBLSMnemonic[i])
 		s.Require().NoError(err)
 		var resp *sptypes.QueryStorageProviderByOperatorAddressResponse
 		resp, err = s.Client.StorageProviderByOperatorAddress(context.Background(), &sptypes.QueryStorageProviderByOperatorAddressRequest{
@@ -198,6 +204,18 @@ func (s *BaseSuite) GenAndChargeAccounts(n int, balance int64) (accounts []keys.
 	}
 	_ = s.SendTxBlock(s.Validator, &msg)
 	return accounts
+}
+
+func (s *BaseSuite) GenRandomBlsKeyManager() keys.KeyManager {
+	blsPrivKey, err := bls.RandKey()
+	if err != nil {
+		panic("failed to init bls key")
+	}
+	km, err := keys.NewBlsPrivateKeyManager(hex.EncodeToString(blsPrivKey.Marshal()))
+	if err != nil {
+		panic("failed to init bls key manager")
+	}
+	return km
 }
 
 func (s *BaseSuite) CheckTxCode(txHash string, expectedCode uint32) error {

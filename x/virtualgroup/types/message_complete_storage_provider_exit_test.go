@@ -23,8 +23,7 @@ func TestMsgCompleteStorageProviderExit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid address",
 			msg: MsgCompleteStorageProviderExit{
-				OperatorAddress:         sample.AccAddress(),
-				OriginStorageProviderId: 1,
+				OperatorAddress: sample.AccAddress(),
 			},
 		},
 	}

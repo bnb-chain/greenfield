@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"encoding/hex"
 	"sort"
 	"strconv"
 	"testing"
@@ -38,8 +39,9 @@ func (s *StorageProviderTestSuite) NewSpAcc() *core.StorageProvider {
 	sealAcc := userAccs[3]
 	gcAcc := userAccs[4]
 
+	blsKm := s.GenRandomBlsKeyManager()
 	return &core.StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc}
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, BlsKey: blsKm}
 }
 
 func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.StorageProvider {
@@ -81,12 +83,15 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	endpoint := "http://127.0.0.1:9034"
 	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
 	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
+
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(),
 		newSP.GcKey.GetAddr(), description,
-		endpoint, deposit, newReadPrice, 10000, newStorePrice)
+		endpoint, deposit, newReadPrice, 10000, newStorePrice,
+		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()))
+
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},
 		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
@@ -176,6 +181,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 		SealAddress:     prevSP.SealAddress,
 		ApprovalAddress: prevSP.ApprovalAddress,
 		GcAddress:       prevSP.GcAddress,
+		SealBlsKey:      prevSP.SealBlsKey,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
 			Identity: "",
@@ -186,7 +192,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), hex.EncodeToString(sp.BlsKey.PubKey().Bytes()))
 	txRes := s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -203,7 +209,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr())
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(),
+		hex.EncodeToString(sp.BlsKey.PubKey().Bytes()))
 	txRes = s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 

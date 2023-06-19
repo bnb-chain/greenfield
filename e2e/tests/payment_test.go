@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"math"
 	"strconv"
 	"testing"
 	"time"
 
-	types2 "github.com/bnb-chain/greenfield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -145,7 +145,7 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 		queryParamsByTimestampResponse.Params.VersionedParams.ReserveTime)
 }
 
-func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, storagetypes.Uint, []byte) {
+func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
 	var err error
 	sp := s.StorageProviders[0]
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -201,23 +201,33 @@ func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, stor
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 
-	return user, bucketName, objectName, queryHeadObjectResponse.ObjectInfo.Id, checksum
+	return user, bucketName, objectName, queryHeadObjectResponse.ObjectInfo.Id, expectChecksum
 }
 
-func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId storagetypes.Uint, checksum []byte) {
+func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId storagetypes.Uint, checksums [][]byte) {
 	sp := s.StorageProviders[0]
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 
+	// SealObject
+	gvgId := gvg.Id
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, objectId, checksum)
-	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(objectId, gvgId, storagetypes.GenerateHash(checksums[:])).GetSignBytes()
+	// every secondary sp signs the checksums
+	for i := 1; i < len(s.StorageProviders); i++ {
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
-	err = types2.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
-	s.Require().NoError(err)
-
-	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
-	msgSealObject.SecondarySpSignatures = secondarySigs
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msg %s", msgSealObject.String())
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -240,7 +250,7 @@ func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange(
 	s.Require().NoError(err)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksum := s.createObject()
+	user, bucketName, objectName, objectId, checksums := s.createObject()
 
 	// update params
 	params := queryParamsResponse.GetParams()
@@ -258,7 +268,7 @@ func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange(
 	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	// seal object
-	s.sealObject(bucketName, objectName, objectId, checksum)
+	s.sealObject(bucketName, objectName, objectId, checksums)
 
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName,
@@ -303,10 +313,10 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksum := s.createObject()
+	user, bucketName, objectName, objectId, checksums := s.createObject()
 
 	// seal object
-	s.sealObject(bucketName, objectName, objectId, checksum)
+	s.sealObject(bucketName, objectName, objectId, checksums)
 
 	// update params
 	params := queryParamsResponse.GetParams()
@@ -350,10 +360,10 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 	s.Require().NoError(err)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksum := s.createObject()
+	user, bucketName, objectName, objectId, checksums := s.createObject()
 
 	// seal object
-	s.sealObject(bucketName, objectName, objectId, checksum)
+	s.sealObject(bucketName, objectName, objectId, checksums)
 
 	// for payment
 	time.Sleep(2 * time.Second)

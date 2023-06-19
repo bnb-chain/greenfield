@@ -594,8 +594,8 @@ func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*type
 }
 
 type SealObjectOptions struct {
-	GlobalVirtualGroupId  uint32
-	SecondarySpSignatures [][]byte
+	GlobalVirtualGroupId     uint32
+	SecondarySpBlsSignatures []byte
 }
 
 func (k Keeper) SealObject(
@@ -634,15 +634,11 @@ func (k Keeper) SealObject(
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
-
-	// check the signature of secondary sps
-	// SecondarySP signs the root hash(checksum) of all pieces stored on it, and needs to verify that the signature here.
-	for i, sspID := range gvg.SecondarySpIds {
-		sr := types.NewSecondarySpSignDoc(sspID, objectInfo.Id, objectInfo.Checksums[i+1])
-		err := k.VerifySPAndSignature(ctx, sspID, sr.GetSignBytes(), opts.SecondarySpSignatures[i])
-		if err != nil {
-			return err
-		}
+	// validate seal object bls aggregated sig from secondary sps
+	secondarySpsSealObjectSignDoc := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetSignBytes()
+	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg.Id, secondarySpsSealObjectSignDoc, opts.SecondarySpBlsSignatures)
+	if err != nil {
+		return err
 	}
 
 	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)

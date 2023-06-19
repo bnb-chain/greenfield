@@ -176,9 +176,9 @@ message MsgSealObject {
   // global_virtual_group_id defines the id of global virtual group
   uint32 global_virtual_group_id = 4;
 
-  // secondary_sp_signatures defines the signature of the secondary sp that can
+  // secondary_sp_bls_agg_signatures defines the aggregate bls signature of the secondary sp that can
   // acknowledge that the payload data has received and stored.
-  repeated bytes secondary_sp_signatures = 5;
+  bytes secondary_sp_bls_agg_signatures = 5;
 }
 
 message MsgSealObjectResponse {}
@@ -335,7 +335,7 @@ message MsgUpdateGroupExtra {
   string group_name = 3;
 
   // extra defines extra info for the group to update
-  string Extra = 4;
+  string extra = 4;
 }
 
 message MsgUpdateGroupExtraResponse {}

@@ -1,21 +1,20 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"cosmossdk.io/errors"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/gogoproto/proto"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-
 	grn2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/types/s3util"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 const (
@@ -56,6 +55,8 @@ const (
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
 	MaxDiscontinueObjects   = 128
+
+	BLSSignatureLength = 96
 )
 
 var (
@@ -468,14 +469,15 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 }
 
 func NewMsgSealObject(
-	operator sdk.AccAddress, bucketName string, objectName string, globalVirtualGroupID uint32, secondarySpSignatures [][]byte) *MsgSealObject {
+	operator sdk.AccAddress, bucketName string, objectName string, globalVirtualGroupID uint32,
+	secondarySpBlsSignatures []byte) *MsgSealObject {
 
 	return &MsgSealObject{
-		Operator:              operator.String(),
-		BucketName:            bucketName,
-		ObjectName:            objectName,
-		GlobalVirtualGroupId:  globalVirtualGroupID,
-		SecondarySpSignatures: secondarySpSignatures,
+		Operator:                    operator.String(),
+		BucketName:                  bucketName,
+		ObjectName:                  objectName,
+		GlobalVirtualGroupId:        globalVirtualGroupID,
+		SecondarySpBlsAggSignatures: secondarySpBlsSignatures,
 	}
 }
 
@@ -521,10 +523,10 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return err
 	}
 
-	for _, sig := range msg.SecondarySpSignatures {
-		if sig == nil && len(sig) != ethcrypto.SignatureLength {
-			return errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "invalid SP signatures")
-		}
+	if len(msg.GetSecondarySpBlsAggSignatures()) != BLSSignatureLength {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest,
+			fmt.Sprintf("length of signature should be %d", BLSSignatureLength),
+		)
 	}
 
 	return nil

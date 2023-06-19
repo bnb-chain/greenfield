@@ -1,7 +1,10 @@
 package keys
 
 import (
+	"encoding/hex"
 	"testing"
+
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -23,4 +26,12 @@ func TestCreateKeyManagerFromMnemonic(t *testing.T) {
 	assert.NoError(t, err)
 	address := keyManager.GetAddr().String()
 	assert.Equal(t, "0x535E34B319B3575108Deaf2f4FEeeC73AEbE3eF9", address)
+}
+
+func TestCreateBlsKeyManagerFromPrivateKeyHex(t *testing.T) {
+	blsPrivKey, _ := bls.RandKey()
+	blsPubKey := hex.EncodeToString(blsPrivKey.PublicKey().Marshal())
+	km, err := NewBlsPrivateKeyManager(hex.EncodeToString(blsPrivKey.Marshal()))
+	assert.NoError(t, err)
+	assert.Equal(t, blsPubKey, hex.EncodeToString(km.PubKey().Bytes()))
 }
