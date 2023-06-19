@@ -7,24 +7,24 @@ import (
 )
 
 // SetOutFlow set a specific OutFlow in the store from its index
-func (k Keeper) SetOutFlow(ctx sdk.Context, acc sdk.AccAddress, outFlow *types.OutFlow) {
+func (k Keeper) SetOutFlow(ctx sdk.Context, addr sdk.AccAddress, outFlow *types.OutFlow) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
 	bz, err := outFlow.Rate.Marshal()
 	if err != nil {
 		panic("should not happen")
 	}
 	store.Set(types.OutFlowKey(
-		acc,
+		addr,
 		outFlow.Status,
 		sdk.MustAccAddressFromHex(outFlow.ToAddress),
 	), bz)
 }
 
 // SetOutFlow set a specific OutFlow in the store from its index
-func (k Keeper) GetOutFlows(ctx sdk.Context, acc sdk.AccAddress) []types.OutFlow {
-	key := types.OutFlowKey(acc, types.OUT_FLOW_STATUS_ACTIVE, nil)
+func (k Keeper) GetOutFlows(ctx sdk.Context, addr sdk.AccAddress) []types.OutFlow {
+	key := types.OutFlowKey(addr, types.OUT_FLOW_STATUS_ACTIVE, nil)
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
-	iterator := store.Iterator(key, nil)
+	iterator := store.Iterator(key, nil) //the iterator will also include frozen out flows
 	defer iterator.Close()
 
 	outFlows := make([]types.OutFlow, 0)
@@ -43,15 +43,15 @@ func (k Keeper) DeleteOutFlow(ctx sdk.Context, key []byte) {
 }
 
 // MergeActiveOutFlows merge active OutFlows and save in the store
-func (k Keeper) MergeActiveOutFlows(ctx sdk.Context, acc sdk.AccAddress, outFlows []types.OutFlow) int {
+func (k Keeper) MergeActiveOutFlows(ctx sdk.Context, addr sdk.AccAddress, outFlows []types.OutFlow) int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
 	deltaFlowCount := 0
 	for _, outFlow := range outFlows {
 		outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
-		key := types.OutFlowKey(acc, outFlow.Status, sdk.MustAccAddressFromHex(outFlow.ToAddress))
+		key := types.OutFlowKey(addr, outFlow.Status, sdk.MustAccAddressFromHex(outFlow.ToAddress))
 		value := store.Get(key)
 		if value == nil {
-			k.SetOutFlow(ctx, acc, &outFlow)
+			k.SetOutFlow(ctx, addr, &outFlow)
 			deltaFlowCount++
 			continue
 		}
@@ -60,7 +60,7 @@ func (k Keeper) MergeActiveOutFlows(ctx sdk.Context, acc sdk.AccAddress, outFlow
 			k.DeleteOutFlow(ctx, key)
 			deltaFlowCount--
 		} else {
-			k.SetOutFlow(ctx, acc, &outFlow)
+			k.SetOutFlow(ctx, addr, &outFlow)
 		}
 	}
 	return deltaFlowCount
