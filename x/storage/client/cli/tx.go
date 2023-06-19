@@ -977,3 +977,57 @@ func CmdMirrorGroup() *cobra.Command {
 
 	return cmd
 }
+
+func CmdMigrateBucket() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "migrate-bucket",
+		Short: "Broadcast message migrate_bucket",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgMigrateBucket(
+				clientCtx.GetFromAddress().String(),
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdCompleteMigrateBucket() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "complete-migrate-bucket",
+		Short: "Broadcast message complete_migrate_bucket",
+		Args:  cobra.ExactArgs(0),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg := types.NewMsgCompleteMigrateBucket(
+				clientCtx.GetFromAddress().String(),
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}

@@ -4,6 +4,8 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -586,4 +588,107 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBucket) (*types.MsgMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+		return nil, types.ErrInvalidBucketStatus.Wrapf("The bucket already been migrating")
+
+	}
+	srcSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operator)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound
+	}
+
+	dstSP, found := k.spKeeper.GetStorageProvider(ctx, msg.DstPrimarySpId)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("dst sp not found")
+	}
+
+	if srcSP.Status == sptypes.STATUS_IN_SERVICE || dstSP.Status == sptypes.STATUS_IN_SERVICE {
+		return nil, sptypes.ErrStorageProviderNotInService.Wrapf(
+			"origin SP status: %s, dst SP status: %s", srcSP.Status.String(), dstSP.Status.String())
+	}
+
+	// check approval
+	if msg.DstPrimarySpApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
+		return nil, types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
+	}
+	mgs := types.NewMigrationBucketSignDoc(srcSP.Id, dstSP.Id, bucketInfo.Id)
+	err := k.VerifySPAndSignature(ctx, dstSP.Id, mgs.GetSignBytes(), msg.DstPrimarySpApproval.Sig)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.MigrationBucket(ctx, srcSP, dstSP, bucketInfo)
+	if err != nil {
+		return nil, err
+	}
+
+	bucketInfo.BucketStatus = types.BUCKET_STATUS_MIGRATING
+	k.SetBucketInfo(ctx, bucketInfo)
+	return &types.MsgMigrateBucketResponse{}, nil
+}
+
+func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCompleteMigrateBucket) (*types.MsgCompleteMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	dstSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operator)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("dst SP not found.")
+	}
+
+	if bucketInfo.BucketStatus != types.BUCKET_STATUS_MIGRATING {
+		return nil, types.ErrInvalidBucketStatus.Wrapf("The bucket not been migrating")
+	}
+
+	migrationBucketInfo, found := k.GetMigrationBucketInfo(ctx, bucketInfo.Id)
+	if !found {
+		return nil, types.ErrMigtationBucketFailed.Wrapf("migration bucket info not found.")
+	}
+
+	if dstSP.Id != migrationBucketInfo.DstSpId {
+		return nil, types.ErrMigtationBucketFailed.Wrapf("dst sp info not match")
+	}
+
+	_, found = k.virtualGroupKeeper.GetGVGFamily(ctx, dstSP.Id, msg.GlobalVirtualGroupFamilyId)
+	if !found {
+		return nil, virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+
+	oldBucketInfo := &types.BucketInfo{
+		PaymentAddress:             bucketInfo.PaymentAddress,
+		PrimarySpId:                bucketInfo.PrimarySpId,
+		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
+		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
+		BillingInfo:                bucketInfo.BillingInfo,
+	}
+
+	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
+	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
+	k.SetBucketInfo(ctx, bucketInfo)
+	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
+
+	err := k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
+	if err != nil {
+		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
+	}
+
+	return &types.MsgCompleteMigrateBucketResponse{}, nil
 }

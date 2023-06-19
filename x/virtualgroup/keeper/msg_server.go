@@ -304,3 +304,52 @@ func (k msgServer) WithdrawFromGVG(goCtx context.Context, req *types.MsgWithdraw
 
 	return &types.MsgWithdrawFromGVGResponse{}, nil
 }
+
+func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStorageProviderExit) (*types.MsgStorageProviderExitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.OperatorAddress)
+
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound
+	}
+
+	if sp.Status != sptypes.STATUS_IN_SERVICE {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("sp not in service, status: %s", sp.Status.String())
+	}
+
+	sp.Status = sptypes.STATUS_GRACEFUL_EXITING
+
+	k.spKeeper.SetStorageProvider(ctx, sp)
+
+	return &types.MsgStorageProviderExitResponse{}, nil
+}
+
+func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types.MsgCompleteStorageProviderExit) (*types.MsgCompleteStorageProviderExitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddress := sdk.MustAccAddressFromHex(msg.OperatorAddress)
+
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddress)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound
+	}
+
+	if sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
+			"sp(id : %d, operator address: %s) not in the process of exiting", sp.Id, sp.OperatorAddress)
+	}
+
+	err := k.IsStorageProviderCanExit(ctx, sp.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	err = k.spKeeper.Exit(ctx, sp)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCompleteStorageProviderExitResponse{}, nil
+}
