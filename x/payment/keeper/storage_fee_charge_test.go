@@ -166,10 +166,10 @@ func TestAutoForceSettle(t *testing.T) {
 	change = types.NewDefaultStreamRecordChangeWithAddr(user)
 	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)
-	usr, _ := keeper.GetStreamRecord(ctx, user)
+
+	time.Sleep(1 * time.Second)
 	keeper.AutoSettle(ctx)
-	require.NoError(t, err)
-	keeper.SetStreamRecord(ctx, usr)
+
 	usrAfterForceSettle, found := keeper.GetStreamRecord(ctx, user)
 	require.True(t, found)
 	t.Logf("usrAfterForceSettle: %s", usrAfterForceSettle)

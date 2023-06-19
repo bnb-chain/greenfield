@@ -294,9 +294,9 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			if err != nil {
 				panic(err)
 			}
-			k.SetStreamRecord(ctx, streamRecord)
 			count++ // add one for a stream record
 			if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
+				k.SetStreamRecord(ctx, streamRecord)
 				continue
 			}
 		}
@@ -331,7 +331,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			totalRate = totalRate.Add(rate)
 			count++
 		}
-		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
+		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
 		streamRecord.FrozenNetflowRate = totalRate.Add(streamRecord.FrozenNetflowRate)
 		k.SetStreamRecord(ctx, streamRecord)
 	}
@@ -448,8 +448,8 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			count++
 		}
 
-		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
-		streamRecord.FrozenNetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
+		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
+		streamRecord.FrozenNetflowRate = streamRecord.NetflowRate.Add(totalRate)
 		if !flowIterator.Valid() {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
 				panic("should not happen") // TODO: assertion for fail quick, remove later
