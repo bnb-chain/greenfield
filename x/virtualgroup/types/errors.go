@@ -17,6 +17,7 @@ var (
 	ErrSPCanNotExit            = errors.Register(ModuleName, 1108, "the sp can not exit now.")
 	ErrWithdrawGVGFamilyFailed = errors.Register(ModuleName, 1109, "fail to withdraw from global virtual group family.")
 	ErrWithdrawGVGFailed       = errors.Register(ModuleName, 1120, "fail to withdraw from global virtual group.")
+	ErrMigrationBucketFailed   = errors.Register(ModuleName, 1121, "fail to migration bucket.")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

@@ -623,8 +623,7 @@ func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBuc
 	if msg.DstPrimarySpApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
 		return nil, types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
 	}
-	mgs := types.NewMigrationBucketSignDoc(srcSP.Id, dstSP.Id, bucketInfo.Id)
-	err := k.VerifySPAndSignature(ctx, dstSP.Id, mgs.GetSignBytes(), msg.DstPrimarySpApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, dstSP.Id, msg.GetApprovalBytes(), msg.DstPrimarySpApproval.Sig)
 	if err != nil {
 		return nil, err
 	}
@@ -682,13 +681,20 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
-	k.SetBucketInfo(ctx, bucketInfo)
-	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
 
 	err := k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
 	if err != nil {
 		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
 	}
+
+	// rebinding gvg and lvg
+	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.NewLvgToGvgMappings)
+	if err != nil {
+		return nil, err
+	}
+
+	k.SetBucketInfo(ctx, bucketInfo)
+	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
 
 	return &types.MsgCompleteMigrateBucketResponse{}, nil
 }

@@ -2,6 +2,7 @@ package types
 
 import (
 	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 type (
@@ -53,4 +54,18 @@ func (g *GlobalVirtualGroupsBindingOnBucket) GetGVGIDByLVGID(lvgID uint32) uint3
 		}
 	}
 	return 0
+}
+
+func (msg *MigrationBucketSignDoc) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+func NewMigrationBucketSignDoc(bucketID sdkmath.Uint, spID, lvgID, srcGVGID, dstGVGID uint32) *MigrationBucketSignDoc {
+	return &MigrationBucketSignDoc{
+		BucketId:                bucketID,
+		DstPrimarySpId:          spID,
+		LocalVirtualGroupId:     lvgID,
+		SrcGlobalVirtualGroupId: srcGVGID,
+		DstGlobalVirtualGroupId: dstGVGID,
+	}
 }

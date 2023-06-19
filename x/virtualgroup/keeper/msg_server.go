@@ -5,6 +5,7 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -231,6 +232,13 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("successor sp not found.")
 	}
+
+	// verify the approval
+	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(req.GetApprovalBytes()), req.SuccessorSpApproval.Sig)
+	if err != nil {
+		return nil, err
+	}
+
 	if req.VirtualGroupFamilyId == types.NoSpecifiedFamilyId {
 		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
 		err := k.SwapOutAsSecondarySP(ctx, sp.Id, successorSP.Id, req.GlobalVirtualGroupIds)

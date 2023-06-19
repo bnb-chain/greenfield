@@ -17,16 +17,3 @@ func (sr *SecondarySpSignDoc) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(sr)
 	return sdk.MustSortJSON(bz)
 }
-
-func NewMigrationBucketSignDoc(srcSPID, dspSPID uint32, bucketID math.Uint) *MigrationBucketSignDoc {
-	return &MigrationBucketSignDoc{
-		SrcSpId:  srcSPID,
-		DstSpId:  dspSPID,
-		BucketId: bucketID,
-	}
-}
-
-func (mbs *MigrationBucketSignDoc) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(mbs)
-	return sdk.MustSortJSON(bz)
-}

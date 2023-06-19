@@ -73,13 +73,3 @@ message SecondarySpSignDoc {
   ];
   bytes checksum = 3;
 }
-
-message MigrationBucketSignDoc {
-  uint32 src_sp_id = 1;
-  uint32 dst_sp_id = 2;
-  string bucket_id = 3 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-}

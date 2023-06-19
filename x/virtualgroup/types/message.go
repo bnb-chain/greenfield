@@ -4,6 +4,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 const (
@@ -211,6 +212,12 @@ func (msg *MsgSwapOut) Type() string {
 // GetSignBytes implements the LegacyMsg interface.
 func (msg *MsgSwapOut) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
+}
+
+func (msg *MsgSwapOut) GetApprovalBytes() []byte {
+	fakeMsg := proto.Clone(msg).(*MsgSwapOut)
+	fakeMsg.SuccessorSpApproval.Sig = nil
+	return fakeMsg.GetSignBytes()
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.

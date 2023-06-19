@@ -13,6 +13,7 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
+	"github.com/bnb-chain/greenfield/types"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
@@ -107,10 +108,10 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress, []s
 		sp.OperatorKey.GetAddr(), sp.OperatorKey.GetAddr(),
 	}
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+	err = types.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}

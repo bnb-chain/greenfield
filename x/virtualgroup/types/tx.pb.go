@@ -526,11 +526,14 @@ func (m *MsgWithdrawResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgWithdrawResponse proto.InternalMessageInfo
 
 type MsgSwapOut struct {
-	// sp_address is the account address of the storage provider initiating the swap out.
+	// operator_address defines the account address of the storage provider initiating the swap out.
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 	// virtual_group_family_id is the identifier of the virtual group family.
+	// if it set to 0, it represents that the operator swap out as the primary storage provider
+	// it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
 	VirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=virtual_group_family_id,json=virtualGroupFamilyId,proto3" json:"virtual_group_family_id,omitempty"`
 	// global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
+	// It allows to be empty only when the operator is the primary storage provider.
 	GlobalVirtualGroupIds []uint32 `protobuf:"varint,3,rep,packed,name=global_virtual_group_ids,json=globalVirtualGroupIds,proto3" json:"global_virtual_group_ids,omitempty"`
 	// successor_sp_id is the account address of the successor storage provider.
 	SuccessorSpId uint32 `protobuf:"varint,4,opt,name=successor_sp_id,json=successorSpId,proto3" json:"successor_sp_id,omitempty"`

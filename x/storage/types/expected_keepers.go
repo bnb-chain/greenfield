@@ -92,4 +92,5 @@ type VirtualGroupKeeper interface {
 	GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
 	SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
+	RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, newLVGToGVGMappings []*LVGToGVGMapping) error
 }

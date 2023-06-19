@@ -9,6 +9,7 @@ import (
 	"testing"
 	"time"
 
+	types2 "github.com/bnb-chain/greenfield/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -209,10 +210,10 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	s.Require().True(found)
 
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), objectId, checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, objectId, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+	err = types2.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}

@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	types2 "github.com/bnb-chain/greenfield/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 
 	sdkmath "cosmossdk.io/math"
@@ -181,10 +182,10 @@ func (s *StorageTestSuite) TestCreateObject() {
 
 	// SealObject
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
+	err = types2.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
 		secondarySig)
 	s.Require().NoError(err)
 
@@ -355,10 +356,10 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	// SealObject
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName1, objectName,
 		gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+	err = types2.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 	s.Require().NoError(err)
 
 	secondarySigs := [][]byte{secondarySig, secondarySig, secondarySig, secondarySig, secondarySig, secondarySig}
@@ -576,10 +577,10 @@ func (s *StorageTestSuite) TestPayment_Smoke() {
 	secondaryStorageProviders := s.StorageProviders[1:7]
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 	secondarySigs := lo.Map(secondaryStorageProviders, func(sp core.StorageProvider, i int) []byte {
-		sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+		sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 		secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 		s.Require().NoError(err)
-		err = storagetypes.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
+		err = types2.VerifySignature(sp.ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()), secondarySig)
 		s.Require().NoError(err)
 		return secondarySig
 	})
@@ -965,10 +966,10 @@ func (s *StorageTestSuite) TestMirrorObject() {
 
 	// SealObject
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
+	err = types2.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
 		secondarySig)
 	s.Require().NoError(err)
 
@@ -1012,10 +1013,10 @@ func (s *StorageTestSuite) TestMirrorObject() {
 
 	// SealObject
 	msgSealObject = storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr = storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	sr = storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err = sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
+	err = types2.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
 		secondarySig)
 	s.Require().NoError(err)
 
@@ -1438,10 +1439,10 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 
 	// SealObject
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
-	sr := storagetypes.NewSecondarySpSignDoc(sp.OperatorKey.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, checksum)
+	sr := storagetypes.NewSecondarySpSignDoc(sp.Info.Id, queryHeadObjectResponse.ObjectInfo.Id, checksum)
 	secondarySig, err := sp.ApprovalKey.Sign(sr.GetSignBytes())
 	s.Require().NoError(err)
-	err = storagetypes.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
+	err = types2.VerifySignature(s.StorageProviders[0].ApprovalKey.GetAddr(), sdk.Keccak256(sr.GetSignBytes()),
 		secondarySig)
 	s.Require().NoError(err)
 
