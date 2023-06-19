@@ -2,6 +2,7 @@ package types
 
 import (
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -56,10 +57,6 @@ func (g *GlobalVirtualGroupsBindingOnBucket) GetGVGIDByLVGID(lvgID uint32) uint3
 	return 0
 }
 
-func (msg *MigrationBucketSignDoc) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
-}
-
 func NewMigrationBucketSignDoc(bucketID sdkmath.Uint, spID, lvgID, srcGVGID, dstGVGID uint32) *MigrationBucketSignDoc {
 	return &MigrationBucketSignDoc{
 		BucketId:                bucketID,
@@ -68,4 +65,14 @@ func NewMigrationBucketSignDoc(bucketID sdkmath.Uint, spID, lvgID, srcGVGID, dst
 		SrcGlobalVirtualGroupId: srcGVGID,
 		DstGlobalVirtualGroupId: dstGVGID,
 	}
+}
+
+func (c *MigrationBucketSignDoc) GetSignBytes() [32]byte {
+	bts, err := rlp.EncodeToBytes(c)
+	if err != nil {
+		panic(err)
+	}
+
+	btsHash := sdk.Keccak256Hash(bts)
+	return btsHash
 }

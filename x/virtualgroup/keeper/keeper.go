@@ -577,18 +577,10 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 			return types.ErrGVGNotExist.Wrapf("src gvg not found, ID: %d", srcGVGID)
 		}
 
-		for i, sspID := range dstGVG.SecondarySpIds {
-			ssp, found := k.spKeeper.GetStorageProvider(ctx, sspID)
-			if !found {
-				return sptypes.ErrStorageProviderNotFound.Wrapf("spID: %d", sspID)
-			}
-
-			migrationBucketSignDoc := types.NewMigrationBucketSignDoc(
-				bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId)
-			err := types2.VerifySignature(sdk.MustAccAddressFromHex(ssp.ApprovalAddress), sdk.Keccak256(migrationBucketSignDoc.GetSignBytes()), newLvg2gvg.SecondarySpSignature[i])
-			if err != nil {
-				return errors.Wrapf(err, "verify signature failed")
-			}
+		migrationBucketSignDoc := types.NewMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId).GetSignBytes()
+		err := k.verifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDoc, newLvg2gvg.SecondarySpBlsSignature)
+		if err != nil {
+			return err
 		}
 
 		dstGVG.StoredSize += lvg.StoredSize
@@ -615,6 +607,10 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32,
 	if !found {
 		return types.ErrGVGNotExist
 	}
+	return k.verifyGVGSecondarySPsBlsSignature(ctx, gvg, signBz, signature)
+}
+
+func (k Keeper) verifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signBz [32]byte, signature []byte) error {
 	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
 		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)

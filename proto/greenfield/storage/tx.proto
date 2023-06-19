@@ -558,7 +558,7 @@ message MsgMigrateBucketResponse {}
 message LVGToGVGMapping {
   uint32 local_virtual_group_id = 1;
   uint32 global_virtual_group_id = 2;
-  repeated bytes secondary_sp_signature = 3;
+  bytes secondary_sp_bls_signature = 3;
 }
 
 message MsgCompleteMigrateBucket {

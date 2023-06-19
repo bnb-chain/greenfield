@@ -472,7 +472,7 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpId, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, bucketInfo.PrimarySpId, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -883,7 +883,7 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpId, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, dstBucketInfo.PrimarySpId, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
