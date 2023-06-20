@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stretchr/testify/suite"
 )
 
 type VirtualGroupTestSuite struct {
@@ -95,6 +96,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 			StorageProviderId:          primarySP.Info.Id,
 			GlobalVirtualGroupFamilyId: family.Id,
 		})
+	s.Require().Error(err)
 	for _, gvg := range resp3.GlobalVirtualGroups {
 		if gvg.Id == newGVG.Id {
 			s.Assert().True(false)

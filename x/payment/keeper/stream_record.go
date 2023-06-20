@@ -290,6 +290,8 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			continue
 		}
 
+		fmt.Println("1AAAAAA ", streamRecord.String())
+
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 			count++ // add one for a stream record
 			err := k.SettleStreamRecord(ctx, streamRecord)
@@ -316,6 +318,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		defer flowIterator.Close()
 
 		totalRate := sdk.ZeroInt()
+		toUpdate := make([]types.OutFlow, 0)
 		finished := false
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
@@ -336,12 +339,18 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			}
 
 			flowStore.Delete(flowIterator.Key())
+
 			outFlow.Status = types.OUT_FLOW_STATUS_FROZEN
-			k.SetOutFlow(ctx, addr, &outFlow)
+			toUpdate = append(toUpdate, outFlow)
 
 			totalRate = totalRate.Add(outFlow.Rate)
 			count++
 		}
+
+		for _, outFlow := range toUpdate {
+			k.SetOutFlow(ctx, addr, &outFlow)
+		}
+
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate.Neg())
 
@@ -396,6 +405,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		flowIterator := flowStore.Iterator(frozenFlowKey, nil)
 		defer flowIterator.Close()
 
+		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
 			rate := types.ParseOutFlowValue(flowIterator.Value())
@@ -408,9 +418,14 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 			}
 
 			flowStore.Delete(flowIterator.Key())
+
 			outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
+			toUpdate = append(toUpdate, outFlow)
+		}
+		for _, outFlow := range toUpdate {
 			k.SetOutFlow(ctx, addr, &outFlow)
 		}
+
 		k.SetStreamRecord(ctx, streamRecord)
 		k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), 0, streamRecord.SettleTimestamp)
 		return nil
@@ -448,6 +463,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		flowIterator := flowStore.Iterator(frozenFlowKey, nil)
 		defer flowIterator.Close()
 
+		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
 				break
@@ -464,18 +480,23 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			}
 
 			flowStore.Delete(flowIterator.Key())
+
 			outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
-			k.SetOutFlow(ctx, addr, &outFlow)
+			toUpdate = append(toUpdate, outFlow)
 
 			totalRate = totalRate.Add(rate)
 			count++
+		}
+
+		for _, outFlow := range toUpdate {
+			k.SetOutFlow(ctx, addr, &outFlow)
 		}
 
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
 		if !flowIterator.Valid() {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
-				panic("should not happen") // TODO: assertion for fail quick, remove later
+				panic("should not happen") // assertion for fail quick
 			}
 			streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)

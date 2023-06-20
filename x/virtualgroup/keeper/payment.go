@@ -60,10 +60,10 @@ func (k Keeper) SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtual
 		return nil
 	}
 
-	change := paymenttypes.NewDefaultStreamRecordChangeWithAddr(paymentAddress).WithStaticBalanceChange(totalBalance)
+	change := paymenttypes.NewDefaultStreamRecordChangeWithAddr(paymentAddress).WithStaticBalanceChange(totalBalance.Neg())
 	err := k.paymentKeeper.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
-		return fmt.Errorf("fail to settle gvg gvg: %d, err: %s", gvg.Id, err.Error())
+		return fmt.Errorf("fail to settle gvg: %d, err: %s", gvg.Id, err.Error())
 	}
 	k.paymentKeeper.SetStreamRecord(ctx, streamRecord)
 
@@ -73,7 +73,7 @@ func (k Keeper) SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtual
 		for _, spID := range gvg.SecondarySpIds {
 			sp, found := k.spKeeper.GetStorageProvider(ctx, spID)
 			if !found {
-				return fmt.Errorf("fail to find primary sp: %d", spID)
+				return fmt.Errorf("fail to find secondary sp: %d", spID)
 			}
 			err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx,
 				paymenttypes.ModuleName,

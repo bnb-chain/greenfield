@@ -122,12 +122,12 @@ func (k Keeper) ChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 	}
 	return k.ChargeViaBucketChange(ctx, bucketInfo, func(bi *storagetypes.BucketInfo) error {
 		bi.BillingInfo.TotalChargeSize += chargeSize
-		lvgObjectsSize := bi.BillingInfo.LvgObjectsSize
-		lvgObjectsSize = append(lvgObjectsSize, storagetypes.LVGObjectsSize{
+		toBeMerge := bi.BillingInfo.LvgObjectsSize
+		toBeMerge = append(toBeMerge, storagetypes.LVGObjectsSize{
 			LvgId:           objectInfo.LocalVirtualGroupId,
 			TotalChargeSize: chargeSize,
 		})
-		bi.BillingInfo.LvgObjectsSize = MergeSecondarySpObjectsSize(lvgObjectsSize)
+		bi.BillingInfo.LvgObjectsSize = MergeSecondarySpObjectsSize(toBeMerge)
 		return nil
 	})
 }
@@ -374,7 +374,10 @@ func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (si
 }
 
 func (k Keeper) ResetBucketBillingInfo(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) {
-	billingInfo := storagetypes.BillingInfo{LvgObjectsSize: make([]storagetypes.LVGObjectsSize, 0)}
+	billingInfo := storagetypes.BillingInfo{
+		LvgObjectsSize: make([]storagetypes.LVGObjectsSize, 0),
+		PriceTime:      bucketInfo.BillingInfo.PriceTime,
+	}
 	totalChargeSize := uint64(0)
 	lvgs := k.virtualGroupKeeper.GetLVGs(ctx, bucketInfo.Id)
 	for _, lvg := range lvgs {

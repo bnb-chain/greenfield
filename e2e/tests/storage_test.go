@@ -713,6 +713,13 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	userAddr := user.GetAddr().String()
 	var err error
 
+	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
+		StorageProviderId: sp.Info.Id,
+		FamilyId:          gvg.FamilyId,
+	})
+	s.Require().NoError(err)
+	family := queryFamilyResponse.GlobalVirtualGroupFamily
+
 	bucketChargedReadQuota := uint64(1000)
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
@@ -781,14 +788,14 @@ func (s *StorageTestSuite) TestPayment_AutoSettle() {
 	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	res := s.SendTxBlock(user, msgCreateBucket)
-	s.T().Logf("res %s", res.String())
+	s.SendTxBlock(user, msgCreateBucket)
+
 	// check user stream record
 	userStreamRecord := s.GetStreamRecord(userAddr)
 	s.T().Logf("userStreamRecord %s", core.YamlString(userStreamRecord))
 	s.Require().Equal(userStreamRecord.SettleTimestamp, userStreamRecord.CrudTimestamp+int64(reserveTime-forcedSettleTime))
-	spStreamRecord := s.GetStreamRecord(sp.OperatorKey.GetAddr().String())
-	s.T().Logf("spStreamRecord %s", core.YamlString(spStreamRecord))
+	familyStreamRecord := s.GetStreamRecord(family.VirtualPaymentAddress)
+	s.T().Logf("familyStreamRecord %s", core.YamlString(familyStreamRecord))
 	govStreamRecord := s.GetStreamRecord(paymenttypes.GovernanceAddress.String())
 	s.T().Logf("govStreamRecord %s", core.YamlString(govStreamRecord))
 
