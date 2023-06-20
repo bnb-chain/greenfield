@@ -544,7 +544,7 @@ message MsgUpdateParamsResponse {}
 message MsgMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
 
-  string operator = 1;
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   string bucket_name = 2;
 
@@ -555,16 +555,12 @@ message MsgMigrateBucket {
 
 message MsgMigrateBucketResponse {}
 
-message LVGToGVGMapping {
-  uint32 local_virtual_group_id = 1;
-  uint32 global_virtual_group_id = 2;
-  repeated bytes secondary_sp_signature = 3;
-}
+
 
 message MsgCompleteMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
 
-  string operator = 1;
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
   uint32 global_virtual_group_family_id = 2;
 

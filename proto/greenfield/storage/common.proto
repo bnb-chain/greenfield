@@ -74,3 +74,9 @@ message SecondarySpSealObjectSignDoc {
   // checksum is the sha256 hash of slice of integrity hash from secondary sps
   bytes checksum = 3;
 }
+
+message LVGToGVGMapping {
+  uint32 local_virtual_group_id = 1;
+  uint32 global_virtual_group_id = 2;
+  repeated bytes secondary_sp_signature = 3;
+}

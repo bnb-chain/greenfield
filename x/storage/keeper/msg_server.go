@@ -635,6 +635,15 @@ func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBuc
 
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_MIGRATING
 	k.SetBucketInfo(ctx, bucketInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventMigrationBucket{
+		Operator:       operator.String(),
+		BucketName:     msg.BucketName,
+		BucketId:       bucketInfo.Id,
+		DstPrimarySpId: dstSP.Id,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgMigrateBucketResponse{}, nil
 }
 
@@ -695,6 +704,16 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 
 	k.SetBucketInfo(ctx, bucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{
+		Operator:                   operator.String(),
+		BucketName:                 msg.BucketName,
+		BucketId:                   bucketInfo.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		NewLvgToGvgMappings:        msg.NewLvgToGvgMappings,
+	}); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgCompleteMigrateBucketResponse{}, nil
 }
