@@ -172,6 +172,22 @@ func (k Keeper) GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*type
 	return &lvg, true
 }
 
+func (k Keeper) GetLVGs(ctx sdk.Context, bucketID math.Uint) []*types.LocalVirtualGroup {
+	lvgs := make([]*types.LocalVirtualGroup, 0)
+	store := ctx.KVStore(k.storeKey)
+	prefixStore := prefix.NewStore(store, types.GetLVGKey(bucketID, 0))
+	iterator := prefixStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var lvg types.LocalVirtualGroup
+		k.cdc.MustUnmarshal(iterator.Value(), &lvg)
+		lvgs = append(lvgs, &lvg)
+	}
+
+	return lvgs
+}
+
 func (k Keeper) GetGVGsBindingOnBucket(ctx sdk.Context, bucketID math.Uint) (*types.GlobalVirtualGroupsBindingOnBucket, bool) {
 	store := ctx.KVStore(k.storeKey)
 

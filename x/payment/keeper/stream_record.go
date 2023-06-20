@@ -83,7 +83,6 @@ func (k Keeper) GetStreamRecord(
 func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
-
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {

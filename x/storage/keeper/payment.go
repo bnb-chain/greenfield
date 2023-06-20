@@ -373,6 +373,22 @@ func (k Keeper) GetChargeSize(ctx sdk.Context, payloadSize uint64, ts int64) (si
 	}
 }
 
+func (k Keeper) ResetBucketBillingInfo(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo) {
+	billingInfo := storagetypes.BillingInfo{LvgObjectsSize: make([]storagetypes.LVGObjectsSize, 0)}
+	totalChargeSize := uint64(0)
+	lvgs := k.virtualGroupKeeper.GetLVGs(ctx, bucketInfo.Id)
+	for _, lvg := range lvgs {
+		totalChargeSize = totalChargeSize + lvg.StoredSize
+		billingInfo.LvgObjectsSize = append(billingInfo.LvgObjectsSize, storagetypes.LVGObjectsSize{
+			LvgId:           lvg.Id,
+			TotalChargeSize: lvg.StoredSize,
+		})
+	}
+	billingInfo.TotalChargeSize = totalChargeSize
+	billingInfo.PriceTime = billingInfo.PriceTime
+	bucketInfo.BillingInfo = billingInfo
+}
+
 func (k Keeper) ChargeBucketMigration(ctx sdk.Context, oldBucketInfo, newBucketInfo *storagetypes.BucketInfo) error {
 	// settle and get previous bill
 	prevBill, err := k.GetBucketBill(ctx, oldBucketInfo, true)
@@ -381,6 +397,7 @@ func (k Keeper) ChargeBucketMigration(ctx sdk.Context, oldBucketInfo, newBucketI
 	}
 
 	newBucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
+	k.ResetBucketBillingInfo(ctx, newBucketInfo)
 	// calculate new bill
 	newBill, err := k.GetBucketBill(ctx, newBucketInfo)
 	if err != nil {

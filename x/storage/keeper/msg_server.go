@@ -691,15 +691,15 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
 
-	err := k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
-	if err != nil {
-		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
-	}
-
 	// rebinding gvg and lvg
-	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.NewLvgToGvgMappings)
+	err := k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.NewLvgToGvgMappings)
 	if err != nil {
 		return nil, err
+	}
+
+	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
+	if err != nil {
+		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
 	}
 
 	k.SetBucketInfo(ctx, bucketInfo)
