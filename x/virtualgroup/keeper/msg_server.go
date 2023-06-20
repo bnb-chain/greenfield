@@ -105,6 +105,14 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}); err != nil {
 		return nil, err
 	}
+	if req.FamilyId == types.NoSpecifiedFamilyId {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroupFamily{
+			Id:                    gvg.Id,
+			VirtualPaymentAddress: gvgFamily.VirtualPaymentAddress,
+		}); err != nil {
+			return nil, err
+		}
+	}
 	return &types.MsgCreateGlobalVirtualGroupResponse{}, nil
 }
 
