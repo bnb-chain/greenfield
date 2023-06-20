@@ -88,22 +88,32 @@ func (s *BaseSuite) SetupSuite() {
 	}
 
 	for i, sp := range s.StorageProviders {
-		// Create a GVG for each sp by default
-		deposit := sdk.Coin{
-			Denom:  s.Config.Denom,
-			Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
-		}
-		secondaryIds := append(spIDs[:i], spIDs[i+1:]...)
-		msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
-			PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
-			SecondarySpIds:   secondaryIds,
-			Deposit:          deposit,
-		}
-		s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
+		var gvgFamilies []*virtualgroupmoduletypes.GlobalVirtualGroupFamily
+		resp1, err1 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
+		s.Require().NoError(err1)
+		if len(resp1.GlobalVirtualGroupFamilies) == 0 {
+			// Create a GVG for each sp by default
+			deposit := sdk.Coin{
+				Denom:  s.Config.Denom,
+				Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
+			}
+			secondaryIds := append(spIDs[:i], spIDs[i+1:]...)
+			msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
+				PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
+				SecondarySpIds:   secondaryIds,
+				Deposit:          deposit,
+			}
+			s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
+			resp2, err2 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
+			s.Require().NoError(err2)
 
-		resp, err2 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
-		s.Require().NoError(err2)
-		for _, family := range resp.GlobalVirtualGroupFamilies {
+			gvgFamilies = resp2.GlobalVirtualGroupFamilies
+		} else {
+			gvgFamilies = resp1.GlobalVirtualGroupFamilies
+
+		}
+
+		for _, family := range gvgFamilies {
 			gvgsResp, err3 := s.Client.GlobalVirtualGroupByFamilyID(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{
 				StorageProviderId:          sp.Info.Id,
 				GlobalVirtualGroupFamilyId: family.Id,

@@ -208,6 +208,7 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	sp := s.StorageProviders[0]
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
+	s.T().Log("GVG info: ", gvg.String())
 
 	// SealObject
 	gvgId := gvg.Id
@@ -230,15 +231,15 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	s.T().Logf("msg %s", msgSealObject.String())
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
-	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+	queryHeadObjectRequest2 := storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName,
 		ObjectName: objectName,
 	}
-	queryHeadObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	queryHeadObjectResponse2, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest2)
 	s.Require().NoError(err)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+	s.Require().Equal(queryHeadObjectResponse2.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse2.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse2.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 }
 
 // TestVersionedParams_SealAfterReserveTimeChange will cover the following case:
