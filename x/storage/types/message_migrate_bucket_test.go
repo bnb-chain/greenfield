@@ -18,13 +18,15 @@ func TestMsgMigrateBucket_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgMigrateBucket{
-				Operator: "invalid_address",
+				Operator:   "invalid_address",
+				BucketName: "bucketname",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgMigrateBucket{
-				Operator: sample.AccAddress(),
+				Operator:   sample.AccAddress(),
+				BucketName: "bucketname",
 			},
 		},
 	}

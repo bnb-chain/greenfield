@@ -40,7 +40,7 @@ func (msg *MsgCompleteMigrateBucket) GetSignBytes() []byte {
 }
 
 func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Operator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
