@@ -77,7 +77,7 @@ func TestTryResumeStreamRecord_ResumeInMultipleBlocks(t *testing.T) {
 	// resume account in multiple blocks
 	params := keeper.GetParams(ctx)
 	params.MaxAutoResumeFlowCount = 1
-	keeper.SetParams(ctx, params)
+	_ = keeper.SetParams(ctx, params)
 
 	rate := sdkmath.NewInt(300)
 	user := sample.RandAccAddress()
@@ -233,7 +233,7 @@ func TestAutoSettle_FreezeInMultipleBlocks(t *testing.T) {
 	// freeze account in multiple blocks
 	params := keeper.GetParams(ctx)
 	params.MaxAutoSettleFlowCount = 1
-	keeper.SetParams(ctx, params)
+	_ = keeper.SetParams(ctx, params)
 
 	depKeepers.AccountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).
 		Return(true).AnyTimes()

@@ -163,7 +163,6 @@ func TestAutoForceSettle(t *testing.T) {
 	require.Equal(t, autoSettleQueue[0].Timestamp+100, autoSettleQueue2[0].Timestamp)
 	// reserve time - forced settle time - 1 day + 101s pass
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.VersionedParams.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
-	change = types.NewDefaultStreamRecordChangeWithAddr(user)
 	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)
 

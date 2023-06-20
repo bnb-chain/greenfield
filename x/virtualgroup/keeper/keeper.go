@@ -234,7 +234,7 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 
 		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
 		if storeSize > k.MaxStoreSizePerFamily(ctx) {
-			return nil, types.ErrStoreSizeExceed.Wrapf("A family only allow to store %ld, now: %ld", k.MaxStoreSizePerFamily(ctx), storeSize)
+			return nil, types.ErrStoreSizeExceed.Wrapf("A family only allow to store %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
 		}
 		return &gvgFamily, nil
 	}
@@ -247,7 +247,7 @@ func (k Keeper) DeriveVirtualPaymentAccount(groupType string, id uint32) sdk.Acc
 	return address.Module(types.ModuleName, append([]byte(groupType), b...))
 }
 
-func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) sdk.Int {
+func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) math.Int {
 	stakingPrice := k.GVGStakingPrice(ctx)
 
 	mustStakingTokens := stakingPrice.MulInt64(int64(gvg.StoredSize))

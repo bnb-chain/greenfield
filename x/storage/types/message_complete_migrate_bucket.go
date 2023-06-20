@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -41,7 +42,7 @@ func (msg *MsgCompleteMigrateBucket) GetSignBytes() []byte {
 func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
