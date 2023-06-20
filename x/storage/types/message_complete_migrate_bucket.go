@@ -27,7 +27,7 @@ func (msg *MsgCompleteMigrateBucket) Type() string {
 }
 
 func (msg *MsgCompleteMigrateBucket) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Operator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}

@@ -385,7 +385,6 @@ func (k Keeper) ResetBucketBillingInfo(ctx sdk.Context, bucketInfo *storagetypes
 		})
 	}
 	billingInfo.TotalChargeSize = totalChargeSize
-	billingInfo.PriceTime = billingInfo.PriceTime
 	bucketInfo.BillingInfo = billingInfo
 }
 
