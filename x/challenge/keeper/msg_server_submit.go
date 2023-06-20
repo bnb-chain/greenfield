@@ -20,20 +20,20 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	// check sp status
 	bucketInfo, found := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
 	if !found {
-		return nil, types.ErrUnknownObject
+		return nil, types.ErrUnknownBucketObject
 	}
 	sp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 		return nil, types.ErrInvalidSpStatus
 	}
 
 	// check object & read needed data
 	objectInfo, found := k.StorageKeeper.GetObjectInfo(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
-		return nil, types.ErrUnknownObject
+		return nil, types.ErrUnknownBucketObject
 	}
 	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
 		return nil, types.ErrInvalidObjectStatus
@@ -43,34 +43,40 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	stored := false
 	redundancyIndex := types.RedundancyIndexPrimary
 
-	lvg, found := k.VirtualGroupKeeper.GetLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+	// check primary sp
+	tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
 	if !found {
-		panic("should not happen")
+		return nil, types.ErrFailToSubmit
 	}
-	gvg, found := k.VirtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
-	if !found {
-		panic("should not happen")
+	if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
+		stored = true
 	}
 
-	for i, spId := range gvg.SecondarySpIds {
-		sp, found := k.SpKeeper.GetStorageProvider(ctx, spId)
+	if !stored {
+		lvg, found := k.VirtualGroupKeeper.GetLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
 		if !found {
-			panic("should not happen")
+			return nil, types.ErrFailToSubmit
 		}
-		if spOperator.Equals(sdk.MustAccAddressFromHex(sp.OperatorAddress)) {
-			redundancyIndex = int32(i)
-			stored = true
-			break
+		gvg, found := k.VirtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
+		if !found {
+			return nil, types.ErrFailToSubmit
+		}
+
+		// check secondary sp
+		for i, spId := range gvg.SecondarySpIds {
+			tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, spId)
+			if !found {
+				return nil, types.ErrFailToSubmit
+			}
+			if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
+				redundancyIndex = int32(i)
+				stored = true
+				break
+			}
 		}
 	}
 	if !stored {
-		sp, found := k.SpKeeper.GetStorageProvider(ctx, gvg.PrimarySpId)
-		if !found {
-			panic("should not happen")
-		}
-		if !spOperator.Equals(sdk.MustAccAddressFromHex(sp.OperatorAddress)) {
-			return nil, types.ErrNotStoredOnSp
-		}
+		return nil, types.ErrNotStoredOnSp
 	}
 
 	// check sp recent slash

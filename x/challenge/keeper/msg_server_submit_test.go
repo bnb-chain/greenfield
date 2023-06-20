@@ -72,7 +72,7 @@ func (s *TestSuite) TestSubmit() {
 				BucketName:        existBucketName,
 				ObjectName:        "nonexistobject",
 			},
-			err: types.ErrUnknownObject,
+			err: types.ErrUnknownBucketObject,
 		},
 		{
 			name: "invalid segment index",
