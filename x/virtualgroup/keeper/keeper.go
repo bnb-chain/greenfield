@@ -250,7 +250,7 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 
 		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
 		if storeSize > k.MaxStoreSizePerFamily(ctx) {
-			return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit. Current: %ld, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
+			return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit. Current: %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
 		}
 		if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
 			return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")

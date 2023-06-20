@@ -95,6 +95,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 			StorageProviderId:          primarySP.Info.Id,
 			GlobalVirtualGroupFamilyId: family.Id,
 		})
+	s.Require().NoError(err)
 	for _, gvg := range resp3.GlobalVirtualGroups {
 		if gvg.Id == newGVG.Id {
 			s.Assert().True(false)
