@@ -4,22 +4,21 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	types2 "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 )
 
 type (

@@ -8,19 +8,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	"cosmossdk.io/math"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/sdk/client"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type StorageProvider struct {

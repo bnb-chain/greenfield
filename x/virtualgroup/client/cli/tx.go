@@ -5,10 +5,9 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/spf13/cobra"
 
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"

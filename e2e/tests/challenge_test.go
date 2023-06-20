@@ -11,12 +11,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	sdkmath "cosmossdk.io/math"
 	"github.com/bits-and-blooms/bitset"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"

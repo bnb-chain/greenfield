@@ -3,9 +3,10 @@ package keeper
 import (
 	"fmt"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 func (k Keeper) SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error {

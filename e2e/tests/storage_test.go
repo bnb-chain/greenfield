@@ -4,17 +4,12 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"math"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
-
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
@@ -23,6 +18,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
@@ -31,10 +27,12 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
+	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type StorageTestSuite struct {

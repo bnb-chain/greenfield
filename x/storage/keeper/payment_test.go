@@ -4,15 +4,6 @@ import (
 	"testing"
 	"time"
 
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-
-	"github.com/bnb-chain/greenfield/x/challenge"
-	"github.com/bnb-chain/greenfield/x/storage/keeper"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -23,6 +14,14 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/bnb-chain/greenfield/x/challenge"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/keeper"
+	"github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type TestSuite struct {

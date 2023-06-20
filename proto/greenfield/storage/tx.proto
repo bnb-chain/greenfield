@@ -555,8 +555,6 @@ message MsgMigrateBucket {
 
 message MsgMigrateBucketResponse {}
 
-
-
 message MsgCompleteMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
 

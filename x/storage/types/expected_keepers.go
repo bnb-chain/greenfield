@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -12,6 +11,7 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)

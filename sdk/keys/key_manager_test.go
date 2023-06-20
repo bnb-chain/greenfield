@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	"github.com/stretchr/testify/assert"
 )
 

@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 // SetOutFlow set a specific OutFlow in the store from its index

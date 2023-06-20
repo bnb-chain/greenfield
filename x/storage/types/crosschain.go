@@ -4,10 +4,11 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
-	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/bnb-chain/greenfield/types/common"
 )
 
 const (

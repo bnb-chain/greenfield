@@ -2,14 +2,15 @@ package types
 
 import (
 	"bytes"
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 func VerifySignature(sigAccAddress sdk.AccAddress, sigHash []byte, sig []byte) error {

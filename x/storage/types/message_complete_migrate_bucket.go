@@ -1,9 +1,10 @@
 package types
 
 import (
-	"github.com/bnb-chain/greenfield/types/s3util"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/bnb-chain/greenfield/types/s3util"
 )
 
 const TypeMsgCompleteMigrateBucket = "complete_migrate_bucket"

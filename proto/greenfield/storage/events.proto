@@ -452,7 +452,6 @@ message EventStalePolicyCleanup {
   DeleteInfo delete_info = 2;
 }
 
-
 message EventMigrationBucket {
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   string bucket_name = 2;
@@ -462,7 +461,7 @@ message EventMigrationBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  uint32 dst_primary_sp_id =4;
+  uint32 dst_primary_sp_id = 4;
 }
 
 message EventCompleteMigrationBucket {
@@ -474,6 +473,6 @@ message EventCompleteMigrationBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  uint32  global_virtual_group_family_id = 4;
+  uint32 global_virtual_group_family_id = 4;
   repeated LVGToGVGMapping new_lvg_to_gvg_mappings = 5;
 }

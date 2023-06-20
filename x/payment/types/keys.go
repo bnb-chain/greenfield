@@ -4,7 +4,6 @@ import (
 	"encoding/binary"
 
 	sdkmath "cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 

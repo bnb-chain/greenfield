@@ -3,13 +3,14 @@ package keeper
 import (
 	"context"
 
-	"github.com/bnb-chain/greenfield/internal/sequence"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {

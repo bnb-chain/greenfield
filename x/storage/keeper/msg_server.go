@@ -4,8 +4,6 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -13,8 +11,10 @@ import (
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type msgServer struct {
