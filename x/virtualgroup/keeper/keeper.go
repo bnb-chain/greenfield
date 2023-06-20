@@ -234,7 +234,10 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 
 		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
 		if storeSize > k.MaxStoreSizePerFamily(ctx) {
-			return nil, types.ErrStoreSizeExceed.Wrapf("A family only allow to store %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
+			return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit. Current: %ld, now: %ld", k.MaxStoreSizePerFamily(ctx), storeSize)
+		}
+		if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
+			return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")
 		}
 		return &gvgFamily, nil
 	}
@@ -263,7 +266,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 
 	gvgFamily, found := k.GetGVGFamily(ctx, primarySPID, familyID)
 	if !found {
-		return nil, errors.Wrapf(types.ErrGVGFamilyNotExist, "familyID: %d, primarySPID: %d", familyID, primarySPID)
+		return nil, types.ErrGVGFamilyNotExist.Wrapf("familyID: %d, primarySPID: %d", familyID, primarySPID)
 	}
 
 	if !gvgFamily.Contains(gvg.Id) {
@@ -291,6 +294,9 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 	} else {
 		lvgID := gvgsBindingOnBucket.GetLVGIDByGVGID(gvgID)
 		if lvgID == 0 {
+			if k.MaxLocalVirtualGroupNumPerBucket(ctx) < uint32(len(gvgsBindingOnBucket.LocalVirtualGroupIds)) {
+				return nil, types.ErrLimitationExceed.Wrapf("The lvg number within the bucket exceeds the limit")
+			}
 			// not exist
 			lvgID = k.GenNextLVGID(ctx)
 			lvg = &types.LocalVirtualGroup{
