@@ -100,10 +100,10 @@ func StreamRecordKey(
 }
 
 func OutFlowKey(
-	account sdk.AccAddress,
+	addr sdk.AccAddress,
 	status OutFlowStatus,
 	toAddr sdk.AccAddress) []byte {
-	key := account.Bytes()
+	key := addr.Bytes()
 	if status == OUT_FLOW_STATUS_ACTIVE {
 		key = append(key, []byte{0x0}...)
 	} else {
@@ -115,8 +115,8 @@ func OutFlowKey(
 	return key
 }
 
-func ParseOutFlowKey(key []byte) (account sdk.AccAddress, res OutFlow) {
-	account = key[0:20]
+func ParseOutFlowKey(key []byte) (addr sdk.AccAddress, res OutFlow) {
+	addr = key[0:20]
 	if key[20] == byte(0) {
 		res.Status = OUT_FLOW_STATUS_ACTIVE
 	} else {

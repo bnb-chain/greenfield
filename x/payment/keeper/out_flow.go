@@ -60,26 +60,26 @@ func (k Keeper) DeleteOutFlow(ctx sdk.Context, key []byte) {
 	store.Delete(key)
 }
 
-// MergeActiveOutFlows merge active OutFlows and save in the store
+// MergeActiveOutFlows merge active OutFlows and save them in the store
 func (k Keeper) MergeActiveOutFlows(ctx sdk.Context, addr sdk.AccAddress, outFlows []types.OutFlow) int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
-	deltaFlowCount := 0
+	deltaCount := 0
 	for _, outFlow := range outFlows {
 		outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
 		key := types.OutFlowKey(addr, outFlow.Status, sdk.MustAccAddressFromHex(outFlow.ToAddress))
 		value := store.Get(key)
 		if value == nil {
 			k.SetOutFlow(ctx, addr, &outFlow)
-			deltaFlowCount++
+			deltaCount++
 			continue
 		}
 		outFlow.Rate = types.ParseOutFlowValue(value).Add(outFlow.Rate)
 		if outFlow.Rate.IsZero() {
 			k.DeleteOutFlow(ctx, key)
-			deltaFlowCount--
+			deltaCount--
 		} else {
 			k.SetOutFlow(ctx, addr, &outFlow)
 		}
 	}
-	return deltaFlowCount
+	return deltaCount
 }

@@ -87,8 +87,8 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		}
 
 		// update flows
-		deltaFlowCount := k.MergeActiveOutFlows(ctx, from, userFlows.Flows)
-		streamRecord.OutFlowCount = streamRecord.OutFlowCount + uint64(deltaFlowCount)
+		deltaFlowCount := k.MergeActiveOutFlows(ctx, from, userFlows.Flows) // deltaFlowCount can be negative
+		streamRecord.OutFlowCount = uint64(int64(streamRecord.OutFlowCount) + int64(deltaFlowCount))
 
 		k.SetStreamRecord(ctx, streamRecord)
 	}

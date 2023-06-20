@@ -23,7 +23,7 @@ func (k Keeper) GetAutoSettleRecord(
 	ctx sdk.Context,
 	timestamp int64,
 	addr sdk.AccAddress,
-) (val *types.AutoSettleRecord, found bool) {
+) (*types.AutoSettleRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
 
 	b := store.Get(types.AutoSettleRecordKey(
@@ -31,14 +31,13 @@ func (k Keeper) GetAutoSettleRecord(
 		addr,
 	))
 	if b == nil {
-		return val, false
+		return nil, false
 	}
 
-	val = &types.AutoSettleRecord{
+	return &types.AutoSettleRecord{
 		Timestamp: timestamp,
 		Addr:      addr.String(),
-	}
-	return val, true
+	}, true
 }
 
 // RemoveAutoSettleRecord removes a autoSettleRecord from the store

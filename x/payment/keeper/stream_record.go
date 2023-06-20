@@ -285,27 +285,28 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			return
 		}
 		streamRecord, found := k.GetStreamRecord(ctx, addr)
-		if !found {
-			ctx.Logger().Error("stream record not found", "addr", record.Addr)
-			panic("stream record not found")
+		if !found { // should not happen
+			ctx.Logger().Error("auto settle, stream record not found", "address", record.Addr)
+			continue
 		}
 
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
+			count++ // add one for a stream record
 			err := k.SettleStreamRecord(ctx, streamRecord)
 			if err != nil {
-				panic(err)
+				ctx.Logger().Error("auto settle, settle stream record failed", "err", err.Error())
+				continue
 			}
 			k.SetStreamRecord(ctx, streamRecord)
 			if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 				continue
 			}
-			count++ // add one for a stream record
 			if count >= max {
 				return
 			}
 		}
 
-		if k.ExistsAutoResumeRecord(ctx, record.Timestamp, addr) { // this check should be cheap for usually
+		if k.ExistsAutoResumeRecord(ctx, record.Timestamp, addr) { // this check should be cheap usually
 			continue //skip the one if the stream account is in resuming
 		}
 
@@ -331,7 +332,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(outFlow.Rate.Neg())
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
-				ctx.Logger().Error("update stream record failed", "address", outFlow.ToAddress, "rate", outFlow.Rate.Neg())
+				ctx.Logger().Error("auto settle, update stream record failed", "address", outFlow.ToAddress, "rate", outFlow.Rate.Neg())
 			}
 
 			flowStore.Delete(flowIterator.Key())
@@ -342,14 +343,11 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			count++
 		}
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
-		if streamRecord.FrozenNetflowRate.IsNil() {
-			streamRecord.FrozenNetflowRate = sdkmath.ZeroInt()
-		}
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate.Neg())
 
 		if finished || !flowIterator.Valid() {
 			if !streamRecord.NetflowRate.IsZero() {
-				panic("should not happen") // TODO: assertion for fail quick, remove later
+				panic("should not happen") // assertion for fail quick
 			}
 			k.RemoveAutoSettleRecord(ctx, record.Timestamp, addr)
 		}
@@ -435,12 +433,12 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 	var count uint64 = 0
 	max := k.GetParams(ctx).MaxAutoResumeFlowCount
 	for ; iterator.Valid(); iterator.Next() {
-		autoResumeRecord := types.ParseAutoResumeRecordKey(iterator.Key())
-		addr := sdk.MustAccAddressFromHex(autoResumeRecord.Addr)
+		record := types.ParseAutoResumeRecordKey(iterator.Key())
+		addr := sdk.MustAccAddressFromHex(record.Addr)
 
 		streamRecord, found := k.GetStreamRecord(ctx, addr)
 		if !found {
-			ctx.Logger().Error("stream record not found", "addr", autoResumeRecord.Addr)
+			ctx.Logger().Error("auto resume, stream record not found", "address", record.Addr)
 			panic("stream record not found")
 		}
 
@@ -461,7 +459,8 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(rate)
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
-				panic(fmt.Sprintf("update %s stream record failed: %s", outFlow.ToAddress, err.Error()))
+				ctx.Logger().Error("auto resume, update receiver stream record failed", "address", outFlow.ToAddress, "err", err.Error())
+				break
 			}
 
 			flowStore.Delete(flowIterator.Key())
@@ -482,9 +481,9 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)
 			err := k.UpdateStreamRecord(ctx, streamRecord, change)
 			if err != nil {
-				panic(fmt.Sprintf("update %s stream record failed: %s", addr, err.Error()))
+				ctx.Logger().Error("auto resume, update  stream record failed", "err", err.Error())
 			}
-			k.RemoveAutoResumeRecord(ctx, autoResumeRecord.Timestamp, addr)
+			k.RemoveAutoResumeRecord(ctx, record.Timestamp, addr)
 		}
 		k.SetStreamRecord(ctx, streamRecord)
 	}
