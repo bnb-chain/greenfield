@@ -578,7 +578,7 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 		}
 
 		migrationBucketSignDoc := types.NewMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId).GetSignBytes()
-		err := k.verifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDoc, newLvg2gvg.SecondarySpBlsSignature)
+		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDoc, newLvg2gvg.SecondarySpBlsSignature)
 		if err != nil {
 			return err
 		}
@@ -602,15 +602,7 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 	return nil
 }
 
-func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32, signBz [32]byte, signature []byte) error {
-	gvg, found := k.GetGVG(ctx, gvgId)
-	if !found {
-		return types.ErrGVGNotExist
-	}
-	return k.verifyGVGSecondarySPsBlsSignature(ctx, gvg, signBz, signature)
-}
-
-func (k Keeper) verifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signBz [32]byte, signature []byte) error {
+func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signBz [32]byte, signature []byte) error {
 	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
 		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
