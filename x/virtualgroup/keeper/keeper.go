@@ -577,8 +577,8 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 			return types.ErrGVGNotExist.Wrapf("src gvg not found, ID: %d", srcGVGID)
 		}
 
-		migrationBucketSignDoc := types.NewMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId).GetSignBytes()
-		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDoc, newLvg2gvg.SecondarySpBlsSignature)
+		blsSignHash := types.NewMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId).GetBlsSignHash()
+		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, blsSignHash, newLvg2gvg.SecondarySpBlsSignature)
 		if err != nil {
 			return err
 		}
@@ -602,7 +602,7 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 	return nil
 }
 
-func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signBz [32]byte, signature []byte) error {
+func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
 	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
 		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
@@ -615,7 +615,7 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.Gl
 		}
 		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
-	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
+	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signHash, signature)
 }
 
 // GetStoreSizeOfFamily Rather than calculating the stored size of a Global Virtual Group Family (GVGF) in real-time,
