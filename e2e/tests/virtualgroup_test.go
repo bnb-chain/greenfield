@@ -153,3 +153,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 		&virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{GlobalVirtualGroupId: newGVG.Id})
 	s.Require().Error(err)
 }
+
+func (s *VirtualGroupTestSuite) TestSPExit() {
+
+}

@@ -519,6 +519,19 @@ func (k Keeper) GetOrCreateGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *
 	return ret
 }
 
+func (k Keeper) GetGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) (*types.GVGStatisticsWithinSP, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var ret types.GVGStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret, true
+}
+
 func (k Keeper) MustGetGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGStatisticsWithinSP {
 	store := ctx.KVStore(k.storeKey)
 
@@ -557,8 +570,8 @@ func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
 		return types.ErrSPCanNotExit.Wrapf("not swap out from all the family, key: %s", family.String())
 	}
 
-	gvgStat := k.MustGetGVGStatisticsWithinSP(ctx, spID)
-	if gvgStat.SecondaryCount != 0 {
+	gvgStat, found := k.GetGVGStatisticsWithinSP(ctx, spID)
+	if found && gvgStat.SecondaryCount != 0 {
 		return types.ErrSPCanNotExit.Wrapf("not swap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
 	}
 	return nil
