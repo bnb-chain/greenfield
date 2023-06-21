@@ -46,7 +46,8 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spOperatorAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		return nil, sdkerrors.Wrapf(sptypes.ErrStorageProviderNotFound,
+			"primary sp not found, operator_address: %s", req.PrimarySpAddress)
 	}
 	var secondarySpIds []uint32
 	for _, id := range req.SecondarySpIds {

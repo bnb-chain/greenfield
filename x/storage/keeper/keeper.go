@@ -603,6 +603,9 @@ type SealObjectOptions struct {
 func (k Keeper) SealObject(
 	ctx sdk.Context, spSealAcc sdk.AccAddress,
 	bucketName, objectName string, opts SealObjectOptions) error {
+	// TODO: add log for debugging.
+	ctx.Logger().Info("begin to seal object", "seal_address", spSealAcc.String(),
+		"bucket_name", bucketName, "object_name", objectName)
 
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
