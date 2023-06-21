@@ -7,7 +7,7 @@ import (
 // x/sp module sentinel errors
 var (
 	ErrStorageProviderNotFound           = errors.Register(ModuleName, 1, "StorageProvider does not exist")
-	ErrStorageProviderNotInService       = errors.Register(ModuleName, 2, "StorageProvider does not exist")
+	ErrStorageProviderNotInService       = errors.Register(ModuleName, 2, "StorageProvider does not in service")
 	ErrStorageProviderOwnerExists        = errors.Register(ModuleName, 3, "StorageProvider already exist for this operator address; must use new StorageProvider operator address")
 	ErrInsufficientDepositAmount         = errors.Register(ModuleName, 4, "insufficient deposit amount")
 	ErrDepositAccountNotAllowed          = errors.Register(ModuleName, 5, "the deposit address must be the fund address of sp.")
