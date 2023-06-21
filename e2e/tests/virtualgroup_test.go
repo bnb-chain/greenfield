@@ -1,8 +1,17 @@
 package tests
 
 import (
+	"bytes"
 	"context"
+	"fmt"
+	"math"
 	"testing"
+	"time"
+
+	sdkmath "cosmossdk.io/math"
+	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -156,4 +165,184 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 
 func (s *VirtualGroupTestSuite) TestSPExit() {
 
+}
+
+func (s *VirtualGroupTestSuite) TestSettle() {
+	_, _, primarySp, secondarySps, gvgFamilyId, gvgId := s.createObject()
+	s.T().Log("gvg family", gvgFamilyId, "gvg", gvgId)
+
+	queryFamilyResp, err := s.Client.GlobalVirtualGroupFamily(
+		context.Background(),
+		&virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
+			StorageProviderId: primarySp.Info.Id,
+			FamilyId:          gvgFamilyId,
+		})
+	s.Require().NoError(err)
+	gvgFamily := queryFamilyResp.GlobalVirtualGroupFamily
+
+	queryGVGResp, err := s.Client.GlobalVirtualGroup(
+		context.Background(),
+		&virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{
+			GlobalVirtualGroupId: gvgId,
+		})
+	s.Require().NoError(err)
+	secondarySpIds := make(map[uint32]struct{})
+	for _, id := range queryGVGResp.GlobalVirtualGroup.SecondarySpIds {
+		secondarySpIds[id] = struct{}{}
+	}
+
+	var lastSecondaySp *core.StorageProvider
+	secondarySpAddrs := make([]string, 0)
+	for _, secondarySp := range secondarySps {
+		if _, ok := secondarySpIds[secondarySp.Info.Id]; ok {
+			secondarySpAddrs = append(secondarySpAddrs, secondarySp.FundingKey.GetAddr().String())
+			lastSecondaySp = &secondarySp
+		}
+	}
+
+	// sleep seconds
+	time.Sleep(3 * time.Second)
+
+	primaryBalance, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
+		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String()})
+	s.Require().NoError(err)
+	secondaryBalances := make([]sdkmath.Int, 0)
+	for _, addr := range secondarySpAddrs {
+		tempResp, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
+			Denom: s.Config.Denom, Address: addr})
+		s.Require().NoError(err)
+		secondaryBalances = append(secondaryBalances, tempResp.Balance.Amount)
+	}
+
+	// settle gvg family
+	msgSettle := virtualgroupmoduletypes.MsgSettle{
+		FundingAddress:             primarySp.FundingKey.GetAddr().String(),
+		GlobalVirtualGroupFamilyId: gvgFamily.Id,
+	}
+	s.SendTxBlock(primarySp.FundingKey, &msgSettle)
+
+	primaryBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
+		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String()})
+	s.Require().NoError(err)
+
+	s.T().Logf("primaryBalance: %s, after: %s", primaryBalance.String(), primaryBalanceAfter.String())
+	s.Require().True(primaryBalanceAfter.Balance.Amount.GT(primaryBalance.Balance.Amount))
+
+	// settle gvg
+	msgSettle = virtualgroupmoduletypes.MsgSettle{
+		FundingAddress:             lastSecondaySp.FundingKey.GetAddr().String(),
+		GlobalVirtualGroupFamilyId: 0,
+		GlobalVirtualGroupIds:      []uint32{gvgId},
+	}
+	s.SendTxBlock(lastSecondaySp.FundingKey, &msgSettle)
+
+	secondaryBalancesAfter := make([]sdkmath.Int, 0, len(secondaryBalances))
+	for _, addr := range secondarySpAddrs {
+		tempResp, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
+			Denom: s.Config.Denom, Address: addr})
+		s.Require().NoError(err)
+		secondaryBalancesAfter = append(secondaryBalancesAfter, tempResp.Balance.Amount)
+	}
+
+	for i := range secondaryBalances {
+		s.T().Logf("secondaryBalance: %s, after: %s", secondaryBalances[i].String(), secondaryBalancesAfter[i].String())
+		s.Require().True(secondaryBalancesAfter[i].GT(secondaryBalances[i]))
+	}
+}
+
+func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProvider, []core.StorageProvider, uint32, uint32) {
+	var err error
+	sp := s.StorageProviders[0]
+	secondarySps := make([]core.StorageProvider, 0)
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	// CreateBucket
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := "ch" + storagetestutil.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+
+	// CreateObject
+	objectName := storagetestutil.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateObject)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+
+	// SealObject
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
+
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	// every secondary sp signs the checksums
+	for i := 1; i < len(s.StorageProviders); i++ {
+		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+		if s.StorageProviders[i].Info.Id != sp.Info.Id {
+			secondarySps = append(secondarySps, s.StorageProviders[i])
+		}
+	}
+	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	queryHeadObjectResponse, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+
+	return bucketName, objectName, sp, secondarySps, gvg.FamilyId, gvg.Id
 }
