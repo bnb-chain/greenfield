@@ -4,15 +4,6 @@ import (
 	"testing"
 	"time"
 
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-
-	"github.com/bnb-chain/greenfield/x/challenge"
-	"github.com/bnb-chain/greenfield/x/storage/keeper"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -23,6 +14,14 @@ import (
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/bnb-chain/greenfield/x/challenge"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/storage/keeper"
+	"github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type TestSuite struct {
@@ -115,6 +114,8 @@ func (s *TestSuite) TestGetObjectLockFee() {
 	params := paymenttypes.DefaultParams()
 	s.paymentKeeper.EXPECT().GetParams(gomock.Any()).
 		Return(params).AnyTimes()
+	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).
+		Return(params.VersionedParams, nil).AnyTimes()
 
 	// verify lock fee calculation
 	payloadSize := int64(10 * 1024 * 1024)
@@ -149,8 +150,8 @@ func (s *TestSuite) TestGetBucketBill() {
 	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
 		Return(price, nil).AnyTimes()
 	params := paymenttypes.DefaultParams()
-	s.paymentKeeper.EXPECT().GetParams(gomock.Any()).
-		Return(params).AnyTimes()
+	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).
+		Return(params.VersionedParams, nil).AnyTimes()
 
 	// empty bucket, zero read quota
 	bucketInfo := &types.BucketInfo{
@@ -187,7 +188,7 @@ func (s *TestSuite) TestGetBucketBill() {
 	readRate := price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	s.Require().Equal(flows.Flows[0].ToAddress, gvgFamily.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[0].Rate, readRate)
-	taxPoolRate := s.paymentKeeper.GetParams(s.ctx).VersionedParams.ValidatorTaxRate.MulInt(readRate).TruncateInt()
+	taxPoolRate := params.VersionedParams.ValidatorTaxRate.MulInt(readRate).TruncateInt()
 	s.Require().Equal(flows.Flows[1].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
 	s.Require().Equal(flows.Flows[1].Rate, taxPoolRate)
 
@@ -264,7 +265,7 @@ func (s *TestSuite) TestGetBucketBill() {
 	s.Require().Equal(flows.Flows[2].Rate, readRate.Add(primaryStoreRate))
 
 	totalRate := readRate.Add(primaryStoreRate).Add(gvg1StoreRate).Add(gvg2StoreRate)
-	taxPoolRate = s.paymentKeeper.GetParams(s.ctx).VersionedParams.ValidatorTaxRate.MulInt(totalRate).TruncateInt()
+	taxPoolRate = params.VersionedParams.ValidatorTaxRate.MulInt(totalRate).TruncateInt()
 	s.Require().Equal(flows.Flows[3].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
 	s.Require().Equal(flows.Flows[3].Rate, taxPoolRate)
 }

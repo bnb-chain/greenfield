@@ -6,6 +6,13 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
+
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -13,12 +20,6 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -636,8 +637,8 @@ func (k Keeper) SealObject(
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
 	// validate seal object bls aggregated sig from secondary sps
-	secondarySpsSealObjectSignDoc := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetSignBytes()
-	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectSignDoc, opts.SecondarySpBlsSignatures)
+	secondarySpsSealObjectBlsSignHash := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetBlsSignHash()
+	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}

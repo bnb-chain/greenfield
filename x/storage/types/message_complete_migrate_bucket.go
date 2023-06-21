@@ -1,9 +1,11 @@
 package types
 
 import (
-	"github.com/bnb-chain/greenfield/types/s3util"
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/bnb-chain/greenfield/types/s3util"
 )
 
 const TypeMsgCompleteMigrateBucket = "complete_migrate_bucket"
@@ -25,7 +27,7 @@ func (msg *MsgCompleteMigrateBucket) Type() string {
 }
 
 func (msg *MsgCompleteMigrateBucket) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Operator)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
@@ -38,9 +40,9 @@ func (msg *MsgCompleteMigrateBucket) GetSignBytes() []byte {
 }
 
 func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Operator)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {

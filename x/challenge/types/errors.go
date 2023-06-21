@@ -7,7 +7,7 @@ import (
 // x/challenge module sentinel errors
 var (
 	ErrUnknownSp               = errors.Register(ModuleName, 1, "unknown storage provider")
-	ErrUnknownObject           = errors.Register(ModuleName, 2, "unknown object info")
+	ErrUnknownBucketObject     = errors.Register(ModuleName, 2, "unknown bucket info or object info")
 	ErrInvalidSpStatus         = errors.Register(ModuleName, 3, "invalid storage provider status")
 	ErrInvalidObjectStatus     = errors.Register(ModuleName, 4, "invalid object status to challenge")
 	ErrNotStoredOnSp           = errors.Register(ModuleName, 5, "the object is not stored on the storage provider")
@@ -23,4 +23,5 @@ var (
 	ErrNotChallenger           = errors.Register(ModuleName, 15, "not a valid challenger")
 	ErrNotInturnChallenger     = errors.Register(ModuleName, 16, "challenger is not in turn")
 	ErrInvalidParams           = errors.Register(ModuleName, 17, "invalid params")
+	ErrFailToSubmit            = errors.Register(ModuleName, 18, "fail to submit challenge")
 )

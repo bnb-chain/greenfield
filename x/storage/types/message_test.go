@@ -4,11 +4,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"

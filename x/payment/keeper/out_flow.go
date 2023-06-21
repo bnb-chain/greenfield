@@ -1,9 +1,10 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 // SetOutFlow set a specific OutFlow in the store from its index
@@ -46,7 +47,10 @@ func (k Keeper) GetOutFlows(ctx sdk.Context, addr sdk.AccAddress) []types.OutFlo
 
 	outFlows := make([]types.OutFlow, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		_, outFlow := types.ParseOutFlowKey(iterator.Key())
+		addrInKey, outFlow := types.ParseOutFlowKey(iterator.Key())
+		if !addrInKey.Equals(addr) {
+			break
+		}
 		outFlow.Rate = types.ParseOutFlowValue(iterator.Value())
 		outFlows = append(outFlows, outFlow)
 	}
@@ -59,26 +63,26 @@ func (k Keeper) DeleteOutFlow(ctx sdk.Context, key []byte) {
 	store.Delete(key)
 }
 
-// MergeActiveOutFlows merge active OutFlows and save in the store
+// MergeActiveOutFlows merge active OutFlows and save them in the store
 func (k Keeper) MergeActiveOutFlows(ctx sdk.Context, addr sdk.AccAddress, outFlows []types.OutFlow) int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
-	deltaFlowCount := 0
+	deltaCount := 0
 	for _, outFlow := range outFlows {
 		outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
 		key := types.OutFlowKey(addr, outFlow.Status, sdk.MustAccAddressFromHex(outFlow.ToAddress))
 		value := store.Get(key)
 		if value == nil {
 			k.SetOutFlow(ctx, addr, &outFlow)
-			deltaFlowCount++
+			deltaCount++
 			continue
 		}
 		outFlow.Rate = types.ParseOutFlowValue(value).Add(outFlow.Rate)
 		if outFlow.Rate.IsZero() {
 			k.DeleteOutFlow(ctx, key)
-			deltaFlowCount--
+			deltaCount--
 		} else {
 			k.SetOutFlow(ctx, addr, &outFlow)
 		}
 	}
-	return deltaFlowCount
+	return deltaCount
 }

@@ -6,15 +6,16 @@ import (
 	"time"
 
 	"cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/gogoproto/proto"
+
 	grn2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/types/s3util"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/gogoproto/proto"
 )
 
 const (

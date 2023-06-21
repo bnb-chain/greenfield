@@ -3,14 +3,15 @@ package virtualgroup
 import (
 	"math/rand"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	virtualgroupsimulation "github.com/bnb-chain/greenfield/x/virtualgroup/simulation"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	virtualgroupsimulation "github.com/bnb-chain/greenfield/x/virtualgroup/simulation"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // avoid unused import issue
@@ -51,7 +52,7 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 func (am AppModule) RegisterStoreDecoder(_ sdk.StoreDecoderRegistry) {}
 
 // ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalContent {
+func (AppModule) ProposalContents(_ module.SimulationState) []simtypes.WeightedProposalMsg {
 	return nil
 }
 

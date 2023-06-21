@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/math"
+
 	"github.com/bnb-chain/greenfield/internal/sequence"
 )
 

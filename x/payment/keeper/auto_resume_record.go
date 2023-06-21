@@ -23,7 +23,7 @@ func (k Keeper) GetAutoResumeRecord(
 	ctx sdk.Context,
 	timestamp int64,
 	addr sdk.AccAddress,
-) (val *types.AutoResumeRecord, found bool) {
+) (*types.AutoResumeRecord, bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoResumeRecordKeyPrefix)
 
 	b := store.Get(types.AutoResumeRecordKey(
@@ -31,14 +31,13 @@ func (k Keeper) GetAutoResumeRecord(
 		addr,
 	))
 	if b == nil {
-		return val, false
+		return nil, false
 	}
 
-	val = &types.AutoResumeRecord{
+	return &types.AutoResumeRecord{
 		Timestamp: timestamp,
 		Addr:      addr.String(),
-	}
-	return val, true
+	}, true
 }
 
 // RemoveAutoResumeRecord removes a autoResumeRecord from the store

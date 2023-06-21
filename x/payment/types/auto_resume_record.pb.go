@@ -27,9 +27,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // The EndBlocker of payment module will scan the list of AutoResumeRecord
 // and resume the stream account one by one.
 type AutoResumeRecord struct {
-	// timestamp is the unix timestamp when the stream account will be settled.
+	// timestamp is the unix timestamp to order the records
 	Timestamp int64 `protobuf:"varint,1,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
-	// A stream account address
+	// the stream account address
 	Addr string `protobuf:"bytes,2,opt,name=addr,proto3" json:"addr,omitempty"`
 }
 

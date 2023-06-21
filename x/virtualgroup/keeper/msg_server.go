@@ -5,11 +5,12 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 )
 
 type msgServer struct {
@@ -104,6 +105,14 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		TotalDeposit:          gvg.TotalDeposit,
 	}); err != nil {
 		return nil, err
+	}
+	if req.FamilyId == types.NoSpecifiedFamilyId {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroupFamily{
+			Id:                    gvg.Id,
+			VirtualPaymentAddress: gvgFamily.VirtualPaymentAddress,
+		}); err != nil {
+			return nil, err
+		}
 	}
 	return &types.MsgCreateGlobalVirtualGroupResponse{}, nil
 }
@@ -238,7 +247,7 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 		return nil, err
 	}
 
-	if req.VirtualGroupFamilyId == types.NoSpecifiedFamilyId {
+	if req.GlobalVirtualGroupFamilyId == types.NoSpecifiedFamilyId {
 		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
 		err := k.SwapOutAsSecondarySP(ctx, sp.Id, successorSP.Id, req.GlobalVirtualGroupIds)
 		if err != nil {
@@ -247,10 +256,18 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 	} else {
 		// if the family id is specified, it means that the SP will swap out as a primary SP and the successor sp will
 		// take over all the gvg of this family
-		err := k.SwapOutAsPrimarySP(ctx, sp, successorSP, req.VirtualGroupFamilyId)
+		err := k.SwapOutAsPrimarySP(ctx, sp, successorSP, req.GlobalVirtualGroupFamilyId)
 		if err != nil {
 			return nil, err
 		}
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventSwapOut{
+		StorageProviderId:          sp.Id,
+		GlobalVirtualGroupFamilyId: req.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      req.GlobalVirtualGroupIds,
+		SuccessorSpId:              successorSP.Id,
+	}); err != nil {
+		return nil, err
 	}
 	return &types.MsgSwapOutResponse{}, nil
 }
@@ -325,6 +342,12 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 
 	k.spKeeper.SetStorageProvider(ctx, sp)
 
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventStorageProviderExit{
+		StorageProviderId: sp.Id,
+		OperatorAddress:   sp.OperatorAddress,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgStorageProviderExitResponse{}, nil
 }
 
@@ -352,6 +375,12 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 	if err != nil {
 		return nil, err
 	}
-
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
+		StorageProviderId: sp.Id,
+		OperatorAddress:   sp.OperatorAddress,
+		TotalDeposit:      sp.TotalDeposit,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgCompleteStorageProviderExitResponse{}, nil
 }

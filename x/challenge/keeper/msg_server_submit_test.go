@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
 	"cosmossdk.io/math"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
@@ -13,6 +11,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (s *TestSuite) TestSubmit() {
@@ -73,7 +72,7 @@ func (s *TestSuite) TestSubmit() {
 				BucketName:        existBucketName,
 				ObjectName:        "nonexistobject",
 			},
-			err: types.ErrUnknownObject,
+			err: types.ErrUnknownBucketObject,
 		},
 		{
 			name: "invalid segment index",

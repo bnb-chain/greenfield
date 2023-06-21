@@ -4,7 +4,6 @@ import (
 	_ "encoding/json"
 	"strings"
 
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -33,6 +32,7 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // AuthQueryClient is a type to define the auth types Query Client

@@ -845,6 +845,20 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetLVG(ctx, bucketID, lvgID interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetLVG), ctx, bucketID, lvgID)
 }
 
+// GetLVGs mocks base method.
+func (m *MockVirtualGroupKeeper) GetLVGs(ctx types3.Context, bucketID math.Uint) []*types2.LocalVirtualGroup {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetLVGs", ctx, bucketID)
+	ret0, _ := ret[0].([]*types2.LocalVirtualGroup)
+	return ret0
+}
+
+// GetLVGs indicates an expected call of GetLVGs.
+func (mr *MockVirtualGroupKeeperMockRecorder) GetLVGs(ctx, bucketID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLVGs", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetLVGs), ctx, bucketID)
+}
+
 // RebindingGVGsToBucket mocks base method.
 func (m *MockVirtualGroupKeeper) RebindingGVGsToBucket(ctx types3.Context, bucketID math.Uint, dstSP *types1.StorageProvider, newLVGToGVGMappings []*LVGToGVGMapping) error {
 	m.ctrl.T.Helper()

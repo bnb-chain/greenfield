@@ -4,22 +4,20 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	"cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/address"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
-	"cosmossdk.io/errors"
-	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	types2 "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/address"
 )
 
 type (
@@ -173,6 +171,22 @@ func (k Keeper) GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*type
 	return &lvg, true
 }
 
+func (k Keeper) GetLVGs(ctx sdk.Context, bucketID math.Uint) []*types.LocalVirtualGroup {
+	lvgs := make([]*types.LocalVirtualGroup, 0)
+	store := ctx.KVStore(k.storeKey)
+	prefixStore := prefix.NewStore(store, types.GetLVGKey(bucketID, 0))
+	iterator := prefixStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		var lvg types.LocalVirtualGroup
+		k.cdc.MustUnmarshal(iterator.Value(), &lvg)
+		lvgs = append(lvgs, &lvg)
+	}
+
+	return lvgs
+}
+
 func (k Keeper) GetGVGsBindingOnBucket(ctx sdk.Context, bucketID math.Uint) (*types.GlobalVirtualGroupsBindingOnBucket, bool) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -235,7 +249,10 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 
 		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
 		if storeSize > k.MaxStoreSizePerFamily(ctx) {
-			return nil, types.ErrStoreSizeExceed.Wrapf("A family only allow to store %ld, now: %ld", k.MaxStoreSizePerFamily(ctx), storeSize)
+			return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit. Current: %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
+		}
+		if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
+			return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")
 		}
 		return &gvgFamily, nil
 	}
@@ -248,7 +265,7 @@ func (k Keeper) DeriveVirtualPaymentAccount(groupType string, id uint32) sdk.Acc
 	return address.Module(types.ModuleName, append([]byte(groupType), b...))
 }
 
-func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) sdk.Int {
+func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) math.Int {
 	stakingPrice := k.GVGStakingPrice(ctx)
 
 	mustStakingTokens := stakingPrice.MulInt64(int64(gvg.StoredSize))
@@ -264,7 +281,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 
 	gvgFamily, found := k.GetGVGFamily(ctx, primarySPID, familyID)
 	if !found {
-		return nil, errors.Wrapf(types.ErrGVGFamilyNotExist, "familyID: %d, primarySPID: %d", familyID, primarySPID)
+		return nil, types.ErrGVGFamilyNotExist.Wrapf("familyID: %d, primarySPID: %d", familyID, primarySPID)
 	}
 
 	if !gvgFamily.Contains(gvg.Id) {
@@ -292,6 +309,9 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 	} else {
 		lvgID := gvgsBindingOnBucket.GetLVGIDByGVGID(gvgID)
 		if lvgID == 0 {
+			if k.MaxLocalVirtualGroupNumPerBucket(ctx) < uint32(len(gvgsBindingOnBucket.LocalVirtualGroupIds)) {
+				return nil, types.ErrLimitationExceed.Wrapf("The lvg number within the bucket exceeds the limit")
+			}
 			// not exist
 			lvgID = k.GenNextLVGID(ctx)
 			lvg = &types.LocalVirtualGroup{
@@ -498,6 +518,19 @@ func (k Keeper) GetOrCreateGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *
 	return ret
 }
 
+func (k Keeper) GetGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) (*types.GVGStatisticsWithinSP, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetGVGStatisticsWithinSPKey(spID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var ret types.GVGStatisticsWithinSP
+	k.cdc.MustUnmarshal(bz, &ret)
+	return &ret, true
+}
+
 func (k Keeper) MustGetGVGStatisticsWithinSP(ctx sdk.Context, spID uint32) *types.GVGStatisticsWithinSP {
 	store := ctx.KVStore(k.storeKey)
 
@@ -536,8 +569,8 @@ func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
 		return types.ErrSPCanNotExit.Wrapf("not swap out from all the family, key: %s", family.String())
 	}
 
-	gvgStat := k.MustGetGVGStatisticsWithinSP(ctx, spID)
-	if gvgStat.SecondaryCount != 0 {
+	gvgStat, found := k.GetGVGStatisticsWithinSP(ctx, spID)
+	if found && gvgStat.SecondaryCount != 0 {
 		return types.ErrSPCanNotExit.Wrapf("not swap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
 	}
 	return nil
@@ -577,8 +610,8 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 			return types.ErrGVGNotExist.Wrapf("src gvg not found, ID: %d", srcGVGID)
 		}
 
-		blsSignHash := types.NewMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId).GetBlsSignHash()
-		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, blsSignHash, newLvg2gvg.SecondarySpBlsSignature)
+		migrationBucketSignDocBlsSignHash := types.NewMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.LocalVirtualGroupId, srcGVGID, newLvg2gvg.GlobalVirtualGroupId).GetBlsSignHash()
+		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
 		if err != nil {
 			return err
 		}

@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -152,13 +153,35 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Endpoint, endpoint)
 
-	//7 query sp by id
-	querySPReq := sptypes.QueryStorageProviderRequest{
+	newSP.Info = querySPByOperatorAddrResp.StorageProvider
+	// 7 query sp by id
+	querySPResp, err := s.Client.StorageProvider(ctx, &sptypes.QueryStorageProviderRequest{
 		Id: querySPByOperatorAddrResp.StorageProvider.Id,
-	}
-	querySPResp, err := s.Client.StorageProvider(ctx, &querySPReq)
+	})
 	s.Require().NoError(err)
 	s.Require().Equal(querySPResp.StorageProvider, querySPResp.StorageProvider)
+
+	// 8 sp exit
+	msgSPExit := virtualgroupmoduletypes.MsgStorageProviderExit{
+		OperatorAddress: newSP.OperatorKey.GetAddr().String(),
+	}
+	s.SendTxBlock(newSP.OperatorKey, &msgSPExit)
+
+	// 9 query sp status
+	querySPResp2, err := s.Client.StorageProvider(ctx, &sptypes.QueryStorageProviderRequest{Id: newSP.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(querySPResp2.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// 10 complete sp exit
+	msgCompleteSPExit := virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
+		OperatorAddress: newSP.OperatorKey.GetAddr().String(),
+	}
+
+	s.SendTxBlock(newSP.OperatorKey, &msgCompleteSPExit)
+
+	// 10 query sp
+	_, err = s.Client.StorageProvider(ctx, &sptypes.QueryStorageProviderRequest{Id: newSP.Info.Id})
+	s.Require().Error(err)
 }
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {

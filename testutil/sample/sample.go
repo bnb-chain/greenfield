@@ -4,10 +4,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 
-	"github.com/prysmaticlabs/prysm/crypto/bls"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 )
 
 // AccAddress returns a sample account address

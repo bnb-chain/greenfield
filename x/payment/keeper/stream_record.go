@@ -83,7 +83,6 @@ func (k Keeper) GetStreamRecord(
 func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)
 	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
-
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
@@ -286,27 +285,28 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			return
 		}
 		streamRecord, found := k.GetStreamRecord(ctx, addr)
-		if !found {
-			ctx.Logger().Error("stream record not found", "addr", record.Addr)
-			panic("stream record not found")
+		if !found { // should not happen
+			ctx.Logger().Error("auto settle, stream record not found", "address", record.Addr)
+			continue
 		}
 
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
+			count++ // add one for a stream record
 			err := k.SettleStreamRecord(ctx, streamRecord)
 			if err != nil {
-				panic(err)
+				ctx.Logger().Error("auto settle, settle stream record failed", "err", err.Error())
+				continue
 			}
 			k.SetStreamRecord(ctx, streamRecord)
 			if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 				continue
 			}
-			count++ // add one for a stream record
 			if count >= max {
 				return
 			}
 		}
 
-		if k.ExistsAutoResumeRecord(ctx, record.Timestamp, addr) { // this check should be cheap for usually
+		if k.ExistsAutoResumeRecord(ctx, record.Timestamp, addr) { // this check should be cheap usually
 			continue //skip the one if the stream account is in resuming
 		}
 
@@ -315,13 +315,18 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		flowIterator := flowStore.Iterator(activeFlowKey, nil)
 		defer flowIterator.Close()
 
-		totalRate := sdk.ZeroInt()
 		finished := false
+		totalRate := sdk.ZeroInt()
+		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
 				break
 			}
-			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			addrInKey, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			if !addrInKey.Equals(addr) {
+				finished = true
+				break
+			}
 			if outFlow.Status == types.OUT_FLOW_STATUS_FROZEN {
 				finished = true
 				break
@@ -332,25 +337,28 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(outFlow.Rate.Neg())
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
-				ctx.Logger().Error("update stream record failed", "address", outFlow.ToAddress, "rate", outFlow.Rate.Neg())
+				ctx.Logger().Error("auto settle, update stream record failed", "address", outFlow.ToAddress, "rate", outFlow.Rate.Neg())
 			}
 
 			flowStore.Delete(flowIterator.Key())
+
 			outFlow.Status = types.OUT_FLOW_STATUS_FROZEN
-			k.SetOutFlow(ctx, addr, &outFlow)
+			toUpdate = append(toUpdate, outFlow)
 
 			totalRate = totalRate.Add(outFlow.Rate)
 			count++
 		}
-		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
-		if streamRecord.FrozenNetflowRate.IsNil() {
-			streamRecord.FrozenNetflowRate = sdkmath.ZeroInt()
+
+		for _, outFlow := range toUpdate {
+			k.SetOutFlow(ctx, addr, &outFlow)
 		}
+
+		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate.Neg())
 
-		if finished || !flowIterator.Valid() {
+		if finished {
 			if !streamRecord.NetflowRate.IsZero() {
-				panic("should not happen") // TODO: assertion for fail quick, remove later
+				panic("should not happen") // assertion for fail quick
 			}
 			k.RemoveAutoSettleRecord(ctx, record.Timestamp, addr)
 		}
@@ -399,8 +407,12 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		flowIterator := flowStore.Iterator(frozenFlowKey, nil)
 		defer flowIterator.Close()
 
+		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
-			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			addrInKey, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			if !addrInKey.Equals(addr) {
+				break
+			}
 			rate := types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
@@ -411,9 +423,14 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 			}
 
 			flowStore.Delete(flowIterator.Key())
+
 			outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
+			toUpdate = append(toUpdate, outFlow)
+		}
+		for _, outFlow := range toUpdate {
 			k.SetOutFlow(ctx, addr, &outFlow)
 		}
+
 		k.SetStreamRecord(ctx, streamRecord)
 		k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), 0, streamRecord.SettleTimestamp)
 		return nil
@@ -436,12 +453,12 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 	var count uint64 = 0
 	max := k.GetParams(ctx).MaxAutoResumeFlowCount
 	for ; iterator.Valid(); iterator.Next() {
-		autoResumeRecord := types.ParseAutoResumeRecordKey(iterator.Key())
-		addr := sdk.MustAccAddressFromHex(autoResumeRecord.Addr)
+		record := types.ParseAutoResumeRecordKey(iterator.Key())
+		addr := sdk.MustAccAddressFromHex(record.Addr)
 
 		streamRecord, found := k.GetStreamRecord(ctx, addr)
 		if !found {
-			ctx.Logger().Error("stream record not found", "addr", autoResumeRecord.Addr)
+			ctx.Logger().Error("auto resume, stream record not found", "address", record.Addr)
 			panic("stream record not found")
 		}
 
@@ -451,41 +468,54 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		flowIterator := flowStore.Iterator(frozenFlowKey, nil)
 		defer flowIterator.Close()
 
+		finished := false
+		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
 				break
 			}
-			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			addrInKey, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			if !addrInKey.Equals(addr) {
+				finished = true
+				break
+			}
+
 			rate := types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
 			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(rate)
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
-				panic(fmt.Sprintf("update %s stream record failed: %s", outFlow.ToAddress, err.Error()))
+				ctx.Logger().Error("auto resume, update receiver stream record failed", "address", outFlow.ToAddress, "err", err.Error())
+				break
 			}
 
 			flowStore.Delete(flowIterator.Key())
+
 			outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
-			k.SetOutFlow(ctx, addr, &outFlow)
+			toUpdate = append(toUpdate, outFlow)
 
 			totalRate = totalRate.Add(rate)
 			count++
 		}
 
+		for _, outFlow := range toUpdate {
+			k.SetOutFlow(ctx, addr, &outFlow)
+		}
+
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
-		if !flowIterator.Valid() {
+		if finished {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
-				panic("should not happen") // TODO: assertion for fail quick, remove later
+				panic("should not happen") // assertion for fail quick
 			}
 			streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)
 			err := k.UpdateStreamRecord(ctx, streamRecord, change)
 			if err != nil {
-				panic(fmt.Sprintf("update %s stream record failed: %s", addr, err.Error()))
+				ctx.Logger().Error("auto resume, update  stream record failed", "err", err.Error())
 			}
-			k.RemoveAutoResumeRecord(ctx, autoResumeRecord.Timestamp, addr)
+			k.RemoveAutoResumeRecord(ctx, record.Timestamp, addr)
 		}
 		k.SetStreamRecord(ctx, streamRecord)
 	}

@@ -3,9 +3,10 @@ package types
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
 func TestMsgCompleteMigrateBucket_ValidateBasic(t *testing.T) {
@@ -17,13 +18,15 @@ func TestMsgCompleteMigrateBucket_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgCompleteMigrateBucket{
-				Creator: "invalid_address",
+				Operator:   "invalid_address",
+				BucketName: "bucketname",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCompleteMigrateBucket{
-				Creator: sample.AccAddress(),
+				Operator:   sample.AccAddress(),
+				BucketName: "bucketname",
 			},
 		},
 	}

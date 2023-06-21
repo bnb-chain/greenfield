@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -12,6 +11,7 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -90,6 +90,7 @@ type VirtualGroupKeeper interface {
 	GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, bool)
 	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
 	GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
+	GetLVGs(ctx sdk.Context, bucketID math.Uint) []*types.LocalVirtualGroup
 	SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
 	RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, newLVGToGVGMappings []*LVGToGVGMapping) error

@@ -3,8 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) InitGenesis(ctx sdk.Context, genState types.GenesisState) {

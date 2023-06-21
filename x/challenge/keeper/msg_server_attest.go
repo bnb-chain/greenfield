@@ -50,7 +50,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	//check object, and get object info
 	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
 	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
-		return nil, types.ErrUnknownObject
+		return nil, types.ErrUnknownBucketObject
 	}
 
 	// check attest validators and signatures

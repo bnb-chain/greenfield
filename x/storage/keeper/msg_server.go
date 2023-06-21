@@ -4,8 +4,6 @@ import (
 	"context"
 
 	errorsmod "cosmossdk.io/errors"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -13,8 +11,10 @@ import (
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type msgServer struct {
@@ -635,6 +635,15 @@ func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBuc
 
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_MIGRATING
 	k.SetBucketInfo(ctx, bucketInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventMigrationBucket{
+		Operator:       operator.String(),
+		BucketName:     msg.BucketName,
+		BucketId:       bucketInfo.Id,
+		DstPrimarySpId: dstSP.Id,
+	}); err != nil {
+		return nil, err
+	}
 	return &types.MsgMigrateBucketResponse{}, nil
 }
 
@@ -682,19 +691,29 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
 
-	err := k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
-	if err != nil {
-		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
-	}
-
 	// rebinding gvg and lvg
-	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.NewLvgToGvgMappings)
+	err := k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.NewLvgToGvgMappings)
 	if err != nil {
 		return nil, err
 	}
 
+	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
+	if err != nil {
+		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
+	}
+
 	k.SetBucketInfo(ctx, bucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{
+		Operator:                   operator.String(),
+		BucketName:                 msg.BucketName,
+		BucketId:                   bucketInfo.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		NewLvgToGvgMappings:        msg.NewLvgToGvgMappings,
+	}); err != nil {
+		return nil, err
+	}
 
 	return &types.MsgCompleteMigrateBucketResponse{}, nil
 }

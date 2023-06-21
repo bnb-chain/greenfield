@@ -1,8 +1,9 @@
 package keeper
 
 import (
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) DepositDenomForGVG(ctx sdk.Context) (res string) {

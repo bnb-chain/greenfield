@@ -110,7 +110,7 @@ message MsgSwapOut {
   // virtual_group_family_id is the identifier of the virtual group family.
   // if it set to 0, it represents that the operator swap out as the primary storage provider
   // it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
-  uint32 virtual_group_family_id = 2;
+  uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
   // It allows to be empty only when the operator is the primary storage provider.
   repeated uint32 global_virtual_group_ids = 3;

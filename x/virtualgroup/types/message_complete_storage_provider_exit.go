@@ -1,6 +1,7 @@
 package types
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -24,7 +25,7 @@ func (msg *MsgCompleteStorageProviderExit) Type() string {
 }
 
 func (msg *MsgCompleteStorageProviderExit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -37,9 +38,9 @@ func (msg *MsgCompleteStorageProviderExit) GetSignBytes() []byte {
 }
 
 func (msg *MsgCompleteStorageProviderExit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.OperatorAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 	return nil
 }

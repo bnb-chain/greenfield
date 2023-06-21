@@ -86,7 +86,10 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorId)
-		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
+		if !found {
+			continue
+		}
+		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 			continue
 		}
 		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(sp.OperatorAddress)
