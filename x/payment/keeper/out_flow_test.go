@@ -70,3 +70,30 @@ func TestMergeActiveOutFlows(t *testing.T) {
 	outFlows = keeper.GetOutFlows(ctx, addr)
 	require.Equal(t, 2, len(outFlows))
 }
+
+func TestGetOutFlows(t *testing.T) {
+	keeper, ctx, _ := makePaymentKeeper(t)
+
+	addr1 := sample.RandAccAddress()
+	toAddr1 := sample.RandAccAddress()
+	toAddr1Rate := math.NewInt(10)
+	outFlow1 := types.OutFlow{
+		ToAddress: toAddr1.String(),
+		Status:    types.OUT_FLOW_STATUS_ACTIVE,
+		Rate:      toAddr1Rate,
+	}
+	keeper.SetOutFlow(ctx, addr1, &outFlow1)
+
+	addr2 := sample.RandAccAddress()
+	toAddr2 := sample.RandAccAddress()
+	toAddr2Rate := math.NewInt(10)
+	outFlow2 := types.OutFlow{
+		ToAddress: toAddr2.String(),
+		Status:    types.OUT_FLOW_STATUS_ACTIVE,
+		Rate:      toAddr2Rate,
+	}
+	keeper.SetOutFlow(ctx, addr2, &outFlow2)
+
+	require.Equal(t, 1, len(keeper.GetOutFlows(ctx, addr1)))
+	require.Equal(t, 1, len(keeper.GetOutFlows(ctx, addr2)))
+}

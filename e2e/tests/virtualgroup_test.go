@@ -4,12 +4,13 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/types"
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	types2 "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type VirtualGroupTestSuite struct {

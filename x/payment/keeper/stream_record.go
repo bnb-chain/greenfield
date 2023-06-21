@@ -290,8 +290,6 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			continue
 		}
 
-		fmt.Println("1AAAAAA ", streamRecord.String())
-
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 			count++ // add one for a stream record
 			err := k.SettleStreamRecord(ctx, streamRecord)
@@ -317,14 +315,18 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		flowIterator := flowStore.Iterator(activeFlowKey, nil)
 		defer flowIterator.Close()
 
+		finished := false
 		totalRate := sdk.ZeroInt()
 		toUpdate := make([]types.OutFlow, 0)
-		finished := false
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
 				break
 			}
-			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			addrInKey, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			if !addrInKey.Equals(addr) {
+				finished = true
+				break
+			}
 			if outFlow.Status == types.OUT_FLOW_STATUS_FROZEN {
 				finished = true
 				break
@@ -354,7 +356,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate.Neg())
 
-		if finished || !flowIterator.Valid() {
+		if finished {
 			if !streamRecord.NetflowRate.IsZero() {
 				panic("should not happen") // assertion for fail quick
 			}
@@ -407,7 +409,10 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 
 		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
-			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			addrInKey, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			if !addrInKey.Equals(addr) {
+				break
+			}
 			rate := types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
@@ -463,12 +468,18 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		flowIterator := flowStore.Iterator(frozenFlowKey, nil)
 		defer flowIterator.Close()
 
+		finished := false
 		toUpdate := make([]types.OutFlow, 0)
 		for ; flowIterator.Valid(); flowIterator.Next() {
 			if count >= max {
 				break
 			}
-			_, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			addrInKey, outFlow := types.ParseOutFlowKey(flowIterator.Key())
+			if !addrInKey.Equals(addr) {
+				finished = true
+				break
+			}
+
 			rate := types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
@@ -494,7 +505,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
-		if !flowIterator.Valid() {
+		if finished {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
 				panic("should not happen") // assertion for fail quick
 			}

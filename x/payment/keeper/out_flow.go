@@ -47,7 +47,10 @@ func (k Keeper) GetOutFlows(ctx sdk.Context, addr sdk.AccAddress) []types.OutFlo
 
 	outFlows := make([]types.OutFlow, 0)
 	for ; iterator.Valid(); iterator.Next() {
-		_, outFlow := types.ParseOutFlowKey(iterator.Key())
+		addrInKey, outFlow := types.ParseOutFlowKey(iterator.Key())
+		if !addrInKey.Equals(addr) {
+			break
+		}
 		outFlow.Rate = types.ParseOutFlowValue(iterator.Value())
 		outFlows = append(outFlows, outFlow)
 	}
@@ -64,31 +67,22 @@ func (k Keeper) DeleteOutFlow(ctx sdk.Context, key []byte) {
 func (k Keeper) MergeActiveOutFlows(ctx sdk.Context, addr sdk.AccAddress, outFlows []types.OutFlow) int {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.OutFlowKeyPrefix)
 	deltaCount := 0
-	toAddOrUpdate := make([]types.OutFlow, 0)
-	toDelete := make([][]byte, 0)
 	for _, outFlow := range outFlows {
 		outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
 		key := types.OutFlowKey(addr, outFlow.Status, sdk.MustAccAddressFromHex(outFlow.ToAddress))
 		value := store.Get(key)
 		if value == nil {
-			toAddOrUpdate = append(toAddOrUpdate, outFlow)
+			k.SetOutFlow(ctx, addr, &outFlow)
 			deltaCount++
 			continue
 		}
 		outFlow.Rate = types.ParseOutFlowValue(value).Add(outFlow.Rate)
 		if outFlow.Rate.IsZero() {
-			toDelete = append(toDelete, key)
+			k.DeleteOutFlow(ctx, key)
 			deltaCount--
 		} else {
-			toAddOrUpdate = append(toAddOrUpdate, outFlow)
+			k.SetOutFlow(ctx, addr, &outFlow)
 		}
-	}
-
-	for _, outFlow := range toAddOrUpdate {
-		k.SetOutFlow(ctx, addr, &outFlow)
-	}
-	for _, key := range toDelete {
-		k.DeleteOutFlow(ctx, key)
 	}
 	return deltaCount
 }
