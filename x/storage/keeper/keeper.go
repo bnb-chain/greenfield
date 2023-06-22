@@ -603,51 +603,64 @@ type SealObjectOptions struct {
 func (k Keeper) SealObject(
 	ctx sdk.Context, spSealAcc sdk.AccAddress,
 	bucketName, objectName string, opts SealObjectOptions) error {
-	// TODO: add log for debugging.
+	var err error
 	ctx.Logger().Info("begin to seal object", "seal_address", spSealAcc.String(),
 		"bucket_name", bucketName, "object_name", objectName)
+	defer func() {
+		ctx.Logger().Info("finish to seal object", "seal_address", spSealAcc.String(),
+			"bucket_name", bucketName, "object_name", objectName, "error", err)
+	}()
 
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
+		err = types.ErrNoSuchBucket
 		return types.ErrNoSuchBucket
 	}
 
 	sp, found := k.spKeeper.GetStorageProviderBySealAddr(ctx, spSealAcc)
 	if !found {
+		err = errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", spSealAcc.String())
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", spSealAcc.String())
 	}
 
 	if sp.Id != bucketInfo.PrimarySpId {
+		err = errors.Wrapf(types.ErrAccessDenied, "Only SP's seal address is allowed to SealObject")
 		return errors.Wrapf(types.ErrAccessDenied, "Only SP's seal address is allowed to SealObject")
 	}
 
 	objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
 	if !found {
+		err = types.ErrNoSuchObject
 		return types.ErrNoSuchObject
 	}
 
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
+		err = types.ErrObjectAlreadySealed
 		return types.ErrObjectAlreadySealed
 	}
 
 	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, opts.GlobalVirtualGroupId)
 	if !found {
+		err = virtualgroupmoduletypes.ErrGVGNotExist
 		return virtualgroupmoduletypes.ErrGVGNotExist
 	}
 	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx, objectInfo.CreateAt)
 	if int(expectSecondarySPNum) != len(gvg.SecondarySpIds) {
+		err = errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
+			expectSecondarySPNum, len(gvg.SecondarySpIds))
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
 	// validate seal object bls aggregated sig from secondary sps
 	secondarySpsSealObjectSignDoc := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetSignBytes()
-	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg.Id, secondarySpsSealObjectSignDoc, opts.SecondarySpBlsSignatures)
+	err = k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg.Id, secondarySpsSealObjectSignDoc, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}
 
 	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)
 	if err != nil {
+		err = errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
 	}
 	objectInfo.LocalVirtualGroupId = lvg.Id
@@ -666,7 +679,7 @@ func (k Keeper) SealObject(
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
 		Operator:             spSealAcc.String(),
 		BucketName:           bucketInfo.BucketName,
 		ObjectName:           objectInfo.ObjectName,

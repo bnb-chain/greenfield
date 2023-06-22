@@ -194,12 +194,12 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 
 func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord) error {
 	currentTimestamp := ctx.BlockTime().Unix()
-	timestamp := streamRecord.CrudTimestamp
+	crudTimestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
 
-	if currentTimestamp != timestamp {
+	if currentTimestamp != crudTimestamp {
 		if !streamRecord.NetflowRate.IsZero() {
-			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
+			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - crudTimestamp)
 			streamRecord.StaticBalance = streamRecord.StaticBalance.Add(flowDelta)
 		}
 		streamRecord.CrudTimestamp = currentTimestamp
@@ -219,7 +219,6 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 	}
 
-	var settleTimestamp int64 = 0
 	if streamRecord.NetflowRate.IsNegative() {
 		payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
 		if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
@@ -228,11 +227,12 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 				return err
 			}
 		} else {
-			settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
+			settleTimestamp := currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
+			k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), streamRecord.SettleTimestamp, settleTimestamp)
+			streamRecord.SettleTimestamp = settleTimestamp
 		}
 	}
-	k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), streamRecord.SettleTimestamp, settleTimestamp)
-	streamRecord.SettleTimestamp = settleTimestamp
+
 	return nil
 }
 
@@ -332,6 +332,10 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 				break
 			}
 			outFlow.Rate = types.ParseOutFlowValue(flowIterator.Value())
+			ctx.Logger().Info("auto settling record", "height", ctx.BlockHeight(),
+				"address", addr.String(),
+				"to address", outFlow.ToAddress,
+				"rate", outFlow.Rate.String())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
 			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(outFlow.Rate.Neg())
@@ -356,7 +360,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate)
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate.Neg())
 
-		if finished {
+		if !flowIterator.Valid() || finished {
 			if !streamRecord.NetflowRate.IsZero() {
 				panic("should not happen") // assertion for fail quick
 			}
@@ -413,6 +417,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 			if !addrInKey.Equals(addr) {
 				break
 			}
+
 			rate := types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
@@ -436,7 +441,6 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		return nil
 	} else { //enqueue for resume in end block
 		k.SetStreamRecord(ctx, streamRecord)
-		k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), 0, streamRecord.SettleTimestamp)
 		k.SetAutoResumeRecord(ctx, &types.AutoResumeRecord{
 			Timestamp: now,
 			Addr:      streamRecord.Account,
@@ -481,6 +485,10 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			}
 
 			rate := types.ParseOutFlowValue(flowIterator.Value())
+			ctx.Logger().Info("auto resuming record", "height", ctx.BlockHeight(),
+				"address", addr.String(),
+				"to address", outFlow.ToAddress,
+				"rate", rate.String())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
 			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(rate)
@@ -505,7 +513,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 
 		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(totalRate.Neg())
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
-		if finished {
+		if !flowIterator.Valid() || finished {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
 				panic("should not happen") // assertion for fail quick
 			}
