@@ -81,7 +81,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}
 
 	gvg := &types.GlobalVirtualGroup{
-		Id:                    k.GenNextGVGID(ctx),
+		Id:                    gvgID,
 		FamilyId:              gvgFamily.Id,
 		PrimarySpId:           sp.Id,
 		SecondarySpIds:        secondarySpIds,
