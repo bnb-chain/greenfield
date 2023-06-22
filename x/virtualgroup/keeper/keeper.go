@@ -99,6 +99,8 @@ func (k Keeper) GenNextGVGFamilyID(ctx sdk.Context) uint32 {
 }
 
 func (k Keeper) SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) {
+	// TODO: refine it.
+	ctx.Logger().Info("insert a new gvg", "gvg", gvg)
 	store := ctx.KVStore(k.storeKey)
 
 	bz := k.cdc.MustMarshal(gvg)
