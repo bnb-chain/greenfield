@@ -293,7 +293,8 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 				return types.ErrUpdateQuotaFailed
 			}
 			if lastUpdateTime+minInterval > blockTime {
-				return types.ErrUpdateQuotaFailed.Wrapf("The quota can be smaller before %d", lastUpdateTime+minInterval)
+				return types.ErrUpdateQuotaFailed.Wrapf("The quota can be updated to a smaller value before %d timestamp",
+					lastUpdateTime+minInterval)
 			}
 		}
 		// save quota update time
