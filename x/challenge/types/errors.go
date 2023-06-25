@@ -23,5 +23,5 @@ var (
 	ErrNotChallenger           = errors.Register(ModuleName, 15, "not a valid challenger")
 	ErrNotInturnChallenger     = errors.Register(ModuleName, 16, "challenger is not in turn")
 	ErrInvalidParams           = errors.Register(ModuleName, 17, "invalid params")
-	ErrFailToSubmit            = errors.Register(ModuleName, 18, "fail to submit challenge")
+	ErrCannotFindGVG           = errors.Register(ModuleName, 18, "fail to find global virtual group for the object")
 )

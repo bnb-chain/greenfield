@@ -48,7 +48,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	// check primary sp
 	tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
 	if !found {
-		return nil, errors.Wrapf(types.ErrFailToSubmit, "cannot find storage provider: %d", bucketInfo.PrimarySpId)
+		return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find storage provider: %d", bucketInfo.PrimarySpId)
 	}
 	if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
 		stored = true
@@ -57,14 +57,14 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	if !stored {
 		gvg, found := k.VirtualGroupKeeper.GetGVGByLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
 		if !found {
-			return nil, errors.Wrapf(types.ErrFailToSubmit, "cannot find GVG binding for LVG: %d", objectInfo.LocalVirtualGroupId)
+			return nil, errors.Wrapf(types.ErrCannotFindGVG, "no GVG binding for LVG: %d", objectInfo.LocalVirtualGroupId)
 		}
 
 		// check secondary sp
 		for i, spId := range gvg.SecondarySpIds {
 			tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, spId)
 			if !found {
-				return nil, errors.Wrapf(types.ErrFailToSubmit, "cannot find storage provider: %d", spId)
+				return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find storage provider: %d", spId)
 			}
 			if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
 				redundancyIndex = int32(i)
