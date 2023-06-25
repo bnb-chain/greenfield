@@ -234,6 +234,7 @@ func (k Keeper) GenerateOrSetLVGForBucket(ctx sdk.Context, bucketID math.Uint, g
 func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	store := ctx.KVStore(k.storeKey)
 	var gvgFamily types.GlobalVirtualGroupFamily
+	// If familyID is not specified, a new family needs to be created
 	if familyID == types.NoSpecifiedFamilyId {
 		id := k.GenNextGVGFamilyID(ctx)
 		gvgFamily = types.GlobalVirtualGroupFamily{
@@ -248,10 +249,14 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 		}
 		k.cdc.MustUnmarshal(bz, &gvgFamily)
 
+		// check the maximum store size for a familu.
+		// If yes, no more buckets will be served
 		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
 		if storeSize > k.MaxStoreSizePerFamily(ctx) {
 			return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit. Current: %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
 		}
+
+		// Each family supports only a limited number of GVGS
 		if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
 			return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")
 		}

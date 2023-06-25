@@ -297,6 +297,25 @@ func (s *BaseSuite) WaitForHeightWithTimeout(h int64, t time.Duration) (int64, e
 	}
 }
 
+func (s *BaseSuite) WaitForTx(hash string) (*sdk.TxResponse, error) {
+	for {
+		txResponse, err := s.Client.GetTx(context.Background(), &tx.GetTxRequest{Hash: hash})
+		if err != nil {
+			if strings.Contains(err.Error(), "not found") {
+				// Tx not found, wait for next block and try again
+				err := s.WaitForNextBlock()
+				if err != nil {
+					return nil, err
+				}
+				continue
+			}
+			return nil, err
+		}
+		// Tx found
+		return txResponse.TxResponse, nil
+	}
+}
+
 func (s *BaseSuite) LatestHeight() (int64, error) {
 	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
@@ -444,11 +463,13 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	return newSP
 }
 
-func (s *BaseSuite) CreateObject(primarySP *StorageProvider, bucketName, objectName string) (secondarySps []*StorageProvider, familyID, gvgID uint32) {
-	var err error
-	secondarySps = make([]*StorageProvider, 0)
-	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
-	s.Require().True(found)
+func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucketName, objectName string) (secondarySps []*StorageProvider, familyID, resGVGID uint32) {
+	// GetGVG
+	resp, err := s.Client.GlobalVirtualGroup(
+		context.Background(),
+		&virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{GlobalVirtualGroupId: gvgID})
+	s.Require().NoError(err)
+	gvg := resp.GlobalVirtualGroup
 
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]

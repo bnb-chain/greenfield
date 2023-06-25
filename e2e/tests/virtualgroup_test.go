@@ -5,11 +5,14 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"testing"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
+	"github.com/bnb-chain/greenfield/types/common"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
@@ -37,7 +40,7 @@ func TestVirtualGroupTestSuite(t *testing.T) {
 	suite.Run(t, new(VirtualGroupTestSuite))
 }
 
-func (s *VirtualGroupTestSuite) createGlobalVirtualGroup(sp core.StorageProvider, familyID uint32, secondarySPIDs []uint32, depositAmount int64) {
+func (s *VirtualGroupTestSuite) createGlobalVirtualGroup(sp *core.StorageProvider, familyID uint32, secondarySPIDs []uint32, depositAmount int64) (uint32, uint32) {
 	// Create a GVG for each sp by default
 	deposit := sdk.Coin{
 		Denom:  s.Config.Denom,
@@ -49,7 +52,33 @@ func (s *VirtualGroupTestSuite) createGlobalVirtualGroup(sp core.StorageProvider
 		Deposit:          deposit,
 		FamilyId:         familyID,
 	}
-	s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
+	resp := s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
+
+	// wait for the tx execute
+	resp2, err := s.BaseSuite.WaitForTx(resp.TxHash)
+	s.Require().NoError(err)
+
+	var gvgID uint32
+	var newFamilyID uint32
+	for _, e := range resp2.Events {
+		s.T().Logf("Event: %s", e.String())
+		if e.Type == "greenfield.virtualgroup.EventCreateGlobalVirtualGroup" {
+			for _, a := range e.Attributes {
+				if a.Key == "id" {
+					num, err := strconv.ParseUint(a.Value, 10, 32)
+					s.Require().NoError(err)
+					gvgID = uint32(num)
+				}
+				if a.Key == "family_id" {
+					num, err := strconv.ParseUint(a.Value, 10, 32)
+					s.Require().NoError(err)
+					newFamilyID = uint32(num)
+				}
+			}
+		}
+	}
+	s.T().Logf("gvgID: %d, familyID: %d", gvgID, newFamilyID)
+	return gvgID, newFamilyID
 }
 
 func (s *VirtualGroupTestSuite) queryGlobalVirtualGroup(gvgID uint32) *virtualgroupmoduletypes.GlobalVirtualGroup {
@@ -94,7 +123,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 		}
 	}
-	s.createGlobalVirtualGroup(primarySP, family.Id, secondarySPIDs, 1)
+	s.createGlobalVirtualGroup(&primarySP, family.Id, secondarySPIDs, 1)
 
 	gvgs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, family.Id)
 	s.Require().Equal(len(gvgs), len(family.GlobalVirtualGroupIds)+1)
@@ -329,7 +358,7 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 			secondarySps = append(secondarySps, s.StorageProviders[i])
 		}
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.SendTxBlock(sp.SealKey, msgSealObject)
@@ -344,6 +373,86 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 }
 
 func (s *VirtualGroupTestSuite) TestSPExit() {
-	_ = s.BaseSuite.CreateNewStorageProvider()
+	// 1, create a new storage provider
+	sp := s.BaseSuite.CreateNewStorageProvider()
+
+	successor_sp := s.StorageProviders[0]
+
+	// 2, create a new gvg group for this storage provider
+	var secondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != successor_sp.Info.Id {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+		}
+		if len(secondarySPIDs) == 6 {
+			break
+		}
+	}
+
+	gvgID, familyID := s.createGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
+
+	// 3. create object
+	s.BaseSuite.CreateObject(sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
+
+	// 4. Create another gvg contains this new sp
+	anotherSP := s.StorageProviders[1]
+	var anotherSecondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != successor_sp.Info.Id {
+			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
+		}
+		if ssp.Info.Id != anotherSP.Info.Id {
+			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
+		}
+		if len(secondarySPIDs) == 5 {
+			break
+		}
+	}
+	anotherSecondarySPIDs = append(anotherSecondarySPIDs, sp.Info.Id)
+
+	anotherSPsFamilies := s.queryGlobalVirtualGroupFamilies(anotherSP.Info.Id)
+	s.Require().Greater(len(anotherSPsFamilies), 0)
+	anotherGVGID, _ := s.createGlobalVirtualGroup(&anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
+
+	// 5. sp exit
+	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+	})
+
+	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// 6. sp complete exit failed
+	s.SendTxBlockWithExpectErrorString(
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		sp.OperatorKey,
+		"not swap out from all the family")
+
+	// 7. swapout, as primary sp
+	msgSwapOut := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successor_sp.Info.Id)
+	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+	msgSwapOut.SuccessorSpApproval.Sig, err = successor_sp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
+
+	// 8. exist failed
+	s.SendTxBlockWithExpectErrorString(
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		sp.OperatorKey,
+		"not swap out from all the gvgs")
+
+	// 7. swapout, as secondary sp
+	msgSwapOut2 := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successor_sp.Info.Id)
+	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+	msgSwapOut2.SuccessorSpApproval.Sig, err = successor_sp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
+
+	// 8. sp complete exit success
+	s.SendTxBlock(
+		sp.OperatorKey,
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+	)
 
 }

@@ -48,6 +48,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
+	// TODO(fynn): Check whether the number of secondary sp in gvg matches the redundancy parameters
 	var secondarySpIds []uint32
 	for _, id := range req.SecondarySpIds {
 		ssp, found := k.spKeeper.GetStorageProvider(ctx, id)
@@ -60,7 +61,6 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		gvgStatisticsWithinSPs = append(gvgStatisticsWithinSPs, gvgStatisticsWithinSP)
 	}
 
-	// TODO(fynn): add some limit for gvgs in a family
 	gvgFamily, err := k.GetOrCreateEmptyGVGFamily(ctx, req.FamilyId, sp.Id)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,6 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, sdkerrors.Wrapf(types.ErrGenSequenceIDError, "wrong next gvg id.")
 	}
 
-	// TODO: Add gvg number limit for a family
 	// deposit enough tokens for oncoming objects
 	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), req.Deposit.Amount))
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromHex(sp.FundingAddress), types.ModuleName, coins)

@@ -506,7 +506,7 @@ func (s *PaymentTestSuite) TestDepositAndResume_InOneBlock() {
 	_ = s.SendTxBlock(user, msgDeposit)
 
 	// create bucket
-	bucketName := storageutils.GenRandomBucketName()
+	bucketName := storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, bucketChargedReadQuota)
@@ -631,7 +631,7 @@ func (s *PaymentTestSuite) TestDepositAndResume_InBlocks() {
 	_ = s.SendTxBlock(user, msgDeposit)
 
 	// create bucket
-	bucketName := storageutils.GenRandomBucketName()
+	bucketName := storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, bucketChargedReadQuota)
@@ -930,7 +930,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 	_ = s.SendTxBlock(user, msgDeposit)
 
 	// create bucket
-	bucketName := storageutils.GenRandomBucketName()
+	bucketName := storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, bucketChargedReadQuota)
