@@ -1102,6 +1102,7 @@ func (k Keeper) CreateGroup(
 		GroupId:    groupInfo.Id,
 		SourceType: groupInfo.SourceType,
 		Members:    opts.Members,
+		Extra:      opts.Extra,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
