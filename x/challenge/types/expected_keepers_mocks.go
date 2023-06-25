@@ -106,34 +106,19 @@ func (m *MockVirtualGroupKeeper) EXPECT() *MockVirtualGroupKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetGVG mocks base method.
-func (m *MockVirtualGroupKeeper) GetGVG(ctx types2.Context, gvgID uint32) (*types1.GlobalVirtualGroup, bool) {
+// GetGVGByLVG mocks base method.
+func (m *MockVirtualGroupKeeper) GetGVGByLVG(ctx types2.Context, bucketID math.Uint, lvgID uint32) (*types1.GlobalVirtualGroup, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGVG", ctx, gvgID)
+	ret := m.ctrl.Call(m, "GetGVGByLVG", ctx, bucketID, lvgID)
 	ret0, _ := ret[0].(*types1.GlobalVirtualGroup)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-// GetGVG indicates an expected call of GetGVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetGVG(ctx, gvgID interface{}) *gomock.Call {
+// GetGVGByLVG indicates an expected call of GetGVGByLVG.
+func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGByLVG(ctx, bucketID, lvgID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVG), ctx, gvgID)
-}
-
-// GetLVG mocks base method.
-func (m *MockVirtualGroupKeeper) GetLVG(ctx types2.Context, bucketID math.Uint, lvgID uint32) (*types1.LocalVirtualGroup, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLVG", ctx, bucketID, lvgID)
-	ret0, _ := ret[0].(*types1.LocalVirtualGroup)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetLVG indicates an expected call of GetLVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetLVG(ctx, bucketID, lvgID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetLVG), ctx, bucketID, lvgID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGByLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGByLVG), ctx, bucketID, lvgID)
 }
 
 // MockStakingKeeper is a mock of StakingKeeper interface.

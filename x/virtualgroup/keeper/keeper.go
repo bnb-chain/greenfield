@@ -153,6 +153,18 @@ func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup
 	return &gvg, true
 }
 
+func (k Keeper) GetGVGByLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool) {
+	lvg, found := k.GetLVG(ctx, bucketID, lvgID)
+	if !found {
+		return nil, false
+	}
+	gvg, found := k.GetGVG(ctx, lvg.GlobalVirtualGroupId)
+	if !found {
+		return nil, false
+	}
+	return gvg, true
+}
+
 func (k Keeper) SetLVG(ctx sdk.Context, lvg *types.LocalVirtualGroup) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -442,12 +454,6 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 			}
 		}
 
-		// settlement
-		err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
-		if err != nil {
-			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
-		}
-
 		// swap deposit
 		if !gvg.TotalDeposit.IsZero() {
 			// send back deposit
@@ -467,6 +473,13 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 		gvg.PrimarySpId = successorSP.Id
 		gvgs = append(gvgs, gvg)
 	}
+
+	// settlement
+	err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
+	if err != nil {
+		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
+	}
+
 	k.SetGVGFamily(ctx, successorSP.Id, family)
 	for _, gvg := range gvgs {
 		k.SetGVG(ctx, gvg)

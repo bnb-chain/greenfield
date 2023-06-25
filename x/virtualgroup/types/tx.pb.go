@@ -809,6 +809,9 @@ func (m *MsgCompleteStorageProviderExitResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCompleteStorageProviderExitResponse proto.InternalMessageInfo
 
+// MsgSettle define the message for settling storage income of GVG family or several GVGs.
+// Firstly, the handler will do stream settlement for the payment account; and
+// secondly, the income will be distributed to related storage providers.
 type MsgSettle struct {
 	// funding_address is the account address for withdrawing funds.
 	FundingAddress string `protobuf:"bytes,1,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
