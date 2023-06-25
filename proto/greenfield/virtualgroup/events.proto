@@ -26,7 +26,7 @@ message EventCreateGlobalVirtualGroup {
 message EventCreateGlobalVirtualGroupFamily {
   uint32 id = 1;
 
-  string virtual_payment_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string virtual_payment_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
 message EventDeleteGlobalVirtualGroup {

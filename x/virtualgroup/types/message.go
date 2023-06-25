@@ -189,18 +189,18 @@ func (msg *MsgWithdraw) ValidateBasic() error {
 		return err
 	}
 
-	if !msg.Withdraw.IsValid() || msg.Withdraw.Amount.IsNegative() {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
+	if !msg.Withdraw.IsValid() || !msg.Withdraw.Amount.IsPositive() {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid or non-positive deposit amount")
 	}
 	return nil
 }
 
 func NewMsgSwapOut(operatorAddress sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32, successorSPID uint32) *MsgSwapOut {
 	return &MsgSwapOut{
-		OperatorAddress: operatorAddress.String(),
+		OperatorAddress:            operatorAddress.String(),
 		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
-		GlobalVirtualGroupIds: globalVirtualGroupIDs,
-		SuccessorSpId: successorSPID,
+		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
+		SuccessorSpId:              successorSPID,
 	}
 }
 
