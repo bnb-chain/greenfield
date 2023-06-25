@@ -25,8 +25,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
-	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
-	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
+	storagetestutils "github.com/bnb-chain/greenfield/testutil/storage"
 	"github.com/bnb-chain/greenfield/types/common"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -170,7 +169,7 @@ func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, stor
 
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	bucketName := "ch" + storagetestutil.GenRandomBucketName()
+	bucketName := "ch" + storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
@@ -180,7 +179,7 @@ func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, stor
 	s.SendTxBlock(user, msgCreateBucket)
 
 	// CreateObject
-	objectName := storagetestutil.GenRandomObjectName()
+	objectName := storagetestutils.GenRandomObjectName()
 	// create test buffer
 	var buffer bytes.Buffer
 	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
@@ -235,7 +234,7 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(objectId, gvgId, storagetypes.GenerateHash(checksums[:])).GetSignBytes()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -763,7 +762,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	_ = s.SendTxBlock(user, msgDeposit)
 
 	// create bucket from payment account
-	bucketName := storageutils.GenRandomBucketName()
+	bucketName := storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		sdk.MustAccAddressFromHex(paymentAddr), math.MaxUint, nil, bucketChargedReadQuota)
@@ -789,7 +788,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	s.Require().ErrorContains(err, "balance not enough, lack of")
 
 	// create bucket from user
-	msgCreateBucket.BucketName = storageutils.GenRandomBucketName()
+	msgCreateBucket.BucketName = storagetestutils.GenRandomBucketName()
 	msgCreateBucket.PaymentAddress = ""
 	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
@@ -1008,7 +1007,7 @@ func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
 
 	// CreateBucket
 	chargedReadQuota := uint64(100)
-	bucketName := storageutils.GenRandomBucketName()
+	bucketName := storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, chargedReadQuota)
@@ -1059,7 +1058,7 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	s.Require().NoError(err)
 
 	// create bucket
-	bucketName := storageutils.GenRandomBucketName()
+	bucketName := storagetestutils.GenRandomBucketName()
 	bucketChargedReadQuota := uint64(1000)
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
@@ -1117,7 +1116,7 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
 
 	// CreateObject
-	objectName := storageutils.GenRandomObjectName()
+	objectName := storagetestutils.GenRandomObjectName()
 	// create test buffer
 	var buffer bytes.Buffer
 	// Create 1MiB content where each line contains 1024 characters.
@@ -1183,7 +1182,7 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(expectChecksum[:])).GetSignBytes()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())

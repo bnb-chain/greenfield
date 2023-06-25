@@ -4,16 +4,10 @@ import (
 	"context"
 	"encoding/hex"
 	"sort"
-	"strconv"
 	"testing"
-	"time"
 
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/authz"
-	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
-	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
@@ -32,155 +26,37 @@ func (s *StorageProviderTestSuite) SetupSuite() {
 func (s *StorageProviderTestSuite) SetupTest() {
 }
 
-func (s *StorageProviderTestSuite) NewSpAcc() *core.StorageProvider {
-	userAccs := s.GenAndChargeAccounts(5, 1000000)
-	operatorAcc := userAccs[0]
-	fundingAcc := userAccs[1]
-	approvalAcc := userAccs[2]
-	sealAcc := userAccs[3]
-	gcAcc := userAccs[4]
-
-	blsKm := s.GenRandomBlsKeyManager()
-	return &core.StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, BlsKey: blsKm}
-}
-
-func (s *StorageProviderTestSuite) NewSpAccAndGrant() *core.StorageProvider {
-	// 1. create new newStorageProvider
-	newSP := s.NewSpAcc()
-
-	// 2. grant deposit authorization of sp to gov module account
-	coins := sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB))
-	authorization := sptypes.NewDepositAuthorization(newSP.OperatorKey.GetAddr(), &coins)
-
-	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
-	now := time.Now().Add(24 * time.Hour)
-	grantMsg, err := authz.NewMsgGrant(
-		newSP.FundingKey.GetAddr(), govAddr, authorization, &now)
-	s.Require().NoError(err)
-	s.SendTxBlock(newSP.FundingKey, grantMsg)
-
-	return newSP
-}
-
 func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
-	ctx := context.Background()
-	validator := s.Validator.GetAddr()
+	// Create a New SP
+	sp := s.BaseSuite.CreateNewStorageProvider()
 
-	// 1. create new newStorageProvider and grant
-	newSP := s.NewSpAccAndGrant()
-
-	// 2. submit CreateStorageProvider proposal
-	govAddr := authtypes.NewModuleAddress(gov.ModuleName)
-	deposit := sdk.Coin{
-		Denom:  s.Config.Denom,
-		Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
-	}
-	description := sptypes.Description{
-		Moniker:  "sp_test",
-		Identity: "",
-	}
-
-	endpoint := "http://127.0.0.1:9034"
-	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
-	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
-
-	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
-		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
-		newSP.SealKey.GetAddr(),
-		newSP.ApprovalKey.GetAddr(),
-		newSP.GcKey.GetAddr(), description,
-		endpoint, deposit, newReadPrice, 10000, newStorePrice,
-		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()))
-
-	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
-		[]sdk.Msg{msgCreateSP},
-		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
-		validator.String(),
-		"test", "test", "test",
-	)
-	s.Require().NoError(err)
-
-	txRes := s.SendTxBlock(s.Validator, msgProposal)
-	s.Require().Equal(txRes.Code, uint32(0))
-
-	// 3. query proposal and get proposal ID
-	var proposalId uint64
-	for _, event := range txRes.Logs[0].Events {
-		if event.Type == "submit_proposal" {
-			for _, attr := range event.Attributes {
-				if attr.Key == "proposal_id" {
-					proposalId, err = strconv.ParseUint(attr.Value, 10, 0)
-					s.Require().NoError(err)
-					break
-				}
-			}
-			break
-		}
-	}
-	s.Require().True(proposalId != 0)
-
-	queryProposal := &govtypesv1.QueryProposalRequest{ProposalId: proposalId}
-	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
-	s.Require().NoError(err)
-
-	// 4. submit MsgVote and wait the proposal exec
-	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
-	txRes = s.SendTxBlock(s.Validator, msgVote)
-	s.Require().Equal(txRes.Code, uint32(0))
-
-	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
-	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
-	s.Require().NoError(err)
-
-	// 5. wait a voting period and confirm that the proposal success.
-	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
-	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
-	time.Sleep(1 * time.Second)
-	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
-	s.Require().NoError(err)
-	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
-
-	// 6. query storage provider
-	querySPByOperatorAddrReq := sptypes.QueryStorageProviderByOperatorAddressRequest{
-		OperatorAddress: newSP.OperatorKey.GetAddr().String(),
-	}
-	querySPByOperatorAddrResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &querySPByOperatorAddrReq)
-	s.Require().NoError(err)
-	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.OperatorAddress, newSP.OperatorKey.GetAddr().String())
-	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.FundingAddress, newSP.FundingKey.GetAddr().String())
-	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
-	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
-	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Endpoint, endpoint)
-
-	newSP.Info = querySPByOperatorAddrResp.StorageProvider
-	// 7 query sp by id
-	querySPResp, err := s.Client.StorageProvider(ctx, &sptypes.QueryStorageProviderRequest{
-		Id: querySPByOperatorAddrResp.StorageProvider.Id,
+	// query sp by id
+	querySPResp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{
+		Id: sp.Info.Id,
 	})
 	s.Require().NoError(err)
 	s.Require().Equal(querySPResp.StorageProvider, querySPResp.StorageProvider)
 
-	// 8 sp exit
+	// sp exit
 	msgSPExit := virtualgroupmoduletypes.MsgStorageProviderExit{
-		OperatorAddress: newSP.OperatorKey.GetAddr().String(),
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
 	}
-	s.SendTxBlock(newSP.OperatorKey, &msgSPExit)
+	s.SendTxBlock(sp.OperatorKey, &msgSPExit)
 
 	// 9 query sp status
-	querySPResp2, err := s.Client.StorageProvider(ctx, &sptypes.QueryStorageProviderRequest{Id: newSP.Info.Id})
+	querySPResp2, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
 	s.Require().NoError(err)
 	s.Require().Equal(querySPResp2.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
 
 	// 10 complete sp exit
 	msgCompleteSPExit := virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
-		OperatorAddress: newSP.OperatorKey.GetAddr().String(),
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
 	}
 
-	s.SendTxBlock(newSP.OperatorKey, &msgCompleteSPExit)
+	s.SendTxBlock(sp.OperatorKey, &msgCompleteSPExit)
 
 	// 10 query sp
-	_, err = s.Client.StorageProvider(ctx, &sptypes.QueryStorageProviderRequest{Id: newSP.Info.Id})
+	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
 	s.Require().Error(err)
 }
 

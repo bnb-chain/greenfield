@@ -163,10 +163,6 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	s.Require().Error(err)
 }
 
-func (s *VirtualGroupTestSuite) TestSPExit() {
-
-}
-
 func (s *VirtualGroupTestSuite) TestSettle() {
 	_, _, primarySp, secondarySps, gvgFamilyId, gvgId := s.createObject()
 	s.T().Log("gvg family", gvgFamilyId, "gvg", gvgId)
@@ -323,7 +319,7 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], signBz)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], signBz)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -345,4 +341,9 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
 	return bucketName, objectName, sp, secondarySps, gvg.FamilyId, gvg.Id
+}
+
+func (s *VirtualGroupTestSuite) TestSPExit() {
+	_ = s.BaseSuite.CreateNewStorageProvider()
+
 }
