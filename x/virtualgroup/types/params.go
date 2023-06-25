@@ -20,7 +20,7 @@ var (
 	// TODO: Set a reasonable value.
 	DefaultGVGStakingPrice                   = sdk.NewDecFromIntWithPrec(sdk.NewInt(2), 18)
 	DefaultMaxLocalVirtualGroupNumPerBucket  = uint32(10)
-	DefaultMaxGlocakVirtualGroupNumPerFamily = uint32(10)
+	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 //64T
 
 	KeyDepositDenom                      = []byte("DepositDenom")
@@ -51,7 +51,7 @@ func NewParams(depositDenom string, gvgStakingPrice sdk.Dec, maxLocalVirtualGrou
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDepositDenom, DefaultGVGStakingPrice, DefaultMaxLocalVirtualGroupNumPerBucket, DefaultMaxGlocakVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
+	return NewParams(DefaultDepositDenom, DefaultGVGStakingPrice, DefaultMaxLocalVirtualGroupNumPerBucket, DefaultMaxGlobalVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
 }
 
 // ParamSetPairs get the params.ParamSet

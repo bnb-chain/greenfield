@@ -26,7 +26,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // Approval is the signature information returned by the Primary Storage Provider (SP) to the user
 // after allowing them to create a bucket or object, which is then used for verification on the chain
-// to ensure agreement between the Primary SP and the user."
+// to ensure agreement between the Primary SP and the user.
 type Approval struct {
 	// expired_height is the block height at which the signature expires.
 	ExpiredHeight uint64 `protobuf:"varint,1,opt,name=expired_height,json=expiredHeight,proto3" json:"expired_height,omitempty"`

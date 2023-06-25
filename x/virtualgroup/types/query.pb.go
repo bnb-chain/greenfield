@@ -697,15 +697,15 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// Queries a list of GlobalVirtualGroup items.
+	// Queries a global virtual group by its id.
 	GlobalVirtualGroup(ctx context.Context, in *QueryGlobalVirtualGroupRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupResponse, error)
-	// Queries a list of GlobalVirtualGroupBySPID items.
+	// Queries a list of global virtual groups by its storage provider id.
 	GlobalVirtualGroupBySPID(ctx context.Context, in *QueryGlobalVirtualGroupBySPIDRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupBySPIDResponse, error)
-	// Queries a list of GlobalVirtualGroupByFamilyID items.
+	// Queries a list of global virtual groups by family id.
 	GlobalVirtualGroupByFamilyID(ctx context.Context, in *QueryGlobalVirtualGroupByFamilyIDRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupByFamilyIDResponse, error)
-	// Queries a list of GlobalVirtualGroupFamilies items.
+	// Queries a list of global virtual group families by storage provider id.
 	GlobalVirtualGroupFamilies(ctx context.Context, in *QueryGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamiliesResponse, error)
-	// Queries a list of GlobalVirtualGroupFamily items.
+	// Queries a global virtual group family by its id.
 	GlobalVirtualGroupFamily(ctx context.Context, in *QueryGlobalVirtualGroupFamilyRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamilyResponse, error)
 }
 
@@ -775,15 +775,15 @@ func (c *queryClient) GlobalVirtualGroupFamily(ctx context.Context, in *QueryGlo
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// Queries a list of GlobalVirtualGroup items.
+	// Queries a global virtual group by its id.
 	GlobalVirtualGroup(context.Context, *QueryGlobalVirtualGroupRequest) (*QueryGlobalVirtualGroupResponse, error)
-	// Queries a list of GlobalVirtualGroupBySPID items.
+	// Queries a list of global virtual groups by its storage provider id.
 	GlobalVirtualGroupBySPID(context.Context, *QueryGlobalVirtualGroupBySPIDRequest) (*QueryGlobalVirtualGroupBySPIDResponse, error)
-	// Queries a list of GlobalVirtualGroupByFamilyID items.
+	// Queries a list of global virtual groups by family id.
 	GlobalVirtualGroupByFamilyID(context.Context, *QueryGlobalVirtualGroupByFamilyIDRequest) (*QueryGlobalVirtualGroupByFamilyIDResponse, error)
-	// Queries a list of GlobalVirtualGroupFamilies items.
+	// Queries a list of global virtual group families by storage provider id.
 	GlobalVirtualGroupFamilies(context.Context, *QueryGlobalVirtualGroupFamiliesRequest) (*QueryGlobalVirtualGroupFamiliesResponse, error)
-	// Queries a list of GlobalVirtualGroupFamily items.
+	// Queries a global virtual group family by its id.
 	GlobalVirtualGroupFamily(context.Context, *QueryGlobalVirtualGroupFamilyRequest) (*QueryGlobalVirtualGroupFamilyResponse, error)
 }
 
