@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
@@ -231,6 +232,25 @@ func (msg *MsgSwapOut) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgSwapOut) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
+	if err != nil {
+		return err
+	}
+
+	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
+		if len(msg.GlobalVirtualGroupIds) == 0 {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvgs are not allowed to be empty when familyID is not specified.")
+		}
+	} else {
+		if len(msg.GlobalVirtualGroupIds) > 0 {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvgs are not allowed to be non-empty when familyID is specified.")
+		}
+	}
+
+	if msg.SuccessorSpId == 0 {
+		return gnfderrors.ErrInvalidMessage.Wrap("The successor sp id is not specify.")
+	}
+
 	return nil
 }
 
