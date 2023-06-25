@@ -2,8 +2,10 @@ package client
 
 import (
 	_ "encoding/json"
+	"net/http"
 	"strings"
 
+	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -144,6 +146,25 @@ type GreenfieldClient struct {
 
 // NewGreenfieldClient is used to create a new GreenfieldClient structure.
 func NewGreenfieldClient(rpcAddr, chainId string, opts ...GreenfieldClientOption) (*GreenfieldClient, error) {
+	rpcClient, err := sdkclient.NewClientFromNode(rpcAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	return newGreenfieldClient(rpcAddr, chainId, rpcClient, opts...)
+}
+
+// NewCustomGreenfieldClient is used to create a new GreenfieldClient structure, allows for setting a custom http client
+func NewCustomGreenfieldClient(rpcAddr, chainId string, customDialer func(string) (*http.Client, error), opts ...GreenfieldClientOption) (*GreenfieldClient, error) {
+	rpcClient, err := sdkclient.NewCustomClientFromNode(rpcAddr, customDialer)
+	if err != nil {
+		return nil, err
+	}
+
+	return newGreenfieldClient(rpcAddr, chainId, rpcClient, opts...)
+}
+
+func newGreenfieldClient(rpcAddr, chainId string, rpcClient *rpchttp.HTTP, opts ...GreenfieldClientOption) (*GreenfieldClient, error) {
 	cdc := types.Codec()
 	client := &GreenfieldClient{
 		chainId: chainId,
@@ -159,10 +180,7 @@ func NewGreenfieldClient(rpcAddr, chainId string, opts ...GreenfieldClientOption
 	if len(strings.TrimSpace(rpcAddr)) == 0 {
 		return nil, types.RpcAddressNotProvidedError
 	}
-	rpcClient, err := sdkclient.NewClientFromNode(rpcAddr)
-	if err != nil {
-		return nil, err
-	}
+
 	txConfig := authtx.NewTxConfig(cdc, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	clientCtx := sdkclient.Context{}.
 		WithCodec(cdc).
