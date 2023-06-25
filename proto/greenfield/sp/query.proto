@@ -36,12 +36,12 @@ service Query {
     option (google.api.http).get = "/greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}";
   }
 
-  // Queries a storage provider with specify address
+  // Queries a storage provider with specify id
   rpc StorageProvider(QueryStorageProviderRequest) returns (QueryStorageProviderResponse) {
     option (google.api.http).get = "/greenfield/storage_provider/{id}";
   }
 
-  // Queries a list of StorageProviderByOperatorAddress items.
+  // Queries a StorageProvider by specify operator address.
   rpc StorageProviderByOperatorAddress(QueryStorageProviderByOperatorAddressRequest) returns (QueryStorageProviderByOperatorAddressResponse) {
     option (google.api.http).get = "/greenfield/sp/storage_provider_by_operator_address";
   }

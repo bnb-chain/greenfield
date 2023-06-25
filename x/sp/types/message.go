@@ -29,10 +29,11 @@ var (
 // creator is the module account of gov module
 // SpAddress is the account address of storage provider
 // fundAddress is another accoutn address of storage provider which used to deposit or rewarding
+// blsKey is the public key of bls private key, which is used for sealing object and completing migration signature.
 func NewMsgCreateStorageProvider(
 	creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
-	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec, sealBlsKey string) (*MsgCreateStorageProvider, error) {
+	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec, blsKey string) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
 		Creator:         creator.String(),
 		SpAddress:       SpAddress.String(),
@@ -46,7 +47,7 @@ func NewMsgCreateStorageProvider(
 		ReadPrice:       readPrice,
 		FreeReadQuota:   freeReadQuota,
 		StorePrice:      storePrice,
-		SealBlsKey:      sealBlsKey,
+		BlsKey:          blsKey,
 	}, nil
 }
 
@@ -96,7 +97,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
 	}
 
-	blsPk, err := hex.DecodeString(msg.SealBlsKey)
+	blsPk, err := hex.DecodeString(msg.BlsKey)
 	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
 	}
@@ -121,7 +122,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
 func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description *Description,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, sealBlsKey string) *MsgEditStorageProvider {
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, blsKey string) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
 		SpAddress:       spAddress.String(),
 		Endpoint:        endpoint,
@@ -129,7 +130,7 @@ func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, descri
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
 		GcAddress:       gcAddress.String(),
-		SealBlsKey:      sealBlsKey,
+		BlsKey:          blsKey,
 	}
 }
 
@@ -194,8 +195,8 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 		}
 	}
 
-	if msg.SealBlsKey != "" {
-		blsPk, err := hex.DecodeString(msg.SealBlsKey)
+	if msg.BlsKey != "" {
+		blsPk, err := hex.DecodeString(msg.BlsKey)
 		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 			return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
 		}

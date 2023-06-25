@@ -56,7 +56,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
-				SealBlsKey:      blsPubKeyHex,
+				BlsKey:          blsPubKeyHex,
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
 					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),
@@ -77,7 +77,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
-				SealBlsKey:      blsPubKeyHex,
+				BlsKey:          blsPubKeyHex,
 				Endpoint:        "sp.io",
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
@@ -99,7 +99,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
-				SealBlsKey:      "InValidBlsPubkey",
+				BlsKey:          "InValidBlsPubkey",
 				Endpoint:        "sp.io",
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
@@ -121,7 +121,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
-				SealBlsKey:      blsPubKeyHex,
+				BlsKey:          blsPubKeyHex,
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
 					Amount: types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB),

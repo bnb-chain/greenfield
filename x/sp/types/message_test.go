@@ -24,7 +24,7 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name, moniker, identity, website, details                                   string
 		creator, spAddress, fundingAddress, sealAddress, approvalAddress, gcAddress sdk.AccAddress
-		sealBlsKey                                                                  string
+		blsKey                                                                      string
 		deposit                                                                     sdk.Coin
 		err                                                                         error
 	}{
@@ -42,7 +42,7 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				SealAddress:     tt.sealAddress.String(),
 				ApprovalAddress: tt.approvalAddress.String(),
 				GcAddress:       tt.gcAddress.String(),
-				SealBlsKey:      tt.sealBlsKey,
+				BlsKey:          tt.blsKey,
 				Endpoint:        "http://127.0.0.1:9033",
 				StorePrice:      sdk.ZeroDec(),
 				ReadPrice:       sdk.ZeroDec(),
@@ -66,7 +66,7 @@ func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name, moniker, identity, website, details string
 		spAddress                                 sdk.AccAddress
-		sealBlsKey                                string
+		blsKey                                    string
 		err                                       error
 	}{
 		{"basic", "a1", "b1", "c1", "d1", spAddr, blsPubKey, nil},

@@ -15,10 +15,31 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 
 func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCreateGlobalVirtualGroup{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgDeleteGlobalVirtualGroup{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgStorageProviderExit{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCompleteStorageProviderExit{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgSwapOut{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgDeposit{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgWithdraw{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgSettle{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateParams{},
 	)
 	// this line is used by starport scaffolding # 3
 

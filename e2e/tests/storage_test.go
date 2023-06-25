@@ -174,7 +174,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -355,7 +355,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -503,7 +503,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvg.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -557,7 +557,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	blsSignHash = storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -991,7 +991,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := blsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -1495,22 +1495,6 @@ func (s *StorageTestSuite) TestRejectSealObject() {
 	_, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest1)
 	s.Require().Error(err)
 	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchObject.Error()))
-}
-
-func blsSignAndVerify(sp core.StorageProvider, signHash [32]byte) ([]byte, error) {
-	secondarySig, err := sp.BlsKey.Sign(signHash[:])
-	if err != nil {
-		return nil, err
-	}
-	pubKey, err := bls.PublicKeyFromBytes(sp.BlsKey.PubKey().Bytes())
-	if err != nil {
-		return nil, err
-	}
-	err = gnfdtypes.VerifyBlsSignature(pubKey, signHash, secondarySig)
-	if err != nil {
-		return nil, err
-	}
-	return secondarySig, nil
 }
 
 func blsAggregateAndVerify(secondarySPBlsPubKeys []bls.PublicKey, signHash [32]byte, secondarySigs [][]byte) ([]byte, error) {

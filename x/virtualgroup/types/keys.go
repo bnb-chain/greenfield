@@ -29,7 +29,7 @@ const (
 	GVGFamilyName = "global_virtual_group_family"
 
 	// NoSpecifiedFamilyId defines
-	NoSpecifiedFamilyId = 0
+	NoSpecifiedFamilyId = uint32(0)
 )
 
 var (

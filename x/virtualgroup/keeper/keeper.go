@@ -152,6 +152,18 @@ func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup
 	return &gvg, true
 }
 
+func (k Keeper) GetGVGByLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool) {
+	lvg, found := k.GetLVG(ctx, bucketID, lvgID)
+	if !found {
+		return nil, false
+	}
+	gvg, found := k.GetGVG(ctx, lvg.GlobalVirtualGroupId)
+	if !found {
+		return nil, false
+	}
+	return gvg, true
+}
+
 func (k Keeper) SetLVG(ctx sdk.Context, lvg *types.LocalVirtualGroup) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -227,12 +239,10 @@ func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.Glo
 	return &gvgFamily, true
 }
 
-func (k Keeper) GenerateOrSetLVGForBucket(ctx sdk.Context, bucketID math.Uint, gvgID uint32) {
-}
-
 func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	store := ctx.KVStore(k.storeKey)
 	var gvgFamily types.GlobalVirtualGroupFamily
+	// If familyID is not specified, a new family needs to be created
 	if familyID == types.NoSpecifiedFamilyId {
 		id := k.GenNextGVGFamilyID(ctx)
 		gvgFamily = types.GlobalVirtualGroupFamily{
@@ -247,13 +257,6 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 		}
 		k.cdc.MustUnmarshal(bz, &gvgFamily)
 
-		storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
-		if storeSize > k.MaxStoreSizePerFamily(ctx) {
-			return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit. Current: %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
-		}
-		if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
-			return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")
-		}
 		return &gvgFamily, nil
 	}
 }
@@ -436,12 +439,6 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 			}
 		}
 
-		// settlement
-		err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
-		if err != nil {
-			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
-		}
-
 		// swap deposit
 		if !gvg.TotalDeposit.IsZero() {
 			// send back deposit
@@ -461,6 +458,13 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 		gvg.PrimarySpId = successorSP.Id
 		gvgs = append(gvgs, gvg)
 	}
+
+	// settlement
+	err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
+	if err != nil {
+		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
+	}
+
 	k.SetGVGFamily(ctx, successorSP.Id, family)
 	for _, gvg := range gvgs {
 		k.SetGVG(ctx, gvg)
@@ -601,7 +605,7 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 		}
 
 		srcGVGID, exists := lvg2gvg[newLvg2gvg.LocalVirtualGroupId]
-		if exists {
+		if !exists {
 			return types.ErrMigrationBucketFailed.Wrapf("local virtual group not found, id: %d", newLvg2gvg.LocalVirtualGroupId)
 		}
 
@@ -642,7 +646,7 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.Gl
 		if !found {
 			panic("should not happen")
 		}
-		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.SealBlsKey)
+		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.BlsKey)
 		if err != nil {
 			return types.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
 		}
@@ -654,7 +658,7 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.Gl
 // GetStoreSizeOfFamily Rather than calculating the stored size of a Global Virtual Group Family (GVGF) in real-time,
 // it is preferable to calculate it once during the creation of a Global Virtual Group (GVG). This approach is favored
 // because GVG creation is infrequent and occurs with low frequency.
-func (k Keeper) GetStoreSizeOfFamily(ctx sdk.Context, gvgFamily types.GlobalVirtualGroupFamily) uint64 {
+func (k Keeper) GetStoreSizeOfFamily(ctx sdk.Context, gvgFamily *types.GlobalVirtualGroupFamily) uint64 {
 	var totalStoreSize uint64
 	for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
 		gvg, found := k.GetGVG(ctx, gvgID)

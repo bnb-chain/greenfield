@@ -224,10 +224,6 @@ func (s *TestSuite) TestGetBucketBill() {
 		BucketId:             bucketInfo.Id,
 		GlobalVirtualGroupId: 2,
 	}
-	s.virtualGroupKeeper.EXPECT().GetLVG(gomock.Any(), gomock.Any(), lvg1.Id).
-		Return(lvg1, true).AnyTimes()
-	s.virtualGroupKeeper.EXPECT().GetLVG(gomock.Any(), gomock.Any(), lvg2.Id).
-		Return(lvg2, true).AnyTimes()
 
 	gvg1 := &virtualgroupmoduletypes.GlobalVirtualGroup{
 		Id:                    1,
@@ -241,9 +237,9 @@ func (s *TestSuite) TestGetBucketBill() {
 		SecondarySpIds:        []uint32{201, 202, 203, 204, 205, 206},
 		VirtualPaymentAddress: sample.RandAccAddress().String(),
 	}
-	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gvg1.Id).
+	s.virtualGroupKeeper.EXPECT().GetGVGByLVG(gomock.Any(), gomock.Any(), lvg1.Id).
 		Return(gvg1, true).AnyTimes()
-	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gvg2.Id).
+	s.virtualGroupKeeper.EXPECT().GetGVGByLVG(gomock.Any(), gomock.Any(), lvg2.Id).
 		Return(gvg2, true).AnyTimes()
 
 	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo)

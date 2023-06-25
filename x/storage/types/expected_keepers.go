@@ -89,7 +89,7 @@ type VirtualGroupKeeper interface {
 	UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) error
 	GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, bool)
 	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
-	GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
+	GetGVGByLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool)
 	GetLVGs(ctx sdk.Context, bucketID math.Uint) []*types.LocalVirtualGroup
 	SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error

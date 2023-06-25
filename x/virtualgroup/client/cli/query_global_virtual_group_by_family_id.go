@@ -15,7 +15,7 @@ var _ = strconv.Itoa(0)
 func CmdGlobalVirtualGroupByFamilyID() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "global-virtual-group-by-family-id",
-		Short: "Query GlobalVirtualGroupByFamilyID",
+		Short: "query virtual group by family id",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 

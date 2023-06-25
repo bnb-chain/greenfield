@@ -15,7 +15,7 @@ var _ = strconv.Itoa(0)
 func CmdGlobalVirtualGroupBySPID() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "global-virtual-group-by-spid",
-		Short: "Query GlobalVirtualGroupBySPID",
+		Short: "query all global virtual groups of the storage provider.",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 

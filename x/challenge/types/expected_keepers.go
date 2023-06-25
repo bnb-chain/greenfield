@@ -18,8 +18,7 @@ type SpKeeper interface {
 }
 
 type VirtualGroupKeeper interface {
-	GetLVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool)
-	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
+	GetGVGByLVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool)
 }
 
 type StakingKeeper interface {

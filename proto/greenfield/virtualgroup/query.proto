@@ -19,27 +19,27 @@ service Query {
     option (google.api.http).get = "/greenfield/virtualgroup/params";
   }
 
-  // Queries a list of GlobalVirtualGroup items.
+  // Queries a global virtual group by its id.
   rpc GlobalVirtualGroup(QueryGlobalVirtualGroupRequest) returns (QueryGlobalVirtualGroupResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group";
   }
 
-  // Queries a list of GlobalVirtualGroupBySPID items.
+  // Queries a list of global virtual groups by its storage provider id.
   rpc GlobalVirtualGroupBySPID(QueryGlobalVirtualGroupBySPIDRequest) returns (QueryGlobalVirtualGroupBySPIDResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_by_spid";
   }
 
-  // Queries a list of GlobalVirtualGroupByFamilyID items.
+  // Queries a list of global virtual groups by family id.
   rpc GlobalVirtualGroupByFamilyID(QueryGlobalVirtualGroupByFamilyIDRequest) returns (QueryGlobalVirtualGroupByFamilyIDResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_by_family_id";
   }
 
-  // Queries a list of GlobalVirtualGroupFamilies items.
+  // Queries a list of global virtual group families by storage provider id.
   rpc GlobalVirtualGroupFamilies(QueryGlobalVirtualGroupFamiliesRequest) returns (QueryGlobalVirtualGroupFamiliesResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_families";
   }
 
-  // Queries a list of GlobalVirtualGroupFamily items.
+  // Queries a global virtual group family by its id.
   rpc GlobalVirtualGroupFamily(QueryGlobalVirtualGroupFamilyRequest) returns (QueryGlobalVirtualGroupFamilyResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_family";
   }

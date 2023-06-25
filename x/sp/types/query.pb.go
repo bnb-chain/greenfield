@@ -685,9 +685,9 @@ type QueryClient interface {
 	QueryGetSpStoragePriceByTime(ctx context.Context, in *QueryGetSpStoragePriceByTimeRequest, opts ...grpc.CallOption) (*QueryGetSpStoragePriceByTimeResponse, error)
 	// get secondary store price by time
 	QueryGetSecondarySpStorePriceByTime(ctx context.Context, in *QueryGetSecondarySpStorePriceByTimeRequest, opts ...grpc.CallOption) (*QueryGetSecondarySpStorePriceByTimeResponse, error)
-	// Queries a storage provider with specify address
+	// Queries a storage provider with specify id
 	StorageProvider(ctx context.Context, in *QueryStorageProviderRequest, opts ...grpc.CallOption) (*QueryStorageProviderResponse, error)
-	// Queries a list of StorageProviderByOperatorAddress items.
+	// Queries a StorageProvider by specify operator address.
 	StorageProviderByOperatorAddress(ctx context.Context, in *QueryStorageProviderByOperatorAddressRequest, opts ...grpc.CallOption) (*QueryStorageProviderByOperatorAddressResponse, error)
 }
 
@@ -763,9 +763,9 @@ type QueryServer interface {
 	QueryGetSpStoragePriceByTime(context.Context, *QueryGetSpStoragePriceByTimeRequest) (*QueryGetSpStoragePriceByTimeResponse, error)
 	// get secondary store price by time
 	QueryGetSecondarySpStorePriceByTime(context.Context, *QueryGetSecondarySpStorePriceByTimeRequest) (*QueryGetSecondarySpStorePriceByTimeResponse, error)
-	// Queries a storage provider with specify address
+	// Queries a storage provider with specify id
 	StorageProvider(context.Context, *QueryStorageProviderRequest) (*QueryStorageProviderResponse, error)
-	// Queries a list of StorageProviderByOperatorAddress items.
+	// Queries a StorageProvider by specify operator address.
 	StorageProviderByOperatorAddress(context.Context, *QueryStorageProviderByOperatorAddressRequest) (*QueryStorageProviderByOperatorAddressResponse, error)
 }
 

@@ -25,7 +25,7 @@ var (
 	ParamsKey = []byte{0x01}
 
 	StorageProviderKey               = []byte{0x21} // prefix for each key to a storage provider
-	StorageProviderByOperatorAddrKey = []byte{0x23} // prefix for each key to a storage provider index, by funding address
+	StorageProviderByOperatorAddrKey = []byte{0x23} // prefix for each key to a storage provider index, by operator address
 	StorageProviderByFundingAddrKey  = []byte{0x24} // prefix for each key to a storage provider index, by funding address
 	StorageProviderBySealAddrKey     = []byte{0x25} // prefix for each key to a storage provider index, by seal address
 	StorageProviderByApprovalAddrKey = []byte{0x26} // prefix for each key to a storage provider index, by approval address
@@ -67,7 +67,7 @@ func GetStorageProviderByApprovalAddrKey(spAddr sdk.AccAddress) []byte {
 	return append(StorageProviderByApprovalAddrKey, spAddr.Bytes()...)
 }
 
-// GetStorageProviderByApprovalAddrKey creates the key for the storage provider with approval address
+// GetStorageProviderByGcAddrKey creates the key for the storage provider with approval address
 // VALUE: storage provider operator address ([]byte)
 func GetStorageProviderByGcAddrKey(spAddr sdk.AccAddress) []byte {
 	return append(StorageProviderByGcAddrKey, spAddr.Bytes()...)

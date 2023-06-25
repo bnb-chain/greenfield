@@ -79,7 +79,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	// check if the bls pubkey has been registered before
-	blsPk, err := hex.DecodeString(msg.SealBlsKey)
+	blsPk, err := hex.DecodeString(msg.BlsKey)
 	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 		return nil, types.ErrStorageProviderInvalidBlsKey
 	}
@@ -119,7 +119,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
-		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.SealBlsKey)
+		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.BlsKey)
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +147,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
+		SpId:            sp.Id,
 		SpAddress:       spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
@@ -156,7 +157,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		TotalDeposit:    &msg.Deposit,
 		Status:          sp.Status,
 		Description:     sp.Description,
-		SealBlsKey:      hex.EncodeToString(sp.SealBlsKey),
+		BlsKey:          hex.EncodeToString(sp.BlsKey),
 	}); err != nil {
 		return nil, err
 	}
@@ -209,12 +210,12 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		changed = true
 	}
 
-	if msg.SealBlsKey != "" {
-		blsPk, err := hex.DecodeString(msg.SealBlsKey)
+	if msg.BlsKey != "" {
+		blsPk, err := hex.DecodeString(msg.BlsKey)
 		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 			return nil, types.ErrStorageProviderInvalidBlsKey
 		}
-		sp.SealBlsKey = blsPk
+		sp.BlsKey = blsPk
 		changed = true
 	}
 
@@ -230,13 +231,14 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	k.SetStorageProviderByBlsKey(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
+		SpId:            sp.Id,
 		SpAddress:       operatorAcc.String(),
 		Endpoint:        sp.Endpoint,
 		Description:     sp.Description,
 		ApprovalAddress: sp.ApprovalAddress,
 		SealAddress:     sp.SealAddress,
 		GcAddress:       sp.GcAddress,
-		SealBlsKey:      hex.EncodeToString(sp.SealBlsKey),
+		BlsKey:          hex.EncodeToString(sp.BlsKey),
 	}); err != nil {
 		return nil, err
 	}

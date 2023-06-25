@@ -140,6 +140,9 @@ message MsgCompleteStorageProviderExit {
 
 message MsgCompleteStorageProviderExitResponse {}
 
+// MsgSettle define the message for settling storage income of GVG family or several GVGs.
+// Firstly, the handler will do stream settlement for the payment account; and
+// secondly, the income will be distributed to related storage providers.
 message MsgSettle {
   // option (cosmos.msg.v1.signer) specifies the signer of the message.
   option (cosmos.msg.v1.signer) = "funding_address";
