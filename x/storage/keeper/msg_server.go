@@ -614,7 +614,7 @@ func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBuc
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("dst sp not found")
 	}
 
-	if srcSP.Status != sptypes.STATUS_IN_SERVICE && dstSP.Status != sptypes.STATUS_IN_SERVICE {
+	if srcSP.Status != sptypes.STATUS_IN_SERVICE || dstSP.Status != sptypes.STATUS_IN_SERVICE {
 		return nil, sptypes.ErrStorageProviderNotInService.Wrapf(
 			"origin SP status: %s, dst SP status: %s", srcSP.Status.String(), dstSP.Status.String())
 	}

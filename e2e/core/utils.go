@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"math/rand"
 
-	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/cometbft/cometbft/crypto"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"sigs.k8s.io/yaml"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
+	gnfdtypes "github.com/bnb-chain/greenfield/types"
 )
 
 func GenRandomAddr() sdk.AccAddress {
