@@ -2,6 +2,7 @@ syntax = "proto3";
 
 package greenfield.common;
 
+import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 
@@ -18,3 +19,4 @@ message Approval {
   // The signature needs to conform to the EIP 712 specification.
   bytes sig = 3;
 }
+

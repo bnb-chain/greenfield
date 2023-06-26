@@ -2,6 +2,8 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -12,9 +14,12 @@ const TypeMsgCompleteMigrateBucket = "complete_migrate_bucket"
 
 var _ sdk.Msg = &MsgCompleteMigrateBucket{}
 
-func NewMsgCompleteMigrateBucket(operator string) *MsgCompleteMigrateBucket {
+func NewMsgCompleteMigrateBucket(operator sdk.AccAddress, bucketName string, globalVirtualGroupFamilyID uint32, gvgMappings []*GVGMapping) *MsgCompleteMigrateBucket {
 	return &MsgCompleteMigrateBucket{
-		Operator: operator,
+		Operator:                   operator.String(),
+		BucketName:                 bucketName,
+		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
+		GvgMappings:                gvgMappings,
 	}
 }
 
@@ -47,6 +52,9 @@ func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
+	}
+	if msg.GlobalVirtualGroupFamilyId == types.NoSpecifiedFamilyId {
+		return gnfderrors.ErrInvalidMessage.Wrap("the global virtual group family id not specify.")
 	}
 	return nil
 }

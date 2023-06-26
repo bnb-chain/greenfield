@@ -560,11 +560,12 @@ message MsgCompleteMigrateBucket {
 
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  uint32 global_virtual_group_family_id = 2;
+  string bucket_name = 2;
 
-  repeated LVGToGVGMapping new_lvg_to_gvg_mappings = 3;
+  uint32 global_virtual_group_family_id = 3;
 
-  string bucket_name = 4;
+  repeated GVGMapping gvg_mappings = 4;
+
 }
 
 message MsgCompleteMigrateBucketResponse {}

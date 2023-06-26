@@ -991,7 +991,9 @@ func CmdMigrateBucket() *cobra.Command {
 			}
 
 			msg := types.NewMsgMigrateBucket(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
+				"test-bucket",
+				1,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -1018,7 +1020,10 @@ func CmdCompleteMigrateBucket() *cobra.Command {
 			}
 
 			msg := types.NewMsgCompleteMigrateBucket(
-				clientCtx.GetFromAddress().String(),
+				clientCtx.GetFromAddress(),
+				"test-bucket",
+				0,
+				nil,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

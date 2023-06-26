@@ -2,8 +2,8 @@ package keeper
 
 import (
 	"context"
-
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
@@ -668,11 +668,11 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 
 	migrationBucketInfo, found := k.GetMigrationBucketInfo(ctx, bucketInfo.Id)
 	if !found {
-		return nil, types.ErrMigtationBucketFailed.Wrapf("migration bucket info not found.")
+		return nil, types.ErrMigrationBucketFailed.Wrapf("migration bucket info not found.")
 	}
 
 	if dstSP.Id != migrationBucketInfo.DstSpId {
-		return nil, types.ErrMigtationBucketFailed.Wrapf("dst sp info not match")
+		return nil, types.ErrMigrationBucketFailed.Wrapf("dst sp info not match")
 	}
 
 	_, found = k.virtualGroupKeeper.GetGVGFamily(ctx, dstSP.Id, msg.GlobalVirtualGroupFamilyId)
@@ -691,15 +691,21 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
 
-	// rebinding gvg and lvg
-	err := k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.NewLvgToGvgMappings)
+	// check secondary sp signature
+	err := k.verifyGVGSignatures(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
 	if err != nil {
-		return nil, err
+		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
+	}
+
+	// rebinding gvg and lvg
+	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
+	if err != nil {
+		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
 
 	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
 	if err != nil {
-		return nil, types.ErrMigtationBucketFailed.Wrapf("update payment info failed.")
+		return nil, types.ErrMigrationBucketFailed.Wrapf("update payment info failed. err: %s", err)
 	}
 
 	k.SetBucketInfo(ctx, bucketInfo)
@@ -710,10 +716,27 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		BucketName:                 msg.BucketName,
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
-		NewLvgToGvgMappings:        msg.NewLvgToGvgMappings,
+		GvgMappings:                msg.GvgMappings,
 	}); err != nil {
 		return nil, err
 	}
 
 	return &types.MsgCompleteMigrateBucketResponse{}, nil
+}
+
+func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
+	// verify secondary sp signature
+	for _, newLvg2gvg := range gvgMappings {
+		dstGVG, found := k.virtualGroupKeeper.GetGVG(ctx, newLvg2gvg.DstGlobalVirtualGroupId)
+		if !found {
+			return virtualgroupmoduletypes.ErrGVGNotExist.Wrapf("dst gvg not found")
+		}
+		// validate the aggregated bls signature
+		migrationBucketSignDocBlsSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, dstGVG.Id).GetBlsSignHash()
+		err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

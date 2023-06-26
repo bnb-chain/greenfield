@@ -1,6 +1,8 @@
 package types
 
 import (
+	"github.com/bnb-chain/greenfield/types/common"
+	"github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
@@ -12,9 +14,12 @@ const TypeMsgMigrateBucket = "migrate_bucket"
 
 var _ sdk.Msg = &MsgMigrateBucket{}
 
-func NewMsgMigrateBucket(operator string) *MsgMigrateBucket {
+func NewMsgMigrateBucket(operator sdk.AccAddress, bucketName string, dstPrimarySPID uint32) *MsgMigrateBucket {
 	return &MsgMigrateBucket{
-		Operator: operator,
+		Operator:             operator.String(),
+		BucketName:           bucketName,
+		DstPrimarySpId:       dstPrimarySPID,
+		DstPrimarySpApproval: &common.Approval{},
 	}
 }
 
@@ -55,5 +60,10 @@ func (msg *MsgMigrateBucket) ValidateBasic() error {
 	if err != nil {
 		return err
 	}
+
+	if msg.DstPrimarySpId == 0 {
+		return errors.ErrInvalidMessage.Wrapf("Invalid dst primary sp id: %d", msg.DstPrimarySpId)
+	}
+
 	return nil
 }

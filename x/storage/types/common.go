@@ -33,3 +33,20 @@ func GenerateHash(checksumList [][]byte) []byte {
 	hash.Write(checksumBytesTotal)
 	return hash.Sum(nil)
 }
+
+func NewSecondarySpMigrationBucketSignDoc(bucketID math.Uint, spID, srcGVGID, dstGVGID uint32) *SecondarySpMigrationBucketSignDoc {
+	return &SecondarySpMigrationBucketSignDoc{
+		BucketId:                bucketID,
+		DstPrimarySpId:          spID,
+		SrcGlobalVirtualGroupId: srcGVGID,
+		DstGlobalVirtualGroupId: dstGVGID,
+	}
+}
+
+func (c *SecondarySpMigrationBucketSignDoc) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(c))
+}
+
+func (c *SecondarySpMigrationBucketSignDoc) GetBlsSignHash() [32]byte {
+	return sdk.Keccak256Hash(c.GetSignBytes())
+}
