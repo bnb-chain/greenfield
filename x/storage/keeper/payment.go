@@ -395,8 +395,10 @@ func (k Keeper) ChargeBucketMigration(ctx sdk.Context, oldBucketInfo, newBucketI
 		return fmt.Errorf("settle and get bucket bill failed, bucket: %s, err: %s", oldBucketInfo.BucketName, err.Error())
 	}
 
+	// update billing info
 	newBucketInfo.BillingInfo.PriceTime = ctx.BlockTime().Unix()
 	k.ResetBucketBillingInfo(ctx, newBucketInfo)
+
 	// calculate new bill
 	newBill, err := k.GetBucketBill(ctx, newBucketInfo)
 	if err != nil {

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
@@ -681,6 +682,7 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	}
 
 	oldBucketInfo := &types.BucketInfo{
+		Id:                         bucketInfo.Id,
 		PaymentAddress:             bucketInfo.PaymentAddress,
 		PrimarySpId:                bucketInfo.PrimarySpId,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
