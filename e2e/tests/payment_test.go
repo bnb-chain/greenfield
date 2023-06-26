@@ -240,7 +240,7 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())
@@ -1188,7 +1188,7 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())

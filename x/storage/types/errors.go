@@ -44,5 +44,5 @@ var (
 	ErrInvalidBucketStatus   = errors.Register(ModuleName, 3106, "invalid bucket status")
 	ErrBucketMigrating       = errors.Register(ModuleName, 3107, "the bucket is migrating")
 	ErrInvalidResource       = errors.Register(ModuleName, 3201, "invalid resource type")
-	ErrMigtationBucketFailed = errors.Register(ModuleName, 3202, "migrate bucket failed.")
+	ErrMigrationBucketFailed = errors.Register(ModuleName, 3202, "migrate bucket failed.")
 )

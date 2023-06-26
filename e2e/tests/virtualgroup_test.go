@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"math"
-	"strconv"
 	"testing"
 	"time"
 
@@ -37,47 +36,6 @@ func (s *VirtualGroupTestSuite) SetupTest() {
 
 func TestVirtualGroupTestSuite(t *testing.T) {
 	suite.Run(t, new(VirtualGroupTestSuite))
-}
-
-func (s *VirtualGroupTestSuite) createGlobalVirtualGroup(sp *core.StorageProvider, familyID uint32, secondarySPIDs []uint32, depositAmount int64) (uint32, uint32) {
-	// Create a GVG for each sp by default
-	deposit := sdk.Coin{
-		Denom:  s.Config.Denom,
-		Amount: types.NewIntFromInt64WithDecimal(depositAmount, types.DecimalBNB),
-	}
-	msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
-		PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
-		SecondarySpIds:   secondarySPIDs,
-		Deposit:          deposit,
-		FamilyId:         familyID,
-	}
-	resp := s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
-
-	// wait for the tx execute
-	resp2, err := s.BaseSuite.WaitForTx(resp.TxHash)
-	s.Require().NoError(err)
-
-	var gvgID uint32
-	var newFamilyID uint32
-	for _, e := range resp2.Events {
-		s.T().Logf("Event: %s", e.String())
-		if e.Type == "greenfield.virtualgroup.EventCreateGlobalVirtualGroup" {
-			for _, a := range e.Attributes {
-				if a.Key == "id" {
-					num, err := strconv.ParseUint(a.Value, 10, 32)
-					s.Require().NoError(err)
-					gvgID = uint32(num)
-				}
-				if a.Key == "family_id" {
-					num, err := strconv.ParseUint(a.Value, 10, 32)
-					s.Require().NoError(err)
-					newFamilyID = uint32(num)
-				}
-			}
-		}
-	}
-	s.T().Logf("gvgID: %d, familyID: %d", gvgID, newFamilyID)
-	return gvgID, newFamilyID
 }
 
 func (s *VirtualGroupTestSuite) queryGlobalVirtualGroup(gvgID uint32) *virtualgroupmoduletypes.GlobalVirtualGroup {
@@ -122,7 +80,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 		}
 	}
-	s.createGlobalVirtualGroup(&primarySP, family.Id, secondarySPIDs, 1)
+	s.BaseSuite.CreateGlobalVirtualGroup(&primarySP, family.Id, secondarySPIDs, 1)
 
 	gvgs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, family.Id)
 	s.Require().Equal(len(gvgs), len(family.GlobalVirtualGroupIds)+1)
@@ -388,7 +346,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 		}
 	}
 
-	gvgID, familyID := s.createGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
+	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
 
 	// 3. create object
 	s.BaseSuite.CreateObject(sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
@@ -411,7 +369,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 
 	anotherSPsFamilies := s.queryGlobalVirtualGroupFamilies(anotherSP.Info.Id)
 	s.Require().Greater(len(anotherSPsFamilies), 0)
-	anotherGVGID, _ := s.createGlobalVirtualGroup(&anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
+	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(&anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
 
 	// 5. sp exit
 	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{

@@ -463,7 +463,7 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	return newSP
 }
 
-func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucketName, objectName string) (secondarySps []*StorageProvider, familyID, resGVGID uint32) {
+func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucketName, objectName string) (secondarySps []*StorageProvider, familyID, resGVGID uint32, bucketInfo storagetypes.BucketInfo) {
 	// GetGVG
 	resp, err := s.Client.GlobalVirtualGroup(
 		context.Background(),
@@ -556,5 +556,46 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
-	return secondarySps, gvg.FamilyId, gvg.Id
+	return secondarySps, gvg.FamilyId, gvg.Id, bucketInfo
+}
+
+func (s *BaseSuite) CreateGlobalVirtualGroup(sp *StorageProvider, familyID uint32, secondarySPIDs []uint32, depositAmount int64) (uint32, uint32) {
+	// Create a GVG for each sp by default
+	deposit := sdk.Coin{
+		Denom:  s.Config.Denom,
+		Amount: types.NewIntFromInt64WithDecimal(depositAmount, types.DecimalBNB),
+	}
+	msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
+		PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
+		SecondarySpIds:   secondarySPIDs,
+		Deposit:          deposit,
+		FamilyId:         familyID,
+	}
+	resp := s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
+
+	// wait for the tx execute
+	resp2, err := s.WaitForTx(resp.TxHash)
+	s.Require().NoError(err)
+
+	var gvgID uint32
+	var newFamilyID uint32
+	for _, e := range resp2.Events {
+		s.T().Logf("Event: %s", e.String())
+		if e.Type == "greenfield.virtualgroup.EventCreateGlobalVirtualGroup" {
+			for _, a := range e.Attributes {
+				if a.Key == "id" {
+					num, err := strconv.ParseUint(a.Value, 10, 32)
+					s.Require().NoError(err)
+					gvgID = uint32(num)
+				}
+				if a.Key == "family_id" {
+					num, err := strconv.ParseUint(a.Value, 10, 32)
+					s.Require().NoError(err)
+					newFamilyID = uint32(num)
+				}
+			}
+		}
+	}
+	s.T().Logf("gvgID: %d, familyID: %d", gvgID, newFamilyID)
+	return gvgID, newFamilyID
 }

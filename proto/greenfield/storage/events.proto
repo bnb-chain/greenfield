@@ -474,5 +474,5 @@ message EventCompleteMigrationBucket {
     (gogoproto.nullable) = false
   ];
   uint32 global_virtual_group_family_id = 4;
-  repeated LVGToGVGMapping new_lvg_to_gvg_mappings = 5;
+  repeated GVGMapping gvg_mappings = 5;
 }

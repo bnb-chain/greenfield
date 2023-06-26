@@ -75,8 +75,19 @@ message SecondarySpSealObjectSignDoc {
   bytes checksum = 3;
 }
 
-message LVGToGVGMapping {
-  uint32 local_virtual_group_id = 1;
-  uint32 global_virtual_group_id = 2;
+message GVGMapping {
+  uint32 src_global_virtual_group_id = 1;
+  uint32 dst_global_virtual_group_id = 2;
   repeated bytes secondary_sp_signature = 3;
+}
+
+message SecondarySpMigrationBucketSignDoc {
+  uint32 dst_primary_sp_id = 1;
+  uint32 src_global_virtual_group_id = 2;
+  uint32 dst_global_virtual_group_id = 3;
+  string bucket_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
 }

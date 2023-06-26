@@ -11,6 +11,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -24,7 +25,6 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
-	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -181,7 +181,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())
@@ -362,7 +362,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 
@@ -510,7 +510,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.T().Logf("msg %s", msgSealObject.String())
@@ -564,7 +564,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err = blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err = core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.SendTxBlock(sp.SealKey, msgSealObject)
@@ -998,7 +998,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
-	aggBlsSig, err := blsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 
@@ -1497,15 +1497,57 @@ func (s *StorageTestSuite) TestRejectSealObject() {
 	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchObject.Error()))
 }
 
-func blsAggregateAndVerify(secondarySPBlsPubKeys []bls.PublicKey, signBz [32]byte, secondarySigs [][]byte) ([]byte, error) {
-	blsSigs, err := bls.MultipleSignaturesFromBytes(secondarySigs)
-	if err != nil {
-		return nil, err
+func (s *StorageTestSuite) TestMigrationBucket() {
+	// construct bucket and object
+	primarySP := s.StorageProviders[0]
+	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	bucketName := storageutils.GenRandomBucketName()
+	objectName := storageutils.GenRandomObjectName()
+	ssps, _, _, bucketInfo := s.BaseSuite.CreateObject(&primarySP, gvg.Id, bucketName, objectName)
+
+	// migration bucket
+	var err error
+	dstPrimarySP := s.CreateNewStorageProvider()
+	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(primarySP.OperatorKey.GetAddr(), bucketName, dstPrimarySP.Info.Id)
+	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
+	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
+	s.SendTxBlock(primarySP.OperatorKey, msgMigrationBucket)
+	s.Require().NoError(err)
+
+	// complete migration bucket
+	var secondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != primarySP.Info.Id {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+		}
+		if len(secondarySPIDs) == 5 {
+			break
+		}
 	}
-	aggBlsSig := bls.AggregateSignatures(blsSigs).Marshal()
-	err = gnfdtypes.VerifyBlsAggSignature(secondarySPBlsPubKeys, signBz, aggBlsSig)
-	if err != nil {
-		return nil, err
+	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(dstPrimarySP, 0, secondarySPIDs, 1)
+	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &types2.QueryGlobalVirtualGroupRequest{
+		GlobalVirtualGroupId: gvgID,
+	})
+	s.Require().NoError(err)
+	dstGVG := gvgResp.GlobalVirtualGroup
+	s.Require().True(found)
+
+	// construct the signatures
+	var gvgMappings []*storagetypes.GVGMapping
+	gvgMappings = append(gvgMappings, &storagetypes.GVGMapping{SrcGlobalVirtualGroupId: gvg.Id, DstGlobalVirtualGroupId: dstGVG.Id})
+
+	for _, gvgMapping := range gvgMappings {
+		migrationBucketSignDoc := storagetypes.NewSecondarySpMigrationBucketSignDoc(bucketInfo.Id, dstPrimarySP.Info.Id, gvgMapping.SrcGlobalVirtualGroupId, gvgMapping.DstGlobalVirtualGroupId)
+		migrationBucketSignBz := migrationBucketSignDoc.GetSignBytes()
+		for _, ssp := range ssps {
+			sig, err := ssp.ApprovalKey.Sign(migrationBucketSignBz)
+			s.Require().NoError(err)
+			gvgMapping.SecondarySpSignature = append(gvgMapping.SecondarySpSignature, sig)
+		}
 	}
-	return aggBlsSig, nil
+
+	msgCompleteMigrationBucket := storagetypes.NewMsgCompleteMigrateBucket(dstPrimarySP.OperatorKey.GetAddr(), bucketName, dstGVG.FamilyId, gvgMappings)
+	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
+
 }
