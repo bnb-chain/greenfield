@@ -113,6 +113,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		return types.ErrGVGNotExist
 	}
 
+	// TODO: if an empty object store in it, it will be skip this check.
 	if gvg.StoredSize != 0 {
 		return types.ErrGVGNotEmpty
 	}
@@ -164,6 +165,8 @@ func (k Keeper) GetGVGByLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (
 	return gvg, true
 }
 
+// SetLVG store the lvg to the multi sore.
+// TODO: Reduce storage space by assigning default values to id and bucketid
 func (k Keeper) SetLVG(ctx sdk.Context, lvg *types.LocalVirtualGroup) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -377,6 +380,7 @@ func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgI
 		return types.ErrGVGNotExist
 	}
 
+	// TODO: if the store size is 0, remove it.
 	lvg.StoredSize -= payloadSize
 	gvg.StoredSize -= payloadSize
 
@@ -480,9 +484,20 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 			return types.ErrGVGNotExist
 		}
 		if gvg.PrimarySpId == successorSPID {
-			return types.ErrSwapOutFailed.Wrapf("the successor primary sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
+			return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
 		}
-
+		secondarySPFound := false
+		for _, spID := range gvg.SecondarySpIds {
+			if spID == successorSPID {
+				return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be one of the secondary sp of gvg(%s).", successorSPID, gvg.String())
+			}
+			if spID == secondarySPID {
+				secondarySPFound = true
+			}
+		}
+		if !secondarySPFound {
+			return types.ErrSwapOutFailed.Wrapf("The sp(ID: %d) that needs swap out is not one of the secondary sps of gvg gvg(%s).", secondarySPID, gvg.String())
+		}
 		// settlement
 		err := k.SettleAndDistributeGVG(ctx, gvg)
 		if err != nil {

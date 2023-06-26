@@ -178,8 +178,8 @@ message MigrationBucketInfo {
   uint32 src_sp_id = 1;
   uint32 src_global_virtual_group_family_id = 2;
   uint32 dst_sp_id = 3;
-  // id is the unique identifier of object
-  string bucket_id = 5 [
+  // id is the unique identifier of bucket
+  string bucket_id = 4 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
