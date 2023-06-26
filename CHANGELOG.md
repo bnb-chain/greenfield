@@ -1,15 +1,20 @@
 # Changelog
 
 ## v0.2.3-alpha.1
+This release enables several features and bugfixes:
+
+Features
+* [#281](https://github.com/bnb-chain/greenfield/pull/281) feat: add versioned parameters to payment module 
+* [#287](https://github.com/bnb-chain/greenfield/pull/287) feat: use median store price for secondary sp price 
+* [#292](https://github.com/bnb-chain/greenfield/pull/292) feat: allows for setting a custom http client when NewGreenfieldClient 
+* [#288](https://github.com/bnb-chain/greenfield/pull/288) feat: limit the interval for updating quota
+
+Bugfixes  
 * [#279](https://github.com/bnb-chain/greenfield/pull/279) fix: fix the security issues 
 * [#280](https://github.com/bnb-chain/greenfield/pull/280) fix: update go.mod to be compatible with ignite 
-* [#281](https://github.com/bnb-chain/greenfield/pull/281) feat: add versioned parameters to payment module 
 * [#286](https://github.com/bnb-chain/greenfield/pull/286) fix: update storage discontinue param's default value 
-* [#287](https://github.com/bnb-chain/greenfield/pull/287) feat: use median store price for secondary sp price 
 * [#295](https://github.com/bnb-chain/greenfield/pull/295) add missing field to event 
-* [#292](https://github.com/bnb-chain/greenfield/pull/292) feat: allows for setting a custom http client when NewGreenfieldClient 
 * [#285](https://github.com/bnb-chain/greenfield/pull/285) fix: ACTION_UPDATE_OBJECT_INFO not allowed to be used on object's bug 
-* [#288](https://github.com/bnb-chain/greenfield/pull/288) feat: limit the interval for updating quota 
 
 ## v0.2.2
 This release enables several features and some bugfix:
