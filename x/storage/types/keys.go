@@ -35,6 +35,7 @@ var (
 	BucketPrefix = []byte{0x11}
 	ObjectPrefix = []byte{0x12}
 	GroupPrefix  = []byte{0x13}
+	QuotaPrefix  = []byte{0x14}
 
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
@@ -142,4 +143,10 @@ func GetDeleteStalePoliciesKey(height int64) []byte {
 func GetMigrationBucketKey(bucketID math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
 	return append(MigrateBucketPrefix, seq.EncodeSequence(bucketID)...)
+}
+
+// GetQuotaKey return the quota store key
+func GetQuotaKey(bucketId math.Uint) []byte {
+	var seq sequence.Sequence[math.Uint]
+	return append(QuotaPrefix, seq.EncodeSequence(bucketId)...)
 }

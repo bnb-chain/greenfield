@@ -23,6 +23,7 @@ const (
 	DefaultDiscontinueConfirmPeriod  int64  = 604800 // 7 days (in second)
 	DefaultDiscontinueDeletionMax    uint64 = 100
 	DefaultStalePolicyCleanupMax     uint64 = 200
+	DefaultMinUpdateQuotaInterval    uint64 = 2592000 // 30 days (in second)
 
 	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025
 	DefaultMirrorBucketAckRelayerFee = "250000000000000" // 0.00025
@@ -45,6 +46,7 @@ var (
 	KeyDiscontinueConfirmPeriod  = []byte("DiscontinueConfirmPeriod")
 	KeyDiscontinueDeletionMax    = []byte("DiscontinueDeletionMax")
 	KeyStalePolicyCleanupMax     = []byte("StalePolicyCleanupMax")
+	KeyMinUpdateQuotaInterval    = []byte("MinUpdateQuotaInterval")
 	KeyMirrorBucketRelayerFee    = []byte("MirrorBucketRelayerFee")
 	KeyMirrorBucketAckRelayerFee = []byte("MirrorBucketAckRelayerFee")
 	KeyMirrorObjectRelayerFee    = []byte("MirrorObjectRelayerFee")
@@ -71,6 +73,7 @@ func NewParams(
 	discontinueConfirmPeriod int64,
 	discontinueDeletionMax uint64,
 	stalePoliesCleanupMax uint64,
+	minUpdateQuotaInterval uint64,
 ) Params {
 	return Params{
 		VersionedParams: VersionedParams{
@@ -93,6 +96,7 @@ func NewParams(
 		DiscontinueConfirmPeriod:  discontinueConfirmPeriod,
 		DiscontinueDeletionMax:    discontinueDeletionMax,
 		StalePolicyCleanupMax:     stalePoliesCleanupMax,
+		MinQuotaUpdateInterval:    minUpdateQuotaInterval,
 	}
 }
 
@@ -106,6 +110,7 @@ func DefaultParams() Params {
 		DefaultMirrorGroupRelayerFee, DefaultMirrorGroupAckRelayerFee,
 		DefaultDiscontinueCountingWindow, DefaultDiscontinueObjectMax, DefaultDiscontinueBucketMax,
 		DefaultDiscontinueConfirmPeriod, DefaultDiscontinueDeletionMax, DefaultStalePolicyCleanupMax,
+		DefaultMinUpdateQuotaInterval,
 	)
 }
 
@@ -131,6 +136,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDiscontinueConfirmPeriod, &p.DiscontinueConfirmPeriod, validateDiscontinueConfirmPeriod),
 		paramtypes.NewParamSetPair(KeyDiscontinueDeletionMax, &p.DiscontinueDeletionMax, validateDiscontinueDeletionMax),
 		paramtypes.NewParamSetPair(KeyStalePolicyCleanupMax, &p.StalePolicyCleanupMax, validateStalePolicyCleanupMax),
+		paramtypes.NewParamSetPair(KeyMinUpdateQuotaInterval, &p.MinQuotaUpdateInterval, validateMinUpdateQuotaInterval),
 	}
 }
 
@@ -389,5 +395,14 @@ func validateStalePolicyCleanupMax(i interface{}) error {
 	if v == 0 {
 		return fmt.Errorf("StalePolicyCleanupMax must be positive: %d", v)
 	}
+	return nil
+}
+
+func validateMinUpdateQuotaInterval(i interface{}) error {
+	_, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
 	return nil
 }
