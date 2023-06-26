@@ -19,4 +19,3 @@ message Approval {
   // The signature needs to conform to the EIP 712 specification.
   bytes sig = 3;
 }
-

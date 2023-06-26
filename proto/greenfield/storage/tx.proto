@@ -565,7 +565,6 @@ message MsgCompleteMigrateBucket {
   uint32 global_virtual_group_family_id = 3;
 
   repeated GVGMapping gvg_mappings = 4;
-
 }
 
 message MsgCompleteMigrateBucketResponse {}
