@@ -1073,6 +1073,7 @@ func (k Keeper) UpdateObjectInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		BucketName: bucketName,
 		ObjectName: objectName,
 		Visibility: visibility,
+		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return err
 	}
