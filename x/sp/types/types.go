@@ -39,7 +39,7 @@ func NewStorageProvider(
 		TotalDeposit:    totalDeposit,
 		Endpoint:        endpoint,
 		Description:     description,
-		SealBlsKey:      blsKeyBytes,
+		BlsKey:          blsKeyBytes,
 	}, nil
 }
 

@@ -80,7 +80,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 		SealAddress:     prevSP.SealAddress,
 		ApprovalAddress: prevSP.ApprovalAddress,
 		GcAddress:       prevSP.GcAddress,
-		SealBlsKey:      prevSP.SealBlsKey,
+		BlsKey:          prevSP.BlsKey,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
 			Identity: "",

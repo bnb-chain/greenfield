@@ -53,7 +53,7 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
-		SealBlsKey:      blsPubKey,
+		BlsKey:          blsPubKey,
 	}
 
 	k.SetStorageProvider(ctx, sp)
@@ -118,7 +118,7 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
-		SealBlsKey:      blsPubKey,
+		BlsKey:          blsPubKey,
 		TotalDeposit:    math.NewIntWithDecimal(2010, types2.DecimalBNB),
 	}
 

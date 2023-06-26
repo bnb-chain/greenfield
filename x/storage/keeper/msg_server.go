@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/bsc/rlp"
@@ -697,6 +696,7 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
+
 	// rebinding gvg and lvg
 	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
 	if err != nil {
@@ -731,19 +731,11 @@ func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *
 		if !found {
 			return virtualgroupmoduletypes.ErrGVGNotExist.Wrapf("dst gvg not found")
 		}
-
-		for i, sspID := range dstGVG.SecondarySpIds {
-			ssp, found := k.spKeeper.GetStorageProvider(ctx, sspID)
-			if !found {
-				return sptypes.ErrStorageProviderNotFound.Wrapf("spID: %d", sspID)
-			}
-
-			migrationBucketSignDoc := storagetypes.NewSecondarySpMigrationBucketSignDoc(
-				bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, newLvg2gvg.DstGlobalVirtualGroupId)
-			err := types2.VerifySignature(sdk.MustAccAddressFromHex(ssp.ApprovalAddress), sdk.Keccak256(migrationBucketSignDoc.GetSignBytes()), newLvg2gvg.SecondarySpSignature[i])
-			if err != nil {
-				return gnfderrors.ErrInvalidSPSignature.Wrapf("verify signature failed, err: %s", err)
-			}
+		// validate the aggregated bls signature
+		migrationBucketSignDocBlsSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, dstGVG.Id).GetBlsSignHash()
+		err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
+		if err != nil {
+			return err
 		}
 	}
 	return nil

@@ -5,7 +5,6 @@ import (
 	"crypto/sha256"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -19,14 +18,12 @@ func NewSecondarySpSealObjectSignDoc(objectID math.Uint, gvgId uint32, checksum 
 	}
 }
 
-func (c *SecondarySpSealObjectSignDoc) GetSignBytes() [32]byte {
-	bts, err := rlp.EncodeToBytes(c)
-	if err != nil {
-		panic(err)
-	}
+func (c *SecondarySpSealObjectSignDoc) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(c))
+}
 
-	btsHash := sdk.Keccak256Hash(bts)
-	return btsHash
+func (c *SecondarySpSealObjectSignDoc) GetBlsSignHash() [32]byte {
+	return sdk.Keccak256Hash(c.GetSignBytes())
 }
 
 // GenerateHash generates sha256 hash of checksums from objectInfo
@@ -37,10 +34,6 @@ func GenerateHash(checksumList [][]byte) []byte {
 	return hash.Sum(nil)
 }
 
-func (msg *SecondarySpMigrationBucketSignDoc) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
-}
-
 func NewSecondarySpMigrationBucketSignDoc(bucketID math.Uint, spID, srcGVGID, dstGVGID uint32) *SecondarySpMigrationBucketSignDoc {
 	return &SecondarySpMigrationBucketSignDoc{
 		BucketId:                bucketID,
@@ -48,4 +41,12 @@ func NewSecondarySpMigrationBucketSignDoc(bucketID math.Uint, spID, srcGVGID, ds
 		SrcGlobalVirtualGroupId: srcGVGID,
 		DstGlobalVirtualGroupId: dstGVGID,
 	}
+}
+
+func (c *SecondarySpMigrationBucketSignDoc) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(c))
+}
+
+func (c *SecondarySpMigrationBucketSignDoc) GetBlsSignHash() [32]byte {
+	return sdk.Keccak256Hash(c.GetSignBytes())
 }

@@ -489,6 +489,7 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	bucketInfo = *queryHeadBucketResponse.BucketInfo
 
 	// create test buffer
 	var buffer bytes.Buffer
@@ -531,10 +532,10 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	signBz := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetSignBytes()
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := BlsSignAndVerify(s.StorageProviders[i], signBz)
+		sig, err := BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
 		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
@@ -545,7 +546,7 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 			secondarySps = append(secondarySps, &ssp)
 		}
 	}
-	aggBlsSig, err := BlsAggregateAndVerify(secondarySPBlsPubKeys, signBz, secondarySigs)
+	aggBlsSig, err := BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
 	s.Require().NoError(err)
 	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
 	s.SendTxBlock(primarySP.SealKey, msgSealObject)

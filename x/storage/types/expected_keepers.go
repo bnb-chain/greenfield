@@ -96,5 +96,5 @@ type VirtualGroupKeeper interface {
 	SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
 	RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*GVGMapping) error
-	VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32, signBz [32]byte, signature []byte) error
+	VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signHash [32]byte, signature []byte) error
 }

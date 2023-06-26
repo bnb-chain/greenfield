@@ -633,24 +633,20 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 	return nil
 }
 
-func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvgId uint32, signBz [32]byte, signature []byte) error {
-	gvg, found := k.GetGVG(ctx, gvgId)
-	if !found {
-		return types.ErrGVGNotExist
-	}
+func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
 	secondarySpBlsPubKeys := make([]bls.PublicKey, 0, len(gvg.SecondarySpIds))
 	for _, spId := range gvg.GetSecondarySpIds() {
 		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
 		if !found {
 			panic("should not happen")
 		}
-		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.SealBlsKey)
+		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.BlsKey)
 		if err != nil {
 			return types.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
 		}
 		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
-	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signBz, signature)
+	return types2.VerifyBlsAggSignature(secondarySpBlsPubKeys, signHash, signature)
 }
 
 // GetStoreSizeOfFamily Rather than calculating the stored size of a Global Virtual Group Family (GVGF) in real-time,
