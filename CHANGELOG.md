@@ -8,6 +8,7 @@ Features
 * [#287](https://github.com/bnb-chain/greenfield/pull/287) feat: use median store price for secondary sp price 
 * [#292](https://github.com/bnb-chain/greenfield/pull/292) feat: allows for setting a custom http client when NewGreenfieldClient 
 * [#288](https://github.com/bnb-chain/greenfield/pull/288) feat: limit the interval for updating quota
+* [#297](https://github.com/bnb-chain/greenfield/pull/297) feat: refine payment and update default parameter     
 
 Bugfixes  
 * [#279](https://github.com/bnb-chain/greenfield/pull/279) fix: fix the security issues 
