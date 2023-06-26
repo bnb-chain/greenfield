@@ -35,6 +35,7 @@ var (
 	BucketPrefix = []byte{0x11}
 	ObjectPrefix = []byte{0x12}
 	GroupPrefix  = []byte{0x13}
+	QuotaPrefix  = []byte{0x14}
 
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
@@ -132,4 +133,9 @@ func GetDeleteStalePoliciesKey(height int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(height))
 	return append(DeleteStalePoliciesPrefix, bz...)
+}
+
+// GetQuotaKey return the quota store key
+func GetQuotaKey(bucketId math.Uint) []byte {
+	return append(QuotaPrefix, sequence.EncodeSequence(bucketId)...)
 }

@@ -38,6 +38,8 @@ message Params {
   uint64 discontinue_deletion_max = 14;
   // The max number for deleting policy in each end block
   uint64 stale_policy_cleanup_max = 15;
+  // The min interval for making quota smaller in seconds
+  uint64 min_quota_update_interval = 16;
 }
 
 // VersionedParams defines the parameters for the storage module with multi version, each version store with different timestamp.

@@ -76,7 +76,7 @@ func (s *IntegrationTestSuiteWithoutMock) SetupTest() {
 	s.T().Logf("s.UserAddr: %s, balance: %s", s.UserAddr, balance)
 }
 
-func (s *IntegrationTestSuiteWithoutMock) TestCreateCreateBucket_Payment() {
+func (s *IntegrationTestSuiteWithoutMock) TestCreateBucket_Payment() {
 	ctx := s.ctx.WithBlockTime(time.Now())
 	// mock create bucket
 	ChargedReadQuota := uint64(1000)
@@ -99,7 +99,7 @@ func (s *IntegrationTestSuiteWithoutMock) TestCreateCreateBucket_Payment() {
 	// mock add a object
 	t2 := t1 + 5000
 	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(t2) * time.Second))
-	bucket.BillingInfo.PriceTime = t2
+	bucket.BillingInfo.PriceTime = ctx.BlockTime().Unix()
 	object := types.ObjectInfo{
 		PayloadSize: 100,
 		CreateAt:    ctx.BlockTime().Unix(),
