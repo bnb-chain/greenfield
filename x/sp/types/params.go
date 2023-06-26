@@ -14,15 +14,15 @@ import (
 
 // SP params default values
 const (
-	// Dafault deposit denom
+	// Default deposit denom
 	DefaultDepositDenom = "BNB"
 )
 
 var (
 	// DefaultMinDeposit defines the minimum deposit amount for all storage provider
 	DefaultMinDeposit = math.NewIntFromBigInt(new(big.Int).Mul(big.NewInt(10000), big.NewInt(1e18)))
-	// DefaultSecondarySpStorePriceRatio is 65%
-	DefaultSecondarySpStorePriceRatio = sdk.NewDecFromIntWithPrec(sdk.NewInt(65), 2)
+	// DefaultSecondarySpStorePriceRatio is 12%
+	DefaultSecondarySpStorePriceRatio = sdk.NewDecFromIntWithPrec(sdk.NewInt(12), 2)
 )
 
 var (

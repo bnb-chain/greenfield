@@ -311,7 +311,8 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, price
 	if err != nil {
 		return amount, fmt.Errorf("get charge size error: %w", err)
 	}
-	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(storagetypes.SecondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	secondarySPNum := int64(k.GetExpectSecondarySPNumForECObject(ctx))
+	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(secondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
 	if err != nil {
 		return amount, fmt.Errorf("get versioned reserve time error: %w", err)

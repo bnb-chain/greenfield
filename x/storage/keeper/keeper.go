@@ -472,10 +472,13 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
-		opts.PrimarySpApproval.Sig)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
+	var err error
+	if !ctx.IsCheckTx() { // no signature verification for simulation
+		err = k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
+			opts.PrimarySpApproval.Sig)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
 	}
 
 	objectKey := types.GetObjectKey(bucketName, objectName)
@@ -530,7 +533,7 @@ func (k Keeper) CreateObject(
 	store.Set(objectKey, sequence.EncodeSequence(objectInfo.Id))
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
 		Creator:          operator.String(),
 		Owner:            objectInfo.Owner,
 		BucketName:       bucketInfo.BucketName,
