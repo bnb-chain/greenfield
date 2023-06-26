@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.2.3-alpha.1
+* [#279](https://github.com/bnb-chain/greenfield/pull/279) fix: fix the security issues 
+* [#280](https://github.com/bnb-chain/greenfield/pull/280) fix: update go.mod to be compatible with ignite 
+* [#281](https://github.com/bnb-chain/greenfield/pull/281) feat: add versioned parameters to payment module 
+* [#286](https://github.com/bnb-chain/greenfield/pull/286) fix: update storage discontinue param's default value 
+* [#287](https://github.com/bnb-chain/greenfield/pull/287) feat: use median store price for secondary sp price 
+* [#295](https://github.com/bnb-chain/greenfield/pull/295) add missing field to event 
+* [#292](https://github.com/bnb-chain/greenfield/pull/292) feat: allows for setting a custom http client when NewGreenfieldClient 
+* [#285](https://github.com/bnb-chain/greenfield/pull/285) fix: ACTION_UPDATE_OBJECT_INFO not allowed to be used on object's bug 
+* [#288](https://github.com/bnb-chain/greenfield/pull/288) feat: limit the interval for updating quota 
+
+## v0.2.2
+This release enables several features and some bugfix:
+
+Features
+* [#249](https://github.com/bnb-chain/greenfield/pull/249) feat: support multiple messages in single tx for EIP712
+* [#250](https://github.com/bnb-chain/greenfield/pull/250) feat: allow mirror bucket/object/group using name
+* [#268](https://github.com/bnb-chain/greenfield/pull/268) feat: record challenge attestation result
+* [#276](https://github.com/bnb-chain/greenfield/pull/276) feat: allow user to pass keyManager into Txopt
+
+Bugfix
+* [#248](https://github.com/bnb-chain/greenfield/pull/248) fix: add versioned params e2e's test
+* [#252](https://github.com/bnb-chain/greenfield/pull/252) fix: remove paramsclient from sdk and swagger
+* [#254](https://github.com/bnb-chain/greenfield/pull/254) fix: fix potential int64 multiplication overflow
+* [#255](https://github.com/bnb-chain/greenfield/pull/255) fix: verify permission openapi params
+* [#263](https://github.com/bnb-chain/greenfield/pull/263) fix: QueryGetSecondarySpStorePriceByTime may wrong data
+* [#267](https://github.com/bnb-chain/greenfield/pull/267) chore: update swagger
+* [#271](https://github.com/bnb-chain/greenfield/pull/271) fix: check every module's Msg
+* [#270](https://github.com/bnb-chain/greenfield/pull/270) fix: sp check when reject seal object
+* [#269](https://github.com/bnb-chain/greenfield/pull/269) fix: fix wrong link in readme
+* [#274](https://github.com/bnb-chain/greenfield/pull/274) fix: add sp address check when deposit
+
 ## v0.2.2-alpha.2
 
 This release enables 2 features:
@@ -16,7 +48,7 @@ This release enables 2 features:
 
 ## v0.2.1-alpha.1
 
-This release enable two features:
+This release[CHANGELOG.md](CHANGELOG.md) enable two features:
 - support multiple messages in single tx
 - allow mirror bucket/object/group using name
 
