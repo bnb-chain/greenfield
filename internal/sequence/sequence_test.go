@@ -53,7 +53,7 @@ func TestSequenceIncrementsUint256(t *testing.T) {
 	ctx := NewMockContext()
 	store := ctx.KVStore(storetypes.NewKVStoreKey("test"))
 	seq := sequence.NewSequence[math.Uint]([]byte{0x1})
-	max := math.NewUint(10)
+	max := math.NewUint(1000)
 	i := math.ZeroUint()
 	for i.LT(max) {
 		id := seq.NextVal(store)
@@ -61,6 +61,7 @@ func TestSequenceIncrementsUint256(t *testing.T) {
 		i = i.Incr()
 		assert.True(t, i.Equal(id))
 		assert.True(t, i.Equal(curId))
+		fmt.Printf("bytes len %d\n", len(id.Bytes()))
 		fmt.Print("i= ", i.Uint64(), "id=", id.Uint64(), "curID", curId.Uint64())
 	}
 }
