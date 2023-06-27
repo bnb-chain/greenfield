@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	vgtypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
@@ -145,4 +146,16 @@ func (k Keeper) SealEmptyObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types
 	gvgID := family.GlobalVirtualGroupIds[0]
 
 	return k.SealObjectOnVirtualGroup(ctx, bucketInfo, gvgID, objectInfo)
+}
+
+func (k Keeper) GetObjectGVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*vgtypes.GlobalVirtualGroup, bool) {
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketID)
+
+	lvg, found := internalBucketInfo.GetLVG(lvgID)
+	if !found {
+		return nil, false
+	}
+
+	return k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
+
 }

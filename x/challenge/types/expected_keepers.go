@@ -18,7 +18,6 @@ type SpKeeper interface {
 }
 
 type VirtualGroupKeeper interface {
-	GetGVGByLVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool)
 }
 
 type StakingKeeper interface {
@@ -32,6 +31,7 @@ type StorageKeeper interface {
 	GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint
 	GetBucketInfo(ctx sdk.Context, bucketName string) (*storage.BucketInfo, bool)
 	MaxSegmentSize(ctx sdk.Context) (res uint64)
+	GetObjectGVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool)
 }
 
 type PaymentKeeper interface {

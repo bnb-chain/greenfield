@@ -70,7 +70,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		if !found {
 			continue
 		}
-		gvg, found := keeper.VirtualGroupKeeper.GetGVGByLVG(ctx, bucket.Id, objectInfo.LocalVirtualGroupId)
+		gvg, found := keeper.StorageKeeper.GetObjectGVG(ctx, bucket.Id, objectInfo.LocalVirtualGroupId)
 		if !found {
 			continue
 		}

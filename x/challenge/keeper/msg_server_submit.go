@@ -54,7 +54,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	if !stored {
-		gvg, found := k.VirtualGroupKeeper.GetGVGByLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		gvg, found := k.StorageKeeper.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
 		if !found {
 			return nil, errors.Wrapf(types.ErrCannotFindGVG, "no GVG binding for LVG: %d", objectInfo.LocalVirtualGroupId)
 		}
