@@ -20,6 +20,7 @@ var (
 	ErrInvalidBlsPubKey            = errors.Register(ModuleName, 1122, "invalid bls public key")
 	ErrLimitationExceed            = errors.Register(ModuleName, 1123, "limitation exceed.")
 	ErrRebindingGVGsToBucketFailed = errors.Register(ModuleName, 1124, "rebinding gvgs to bucket failed.")
+	ErrInsufficientStaking         = errors.Register(ModuleName, 1125, "insufficient staking for gvg")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

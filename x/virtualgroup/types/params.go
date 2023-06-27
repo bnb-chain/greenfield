@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"gopkg.in/yaml.v2"
@@ -17,7 +18,7 @@ const (
 
 var (
 	// DefaultGVGStakingPrice defines the default gvg staking price
-	DefaultGVGStakingPrice                   = sdk.NewDecFromInt(sdk.NewInt(16000))
+	DefaultGVGStakingPrice                   = sdk.NewInt(16000)
 	DefaultMaxLocalVirtualGroupNumPerBucket  = uint32(10)
 	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 //64T
@@ -37,7 +38,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(depositDenom string, gvgStakingPrice sdk.Dec, maxLocalVirtualGroupNumPerBucket, maxGlobalVirtualGroupPerFamily uint32,
+func NewParams(depositDenom string, gvgStakingPrice math.Int, maxLocalVirtualGroupNumPerBucket, maxGlobalVirtualGroupPerFamily uint32,
 	maxStoreSizePerFamily uint64) Params {
 	return Params{
 		DepositDenom:                      depositDenom,

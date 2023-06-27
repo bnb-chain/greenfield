@@ -800,6 +800,21 @@ func (mr *MockVirtualGroupKeeperMockRecorder) BindingObjectToGVG(ctx, bucketID, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindingObjectToGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).BindingObjectToGVG), ctx, bucketID, primarySPID, familyID, gvgID, payloadSize)
 }
 
+// GetAndCheckGVGFamilyAvailableForNewBucket mocks base method.
+func (m *MockVirtualGroupKeeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx types3.Context, spID, familyID uint32) (*types2.GlobalVirtualGroupFamily, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAndCheckGVGFamilyAvailableForNewBucket", ctx, spID, familyID)
+	ret0, _ := ret[0].(*types2.GlobalVirtualGroupFamily)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAndCheckGVGFamilyAvailableForNewBucket indicates an expected call of GetAndCheckGVGFamilyAvailableForNewBucket.
+func (mr *MockVirtualGroupKeeperMockRecorder) GetAndCheckGVGFamilyAvailableForNewBucket(ctx, spID, familyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAndCheckGVGFamilyAvailableForNewBucket", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetAndCheckGVGFamilyAvailableForNewBucket), ctx, spID, familyID)
+}
+
 // GetGVG mocks base method.
 func (m *MockVirtualGroupKeeper) GetGVG(ctx types3.Context, gvgID uint32) (*types2.GlobalVirtualGroup, bool) {
 	m.ctrl.T.Helper()

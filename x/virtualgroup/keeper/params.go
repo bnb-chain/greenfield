@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
@@ -11,7 +12,7 @@ func (k Keeper) DepositDenomForGVG(ctx sdk.Context) (res string) {
 	return params.DepositDenom
 }
 
-func (k Keeper) GVGStakingPrice(ctx sdk.Context) (res sdk.Dec) {
+func (k Keeper) GVGStakingPrice(ctx sdk.Context) (res math.Int) {
 	params := k.GetParams(ctx)
 	return params.GvgStakingPrice
 }

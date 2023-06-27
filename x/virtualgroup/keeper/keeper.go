@@ -290,9 +290,9 @@ func (k Keeper) DeriveVirtualPaymentAccount(groupType string, id uint32) sdk.Acc
 func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) math.Int {
 	stakingPrice := k.GVGStakingPrice(ctx)
 
-	mustStakingTokens := stakingPrice.MulInt64(int64(gvg.StoredSize))
+	mustStakingTokens := stakingPrice.Mul(sdk.NewInt(int64(gvg.StoredSize)))
 
-	return gvg.TotalDeposit.Sub(mustStakingTokens.TruncateInt())
+	return gvg.TotalDeposit.Sub(mustStakingTokens)
 }
 
 func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types.LocalVirtualGroup, error) {
@@ -302,6 +302,9 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 	}
 
 	// check staking
+	if gvg.StoredSize+payloadSize > k.GetTotalStakingStoreSize(ctx, gvg) {
+		return nil, types.ErrInsufficientStaking.Wrapf("gvg state: %s", gvg.String())
+	}
 
 	var gvgsBindingOnBucket *types.GlobalVirtualGroupsBindingOnBucket
 	var lvg *types.LocalVirtualGroup
@@ -689,12 +692,11 @@ func (k Keeper) GetStoreSizeOfFamily(ctx sdk.Context, gvgFamily *types.GlobalVir
 	return totalStoreSize
 }
 
-func (k Keeper) GetAvailableStoreSize(ctx sdk.Context, gvg *types.GlobalVirtualGroup) uint64 {
-	total := sdk.NewDecFromBigInt(gvg.TotalDeposit.BigInt())
-	total = total.Quo(k.GVGStakingPrice(ctx))
-	if !total.TruncateInt().IsUint64() {
+func (k Keeper) GetTotalStakingStoreSize(ctx sdk.Context, gvg *types.GlobalVirtualGroup) uint64 {
+	total := gvg.TotalDeposit.Quo(k.GVGStakingPrice(ctx))
+	if !total.IsUint64() {
 		return math2.MaxUint64
 	} else {
-		return total.TruncateInt().Uint64()
+		return total.Uint64()
 	}
 }
