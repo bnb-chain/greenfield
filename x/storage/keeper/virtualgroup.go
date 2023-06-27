@@ -75,7 +75,7 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *vgtypes.
 		}
 		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.BlsKey)
 		if err != nil {
-			return vgtypes.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
+			return types.ErrInvalidBlsPubKey.Wrapf("BLS public key converts failed: %v", err)
 		}
 		secondarySpBlsPubKeys = append(secondarySpBlsPubKeys, spBlsPubKey)
 	}
@@ -92,6 +92,9 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 
 	lvg, found := internalBucketInfo.GetLVGByGVGID(gvgID)
 	if !found {
+		if len(internalBucketInfo.LocalVirtualGroups) > int(k.MaxLocalVirtualGroupNumPerBucket(ctx)) {
+			return nil, types.ErrVirtualGroupOperateFailed.Wrapf("The local virtual groups binding on bucket are exceed limitation. Num: %d, Allows: %d", len(internalBucketInfo.LocalVirtualGroups), k.MaxLocalVirtualGroupNumPerBucket(ctx))
+		}
 		// create a new lvg and add to the internalBucketInfo
 		lvg = &types.LocalVirtualGroup{
 			Id:                   internalBucketInfo.GetMaxLVGID() + 1,
