@@ -687,7 +687,6 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		PrimarySpId:                bucketInfo.PrimarySpId,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
 		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
-		BillingInfo:                bucketInfo.BillingInfo,
 	}
 
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
@@ -700,7 +699,7 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	}
 
 	// rebinding gvg and lvg
-	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
+	err = k.RebindingVirtualGroup(ctx, bucketInfo, msg.GvgMappings)
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
@@ -735,7 +734,7 @@ func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *
 		}
 		// validate the aggregated bls signature
 		migrationBucketSignDocBlsSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, dstGVG.Id).GetBlsSignHash()
-		err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
+		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
 		if err != nil {
 			return err
 		}

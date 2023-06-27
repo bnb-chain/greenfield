@@ -1,8 +1,6 @@
 package types
 
 import (
-	"cosmossdk.io/math"
-
 	"github.com/bnb-chain/greenfield/internal/sequence"
 )
 
@@ -35,10 +33,8 @@ const (
 var (
 	ParamsKey = []byte{0x01}
 
-	GVGKey                  = []byte{0x21}
-	GVGFamilyKey            = []byte{0x22}
-	LVGKey                  = []byte{0x23}
-	GVGsBindingOnBucketGKey = []byte{0x24}
+	GVGKey       = []byte{0x21}
+	GVGFamilyKey = []byte{0x22}
 
 	LVGSequencePrefix       = []byte{0x31}
 	GVGSequencePrefix       = []byte{0x32}
@@ -46,12 +42,6 @@ var (
 
 	GVGStatisticsWithinSPKey = []byte{0x41}
 )
-
-func GetLVGKey(bucketID math.Uint, lvgID uint32) []byte {
-	var uint256Seq sequence.Sequence[math.Uint]
-	var uint32Seq sequence.Sequence[uint32]
-	return append(LVGKey, append(uint256Seq.EncodeSequence(bucketID), uint32Seq.EncodeSequence(lvgID)...)...)
-}
 
 func GetGVGKey(gvgID uint32) []byte {
 	var uint32Seq sequence.Sequence[uint32]
@@ -66,11 +56,6 @@ func GetGVGFamilyKey(spID uint32, familyID uint32) []byte {
 func GetGVGFamilyPrefixKey(spID uint32) []byte {
 	var uint32Seq sequence.Sequence[uint32]
 	return append(GVGFamilyKey, uint32Seq.EncodeSequence(spID)...)
-}
-
-func GetGVGsBindingOnBucketKey(bucketID math.Uint) []byte {
-	var uint256Seq sequence.Sequence[math.Uint]
-	return append(GVGsBindingOnBucketGKey, uint256Seq.EncodeSequence(bucketID)...)
 }
 
 func GetGVGStatisticsWithinSPKey(spID uint32) []byte {

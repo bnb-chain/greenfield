@@ -1,134 +1,69 @@
 package keeper
 
 import (
-	"fmt"
-
-	"cosmossdk.io/math"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"github.com/bnb-chain/greenfield/x/storage/types"
 	vgtypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 )
 
-func (k Keeper) UnBindingObjectFromLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error {
-	lvg, found := k.GetLVG(ctx, bucketID, lvgID)
+func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo) error {
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+
+	lvg := internalBucketInfo.MustGetLVG(objectInfo.LocalVirtualGroupId)
+
+	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 	if !found {
-		return vgtypes.ErrLVGNotExist
-	}
-	gvgsBindingOnBucket, found := k.GetGVGsBindingOnBucket(ctx, bucketID)
-	if !found {
-		panic(fmt.Sprintf("gvgs binding on bucket mapping not found, bucketID: %s", bucketID.String()))
-	}
-	gvgID := gvgsBindingOnBucket.GetGVGIDByLVGID(lvgID)
-	gvg, found := k.GetGVG(ctx, gvgID)
-	if !found {
-		ctx.Logger().Error("GVG Not Exist, bucketID: %s, gvgID: %d, lvgID :%d", bucketID.String(), gvgID, lvgID)
+		ctx.Logger().Error("GVG Not Exist, bucketID: %s, gvgID: %d, lvgID :%d", bucketInfo.Id.String(), lvg.GlobalVirtualGroupId, lvg.Id)
 		return vgtypes.ErrGVGNotExist
 	}
 
 	// TODO: if the store size is 0, remove it.
-	lvg.StoredSize -= payloadSize
-	gvg.StoredSize -= payloadSize
+	lvg.StoredSize -= objectInfo.PayloadSize
+	gvg.StoredSize -= objectInfo.PayloadSize
 
-	k.SetLVG(ctx, lvg)
-	k.SetGVG(ctx, gvg)
+	k.virtualGroupKeeper.SetGVG(ctx, gvg)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	return nil
 }
 
-func (k Keeper) UnBindingBucketFromGVG(ctx sdk.Context, bucketID math.Uint) error {
-	store := ctx.KVStore(k.storeKey)
+func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, gvgMappings []*types.GVGMapping) error {
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
-	gvgsBindingOnBucket, found := k.GetGVGsBindingOnBucket(ctx, bucketID)
-	if !found {
-		return nil
+	gvgsMap := make(map[uint32]uint32)
+	for _, mapping := range gvgMappings {
+		gvgsMap[mapping.SrcGlobalVirtualGroupId] = mapping.DstGlobalVirtualGroupId
 	}
 
-	for _, lvgID := range gvgsBindingOnBucket.LocalVirtualGroupIds {
-		store.Delete(vgtypes.GetLVGKey(bucketID, lvgID))
-	}
+	for _, lvg := range internalBucketInfo.LocalVirtualGroups {
+		dstGVGID, exist := gvgsMap[lvg.GlobalVirtualGroupId]
+		if !exist {
+			return types.ErrVirtualGroupOperateFailed.Wrapf("global virtual group not found in GVGMapping of  message. ID: %d", lvg.GlobalVirtualGroupId)
+		}
 
-	store.Delete(vgtypes.GetGVGsBindingOnBucketKey(bucketID))
-	return nil
-}
-
-func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, primarySPID, familyID uint32) (*vgtypes.LocalVirtualGroup, error) {
-	family, found := k.GetGVGFamily(ctx, primarySPID, familyID)
-	if !found {
-		return nil, vgtypes.ErrGVGFamilyNotExist
-	}
-
-	if len(family.GlobalVirtualGroupIds) == 0 {
-		return nil, vgtypes.ErrGVGNotExist.Wrapf("The gvg family has no gvg")
-	}
-
-	// use the first gvg by default.
-	gvgID := family.GlobalVirtualGroupIds[0]
-
-	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
-}
-
-func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
-	gvgsBindingOnBucket, found := k.GetGVGsBindingOnBucket(ctx, bucketID)
-	if !found {
-		// empty bucket. do nothing
-		return nil
-	}
-	var newGVGBindingOnBucket vgtypes.GlobalVirtualGroupsBindingOnBucket
-	gvg2lvg := make(map[uint32]uint32)
-	for i, gvgID := range gvgsBindingOnBucket.GlobalVirtualGroupIds {
-		gvg2lvg[gvgID] = gvgsBindingOnBucket.LocalVirtualGroupIds[i]
-	}
-
-	// verify secondary signature
-	var srcGVGs []*vgtypes.GlobalVirtualGroup
-	var dstGVGs []*vgtypes.GlobalVirtualGroup
-	for _, gvgMapping := range gvgMappings {
-		dstGVG, found := k.GetGVG(ctx, gvgMapping.DstGlobalVirtualGroupId)
+		dstGVG, found := k.virtualGroupKeeper.GetGVG(ctx, dstGVGID)
 		if !found {
-			return vgtypes.ErrGVGNotExist.Wrapf("dst gvg not found")
+			return types.ErrVirtualGroupOperateFailed.Wrapf("dst global virtual group not found in blockchain state. ID: %d", dstGVGID)
 		}
 
-		srcLVGID, exists := gvg2lvg[gvgMapping.SrcGlobalVirtualGroupId]
-		if !exists {
-			return vgtypes.ErrRebindingGVGsToBucketFailed.Wrapf("src global virtual group not found in gvg mappings, id: %d", gvgMapping.SrcGlobalVirtualGroupId)
-		}
-
-		lvg, found := k.GetLVG(ctx, bucketID, srcLVGID)
+		srcGVG, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 		if !found {
-			return vgtypes.ErrGVGNotExist.Wrapf("lvg not found")
+			return types.ErrVirtualGroupOperateFailed.Wrapf("src global virtual group not found in blockchain state. ID: %d", lvg.GlobalVirtualGroupId)
 		}
 
-		srcGVG, found := k.GetGVG(ctx, gvgMapping.SrcGlobalVirtualGroupId)
-		if !found {
-			return vgtypes.ErrGVGNotExist.Wrapf("src gvg not found, ID: %d", gvgMapping.SrcGlobalVirtualGroupId)
-		}
-
-		dstGVG.StoredSize += lvg.StoredSize
 		srcGVG.StoredSize -= lvg.StoredSize
-		// TODO(fynn): add deposit check
-		newGVGBindingOnBucket.LocalVirtualGroupIds = append(newGVGBindingOnBucket.LocalVirtualGroupIds, lvg.Id)
-		newGVGBindingOnBucket.GlobalVirtualGroupIds = append(newGVGBindingOnBucket.GlobalVirtualGroupIds, gvgMapping.DstGlobalVirtualGroupId)
-		delete(gvg2lvg, gvgMapping.SrcGlobalVirtualGroupId)
-		srcGVGs = append(srcGVGs, dstGVG)
-		dstGVGs = append(dstGVGs, srcGVG)
-	}
+		dstGVG.StoredSize += lvg.StoredSize
 
-	if len(gvg2lvg) != 0 || len(gvgsBindingOnBucket.LocalVirtualGroupIds) != len(newGVGBindingOnBucket.LocalVirtualGroupIds) {
-		return vgtypes.ErrRebindingGVGsToBucketFailed.Wrapf("LVG is not fully rebinding. please check new lvg to gvg mappings")
-	}
+		lvg.GlobalVirtualGroupId = dstGVGID
 
-	newGVGBindingOnBucket.BucketId = bucketID
-	k.SetGVGsBindingOnBucket(ctx, &newGVGBindingOnBucket)
-	for _, gvg := range srcGVGs {
-		k.SetGVG(ctx, gvg)
+		k.virtualGroupKeeper.SetGVG(ctx, srcGVG)
+		k.virtualGroupKeeper.SetGVG(ctx, dstGVG)
 	}
-	for _, gvg := range dstGVGs {
-		k.SetGVG(ctx, gvg)
-	}
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
+
 	return nil
-
 }
 
 func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *vgtypes.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
@@ -147,69 +82,35 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *vgtypes.
 	return gnfdtypes.VerifyBlsAggSignature(secondarySpBlsPubKeys, signHash, signature)
 }
 
-func (k Keeper) SealObjectOnGVG(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, gvgID uint32, payloadSize uint64) (*vgtypes.LocalVirtualGroup, error) {
-	gvg, err := k.virtualGroupKeeper.GetGlobalVirtualGroupIfAvailable(ctx, gvgID, payloadSize)
+func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, gvgID uint32, objectInfo *types.ObjectInfo) (*types.LocalVirtualGroup, error) {
+	gvg, err := k.virtualGroupKeeper.GetGlobalVirtualGroupIfAvailable(ctx, gvgID, objectInfo.PayloadSize)
 	if err != nil {
 		return nil, err
 	}
 
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
-	if len(internalBucketInfo.LocalVirtualGroups)
-
-	var gvgsBindingOnBucket *vgtypes.GlobalVirtualGroupsBindingOnBucket
-	var lvg *vgtypes.LocalVirtualGroup
-	gvgsBindingOnBucket, found = k.GetGVGsBindingOnBucket(ctx, bucketID)
-	var newLVG = false
+	lvg, found := internalBucketInfo.GetLVGByGVGID(gvgID)
 	if !found {
-		// Create a new key store the gvgs binding on bucket
-		lvgID := k.GenNextLVGID(ctx)
-		lvg = &vgtypes.LocalVirtualGroup{
-			Id:                   lvgID,
-			GlobalVirtualGroupId: gvgID,
-			StoredSize:           payloadSize,
-			BucketId:             bucketID,
+		// create a new lvg and add to the internalBucketInfo
+		lvg = &types.LocalVirtualGroup{
+			Id:                   internalBucketInfo.GetMaxLVGID() + 1,
+			GlobalVirtualGroupId: gvg.Id,
+			StoredSize:           objectInfo.PayloadSize,
 		}
-		newLVG = true
-		gvgsBindingOnBucket = &vgtypes.GlobalVirtualGroupsBindingOnBucket{
-			BucketId: bucketID,
-		}
-		gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
+		internalBucketInfo.AppendLVG(lvg)
 	} else {
-		lvgID := gvgsBindingOnBucket.GetLVGIDByGVGID(gvgID)
-		if lvgID == 0 {
-			if k.MaxLocalVirtualGroupNumPerBucket(ctx) < uint32(len(gvgsBindingOnBucket.LocalVirtualGroupIds)) {
-				return nil, vgtypes.ErrLimitationExceed.Wrapf("The lvg number within the bucket exceeds the limit")
-			}
-			// not exist
-			lvgID = k.GenNextLVGID(ctx)
-			lvg = &vgtypes.LocalVirtualGroup{
-				Id:                   lvgID,
-				GlobalVirtualGroupId: gvgID,
-				StoredSize:           payloadSize,
-				BucketId:             bucketID,
-			}
-			newLVG = true
-			gvgsBindingOnBucket.AppendGVGAndLVG(gvgID, lvgID)
-		} else {
-			lvg, found = k.GetLVG(ctx, bucketID, lvgID)
-			if !found {
-				return nil, vgtypes.ErrLVGNotExist
-			}
-			lvg.StoredSize += payloadSize
-		}
+		lvg.StoredSize += objectInfo.PayloadSize
 	}
+	gvg.StoredSize += objectInfo.PayloadSize
 
-	gvg.StoredSize += payloadSize
+	k.virtualGroupKeeper.SetGVG(ctx, gvg)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
-	k.SetGVG(ctx, gvg)
-	k.SetLVG(ctx, lvg)
-	k.SetGVGsBindingOnBucket(ctx, gvgsBindingOnBucket)
-
-	if newLVG {
+	if !found {
 		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventCreateLocalVirtualGroup{
 			Id:                   lvg.Id,
-			BucketId:             lvg.BucketId,
+			BucketId:             bucketInfo.Id,
 			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
 			StoredSize:           lvg.StoredSize,
 		}); err != nil {
@@ -225,4 +126,20 @@ func (k Keeper) SealObjectOnGVG(ctx sdk.Context, bucketInfo *storagetypes.Bucket
 		}
 	}
 	return lvg, nil
+}
+
+func (k Keeper) SealEmptyObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo) (*types.LocalVirtualGroup, error) {
+	family, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return nil, vgtypes.ErrGVGFamilyNotExist
+	}
+
+	if len(family.GlobalVirtualGroupIds) == 0 {
+		return nil, vgtypes.ErrGVGNotExist.Wrapf("The gvg family has no gvg")
+	}
+
+	// use the first gvg by default.
+	gvgID := family.GlobalVirtualGroupIds[0]
+
+	return k.SealObjectOnVirtualGroup(ctx, bucketInfo, gvgID, objectInfo)
 }

@@ -84,4 +84,41 @@ func (di *DeleteInfo) IsEmpty() bool {
 	return isBucketIdsEmpty && isObjectIdsEmpty && isGroupIdsEmpty
 }
 
-func (b *InternalBucketInfo) GetLVG
+func (b *InternalBucketInfo) GetLVGByGVGID(gvgID uint32) (*LocalVirtualGroup, bool) {
+	for _, lvg := range b.LocalVirtualGroups {
+		if lvg.GlobalVirtualGroupId == gvgID {
+			return lvg, true
+		}
+	}
+	return nil, false
+}
+
+func (b *InternalBucketInfo) AppendLVG(lvg *LocalVirtualGroup) {
+	lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
+	if lvg.Id <= lastLVG.Id {
+		panic("Not allow to append a lvg which id is smaller than the last lvg")
+	}
+	b.LocalVirtualGroups = append(b.LocalVirtualGroups, lvg)
+}
+
+func (b *InternalBucketInfo) GetMaxLVGID() uint32 {
+	lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
+	return lastLVG.Id
+}
+
+func (b *InternalBucketInfo) GetLVG(lvgID uint32) (*LocalVirtualGroup, bool) {
+	for _, lvg := range b.LocalVirtualGroups {
+		if lvg.Id == lvgID {
+			return lvg, true
+		}
+	}
+	return nil, false
+}
+
+func (b *InternalBucketInfo) MustGetLVG(lvgID uint32) *LocalVirtualGroup {
+	lvg, found := b.GetLVG(lvgID)
+	if !found {
+		panic("lvg not found in internal bucket info")
+	}
+	return lvg
+}

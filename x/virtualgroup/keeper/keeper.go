@@ -30,7 +30,6 @@ type (
 		bankKeeper    types.BankKeeper
 		paymentKeeper types.PaymentKeeper
 		// sequence
-		lvgSequence       sequence.Sequence[uint32]
 		gvgSequence       sequence.Sequence[uint32]
 		gvgFamilySequence sequence.Sequence[uint32]
 	}
@@ -58,7 +57,6 @@ func NewKeeper(
 		paymentKeeper: paymentKeeper,
 	}
 
-	k.lvgSequence = sequence.NewSequence[uint32](types.LVGSequencePrefix)
 	k.gvgSequence = sequence.NewSequence[uint32](types.GVGSequencePrefix)
 	k.gvgFamilySequence = sequence.NewSequence[uint32](types.GVGFamilySequencePrefix)
 
@@ -71,13 +69,6 @@ func (k Keeper) GetAuthority() string {
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
-}
-
-func (k Keeper) GenNextLVGID(ctx sdk.Context) uint32 {
-	store := ctx.KVStore(k.storeKey)
-
-	seq := k.lvgSequence.NextVal(store)
-	return seq
 }
 
 func (k Keeper) GenNextGVGID(ctx sdk.Context) uint32 {
@@ -148,75 +139,6 @@ func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup
 	var gvg types.GlobalVirtualGroup
 	k.cdc.MustUnmarshal(bz, &gvg)
 	return &gvg, true
-}
-
-func (k Keeper) GetGVGByLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool) {
-	lvg, found := k.GetLVG(ctx, bucketID, lvgID)
-	if !found {
-		return nil, false
-	}
-	gvg, found := k.GetGVG(ctx, lvg.GlobalVirtualGroupId)
-	if !found {
-		return nil, false
-	}
-	return gvg, true
-}
-
-// SetLVG store the lvg to the multi sore.
-// TODO: Reduce storage space by assigning default values to id and bucketid
-func (k Keeper) SetLVG(ctx sdk.Context, lvg *types.LocalVirtualGroup) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := k.cdc.MustMarshal(lvg)
-	store.Set(types.GetLVGKey(lvg.BucketId, lvg.Id), bz)
-}
-
-func (k Keeper) GetLVG(ctx sdk.Context, bucketID math.Uint, lvgID uint32) (*types.LocalVirtualGroup, bool) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := store.Get(types.GetLVGKey(bucketID, lvgID))
-	if bz == nil {
-		return nil, false
-	}
-	var lvg types.LocalVirtualGroup
-	k.cdc.MustUnmarshal(bz, &lvg)
-	return &lvg, true
-}
-
-func (k Keeper) GetLVGs(ctx sdk.Context, bucketID math.Uint) []*types.LocalVirtualGroup {
-	lvgs := make([]*types.LocalVirtualGroup, 0)
-	store := ctx.KVStore(k.storeKey)
-	prefixStore := prefix.NewStore(store, types.GetLVGKey(bucketID, 0))
-	iterator := prefixStore.Iterator(nil, nil)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		var lvg types.LocalVirtualGroup
-		k.cdc.MustUnmarshal(iterator.Value(), &lvg)
-		lvgs = append(lvgs, &lvg)
-	}
-
-	return lvgs
-}
-
-func (k Keeper) GetGVGsBindingOnBucket(ctx sdk.Context, bucketID math.Uint) (*types.GlobalVirtualGroupsBindingOnBucket, bool) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := store.Get(types.GetGVGsBindingOnBucketKey(bucketID))
-	if bz == nil {
-		return nil, false
-	}
-
-	var gvgsBindingOnBucket types.GlobalVirtualGroupsBindingOnBucket
-	k.cdc.MustUnmarshal(bz, &gvgsBindingOnBucket)
-	return &gvgsBindingOnBucket, true
-}
-
-func (k Keeper) SetGVGsBindingOnBucket(ctx sdk.Context, gvgsBindingOnBucket *types.GlobalVirtualGroupsBindingOnBucket) {
-	store := ctx.KVStore(k.storeKey)
-
-	bz := k.cdc.MustMarshal(gvgsBindingOnBucket)
-	store.Set(types.GetGVGsBindingOnBucketKey(gvgsBindingOnBucket.BucketId), bz)
 }
 
 func (k Keeper) SetGVGFamily(ctx sdk.Context, primarySpID uint32, gvgFamily *types.GlobalVirtualGroupFamily) {

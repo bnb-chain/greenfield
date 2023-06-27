@@ -50,6 +50,8 @@ message InternalBucketInfo {
   uint64 total_charge_size = 2;
   // local_virtual_groups contains all the lvg of this bucket.
   repeated LocalVirtualGroup local_virtual_groups = 3;
+  // next_local_virtual_group_id store the next id used by local virtual group
+  uint32 next_local_virtual_group_id = 4;
 }
 
 message ObjectInfo {

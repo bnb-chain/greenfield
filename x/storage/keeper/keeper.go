@@ -6,13 +6,6 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -20,6 +13,12 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -188,6 +187,14 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		return types.ErrBucketNotEmpty
 	}
 
+	// check lvgs
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	for _, lvg := range internalBucketInfo.LocalVirtualGroups {
+		if lvg.StoredSize != 0 || lvg.TotalChargeSize != 0 {
+			return types.ErrVirtualGroupOperateFailed.Wrapf("non-empty lvg, %s", lvg.String())
+		}
+	}
+
 	// change the bill
 	err := k.ChargeDeleteBucket(ctx, bucketInfo)
 	if err != nil {
@@ -202,12 +209,9 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetBucketKey(bucketInfo.BucketName))
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 	store.Delete(types.GetQuotaKey(bucketInfo.Id))
+	store.Delete(types.GetInternalBucketInfoKey(bucketInfo.Id))
 
-	err := k.virtualGroupKeeper.UnBindingBucketFromGVG(ctx, bucketInfo.Id)
-	if err != nil {
-		return err
-	}
-	err = k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
+	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
 	if err != nil {
 		return err
 	}
@@ -544,7 +548,7 @@ func (k Keeper) CreateObject(
 	}
 
 	if objectInfo.PayloadSize == 0 {
-		lvg, err := k.virtualGroupKeeper.BindingEmptyObjectToGVG(ctx, bucketInfo.Id, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+		lvg, err := k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -672,12 +676,12 @@ func (k Keeper) SealObject(
 	}
 	// validate seal object bls aggregated sig from secondary sps
 	secondarySpsSealObjectBlsSignHash := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetBlsSignHash()
-	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
+	err := k.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}
 
-	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)
+	lvg, err := k.SealObjectOnVirtualGroup(ctx, bucketInfo, opts.GlobalVirtualGroupId, objectInfo)
 	if err != nil {
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
 	}
@@ -815,7 +819,7 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	err := k.virtualGroupKeeper.UnBindingObjectFromLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId, objectInfo.PayloadSize)
+	err := k.DeleteObjectFromVirtualGroup(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -949,7 +953,7 @@ func (k Keeper) CopyObject(
 	}
 
 	if srcObjectInfo.PayloadSize == 0 {
-		lvg, err := k.virtualGroupKeeper.BindingEmptyObjectToGVG(ctx, dstBucketInfo.Id, dstBucketInfo.PrimarySpId, dstBucketInfo.GlobalVirtualGroupFamilyId)
+		lvg, err := k.SealEmptyObjectOnVirtualGroup(ctx, dstBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
