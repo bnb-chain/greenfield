@@ -621,6 +621,8 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 	}
 
 	// verify secondary signature
+	var srcGVGs []*types.GlobalVirtualGroup
+	var dstGVGs []*types.GlobalVirtualGroup
 	for _, gvgMapping := range gvgMappings {
 		dstGVG, found := k.GetGVG(ctx, gvgMapping.DstGlobalVirtualGroupId)
 		if !found {
@@ -648,8 +650,8 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 		newGVGBindingOnBucket.LocalVirtualGroupIds = append(newGVGBindingOnBucket.LocalVirtualGroupIds, lvg.Id)
 		newGVGBindingOnBucket.GlobalVirtualGroupIds = append(newGVGBindingOnBucket.GlobalVirtualGroupIds, gvgMapping.DstGlobalVirtualGroupId)
 		delete(gvg2lvg, gvgMapping.SrcGlobalVirtualGroupId)
-		k.SetGVG(ctx, dstGVG)
-		k.SetGVG(ctx, srcGVG)
+		srcGVGs = append(srcGVGs, dstGVG)
+		dstGVGs = append(dstGVGs, srcGVG)
 	}
 
 	if len(gvg2lvg) != 0 || len(gvgsBindingOnBucket.LocalVirtualGroupIds) != len(newGVGBindingOnBucket.LocalVirtualGroupIds) {
@@ -658,7 +660,14 @@ func (k Keeper) RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP
 
 	newGVGBindingOnBucket.BucketId = bucketID
 	k.SetGVGsBindingOnBucket(ctx, &newGVGBindingOnBucket)
+	for _, gvg := range srcGVGs {
+		k.SetGVG(ctx, gvg)
+	}
+	for _, gvg := range dstGVGs {
+		k.SetGVG(ctx, gvg)
+	}
 	return nil
+
 }
 
 func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
