@@ -163,11 +163,9 @@ func (s *TestSuite) TestGetBucketBill() {
 		PrimarySpId:                primarySp.Id,
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		ChargedReadQuota:           0,
-		BillingInfo: types.BillingInfo{
-			TotalChargeSize: 0,
-		},
 	}
-	flows, err := s.storageKeeper.GetBucketBill(s.ctx, bucketInfo)
+	internalBucketInfo := &types.InternalBucketInfo{}
+	flows, err := s.storageKeeper.GetBucketBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 	s.Require().True(len(flows.Flows) == 0)
 
@@ -180,11 +178,9 @@ func (s *TestSuite) TestGetBucketBill() {
 		PrimarySpId:                primarySp.Id,
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		ChargedReadQuota:           100,
-		BillingInfo: types.BillingInfo{
-			TotalChargeSize: 0,
-		},
 	}
-	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo)
+	internalBucketInfo = &types.InternalBucketInfo{}
+	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 	readRate := price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	s.Require().Equal(flows.Flows[0].ToAddress, gvgFamily.VirtualPaymentAddress)
@@ -202,28 +198,21 @@ func (s *TestSuite) TestGetBucketBill() {
 		PrimarySpId:                primarySp.Id,
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		ChargedReadQuota:           100,
-		BillingInfo: types.BillingInfo{
-			TotalChargeSize: 300,
-			LvgObjectsSize: []types.LVGObjectsSize{
-				{
-					LvgId:           1,
-					TotalChargeSize: 100,
-				}, {
-					LvgId:           2,
-					TotalChargeSize: 200,
-				},
+	}
+
+	internalBucketInfo = &types.InternalBucketInfo{
+		TotalChargeSize: 300,
+		LocalVirtualGroups: []*types.LocalVirtualGroup{
+			{
+				Id:                   1,
+				TotalChargeSize:      100,
+				GlobalVirtualGroupId: 1,
+			}, {
+				Id:                   2,
+				TotalChargeSize:      200,
+				GlobalVirtualGroupId: 2,
 			},
 		},
-	}
-	lvg1 := &virtualgroupmoduletypes.LocalVirtualGroup{
-		Id:                   1,
-		BucketId:             bucketInfo.Id,
-		GlobalVirtualGroupId: 1,
-	}
-	lvg2 := &virtualgroupmoduletypes.LocalVirtualGroup{
-		Id:                   2,
-		BucketId:             bucketInfo.Id,
-		GlobalVirtualGroupId: 2,
 	}
 
 	gvg1 := &virtualgroupmoduletypes.GlobalVirtualGroup{
@@ -238,26 +227,26 @@ func (s *TestSuite) TestGetBucketBill() {
 		SecondarySpIds:        []uint32{201, 202, 203, 204, 205, 206},
 		VirtualPaymentAddress: sample.RandAccAddress().String(),
 	}
-	s.virtualGroupKeeper.EXPECT().GetGVGByLVG(gomock.Any(), gomock.Any(), lvg1.Id).
+	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gvg1.Id).
 		Return(gvg1, true).AnyTimes()
-	s.virtualGroupKeeper.EXPECT().GetGVGByLVG(gomock.Any(), gomock.Any(), lvg2.Id).
+	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gvg2.Id).
 		Return(gvg2, true).AnyTimes()
 
-	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo)
+	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 
-	gvg1StoreSize := bucketInfo.BillingInfo.LvgObjectsSize[0].TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
+	gvg1StoreSize := internalBucketInfo.LocalVirtualGroups[0].TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
 	gvg1StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg1StoreSize)).TruncateInt()
 	s.Require().Equal(flows.Flows[0].ToAddress, gvg1.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[0].Rate, gvg1StoreRate)
 
-	gvg2StoreSize := bucketInfo.BillingInfo.LvgObjectsSize[1].TotalChargeSize * uint64(len(gvg2.SecondarySpIds))
+	gvg2StoreSize := internalBucketInfo.LocalVirtualGroups[1].TotalChargeSize * uint64(len(gvg2.SecondarySpIds))
 	gvg2StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg2StoreSize)).TruncateInt()
 	s.Require().Equal(flows.Flows[1].ToAddress, gvg2.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[1].Rate, gvg2StoreRate)
 
 	readRate = price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
-	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(bucketInfo.BillingInfo.TotalChargeSize)).TruncateInt()
+	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(internalBucketInfo.TotalChargeSize)).TruncateInt()
 	s.Require().Equal(flows.Flows[2].ToAddress, gvgFamily.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[2].Rate, readRate.Add(primaryStoreRate))
 

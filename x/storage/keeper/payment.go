@@ -404,7 +404,7 @@ func (k Keeper) ChargeBucketMigration(ctx sdk.Context, oldBucketInfo, newBucketI
 	}
 
 	// update billing info
-	oldInternalBucketInfo.PriceTime = ctx.BlockTime().Unix()
+	newInternalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	err = k.UpdateLVGChargeSize(ctx, newBucketInfo, newInternalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("fail to update lvg charge size, bucket: %s, err: %s", oldBucketInfo.BucketName, err.Error())

@@ -80,12 +80,12 @@ func (k Keeper) GetStreamRecord(
 }
 
 func (k Keeper) IsEmptyNetFlow(ctx sdk.Context,
-	account sdk.AccAddress) (bool, error) {
+	account sdk.AccAddress) bool {
 	record, found := k.GetStreamRecord(ctx, account)
 	if !found {
-		return false, types.ErrStreamRecordNotFound
+		return true // treat as empty, for internal use only
 	}
-	return record.NetflowRate.IsZero() && record.FrozenNetflowRate.IsZero(), nil
+	return record.NetflowRate.IsZero() && record.FrozenNetflowRate.IsZero()
 }
 
 // GetAllStreamRecord returns all streamRecord
