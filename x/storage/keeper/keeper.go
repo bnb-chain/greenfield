@@ -115,9 +115,9 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), err
 	}
 
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
-	if !found {
-		return sdkmath.ZeroUint(), virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	gvgFamily, err := k.virtualGroupKeeper.GetAndCheckGVGFamilyAvailableForNewBucket(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
+	if err != nil {
+		return sdkmath.ZeroUint(), err
 	}
 
 	bucketInfo := types.BucketInfo{

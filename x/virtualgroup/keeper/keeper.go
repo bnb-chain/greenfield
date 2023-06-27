@@ -242,6 +242,21 @@ func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.Glo
 	return &gvgFamily, true
 }
 
+func (k Keeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, error) {
+	gvgFamily, found := k.GetGVGFamily(ctx, spID, familyID)
+	if !found {
+		return nil, types.ErrGVGNotExist
+	}
+
+	// check the maximum store size for a family
+	// If yes, no more buckets will be served
+	storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
+	if storeSize >= k.MaxStoreSizePerFamily(ctx) {
+		return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit and can't serve more buckets.. Current: %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
+	}
+	return gvgFamily, nil
+}
+
 func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	store := ctx.KVStore(k.storeKey)
 	var gvgFamily types.GlobalVirtualGroupFamily

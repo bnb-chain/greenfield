@@ -66,13 +66,6 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, err
 	}
 
-	// check the maximum store size for a family
-	// If yes, no more buckets will be served
-	storeSize := k.GetStoreSizeOfFamily(ctx, gvgFamily)
-	if storeSize >= k.MaxStoreSizePerFamily(ctx) {
-		return nil, types.ErrLimitationExceed.Wrapf("The storage size within the family exceeds the limit and can't serve more buckets.. Current: %d, now: %d", k.MaxStoreSizePerFamily(ctx), storeSize)
-	}
-
 	// Each family supports only a limited number of GVGS
 	if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
 		return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")
