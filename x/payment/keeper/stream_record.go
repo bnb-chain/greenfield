@@ -79,8 +79,7 @@ func (k Keeper) GetStreamRecord(
 	return val, true
 }
 
-func (k Keeper) IsEmptyNetFlow(ctx sdk.Context,
-	account sdk.AccAddress) bool {
+func (k Keeper) IsEmptyNetFlow(ctx sdk.Context, account sdk.AccAddress) bool {
 	record, found := k.GetStreamRecord(ctx, account)
 	if !found {
 		return true // treat as empty, for internal use only

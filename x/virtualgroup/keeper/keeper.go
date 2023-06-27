@@ -105,6 +105,10 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		return types.ErrGVGNotEmpty
 	}
 
+	if !k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress)) {
+		return types.ErrGVGNotEmpty.Wrap("The virtual payment account still not empty")
+	}
+
 	gvgFamily, found := k.GetGVGFamily(ctx, primarySpID, gvg.FamilyId)
 	if !found {
 		panic("not found gvg family when delete gvg")
