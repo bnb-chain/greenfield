@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.3-alpha.2
+This release enables 2 new features:  
+
+Features  
+* [#301](https://github.com/bnb-chain/greenfield/pull/301) feat: add support of group name in policy
+* [#304](https://github.com/bnb-chain/greenfield/pull/304) feat: allow simulate create bucket without approval
+
 ## v0.2.3-alpha.1
 This release enables several features and bugfixes:
 
