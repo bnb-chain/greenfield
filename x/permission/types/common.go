@@ -1,6 +1,8 @@
 package types
 
 import (
+	"github.com/bnb-chain/greenfield/types"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -12,10 +14,17 @@ func NewPrincipalWithAccount(addr sdk.AccAddress) *Principal {
 	}
 }
 
-func NewPrincipalWithGroup(groupID sdkmath.Uint) *Principal {
+func NewPrincipalWithGroupId(groupID sdkmath.Uint) *Principal {
 	return &Principal{
 		Type:  PRINCIPAL_TYPE_GNFD_GROUP,
 		Value: groupID.String(),
+	}
+}
+
+func NewPrincipalWithGroupInfo(groupOwner sdk.AccAddress, groupName string) *Principal {
+	return &Principal{
+		Type:  PRINCIPAL_TYPE_GNFD_GROUP,
+		Value: types.NewGroupGRN(groupOwner, groupName).String(),
 	}
 }
 
@@ -29,13 +38,7 @@ func (p *Principal) ValidateBasic() error {
 			return ErrInvalidPrincipal.Wrapf("Invalid account, principal: %s, err: %s", p.String(), err)
 		}
 	case PRINCIPAL_TYPE_GNFD_GROUP:
-		groupID, err := sdkmath.ParseUint(p.Value)
-		if err != nil {
-			return ErrInvalidPrincipal.Wrapf("Invalid groupID, principal: %s, err: %s", p.String(), err)
-		}
-		if groupID.Equal(sdkmath.ZeroUint()) {
-			return ErrInvalidPrincipal.Wrapf("Zero groupID, principal %s", p.String())
-		}
+		return nil
 	default:
 		return ErrInvalidPrincipal.Wrapf("Unknown principal type.")
 	}
