@@ -79,6 +79,15 @@ func (k Keeper) GetStreamRecord(
 	return val, true
 }
 
+func (k Keeper) IsEmptyNetFlow(ctx sdk.Context,
+	account sdk.AccAddress) (bool, error) {
+	record, found := k.GetStreamRecord(ctx, account)
+	if !found {
+		return false, types.ErrStreamRecordNotFound
+	}
+	return record.NetflowRate.IsZero() && record.FrozenNetflowRate.IsZero(), nil
+}
+
 // GetAllStreamRecord returns all streamRecord
 func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.StreamRecordKeyPrefix)

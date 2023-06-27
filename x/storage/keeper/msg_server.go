@@ -688,6 +688,7 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
 		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
 	}
+	oldInternalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
@@ -704,12 +705,14 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
 
-	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo, oldInternalBucketInfo, internalBucketInfo)
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("update payment info failed. err: %s", err)
 	}
 
 	k.SetBucketInfo(ctx, bucketInfo)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{
