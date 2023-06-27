@@ -17,8 +17,7 @@ const (
 
 var (
 	// DefaultGVGStakingPrice defines the default gvg staking price
-	// TODO: Set a reasonable value.
-	DefaultGVGStakingPrice                   = sdk.NewDecFromIntWithPrec(sdk.NewInt(2), 18)
+	DefaultGVGStakingPrice                   = sdk.NewDecFromInt(sdk.NewInt(16000))
 	DefaultMaxLocalVirtualGroupNumPerBucket  = uint32(10)
 	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 //64T

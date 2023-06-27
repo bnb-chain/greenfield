@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	math2 "math"
 
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -300,14 +301,7 @@ func (k Keeper) BindingObjectToGVG(ctx sdk.Context, bucketID math.Uint, primaryS
 		return nil, types.ErrGVGNotExist
 	}
 
-	gvgFamily, found := k.GetGVGFamily(ctx, primarySPID, familyID)
-	if !found {
-		return nil, types.ErrGVGFamilyNotExist.Wrapf("familyID: %d, primarySPID: %d", familyID, primarySPID)
-	}
-
-	if !gvgFamily.Contains(gvg.Id) {
-		return nil, types.ErrGVGNotExistInFamily
-	}
+	// check staking
 
 	var gvgsBindingOnBucket *types.GlobalVirtualGroupsBindingOnBucket
 	var lvg *types.LocalVirtualGroup
@@ -427,9 +421,10 @@ func (k Keeper) BindingEmptyObjectToGVG(ctx sdk.Context, bucketID math.Uint, pri
 	}
 
 	if len(family.GlobalVirtualGroupIds) == 0 {
-		return nil, types.ErrGVGNotExist
+		return nil, types.ErrGVGNotExist.Wrapf("The gvg family has no gvg")
 	}
 
+	// use the first gvg by default.
 	gvgID := family.GlobalVirtualGroupIds[0]
 
 	return k.BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, 0)
@@ -692,4 +687,14 @@ func (k Keeper) GetStoreSizeOfFamily(ctx sdk.Context, gvgFamily *types.GlobalVir
 		totalStoreSize += gvg.StoredSize
 	}
 	return totalStoreSize
+}
+
+func (k Keeper) GetAvailableStoreSize(ctx sdk.Context, gvg *types.GlobalVirtualGroup) uint64 {
+	total := sdk.NewDecFromBigInt(gvg.TotalDeposit.BigInt())
+	total = total.Quo(k.GVGStakingPrice(ctx))
+	if !total.TruncateInt().IsUint64() {
+		return math2.MaxUint64
+	} else {
+		return total.TruncateInt().Uint64()
+	}
 }
