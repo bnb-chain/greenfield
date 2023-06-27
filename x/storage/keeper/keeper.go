@@ -6,13 +6,6 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/gogoproto/proto"
-
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/resource"
@@ -20,6 +13,12 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	"github.com/cometbft/cometbft/libs/log"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 )
 
 type (
@@ -133,9 +132,11 @@ func (k Keeper) CreateBucket(
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
 
+	internalBucketInfo := types.InternalBucketInfo{}
+
 	// charge by read quota
 	if opts.ChargedReadQuota != 0 {
-		err = k.ChargeInitialReadFee(ctx, &bucketInfo)
+		err = k.ChargeInitialReadFee(ctx, &bucketInfo, &internalBucketInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -148,6 +149,7 @@ func (k Keeper) CreateBucket(
 	bz := k.cdc.MustMarshal(&bucketInfo)
 	store.Set(bucketKey, k.bucketSeq.EncodeSequence(bucketInfo.Id))
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, &internalBucketInfo)
 
 	// emit CreateBucket Event
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
@@ -188,8 +190,16 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 		return types.ErrBucketNotEmpty
 	}
 
+	// check lvgs
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	for _, lvg := range internalBucketInfo.LocalVirtualGroups {
+		if lvg.StoredSize != 0 || lvg.TotalChargeSize != 0 {
+			return types.ErrVirtualGroupOperateFailed.Wrapf("non-empty lvg, %s", lvg.String())
+		}
+	}
+
 	// change the bill
-	err := k.ChargeDeleteBucket(ctx, bucketInfo)
+	err := k.ChargeDeleteBucket(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return types.ErrChargeFailed.Wrapf("ChargeDeleteBucket error: %s", err)
 	}
@@ -202,12 +212,9 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetBucketKey(bucketInfo.BucketName))
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 	store.Delete(types.GetQuotaKey(bucketInfo.Id))
+	store.Delete(types.GetInternalBucketInfoKey(bucketInfo.Id))
 
-	err := k.virtualGroupKeeper.UnBindingBucketFromGVG(ctx, bucketInfo.Id)
-	if err != nil {
-		return err
-	}
-	err = k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
+	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
 	if err != nil {
 		return err
 	}
@@ -239,6 +246,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 	iter := objectPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
+	u256Seq := sequence.Sequence[sdkmath.Uint]{}
 
 	var err error
 	deleted := uint64(0) // deleted object count
@@ -247,7 +255,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			return false, deleted, nil // break is also fine here
 		}
 
-		bz := store.Get(types.GetObjectByIDKey(types.DecodeSequence(iter.Value())))
+		bz := store.Get(types.GetObjectByIDKey(u256Seq.DecodeSequence(iter.Value())))
 		if bz == nil {
 			panic("should not happen")
 		}
@@ -276,7 +284,8 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 				return false, deleted, err
 			}
 		} else if objectStatus == types.OBJECT_STATUS_SEALED {
-			if err = k.ChargeDeleteObject(ctx, bucketInfo, &objectInfo); err != nil {
+			internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+			if err = k.ChargeDeleteObject(ctx, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("charge delete object error", "err", err)
 				return false, deleted, err
 			}
@@ -289,7 +298,8 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	}
 
 	if !iter.Valid() {
-		if err = k.ChargeDeleteBucket(ctx, bucketInfo); err != nil {
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+		if err = k.ChargeDeleteBucket(ctx, bucketInfo, internalBucketInfo); err != nil {
 			ctx.Logger().Error("charge delete bucket error", "err", err)
 			return false, deleted, err
 		}
@@ -356,7 +366,9 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	} else {
 		paymentAcc = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	}
-	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, paymentAcc.String(), *opts.ChargedReadQuota)
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	err = k.UpdateBucketInfoAndCharge(ctx, bucketInfo, internalBucketInfo, paymentAcc.String(), *opts.ChargedReadQuota)
 	if err != nil {
 		return err
 	}
@@ -364,6 +376,7 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
 		Operator:               operator.String(),
@@ -543,16 +556,19 @@ func (k Keeper) CreateObject(
 	}
 
 	if objectInfo.PayloadSize == 0 {
-		lvg, err := k.virtualGroupKeeper.BindingEmptyObjectToGVG(ctx, bucketInfo.Id, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+		lvg, err := k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
 		objectInfo.LocalVirtualGroupId = lvg.Id
+
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		// charge directly without lock charge
-		err = k.ChargeStoreFee(ctx, bucketInfo, &objectInfo)
+		err = k.ChargeStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
+		k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	} else {
 		// Lock Fee
 		err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
@@ -671,18 +687,20 @@ func (k Keeper) SealObject(
 	}
 	// validate seal object bls aggregated sig from secondary sps
 	secondarySpsSealObjectBlsSignHash := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetBlsSignHash()
-	err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
+	err := k.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err
 	}
 
-	lvg, err := k.virtualGroupKeeper.BindingObjectToGVG(ctx, bucketInfo.Id, sp.Id, bucketInfo.GlobalVirtualGroupFamilyId, opts.GlobalVirtualGroupId, objectInfo.PayloadSize)
+	lvg, err := k.SealObjectOnVirtualGroup(ctx, bucketInfo, opts.GlobalVirtualGroupId, objectInfo)
 	if err != nil {
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
 	}
 	objectInfo.LocalVirtualGroupId = lvg.Id
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 	// unlock and charge store fee
-	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, objectInfo)
+	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -692,6 +710,7 @@ func (k Keeper) SealObject(
 	store := ctx.KVStore(k.storeKey)
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
@@ -793,7 +812,8 @@ func (k Keeper) DeleteObject(
 			operator.String(), bucketName, objectName)
 	}
 
-	err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	err := k.ChargeDeleteObject(ctx, bucketInfo, internalBucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -814,7 +834,7 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	err := k.virtualGroupKeeper.UnBindingObjectFromLVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId, objectInfo.PayloadSize)
+	err := k.DeleteObjectFromVirtualGroup(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -862,7 +882,8 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 			return err
 		}
 	} else if objectStatus == types.OBJECT_STATUS_SEALED {
-		err := k.ChargeDeleteObject(ctx, bucketInfo, objectInfo)
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+		err := k.ChargeDeleteObject(ctx, bucketInfo, internalBucketInfo, objectInfo)
 		if err != nil {
 			ctx.Logger().Error("charge delete object error", "err", err)
 			return err
@@ -948,15 +969,17 @@ func (k Keeper) CopyObject(
 	}
 
 	if srcObjectInfo.PayloadSize == 0 {
-		lvg, err := k.virtualGroupKeeper.BindingEmptyObjectToGVG(ctx, dstBucketInfo.Id, dstBucketInfo.PrimarySpId, dstBucketInfo.GlobalVirtualGroupFamilyId)
+		lvg, err := k.SealEmptyObjectOnVirtualGroup(ctx, dstBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
 		objectInfo.LocalVirtualGroupId = lvg.Id
-		err = k.ChargeStoreFee(ctx, dstBucketInfo, &objectInfo)
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, dstBucketInfo.Id)
+		err = k.ChargeStoreFee(ctx, dstBucketInfo, internalBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
+		k.SetInternalBucketInfo(ctx, dstBucketInfo.Id, internalBucketInfo)
 	} else {
 		err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
 		if err != nil {
@@ -1786,4 +1809,32 @@ func (k Keeper) getQuotaUpdateTime(ctx sdk.Context, bucketId types.Uint) (uint64
 		return 0, false
 	}
 	return uint64(bucketInfo.CreateAt), true
+}
+
+func (k Keeper) MustGetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) *types.InternalBucketInfo {
+	internalBucketInfo, found := k.GetInternalBucketInfo(ctx, bucketID)
+	if !found {
+		panic("Internal bucket Info not found")
+	}
+	return internalBucketInfo
+}
+
+func (k Keeper) GetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) (*types.InternalBucketInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetInternalBucketInfoKey(bucketID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var internalBucketInfo types.InternalBucketInfo
+	k.cdc.MustUnmarshal(bz, &internalBucketInfo)
+	return &internalBucketInfo, true
+}
+
+func (k Keeper) SetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint, internalBucketInfo *types.InternalBucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(internalBucketInfo)
+	store.Set(types.GetInternalBucketInfoKey(bucketID), bz)
 }

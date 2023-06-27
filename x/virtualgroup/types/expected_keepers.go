@@ -43,4 +43,5 @@ type PaymentKeeper interface {
 	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
 	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
 	SetStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord)
+	IsEmptyNetFlow(ctx sdk.Context, account sdk.AccAddress) bool
 }

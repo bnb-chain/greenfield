@@ -211,3 +211,8 @@ func (k Keeper) GetVersionedParamsWithTs(ctx sdk.Context, ts int64) (verParams t
 
 	return verParams, nil
 }
+
+func (k Keeper) MaxLocalVirtualGroupNumPerBucket(ctx sdk.Context) (res uint32) {
+	params := k.GetParams(ctx)
+	return params.MaxLocalVirtualGroupNumPerBucket
+}

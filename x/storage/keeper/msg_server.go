@@ -687,8 +687,8 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		PrimarySpId:                bucketInfo.PrimarySpId,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
 		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
-		BillingInfo:                bucketInfo.BillingInfo,
 	}
+	oldInternalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
@@ -700,17 +700,19 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 	}
 
 	// rebinding gvg and lvg
-	err = k.virtualGroupKeeper.RebindingGVGsToBucket(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
+	err = k.RebindingVirtualGroup(ctx, bucketInfo, msg.GvgMappings)
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
 
-	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo)
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo, oldInternalBucketInfo, internalBucketInfo)
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("update payment info failed. err: %s", err)
 	}
 
 	k.SetBucketInfo(ctx, bucketInfo)
+	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{
@@ -735,7 +737,7 @@ func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *
 		}
 		// validate the aggregated bls signature
 		migrationBucketSignDocBlsSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, dstGVG.Id).GetBlsSignHash()
-		err := k.virtualGroupKeeper.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
+		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
 		if err != nil {
 			return err
 		}

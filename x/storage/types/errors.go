@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // x/storage module sentinel errors
@@ -37,13 +38,15 @@ var (
 	ErrInvalidOperationType     = errors.Register(ModuleName, 3002, "invalid operation type")
 	ErrInvalidId                = errors.Register(ModuleName, 3003, "id is invalid")
 
-	ErrInvalidObjectIds      = errors.Register(ModuleName, 3101, "object ids are invalid")
-	ErrInvalidReason         = errors.Register(ModuleName, 3102, "reason is invalid")
-	ErrNoMoreDiscontinue     = errors.Register(ModuleName, 3103, "no more discontinue requests")
-	ErrBucketDiscontinued    = errors.Register(ModuleName, 3104, "the bucket is discontinued")
-	ErrInvalidObjectStatus   = errors.Register(ModuleName, 3105, "invalid object status")
-	ErrInvalidBucketStatus   = errors.Register(ModuleName, 3106, "invalid bucket status")
-	ErrBucketMigrating       = errors.Register(ModuleName, 3107, "the bucket is migrating")
-	ErrInvalidResource       = errors.Register(ModuleName, 3201, "invalid resource type")
-	ErrMigrationBucketFailed = errors.Register(ModuleName, 3202, "migrate bucket failed.")
+	ErrInvalidObjectIds          = errors.Register(ModuleName, 3101, "object ids are invalid")
+	ErrInvalidReason             = errors.Register(ModuleName, 3102, "reason is invalid")
+	ErrNoMoreDiscontinue         = errors.Register(ModuleName, 3103, "no more discontinue requests")
+	ErrBucketDiscontinued        = errors.Register(ModuleName, 3104, "the bucket is discontinued")
+	ErrInvalidObjectStatus       = errors.Register(ModuleName, 3105, "invalid object status")
+	ErrInvalidBucketStatus       = errors.Register(ModuleName, 3106, "invalid bucket status")
+	ErrBucketMigrating           = errors.Register(ModuleName, 3107, "the bucket is migrating")
+	ErrInvalidResource           = errors.Register(ModuleName, 3201, "invalid resource type")
+	ErrMigrationBucketFailed     = errors.Register(ModuleName, 3202, "migrate bucket failed.")
+	ErrVirtualGroupOperateFailed = errors.Register(ModuleName, 3203, "operate virtual group failed.")
+	ErrInvalidBlsPubKey          = errors.Register(types.ModuleName, 1122, "invalid bls public key")
 )

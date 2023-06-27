@@ -91,3 +91,19 @@ message SecondarySpMigrationBucketSignDoc {
     (gogoproto.nullable) = false
   ];
 }
+
+// Local virtual group(LVG) uniquely associated with a global virtual group.
+// Each bucket maintains a mapping from local virtual group to global virtual group
+// Each local virtual group is associated with a unique virtual payment account,
+// where all object fees are streamed to.
+message LocalVirtualGroup {
+  // id is the identifier of the local virtual group.
+  uint32 id = 1;
+  // global_virtual_group_id is the identifier of the global virtual group.
+  uint32 global_virtual_group_id = 3;
+  // stored_size is the size of the stored data in the local virtual group.
+  uint64 stored_size = 4;
+  // total_charge_size is the total charged size of the objects in the LVG.
+  // Notice that the minimum unit of charge is 128K
+  uint64 total_charge_size = 5;
+}

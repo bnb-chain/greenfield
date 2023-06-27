@@ -17,11 +17,6 @@ func (k Keeper) GVGStakingPrice(ctx sdk.Context) (res math.Int) {
 	return params.GvgStakingPrice
 }
 
-func (k Keeper) MaxLocalVirtualGroupNumPerBucket(ctx sdk.Context) (res uint32) {
-	params := k.GetParams(ctx)
-	return params.MaxLocalVirtualGroupNumPerBucket
-}
-
 func (k Keeper) MaxGlobalVirtualGroupNumPerFamily(ctx sdk.Context) (res uint32) {
 	params := k.GetParams(ctx)
 	return params.MaxGlobalVirtualGroupNumPerFamily
