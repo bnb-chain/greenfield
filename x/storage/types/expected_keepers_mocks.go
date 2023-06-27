@@ -770,36 +770,6 @@ func (m *MockVirtualGroupKeeper) EXPECT() *MockVirtualGroupKeeperMockRecorder {
 	return m.recorder
 }
 
-// BindingEmptyObjectToGVG mocks base method.
-func (m *MockVirtualGroupKeeper) BindingEmptyObjectToGVG(ctx types3.Context, bucketID math.Uint, primarySPID, familyID uint32) (*types2.LocalVirtualGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BindingEmptyObjectToGVG", ctx, bucketID, primarySPID, familyID)
-	ret0, _ := ret[0].(*types2.LocalVirtualGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BindingEmptyObjectToGVG indicates an expected call of BindingEmptyObjectToGVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) BindingEmptyObjectToGVG(ctx, bucketID, primarySPID, familyID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindingEmptyObjectToGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).BindingEmptyObjectToGVG), ctx, bucketID, primarySPID, familyID)
-}
-
-// BindingObjectToGVG mocks base method.
-func (m *MockVirtualGroupKeeper) BindingObjectToGVG(ctx types3.Context, bucketID math.Uint, primarySPID, familyID, gvgID uint32, payloadSize uint64) (*types2.LocalVirtualGroup, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BindingObjectToGVG", ctx, bucketID, primarySPID, familyID, gvgID, payloadSize)
-	ret0, _ := ret[0].(*types2.LocalVirtualGroup)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BindingObjectToGVG indicates an expected call of BindingObjectToGVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) BindingObjectToGVG(ctx, bucketID, primarySPID, familyID, gvgID, payloadSize interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BindingObjectToGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).BindingObjectToGVG), ctx, bucketID, primarySPID, familyID, gvgID, payloadSize)
-}
-
 // GetAndCheckGVGFamilyAvailableForNewBucket mocks base method.
 func (m *MockVirtualGroupKeeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx types3.Context, spID, familyID uint32) (*types2.GlobalVirtualGroupFamily, error) {
 	m.ctrl.T.Helper()
@@ -830,21 +800,6 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetGVG(ctx, gvgID interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVG), ctx, gvgID)
 }
 
-// GetGVGByLVG mocks base method.
-func (m *MockVirtualGroupKeeper) GetGVGByLVG(ctx types3.Context, bucketID math.Uint, lvgID uint32) (*types2.GlobalVirtualGroup, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGVGByLVG", ctx, bucketID, lvgID)
-	ret0, _ := ret[0].(*types2.GlobalVirtualGroup)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetGVGByLVG indicates an expected call of GetGVGByLVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGByLVG(ctx, bucketID, lvgID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGByLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGByLVG), ctx, bucketID, lvgID)
-}
-
 // GetGVGFamily mocks base method.
 func (m *MockVirtualGroupKeeper) GetGVGFamily(ctx types3.Context, spID, familyID uint32) (*types2.GlobalVirtualGroupFamily, bool) {
 	m.ctrl.T.Helper()
@@ -860,62 +815,31 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGFamily(ctx, spID, familyID i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGFamily), ctx, spID, familyID)
 }
 
-// GetGVGsBindingOnBucket mocks base method.
-func (m *MockVirtualGroupKeeper) GetGVGsBindingOnBucket(ctx types3.Context, bucketID math.Uint) (*types2.GlobalVirtualGroupsBindingOnBucket, bool) {
+// GetGlobalVirtualGroupIfAvailable mocks base method.
+func (m *MockVirtualGroupKeeper) GetGlobalVirtualGroupIfAvailable(ctx types3.Context, gvgID uint32, expectedStoreSize uint64) (*types2.GlobalVirtualGroup, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGVGsBindingOnBucket", ctx, bucketID)
-	ret0, _ := ret[0].(*types2.GlobalVirtualGroupsBindingOnBucket)
-	ret1, _ := ret[1].(bool)
+	ret := m.ctrl.Call(m, "GetGlobalVirtualGroupIfAvailable", ctx, gvgID, expectedStoreSize)
+	ret0, _ := ret[0].(*types2.GlobalVirtualGroup)
+	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetGVGsBindingOnBucket indicates an expected call of GetGVGsBindingOnBucket.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGsBindingOnBucket(ctx, bucketID interface{}) *gomock.Call {
+// GetGlobalVirtualGroupIfAvailable indicates an expected call of GetGlobalVirtualGroupIfAvailable.
+func (mr *MockVirtualGroupKeeperMockRecorder) GetGlobalVirtualGroupIfAvailable(ctx, gvgID, expectedStoreSize interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGsBindingOnBucket", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGsBindingOnBucket), ctx, bucketID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalVirtualGroupIfAvailable", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGlobalVirtualGroupIfAvailable), ctx, gvgID, expectedStoreSize)
 }
 
-// GetLVG mocks base method.
-func (m *MockVirtualGroupKeeper) GetLVG(ctx types3.Context, bucketID math.Uint, lvgID uint32) (*types2.LocalVirtualGroup, bool) {
+// SetGVG mocks base method.
+func (m *MockVirtualGroupKeeper) SetGVG(ctx types3.Context, gvg *types2.GlobalVirtualGroup) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLVG", ctx, bucketID, lvgID)
-	ret0, _ := ret[0].(*types2.LocalVirtualGroup)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
+	m.ctrl.Call(m, "SetGVG", ctx, gvg)
 }
 
-// GetLVG indicates an expected call of GetLVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetLVG(ctx, bucketID, lvgID interface{}) *gomock.Call {
+// SetGVG indicates an expected call of SetGVG.
+func (mr *MockVirtualGroupKeeperMockRecorder) SetGVG(ctx, gvg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetLVG), ctx, bucketID, lvgID)
-}
-
-// GetLVGs mocks base method.
-func (m *MockVirtualGroupKeeper) GetLVGs(ctx types3.Context, bucketID math.Uint) []*types2.LocalVirtualGroup {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetLVGs", ctx, bucketID)
-	ret0, _ := ret[0].([]*types2.LocalVirtualGroup)
-	return ret0
-}
-
-// GetLVGs indicates an expected call of GetLVGs.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetLVGs(ctx, bucketID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetLVGs", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetLVGs), ctx, bucketID)
-}
-
-// RebindingGVGsToBucket mocks base method.
-func (m *MockVirtualGroupKeeper) RebindingGVGsToBucket(ctx types3.Context, bucketID math.Uint, dstSP *types1.StorageProvider, gvgMappings []*GVGMapping) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RebindingGVGsToBucket", ctx, bucketID, dstSP, gvgMappings)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// RebindingGVGsToBucket indicates an expected call of RebindingGVGsToBucket.
-func (mr *MockVirtualGroupKeeperMockRecorder) RebindingGVGsToBucket(ctx, bucketID, dstSP, gvgMappings interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RebindingGVGsToBucket", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).RebindingGVGsToBucket), ctx, bucketID, dstSP, gvgMappings)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SetGVG), ctx, gvg)
 }
 
 // SettleAndDistributeGVG mocks base method.
@@ -944,46 +868,4 @@ func (m *MockVirtualGroupKeeper) SettleAndDistributeGVGFamily(ctx types3.Context
 func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVGFamily(ctx, spID, family interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SettleAndDistributeGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SettleAndDistributeGVGFamily), ctx, spID, family)
-}
-
-// UnBindingBucketFromGVG mocks base method.
-func (m *MockVirtualGroupKeeper) UnBindingBucketFromGVG(ctx types3.Context, bucketID math.Uint) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnBindingBucketFromGVG", ctx, bucketID)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UnBindingBucketFromGVG indicates an expected call of UnBindingBucketFromGVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) UnBindingBucketFromGVG(ctx, bucketID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnBindingBucketFromGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).UnBindingBucketFromGVG), ctx, bucketID)
-}
-
-// UnBindingObjectFromLVG mocks base method.
-func (m *MockVirtualGroupKeeper) UnBindingObjectFromLVG(ctx types3.Context, bucketID math.Uint, lvgID uint32, payloadSize uint64) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UnBindingObjectFromLVG", ctx, bucketID, lvgID, payloadSize)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UnBindingObjectFromLVG indicates an expected call of UnBindingObjectFromLVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) UnBindingObjectFromLVG(ctx, bucketID, lvgID, payloadSize interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UnBindingObjectFromLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).UnBindingObjectFromLVG), ctx, bucketID, lvgID, payloadSize)
-}
-
-// VerifyGVGSecondarySPsBlsSignature mocks base method.
-func (m *MockVirtualGroupKeeper) VerifyGVGSecondarySPsBlsSignature(ctx types3.Context, gvg *types2.GlobalVirtualGroup, signHash [32]byte, signature []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyGVGSecondarySPsBlsSignature", ctx, gvg, signHash, signature)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// VerifyGVGSecondarySPsBlsSignature indicates an expected call of VerifyGVGSecondarySPsBlsSignature.
-func (mr *MockVirtualGroupKeeperMockRecorder) VerifyGVGSecondarySPsBlsSignature(ctx, gvg, signHash, signature interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyGVGSecondarySPsBlsSignature", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).VerifyGVGSecondarySPsBlsSignature), ctx, gvg, signHash, signature)
 }

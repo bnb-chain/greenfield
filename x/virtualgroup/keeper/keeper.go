@@ -101,7 +101,6 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		return types.ErrGVGNotExist
 	}
 
-	// TODO: if an empty object store in it, it will be skip this check.
 	if gvg.StoredSize != 0 {
 		return types.ErrGVGNotEmpty
 	}

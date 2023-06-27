@@ -19,13 +19,11 @@ const (
 var (
 	// DefaultGVGStakingPrice defines the default gvg staking price
 	DefaultGVGStakingPrice                   = sdk.NewInt(16000)
-	DefaultMaxLocalVirtualGroupNumPerBucket  = uint32(10)
 	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 //64T
 
 	KeyDepositDenom                      = []byte("DepositDenom")
 	KeyGVGStakingPrice                   = []byte("GVGStakingPrice")
-	KeyMaxLocalVirtualGroupNumPerBucket  = []byte("MaxLocalVirtualGroupNumPerBucket")
 	KeyMaxGlobalVirtualGroupNumPerFamily = []byte("MaxGlobalVirtualGroupNumPerFamily")
 	KeyMaxStoreSizePerFamily             = []byte("MaxStoreSizePerFamily")
 )
@@ -38,12 +36,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(depositDenom string, gvgStakingPrice math.Int, maxLocalVirtualGroupNumPerBucket, maxGlobalVirtualGroupPerFamily uint32,
+func NewParams(depositDenom string, gvgStakingPrice math.Int, maxGlobalVirtualGroupPerFamily uint32,
 	maxStoreSizePerFamily uint64) Params {
 	return Params{
 		DepositDenom:                      depositDenom,
 		GvgStakingPrice:                   gvgStakingPrice,
-		MaxLocalVirtualGroupNumPerBucket:  maxLocalVirtualGroupNumPerBucket,
 		MaxGlobalVirtualGroupNumPerFamily: maxGlobalVirtualGroupPerFamily,
 		MaxStoreSizePerFamily:             maxStoreSizePerFamily,
 	}
@@ -51,7 +48,7 @@ func NewParams(depositDenom string, gvgStakingPrice math.Int, maxLocalVirtualGro
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDepositDenom, DefaultGVGStakingPrice, DefaultMaxLocalVirtualGroupNumPerBucket, DefaultMaxGlobalVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
+	return NewParams(DefaultDepositDenom, DefaultGVGStakingPrice, DefaultMaxGlobalVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -59,7 +56,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDepositDenom, &p.DepositDenom, validateDepositDenom),
 		paramtypes.NewParamSetPair(KeyGVGStakingPrice, &p.GvgStakingPrice, validateGVGStakingPrice),
-		paramtypes.NewParamSetPair(KeyMaxLocalVirtualGroupNumPerBucket, &p.MaxLocalVirtualGroupNumPerBucket, validateMaxLocalVirtualGroupNumPerBucket),
 		paramtypes.NewParamSetPair(KeyMaxGlobalVirtualGroupNumPerFamily, &p.MaxGlobalVirtualGroupNumPerFamily, validateMaxGlobalVirtualGroupNumPerFamily),
 		paramtypes.NewParamSetPair(KeyMaxStoreSizePerFamily, &p.MaxStoreSizePerFamily, validateMaxStoreSizePerFamily),
 	}
@@ -101,19 +97,6 @@ func validateGVGStakingPrice(i interface{}) error {
 	if v.IsNil() || !v.IsPositive() || v.GT(sdk.OneDec()) {
 		return fmt.Errorf("invalid secondary sp store price ratio")
 	}
-	return nil
-}
-
-func validateMaxLocalVirtualGroupNumPerBucket(i interface{}) error {
-	v, ok := i.(uint32)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if v == 0 {
-		return fmt.Errorf("max buckets per account must be positive: %d", v)
-	}
-
 	return nil
 }
 
