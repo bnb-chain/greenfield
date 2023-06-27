@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -168,7 +169,8 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
-		objectInfo, found := k.GetObjectInfoById(ctx, types.DecodeSequence(value))
+		u256Seq := sequence.Sequence[math.Uint]{}
+		objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(value))
 		if found {
 			objectInfos = append(objectInfos, objectInfo)
 		}

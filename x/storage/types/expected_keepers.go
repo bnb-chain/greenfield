@@ -98,4 +98,5 @@ type VirtualGroupKeeper interface {
 	RebindingGVGsToBucket(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*GVGMapping) error
 	VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *types.GlobalVirtualGroup, signHash [32]byte, signature []byte) error
 	GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, error)
+	GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, expectedStoreSize uint64) (*types.GlobalVirtualGroup, error)
 }

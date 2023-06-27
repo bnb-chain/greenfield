@@ -27,25 +27,6 @@ message GlobalVirtualGroup {
   ];
 }
 
-// Local virtual group(LVG) uniquely associated with a global virtual group.
-// Each bucket maintains a mapping from local virtual group to global virtual group
-// Each local virtual group is associated with a unique virtual payment account,
-// where all object fees are streamed to.
-message LocalVirtualGroup {
-  // id is the identifier of the local virtual group.
-  uint32 id = 1;
-  // bucket_id is the unique identification for the bucket.
-  string bucket_id = 2 [
-    (cosmos_proto.scalar) = "cosmos.Uint",
-    (gogoproto.customtype) = "Uint",
-    (gogoproto.nullable) = false
-  ];
-  // global_virtual_group_id is the identifier of the global virtual group.
-  uint32 global_virtual_group_id = 3;
-  // stored_size is the size of the stored data in the local virtual group.
-  uint64 stored_size = 4;
-}
-
 // Global virtual group family serve as a means of grouping global virtual groups.
 // Each bucket must be associated with a unique global virtual group family and cannot cross families.
 message GlobalVirtualGroupFamily {

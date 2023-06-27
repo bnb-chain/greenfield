@@ -39,28 +39,17 @@ message BucketInfo {
   // The available read data for each user is the sum of the free read data provided by SP and
   // the ChargeReadQuota specified here.
   uint64 charged_read_quota = 10;
-  // billing info of the bucket
-  BillingInfo billing_info = 11 [(gogoproto.nullable) = false];
   // bucket_status define the status of the bucket.
-  BucketStatus bucket_status = 12;
+  BucketStatus bucket_status = 11;
 }
 
-// BillingInfo is the billing information of the bucket
-message BillingInfo {
+message InternalBucketInfo {
   // the time of the payment price, used to calculate the charge rate of the bucket
   int64 price_time = 1;
   // the total size of the objects in the bucket, used to calculate the charge rate of the bucket
   uint64 total_charge_size = 2;
-  // LVG objects size statistics
-  repeated LVGObjectsSize lvg_objects_size = 3 [(gogoproto.nullable) = false];
-}
-
-// LVG objects size statistics
-message LVGObjectsSize {
-  // id is the identifier of the LVG
-  uint32 lvg_id = 1;
-  // size is the total size of the objects in the LVG
-  uint64 total_charge_size = 2;
+  // local_virtual_groups contains all the lvg of this bucket.
+  repeated LocalVirtualGroup local_virtual_groups = 3;
 }
 
 message ObjectInfo {

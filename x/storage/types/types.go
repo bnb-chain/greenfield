@@ -18,15 +18,6 @@ const (
 	MaxPaginationLimit = 200 // the default limit is 100 if pagination parameters is not provided
 )
 
-func EncodeSequence(u Uint) []byte {
-	return u.Bytes()
-}
-
-func DecodeSequence(bz []byte) Uint {
-	u := sdkmath.NewUint(0)
-	return u.SetBytes(bz)
-}
-
 func (m *BucketInfo) ToNFTMetadata() *BucketMetaData {
 	return &BucketMetaData{
 		BucketName: m.BucketName,
@@ -92,3 +83,5 @@ func (di *DeleteInfo) IsEmpty() bool {
 	}
 	return isBucketIdsEmpty && isObjectIdsEmpty && isGroupIdsEmpty
 }
+
+func (b *InternalBucketInfo) GetLVG

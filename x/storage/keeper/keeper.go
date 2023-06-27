@@ -239,6 +239,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 	iter := objectPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
+	u256Seq := sequence.Sequence[sdkmath.Uint]{}
 
 	var err error
 	deleted := uint64(0) // deleted object count
@@ -247,7 +248,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			return false, deleted, nil // break is also fine here
 		}
 
-		bz := store.Get(types.GetObjectByIDKey(types.DecodeSequence(iter.Value())))
+		bz := store.Get(types.GetObjectByIDKey(u256Seq.DecodeSequence(iter.Value())))
 		if bz == nil {
 			panic("should not happen")
 		}
@@ -1786,4 +1787,32 @@ func (k Keeper) getQuotaUpdateTime(ctx sdk.Context, bucketId types.Uint) (uint64
 		return 0, false
 	}
 	return uint64(bucketInfo.CreateAt), true
+}
+
+func (k Keeper) MustGetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) *types.InternalBucketInfo {
+	internalBucketInfo, found := k.GetInternalBucketInfo(ctx, bucketID)
+	if !found {
+		panic("Internal bucket Info not found")
+	}
+	return internalBucketInfo
+}
+
+func (k Keeper) GetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) (*types.InternalBucketInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetInternalBucketInfoKey(bucketID))
+	if bz == nil {
+		return nil, false
+	}
+
+	var internalBucketInfo types.InternalBucketInfo
+	k.cdc.MustUnmarshal(bz, &internalBucketInfo)
+	return &internalBucketInfo, true
+}
+
+func (k Keeper) SetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint, internalBucketInfo *types.InternalBucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := k.cdc.MustMarshal(internalBucketInfo)
+	store.Set(types.GetInternalBucketInfoKey(bucketID), bz)
 }

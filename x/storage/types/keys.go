@@ -32,10 +32,11 @@ var (
 	ParamsKey                = []byte{0x01}
 	VersionedParamsKeyPrefix = []byte{0x02}
 
-	BucketPrefix = []byte{0x11}
-	ObjectPrefix = []byte{0x12}
-	GroupPrefix  = []byte{0x13}
-	QuotaPrefix  = []byte{0x14}
+	BucketInfoPrefix         = []byte{0x11}
+	ObjectInfoPrefix         = []byte{0x12}
+	GroupInfoPrefix          = []byte{0x13}
+	QuotaPrefix              = []byte{0x14}
+	InternalBucketInfoPrefix = []byte{0x15}
 
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
@@ -63,29 +64,29 @@ var (
 // GetBucketKey return the bucket name store key
 func GetBucketKey(bucketName string) []byte {
 	objectNameHash := sdk.Keccak256([]byte(bucketName))
-	return append(BucketPrefix, objectNameHash...)
+	return append(BucketInfoPrefix, objectNameHash...)
 }
 
 // GetObjectKey return the object name store key
 func GetObjectKey(bucketName string, objectName string) []byte {
 	bucketNameHash := sdk.Keccak256([]byte(bucketName))
 	objectNameHash := sdk.Keccak256([]byte(objectName))
-	return append(ObjectPrefix, append(bucketNameHash, objectNameHash...)...)
+	return append(ObjectInfoPrefix, append(bucketNameHash, objectNameHash...)...)
 }
 
 func GetObjectKeyOnlyBucketPrefix(bucketName string) []byte {
-	return append(ObjectPrefix, sdk.Keccak256([]byte(bucketName))...)
+	return append(ObjectInfoPrefix, sdk.Keccak256([]byte(bucketName))...)
 }
 
 // GetGroupKey return the group name store key
 func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
 	groupNameHash := sdk.Keccak256([]byte(groupName))
-	return append(GroupPrefix, append(owner.Bytes(), groupNameHash...)...)
+	return append(GroupInfoPrefix, append(owner.Bytes(), groupNameHash...)...)
 }
 
 // GetGroupKeyOnlyOwnerPrefix return the group name store key
 func GetGroupKeyOnlyOwnerPrefix(owner sdk.AccAddress) []byte {
-	return append(GroupPrefix, owner.Bytes()...)
+	return append(GroupInfoPrefix, owner.Bytes()...)
 }
 
 // GetBucketByIDKey return the bucketID store key
@@ -146,7 +147,12 @@ func GetMigrationBucketKey(bucketID math.Uint) []byte {
 }
 
 // GetQuotaKey return the quota store key
-func GetQuotaKey(bucketId math.Uint) []byte {
+func GetQuotaKey(bucketID math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
-	return append(QuotaPrefix, seq.EncodeSequence(bucketId)...)
+	return append(QuotaPrefix, seq.EncodeSequence(bucketID)...)
+}
+
+func GetInternalBucketInfoKey(bucketID math.Uint) []byte {
+	var seq sequence.Sequence[math.Uint]
+	return append(InternalBucketInfoPrefix, seq.EncodeSequence(bucketID)...)
 }
