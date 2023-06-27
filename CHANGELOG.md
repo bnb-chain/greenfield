@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.2.3-alpha.2
+This release enables support for group name in policy
+
+* [#301](https://github.com/bnb-chain/greenfield/pull/301) feat: add support of group name in policy  
+
 ## v0.2.3-alpha.1
 This release enables several features and bugfixes:
 
