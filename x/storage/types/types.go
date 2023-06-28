@@ -94,16 +94,22 @@ func (b *InternalBucketInfo) GetLVGByGVGID(gvgID uint32) (*LocalVirtualGroup, bo
 }
 
 func (b *InternalBucketInfo) AppendLVG(lvg *LocalVirtualGroup) {
-	lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
-	if lvg.Id <= lastLVG.Id {
-		panic("Not allow to append a lvg which id is smaller than the last lvg")
+	if len(b.LocalVirtualGroups) != 0 {
+		lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
+		if lvg.Id <= lastLVG.Id {
+			panic("Not allow to append a lvg which id is smaller than the last lvg")
+		}
 	}
 	b.LocalVirtualGroups = append(b.LocalVirtualGroups, lvg)
 }
 
 func (b *InternalBucketInfo) GetMaxLVGID() uint32 {
-	lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
-	return lastLVG.Id
+	if len(b.LocalVirtualGroups) == 0 {
+		return 0
+	} else {
+		lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
+		return lastLVG.Id
+	}
 }
 
 func (b *InternalBucketInfo) GetLVG(lvgID uint32) (*LocalVirtualGroup, bool) {
