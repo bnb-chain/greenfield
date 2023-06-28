@@ -692,17 +692,9 @@ func (k Keeper) SealObject(
 		return err
 	}
 
-	lvg, err := k.SealObjectOnVirtualGroup(ctx, bucketInfo, opts.GlobalVirtualGroupId, objectInfo)
+	_, err = k.SealObjectOnVirtualGroup(ctx, bucketInfo, opts.GlobalVirtualGroupId, objectInfo)
 	if err != nil {
 		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "err message: %s", err)
-	}
-	objectInfo.LocalVirtualGroupId = lvg.Id
-
-	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	// unlock and charge store fee
-	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
-	if err != nil {
-		return err
 	}
 
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_SEALED
@@ -710,7 +702,6 @@ func (k Keeper) SealObject(
 	store := ctx.KVStore(k.storeKey)
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
-	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)

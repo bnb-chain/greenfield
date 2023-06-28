@@ -25,12 +25,11 @@ type TestSuite struct {
 	cdc             codec.Codec
 	challengeKeeper *keeper.Keeper
 
-	bankKeeper         *types.MockBankKeeper
-	storageKeeper      *types.MockStorageKeeper
-	spKeeper           *types.MockSpKeeper
-	stakingKeeper      *types.MockStakingKeeper
-	paymentKeeper      *types.MockPaymentKeeper
-	virtualGroupKeeper *types.MockVirtualGroupKeeper
+	bankKeeper    *types.MockBankKeeper
+	storageKeeper *types.MockStorageKeeper
+	spKeeper      *types.MockSpKeeper
+	stakingKeeper *types.MockStakingKeeper
+	paymentKeeper *types.MockPaymentKeeper
 
 	ctx         sdk.Context
 	queryClient types.QueryClient
@@ -62,7 +61,6 @@ func (s *TestSuite) SetupTest() {
 	spKeeper := types.NewMockSpKeeper(ctrl)
 	stakingKeeper := types.NewMockStakingKeeper(ctrl)
 	paymentKeeper := types.NewMockPaymentKeeper(ctrl)
-	virtualGroupKeeper := types.NewMockVirtualGroupKeeper(ctrl)
 
 	s.challengeKeeper = keeper.NewKeeper(
 		encCfg.Codec,
@@ -73,7 +71,6 @@ func (s *TestSuite) SetupTest() {
 		spKeeper,
 		stakingKeeper,
 		paymentKeeper,
-		virtualGroupKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
@@ -83,7 +80,6 @@ func (s *TestSuite) SetupTest() {
 	s.spKeeper = spKeeper
 	s.stakingKeeper = stakingKeeper
 	s.paymentKeeper = paymentKeeper
-	s.virtualGroupKeeper = virtualGroupKeeper
 
 	err := s.challengeKeeper.SetParams(s.ctx, types.DefaultParams())
 	s.Require().NoError(err)

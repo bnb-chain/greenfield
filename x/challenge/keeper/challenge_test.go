@@ -91,7 +91,6 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 		&types.MockSpKeeper{},
 		&types.MockStakingKeeper{},
 		&types.MockPaymentKeeper{},
-		&types.MockVirtualGroupKeeper{},
 		authtypes.NewModuleAddress(types.ModuleName).String(),
 	)
 

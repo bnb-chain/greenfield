@@ -17,9 +17,6 @@ type SpKeeper interface {
 	Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []sp.RewardInfo) error
 }
 
-type VirtualGroupKeeper interface {
-}
-
 type StakingKeeper interface {
 	GetLastValidators(ctx sdk.Context) (validators []staking.Validator)
 	GetHistoricalInfo(ctx sdk.Context, height int64) (staking.HistoricalInfo, bool)

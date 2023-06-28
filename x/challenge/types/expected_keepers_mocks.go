@@ -83,44 +83,6 @@ func (mr *MockSpKeeperMockRecorder) Slash(ctx, spAcc, rewardInfos interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Slash", reflect.TypeOf((*MockSpKeeper)(nil).Slash), ctx, spAcc, rewardInfos)
 }
 
-// MockVirtualGroupKeeper is a mock of VirtualGroupKeeper interface.
-type MockVirtualGroupKeeper struct {
-	ctrl     *gomock.Controller
-	recorder *MockVirtualGroupKeeperMockRecorder
-}
-
-// MockVirtualGroupKeeperMockRecorder is the mock recorder for MockVirtualGroupKeeper.
-type MockVirtualGroupKeeperMockRecorder struct {
-	mock *MockVirtualGroupKeeper
-}
-
-// NewMockVirtualGroupKeeper creates a new mock instance.
-func NewMockVirtualGroupKeeper(ctrl *gomock.Controller) *MockVirtualGroupKeeper {
-	mock := &MockVirtualGroupKeeper{ctrl: ctrl}
-	mock.recorder = &MockVirtualGroupKeeperMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use.
-func (m *MockVirtualGroupKeeper) EXPECT() *MockVirtualGroupKeeperMockRecorder {
-	return m.recorder
-}
-
-// GetGVGByLVG mocks base method.
-func (m *MockVirtualGroupKeeper) GetGVGByLVG(ctx types2.Context, bucketID math.Uint, lvgID uint32) (*types1.GlobalVirtualGroup, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGVGByLVG", ctx, bucketID, lvgID)
-	ret0, _ := ret[0].(*types1.GlobalVirtualGroup)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetGVGByLVG indicates an expected call of GetGVGByLVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGByLVG(ctx, bucketID, lvgID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGByLVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGByLVG), ctx, bucketID, lvgID)
-}
-
 // MockStakingKeeper is a mock of StakingKeeper interface.
 type MockStakingKeeper struct {
 	ctrl     *gomock.Controller
@@ -209,6 +171,21 @@ func (m *MockStorageKeeper) GetBucketInfo(ctx types2.Context, bucketName string)
 func (mr *MockStorageKeeperMockRecorder) GetBucketInfo(ctx, bucketName interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBucketInfo", reflect.TypeOf((*MockStorageKeeper)(nil).GetBucketInfo), ctx, bucketName)
+}
+
+// GetObjectGVG mocks base method.
+func (m *MockStorageKeeper) GetObjectGVG(ctx types2.Context, bucketID math.Uint, lvgID uint32) (*types1.GlobalVirtualGroup, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetObjectGVG", ctx, bucketID, lvgID)
+	ret0, _ := ret[0].(*types1.GlobalVirtualGroup)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetObjectGVG indicates an expected call of GetObjectGVG.
+func (mr *MockStorageKeeperMockRecorder) GetObjectGVG(ctx, bucketID, lvgID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectGVG", reflect.TypeOf((*MockStorageKeeper)(nil).GetObjectGVG), ctx, bucketID, lvgID)
 }
 
 // GetObjectInfo mocks base method.

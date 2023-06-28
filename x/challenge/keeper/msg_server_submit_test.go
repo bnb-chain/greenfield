@@ -43,7 +43,7 @@ func (s *TestSuite) TestSubmit() {
 	s.storageKeeper.EXPECT().MaxSegmentSize(gomock.Any()).Return(uint64(10000)).AnyTimes()
 
 	gvg := &virtualgrouptypes.GlobalVirtualGroup{PrimarySpId: 100}
-	s.virtualGroupKeeper.EXPECT().GetGVGByLVG(gomock.Any(), gomock.Any(), gomock.Any()).
+	s.storageKeeper.EXPECT().GetObjectGVG(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(gvg, true).AnyTimes()
 
 	tests := []struct {

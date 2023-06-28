@@ -108,6 +108,14 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 	}
 	gvg.StoredSize += objectInfo.PayloadSize
 
+	objectInfo.LocalVirtualGroupId = lvg.Id
+
+	// unlock and charge store fee
+	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+	if err != nil {
+		return nil, err
+	}
+
 	k.virtualGroupKeeper.SetGVG(ctx, gvg)
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
@@ -129,6 +137,7 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 			return nil, err
 		}
 	}
+
 	return lvg, nil
 }
 
