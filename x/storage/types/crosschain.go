@@ -44,38 +44,16 @@ type CrossChainPackage struct {
 	Package       []byte
 }
 
-var (
-	crossChainPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
-		{Name: "OperationType", Type: "uint8"},
-		{Name: "Package", Type: "bytes"},
-	})
-
-	crossChainPackageArgs = abi.Arguments{
-		{Type: crossChainPackageType},
-	}
-)
-
 func (p CrossChainPackage) MustSerialize() []byte {
-	encodedBytes, err := crossChainPackageArgs.Pack(&p)
-	if err != nil {
-		panic("encode delete cross chain package error")
-	}
-	return encodedBytes
+	return append([]byte{p.OperationType}, p.Package...)
 }
 
 func DeserializeRawCrossChainPackage(serializedPackage []byte) (*CrossChainPackage, error) {
-	unpacked, err := crossChainPackageArgs.Unpack(serializedPackage)
-	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize raw cross chain package failed")
+	tp := CrossChainPackage{
+		OperationType: serializedPackage[0],
+		Package:       serializedPackage[1:],
 	}
-
-	unpackedStruct := abi.ConvertType(unpacked[0], CrossChainPackage{})
-	pkgStruct, ok := unpackedStruct.(CrossChainPackage)
-	if !ok {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect raw cross chain package failed")
-	}
-
-	return &pkgStruct, nil
+	return &tp, nil
 }
 
 type DeserializeFunc func(serializedPackage []byte) (interface{}, error)
