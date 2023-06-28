@@ -310,7 +310,10 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 		}
 		gvg.SecondarySpIds[secondarySPIndex] = successorSPID
 		origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
-		successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
+		successor, found := k.GetGVGStatisticsWithinSP(ctx, successorSPID)
+		if !found {
+			successor = &types.GVGStatisticsWithinSP{StorageProviderId: successorSPID}
+		}
 		origin.SecondaryCount--
 		successor.SecondaryCount++
 		k.SetGVGStatisticsWithSP(ctx, origin)
