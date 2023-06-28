@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"sort"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -53,7 +52,7 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 	if bucketInfo.PaymentAddress != newPaymentAddr && bucketInfo.ChargedReadQuota != newReadQuota {
 		return fmt.Errorf("payment address and read quota can not be changed at the same time")
 	}
-	err := k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo) error {
+	err := k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
 		bi.PaymentAddress = newPaymentAddr
 		bi.ChargedReadQuota = newReadQuota
 		return nil
@@ -125,14 +124,12 @@ func (k Keeper) ChargeStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketI
 	if err != nil {
 		return fmt.Errorf("get charge size error: %w", err)
 	}
-	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo) error {
-		internalBucketInfo.TotalChargeSize += chargeSize
-		toMerge := internalBucketInfo.LocalVirtualGroups
-		toMerge = append(toMerge, &storagetypes.LocalVirtualGroup{
-			Id:              objectInfo.LocalVirtualGroupId,
-			TotalChargeSize: chargeSize,
-		})
-		internalBucketInfo.LocalVirtualGroups = MergeLvgChargeSize(toMerge)
+
+	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
+		ibi.TotalChargeSize += chargeSize
+		for _, lvg := range ibi.LocalVirtualGroups {
+			lvg.TotalChargeSize += lvg.TotalChargeSize + chargeSize
+		}
 		return nil
 	})
 }
@@ -143,29 +140,31 @@ func (k Keeper) ChargeDeleteObject(ctx sdk.Context, bucketInfo *storagetypes.Buc
 	if err != nil {
 		return fmt.Errorf("get charge size error: %w", err)
 	}
-	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo) error {
-		internalBucketInfo.TotalChargeSize -= chargeSize
-		toSub := []*storagetypes.LocalVirtualGroup{
-			{
-				Id:              objectInfo.LocalVirtualGroupId,
-				TotalChargeSize: chargeSize},
+	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
+		ibi.TotalChargeSize -= chargeSize
+		lvgs := make([]*storagetypes.LocalVirtualGroup, 0)
+		for _, lvg := range ibi.LocalVirtualGroups {
+			if lvg.Id != objectInfo.LocalVirtualGroupId {
+				lvgs = append(lvgs, lvg)
+			}
 		}
-		internalBucketInfo.LocalVirtualGroups = SubLvgChargeSize(internalBucketInfo.LocalVirtualGroups, toSub)
+		ibi.LocalVirtualGroups = lvgs
 		return nil
 	})
 }
 
 func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo,
-	changeFunc func(bucketInfo *storagetypes.BucketInfo) error) error {
+	changeFunc func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error) error {
+
 	// get previous bill
 	prevBill, err := k.GetBucketBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("charge via bucket change failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
-	// change bucket billing info
-	if err = changeFunc(bucketInfo); err != nil {
-		return errors.Wrapf(err, "change bucket billing info failed")
+	// change bucket internal info
+	if err = changeFunc(bucketInfo, internalBucketInfo); err != nil {
+		return errors.Wrapf(err, "change bucket internal info failed")
 	}
 	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	// calculate new bill
@@ -290,60 +289,6 @@ func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	return negFlows
 }
 
-func MergeLvgChargeSize(list []*storagetypes.LocalVirtualGroup) []*storagetypes.LocalVirtualGroup {
-	if len(list) <= 1 {
-		return list
-	}
-	helperMap := make(map[uint32]uint64)
-	for _, objectsSize := range list {
-		helperMap[objectsSize.Id] += objectsSize.TotalChargeSize
-	}
-	res := make([]*storagetypes.LocalVirtualGroup, 0, len(helperMap))
-	for id, size := range helperMap {
-		if size == 0 {
-			continue
-		}
-		res = append(res, &storagetypes.LocalVirtualGroup{
-			Id:              id,
-			TotalChargeSize: size,
-		})
-	}
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Id < res[j].Id
-	})
-	return res
-}
-
-func SubLvgChargeSize(prev []*storagetypes.LocalVirtualGroup, toBeSub []*storagetypes.LocalVirtualGroup) []*storagetypes.LocalVirtualGroup {
-	if len(toBeSub) == 0 {
-		return prev
-	}
-	helperMap := make(map[uint32]uint64)
-	// merge prev
-	for _, objectsSize := range prev {
-		helperMap[objectsSize.Id] += objectsSize.TotalChargeSize
-	}
-	// sub toBeSub
-	for _, objectsSize := range toBeSub {
-		helperMap[objectsSize.Id] -= objectsSize.TotalChargeSize
-	}
-	// merge the result
-	res := make([]*storagetypes.LocalVirtualGroup, 0, len(helperMap))
-	for id, size := range helperMap {
-		if size == 0 {
-			continue
-		}
-		res = append(res, &storagetypes.LocalVirtualGroup{
-			Id:              id,
-			TotalChargeSize: size,
-		})
-	}
-	sort.Slice(res, func(i, j int) bool {
-		return res[i].Id < res[j].Id
-	})
-	return res
-}
-
 func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySpAddress,
@@ -403,7 +348,7 @@ func (k Keeper) ChargeBucketMigration(ctx sdk.Context, oldBucketInfo, newBucketI
 		return fmt.Errorf("settle and get bucket bill failed, bucket: %s, err: %s", oldBucketInfo.BucketName, err.Error())
 	}
 
-	// update billing info
+	// update internal info
 	newInternalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	err = k.UpdateLVGChargeSize(ctx, newBucketInfo, newInternalBucketInfo)
 	if err != nil {
