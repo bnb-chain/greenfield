@@ -29,14 +29,21 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // Every global virtual group must belong to a GVG family, and the objects of each
 // bucket must be stored in a GVG within a group family.
 type GlobalVirtualGroup struct {
-	Id                    uint32   `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	FamilyId              uint32   `protobuf:"varint,2,opt,name=family_id,json=familyId,proto3" json:"family_id,omitempty"`
-	PrimarySpId           uint32   `protobuf:"varint,3,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
-	SecondarySpIds        []uint32 `protobuf:"varint,4,rep,packed,name=secondary_sp_ids,json=secondarySpIds,proto3" json:"secondary_sp_ids,omitempty"`
-	StoredSize            uint64   `protobuf:"varint,5,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
-	TotalSize             uint64   `protobuf:"varint,6,opt,name=total_size,json=totalSize,proto3" json:"total_size,omitempty"`
-	VirtualPaymentAddress string   `protobuf:"bytes,7,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
-	// total_deposit defines the number of tokens deposited by this storage provider for staking.
+	// ID represents the unique identifier of the global virtual group.
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// Family ID represents the identifier of the GVG family that the group belongs to.
+	FamilyId uint32 `protobuf:"varint,2,opt,name=family_id,json=familyId,proto3" json:"family_id,omitempty"`
+	// Primary SP ID represents the unique identifier of the primary storage provider in the group.
+	PrimarySpId uint32 `protobuf:"varint,3,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
+	// Secondary SP IDs represents the list of unique identifiers of the secondary storage providers in the group.
+	SecondarySpIds []uint32 `protobuf:"varint,4,rep,packed,name=secondary_sp_ids,json=secondarySpIds,proto3" json:"secondary_sp_ids,omitempty"`
+	// Stored size represents the size of the stored objects within the group.
+	StoredSize uint64 `protobuf:"varint,5,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+	// Total size represents the total size of the group including stored and unstored objects.
+	TotalSize uint64 `protobuf:"varint,6,opt,name=total_size,json=totalSize,proto3" json:"total_size,omitempty"`
+	// Virtual payment address represents the payment address associated with the group.
+	VirtualPaymentAddress string `protobuf:"bytes,7,opt,name=virtual_payment_address,json=virtualPaymentAddress,proto3" json:"virtual_payment_address,omitempty"`
+	// Total deposit represents the number of tokens deposited by this storage provider for staking.
 	TotalDeposit github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,8,opt,name=total_deposit,json=totalDeposit,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total_deposit"`
 }
 
@@ -244,6 +251,7 @@ func (m *GlobalVirtualGroupsBindingOnBucket) GetLocalVirtualGroupIds() []uint32 
 }
 
 type GVGStatisticsWithinSP struct {
+	// storage_provider_id defines the id of the sp which the statistics associated to
 	StorageProviderId uint32 `protobuf:"varint,1,opt,name=storage_provider_id,json=storageProviderId,proto3" json:"storage_provider_id,omitempty"`
 	// secondary_count defines the number of global virtual groups (GVGs) in
 	// which this storage provider serves as a secondary storage provider.

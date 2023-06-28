@@ -13,7 +13,6 @@ message Params {
 
   // deposit_denom defines the staking coin denomination.
   string deposit_denom = 1;
-
   // store price, in bnb wei per charge byte
   string gvg_staking_price = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
