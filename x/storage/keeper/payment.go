@@ -229,7 +229,7 @@ func (k Keeper) GetBucketBill(ctx sdk.Context, bucketInfo *storagetypes.BucketIn
 		//secondary sp
 		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 		if !found {
-			return userFlows, fmt.Errorf("get GVG failed: %d", lvg.GlobalVirtualGroupId)
+			return userFlows, fmt.Errorf("get GVG failed: %d, %s", lvg.GlobalVirtualGroupId, lvg.String())
 		}
 
 		if doSettle {
