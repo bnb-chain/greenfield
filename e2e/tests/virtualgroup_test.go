@@ -330,6 +330,7 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 }
 
 func (s *VirtualGroupTestSuite) TestSPExit() {
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	// 1, create a new storage provider
 	sp := s.BaseSuite.CreateNewStorageProvider()
 	s.T().Logf("new SP Info: %s", sp.Info.String())
@@ -350,7 +351,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
 
 	// 3. create object
-	s.BaseSuite.CreateObject(sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
+	s.BaseSuite.CreateObject(user, sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
 
 	// 4. Create another gvg contains this new sp
 	anotherSP := s.StorageProviders[1]
@@ -404,6 +405,64 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
 
+	// 8. sp complete exit success
+	s.SendTxBlock(
+		sp.OperatorKey,
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+	)
+
+}
+
+func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
+
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storagetestutil.GenRandomBucketName()
+	objectName := storagetestutil.GenRandomObjectName()
+	// 1, create a new storage provider
+	sp := s.BaseSuite.CreateNewStorageProvider()
+	s.T().Logf("new SP Info: %s", sp.Info.String())
+
+	successorSp := s.StorageProviders[0]
+
+	// 2, create a new gvg group for this storage provider
+	var secondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != successorSp.Info.Id {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+		}
+		if len(secondarySPIDs) == 6 {
+			break
+		}
+	}
+
+	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
+
+	// 3. create object
+	s.BaseSuite.CreateObject(user, sp, gvgID, bucketName, objectName)
+
+	// 4. sp apply exit
+	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
+		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+	})
+
+	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// 5. sp complete exit failed
+	s.SendTxBlockWithExpectErrorString(
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		sp.OperatorKey,
+		"not swap out from all the family")
+
+	// 6. delete object
+	s.SendTxBlock(user, storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName))
+
+	// 7. delete bucket
+	s.SendTxBlock(user, storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName))
+
+	// 8. delete gvg
+	s.SendTxBlock(sp.OperatorKey, virtualgroupmoduletypes.NewMsgDeleteGlobalVirtualGroup(sp.OperatorKey.GetAddr(), gvgID))
 	// 8. sp complete exit success
 	s.SendTxBlock(
 		sp.OperatorKey,

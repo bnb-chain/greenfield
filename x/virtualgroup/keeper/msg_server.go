@@ -127,7 +127,7 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	err := k.DeleteGVG(ctx, sp.Id, req.GlobalVirtualGroupId)
+	err := k.DeleteGVG(ctx, sp, req.GlobalVirtualGroupId)
 	if err != nil {
 		return nil, err
 	}

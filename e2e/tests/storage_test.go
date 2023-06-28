@@ -1502,9 +1502,10 @@ func (s *StorageTestSuite) TestMigrationBucket() {
 	primarySP := s.StorageProviders[0]
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := storageutils.GenRandomBucketName()
 	objectName := storageutils.GenRandomObjectName()
-	_, _, _, bucketInfo := s.BaseSuite.CreateObject(&primarySP, gvg.Id, bucketName, objectName)
+	_, _, _, bucketInfo := s.BaseSuite.CreateObject(user, &primarySP, gvg.Id, bucketName, objectName)
 
 	// migration bucket
 	var err error

@@ -92,7 +92,7 @@ func (k Keeper) SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) {
 	store.Set(types.GetGVGKey(gvg.Id), bz)
 }
 
-func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
+func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, gvgID uint32) error {
 
 	store := ctx.KVStore(k.storeKey)
 
@@ -109,7 +109,16 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		return types.ErrGVGNotEmpty.Wrap("The virtual payment account still not empty")
 	}
 
-	gvgFamily, found := k.GetGVGFamily(ctx, primarySpID, gvg.FamilyId)
+	if !gvg.TotalDeposit.IsZero() {
+		// send back the deposit
+		coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), gvg.TotalDeposit))
+		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromHex(primarySp.FundingAddress), coins)
+		if err != nil {
+			return err
+		}
+	}
+
+	gvgFamily, found := k.GetGVGFamily(ctx, primarySp.Id, gvg.FamilyId)
 	if !found {
 		panic("not found gvg family when delete gvg")
 	}
@@ -124,7 +133,11 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 
 	store.Delete(types.GetGVGKey(gvg.Id))
 
-	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	if len(gvgFamily.GlobalVirtualGroupIds) == 0 {
+		store.Delete(types.GetGVGFamilyKey(gvg.PrimarySpId, gvgFamily.Id))
+	} else {
+		k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	}
 	return nil
 }
 

@@ -463,7 +463,7 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	return newSP
 }
 
-func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucketName, objectName string) (secondarySps []*StorageProvider, familyID, resGVGID uint32, bucketInfo storagetypes.BucketInfo) {
+func (s *BaseSuite) CreateObject(user keys.KeyManager, primarySP *StorageProvider, gvgID uint32, bucketName, objectName string) (secondarySps []*StorageProvider, familyID, resGVGID uint32, bucketInfo storagetypes.BucketInfo) {
 	// GetGVG
 	resp, err := s.Client.GlobalVirtualGroup(
 		context.Background(),
@@ -472,7 +472,6 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 	gvg := resp.GlobalVirtualGroup
 
 	// CreateBucket
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, primarySP.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
