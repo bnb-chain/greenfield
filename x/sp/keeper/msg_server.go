@@ -134,7 +134,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 
 	// set initial sp storage price
 	spStoragePrice := types.SpStoragePrice{
-		SpAddress:     spAcc.String(),
+		SpId:          sp.Id,
 		UpdateTimeSec: ctx.BlockTime().Unix(),
 		ReadPrice:     msg.ReadPrice,
 		StorePrice:    msg.StorePrice,
@@ -288,21 +288,26 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpdateSpStoragePrice) (*types.MsgUpdateSpStoragePriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	spAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
-	err := k.IsStorageProviderExistAndInService(ctx, spAcc)
-	if err != nil {
-		return nil, errors.Wrapf(err, "IsStorageProviderExistAndInService return err")
+
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAcc)
+	if !found {
+		return nil, types.ErrStorageProviderNotFound
+	}
+
+	if sp.Status != types.STATUS_IN_SERVICE {
+		return nil, types.ErrStorageProviderNotInService
 	}
 
 	current := ctx.BlockTime().Unix()
 	spStorePrice := types.SpStoragePrice{
 		UpdateTimeSec: current,
-		SpAddress:     spAcc.String(),
+		SpId:          sp.Id,
 		ReadPrice:     msg.ReadPrice,
 		StorePrice:    msg.StorePrice,
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	err = k.UpdateSecondarySpStorePrice(ctx)
+	err := k.UpdateSecondarySpStorePrice(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "update secondary sp store price failed")
 	}

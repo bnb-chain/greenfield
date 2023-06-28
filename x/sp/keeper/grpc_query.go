@@ -49,7 +49,11 @@ func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.Q
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid sp address")
 	}
-	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, spAddr, req.Timestamp)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAddr)
+	if !found {
+		return nil, status.Error(codes.InvalidArgument, "unknown sp with the operator address")
+	}
+	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, sp.Id, req.Timestamp)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "not found, err: %s", err)
 	}

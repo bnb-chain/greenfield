@@ -36,10 +36,6 @@ type SpKeeper interface {
 	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderByGcAddr(ctx sdk.Context, gcAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
-	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
-	SetSpStoragePrice(ctx sdk.Context, SpStoragePrice sptypes.SpStoragePrice)
-	SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice sptypes.SecondarySpStorePrice)
-	GetSpStoragePriceByTime(ctx sdk.Context, spAddr sdk.AccAddress, time int64) (val sptypes.SpStoragePrice, err error)
 }
 
 type PaymentKeeper interface {

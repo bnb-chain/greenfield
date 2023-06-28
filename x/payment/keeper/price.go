@@ -9,11 +9,7 @@ import (
 )
 
 func (k Keeper) GetStoragePrice(ctx sdk.Context, params types.StoragePriceParams) (price types.StoragePrice, err error) {
-	primarySp, err := sdk.AccAddressFromHexUnsafe(params.PrimarySp)
-	if err != nil {
-		return types.StoragePrice{}, fmt.Errorf("invalid primary sp address: %s", params.PrimarySp)
-	}
-	primarySpPrice, err := k.spKeeper.GetSpStoragePriceByTime(ctx, primarySp, params.PriceTime)
+	primarySpPrice, err := k.spKeeper.GetSpStoragePriceByTime(ctx, params.PrimarySp, params.PriceTime)
 	if err != nil {
 		return types.StoragePrice{}, fmt.Errorf("get sp [%s] storage price @[%d] failed: %w", params.PrimarySp, params.PriceTime, err)
 	}

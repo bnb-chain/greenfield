@@ -172,21 +172,6 @@ func (m *MockSpKeeper) EXPECT() *MockSpKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetSpStoragePriceByTime mocks base method.
-func (m *MockSpKeeper) GetSpStoragePriceByTime(ctx types3.Context, spAddr types3.AccAddress, time int64) (types1.SpStoragePrice, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSpStoragePriceByTime", ctx, spAddr, time)
-	ret0, _ := ret[0].(types1.SpStoragePrice)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// GetSpStoragePriceByTime indicates an expected call of GetSpStoragePriceByTime.
-func (mr *MockSpKeeperMockRecorder) GetSpStoragePriceByTime(ctx, spAddr, time interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSpStoragePriceByTime", reflect.TypeOf((*MockSpKeeper)(nil).GetSpStoragePriceByTime), ctx, spAddr, time)
-}
-
 // GetStorageProvider mocks base method.
 func (m *MockSpKeeper) GetStorageProvider(ctx types3.Context, id uint32) (*types1.StorageProvider, bool) {
 	m.ctrl.T.Helper()
@@ -247,20 +232,6 @@ func (mr *MockSpKeeperMockRecorder) GetStorageProviderBySealAddr(ctx, sealAddr i
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageProviderBySealAddr", reflect.TypeOf((*MockSpKeeper)(nil).GetStorageProviderBySealAddr), ctx, sealAddr)
 }
 
-// IsStorageProviderExistAndInService mocks base method.
-func (m *MockSpKeeper) IsStorageProviderExistAndInService(ctx types3.Context, addr types3.AccAddress) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "IsStorageProviderExistAndInService", ctx, addr)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// IsStorageProviderExistAndInService indicates an expected call of IsStorageProviderExistAndInService.
-func (mr *MockSpKeeperMockRecorder) IsStorageProviderExistAndInService(ctx, addr interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsStorageProviderExistAndInService", reflect.TypeOf((*MockSpKeeper)(nil).IsStorageProviderExistAndInService), ctx, addr)
-}
-
 // MustGetStorageProvider mocks base method.
 func (m *MockSpKeeper) MustGetStorageProvider(ctx types3.Context, id uint32) *types1.StorageProvider {
 	m.ctrl.T.Helper()
@@ -273,30 +244,6 @@ func (m *MockSpKeeper) MustGetStorageProvider(ctx types3.Context, id uint32) *ty
 func (mr *MockSpKeeperMockRecorder) MustGetStorageProvider(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustGetStorageProvider", reflect.TypeOf((*MockSpKeeper)(nil).MustGetStorageProvider), ctx, id)
-}
-
-// SetSecondarySpStorePrice mocks base method.
-func (m *MockSpKeeper) SetSecondarySpStorePrice(ctx types3.Context, secondarySpStorePrice types1.SecondarySpStorePrice) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetSecondarySpStorePrice", ctx, secondarySpStorePrice)
-}
-
-// SetSecondarySpStorePrice indicates an expected call of SetSecondarySpStorePrice.
-func (mr *MockSpKeeperMockRecorder) SetSecondarySpStorePrice(ctx, secondarySpStorePrice interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSecondarySpStorePrice", reflect.TypeOf((*MockSpKeeper)(nil).SetSecondarySpStorePrice), ctx, secondarySpStorePrice)
-}
-
-// SetSpStoragePrice mocks base method.
-func (m *MockSpKeeper) SetSpStoragePrice(ctx types3.Context, SpStoragePrice types1.SpStoragePrice) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetSpStoragePrice", ctx, SpStoragePrice)
-}
-
-// SetSpStoragePrice indicates an expected call of SetSpStoragePrice.
-func (mr *MockSpKeeperMockRecorder) SetSpStoragePrice(ctx, SpStoragePrice interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetSpStoragePrice", reflect.TypeOf((*MockSpKeeper)(nil).SetSpStoragePrice), ctx, SpStoragePrice)
 }
 
 // MockPaymentKeeper is a mock of PaymentKeeper interface.

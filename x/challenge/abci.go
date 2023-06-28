@@ -88,10 +88,6 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 			continue
 		}
-		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(sp.OperatorAddress)
-		if err != nil {
-			continue
-		}
 
 		mapKey := fmt.Sprintf("%d-%s", spOperatorId, objectInfo.Id.String())
 		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
@@ -99,7 +95,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// check recent slash
-		if keeper.ExistsSlash(ctx, spOperatorAddr, objectInfo.Id) {
+		if keeper.ExistsSlash(ctx, sp.Id, objectInfo.Id) {
 			continue
 		}
 
@@ -118,7 +114,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,
 			SegmentIndex:      segmentIndex,
-			SpOperatorAddress: spOperatorAddr.String(),
+			SpOperatorAddress: sp.OperatorAddress,
 			RedundancyIndex:   redundancyIndex,
 			ChallengerAddress: "",
 			ExpiredHeight:     expiredHeight,

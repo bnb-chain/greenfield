@@ -7,18 +7,6 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-func (k Keeper) IsStorageProviderExistAndInService(ctx sdk.Context, spAddr sdk.AccAddress) error {
-	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAddr)
-	if !found {
-		return types.ErrStorageProviderNotFound
-	}
-
-	if sp.Status != types.STATUS_IN_SERVICE {
-		return types.ErrStorageProviderNotInService
-	}
-	return nil
-}
-
 func (k Keeper) GetStorageProvider(ctx sdk.Context, id uint32) (sp *types.StorageProvider, found bool) {
 	store := ctx.KVStore(k.storeKey)
 

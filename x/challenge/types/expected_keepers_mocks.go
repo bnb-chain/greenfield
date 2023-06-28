@@ -69,6 +69,21 @@ func (mr *MockSpKeeperMockRecorder) GetStorageProvider(ctx, id interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageProvider", reflect.TypeOf((*MockSpKeeper)(nil).GetStorageProvider), ctx, id)
 }
 
+// GetStorageProviderByOperatorAddr mocks base method.
+func (m *MockSpKeeper) GetStorageProviderByOperatorAddr(ctx types2.Context, opAddr types2.AccAddress) (*types.StorageProvider, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStorageProviderByOperatorAddr", ctx, opAddr)
+	ret0, _ := ret[0].(*types.StorageProvider)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetStorageProviderByOperatorAddr indicates an expected call of GetStorageProviderByOperatorAddr.
+func (mr *MockSpKeeperMockRecorder) GetStorageProviderByOperatorAddr(ctx, opAddr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStorageProviderByOperatorAddr", reflect.TypeOf((*MockSpKeeper)(nil).GetStorageProviderByOperatorAddr), ctx, opAddr)
+}
+
 // Slash mocks base method.
 func (m *MockSpKeeper) Slash(ctx types2.Context, spAcc types2.AccAddress, rewardInfos []types.RewardInfo) error {
 	m.ctrl.T.Helper()

@@ -77,7 +77,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// check sp recent slash
-	if k.ExistsSlash(ctx, spOperator, objectInfo.Id) {
+	if k.ExistsSlash(ctx, sp.Id, objectInfo.Id) {
 		return nil, types.ErrExistsRecentSlash
 	}
 

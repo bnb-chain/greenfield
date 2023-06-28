@@ -118,9 +118,9 @@ func (s *TestSuite) TestSubmit() {
 
 	// create slash
 	s.challengeKeeper.SaveSlash(s.ctx, types.Slash{
-		SpOperatorAddress: existSpAddr,
-		ObjectId:          existObject.Id,
-		Height:            100,
+		SpId:     existSp.Id,
+		ObjectId: existObject.Id,
+		Height:   100,
 	})
 
 	tests = []struct {

@@ -7,3 +7,4 @@ ${mockgencmd} -source=x/payment/types/expected_keepers.go -destination=x/payment
 ${mockgencmd} -source=x/permission/types/expected_keepers.go -destination=x/permission/types/expected_keepers_mocks.go -package=types
 ${mockgencmd} -source=x/sp/types/expected_keepers.go -destination=x/sp/types/expected_keepers_mocks.go -package=types
 ${mockgencmd} -source=x/storage/types/expected_keepers.go -destination=x/storage/types/expected_keepers_mocks.go -package=types
+${mockgencmd} -source=x/virtualgroup/types/expected_keepers.go -destination=x/virtualgroup/types/expected_keepers_mocks.go -package=types

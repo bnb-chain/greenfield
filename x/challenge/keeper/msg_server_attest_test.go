@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"testing"
 
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+
 	"cosmossdk.io/math"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -194,12 +196,15 @@ func (s *TestSuite) TestAttest_Normal() {
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
 		Return(existObject, true).AnyTimes()
 
+	spOperatorAcc := sample.RandAccAddress()
+	sp := sptypes.StorageProvider{Id: 1, OperatorAddress: spOperatorAcc.String()}
 	s.spKeeper.EXPECT().DepositDenomForSP(gomock.Any()).
 		Return("BNB").AnyTimes()
 	s.spKeeper.EXPECT().Slash(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).AnyTimes()
+	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
+		Return(sp, true).AnyTimes()
 
-	spOperatorAcc := sample.RandAccAddress()
 	attestMsg := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
 		ChallengeId:       challengeId,
@@ -225,5 +230,5 @@ func (s *TestSuite) TestAttest_Normal() {
 		}
 	}
 	s.Require().True(found)
-	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, spOperatorAcc, attestMsg.ObjectId))
+	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, sp.Id, attestMsg.ObjectId))
 }

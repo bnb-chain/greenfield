@@ -142,7 +142,3 @@ func (d *Description) UpdateDescription(d2 *Description) (*Description, error) {
 
 	return d2, nil
 }
-
-func (s *SpStoragePrice) GetSpAccAddress() sdk.AccAddress {
-	return sdk.MustAccAddressFromHex(s.SpAddress)
-}

@@ -25,6 +25,11 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	submitter := sdk.MustAccAddressFromHex(msg.Submitter)
 	spOperator := sdk.MustAccAddressFromHex(msg.SpOperatorAddress)
 
+	sp, found := k.SpKeeper.GetStorageProviderByOperatorAddr(ctx, spOperator)
+	if !found {
+		return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find sp with operator address: %s", msg.SpOperatorAddress)
+	}
+
 	challenger := sdk.AccAddress{}
 	if msg.ChallengerAddress != "" {
 		challenger = sdk.MustAccAddressFromHex(msg.ChallengerAddress)
@@ -61,7 +66,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 
 	if msg.VoteResult == types.CHALLENGE_SUCCEED {
 		// check slash
-		if k.ExistsSlash(ctx, spOperator, msg.ObjectId) {
+		if k.ExistsSlash(ctx, sp.Id, msg.ObjectId) {
 			return nil, types.ErrDuplicatedSlash
 		}
 
@@ -73,9 +78,9 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		}
 
 		slash := types.Slash{
-			SpOperatorAddress: spOperator,
-			ObjectId:          msg.ObjectId,
-			Height:            uint64(ctx.BlockHeight()),
+			SpId:     sp.Id,
+			ObjectId: msg.ObjectId,
+			Height:   uint64(ctx.BlockHeight()),
 		}
 		k.SaveSlash(ctx, slash)
 	} else {

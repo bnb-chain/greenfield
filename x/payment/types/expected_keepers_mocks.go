@@ -236,16 +236,16 @@ func (mr *MockSpKeeperMockRecorder) GetSecondarySpStorePriceByTime(ctx, time int
 }
 
 // GetSpStoragePriceByTime mocks base method.
-func (m *MockSpKeeper) GetSpStoragePriceByTime(ctx types0.Context, spAddr types0.AccAddress, time int64) (types.SpStoragePrice, error) {
+func (m *MockSpKeeper) GetSpStoragePriceByTime(ctx types0.Context, spId uint32, time int64) (types.SpStoragePrice, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetSpStoragePriceByTime", ctx, spAddr, time)
+	ret := m.ctrl.Call(m, "GetSpStoragePriceByTime", ctx, spId, time)
 	ret0, _ := ret[0].(types.SpStoragePrice)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetSpStoragePriceByTime indicates an expected call of GetSpStoragePriceByTime.
-func (mr *MockSpKeeperMockRecorder) GetSpStoragePriceByTime(ctx, spAddr, time interface{}) *gomock.Call {
+func (mr *MockSpKeeperMockRecorder) GetSpStoragePriceByTime(ctx, spId, time interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSpStoragePriceByTime", reflect.TypeOf((*MockSpKeeper)(nil).GetSpStoragePriceByTime), ctx, spAddr, time)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSpStoragePriceByTime", reflect.TypeOf((*MockSpKeeper)(nil).GetSpStoragePriceByTime), ctx, spId, time)
 }

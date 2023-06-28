@@ -53,12 +53,8 @@ func (k Keeper) GetBucketReadBill(ctx sdk.Context, bucketInfo *storagetypes.Buck
 	if bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
 	}
-	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return userFlows, fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
-	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySp.OperatorAddress,
+		PrimarySp: bucketInfo.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
@@ -110,11 +106,10 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 
 func (k Keeper) LockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
+	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
+	if err != nil {
+		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
-	amount, err := k.GetObjectLockFee(ctx, primarySp.OperatorAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if ctx.IsCheckTx() {
 		_ = ctx.EventManager().EmitTypedEvents(&types.EventFeePreview{
 			Account:        paymentAddr.String(),
@@ -122,9 +117,7 @@ func (k Keeper) LockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 			Amount:         amount,
 		})
 	}
-	if err != nil {
-		return fmt.Errorf("get object store fee rate failed: %w", err)
-	}
+
 	change := types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).WithLockBalanceChange(amount)
 	streamRecord, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx, change)
 	if err != nil {
@@ -138,11 +131,7 @@ func (k Keeper) LockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 
 // UnlockObjectStoreFee unlock store fee if the object is deleted in INIT state
 func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
-	}
-	lockedBalance, err := k.GetObjectLockFee(ctx, primarySp.OperatorAddress, objectInfo.CreateAt, objectInfo.PayloadSize)
+	lockedBalance, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
@@ -167,19 +156,15 @@ func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, bucketInfo *stora
 }
 
 func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, error) {
-	primarySp, found := k.spKeeper.GetStorageProvider(ctx, primarySpId)
-	if !found {
-		return false, fmt.Errorf("get storage provider failed: %d", primarySpId)
-	}
 	prePrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySp.OperatorAddress,
+		PrimarySp: primarySpId,
 		PriceTime: priceTime,
 	})
 	if err != nil {
 		return false, fmt.Errorf("get storage price failed: %w", err)
 	}
 	currentPrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySp.OperatorAddress,
+		PrimarySp: primarySpId,
 		PriceTime: ctx.BlockTime().Unix(),
 	})
 	if err != nil {
@@ -289,12 +274,8 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		Flows: make([]types.OutFlow, 0),
 	}
 
-	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
-	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySp.OperatorAddress,
+		PrimarySp: bucketInfo.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
@@ -385,12 +366,8 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 	if internalBucketInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
 	}
-	primarySp, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return userFlows, fmt.Errorf("get storage provider failed: %d", bucketInfo.PrimarySpId)
-	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySp.OperatorAddress,
+		PrimarySp: bucketInfo.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
@@ -471,9 +448,9 @@ func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	return negFlows
 }
 
-func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpAddress string, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
+func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpId uint32, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySpAddress,
+		PrimarySp: primarySpId,
 		PriceTime: priceTime,
 	})
 	if err != nil {
