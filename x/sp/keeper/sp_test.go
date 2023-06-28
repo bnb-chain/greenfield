@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/golang/mock/gomock"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	types2 "github.com/bnb-chain/greenfield/sdk/types"

@@ -42,7 +42,7 @@ func (k Keeper) UnChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.
 	if len(bill.Flows) == 0 {
 		return nil
 	}
-	bill.Flows = GetNegFlows(bill.Flows)
+	bill.Flows = getNegFlows(bill.Flows)
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 	return err
 }
@@ -349,7 +349,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		internalBucketInfo.TotalChargeSize = internalBucketInfo.TotalChargeSize - chargeSize
 		lvg.TotalChargeSize = lvg.TotalChargeSize - chargeSize
 
-		userFlows.Flows = GetNegFlows(userFlows.Flows)
+		userFlows.Flows = getNegFlows(userFlows.Flows)
 	}
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	if err != nil {
@@ -431,8 +431,36 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 	return userFlows, nil
 }
 
+func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
+	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+	if err != nil {
+		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
+	}
+	bill.Flows = getNegFlows(bill.Flows)
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
+	if err != nil {
+		return fmt.Errorf("apply user flows list failed: %w", err)
+	}
+	return nil
+}
+
+func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
+	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
+	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+	if err != nil {
+		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
+	}
+	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
+	if err != nil {
+		return fmt.Errorf("apply user flows list failed: %w", err)
+	}
+	return nil
+}
+
 func (k Keeper) ApplyBillChanges(ctx sdk.Context, prevFlows, currentFlows types.UserFlows) error {
-	prevFlows.Flows = GetNegFlows(prevFlows.Flows)
+	prevFlows.Flows = getNegFlows(prevFlows.Flows)
 	err := k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{prevFlows, currentFlows})
 	if err != nil {
 		return fmt.Errorf("apply user flows list failed: %w", err)
@@ -440,7 +468,7 @@ func (k Keeper) ApplyBillChanges(ctx sdk.Context, prevFlows, currentFlows types.
 	return nil
 }
 
-func GetNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
+func getNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	negFlows = make([]types.OutFlow, len(flows))
 	for i, flow := range flows {
 		negFlows[i] = types.OutFlow{ToAddress: flow.ToAddress, Rate: flow.Rate.Neg()}
@@ -481,32 +509,4 @@ func (k Keeper) GetObjectChargeSize(ctx sdk.Context, payloadSize uint64, ts int6
 	} else {
 		return payloadSize, nil
 	}
-}
-
-func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
-	internalBucketInfo *storagetypes.InternalBucketInfo) error {
-	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
-	if err != nil {
-		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
-	}
-	bill.Flows = GetNegFlows(bill.Flows)
-	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
-	if err != nil {
-		return fmt.Errorf("apply user flows list failed: %w", err)
-	}
-	return nil
-}
-
-func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
-	internalBucketInfo *storagetypes.InternalBucketInfo) error {
-	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
-	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
-	if err != nil {
-		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
-	}
-	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
-	if err != nil {
-		return fmt.Errorf("apply user flows list failed: %w", err)
-	}
-	return nil
 }

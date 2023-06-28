@@ -45,6 +45,11 @@ func (s *TestSuite) TestAttest_Invalid() {
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
 		Return(existObject, true).AnyTimes()
 
+	spOperatorAcc := sample.RandAccAddress()
+	sp := &sptypes.StorageProvider{Id: 10, OperatorAddress: spOperatorAcc.String()}
+	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
+		Return(sp, true).AnyTimes()
+
 	tests := []struct {
 		name string
 		msg  types.MsgAttest
@@ -140,11 +145,15 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 		Return(nil).AnyTimes()
 
 	spOperatorAcc := sample.RandAccAddress()
+	sp := &sptypes.StorageProvider{Id: 10, OperatorAddress: spOperatorAcc.String()}
+	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
+		Return(sp, true).AnyTimes()
+
 	attestMsg := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
 		ChallengeId:       challengeId,
 		ObjectId:          math.NewUint(10),
-		SpOperatorAddress: spOperatorAcc.String(),
+		SpOperatorAddress: sp.OperatorAddress,
 		VoteResult:        types.CHALLENGE_FAILED,
 		ChallengerAddress: "",
 		VoteValidatorSet:  []uint64{1},
@@ -197,7 +206,7 @@ func (s *TestSuite) TestAttest_Normal() {
 		Return(existObject, true).AnyTimes()
 
 	spOperatorAcc := sample.RandAccAddress()
-	sp := sptypes.StorageProvider{Id: 1, OperatorAddress: spOperatorAcc.String()}
+	sp := &sptypes.StorageProvider{Id: 1, OperatorAddress: spOperatorAcc.String()}
 	s.spKeeper.EXPECT().DepositDenomForSP(gomock.Any()).
 		Return("BNB").AnyTimes()
 	s.spKeeper.EXPECT().Slash(gomock.Any(), gomock.Any(), gomock.Any()).
