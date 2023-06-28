@@ -648,6 +648,7 @@ var xxx_messageInfo_MsgSwapOutResponse proto.InternalMessageInfo
 
 // this line is used by starport scaffolding # proto/tx/message
 type MsgStorageProviderExit struct {
+	// operator_address defines the account address of the storage provider who want to exit
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
@@ -728,6 +729,7 @@ func (m *MsgStorageProviderExitResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgStorageProviderExitResponse proto.InternalMessageInfo
 
 type MsgCompleteStorageProviderExit struct {
+	// operator_address defines the account address of the storage provider who want to exit
 	OperatorAddress string `protobuf:"bytes,1,opt,name=operator_address,json=operatorAddress,proto3" json:"operator_address,omitempty"`
 }
 
