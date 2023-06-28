@@ -332,13 +332,14 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 func (s *VirtualGroupTestSuite) TestSPExit() {
 	// 1, create a new storage provider
 	sp := s.BaseSuite.CreateNewStorageProvider()
+	s.T().Logf("new SP Info: %s", sp.Info.String())
 
-	successor_sp := s.StorageProviders[0]
+	successorSp := s.StorageProviders[0]
 
 	// 2, create a new gvg group for this storage provider
 	var secondarySPIDs []uint32
 	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != successor_sp.Info.Id {
+		if ssp.Info.Id != successorSp.Info.Id {
 			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 		}
 		if len(secondarySPIDs) == 6 {
@@ -355,10 +356,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	anotherSP := s.StorageProviders[1]
 	var anotherSecondarySPIDs []uint32
 	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != successor_sp.Info.Id {
-			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
-		}
-		if ssp.Info.Id != anotherSP.Info.Id {
+		if ssp.Info.Id != successorSp.Info.Id && ssp.Info.Id != anotherSP.Info.Id {
 			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
 		}
 		if len(anotherSecondarySPIDs) == 5 {
@@ -387,9 +385,9 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 		"not swap out from all the family")
 
 	// 7. swapout, as primary sp
-	msgSwapOut := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successor_sp.Info.Id)
+	msgSwapOut := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
 	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
-	msgSwapOut.SuccessorSpApproval.Sig, err = successor_sp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
+	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
 
@@ -400,9 +398,9 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 		"not swap out from all the gvgs")
 
 	// 7. swapout, as secondary sp
-	msgSwapOut2 := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successor_sp.Info.Id)
+	msgSwapOut2 := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
 	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
-	msgSwapOut2.SuccessorSpApproval.Sig, err = successor_sp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
+	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
 

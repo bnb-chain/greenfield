@@ -526,6 +526,12 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 
+	// query gvg
+	queryGlobalvirtualGroupResp, err := s.Client.GlobalVirtualGroup(ctx, &virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{
+		GlobalVirtualGroupId: gvgID,
+	})
+	s.Require().NoError(err)
+	originGVG := queryGlobalvirtualGroupResp.GlobalVirtualGroup
 	// SealObject
 	gvgId := gvg.Id
 	msgSealObject := storagetypes.NewMsgSealObject(primarySP.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
@@ -556,6 +562,13 @@ func (s *BaseSuite) CreateObject(primarySP *StorageProvider, gvgID uint32, bucke
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+
+	// verify gvg store size
+	queryGlobalvirtualGroupResp, err = s.Client.GlobalVirtualGroup(ctx, &virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{
+		GlobalVirtualGroupId: gvgID,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(originGVG.StoredSize+uint64(payloadSize), queryGlobalvirtualGroupResp.GlobalVirtualGroup.StoredSize)
 
 	return secondarySps, gvg.FamilyId, gvg.Id, bucketInfo
 }
