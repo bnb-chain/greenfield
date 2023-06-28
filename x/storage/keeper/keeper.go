@@ -133,7 +133,7 @@ func (k Keeper) CreateBucket(
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
 
-	internalBucketInfo := types.InternalBucketInfo{}
+	internalBucketInfo := types.InternalBucketInfo{PriceTime: ctx.BlockTime().Unix()}
 
 	// charge by read quota
 	if opts.ChargedReadQuota != 0 {
