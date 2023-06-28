@@ -1,6 +1,8 @@
 package types
 
 import (
+	"fmt"
+
 	sdkmath "cosmossdk.io/math"
 )
 
@@ -30,6 +32,13 @@ func (f *GlobalVirtualGroupFamily) RemoveGVG(gvgID uint32) error {
 		}
 	}
 	return ErrGVGNotExist
+}
+
+func (f *GlobalVirtualGroupFamily) MustRemoveGVG(gvgID uint32)  {
+	err := f.RemoveGVG(gvgID)
+	if err != nil {
+		panic(fmt.Sprintf("remove gvg from family failed. err: %s", err))
+	}
 }
 
 func (g *GlobalVirtualGroupsBindingOnBucket) AppendGVGAndLVG(gvgID, lvgID uint32) {

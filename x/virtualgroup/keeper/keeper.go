@@ -114,10 +114,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySpID, gvgID uint32) error {
 		panic("not found gvg family when delete gvg")
 	}
 
-	err := gvgFamily.RemoveGVG(gvg.Id)
-	if err == types.ErrGVGNotExist {
-		panic("gvg not found in gvg family when delete gvg")
-	}
+	gvgFamily.MustRemoveGVG(gvg.Id)
 
 	for _, secondarySPID := range gvg.SecondarySpIds {
 		gvgStatisticsWithinSP := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
@@ -167,7 +164,7 @@ func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.Glo
 func (k Keeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	gvgFamily, found := k.GetGVGFamily(ctx, spID, familyID)
 	if !found {
-		return nil, types.ErrGVGNotExist
+		return nil, types.ErrGVGFamilyNotExist
 	}
 
 	// check the maximum store size for a family
@@ -241,15 +238,8 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 
 		// swap deposit
 		if !gvg.TotalDeposit.IsZero() {
-			// send back deposit
 			coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), gvg.TotalDeposit))
-			err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, sdk.MustAccAddressFromHex(primarySP.FundingAddress), coins)
-			if err != nil {
-				return err
-			}
-
-			// successor deposit
-			err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromHex(successorSP.FundingAddress), types.ModuleName, coins)
+			err := k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromHex(successorSP.FundingAddress), sdk.MustAccAddressFromHex(primarySP.FundingAddress), coins)
 			if err != nil {
 				return err
 			}
@@ -283,11 +273,13 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 			return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
 		}
 		secondarySPFound := false
-		for _, spID := range gvg.SecondarySpIds {
+		secondarySPIndex := int(-1)
+		for i, spID := range gvg.SecondarySpIds {
 			if spID == successorSPID {
 				return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be one of the secondary sp of gvg(%s).", successorSPID, gvg.String())
 			}
 			if spID == secondarySPID {
+				secondarySPIndex = i
 				secondarySPFound = true
 			}
 		}
@@ -300,19 +292,17 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSP
 			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
 		}
 
-		for i, spID := range gvg.SecondarySpIds {
-			if spID == secondarySPID {
-				gvg.SecondarySpIds[i] = successorSPID
-				origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
-				successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
-				origin.SecondaryCount--
-				successor.SecondaryCount++
-				k.SetGVGStatisticsWithSP(ctx, origin)
-				k.SetGVGStatisticsWithSP(ctx, successor)
-				k.SetGVG(ctx, gvg)
-				break
-			}
+		if secondarySPIndex == int(-1) {
+			panic("secondary sp found but the index is not correct when swap out as secondary sp")
 		}
+		gvg.SecondarySpIds[secondarySPIndex] = successorSPID
+		origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
+		successor := k.MustGetGVGStatisticsWithinSP(ctx, successorSPID)
+		origin.SecondaryCount--
+		successor.SecondaryCount++
+		k.SetGVGStatisticsWithSP(ctx, origin)
+		k.SetGVGStatisticsWithSP(ctx, successor)
+		k.SetGVG(ctx, gvg)
 	}
 	return nil
 }
@@ -373,7 +363,7 @@ func (k Keeper) BatchSetGVGStatisticsWithinSP(ctx sdk.Context, gvgsStatisticsWit
 	}
 }
 
-func (k Keeper) IsStorageProviderCanExit(ctx sdk.Context, spID uint32) error {
+func (k Keeper) StorageProviderExitable(ctx sdk.Context, spID uint32) error {
 	store := ctx.KVStore(k.storeKey)
 
 	prefixStore := prefix.NewStore(store, types.GetGVGFamilyPrefixKey(spID))

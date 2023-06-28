@@ -17,6 +17,7 @@ var (
 	ErrSPCanNotExit           = errors.Register(ModuleName, 1108, "the sp can not exit now.")
 	ErrSettleFailed           = errors.Register(ModuleName, 1109, "fail to settle.")
 	ErrInvalidGVGCount        = errors.Register(ModuleName, 1120, "the count of global virtual group ids is invalid.")
+	ErrWithdrawFailed         = errors.Register(ModuleName, 1121, "with draw failed.")
 
 	ErrLimitationExceed    = errors.Register(ModuleName, 1123, "limitation exceed.")
 	ErrInsufficientStaking = errors.Register(ModuleName, 1125, "insufficient staking for gvg")

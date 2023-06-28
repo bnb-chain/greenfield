@@ -361,7 +361,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 		if ssp.Info.Id != anotherSP.Info.Id {
 			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
 		}
-		if len(secondarySPIDs) == 5 {
+		if len(anotherSecondarySPIDs) == 5 {
 			break
 		}
 	}

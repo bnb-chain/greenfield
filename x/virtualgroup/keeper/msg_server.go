@@ -71,11 +71,6 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")
 	}
 
-	gvgID := k.GenNextGVGID(ctx)
-	if gvgID == 0 {
-		return nil, sdkerrors.Wrapf(types.ErrGenSequenceIDError, "wrong next gvg id.")
-	}
-
 	// deposit enough tokens for oncoming objects
 	coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), req.Deposit.Amount))
 	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sdk.MustAccAddressFromHex(sp.FundingAddress), types.ModuleName, coins)
@@ -83,9 +78,10 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, err
 	}
 
+	gvgID := k.GenNextGVGID(ctx)
 	gvg := &types.GlobalVirtualGroup{
 		Id:                    k.GenNextGVGID(ctx),
-		FamilyId:              gvgFamily.Id,
+		FamilyId:              gvgID,
 		PrimarySpId:           sp.Id,
 		SecondarySpIds:        secondarySpIds,
 		StoredSize:            0,
@@ -198,6 +194,10 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 		return nil, types.ErrGVGNotExist
 	}
 
+	if gvg.PrimarySpId != sp.Id {
+		return nil, types.ErrWithdrawFailed.Wrapf("the withdrawer(spID: %d) is not the primary sp(ID:%d) of gvg.", sp.Id, gvg.PrimarySpId)
+	}
+
 	depositDenom := k.DepositDenomForGVG(ctx)
 	if req.Withdraw.Denom != depositDenom {
 		return nil, sdkerrors.Wrapf(types.ErrInvalidDenom, "invalid coin denomination: got %s, expected %s", req.Withdraw.Denom, k.DepositDenomForGVG(ctx))
@@ -206,6 +206,9 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 	var withdrawTokens math.Int
 
 	availableTokens := k.GetAvailableStakingTokens(ctx, gvg)
+	if availableTokens.IsNegative() {
+		panic("the available tokens is negative when withdraw")
+	}
 	if req.Withdraw.Amount.IsZero() {
 		withdrawTokens = availableTokens
 	} else {
@@ -370,7 +373,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 			"sp(id : %d, operator address: %s) not in the process of exiting", sp.Id, sp.OperatorAddress)
 	}
 
-	err := k.IsStorageProviderCanExit(ctx, sp.Id)
+	err := k.StorageProviderExitable(ctx, sp.Id)
 	if err != nil {
 		return nil, err
 	}
