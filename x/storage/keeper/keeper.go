@@ -109,11 +109,12 @@ func (k Keeper) CreateBucket(
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
-	err = k.VerifySPAndSignature(ctx, sp.Id, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
-	if err != nil {
-		return sdkmath.ZeroUint(), err
-	}
-
+	if !ctx.IsCheckTx() {
+		err = k.VerifySPAndSignature(ctx, primarySpAcc, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+		if err != nil {
+			return sdkmath.ZeroUint(), err
+		}
+  }
 	gvgFamily, err := k.virtualGroupKeeper.GetAndCheckGVGFamilyAvailableForNewBucket(ctx, sp.Id, opts.PrimarySpApproval.GlobalVirtualGroupFamilyId)
 	if err != nil {
 		return sdkmath.ZeroUint(), err

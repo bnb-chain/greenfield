@@ -693,7 +693,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 		Actions: []types.ActionType{types.ACTION_UPDATE_BUCKET_INFO, types.ACTION_DELETE_BUCKET},
 		Effect:  types.EFFECT_ALLOW,
 	}
-	principal := types.NewPrincipalWithGroup(headGroupResponse.GroupInfo.Id)
+	principal := types.NewPrincipalWithGroupInfo(user[0].GetAddr(), headGroupResponse.GroupInfo.GroupName)
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{statement}, nil)
 	s.SendTxBlock(user[0], msgPutPolicy)
@@ -1127,7 +1127,7 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
 	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
 
-	principal := types.NewPrincipalWithGroup(headGroupResponse.GroupInfo.Id)
+	principal := types.NewPrincipalWithGroupId(headGroupResponse.GroupInfo.Id)
 	// Put bucket policy for group
 	bucketStatement := &types.Statement{
 		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},

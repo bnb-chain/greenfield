@@ -286,7 +286,7 @@ func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolic
 	}
 
 	policy, err := k.GetPolicy(
-		ctx, &grn, permtypes.NewPrincipalWithGroup(id),
+		ctx, &grn, permtypes.NewPrincipalWithGroupId(id),
 	)
 	if err != nil {
 		return nil, err

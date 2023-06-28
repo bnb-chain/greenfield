@@ -236,7 +236,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 			"Only resource owner can put bucket policy, operator (%s), owner(%s)",
 			operator.String(), resOwner.String())
 	}
-
+	k.normalizePrincipal(ctx, policy.Principal)
 	err := k.validatePrincipal(ctx, resOwner, policy.Principal)
 	if err != nil {
 		return math.ZeroUint(), err
@@ -295,6 +295,26 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal
 			operator.String(), resOwner.String())
 	}
 	return k.permKeeper.DeletePolicy(ctx, principal, grn.ResourceType(), resID)
+}
+
+func (k Keeper) normalizePrincipal(ctx sdk.Context, principal *permtypes.Principal) {
+	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
+		if _, err := math.ParseUint(principal.Value); err == nil {
+			return
+		}
+		var grn types2.GRN
+		if err := grn.ParseFromString(principal.Value, false); err != nil {
+			return
+		}
+		groupOwner, groupName, err := grn.GetGroupOwnerAndAccount()
+		if err != nil {
+			return
+		}
+
+		if groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName); found {
+			principal.Value = groupInfo.Id.String()
+		}
+	}
 }
 
 func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {
