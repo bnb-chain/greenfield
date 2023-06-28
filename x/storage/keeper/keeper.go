@@ -681,9 +681,14 @@ func (k Keeper) SealObject(
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGNotExist
 	}
+
+	if gvg.FamilyId != bucketInfo.GlobalVirtualGroupFamilyId || gvg.PrimarySpId != bucketInfo.PrimarySpId {
+		return types.ErrInvalidGlobalVirtualGroup.Wrapf("Global virtual group mismatch, familyID: %d, bucket family ID: %d", gvg.FamilyId, bucketInfo.GlobalVirtualGroupFamilyId)
+	}
+
 	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx, objectInfo.CreateAt)
 	if int(expectSecondarySPNum) != len(gvg.SecondarySpIds) {
-		return errors.Wrapf(types.ErrInvalidGlobalVirtualGroup, "secondary sp num mismatch, expect (%d), but (%d)",
+		return types.ErrInvalidGlobalVirtualGroup.Wrapf("secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
 	// validate seal object bls aggregated sig from secondary sps
