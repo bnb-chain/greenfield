@@ -121,7 +121,7 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 	objectInfo.LocalVirtualGroupId = lvg.Id
 
 	// unlock and charge store fee
-	err = k.UnlockAndChargeStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+	err = k.UnlockAndChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 	if err != nil {
 		return nil, err
 	}

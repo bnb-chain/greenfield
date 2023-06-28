@@ -165,7 +165,7 @@ func (s *TestSuite) TestGetBucketBill() {
 		ChargedReadQuota:           0,
 	}
 	internalBucketInfo := &types.InternalBucketInfo{}
-	flows, err := s.storageKeeper.GetBucketBill(s.ctx, bucketInfo, internalBucketInfo)
+	flows, err := s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 	s.Require().True(len(flows.Flows) == 0)
 
@@ -180,7 +180,7 @@ func (s *TestSuite) TestGetBucketBill() {
 		ChargedReadQuota:           100,
 	}
 	internalBucketInfo = &types.InternalBucketInfo{}
-	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo, internalBucketInfo)
+	flows, err = s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 	readRate := price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	s.Require().Equal(flows.Flows[0].ToAddress, gvgFamily.VirtualPaymentAddress)
@@ -232,7 +232,7 @@ func (s *TestSuite) TestGetBucketBill() {
 	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gvg2.Id).
 		Return(gvg2, true).AnyTimes()
 
-	flows, err = s.storageKeeper.GetBucketBill(s.ctx, bucketInfo, internalBucketInfo)
+	flows, err = s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 
 	gvg1StoreSize := internalBucketInfo.LocalVirtualGroups[0].TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
