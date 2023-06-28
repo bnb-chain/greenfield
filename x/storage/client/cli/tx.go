@@ -61,10 +61,6 @@ func GetTxCmd() *cobra.Command {
 		CmdDeletePolicy(),
 	)
 
-	cmd.AddCommand(
-		CmdMigrateBucket(),
-		CmdCompleteMigrateBucket(),
-	)
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -973,65 +969,6 @@ func CmdMirrorGroup() *cobra.Command {
 
 	cmd.Flags().String(FlagGroupId, "", "Id of the group to mirror")
 	cmd.Flags().String(FlagGroupName, "", "Name of the group to mirror")
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdMigrateBucket() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "migrate-bucket",
-		Short: "Broadcast message migrate_bucket",
-		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgMigrateBucket(
-				clientCtx.GetFromAddress(),
-				"test-bucket",
-				1,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	flags.AddTxFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdCompleteMigrateBucket() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "complete-migrate-bucket",
-		Short: "Broadcast message complete_migrate_bucket",
-		Args:  cobra.ExactArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg := types.NewMsgCompleteMigrateBucket(
-				clientCtx.GetFromAddress(),
-				"test-bucket",
-				0,
-				nil,
-			)
-			if err := msg.ValidateBasic(); err != nil {
-				return err
-			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
