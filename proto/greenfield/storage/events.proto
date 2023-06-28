@@ -32,8 +32,10 @@ message EventCreateBucket {
   string payment_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // primary_sp_id is the unique id of primary sp.
   uint32 primary_sp_id = 9;
+  // global_virtual_group_family_id defines the unique id of gvg family
+  uint32 global_virtual_group_family_id = 10;
   // status define the status of the bucket.
-  BucketStatus status = 10;
+  BucketStatus status = 11;
 }
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
