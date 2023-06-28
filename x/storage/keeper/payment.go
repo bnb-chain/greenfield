@@ -186,9 +186,9 @@ func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime in
 		return false, fmt.Errorf("get storage price failed: %w", err)
 	}
 
-	return prePrice.ReadPrice.Equal(currentPrice.ReadPrice) &&
+	return !(prePrice.ReadPrice.Equal(currentPrice.ReadPrice) &&
 		prePrice.PrimaryStorePrice.Equal(currentPrice.PrimaryStorePrice) &&
-		prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice), nil
+		prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice)), nil
 }
 
 func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
@@ -203,8 +203,8 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.B
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}
 
-	if priceChanged {
-		err := k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, int64(chargeSize))
+	if !priceChanged {
+		err := k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, chargeSize, false)
 		if err != nil {
 			return fmt.Errorf("apply object store bill error: %w", err)
 		}
@@ -232,8 +232,8 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}
 
-	if priceChanged {
-		err := k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, -1*int64(chargeSize))
+	if !priceChanged {
+		err := k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, chargeSize, true)
 		if err != nil {
 			return fmt.Errorf("apply object store bill error: %w", err)
 		}
@@ -283,7 +283,7 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 }
 
 func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
-	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo, chargeSize int64) error {
+	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo, chargeSize uint64, delete bool) error {
 	userFlows := types.UserFlows{
 		From:  sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress),
 		Flows: make([]types.OutFlow, 0),
@@ -321,7 +321,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	}
 
 	// primary sp
-	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewInt(chargeSize)).TruncateInt()
+	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	if primaryRate.IsPositive() {
 		primaryTotalFlowRate = primaryTotalFlowRate.Add(primaryRate)
 	}
@@ -332,7 +332,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get GVG failed: %d, %s", lvg.GlobalVirtualGroupId, lvg.String())
 	}
 
-	secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewInt(chargeSize)).TruncateInt()
+	secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	secondaryRate = secondaryRate.MulRaw(int64(len(gvg.SecondarySpIds)))
 	if secondaryRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
@@ -361,9 +361,15 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		})
 	}
 
-	internalBucketInfo.TotalChargeSize = uint64(int64(internalBucketInfo.TotalChargeSize) + chargeSize)
-	lvg.TotalChargeSize = uint64(int64(lvg.TotalChargeSize) + chargeSize)
+	if !delete {
+		internalBucketInfo.TotalChargeSize = internalBucketInfo.TotalChargeSize + chargeSize
+		lvg.TotalChargeSize = lvg.TotalChargeSize + chargeSize
+	} else {
+		internalBucketInfo.TotalChargeSize = internalBucketInfo.TotalChargeSize - chargeSize
+		lvg.TotalChargeSize = lvg.TotalChargeSize - chargeSize
 
+		userFlows.Flows = GetNegFlows(userFlows.Flows)
+	}
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	if err != nil {
 		ctx.Logger().Error("charge object store fee failed", "err", err.Error())
