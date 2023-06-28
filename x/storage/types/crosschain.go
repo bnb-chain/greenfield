@@ -39,6 +39,13 @@ const (
 	OperationUpdateGroupMember uint8 = 4
 )
 
+func SafeBigInt(input *big.Int) *big.Int {
+	if input == nil {
+		return big.NewInt(0)
+	}
+	return input
+}
+
 type CrossChainPackage struct {
 	OperationType uint8
 	Package       []byte
@@ -172,7 +179,7 @@ var (
 
 func (pkg *MirrorBucketSynPackage) Serialize() ([]byte, error) {
 	return generalMirrorSynPackageArgs.Pack(&GeneralMirrorSynPackageStruct{
-		pkg.Id,
+		SafeBigInt(pkg.Id),
 		common.BytesToAddress(pkg.Owner),
 	})
 }
@@ -205,7 +212,10 @@ func DeserializeMirrorBucketSynPackage(serializedPackage []byte) (interface{}, e
 }
 
 func (pkg *MirrorBucketAckPackage) Serialize() ([]byte, error) {
-	return generalMirrorAckPackageArgs.Pack(pkg)
+	return generalMirrorAckPackageArgs.Pack(&MirrorBucketAckPackage{
+		pkg.Status,
+		SafeBigInt(pkg.Id),
+	})
 }
 
 func DeserializeMirrorBucketAckPackage(serializedPackage []byte) (interface{}, error) {
@@ -235,7 +245,7 @@ type MirrorObjectAckPackage struct {
 
 func (pkg *MirrorObjectSynPackage) Serialize() ([]byte, error) {
 	return generalMirrorSynPackageArgs.Pack(&GeneralMirrorSynPackageStruct{
-		pkg.Id,
+		SafeBigInt(pkg.Id),
 		common.BytesToAddress(pkg.Owner),
 	})
 }
@@ -254,7 +264,10 @@ func DeserializeMirrorObjectSynPackage(serializedPackage []byte) (interface{}, e
 }
 
 func (pkg *MirrorObjectAckPackage) Serialize() ([]byte, error) {
-	return generalMirrorAckPackageArgs.Pack(pkg)
+	return generalMirrorAckPackageArgs.Pack(&MirrorObjectAckPackage{
+		pkg.Status,
+		SafeBigInt(pkg.Id),
+	})
 }
 
 func DeserializeMirrorObjectAckPackage(serializedPackage []byte) (interface{}, error) {
@@ -284,7 +297,7 @@ type MirrorGroupAckPackage struct {
 
 func (pkg *MirrorGroupSynPackage) Serialize() ([]byte, error) {
 	return generalMirrorSynPackageArgs.Pack(&GeneralMirrorSynPackageStruct{
-		pkg.Id,
+		SafeBigInt(pkg.Id),
 		common.BytesToAddress(pkg.Owner),
 	})
 }
@@ -303,7 +316,10 @@ func DeserializeMirrorGroupSynPackage(serializedPackage []byte) (interface{}, er
 }
 
 func (pkg *MirrorGroupAckPackage) Serialize() ([]byte, error) {
-	return generalMirrorAckPackageArgs.Pack(pkg)
+	return generalMirrorAckPackageArgs.Pack(&MirrorGroupAckPackage{
+		pkg.Status,
+		SafeBigInt(pkg.Id),
+	})
 }
 
 func DeserializeMirrorGroupAckPackage(serializedPackage []byte) (interface{}, error) {
@@ -452,7 +468,7 @@ var (
 func (p CreateBucketAckPackage) MustSerialize() []byte {
 	encodedBytes, err := generalCreateAckPackageArgs.Pack(&GeneralCreateAckPackageStruct{
 		Status:    p.Status,
-		Id:        p.Id,
+		Id:        SafeBigInt(p.Id),
 		Creator:   common.BytesToAddress(p.Creator),
 		ExtraData: p.ExtraData,
 	})
@@ -556,7 +572,11 @@ var (
 )
 
 func (p DeleteBucketAckPackage) MustSerialize() []byte {
-	encodedBytes, err := generalCreateAckPackageArgs.Pack(&p)
+	encodedBytes, err := generalCreateAckPackageArgs.Pack(&DeleteBucketAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete bucket ack package error")
 	}
@@ -639,7 +659,7 @@ type CreateGroupAckPackage struct {
 func (p CreateGroupAckPackage) MustSerialize() []byte {
 	encodedBytes, err := generalCreateAckPackageArgs.Pack(&GeneralCreateAckPackageStruct{
 		Status:    p.Status,
-		Id:        p.Id,
+		Id:        SafeBigInt(p.Id),
 		Creator:   common.BytesToAddress(p.Creator),
 		ExtraData: p.ExtraData,
 	})
@@ -713,7 +733,11 @@ type DeleteObjectAckPackage struct {
 }
 
 func (p DeleteObjectAckPackage) MustSerialize() []byte {
-	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&p)
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeleteObjectAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete object ack package error")
 	}
@@ -791,7 +815,11 @@ func DeserializeDeleteGroupAckPackage(serializedPackage []byte) (interface{}, er
 }
 
 func (p DeleteGroupAckPackage) MustSerialize() []byte {
-	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&p)
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeleteGroupAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete group ack package error")
 	}
@@ -958,7 +986,7 @@ func (p UpdateGroupMemberAckPackage) MustSerialize() []byte {
 
 	encodedBytes, err := updateGroupMemberAckPackageArgs.Pack(&UpdateGroupMemberAckPackageStruct{
 		p.Status,
-		p.Id,
+		SafeBigInt(p.Id),
 		common.BytesToAddress(p.Operator),
 		p.OperationType,
 		members,

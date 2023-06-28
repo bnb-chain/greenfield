@@ -19,6 +19,13 @@ const (
 	SyncParamsChannelID                = types.SyncParamsChannelID
 )
 
+func SafeBigInt(input *big.Int) *big.Int {
+	if input == nil {
+		return big.NewInt(0)
+	}
+	return input
+}
+
 type TransferOutSynPackage struct {
 	Amount        *big.Int
 	Recipient     sdk.AccAddress
@@ -45,7 +52,7 @@ var (
 
 func (pkg *TransferOutSynPackage) Serialize() ([]byte, error) {
 	return transferOutSynPackageArgs.Pack(&TransferOutSynPackageStruct{
-		pkg.Amount,
+		SafeBigInt(pkg.Amount),
 		common.BytesToAddress(pkg.Recipient),
 		common.BytesToAddress(pkg.RefundAddress),
 	})
@@ -97,7 +104,7 @@ var (
 
 func (pkg *TransferOutRefundPackage) Serialize() ([]byte, error) {
 	return transferOutRefundPackageArgs.Pack(&TransferOutRefundPackageStruct{
-		pkg.RefundAmount,
+		SafeBigInt(pkg.RefundAmount),
 		common.BytesToAddress(pkg.RefundAddr),
 		pkg.RefundReason,
 	})
@@ -149,7 +156,7 @@ var (
 
 func (pkg *TransferInSynPackage) Serialize() ([]byte, error) {
 	return transferInSynPackageArgs.Pack(&TransferInSynPackageStruct{
-		pkg.Amount,
+		SafeBigInt(pkg.Amount),
 		common.BytesToAddress(pkg.ReceiverAddress),
 		common.BytesToAddress(pkg.RefundAddress),
 	})
@@ -201,7 +208,7 @@ var (
 
 func (pkg *TransferInRefundPackage) Serialize() ([]byte, error) {
 	return transferInRefundPackageArgs.Pack(&TransferInRefundPackageStruct{
-		pkg.RefundAmount,
+		SafeBigInt(pkg.RefundAmount),
 		common.BytesToAddress(pkg.RefundAddress),
 		pkg.RefundReason,
 	})
