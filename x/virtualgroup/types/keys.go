@@ -36,7 +36,6 @@ var (
 	GVGKey       = []byte{0x21}
 	GVGFamilyKey = []byte{0x22}
 
-	LVGSequencePrefix       = []byte{0x31}
 	GVGSequencePrefix       = []byte{0x32}
 	GVGFamilySequencePrefix = []byte{0x33}
 
