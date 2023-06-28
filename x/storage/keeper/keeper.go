@@ -153,16 +153,17 @@ func (k Keeper) CreateBucket(
 
 	// emit CreateBucket Event
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateBucket{
-		Owner:            bucketInfo.Owner,
-		BucketName:       bucketInfo.BucketName,
-		Visibility:       bucketInfo.Visibility,
-		CreateAt:         bucketInfo.CreateAt,
-		BucketId:         bucketInfo.Id,
-		SourceType:       bucketInfo.SourceType,
-		Status:           bucketInfo.BucketStatus,
-		ChargedReadQuota: bucketInfo.ChargedReadQuota,
-		PaymentAddress:   bucketInfo.PaymentAddress,
-		PrimarySpId:      bucketInfo.PrimarySpId,
+		Owner:                      bucketInfo.Owner,
+		BucketName:                 bucketInfo.BucketName,
+		Visibility:                 bucketInfo.Visibility,
+		CreateAt:                   bucketInfo.CreateAt,
+		BucketId:                   bucketInfo.Id,
+		SourceType:                 bucketInfo.SourceType,
+		Status:                     bucketInfo.BucketStatus,
+		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
+		PaymentAddress:             bucketInfo.PaymentAddress,
+		PrimarySpId:                bucketInfo.PrimarySpId,
+		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
 	}); err != nil {
 		return sdkmath.Uint{}, err
 	}
