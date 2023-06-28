@@ -1162,7 +1162,7 @@ func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
 //	s.Require().NoError(err)
 //	primaryStorePrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice
 //	secondaryStorePrice := queryGetSecondarySpStorePriceByTime.SecondarySpStorePrice.StorePrice
-//	chargeSize := s.GetChargeSize(queryHeadObjectResponse.ObjectInfo.PayloadSize)
+//	chargeSize := s.GetObjectChargeSize(queryHeadObjectResponse.ObjectInfo.PayloadSize)
 //	expectedChargeRate := primaryStorePrice.Add(secondaryStorePrice.MulInt64(6)).MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt()
 //	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(paymentParams.Params.VersionedParams.ReserveTime))
 //
@@ -1225,7 +1225,7 @@ func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
 //
 //	streamRecordsAfterCreateEmptyObject := s.GetStreamRecords(streamAddresses)
 //	s.T().Logf("streamRecordsAfterCreateEmptyObject %s", core.YamlString(streamRecordsAfterCreateEmptyObject))
-//	chargeSize = s.GetChargeSize(uint64(emptyPayloadSize))
+//	chargeSize = s.GetObjectChargeSize(uint64(emptyPayloadSize))
 //	s.CheckStreamRecordsBeforeAndAfter(streamRecordsBeforeCreateEmptyObject, streamRecordsAfterCreateEmptyObject, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, uint64(emptyPayloadSize))
 //
 //	// test query auto settle records

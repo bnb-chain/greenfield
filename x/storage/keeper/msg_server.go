@@ -681,38 +681,38 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 		return nil, virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}
 
-	oldBucketInfo := &types.BucketInfo{
-		Id:                         bucketInfo.Id,
-		PaymentAddress:             bucketInfo.PaymentAddress,
-		PrimarySpId:                bucketInfo.PrimarySpId,
-		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
-		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
+	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return nil, virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}
-	oldInternalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+
+	err := k.virtualGroupKeeper.SettleAndDistributeGVGFamily(ctx, bucketInfo.PrimarySpId, srcGvgFamily)
+	if err != nil {
+		return nil, virtualgroupmoduletypes.ErrSettleFailed.Wrapf("settle gvg family failed, err: %s", err)
+	}
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	err = k.UnChargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
+	if err != nil {
+		return nil, types.ErrMigrationBucketFailed.Wrapf("cancel charge bucket failed, err: %s", err)
+	}
 
 	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
 	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
 
 	// check secondary sp signature
-	err := k.verifyGVGSignatures(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
+	err = k.verifyGVGSignatures(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
 
 	// rebinding gvg and lvg
-	err = k.RebindingVirtualGroup(ctx, bucketInfo, msg.GvgMappings)
+	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, msg.GvgMappings)
 	if err != nil {
 		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
 
-	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	err = k.ChargeBucketMigration(ctx, oldBucketInfo, bucketInfo, oldInternalBucketInfo, internalBucketInfo)
-	if err != nil {
-		return nil, types.ErrMigrationBucketFailed.Wrapf("update payment info failed. err: %s", err)
-	}
-
 	k.SetBucketInfo(ctx, bucketInfo)
-	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{

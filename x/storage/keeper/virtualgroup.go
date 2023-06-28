@@ -30,8 +30,7 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 	return nil
 }
 
-func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, gvgMappings []*types.GVGMapping) error {
-	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, internalBucketInfo *types.InternalBucketInfo, gvgMappings []*types.GVGMapping) error {
 
 	gvgsMap := make(map[uint32]uint32)
 	for _, mapping := range gvgMappings {
@@ -54,6 +53,11 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 			return types.ErrVirtualGroupOperateFailed.Wrapf("src global virtual group not found in blockchain state. ID: %d", lvg.GlobalVirtualGroupId)
 		}
 
+		err := k.virtualGroupKeeper.SettleAndDistributeGVG(ctx, srcGVG)
+		if err != nil {
+			return types.ErrVirtualGroupOperateFailed.Wrapf("fail to settle gvg. ID: %d", srcGVG.Id)
+		}
+
 		srcGVG.StoredSize -= lvg.StoredSize
 		dstGVG.StoredSize += lvg.StoredSize
 
@@ -62,6 +66,12 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 		k.virtualGroupKeeper.SetGVG(ctx, srcGVG)
 		k.virtualGroupKeeper.SetGVG(ctx, dstGVG)
 	}
+
+	err := k.ChargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
+	if err != nil {
+		return types.ErrMigrationBucketFailed.Wrapf("charge bucket failed, err: %s", err)
+	}
+
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
 	return nil

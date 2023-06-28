@@ -136,7 +136,7 @@ func (k Keeper) CreateBucket(
 
 	// charge by read quota
 	if opts.ChargedReadQuota != 0 {
-		err = k.ChargeInitialReadFee(ctx, &bucketInfo, &internalBucketInfo)
+		err = k.ChargeBucketReadFee(ctx, &bucketInfo, &internalBucketInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -200,9 +200,9 @@ func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNam
 	}
 
 	// change the bill
-	err := k.ChargeDeleteBucket(ctx, bucketInfo, internalBucketInfo)
+	err := k.UnChargeBucketReadFee(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
-		return types.ErrChargeFailed.Wrapf("ChargeDeleteBucket error: %s", err)
+		return types.ErrChargeFailed.Wrapf("UnChargeBucketReadFee error: %s", err)
 	}
 
 	return k.doDeleteBucket(ctx, operator, bucketInfo)
@@ -280,13 +280,13 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		}
 
 		if objectStatus == types.OBJECT_STATUS_CREATED {
-			if err = k.UnlockStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
+			if err = k.UnlockObjectStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("unlock store fee error", "err", err)
 				return false, deleted, err
 			}
 		} else if objectStatus == types.OBJECT_STATUS_SEALED {
 			internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-			if err = k.ChargeDeleteObject(ctx, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
+			if err = k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("charge delete object error", "err", err)
 				return false, deleted, err
 			}
@@ -300,7 +300,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 
 	if !iter.Valid() {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-		if err = k.ChargeDeleteBucket(ctx, bucketInfo, internalBucketInfo); err != nil {
+		if err = k.UnChargeBucketReadFee(ctx, bucketInfo, internalBucketInfo); err != nil {
 			ctx.Logger().Error("charge delete bucket error", "err", err)
 			return false, deleted, err
 		}
@@ -565,14 +565,14 @@ func (k Keeper) CreateObject(
 
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 		// charge directly without lock charge
-		err = k.ChargeStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo)
+		err = k.ChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
 		k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	} else {
 		// Lock Fee
-		err = k.LockStoreFee(ctx, bucketInfo, &objectInfo)
+		err = k.LockObjectStoreFee(ctx, bucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -756,7 +756,7 @@ func (k Keeper) CancelCreateObject(
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
 	}
 
-	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
+	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -810,7 +810,7 @@ func (k Keeper) DeleteObject(
 	}
 
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	err := k.ChargeDeleteObject(ctx, bucketInfo, internalBucketInfo, objectInfo)
+	err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -873,14 +873,14 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		return sptypes.ErrStorageProviderNotFound
 	}
 	if objectStatus == types.OBJECT_STATUS_CREATED {
-		err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
+		err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 		if err != nil {
 			ctx.Logger().Error("unlock store fee error", "err", err)
 			return err
 		}
 	} else if objectStatus == types.OBJECT_STATUS_SEALED {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-		err := k.ChargeDeleteObject(ctx, bucketInfo, internalBucketInfo, objectInfo)
+		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 		if err != nil {
 			ctx.Logger().Error("charge delete object error", "err", err)
 			return err
@@ -972,13 +972,13 @@ func (k Keeper) CopyObject(
 		}
 		objectInfo.LocalVirtualGroupId = lvg.Id
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, dstBucketInfo.Id)
-		err = k.ChargeStoreFee(ctx, dstBucketInfo, internalBucketInfo, &objectInfo)
+		err = k.ChargeObjectStoreFee(ctx, dstBucketInfo, internalBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
 		k.SetInternalBucketInfo(ctx, dstBucketInfo.Id, internalBucketInfo)
 	} else {
-		err = k.LockStoreFee(ctx, dstBucketInfo, &objectInfo)
+		err = k.LockObjectStoreFee(ctx, dstBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -1031,7 +1031,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary SP to do cancel create object")
 	}
 
-	err := k.UnlockStoreFee(ctx, bucketInfo, objectInfo)
+	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
