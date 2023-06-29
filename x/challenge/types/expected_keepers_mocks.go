@@ -85,17 +85,17 @@ func (mr *MockSpKeeperMockRecorder) GetStorageProviderByOperatorAddr(ctx, opAddr
 }
 
 // Slash mocks base method.
-func (m *MockSpKeeper) Slash(ctx types2.Context, spAcc types2.AccAddress, rewardInfos []types.RewardInfo) error {
+func (m *MockSpKeeper) Slash(ctx types2.Context, spID uint32, rewardInfos []types.RewardInfo) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Slash", ctx, spAcc, rewardInfos)
+	ret := m.ctrl.Call(m, "Slash", ctx, spID, rewardInfos)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // Slash indicates an expected call of Slash.
-func (mr *MockSpKeeperMockRecorder) Slash(ctx, spAcc, rewardInfos interface{}) *gomock.Call {
+func (mr *MockSpKeeperMockRecorder) Slash(ctx, spID, rewardInfos interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Slash", reflect.TypeOf((*MockSpKeeper)(nil).Slash), ctx, spAcc, rewardInfos)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Slash", reflect.TypeOf((*MockSpKeeper)(nil).Slash), ctx, spID, rewardInfos)
 }
 
 // MockStakingKeeper is a mock of StakingKeeper interface.
