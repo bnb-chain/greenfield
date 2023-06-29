@@ -8,10 +8,9 @@ import (
 	reflect "reflect"
 
 	math "cosmossdk.io/math"
-	types "github.com/bnb-chain/greenfield/x/payment/types"
-	types0 "github.com/bnb-chain/greenfield/x/sp/types"
-	types1 "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/auth/types"
+	types "github.com/bnb-chain/greenfield/x/sp/types"
+	types0 "github.com/cosmos/cosmos-sdk/types"
+	types1 "github.com/cosmos/cosmos-sdk/x/auth/types"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -39,7 +38,7 @@ func (m *MockSpKeeper) EXPECT() *MockSpKeeperMockRecorder {
 }
 
 // Exit mocks base method.
-func (m *MockSpKeeper) Exit(ctx types1.Context, sp *types0.StorageProvider) error {
+func (m *MockSpKeeper) Exit(ctx types0.Context, sp *types.StorageProvider) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Exit", ctx, sp)
 	ret0, _ := ret[0].(error)
@@ -53,10 +52,10 @@ func (mr *MockSpKeeperMockRecorder) Exit(ctx, sp interface{}) *gomock.Call {
 }
 
 // GetStorageProvider mocks base method.
-func (m *MockSpKeeper) GetStorageProvider(ctx types1.Context, id uint32) (*types0.StorageProvider, bool) {
+func (m *MockSpKeeper) GetStorageProvider(ctx types0.Context, id uint32) (*types.StorageProvider, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStorageProvider", ctx, id)
-	ret0, _ := ret[0].(*types0.StorageProvider)
+	ret0, _ := ret[0].(*types.StorageProvider)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -68,10 +67,10 @@ func (mr *MockSpKeeperMockRecorder) GetStorageProvider(ctx, id interface{}) *gom
 }
 
 // GetStorageProviderByFundingAddr mocks base method.
-func (m *MockSpKeeper) GetStorageProviderByFundingAddr(ctx types1.Context, sealAddr types1.AccAddress) (*types0.StorageProvider, bool) {
+func (m *MockSpKeeper) GetStorageProviderByFundingAddr(ctx types0.Context, sealAddr types0.AccAddress) (*types.StorageProvider, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStorageProviderByFundingAddr", ctx, sealAddr)
-	ret0, _ := ret[0].(*types0.StorageProvider)
+	ret0, _ := ret[0].(*types.StorageProvider)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -83,10 +82,10 @@ func (mr *MockSpKeeperMockRecorder) GetStorageProviderByFundingAddr(ctx, sealAdd
 }
 
 // GetStorageProviderByOperatorAddr mocks base method.
-func (m *MockSpKeeper) GetStorageProviderByOperatorAddr(ctx types1.Context, addr types1.AccAddress) (*types0.StorageProvider, bool) {
+func (m *MockSpKeeper) GetStorageProviderByOperatorAddr(ctx types0.Context, addr types0.AccAddress) (*types.StorageProvider, bool) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetStorageProviderByOperatorAddr", ctx, addr)
-	ret0, _ := ret[0].(*types0.StorageProvider)
+	ret0, _ := ret[0].(*types.StorageProvider)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
@@ -98,7 +97,7 @@ func (mr *MockSpKeeperMockRecorder) GetStorageProviderByOperatorAddr(ctx, addr i
 }
 
 // SetStorageProvider mocks base method.
-func (m *MockSpKeeper) SetStorageProvider(ctx types1.Context, sp *types0.StorageProvider) {
+func (m *MockSpKeeper) SetStorageProvider(ctx types0.Context, sp *types.StorageProvider) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetStorageProvider", ctx, sp)
 }
@@ -133,10 +132,10 @@ func (m *MockAccountKeeper) EXPECT() *MockAccountKeeperMockRecorder {
 }
 
 // GetAccount mocks base method.
-func (m *MockAccountKeeper) GetAccount(ctx types1.Context, addr types1.AccAddress) types2.AccountI {
+func (m *MockAccountKeeper) GetAccount(ctx types0.Context, addr types0.AccAddress) types1.AccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
-	ret0, _ := ret[0].(types2.AccountI)
+	ret0, _ := ret[0].(types1.AccountI)
 	return ret0
 }
 
@@ -147,10 +146,10 @@ func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr interface{}) *gomo
 }
 
 // GetModuleAccount mocks base method.
-func (m *MockAccountKeeper) GetModuleAccount(ctx types1.Context, moduleName string) types2.ModuleAccountI {
+func (m *MockAccountKeeper) GetModuleAccount(ctx types0.Context, moduleName string) types1.ModuleAccountI {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetModuleAccount", ctx, moduleName)
-	ret0, _ := ret[0].(types2.ModuleAccountI)
+	ret0, _ := ret[0].(types1.ModuleAccountI)
 	return ret0
 }
 
@@ -161,10 +160,10 @@ func (mr *MockAccountKeeperMockRecorder) GetModuleAccount(ctx, moduleName interf
 }
 
 // GetModuleAddress mocks base method.
-func (m *MockAccountKeeper) GetModuleAddress(name string) types1.AccAddress {
+func (m *MockAccountKeeper) GetModuleAddress(name string) types0.AccAddress {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetModuleAddress", name)
-	ret0, _ := ret[0].(types1.AccAddress)
+	ret0, _ := ret[0].(types0.AccAddress)
 	return ret0
 }
 
@@ -175,7 +174,7 @@ func (mr *MockAccountKeeperMockRecorder) GetModuleAddress(name interface{}) *gom
 }
 
 // IterateAccounts mocks base method.
-func (m *MockAccountKeeper) IterateAccounts(ctx types1.Context, process func(types2.AccountI) bool) {
+func (m *MockAccountKeeper) IterateAccounts(ctx types0.Context, process func(types1.AccountI) bool) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "IterateAccounts", ctx, process)
 }
@@ -187,7 +186,7 @@ func (mr *MockAccountKeeperMockRecorder) IterateAccounts(ctx, process interface{
 }
 
 // SetModuleAccount mocks base method.
-func (m *MockAccountKeeper) SetModuleAccount(arg0 types1.Context, arg1 types2.ModuleAccountI) {
+func (m *MockAccountKeeper) SetModuleAccount(arg0 types0.Context, arg1 types1.ModuleAccountI) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "SetModuleAccount", arg0, arg1)
 }
@@ -222,10 +221,10 @@ func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 }
 
 // GetAllBalances mocks base method.
-func (m *MockBankKeeper) GetAllBalances(ctx types1.Context, addr types1.AccAddress) types1.Coins {
+func (m *MockBankKeeper) GetAllBalances(ctx types0.Context, addr types0.AccAddress) types0.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllBalances", ctx, addr)
-	ret0, _ := ret[0].(types1.Coins)
+	ret0, _ := ret[0].(types0.Coins)
 	return ret0
 }
 
@@ -236,10 +235,10 @@ func (mr *MockBankKeeperMockRecorder) GetAllBalances(ctx, addr interface{}) *gom
 }
 
 // GetBalance mocks base method.
-func (m *MockBankKeeper) GetBalance(ctx types1.Context, addr types1.AccAddress, denom string) types1.Coin {
+func (m *MockBankKeeper) GetBalance(ctx types0.Context, addr types0.AccAddress, denom string) types0.Coin {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetBalance", ctx, addr, denom)
-	ret0, _ := ret[0].(types1.Coin)
+	ret0, _ := ret[0].(types0.Coin)
 	return ret0
 }
 
@@ -250,10 +249,10 @@ func (mr *MockBankKeeperMockRecorder) GetBalance(ctx, addr, denom interface{}) *
 }
 
 // LockedCoins mocks base method.
-func (m *MockBankKeeper) LockedCoins(ctx types1.Context, addr types1.AccAddress) types1.Coins {
+func (m *MockBankKeeper) LockedCoins(ctx types0.Context, addr types0.AccAddress) types0.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LockedCoins", ctx, addr)
-	ret0, _ := ret[0].(types1.Coins)
+	ret0, _ := ret[0].(types0.Coins)
 	return ret0
 }
 
@@ -264,7 +263,7 @@ func (mr *MockBankKeeperMockRecorder) LockedCoins(ctx, addr interface{}) *gomock
 }
 
 // SendCoins mocks base method.
-func (m *MockBankKeeper) SendCoins(ctx types1.Context, fromAddr, toAddr types1.AccAddress, amt types1.Coins) error {
+func (m *MockBankKeeper) SendCoins(ctx types0.Context, fromAddr, toAddr types0.AccAddress, amt types0.Coins) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCoins", ctx, fromAddr, toAddr, amt)
 	ret0, _ := ret[0].(error)
@@ -278,7 +277,7 @@ func (mr *MockBankKeeperMockRecorder) SendCoins(ctx, fromAddr, toAddr, amt inter
 }
 
 // SendCoinsFromAccountToModule mocks base method.
-func (m *MockBankKeeper) SendCoinsFromAccountToModule(ctx types1.Context, senderAddr types1.AccAddress, recipientModule string, amt types1.Coins) error {
+func (m *MockBankKeeper) SendCoinsFromAccountToModule(ctx types0.Context, senderAddr types0.AccAddress, recipientModule string, amt types0.Coins) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCoinsFromAccountToModule", ctx, senderAddr, recipientModule, amt)
 	ret0, _ := ret[0].(error)
@@ -292,7 +291,7 @@ func (mr *MockBankKeeperMockRecorder) SendCoinsFromAccountToModule(ctx, senderAd
 }
 
 // SendCoinsFromModuleToAccount mocks base method.
-func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types1.Context, senderModule string, recipientAddr types1.AccAddress, amt types1.Coins) error {
+func (m *MockBankKeeper) SendCoinsFromModuleToAccount(ctx types0.Context, senderModule string, recipientAddr types0.AccAddress, amt types0.Coins) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SendCoinsFromModuleToAccount", ctx, senderModule, recipientAddr, amt)
 	ret0, _ := ret[0].(error)
@@ -306,10 +305,10 @@ func (mr *MockBankKeeperMockRecorder) SendCoinsFromModuleToAccount(ctx, senderMo
 }
 
 // SpendableCoins mocks base method.
-func (m *MockBankKeeper) SpendableCoins(ctx types1.Context, addr types1.AccAddress) types1.Coins {
+func (m *MockBankKeeper) SpendableCoins(ctx types0.Context, addr types0.AccAddress) types0.Coins {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SpendableCoins", ctx, addr)
-	ret0, _ := ret[0].(types1.Coins)
+	ret0, _ := ret[0].(types0.Coins)
 	return ret0
 }
 
@@ -342,22 +341,8 @@ func (m *MockPaymentKeeper) EXPECT() *MockPaymentKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetParams mocks base method.
-func (m *MockPaymentKeeper) GetParams(ctx types1.Context) types.Params {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types.Params)
-	return ret0
-}
-
-// GetParams indicates an expected call of GetParams.
-func (mr *MockPaymentKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockPaymentKeeper)(nil).GetParams), ctx)
-}
-
 // IsEmptyNetFlow mocks base method.
-func (m *MockPaymentKeeper) IsEmptyNetFlow(ctx types1.Context, account types1.AccAddress) bool {
+func (m *MockPaymentKeeper) IsEmptyNetFlow(ctx types0.Context, account types0.AccAddress) bool {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "IsEmptyNetFlow", ctx, account)
 	ret0, _ := ret[0].(bool)
@@ -371,7 +356,7 @@ func (mr *MockPaymentKeeperMockRecorder) IsEmptyNetFlow(ctx, account interface{}
 }
 
 // QueryDynamicBalance mocks base method.
-func (m *MockPaymentKeeper) QueryDynamicBalance(ctx types1.Context, addr types1.AccAddress) (math.Int, error) {
+func (m *MockPaymentKeeper) QueryDynamicBalance(ctx types0.Context, addr types0.AccAddress) (math.Int, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "QueryDynamicBalance", ctx, addr)
 	ret0, _ := ret[0].(math.Int)
@@ -386,7 +371,7 @@ func (mr *MockPaymentKeeperMockRecorder) QueryDynamicBalance(ctx, addr interface
 }
 
 // Withdraw mocks base method.
-func (m *MockPaymentKeeper) Withdraw(ctx types1.Context, fromAddr, toAddr types1.AccAddress, amount math.Int) error {
+func (m *MockPaymentKeeper) Withdraw(ctx types0.Context, fromAddr, toAddr types0.AccAddress, amount math.Int) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Withdraw", ctx, fromAddr, toAddr, amount)
 	ret0, _ := ret[0].(error)
