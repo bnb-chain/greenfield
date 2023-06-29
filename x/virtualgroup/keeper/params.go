@@ -12,9 +12,9 @@ func (k Keeper) DepositDenomForGVG(ctx sdk.Context) (res string) {
 	return params.DepositDenom
 }
 
-func (k Keeper) GVGStakingPrice(ctx sdk.Context) (res math.Int) {
+func (k Keeper) GVGStakingPerBytes(ctx sdk.Context) (res math.Int) {
 	params := k.GetParams(ctx)
-	return params.GvgStakingPrice
+	return params.GvgStakingPerBytes
 }
 
 func (k Keeper) MaxGlobalVirtualGroupNumPerFamily(ctx sdk.Context) (res uint32) {

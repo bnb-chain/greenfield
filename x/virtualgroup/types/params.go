@@ -23,7 +23,7 @@ var (
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 //64T
 
 	KeyDepositDenom                      = []byte("DepositDenom")
-	KeyGVGStakingPrice                   = []byte("GVGStakingPrice")
+	KeyGVGStakingPerBytes                = []byte("GVGStakingPerBytes")
 	KeyMaxGlobalVirtualGroupNumPerFamily = []byte("MaxGlobalVirtualGroupNumPerFamily")
 	KeyMaxStoreSizePerFamily             = []byte("MaxStoreSizePerFamily")
 )
@@ -36,11 +36,11 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(depositDenom string, gvgStakingPrice math.Int, maxGlobalVirtualGroupPerFamily uint32,
+func NewParams(depositDenom string, gvgStakingPerBytes math.Int, maxGlobalVirtualGroupPerFamily uint32,
 	maxStoreSizePerFamily uint64) Params {
 	return Params{
 		DepositDenom:                      depositDenom,
-		GvgStakingPrice:                   gvgStakingPrice,
+		GvgStakingPerBytes:                gvgStakingPerBytes,
 		MaxGlobalVirtualGroupNumPerFamily: maxGlobalVirtualGroupPerFamily,
 		MaxStoreSizePerFamily:             maxStoreSizePerFamily,
 	}
@@ -55,7 +55,7 @@ func DefaultParams() Params {
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyDepositDenom, &p.DepositDenom, validateDepositDenom),
-		paramtypes.NewParamSetPair(KeyGVGStakingPrice, &p.GvgStakingPrice, validateGVGStakingPrice),
+		paramtypes.NewParamSetPair(KeyGVGStakingPerBytes, &p.GvgStakingPerBytes, validateGVGStakingPerBytes),
 		paramtypes.NewParamSetPair(KeyMaxGlobalVirtualGroupNumPerFamily, &p.MaxGlobalVirtualGroupNumPerFamily, validateMaxGlobalVirtualGroupNumPerFamily),
 		paramtypes.NewParamSetPair(KeyMaxStoreSizePerFamily, &p.MaxStoreSizePerFamily, validateMaxStoreSizePerFamily),
 	}
@@ -89,7 +89,7 @@ func validateDepositDenom(i interface{}) error {
 	return nil
 }
 
-func validateGVGStakingPrice(i interface{}) error {
+func validateGVGStakingPerBytes(i interface{}) error {
 	v, ok := i.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

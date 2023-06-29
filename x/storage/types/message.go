@@ -1108,7 +1108,7 @@ func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
 		return err
 	}
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
-		return errors.Wrapf(ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
+		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
 	}
 
 	return nil

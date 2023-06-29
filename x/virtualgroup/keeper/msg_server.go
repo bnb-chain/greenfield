@@ -5,6 +5,7 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -26,11 +27,17 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 var _ types.MsgServer = msgServer{}
 
 func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
 	if k.GetAuthority() != req.Authority {
 		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), req.Authority)
 	}
 
-	ctx := sdk.UnwrapSDKContext(goCtx)
+	// Some parameters cannot be modified
+	originParams := k.GetParams(ctx)
+	if req.Params.GvgStakingPerBytes != originParams.GvgStakingPerBytes || req.Params.DepositDenom != originParams.DepositDenom {
+		return nil, errors.ErrInvalidParameter.Wrap("GvgStakingPerBytes and depositDenom are not allow to update")
+	}
+
 	if err := k.SetParams(ctx, req.Params); err != nil {
 		return nil, err
 	}

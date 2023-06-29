@@ -28,8 +28,8 @@ var (
 	ErrInvalidVisibility        = errors.Register(ModuleName, 1118, "Invalid type of visibility")
 	ErrUpdateQuotaFailed        = errors.Register(ModuleName, 1119, "Update quota failed")
 
-	ErrNoSuchPolicy              = errors.Register(ModuleName, 1120, "No such Policy")
-	ErrInvalidParameter          = errors.Register(ModuleName, 1121, "Invalid parameter")
+	ErrNoSuchPolicy = errors.Register(ModuleName, 1120, "No such Policy")
+
 	ErrInvalidRedundancyType     = errors.Register(ModuleName, 1122, "Invalid redundancy type")
 	ErrInvalidGlobalVirtualGroup = errors.Register(ModuleName, 1123, "invalid global virtual group")
 

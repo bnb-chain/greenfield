@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
+	errors2 "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -307,7 +308,7 @@ func (k Keeper) VerifyPermission(goCtx context.Context, req *types.QueryVerifyPe
 	}
 
 	if req.BucketName == "" {
-		return nil, errors.Wrapf(types.ErrInvalidParameter, "No bucket specified")
+		return nil, errors.Wrapf(errors2.ErrInvalidParameter, "No bucket specified")
 	}
 
 	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)

@@ -547,7 +547,7 @@ func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
 				GroupName:  testGroupName,
 				Extra:      strings.Repeat("abcdefg", 80),
 			},
-			err: ErrInvalidParameter,
+			err: gnfderrors.ErrInvalidParameter,
 		},
 	}
 	for _, tt := range tests {

@@ -219,7 +219,7 @@ func (k Keeper) DeriveVirtualPaymentAccount(groupType string, id uint32) sdk.Acc
 }
 
 func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirtualGroup) math.Int {
-	stakingPrice := k.GVGStakingPrice(ctx)
+	stakingPrice := k.GVGStakingPerBytes(ctx)
 
 	mustStakingTokens := stakingPrice.Mul(sdk.NewInt(int64(gvg.StoredSize)))
 
@@ -413,7 +413,7 @@ func (k Keeper) GetStoreSizeOfFamily(ctx sdk.Context, gvgFamily *types.GlobalVir
 }
 
 func (k Keeper) GetTotalStakingStoreSize(ctx sdk.Context, gvg *types.GlobalVirtualGroup) uint64 {
-	total := gvg.TotalDeposit.Quo(k.GVGStakingPrice(ctx))
+	total := gvg.TotalDeposit.Quo(k.GVGStakingPerBytes(ctx))
 	if !total.IsUint64() {
 		return math2.MaxUint64
 	} else {
