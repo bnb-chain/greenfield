@@ -156,7 +156,7 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 	}
 
 	if msg.PrimarySpApproval == nil {
-		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
+		return ErrInvalidApproval.Wrap("Empty approvals are not allowed.")
 	}
 
 	// PaymentAddress is optional, use creator by default if not set.

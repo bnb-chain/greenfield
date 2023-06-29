@@ -65,5 +65,8 @@ func (msg *MsgMigrateBucket) ValidateBasic() error {
 		return errors.ErrInvalidMessage.Wrapf("Invalid dst primary sp id: %d", msg.DstPrimarySpId)
 	}
 
+	if msg.DstPrimarySpApproval == nil {
+		return ErrInvalidApproval.Wrap("Empty approvals are not allowed.")
+	}
 	return nil
 }

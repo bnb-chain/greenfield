@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"github.com/bnb-chain/greenfield/types/common"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
 
@@ -25,8 +26,10 @@ func TestMsgMigrateBucket_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid address",
 			msg: MsgMigrateBucket{
-				Operator:   sample.AccAddress(),
-				BucketName: "bucketname",
+				Operator:             sample.AccAddress(),
+				BucketName:           "bucketname",
+				DstPrimarySpId:       1,
+				DstPrimarySpApproval: &common.Approval{ExpiredHeight: 10, Sig: []byte("XXXTentacion")},
 			},
 		},
 	}

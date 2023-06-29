@@ -56,5 +56,21 @@ func (msg *MsgCompleteMigrateBucket) ValidateBasic() error {
 	if msg.GlobalVirtualGroupFamilyId == types.NoSpecifiedFamilyId {
 		return gnfderrors.ErrInvalidMessage.Wrap("the global virtual group family id not specify.")
 	}
+
+	mappingMap := make(map[uint32]uint32)
+	for _, gvgMapping := range msg.GvgMappings {
+		if gvgMapping.SrcGlobalVirtualGroupId == 0 || gvgMapping.DstGlobalVirtualGroupId == 0 {
+			return ErrInvalidGlobalVirtualGroup.Wrapf("the src gvg id cannot be 0")
+		}
+		if gvgMapping.SecondarySpBlsSignature == nil {
+			return gnfderrors.ErrInvalidBlsSignature.Wrapf("empty signature in gvgMapping")
+
+		}
+		_, exist := mappingMap[gvgMapping.SrcGlobalVirtualGroupId]
+		if exist {
+			return ErrInvalidGlobalVirtualGroup.Wrapf("src gvg id duplicates")
+		}
+		mappingMap[gvgMapping.SrcGlobalVirtualGroupId] = gvgMapping.DstGlobalVirtualGroupId
+	}
 	return nil
 }

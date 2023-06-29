@@ -25,8 +25,10 @@ func TestMsgCompleteMigrateBucket_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid address",
 			msg: MsgCompleteMigrateBucket{
-				Operator:   sample.AccAddress(),
-				BucketName: "bucketname",
+				Operator:                   sample.AccAddress(),
+				BucketName:                 "bucketname",
+				GlobalVirtualGroupFamilyId: 1,
+				GvgMappings:                []*GVGMapping{{1, 2, []byte("xxxxxxxxxxx")}},
 			},
 		},
 	}
