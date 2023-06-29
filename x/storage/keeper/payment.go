@@ -19,7 +19,7 @@ func (k Keeper) ChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.Bu
 	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	bill, err := k.GetBucketReadBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
-		return fmt.Errorf("charge initial read fee failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
+		return fmt.Errorf("charge bucket read fee failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
 	if err != nil {
@@ -32,19 +32,23 @@ func (k Keeper) ChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.Bu
 func (k Keeper) UnChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
 	if internalBucketInfo.TotalChargeSize > 0 {
-		panic(fmt.Sprintf("unexpected total store charge size: %d", internalBucketInfo.TotalChargeSize))
+		return fmt.Errorf("unexpected total store charge size: %d", internalBucketInfo.TotalChargeSize)
 	}
 
-	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
+	bill, err := k.GetBucketReadBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
-		return err
+		return fmt.Errorf("uncharge bucket read fee failed, get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
 	}
 	if len(bill.Flows) == 0 {
 		return nil
 	}
 	bill.Flows = getNegFlows(bill.Flows)
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{bill})
-	return err
+	if err != nil {
+		ctx.Logger().Error("uncharge bucket read fee failed", "err", err.Error())
+		return err
+	}
+	return nil
 }
 
 func (k Keeper) GetBucketReadBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
@@ -229,9 +233,10 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 		ibi.TotalChargeSize -= chargeSize
 		lvgs := make([]*storagetypes.LocalVirtualGroup, 0)
 		for _, lvg := range ibi.LocalVirtualGroups {
-			if lvg.Id != objectInfo.LocalVirtualGroupId {
-				lvgs = append(lvgs, lvg)
+			if lvg.Id == objectInfo.LocalVirtualGroupId {
+				lvg.TotalChargeSize -= chargeSize
 			}
+			lvgs = append(lvgs, lvg)
 		}
 		ibi.LocalVirtualGroups = lvgs
 		return nil
@@ -251,8 +256,9 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	if err = changeFunc(bucketInfo, internalBucketInfo); err != nil {
 		return errors.Wrapf(err, "change bucket internal info failed")
 	}
-	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
+
 	// calculate new bill
+	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	newBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("get new bucket bill failed: %w", err)
