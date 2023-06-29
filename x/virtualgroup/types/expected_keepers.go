@@ -1,10 +1,10 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
@@ -39,9 +39,7 @@ type BankKeeper interface {
 }
 
 type PaymentKeeper interface {
-	GetParams(ctx sdk.Context) (p paymenttypes.Params)
-	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
-	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
-	SetStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord)
+	QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amount sdkmath.Int, err error)
+	Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount sdkmath.Int) error
 	IsEmptyNetFlow(ctx sdk.Context, account sdk.AccAddress) bool
 }
