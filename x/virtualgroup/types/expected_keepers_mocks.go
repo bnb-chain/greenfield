@@ -7,6 +7,7 @@ package types
 import (
 	reflect "reflect"
 
+	math "cosmossdk.io/math"
 	types "github.com/bnb-chain/greenfield/x/payment/types"
 	types0 "github.com/bnb-chain/greenfield/x/sp/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
@@ -355,21 +356,6 @@ func (mr *MockPaymentKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockPaymentKeeper)(nil).GetParams), ctx)
 }
 
-// GetStreamRecord mocks base method.
-func (m *MockPaymentKeeper) GetStreamRecord(ctx types1.Context, account types1.AccAddress) (*types.StreamRecord, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
-	ret0, _ := ret[0].(*types.StreamRecord)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetStreamRecord indicates an expected call of GetStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
-}
-
 // IsEmptyNetFlow mocks base method.
 func (m *MockPaymentKeeper) IsEmptyNetFlow(ctx types1.Context, account types1.AccAddress) bool {
 	m.ctrl.T.Helper()
@@ -384,28 +370,31 @@ func (mr *MockPaymentKeeperMockRecorder) IsEmptyNetFlow(ctx, account interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEmptyNetFlow", reflect.TypeOf((*MockPaymentKeeper)(nil).IsEmptyNetFlow), ctx, account)
 }
 
-// SetStreamRecord mocks base method.
-func (m *MockPaymentKeeper) SetStreamRecord(ctx types1.Context, streamRecord *types.StreamRecord) {
+// QueryDynamicBalance mocks base method.
+func (m *MockPaymentKeeper) QueryDynamicBalance(ctx types1.Context, addr types1.AccAddress) (math.Int, error) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetStreamRecord", ctx, streamRecord)
+	ret := m.ctrl.Call(m, "QueryDynamicBalance", ctx, addr)
+	ret0, _ := ret[0].(math.Int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-// SetStreamRecord indicates an expected call of SetStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) SetStreamRecord(ctx, streamRecord interface{}) *gomock.Call {
+// QueryDynamicBalance indicates an expected call of QueryDynamicBalance.
+func (mr *MockPaymentKeeperMockRecorder) QueryDynamicBalance(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).SetStreamRecord), ctx, streamRecord)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryDynamicBalance", reflect.TypeOf((*MockPaymentKeeper)(nil).QueryDynamicBalance), ctx, addr)
 }
 
-// UpdateStreamRecord mocks base method.
-func (m *MockPaymentKeeper) UpdateStreamRecord(ctx types1.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
+// Withdraw mocks base method.
+func (m *MockPaymentKeeper) Withdraw(ctx types1.Context, fromAddr, toAddr types1.AccAddress, amount math.Int) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStreamRecord", ctx, streamRecord, change)
+	ret := m.ctrl.Call(m, "Withdraw", ctx, fromAddr, toAddr, amount)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// UpdateStreamRecord indicates an expected call of UpdateStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecord(ctx, streamRecord, change interface{}) *gomock.Call {
+// Withdraw indicates an expected call of Withdraw.
+func (mr *MockPaymentKeeperMockRecorder) Withdraw(ctx, fromAddr, toAddr, amount interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecord), ctx, streamRecord, change)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Withdraw", reflect.TypeOf((*MockPaymentKeeper)(nil).Withdraw), ctx, fromAddr, toAddr, amount)
 }
