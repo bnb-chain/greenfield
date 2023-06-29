@@ -15,7 +15,7 @@ type SpKeeper interface {
 	GetStorageProvider(ctx sdk.Context, id uint32) (*sp.StorageProvider, bool)
 	GetStorageProviderByOperatorAddr(ctx sdk.Context, opAddr sdk.AccAddress) (sp *sp.StorageProvider, found bool)
 	DepositDenomForSP(ctx sdk.Context) (res string)
-	Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []sp.RewardInfo) error
+	Slash(ctx sdk.Context, spID uint32, rewardInfos []sp.RewardInfo) error
 }
 
 type StakingKeeper interface {

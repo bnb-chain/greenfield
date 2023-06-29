@@ -47,7 +47,7 @@ message EventAttestChallenge {
   VoteResult result = 2;
 
   // The slashed storage provider address.
-  string sp_operator_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  uint32 sp_id = 3;
 
   // The slashed amount from the storage provider.
   string slash_amount = 4;

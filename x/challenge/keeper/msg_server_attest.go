@@ -72,7 +72,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 
 		// do slash & reward
 		objectSize := objectInfo.PayloadSize
-		err = k.doSlashAndRewards(ctx, msg.ChallengeId, msg.VoteResult, objectSize, spOperator, submitter, challenger, validators)
+		err = k.doSlashAndRewards(ctx, msg.ChallengeId, msg.VoteResult, objectSize, sp.Id, submitter, challenger, validators)
 		if err != nil {
 			return nil, err
 		}
@@ -91,7 +91,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		}
 
 		// reward validators & tx submitter
-		err = k.doHeartbeatAndRewards(ctx, msg.ChallengeId, msg.VoteResult, spOperator, submitter, challenger)
+		err = k.doHeartbeatAndRewards(ctx, msg.ChallengeId, msg.VoteResult, sp.Id, submitter, challenger)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +156,7 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 
 // doSlashAndRewards will execute the slash, transfer the rewards and emit events.
 func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, objectSize uint64,
-	spOperator, submitter, challenger sdk.AccAddress, validators []string) error {
+	spID uint32, submitter, challenger sdk.AccAddress, validators []string) error {
 
 	slashAmount := k.calculateSlashAmount(ctx, objectSize)
 	challengerReward, eachValidatorReward, submitterReward := k.calculateSlashRewards(ctx, slashAmount,
@@ -189,7 +189,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 			Amount: submitterReward,
 		}})
 
-	err := k.SpKeeper.Slash(ctx, spOperator, rewards)
+	err := k.SpKeeper.Slash(ctx, spID, rewards)
 	if err != nil {
 		return err
 	}
@@ -197,7 +197,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 	event := types.EventAttestChallenge{
 		ChallengeId:            challengeId,
 		Result:                 voteResult,
-		SpOperatorAddress:      spOperator.String(),
+		SpId:                   spID,
 		SlashAmount:            slashAmount.String(),
 		ChallengerAddress:      challenger.String(),
 		ChallengerRewardAmount: challengerReward.String(),
@@ -222,7 +222,7 @@ func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int)
 
 // doHeartbeatAndRewards will transfer the tax to distribution account and rewards to submitter.
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
-	spOperator, submitter, challenger sdk.AccAddress) error {
+	spID uint32, submitter, challenger sdk.AccAddress) error {
 	totalAmount, err := k.paymentKeeper.QueryDynamicBalance(ctx, paymentmoduletypes.ValidatorTaxPoolAddress)
 	if err != nil {
 		return err
@@ -248,7 +248,7 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, vo
 	return ctx.EventManager().EmitTypedEvents(&types.EventAttestChallenge{
 		ChallengeId:            challengeId,
 		Result:                 voteResult,
-		SpOperatorAddress:      spOperator.String(),
+		SpId:                   spID,
 		SlashAmount:            "",
 		ChallengerAddress:      challenger.String(),
 		ChallengerRewardAmount: "",

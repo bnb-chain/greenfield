@@ -135,7 +135,7 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 		Amount:  sdk.NewCoin(types2.Denom, math.NewIntWithDecimal(10, types2.DecimalBNB)),
 	}
 
-	err := k.Slash(ctx, spAcc, []types.RewardInfo{rewardInfo})
+	err := k.Slash(ctx, sp.Id, []types.RewardInfo{rewardInfo})
 	require.NoError(s.T(), err)
 
 	spAfterSlash, found := k.GetStorageProvider(ctx, 100)
