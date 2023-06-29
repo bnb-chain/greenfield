@@ -173,12 +173,12 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 		secondarySpIds[id] = struct{}{}
 	}
 
-	var lastSecondaySp *core.StorageProvider
+	var lastSecondarySp *core.StorageProvider
 	secondarySpAddrs := make([]string, 0)
 	for _, secondarySp := range secondarySps {
 		if _, ok := secondarySpIds[secondarySp.Info.Id]; ok {
 			secondarySpAddrs = append(secondarySpAddrs, secondarySp.FundingKey.GetAddr().String())
-			lastSecondaySp = &secondarySp
+			lastSecondarySp = &secondarySp
 		}
 	}
 
@@ -201,6 +201,13 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 		FundingAddress:             primarySp.FundingKey.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
+
+	simulateRes := s.SimulateTx(&msgSettle, primarySp.FundingKey)
+	gasLimit := simulateRes.GasInfo.GetGasUsed()
+	gasPrice, _ := sdk.ParseCoinNormalized(simulateRes.GasInfo.GetMinGasPrice())
+	feeAmount := gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit)))
+	s.T().Logf("fee amount: %s", feeAmount.String())
+
 	s.SendTxBlock(primarySp.FundingKey, &msgSettle)
 
 	primaryBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
@@ -208,15 +215,22 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	s.Require().NoError(err)
 
 	s.T().Logf("primaryBalance: %s, after: %s", primaryBalance.String(), primaryBalanceAfter.String())
-	s.Require().True(primaryBalanceAfter.Balance.Amount.GT(primaryBalance.Balance.Amount))
+	s.Require().True(primaryBalanceAfter.Balance.Amount.Add(feeAmount).GT(primaryBalance.Balance.Amount))
 
 	// settle gvg
 	msgSettle = virtualgroupmoduletypes.MsgSettle{
-		FundingAddress:             lastSecondaySp.FundingKey.GetAddr().String(),
+		FundingAddress:             lastSecondarySp.FundingKey.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: 0,
 		GlobalVirtualGroupIds:      []uint32{gvgId},
 	}
-	s.SendTxBlock(lastSecondaySp.FundingKey, &msgSettle)
+
+	simulateRes = s.SimulateTx(&msgSettle, lastSecondarySp.FundingKey)
+	gasLimit = simulateRes.GasInfo.GetGasUsed()
+	gasPrice, _ = sdk.ParseCoinNormalized(simulateRes.GasInfo.GetMinGasPrice())
+	feeAmount = gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit)))
+	s.T().Logf("fee amount: %s", feeAmount.String())
+
+	s.SendTxBlock(lastSecondarySp.FundingKey, &msgSettle)
 
 	secondaryBalancesAfter := make([]sdkmath.Int, 0, len(secondaryBalances))
 	for _, addr := range secondarySpAddrs {
@@ -228,7 +242,11 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 
 	for i := range secondaryBalances {
 		s.T().Logf("secondaryBalance: %s, after: %s", secondaryBalances[i].String(), secondaryBalancesAfter[i].String())
-		s.Require().True(secondaryBalancesAfter[i].GT(secondaryBalances[i]))
+		if i != len(secondaryBalances)-1 {
+			s.Require().True(secondaryBalancesAfter[i].GT(secondaryBalances[i]))
+		} else {
+			s.Require().True(secondaryBalancesAfter[i].Add(feeAmount).GT(secondaryBalances[i]))
+		}
 	}
 }
 
