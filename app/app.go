@@ -493,7 +493,6 @@ func New(
 		app.CrossChainKeeper,
 		app.VirtualgroupKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		app.ChainID(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
 

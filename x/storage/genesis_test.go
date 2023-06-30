@@ -24,8 +24,6 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 	tStoreKey := storetypes.NewTransientStoreKey(types.TStoreKey)
 
 	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
-	chainID := "greenfield_9000-1"
-
 	k := keeper.NewKeeper(
 		encCfg.Codec,
 		key,
@@ -37,7 +35,6 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 		&types.MockCrossChainKeeper{},
 		&types.MockVirtualGroupKeeper{},
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-		chainID,
 	)
 
 	return k, testCtx.Ctx
