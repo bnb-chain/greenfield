@@ -230,7 +230,7 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(objectId, gvgId, storagetypes.GenerateHash(checksums[:])).GetBlsSignHash()
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, objectId, storagetypes.GenerateHash(checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
 		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
@@ -1178,7 +1178,7 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(expectChecksum[:])).GetBlsSignHash()
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(expectChecksum[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
 		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)

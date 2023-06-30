@@ -39,6 +39,7 @@ type (
 		groupSeq  sequence.Sequence[sdkmath.Uint]
 
 		authority string
+		chainID   string
 	}
 )
 
@@ -53,6 +54,7 @@ func NewKeeper(
 	crossChainKeeper types.CrossChainKeeper,
 	virtualGroupKeeper types.VirtualGroupKeeper,
 	authority string,
+	chainID string,
 ) *Keeper {
 
 	k := Keeper{
@@ -66,6 +68,7 @@ func NewKeeper(
 		crossChainKeeper:   crossChainKeeper,
 		virtualGroupKeeper: virtualGroupKeeper,
 		authority:          authority,
+		chainID:            chainID,
 	}
 
 	k.bucketSeq = sequence.NewSequence[sdkmath.Uint](types.BucketSequencePrefix)
@@ -76,6 +79,10 @@ func NewKeeper(
 
 func (k Keeper) GetAuthority() string {
 	return k.authority
+}
+
+func (k Keeper) GetChainID() string {
+	return k.chainID
 }
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
@@ -685,7 +692,7 @@ func (k Keeper) SealObject(
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
 	}
 	// validate seal object bls aggregated sig from secondary sps
-	secondarySpsSealObjectBlsSignHash := types.NewSecondarySpSealObjectSignDoc(objectInfo.Id, gvg.Id, types.GenerateHash(objectInfo.Checksums[:])).GetBlsSignHash()
+	secondarySpsSealObjectBlsSignHash := types.NewSecondarySpSealObjectSignDoc(k.GetChainID(), gvg.Id, objectInfo.Id, types.GenerateHash(objectInfo.Checksums[:])).GetBlsSignHash()
 	err := k.VerifyGVGSecondarySPsBlsSignature(ctx, gvg, secondarySpsSealObjectBlsSignHash, opts.SecondarySpBlsSignatures)
 	if err != nil {
 		return err

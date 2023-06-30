@@ -320,7 +320,7 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
 		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)

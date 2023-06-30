@@ -10,9 +10,10 @@ import (
 
 // NewSecondarySpSealObjectSignDoc creates the doc for all secondary sps bls signings,
 // checksums is the hash of slice of integrity hash(objectInfo checkSums) contributed by secondary sps
-func NewSecondarySpSealObjectSignDoc(objectID math.Uint, gvgId uint32, checksum []byte) *SecondarySpSealObjectSignDoc {
+func NewSecondarySpSealObjectSignDoc(chainID string, gvgID uint32, objectID math.Uint, checksum []byte) *SecondarySpSealObjectSignDoc {
 	return &SecondarySpSealObjectSignDoc{
-		GlobalVirtualGroupId: gvgId,
+		ChainId:              chainID,
+		GlobalVirtualGroupId: gvgID,
 		ObjectId:             objectID,
 		Checksum:             checksum,
 	}
@@ -34,8 +35,9 @@ func GenerateHash(checksumList [][]byte) []byte {
 	return hash.Sum(nil)
 }
 
-func NewSecondarySpMigrationBucketSignDoc(bucketID math.Uint, spID, srcGVGID, dstGVGID uint32) *SecondarySpMigrationBucketSignDoc {
+func NewSecondarySpMigrationBucketSignDoc(chainID string, bucketID math.Uint, spID, srcGVGID, dstGVGID uint32) *SecondarySpMigrationBucketSignDoc {
 	return &SecondarySpMigrationBucketSignDoc{
+		ChainId:                 chainID,
 		BucketId:                bucketID,
 		DstPrimarySpId:          spID,
 		SrcGlobalVirtualGroupId: srcGVGID,
