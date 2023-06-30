@@ -601,6 +601,10 @@ func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBuc
 		return nil, types.ErrNoSuchBucket
 	}
 
+	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		return nil, types.ErrAccessDenied.Wrap("Only bucket owner can migrate bucket.")
+	}
+
 	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
 		return nil, types.ErrInvalidBucketStatus.Wrapf("The bucket already been migrating")
 
