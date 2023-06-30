@@ -10,6 +10,7 @@ import (
 func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgStorageProviderExit{}, "virtualgroup/StorageProviderExit", nil)
 	cdc.RegisterConcrete(&MsgCompleteStorageProviderExit{}, "virtualgroup/CompleteStorageProviderExit", nil)
+	cdc.RegisterConcrete(&MsgCompleteSwapOut{}, "virtualgroup/CompleteSwapOut", nil)
 	// this line is used by starport scaffolding # 2
 }
 
@@ -40,6 +41,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateParams{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCompleteSwapOut{},
 	)
 	// this line is used by starport scaffolding # 3
 
