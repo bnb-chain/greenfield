@@ -147,7 +147,7 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 		ChallengerAddress: "",
 		VoteValidatorSet:  []uint64{1},
 	}
-	toSign := attestMsg.GetBlsSignBytes()
+	toSign := attestMsg.GetBlsSignBytes(s.ctx.ChainID())
 
 	voteAggSignature := blsKey.Sign(toSign[:])
 	attestMsg.VoteAggSignature = voteAggSignature.Marshal()
@@ -209,7 +209,7 @@ func (s *TestSuite) TestAttest_Normal() {
 		ChallengerAddress: "",
 		VoteValidatorSet:  []uint64{1},
 	}
-	toSign := attestMsg.GetBlsSignBytes()
+	toSign := attestMsg.GetBlsSignBytes(s.ctx.ChainID())
 
 	voteAggSignature := blsKey.Sign(toSign[:])
 	attestMsg.VoteAggSignature = voteAggSignature.Marshal()
