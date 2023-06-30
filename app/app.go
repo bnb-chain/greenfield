@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/cosmos/cosmos-sdk/store/iavl"
+
 	autocliv1 "cosmossdk.io/api/cosmos/autocli/v1"
 	reflectionv1 "cosmossdk.io/api/cosmos/reflection/v1"
 	dbm "github.com/cometbft/cometbft-db"
@@ -676,6 +678,13 @@ func New(
 		}
 	}
 
+	// enable diff for reconciliation
+	bankIavl, ok := ms.GetCommitStore(keys[banktypes.StoreKey]).(*iavl.Store)
+	if !ok {
+		tmos.Exit("cannot convert account store to ival store")
+	}
+	bankIavl.EnableDiff()
+
 	app.initModules(ctx)
 
 	// add eth query router
@@ -716,7 +725,10 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	resp := app.mm.EndBlock(ctx, req)
+	bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
+	app.reconBalance(ctx, bankIavl)
+	return resp
 }
 
 // InitChainer application update at chain initialization
