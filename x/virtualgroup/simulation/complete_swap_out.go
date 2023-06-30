@@ -19,7 +19,7 @@ func SimulateMsgCompleteSwapOut(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgCompleteSwapOut{
-			Creator: simAccount.Address.String(),
+			StorageProvider: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the CompleteSwapOut simulation

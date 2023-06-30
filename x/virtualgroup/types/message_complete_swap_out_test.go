@@ -17,13 +17,13 @@ func TestMsgCompleteSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgCompleteSwapOut{
-				Creator: "invalid_address",
+				StorageProvider: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
 			msg: MsgCompleteSwapOut{
-				Creator: sample.AccAddress(),
+				StorageProvider: sample.AccAddress(),
 			},
 		},
 	}

@@ -11,7 +11,7 @@ var _ sdk.Msg = &MsgCompleteSwapOut{}
 
 func NewMsgCompleteSwapOut(creator string) *MsgCompleteSwapOut {
 	return &MsgCompleteSwapOut{
-		Creator: creator,
+		StorageProvider: creator,
 	}
 }
 
@@ -24,7 +24,7 @@ func (msg *MsgCompleteSwapOut) Type() string {
 }
 
 func (msg *MsgCompleteSwapOut) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.Creator)
+	creator, err := sdk.AccAddressFromBech32(msg.StorageProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func (msg *MsgCompleteSwapOut) GetSignBytes() []byte {
 }
 
 func (msg *MsgCompleteSwapOut) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.Creator)
+	_, err := sdk.AccAddressFromBech32(msg.StorageProvider)
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}

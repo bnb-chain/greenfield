@@ -19,7 +19,7 @@ func SimulateMsgCancelSwapOut(
 	) (simtypes.OperationMsg, []simtypes.FutureOperation, error) {
 		simAccount, _ := simtypes.RandomAcc(r, accs)
 		msg := &types.MsgCancelSwapOut{
-			Creator: simAccount.Address.String(),
+			StorageProvider: simAccount.Address.String(),
 		}
 
 		// TODO: Handling the CancelSwapOut simulation

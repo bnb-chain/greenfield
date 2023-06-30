@@ -2066,43 +2066,43 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryParamsByTimestamp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "params", "timestamp"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_QueryParamsByTimestamp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "params", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadBucket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket", "bucket_name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadBucket_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket", "bucket_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadBucketById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket_by_id", "bucket_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadBucketById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket_by_id", "bucket_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadBucketNFT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket_nft", "token_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadBucketNFT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_bucket_nft", "token_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "head_object", "bucket_name", "object_name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "head_object", "bucket_name", "object_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadObjectById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_object_by_id", "object_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadObjectById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_object_by_id", "object_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadObjectNFT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_object_nft", "token_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadObjectNFT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_object_nft", "token_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ListBuckets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "list_buckets"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ListBuckets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "list_buckets"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ListObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects", "bucket_name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ListObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects", "bucket_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ListObjectsByBucketId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects_by_bucket_id", "bucket_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ListObjectsByBucketId_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_objects_by_bucket_id", "bucket_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadGroupNFT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_group_nft", "token_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadGroupNFT_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "head_group_nft", "token_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryPolicyForAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "policy_for_account", "resource", "principal_address"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_QueryPolicyForAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "policy_for_account", "resource", "principal_address"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_VerifyPermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"greenfield", "storage", "verify_permission", "operator", "bucket_name", "action_type"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_VerifyPermission_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"greenfield", "storage", "verify_permission", "operator", "bucket_name", "action_type"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "head_group", "group_owner", "group_name"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "head_group", "group_owner", "group_name"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ListGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_group", "group_owner"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ListGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "list_group", "group_owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_HeadGroupMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "head_group_member"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_HeadGroupMember_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "storage", "head_group_member"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryPolicyForGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "policy_for_group", "resource", "principal_group_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_QueryPolicyForGroup_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "storage", "policy_for_group", "resource", "principal_group_id"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryPolicyById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "policy_by_id", "policy_id"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_QueryPolicyById_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "storage", "policy_by_id", "policy_id"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

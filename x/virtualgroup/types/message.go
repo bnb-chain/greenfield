@@ -30,10 +30,10 @@ var (
 
 func NewMsgCreateGlobalVirtualGroup(primarySpAddress sdk.AccAddress, globalVirtualFamilyId uint32, secondarySpIds []uint32, deposit sdk.Coin) *MsgCreateGlobalVirtualGroup {
 	return &MsgCreateGlobalVirtualGroup{
-		PrimarySpAddress: primarySpAddress.String(),
-		FamilyId:         globalVirtualFamilyId,
-		SecondarySpIds:   secondarySpIds,
-		Deposit:          deposit,
+		StorageProvider: primarySpAddress.String(),
+		FamilyId:        globalVirtualFamilyId,
+		SecondarySpIds:  secondarySpIds,
+		Deposit:         deposit,
 	}
 }
 
@@ -52,7 +52,7 @@ func (msg *MsgCreateGlobalVirtualGroup) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgCreateGlobalVirtualGroup) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	addr, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -61,7 +61,7 @@ func (msg *MsgCreateGlobalVirtualGroup) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgCreateGlobalVirtualGroup) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func (msg *MsgCreateGlobalVirtualGroup) ValidateBasic() error {
 
 func NewMsgDeleteGlobalVirtualGroup(primarySpAddress sdk.AccAddress, globalVirtualGroupID uint32) *MsgDeleteGlobalVirtualGroup {
 	return &MsgDeleteGlobalVirtualGroup{
-		PrimarySpAddress:     primarySpAddress.String(),
+		StorageProvider:      primarySpAddress.String(),
 		GlobalVirtualGroupId: globalVirtualGroupID,
 	}
 }
@@ -95,7 +95,7 @@ func (msg *MsgDeleteGlobalVirtualGroup) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgDeleteGlobalVirtualGroup) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	addr, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -104,7 +104,7 @@ func (msg *MsgDeleteGlobalVirtualGroup) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgDeleteGlobalVirtualGroup) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.PrimarySpAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func (msg *MsgDeleteGlobalVirtualGroup) ValidateBasic() error {
 
 func NewMsgDeposit(fundingAddress sdk.AccAddress, globalVirtualGroupID uint32, deposit sdk.Coin) *MsgDeposit {
 	return &MsgDeposit{
-		FundingAddress:       fundingAddress.String(),
+		StorageProvider:      fundingAddress.String(),
 		GlobalVirtualGroupId: globalVirtualGroupID,
 		Deposit:              deposit,
 	}
@@ -135,7 +135,7 @@ func (msg *MsgDeposit) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	addr, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -144,7 +144,7 @@ func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgDeposit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return err
 	}
@@ -158,7 +158,7 @@ func (msg *MsgDeposit) ValidateBasic() error {
 
 func NewMsgWithdraw(fundingAddress sdk.AccAddress, globalVirtualGroupID uint32, withdraw sdk.Coin) *MsgWithdraw {
 	return &MsgWithdraw{
-		FundingAddress:       fundingAddress.String(),
+		StorageProvider:      fundingAddress.String(),
 		GlobalVirtualGroupId: globalVirtualGroupID,
 		Withdraw:             withdraw,
 	}
@@ -179,13 +179,13 @@ func (msg *MsgWithdraw) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgWithdraw) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	addr, _ := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgWithdraw) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return err
 	}
@@ -198,7 +198,7 @@ func (msg *MsgWithdraw) ValidateBasic() error {
 
 func NewMsgSwapOut(operatorAddress sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32, successorSPID uint32) *MsgSwapOut {
 	return &MsgSwapOut{
-		OperatorAddress:            operatorAddress.String(),
+		StorageProvider:            operatorAddress.String(),
 		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
 		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
 		SuccessorSpId:              successorSPID,
@@ -226,13 +226,13 @@ func (msg *MsgSwapOut) GetApprovalBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgSwapOut) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
+	addr, _ := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgSwapOut) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return err
 	}
@@ -280,7 +280,7 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 
 func NewMsgSettle(fundingAddress sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32) *MsgSettle {
 	return &MsgSettle{
-		FundingAddress:             fundingAddress.String(),
+		StorageProvider:            fundingAddress.String(),
 		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
 		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
 	}
@@ -301,13 +301,13 @@ func (msg *MsgSettle) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgSettle) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	addr, _ := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgSettle) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.FundingAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return err
 	}

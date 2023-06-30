@@ -1140,29 +1140,29 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "params"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_ParamsByTimestamp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "params", "timestamp"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_ParamsByTimestamp_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "params", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_OutFlows_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "out_flows", "account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_OutFlows_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "out_flows", "account"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_StreamRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "stream_record", "account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_StreamRecord_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "stream_record", "account"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_StreamRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "stream_record"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_StreamRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "stream_record"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PaymentAccountCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "payment_account_count", "owner"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccountCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "payment_account_count", "owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PaymentAccountCountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "payment_account_count"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccountCountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "payment_account_count"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PaymentAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "payment_account", "addr"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "payment_account", "addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_PaymentAccountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "payment_account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_PaymentAccountAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "payment_account"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_DynamicBalance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "dynamic_balance", "account"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_DynamicBalance_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "dynamic_balance", "account"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_GetPaymentAccountsByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "get_payment_accounts_by_owner", "owner"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_GetPaymentAccountsByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "payment", "get_payment_accounts_by_owner", "owner"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_AutoSettleRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "auto_settle_record"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_AutoSettleRecordAll_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "payment", "auto_settle_record"}, "", runtime.AssumeColonVerbOpt(false)))
 )
 
 var (

@@ -12,7 +12,7 @@ var _ sdk.Msg = &MsgStorageProviderExit{}
 
 func NewMsgStorageProviderExit(operatorAddress sdk.AccAddress) *MsgStorageProviderExit {
 	return &MsgStorageProviderExit{
-		OperatorAddress: operatorAddress.String(),
+		StorageProvider: operatorAddress.String(),
 	}
 }
 
@@ -25,7 +25,7 @@ func (msg *MsgStorageProviderExit) Type() string {
 }
 
 func (msg *MsgStorageProviderExit) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -38,7 +38,7 @@ func (msg *MsgStorageProviderExit) GetSignBytes() []byte {
 }
 
 func (msg *MsgStorageProviderExit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.OperatorAddress)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
