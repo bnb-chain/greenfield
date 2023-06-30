@@ -117,7 +117,7 @@ message MsgSwapOut {
   uint32 successor_sp_id = 4;
   // approval includes an expiration time and a signature.
   // The fields to be signed with contains the necessary information of the successor.
-  common.Approval successor_sp_approval = 6;
+  common.Approval successor_sp_approval = 5;
 }
 
 message MsgSwapOutResponse {}
