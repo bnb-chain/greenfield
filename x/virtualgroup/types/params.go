@@ -17,10 +17,10 @@ const (
 )
 
 var (
-	// DefaultGVGStakingPrice defines the default gvg staking price
-	DefaultGVGStakingPrice                   = sdk.NewInt(16000)
+	// DefaultGVGStakingPerBytes defines the default gvg staking price
+	DefaultGVGStakingPerBytes                = sdk.NewInt(16000) // 20%~30% of store price
 	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
-	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 //64T
+	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 * 1024 //64T
 
 	KeyDepositDenom                      = []byte("DepositDenom")
 	KeyGVGStakingPerBytes                = []byte("GVGStakingPerBytes")
@@ -48,7 +48,7 @@ func NewParams(depositDenom string, gvgStakingPerBytes math.Int, maxGlobalVirtua
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDepositDenom, DefaultGVGStakingPrice, DefaultMaxGlobalVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
+	return NewParams(DefaultDepositDenom, DefaultGVGStakingPerBytes, DefaultMaxGlobalVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
 }
 
 // ParamSetPairs get the params.ParamSet
