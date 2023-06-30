@@ -36,6 +36,10 @@ const (
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgCompleteSwapOut int = 100
 
+	opWeightMsgCancelSwapOut = "op_weight_msg_cancel_swap_out"
+	// TODO: Determine the simulation weight value
+	defaultWeightMsgCancelSwapOut int = 100
+
 	// this line is used by starport scaffolding # simapp/module/const
 )
 
@@ -97,6 +101,17 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 		virtualgroupsimulation.SimulateMsgCompleteSwapOut(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
 
+	var weightMsgCancelSwapOut int
+	simState.AppParams.GetOrGenerate(simState.Cdc, opWeightMsgCancelSwapOut, &weightMsgCancelSwapOut, nil,
+		func(_ *rand.Rand) {
+			weightMsgCancelSwapOut = defaultWeightMsgCancelSwapOut
+		},
+	)
+	operations = append(operations, simulation.NewWeightedOperation(
+		weightMsgCancelSwapOut,
+		virtualgroupsimulation.SimulateMsgCancelSwapOut(am.accountKeeper, am.bankKeeper, am.keeper),
+	))
+
 	// this line is used by starport scaffolding # simapp/module/operation
 
 	return operations
@@ -126,6 +141,14 @@ func (am AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.Wei
 			defaultWeightMsgCompleteSwapOut,
 			func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) sdk.Msg {
 				virtualgroupsimulation.SimulateMsgCompleteSwapOut(am.accountKeeper, am.bankKeeper, am.keeper)
+				return nil
+			},
+		),
+		simulation.NewWeightedProposalMsg(
+			opWeightMsgCancelSwapOut,
+			defaultWeightMsgCancelSwapOut,
+			func(r *rand.Rand, ctx sdk.Context, accs []simtypes.Account) sdk.Msg {
+				virtualgroupsimulation.SimulateMsgCancelSwapOut(am.accountKeeper, am.bankKeeper, am.keeper)
 				return nil
 			},
 		),

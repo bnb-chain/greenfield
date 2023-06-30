@@ -30,6 +30,7 @@ service Msg {
   rpc StorageProviderExit(MsgStorageProviderExit) returns (MsgStorageProviderExitResponse);
   rpc CompleteStorageProviderExit(MsgCompleteStorageProviderExit) returns (MsgCompleteStorageProviderExitResponse);
   rpc CompleteSwapOut(MsgCompleteSwapOut) returns (MsgCompleteSwapOutResponse);
+  rpc CancelSwapOut(MsgCancelSwapOut) returns (MsgCancelSwapOutResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -165,3 +166,9 @@ message MsgCompleteSwapOut {
 }
 
 message MsgCompleteSwapOutResponse {}
+
+message MsgCancelSwapOut {
+  string creator = 1;
+}
+
+message MsgCancelSwapOutResponse {}

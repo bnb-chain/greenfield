@@ -267,11 +267,11 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "challenge", "params"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "challenge", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_LatestAttestedChallenges_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "challenge", "latest_attested_challenges"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_LatestAttestedChallenges_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "challenge", "latest_attested_challenges"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_InturnAttestationSubmitter_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "challenge", "inturn_attestation_submitter"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_InturnAttestationSubmitter_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"greenfield", "challenge", "inturn_attestation_submitter"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
