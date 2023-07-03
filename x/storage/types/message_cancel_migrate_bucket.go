@@ -41,7 +41,7 @@ func (msg *MsgCancelMigrateBucket) GetSignBytes() []byte {
 func (msg *MsgCancelMigrateBucket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
 	}
 
 	err = s3util.CheckValidBucketName(msg.BucketName)

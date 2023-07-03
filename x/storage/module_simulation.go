@@ -21,11 +21,7 @@ var (
 )
 
 const (
-	opWeightMsgCancelMigrateBucket = "op_weight_msg_cancel_migrate_bucket"
-	// TODO: Determine the simulation weight value
-	defaultWeightMsgCancelMigrateBucket int = 100
-
-	// this line is used by starport scaffolding # simapp/module/const
+// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
