@@ -65,14 +65,15 @@ enum VisibilityType {
 // Then the primary SP can challenge and slash the secondary SP.
 // So the id of the object is needed to prevent this.
 message SecondarySpSealObjectSignDoc {
-  uint32 global_virtual_group_id = 1;
-  string object_id = 2 [
+  string chain_id = 1;
+  uint32 global_virtual_group_id = 2;
+  string object_id = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
   // checksum is the sha256 hash of slice of integrity hash from secondary sps
-  bytes checksum = 3;
+  bytes checksum = 4;
 }
 
 message GVGMapping {
@@ -82,10 +83,11 @@ message GVGMapping {
 }
 
 message SecondarySpMigrationBucketSignDoc {
-  uint32 dst_primary_sp_id = 1;
-  uint32 src_global_virtual_group_id = 2;
-  uint32 dst_global_virtual_group_id = 3;
-  string bucket_id = 4 [
+  string chain_id = 1;
+  uint32 dst_primary_sp_id = 2;
+  uint32 src_global_virtual_group_id = 3;
+  uint32 dst_global_virtual_group_id = 4;
+  string bucket_id = 5 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false

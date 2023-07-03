@@ -537,7 +537,7 @@ func (s *BaseSuite) CreateObject(user keys.KeyManager, primarySP *StorageProvide
 
 	secondarySigs := make([][]byte, 0)
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(queryHeadObjectResponse.ObjectInfo.Id, gvgId, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
 		sig, err := BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
@@ -611,4 +611,8 @@ func (s *BaseSuite) CreateGlobalVirtualGroup(sp *StorageProvider, familyID uint3
 	}
 	s.T().Logf("gvgID: %d, familyID: %d", gvgID, newFamilyID)
 	return gvgID, newFamilyID
+}
+
+func (s *BaseSuite) GetChainID() string {
+	return s.Config.ChainId
 }
