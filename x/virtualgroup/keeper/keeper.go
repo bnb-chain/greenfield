@@ -436,7 +436,8 @@ func (k Keeper) SetSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uin
 	store := ctx.KVStore(k.storeKey)
 
 	if gvgFamilyID != types.NoSpecifiedFamilyId {
-		found := store.Has(types.GetSwapOutFamilyKey(gvgFamilyID))
+		key := types.GetSwapOutFamilyKey(gvgFamilyID)
+		found := store.Has(key)
 		if found {
 			return types.ErrSwapOutFailed.Wrapf("SwapOutInfo of this gvg family(ID: %d) already exist", gvgFamilyID)
 
@@ -448,10 +449,11 @@ func (k Keeper) SetSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uin
 		}
 
 		bz := k.cdc.MustMarshal(swapOutInfo)
-		store.Set(types.GetSwapOutFamilyKey(swapOutInfo.Id), bz)
+		store.Set(key, bz)
 	} else {
 		for _, gvgID := range gvgIDs {
-			found := store.Has(types.GetSwapOutFamilyKey(gvgFamilyID))
+			key := types.GetSwapOutGVGKey(gvgID)
+			found := store.Has(key)
 			if found {
 				return types.ErrSwapOutFailed.Wrapf("SwapOutInfo of this gvg(ID: %d) already exist.", gvgID)
 			}
@@ -461,7 +463,7 @@ func (k Keeper) SetSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uin
 				SuccessorSpId: successorSPID,
 			}
 			bz := k.cdc.MustMarshal(swapOutInfo)
-			store.Set(types.GetSwapOutGVGKey(swapOutInfo.Id), bz)
+			store.Set(key, bz)
 		}
 	}
 	return nil
@@ -472,23 +474,25 @@ func (k Keeper) DeleteSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []
 
 	swapOutInfo := types.SwapOutInfo{}
 	if gvgFamilyID != types.NoSpecifiedFamilyId {
-		bz := store.Get(types.GetSwapOutFamilyKey(gvgFamilyID))
+		key := types.GetSwapOutFamilyKey(gvgFamilyID)
+		bz := store.Get(key)
 		k.cdc.MustUnmarshal(bz, &swapOutInfo)
 
 		if swapOutInfo.SpId != spID {
 			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapOutInfo", spID, swapOutInfo.SpId)
 		} else {
-			store.Delete(types.GetSwapOutFamilyKey(gvgFamilyID))
+			store.Delete(key)
 		}
 
 	} else {
 		for _, gvgID := range gvgIDs {
-			bz := store.Get(types.GetSwapOutFamilyKey(gvgID))
+			key := types.GetSwapOutGVGKey(gvgID)
+			bz := store.Get(key)
 			k.cdc.MustUnmarshal(bz, &swapOutInfo)
 			if swapOutInfo.SpId != spID {
 				return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapOutInfo", spID, swapOutInfo.SpId)
 			} else {
-				store.Delete(types.GetSwapOutGVGKey(gvgID))
+				store.Delete(key)
 			}
 		}
 	}
@@ -500,7 +504,8 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 
 	swapOutInfo := types.SwapOutInfo{}
 	if gvgFamilyID != types.NoSpecifiedFamilyId {
-		bz := store.Get(types.GetSwapOutFamilyKey(gvgFamilyID))
+		key := types.GetSwapOutFamilyKey(gvgFamilyID)
+		bz := store.Get(key)
 		k.cdc.MustUnmarshal(bz, &swapOutInfo)
 
 		sp, found := k.spKeeper.GetStorageProvider(ctx, swapOutInfo.SpId)
@@ -512,10 +517,11 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 		if err != nil {
 			return err
 		}
-		store.Delete(types.GetSwapOutFamilyKey(gvgFamilyID))
+		store.Delete(key)
 	} else {
 		for _, gvgID := range gvgIDs {
-			bz := store.Get(types.GetSwapOutGVGKey(gvgID))
+			key := types.GetSwapOutGVGKey(gvgID)
+			bz := store.Get(key)
 			k.cdc.MustUnmarshal(bz, &swapOutInfo)
 
 			sp, found := k.spKeeper.GetStorageProvider(ctx, swapOutInfo.SpId)
@@ -527,7 +533,7 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 			if err != nil {
 				return err
 			}
-			store.Delete(types.GetSwapOutGVGKey(gvgID))
+			store.Delete(key)
 		}
 	}
 	return nil

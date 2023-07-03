@@ -1507,13 +1507,19 @@ func (s *StorageTestSuite) TestMigrationBucket() {
 	objectName := storageutils.GenRandomObjectName()
 	_, _, _, bucketInfo := s.BaseSuite.CreateObject(user, &primarySP, gvg.Id, bucketName, objectName)
 
-	// migration bucket
 	var err error
 	dstPrimarySP := s.CreateNewStorageProvider()
-	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(primarySP.OperatorKey.GetAddr(), bucketName, dstPrimarySP.Info.Id)
+
+	// migrate bucket
+	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(user.GetAddr(), bucketName, dstPrimarySP.Info.Id)
 	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
 	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
-	s.SendTxBlock(primarySP.OperatorKey, msgMigrationBucket)
+	s.SendTxBlock(user, msgMigrationBucket)
+	s.Require().NoError(err)
+
+	// cancel migration bucket
+	msgCancelMigrationBucket := storagetypes.NewMsgCancelMigrateBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(user, msgCancelMigrationBucket)
 	s.Require().NoError(err)
 
 	// complete migration bucket
@@ -1558,5 +1564,17 @@ func (s *StorageTestSuite) TestMigrationBucket() {
 	}
 
 	msgCompleteMigrationBucket := storagetypes.NewMsgCompleteMigrateBucket(dstPrimarySP.OperatorKey.GetAddr(), bucketName, dstGVG.FamilyId, gvgMappings)
+	s.SendTxBlockWithExpectErrorString(msgCompleteMigrationBucket, dstPrimarySP.OperatorKey, "The bucket is not been migrating")
+
+	// send again
+	msgMigrationBucket = storagetypes.NewMsgMigrateBucket(user.GetAddr(), bucketName, dstPrimarySP.Info.Id)
+	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
+	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
+	s.SendTxBlock(user, msgMigrationBucket)
+	s.Require().NoError(err)
+
+	// complete again
+	msgCompleteMigrationBucket = storagetypes.NewMsgCompleteMigrateBucket(dstPrimarySP.OperatorKey.GetAddr(), bucketName, dstGVG.FamilyId, gvgMappings)
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
+
 }

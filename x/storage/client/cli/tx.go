@@ -61,6 +61,7 @@ func GetTxCmd() *cobra.Command {
 		CmdDeletePolicy(),
 	)
 
+	cmd.AddCommand(CmdCancelMigrateBucket())
 	// this line is used by starport scaffolding # 1
 
 	return cmd

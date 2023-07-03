@@ -56,8 +56,8 @@ service Msg {
   // this line is used by starport scaffolding # proto/tx/rpc
   rpc MigrateBucket(MsgMigrateBucket) returns (MsgMigrateBucketResponse);
   rpc CompleteMigrateBucket(MsgCompleteMigrateBucket) returns (MsgCompleteMigrateBucketResponse);
+  rpc CancelMigrateBucket(MsgCancelMigrateBucket) returns (MsgCancelMigrateBucketResponse);
 }
-
 message MsgCreateBucket {
   option (cosmos.msg.v1.signer) = "creator";
 
@@ -531,25 +531,26 @@ message MsgUpdateParams {
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
   // params defines the x/storage parameters to update.
   // NOTE: All parameters must be supplied.
   Params params = 2 [(gogoproto.nullable) = false];
 }
 
 // MsgUpdateParamsResponse defines the response structure for executing a
-// MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
 message MsgMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
 
+  // operator defines the account address of the operator who initial the migrate bucket
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
+  // bucket_name defines the name of the bucket that need to be migrated
   string bucket_name = 2;
-
+  // dst_primary_sp_id defines the target SP for migration
   uint32 dst_primary_sp_id = 3;
-
+  // dst_primary_sp_approval defines the approval of target sp
   common.Approval dst_primary_sp_approval = 4;
 }
 
@@ -558,13 +559,26 @@ message MsgMigrateBucketResponse {}
 message MsgCompleteMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
 
+  // operator defines the account address of the msg operator.
+  // The CompleteMigrateBucket transaction must be initiated by the target SP of the migration
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
+  // bucket_name defines the name of the bucket that need to be migrated
   string bucket_name = 2;
-
+  // global_virtual_group_family_id defines the family id which the bucket migrate to
   uint32 global_virtual_group_family_id = 3;
-
+  // gvg_mappings defines the src and dst gvg mapping relationships which the bucket migrate to
   repeated GVGMapping gvg_mappings = 4;
 }
 
 message MsgCompleteMigrateBucketResponse {}
+
+message MsgCancelMigrateBucket {
+  option (cosmos.msg.v1.signer) = "operator";
+  // operator defines the account address of the msg operator.
+  // Only the use can send this transaction to cancel the migrate bucket
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket that need to be migrated
+  string bucket_name = 2;
+}
+
+message MsgCancelMigrateBucketResponse {}

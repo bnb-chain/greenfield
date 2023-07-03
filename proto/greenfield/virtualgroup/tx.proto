@@ -123,7 +123,6 @@ message MsgSwapOut {
 
 message MsgSwapOutResponse {}
 
-
 message MsgCompleteSwapOut {
   option (cosmos.msg.v1.signer) = "storage_provider";
 
@@ -140,7 +139,6 @@ message MsgCompleteSwapOut {
 
 message MsgCompleteSwapOutResponse {}
 
-
 message MsgCancelSwapOut {
   option (cosmos.msg.v1.signer) = "storage_provider";
 
@@ -156,7 +154,6 @@ message MsgCancelSwapOut {
 }
 
 message MsgCancelSwapOutResponse {}
-
 
 // MsgSettle define the message for settling storage income of GVG family or several GVGs.
 // Firstly, the handler will do stream settlement for the payment account; and
@@ -192,5 +189,3 @@ message MsgCompleteStorageProviderExit {
 }
 
 message MsgCompleteStorageProviderExitResponse {}
-
-
