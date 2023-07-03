@@ -289,6 +289,7 @@ func New(
 		permissionmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
 		challengemoduletypes.StoreKey,
+		reconStoreKey,
 	)
 	tKeys := sdk.NewTransientStoreKeys(challengemoduletypes.TStoreKey, storagemoduletypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(challengemoduletypes.MemStoreKey)
@@ -681,7 +682,7 @@ func New(
 	// enable diff for reconciliation
 	bankIavl, ok := ms.GetCommitStore(keys[banktypes.StoreKey]).(*iavl.Store)
 	if !ok {
-		tmos.Exit("cannot convert account store to ival store")
+		tmos.Exit("cannot convert bank store to ival store")
 	}
 	bankIavl.EnableDiff()
 

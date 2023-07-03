@@ -2,7 +2,10 @@ package app
 
 import (
 	"bytes"
+	"encoding/binary"
 	"fmt"
+
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,36 +13,37 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 )
 
-const globalAccountNumber = "globalAccountNumber"
+const reconStoreKey = "reconciliation"
 
-//// unbalancedBlockHeightKey for saving unbalanced block height for reconciliation
-//var unbalancedBlockHeightKey = []byte("0x01")
+// unbalancedBlockHeightKey for saving unbalanced block height for reconciliation
+var unbalancedBlockHeightKey = []byte("0x01")
+
+var (
+	SupplyKey          = banktypes.SupplyKey
+	DenomAddressPrefix = banktypes.DenomAddressPrefix
+	BalancesPrefix     = banktypes.BalancesPrefix
+)
 
 // reconBalance will do reconciliation for accounts balances.
 func (app *App) reconBalance(ctx sdk.Context, bankIavl *iavl.Store) {
-	//height, exists := app.getUnbalancedBlockHeight(ctx)
-	//if exists {
-	//	panic(fmt.Sprintf("unbalanced state at block height %d, please use hardfork to bypass it", height))
-	//}
-
-	if ctx.BlockHeight() < 3 {
+	if ctx.BlockHeight() <= 2 {
 		return
 	}
-	balanced := app.getAccountChanges(ctx, bankIavl)
+
+	height, exists := app.getUnbalancedBlockHeight(ctx)
+	if exists {
+		panic(fmt.Sprintf("unbalanced state at block height %d, please use hardfork to bypass it", height))
+	}
+
+	balanced := app.getBankChanges(ctx, bankIavl)
 	bankIavl.ResetDiff()
 
 	if !balanced {
-		panic("not balanced")
+		app.saveUnbalancedBlockHeight(ctx)
 	}
 }
 
-var (
-	SupplyKey          = []byte{0x00}
-	DenomAddressPrefix = []byte{0x03}
-	BalancesPrefix     = []byte{0x02}
-)
-
-func (app *App) getAccountChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
+func (app *App) getBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 	supplyPre := sdk.Coins{}
 	balancePre := sdk.Coins{}
 	supplyCurrent := sdk.Coins{}
@@ -47,7 +51,7 @@ func (app *App) getAccountChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 
 	diff := bankIavl.GetDiff()
 	version := ctx.BlockHeight() - 2
-	fmt.Printf("reconciliation at: %d, version: %d \n", ctx.BlockHeight(), version)
+	ctx.Logger().Debug("reconciliation changes", "height", ctx.BlockHeight(), "version", version)
 	for k := range diff {
 		kBz := []byte(k)
 		denom := ""
@@ -55,11 +59,17 @@ func (app *App) getAccountChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 		if bytes.HasPrefix([]byte(k), SupplyKey) {
 			isSupply = true
 			denom = parseDenomFromSupplyKey(kBz)
-			amount := parseAmountFromValue(bankIavl.Get(kBz))
+			amount := math.ZeroInt()
+			if vBz := bankIavl.Get(kBz); vBz != nil {
+				amount = parseAmountFromValue(vBz)
+			}
 			supplyCurrent = supplyCurrent.Add(sdk.NewCoin(denom, amount))
 		} else if bytes.HasPrefix([]byte(k), BalancesPrefix) {
 			denom = parseDenomFromBalanceKey(kBz)
-			amount := parseAmountFromValue(bankIavl.Get(kBz))
+			amount := math.ZeroInt()
+			if vBz := bankIavl.Get(kBz); vBz != nil {
+				amount = parseAmountFromValue(vBz)
+			}
 			balanceCurrent = balanceCurrent.Add(sdk.NewCoin(denom, amount))
 		} else {
 			continue
@@ -83,38 +93,46 @@ func (app *App) getAccountChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 	supplyChanges, _ := supplyCurrent.SafeSub(supplyPre...)
 	balanceChanges, _ := balanceCurrent.SafeSub(balancePre...)
 
-	fmt.Println("supplyCurrent", supplyCurrent)
-	fmt.Println("supplyPre", supplyPre)
-	fmt.Println("balanceCurrent", balanceCurrent)
-	fmt.Println("balancePre", balancePre)
-	fmt.Println("supplyChanges", supplyChanges)
-	fmt.Println("balanceChanges", balanceChanges)
+	ctx.Logger().Debug("reconciliation change details", "supplyCurrent", supplyCurrent, "supplyPre", supplyPre,
+		"balanceCurrent", balanceCurrent, "balancePre", balancePre,
+		"supplyChanges", supplyChanges, "balanceChanges", balanceChanges)
 	return supplyChanges.IsEqual(balanceChanges)
 }
 
-//func (app *App) saveUnbalancedBlockHeight(ctx sdk.Context) {
-//	reconStore := app.GetCommitMultiStore().GetCommitStore(common.ReconStoreKey).(*store.IavlStore)
-//	bz := make([]byte, 8)
-//	binary.BigEndian.PutUint64(bz[:], uint64(ctx.BlockHeight()))
-//	reconStore.Set(unbalancedBlockHeightKey, bz)
-//}
-//
-//func (app *App) getUnbalancedBlockHeight(ctx sdk.Context) (uint64, bool) {
-//	reconStore := app.GetCommitMultiStore().GetCommitStore(common.ReconStoreKey).(*store.IavlStore)
-//
-//	bz := reconStore.Get(unbalancedBlockHeightKey)
-//	if bz == nil {
-//		return 0, false
-//	}
-//	return binary.BigEndian.Uint64(bz), true
-//}
+func (app *App) saveUnbalancedBlockHeight(ctx sdk.Context) {
+	reconStore := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(reconStoreKey)).(*iavl.Store)
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz[:], uint64(ctx.BlockHeight()))
+	reconStore.Set(unbalancedBlockHeightKey, bz)
+}
 
+func (app *App) getUnbalancedBlockHeight(ctx sdk.Context) (uint64, bool) {
+	reconStore := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(reconStoreKey)).(*iavl.Store)
+	bz := reconStore.Get(unbalancedBlockHeightKey)
+	if bz == nil {
+		return 0, false
+	}
+	return binary.BigEndian.Uint64(bz), true
+}
+
+// parseDenomFromBalanceKey parse denom from bank balance key.
+// Key format is: BalancesPrefix + Length Prefixed Address + DenomAddressPrefix + Denom + 0x00
 func parseDenomFromBalanceKey(key []byte) string {
 	l := len(key)
-	start := len(BalancesPrefix) + 20 + len(DenomAddressPrefix)
+	start := len(BalancesPrefix) + 1 + 20 + len(DenomAddressPrefix) - 1
 	return string(key[start:l])
 }
 
+// parseAddressFromBalanceKey parse address from bank balance key.
+// Key format is: BalancesPrefix + Length Prefixed Address + DenomAddressPrefix + Denom + 0x00
+func parseAddressFromBalanceKey(key []byte) string {
+	start := len(BalancesPrefix) + 1 // prefix-length
+	end := start + 20
+	return sdk.AccAddress(key[start:end]).String()
+}
+
+// parseDenomFromSupplyKey parse address from bank supply key.
+// Key format is: SupplyKey + Denom
 func parseDenomFromSupplyKey(key []byte) string {
 	start := len(SupplyKey)
 	return string(key[start:])
