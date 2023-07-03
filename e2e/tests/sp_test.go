@@ -39,7 +39,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 	// sp exit
 	msgSPExit := virtualgroupmoduletypes.MsgStorageProviderExit{
-		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
 	}
 	s.SendTxBlock(sp.OperatorKey, &msgSPExit)
 
@@ -50,7 +50,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 	// 10 complete sp exit
 	msgCompleteSPExit := virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
-		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
 	}
 
 	s.SendTxBlock(sp.OperatorKey, &msgCompleteSPExit)

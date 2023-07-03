@@ -1,6 +1,7 @@
 package types
 
 import (
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
@@ -9,9 +10,11 @@ const TypeMsgCancelSwapOut = "cancel_swap_out"
 
 var _ sdk.Msg = &MsgCancelSwapOut{}
 
-func NewMsgCancelSwapOut(creator string) *MsgCancelSwapOut {
+func NewMsgCancelSwapOut(storageProvider sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32) *MsgCancelSwapOut {
 	return &MsgCancelSwapOut{
-		StorageProvider: creator,
+		StorageProvider:            storageProvider.String(),
+		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
+		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
 	}
 }
 
@@ -24,7 +27,7 @@ func (msg *MsgCancelSwapOut) Type() string {
 }
 
 func (msg *MsgCancelSwapOut) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromBech32(msg.StorageProvider)
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		panic(err)
 	}
@@ -37,9 +40,18 @@ func (msg *MsgCancelSwapOut) GetSignBytes() []byte {
 }
 
 func (msg *MsgCancelSwapOut) ValidateBasic() error {
-	_, err := sdk.AccAddressFromBech32(msg.StorageProvider)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
+	}
+	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
+		if len(msg.GlobalVirtualGroupIds) == 0 {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvgs are not allowed to be empty when familyID is not specified.")
+		}
+	} else {
+		if len(msg.GlobalVirtualGroupIds) > 0 {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvgs are not allowed to be non-empty when familyID is specified.")
+		}
 	}
 	return nil
 }

@@ -107,9 +107,9 @@ func (s *BaseSuite) SetupSuite() {
 			}
 			secondaryIds := append(spIDs[:i], spIDs[i+1:]...)
 			msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
-				PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
-				SecondarySpIds:   secondaryIds,
-				Deposit:          deposit,
+				StorageProvider: sp.OperatorKey.GetAddr().String(),
+				SecondarySpIds:  secondaryIds,
+				Deposit:         deposit,
 			}
 			s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
 			resp2, err2 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
@@ -579,10 +579,10 @@ func (s *BaseSuite) CreateGlobalVirtualGroup(sp *StorageProvider, familyID uint3
 		Amount: types.NewIntFromInt64WithDecimal(depositAmount, types.DecimalBNB),
 	}
 	msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
-		PrimarySpAddress: sp.OperatorKey.GetAddr().String(),
-		SecondarySpIds:   secondarySPIDs,
-		Deposit:          deposit,
-		FamilyId:         familyID,
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
+		SecondarySpIds:  secondarySPIDs,
+		Deposit:         deposit,
+		FamilyId:        familyID,
 	}
 	resp := s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
 

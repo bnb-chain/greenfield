@@ -276,50 +276,48 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 	return nil
 }
 
-func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySPID, successorSPID uint32, gvgIDs []uint32) error {
-	for _, gvgID := range gvgIDs {
-		gvg, found := k.GetGVG(ctx, gvgID)
-		if !found {
-			return types.ErrGVGNotExist
-		}
-		if gvg.PrimarySpId == successorSPID {
-			return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be the primary sp of gvg(%s).", successorSPID, gvg.String())
-		}
-		secondarySPFound := false
-		secondarySPIndex := int(-1)
-		for i, spID := range gvg.SecondarySpIds {
-			if spID == successorSPID {
-				return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be one of the secondary sp of gvg(%s).", successorSPID, gvg.String())
-			}
-			if spID == secondarySPID {
-				secondarySPIndex = i
-				secondarySPFound = true
-			}
-		}
-		if !secondarySPFound {
-			return types.ErrSwapOutFailed.Wrapf("The sp(ID: %d) that needs swap out is not one of the secondary sps of gvg gvg(%s).", secondarySPID, gvg.String())
-		}
-		// settlement
-		err := k.SettleAndDistributeGVG(ctx, gvg)
-		if err != nil {
-			return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
-		}
-
-		if secondarySPIndex == int(-1) {
-			panic("secondary sp found but the index is not correct when swap out as secondary sp")
-		}
-		gvg.SecondarySpIds[secondarySPIndex] = successorSPID
-		origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
-		successor, found := k.GetGVGStatisticsWithinSP(ctx, successorSPID)
-		if !found {
-			successor = &types.GVGStatisticsWithinSP{StorageProviderId: successorSPID}
-		}
-		origin.SecondaryCount--
-		successor.SecondaryCount++
-		k.SetGVGStatisticsWithSP(ctx, origin)
-		k.SetGVGStatisticsWithSP(ctx, successor)
-		k.SetGVG(ctx, gvg)
+func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySP, successorSP *sptypes.StorageProvider, gvgID uint32) error {
+	gvg, found := k.GetGVG(ctx, gvgID)
+	if !found {
+		return types.ErrGVGNotExist
 	}
+	if gvg.PrimarySpId == successorSP.Id {
+		return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be the primary sp of gvg(%s).", successorSP.Id, gvg.String())
+	}
+	secondarySPFound := false
+	secondarySPIndex := -1
+	for i, spID := range gvg.SecondarySpIds {
+		if spID == successorSP.Id {
+			return types.ErrSwapOutFailed.Wrapf("the successor sp(ID: %d) can not be one of the secondary sp of gvg(%s).", successorSP.Id, gvg.String())
+		}
+		if spID == secondarySP.Id {
+			secondarySPIndex = i
+			secondarySPFound = true
+		}
+	}
+	if !secondarySPFound {
+		return types.ErrSwapOutFailed.Wrapf("The sp(ID: %d) that needs swap out is not one of the secondary sps of gvg gvg(%s).", secondarySP.Id, gvg.String())
+	}
+	// settlement
+	err := k.SettleAndDistributeGVG(ctx, gvg)
+	if err != nil {
+		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
+	}
+
+	if secondarySPIndex == int(-1) {
+		panic("secondary sp found but the index is not correct when swap out as secondary sp")
+	}
+	gvg.SecondarySpIds[secondarySPIndex] = successorSP.Id
+	origin := k.MustGetGVGStatisticsWithinSP(ctx, secondarySP.Id)
+	successor, found := k.GetGVGStatisticsWithinSP(ctx, successorSP.Id)
+	if !found {
+		successor = &types.GVGStatisticsWithinSP{StorageProviderId: successorSP.Id}
+	}
+	origin.SecondaryCount--
+	successor.SecondaryCount++
+	k.SetGVGStatisticsWithSP(ctx, origin)
+	k.SetGVGStatisticsWithSP(ctx, successor)
+	k.SetGVG(ctx, gvg)
 	return nil
 }
 
@@ -432,4 +430,105 @@ func (k Keeper) GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, 
 		return nil, types.ErrInsufficientStaking.Wrapf("gvg state: %s", gvg.String())
 	}
 	return gvg, nil
+}
+
+func (k Keeper) SetSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uint32, spID uint32, successorSPID uint32) error {
+	store := ctx.KVStore(k.storeKey)
+
+	if gvgFamilyID != types.NoSpecifiedFamilyId {
+		found := store.Has(types.GetSwapOutFamilyKey(gvgFamilyID))
+		if found {
+			return types.ErrSwapOutFailed.Wrapf("SwapOutInfo of this gvg family(ID: %d) already exist", gvgFamilyID)
+
+		}
+		swapOutInfo := &types.SwapOutInfo{
+			Id:            gvgFamilyID,
+			SpId:          spID,
+			SuccessorSpId: successorSPID,
+		}
+
+		bz := k.cdc.MustMarshal(swapOutInfo)
+		store.Set(types.GetSwapOutFamilyKey(swapOutInfo.Id), bz)
+	} else {
+		for _, gvgID := range gvgIDs {
+			found := store.Has(types.GetSwapOutFamilyKey(gvgFamilyID))
+			if found {
+				return types.ErrSwapOutFailed.Wrapf("SwapOutInfo of this gvg(ID: %d) already exist.", gvgID)
+			}
+			swapOutInfo := &types.SwapOutInfo{
+				Id:            gvgID,
+				SpId:          spID,
+				SuccessorSpId: successorSPID,
+			}
+			bz := k.cdc.MustMarshal(swapOutInfo)
+			store.Set(types.GetSwapOutGVGKey(swapOutInfo.Id), bz)
+		}
+	}
+	return nil
+}
+
+func (k Keeper) DeleteSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uint32, spID uint32) error {
+	store := ctx.KVStore(k.storeKey)
+
+	swapOutInfo := types.SwapOutInfo{}
+	if gvgFamilyID != types.NoSpecifiedFamilyId {
+		bz := store.Get(types.GetSwapOutFamilyKey(gvgFamilyID))
+		k.cdc.MustUnmarshal(bz, &swapOutInfo)
+
+		if swapOutInfo.SpId != spID {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapOutInfo", spID, swapOutInfo.SpId)
+		} else {
+			store.Delete(types.GetSwapOutFamilyKey(gvgFamilyID))
+		}
+
+	} else {
+		for _, gvgID := range gvgIDs {
+			bz := store.Get(types.GetSwapOutFamilyKey(gvgID))
+			k.cdc.MustUnmarshal(bz, &swapOutInfo)
+			if swapOutInfo.SpId != spID {
+				return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapOutInfo", spID, swapOutInfo.SpId)
+			} else {
+				store.Delete(types.GetSwapOutGVGKey(gvgID))
+			}
+		}
+	}
+	return nil
+}
+
+func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uint32, successorSP *sptypes.StorageProvider) error {
+	store := ctx.KVStore(k.storeKey)
+
+	swapOutInfo := types.SwapOutInfo{}
+	if gvgFamilyID != types.NoSpecifiedFamilyId {
+		bz := store.Get(types.GetSwapOutFamilyKey(gvgFamilyID))
+		k.cdc.MustUnmarshal(bz, &swapOutInfo)
+
+		sp, found := k.spKeeper.GetStorageProvider(ctx, swapOutInfo.SpId)
+		if !found {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("The storage provider(ID: %d) not found when complete swap out.", swapOutInfo.SpId)
+		}
+
+		err := k.SwapOutAsPrimarySP(ctx, sp, successorSP, gvgFamilyID)
+		if err != nil {
+			return err
+		}
+		store.Delete(types.GetSwapOutFamilyKey(gvgFamilyID))
+	} else {
+		for _, gvgID := range gvgIDs {
+			bz := store.Get(types.GetSwapOutGVGKey(gvgID))
+			k.cdc.MustUnmarshal(bz, &swapOutInfo)
+
+			sp, found := k.spKeeper.GetStorageProvider(ctx, swapOutInfo.SpId)
+			if !found {
+				return sptypes.ErrStorageProviderNotFound.Wrapf("The storage provider(ID: %d) not found when complete swap out.", swapOutInfo.SpId)
+			}
+
+			err := k.SwapOutAsSecondarySP(ctx, sp, successorSP, gvgID)
+			if err != nil {
+				return err
+			}
+			store.Delete(types.GetSwapOutGVGKey(gvgID))
+		}
+	}
+	return nil
 }

@@ -61,3 +61,12 @@ message GVGStatisticsWithinSP {
   // which this storage provider serves as a secondary storage provider.
   uint32 secondary_count = 3;
 }
+
+message SwapOutInfo {
+  // id can be an id of global virtual group family or global virtual group
+  uint32 id = 1;
+  // sp_id is the unique id of the storage provider who want to swap out.
+  uint32 sp_id = 2;
+  // successor_sp_id is the id of the successor storage provider.
+  uint32 successor_sp_id = 3;
+}

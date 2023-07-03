@@ -69,6 +69,18 @@ message EventSwapOut {
   uint32 successor_sp_id = 4;
 }
 
+message EventCompleteSwapOut {
+  uint32 storage_provider_id = 1;
+  uint32 global_virtual_group_family_id = 2;
+  repeated uint32 global_virtual_group_ids = 3;
+}
+
+message EventCancelSwapOut {
+  uint32 storage_provider_id = 1;
+  uint32 global_virtual_group_family_id = 2;
+  repeated uint32 global_virtual_group_ids = 3;
+}
+
 message EventStorageProviderExit {
   uint32 storage_provider_id = 1;
   string operator_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];

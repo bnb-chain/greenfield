@@ -40,6 +40,9 @@ var (
 	GVGFamilySequencePrefix = []byte{0x33}
 
 	GVGStatisticsWithinSPKey = []byte{0x41}
+
+	SwapOutFamilyKey = []byte{0x51}
+	SwapOutGVGKey    = []byte{0x51}
 )
 
 func GetGVGKey(gvgID uint32) []byte {
@@ -60,4 +63,14 @@ func GetGVGFamilyPrefixKey(spID uint32) []byte {
 func GetGVGStatisticsWithinSPKey(spID uint32) []byte {
 	var uint32Seq sequence.Sequence[uint32]
 	return append(GVGStatisticsWithinSPKey, uint32Seq.EncodeSequence(spID)...)
+}
+
+func GetSwapOutFamilyKey(globalVirtualGroupFamilyID uint32) []byte {
+	var uint32Seq sequence.Sequence[uint32]
+	return append(SwapOutFamilyKey, uint32Seq.EncodeSequence(globalVirtualGroupFamilyID)...)
+}
+
+func GetSwapOutGVGKey(globalVirtualGroupID uint32) []byte {
+	var uint32Seq sequence.Sequence[uint32]
+	return append(SwapOutGVGKey, uint32Seq.EncodeSequence(globalVirtualGroupID)...)
 }

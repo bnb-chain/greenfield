@@ -250,48 +250,87 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 	return &types.MsgWithdrawResponse{}, nil
 }
 
-func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types.MsgSwapOutResponse, error) {
+func (k msgServer) SwapOut(goCtx context.Context, msg *types.MsgSwapOut) (*types.MsgSwapOutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	operatorAddr := sdk.MustAccAddressFromHex(req.StorageProvider)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
 	}
 
-	successorSP, found := k.spKeeper.GetStorageProvider(ctx, req.SuccessorSpId)
+	successorSP, found := k.spKeeper.GetStorageProvider(ctx, msg.SuccessorSpId)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("successor sp not found.")
 	}
 
 	// verify the approval
-	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(req.GetApprovalBytes()), req.SuccessorSpApproval.Sig)
+	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(msg.GetApprovalBytes()), msg.SuccessorSpApproval.Sig)
 	if err != nil {
 		return nil, err
 	}
 
-	if req.GlobalVirtualGroupFamilyId == types.NoSpecifiedFamilyId {
-		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
-		err := k.SwapOutAsSecondarySP(ctx, sp.Id, successorSP.Id, req.GlobalVirtualGroupIds)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// if the family id is specified, it means that the SP will swap out as a primary SP and the successor sp will
-		// take over all the gvg of this family
-		err := k.SwapOutAsPrimarySP(ctx, sp, successorSP, req.GlobalVirtualGroupFamilyId)
-		if err != nil {
-			return nil, err
-		}
+	err = k.SetSwapOutInfo(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp.Id, successorSP.Id)
+	if err != nil {
+		return nil, err
 	}
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventSwapOut{
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventSwapOut{
 		StorageProviderId:          sp.Id,
-		GlobalVirtualGroupFamilyId: req.GlobalVirtualGroupFamilyId,
-		GlobalVirtualGroupIds:      req.GlobalVirtualGroupIds,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
 		SuccessorSpId:              successorSP.Id,
 	}); err != nil {
 		return nil, err
 	}
 	return &types.MsgSwapOutResponse{}, nil
+}
+
+func (k msgServer) CancelSwapOut(goCtx context.Context, msg *types.MsgCancelSwapOut) (*types.MsgCancelSwapOutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+	}
+
+	err := k.DeleteSwapOutInfo(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCancelSwapOut{
+		StorageProviderId:          sp.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCancelSwapOutResponse{}, nil
+}
+
+func (k msgServer) CompleteSwapOut(goCtx context.Context, msg *types.MsgCompleteSwapOut) (*types.MsgCompleteSwapOutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+	}
+
+	err := k.Keeper.CompleteSwapOut(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCompleteSwapOut{
+		StorageProviderId:          sp.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCompleteSwapOutResponse{}, nil
 }
 
 func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.MsgSettleResponse, error) {
