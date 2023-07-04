@@ -63,10 +63,8 @@ message GVGStatisticsWithinSP {
 }
 
 message SwapOutInfo {
-  // id can be an id of global virtual group family or global virtual group
-  uint32 id = 1;
   // sp_id is the unique id of the storage provider who want to swap out.
-  uint32 sp_id = 2;
+  uint32 sp_id = 1;
   // successor_sp_id is the id of the successor storage provider.
-  uint32 successor_sp_id = 3;
+  uint32 successor_sp_id = 2;
 }

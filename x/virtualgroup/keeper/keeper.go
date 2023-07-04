@@ -443,7 +443,6 @@ func (k Keeper) SetSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uin
 
 		}
 		swapOutInfo := &types.SwapOutInfo{
-			Id:            gvgFamilyID,
 			SpId:          spID,
 			SuccessorSpId: successorSPID,
 		}
@@ -458,7 +457,6 @@ func (k Keeper) SetSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []uin
 				return types.ErrSwapOutFailed.Wrapf("SwapOutInfo of this gvg(ID: %d) already exist.", gvgID)
 			}
 			swapOutInfo := &types.SwapOutInfo{
-				Id:            gvgID,
 				SpId:          spID,
 				SuccessorSpId: successorSPID,
 			}
