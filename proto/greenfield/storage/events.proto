@@ -455,7 +455,10 @@ message EventStalePolicyCleanup {
 }
 
 message EventMigrationBucket {
+  // The address of the operator that initiated the bucket migration,
+  // usually the owner of the bucket or another account which has permission to operate
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
   string bucket_name = 2;
   // bucket_id define an u256 id for object
   string bucket_id = 3 [
@@ -463,11 +466,15 @@ message EventMigrationBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // The id of the destination primary sp
   uint32 dst_primary_sp_id = 4;
 }
 
-message EventCompleteMigrationBucket {
+message EventCancelMigrationBucket {
+  // The address of the operator that canceled the bucket migration,
+  // usually the owner of the bucket or another account which has permission to operate
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
   string bucket_name = 2;
   // bucket_id define an u256 id for object
   string bucket_id = 3 [
@@ -475,6 +482,22 @@ message EventCompleteMigrationBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+}
+
+message EventCompleteMigrationBucket {
+  // The address of the operator that initiated the bucket migration,
+  // usually the owner of the bucket or another account which has permission to operate
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
+  string bucket_name = 2;
+  // bucket_id define an u256 id for object
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // The family id that the bucket to be migrated to
   uint32 global_virtual_group_family_id = 4;
+  // The src and dst gvg mapping
   repeated GVGMapping gvg_mappings = 5;
 }

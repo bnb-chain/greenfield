@@ -8,6 +8,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
+	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -1738,8 +1739,45 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 	return deletedTotal, true
 }
 
-func (k Keeper) MigrationBucket(ctx sdk.Context, srcSP, dstSP *sptypes.StorageProvider, bucketInfo *types.BucketInfo) error {
+func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, dstPrimarySPID uint32, dstPrimarySPApproval *common.Approval, approvalBytes []byte) error {
 	store := ctx.KVStore(k.storeKey)
+
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+
+	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		return types.ErrAccessDenied.Wrap("Only bucket owner can migrate bucket.")
+	}
+
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+		return types.ErrInvalidBucketStatus.Wrapf("The bucket already been migrating")
+	}
+
+	srcSP, found := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	if !found {
+		return sptypes.ErrStorageProviderNotFound.Wrapf("src sp not found")
+	}
+
+	dstSP, found := k.spKeeper.GetStorageProvider(ctx, dstPrimarySPID)
+	if !found {
+		return sptypes.ErrStorageProviderNotFound.Wrapf("dst sp not found")
+	}
+
+	if !srcSP.IsInService() || !dstSP.IsInService() {
+		return sptypes.ErrStorageProviderNotInService.Wrapf(
+			"origin SP status: %s, dst SP status: %s", srcSP.Status.String(), dstSP.Status.String())
+	}
+
+	// check approval
+	if dstPrimarySPApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
+		return types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
+	}
+	err := k.VerifySPAndSignature(ctx, dstSP.Id, approvalBytes, dstPrimarySPApproval.Sig)
+	if err != nil {
+		return err
+	}
 
 	key := types.GetMigrationBucketKey(bucketInfo.Id)
 	if store.Has(key) {
@@ -1755,6 +1793,127 @@ func (k Keeper) MigrationBucket(ctx sdk.Context, srcSP, dstSP *sptypes.StoragePr
 
 	bz := k.cdc.MustMarshal(migrationBucketInfo)
 	store.Set(key, bz)
+
+	bucketInfo.BucketStatus = types.BUCKET_STATUS_MIGRATING
+	k.SetBucketInfo(ctx, bucketInfo)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventMigrationBucket{
+		Operator:       operator.String(),
+		BucketName:     bucketName,
+		BucketId:       bucketInfo.Id,
+		DstPrimarySpId: dstSP.Id,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, gvgFamilyID uint32, gvgMappings []*types.GVGMapping) error {
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+
+	dstSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operator)
+	if !found {
+		return sptypes.ErrStorageProviderNotFound.Wrapf("dst SP not found.")
+	}
+
+	if bucketInfo.BucketStatus != types.BUCKET_STATUS_MIGRATING {
+		return types.ErrInvalidBucketStatus.Wrapf("The bucket is not been migrating")
+	}
+
+	migrationBucketInfo, found := k.GetMigrationBucketInfo(ctx, bucketInfo.Id)
+	if !found {
+		return types.ErrMigrationBucketFailed.Wrapf("migration bucket info not found.")
+	}
+
+	if dstSP.Id != migrationBucketInfo.DstSpId {
+		return types.ErrMigrationBucketFailed.Wrapf("dst sp info not match")
+	}
+
+	_, found = k.virtualGroupKeeper.GetGVGFamily(ctx, dstSP.Id, gvgFamilyID)
+	if !found {
+		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+
+	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+
+	err := k.virtualGroupKeeper.SettleAndDistributeGVGFamily(ctx, bucketInfo.PrimarySpId, srcGvgFamily)
+	if err != nil {
+		return virtualgroupmoduletypes.ErrSettleFailed.Wrapf("settle gvg family failed, err: %s", err)
+	}
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	err = k.UnChargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
+	if err != nil {
+		return types.ErrMigrationBucketFailed.Wrapf("cancel charge bucket failed, err: %s", err)
+	}
+
+	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
+	bucketInfo.GlobalVirtualGroupFamilyId = gvgFamilyID
+
+	// check secondary sp signature
+	err = k.verifyGVGSignatures(ctx, bucketInfo.Id, dstSP, gvgMappings)
+	if err != nil {
+		return types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
+	}
+
+	// rebinding gvg and lvg
+	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, gvgMappings)
+	if err != nil {
+		return types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
+	}
+
+	k.SetBucketInfo(ctx, bucketInfo)
+	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{
+		Operator:                   operator.String(),
+		BucketName:                 bucketName,
+		BucketId:                   bucketInfo.Id,
+		GlobalVirtualGroupFamilyId: gvgFamilyID,
+		GvgMappings:                gvgMappings,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) CancelBucketMigration(ctx sdk.Context, operator sdk.AccAddress, bucketName string) error {
+	store := ctx.KVStore(k.storeKey)
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+
+	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
+		return types.ErrAccessDenied.Wrap("Only bucket owner can cancel migrate bucket.")
+	}
+
+	if bucketInfo.BucketStatus != types.BUCKET_STATUS_MIGRATING {
+		return types.ErrInvalidBucketStatus.Wrapf("The bucket is not been migrating")
+	}
+
+	key := types.GetMigrationBucketKey(bucketInfo.Id)
+	if !store.Has(key) {
+		return types.ErrMigrationBucketFailed.Wrapf("cancel migrate bucket failed due to the migrate bucket info not found.")
+	}
+
+	bucketInfo.BucketStatus = types.BUCKET_STATUS_CREATED
+	k.SetBucketInfo(ctx, bucketInfo)
+	store.Delete(key)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		BucketId:   bucketInfo.Id,
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 

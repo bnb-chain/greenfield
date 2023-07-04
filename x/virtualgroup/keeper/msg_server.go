@@ -49,13 +49,12 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	var gvgStatisticsWithinSPs []*types.GVGStatisticsWithinSP
 
-	spOperatorAddr := sdk.MustAccAddressFromHex(req.PrimarySpAddress)
+	spOperatorAddr := sdk.MustAccAddressFromHex(req.StorageProvider)
 
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spOperatorAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
-	// TODO(fynn): Check whether the number of secondary sp in gvg matches the redundancy parameters
 	var secondarySpIds []uint32
 	for _, id := range req.SecondarySpIds {
 		ssp, found := k.spKeeper.GetStorageProvider(ctx, id)
@@ -127,11 +126,11 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.MsgDeleteGlobalVirtualGroup) (*types.MsgDeleteGlobalVirtualGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spOperatorAddr := sdk.MustAccAddressFromHex(req.PrimarySpAddress)
+	spOperatorAddr := sdk.MustAccAddressFromHex(req.StorageProvider)
 
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spOperatorAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
 	err := k.DeleteGVG(ctx, sp, req.GlobalVirtualGroupId)
@@ -150,11 +149,16 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types.MsgDepositResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	funcAcc := sdk.MustAccAddressFromHex(req.FundingAddress)
+	addr := sdk.MustAccAddressFromHex(req.StorageProvider)
 
-	sp, found := k.spKeeper.GetStorageProviderByFundingAddr(ctx, funcAcc)
+	var sp *sptypes.StorageProvider
+	found := false
+	sp, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, addr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		sp, found = k.spKeeper.GetStorageProviderByFundingAddr(ctx, addr)
+		if !found {
+			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+		}
 	}
 
 	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
@@ -189,11 +193,15 @@ func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types
 func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*types.MsgWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	funcAcc := sdk.MustAccAddressFromHex(req.FundingAddress)
-
-	sp, found := k.spKeeper.GetStorageProviderByFundingAddr(ctx, funcAcc)
+	addr := sdk.MustAccAddressFromHex(req.StorageProvider)
+	var sp *sptypes.StorageProvider
+	found := false
+	sp, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, addr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		sp, found = k.spKeeper.GetStorageProviderByFundingAddr(ctx, addr)
+		if !found {
+			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+		}
 	}
 
 	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
@@ -242,43 +250,34 @@ func (k msgServer) Withdraw(goCtx context.Context, req *types.MsgWithdraw) (*typ
 	return &types.MsgWithdrawResponse{}, nil
 }
 
-func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types.MsgSwapOutResponse, error) {
+func (k msgServer) SwapOut(goCtx context.Context, msg *types.MsgSwapOut) (*types.MsgSwapOutResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	operatorAddr := sdk.MustAccAddressFromHex(req.OperatorAddress)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
 	}
 
-	successorSP, found := k.spKeeper.GetStorageProvider(ctx, req.SuccessorSpId)
+	successorSP, found := k.spKeeper.GetStorageProvider(ctx, msg.SuccessorSpId)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("successor sp not found.")
 	}
 
 	// verify the approval
-	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(req.GetApprovalBytes()), req.SuccessorSpApproval.Sig)
+	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(msg.GetApprovalBytes()), msg.SuccessorSpApproval.Sig)
 	if err != nil {
 		return nil, err
 	}
 
-	if req.GlobalVirtualGroupFamilyId == types.NoSpecifiedFamilyId {
-		// if the family id is not specified, it means that the SP will swap out as a secondary SP.
-		err := k.SwapOutAsSecondarySP(ctx, sp.Id, successorSP.Id, req.GlobalVirtualGroupIds)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		// if the family id is specified, it means that the SP will swap out as a primary SP and the successor sp will
-		// take over all the gvg of this family
-		err := k.SwapOutAsPrimarySP(ctx, sp, successorSP, req.GlobalVirtualGroupFamilyId)
-		if err != nil {
-			return nil, err
-		}
+	err = k.SetSwapOutInfo(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp.Id, successorSP.Id)
+	if err != nil {
+		return nil, err
 	}
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventSwapOut{
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventSwapOut{
 		StorageProviderId:          sp.Id,
-		GlobalVirtualGroupFamilyId: req.GlobalVirtualGroupFamilyId,
-		GlobalVirtualGroupIds:      req.GlobalVirtualGroupIds,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
 		SuccessorSpId:              successorSP.Id,
 	}); err != nil {
 		return nil, err
@@ -286,14 +285,66 @@ func (k msgServer) SwapOut(goCtx context.Context, req *types.MsgSwapOut) (*types
 	return &types.MsgSwapOutResponse{}, nil
 }
 
+func (k msgServer) CancelSwapOut(goCtx context.Context, msg *types.MsgCancelSwapOut) (*types.MsgCancelSwapOutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+	}
+
+	err := k.DeleteSwapOutInfo(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCancelSwapOut{
+		StorageProviderId:          sp.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCancelSwapOutResponse{}, nil
+}
+
+func (k msgServer) CompleteSwapOut(goCtx context.Context, msg *types.MsgCompleteSwapOut) (*types.MsgCompleteSwapOutResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+	}
+
+	err := k.Keeper.CompleteSwapOut(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupIds, sp)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventCompleteSwapOut{
+		StorageProviderId:          sp.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgCompleteSwapOutResponse{}, nil
+}
+
 func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.MsgSettleResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	funcAcc := sdk.MustAccAddressFromHex(req.FundingAddress)
-
-	sp, found := k.spKeeper.GetStorageProviderByFundingAddr(ctx, funcAcc)
+	addr := sdk.MustAccAddressFromHex(req.StorageProvider)
+	var sp *sptypes.StorageProvider
+	found := false
+	sp, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, addr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		sp, found = k.spKeeper.GetStorageProviderByFundingAddr(ctx, addr)
+		if !found {
+			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+		}
 	}
 
 	if req.GlobalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
@@ -341,11 +392,11 @@ func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.M
 func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStorageProviderExit) (*types.MsgStorageProviderExitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr := sdk.MustAccAddressFromHex(msg.OperatorAddress)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
 	if sp.Status != sptypes.STATUS_IN_SERVICE {
@@ -368,11 +419,11 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types.MsgCompleteStorageProviderExit) (*types.MsgCompleteStorageProviderExitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddress := sdk.MustAccAddressFromHex(msg.OperatorAddress)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 
-	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddress)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
 	if sp.Status != sptypes.STATUS_GRACEFUL_EXITING {

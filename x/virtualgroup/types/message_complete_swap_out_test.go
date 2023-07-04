@@ -3,28 +3,29 @@ package types
 import (
 	"testing"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
-
-	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
-func TestMsgStorageProviderExit_ValidateBasic(t *testing.T) {
+func TestMsgCompleteSwapOut_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgStorageProviderExit
+		msg  MsgCompleteSwapOut
 		err  error
 	}{
 		{
 			name: "invalid address",
-			msg: MsgStorageProviderExit{
-				StorageProvider: "invalid_address",
+			msg: MsgCompleteSwapOut{
+				StorageProvider:            "invalid_address",
+				GlobalVirtualGroupFamilyId: 1,
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
-			msg: MsgStorageProviderExit{
-				StorageProvider: sample.AccAddress(),
+			msg: MsgCompleteSwapOut{
+				StorageProvider:            sample.AccAddress(),
+				GlobalVirtualGroupFamilyId: 1,
 			},
 		},
 	}

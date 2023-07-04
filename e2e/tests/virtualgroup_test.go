@@ -102,7 +102,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 
 	// test deposit
 	msgDeposit := virtualgroupmoduletypes.MsgDeposit{
-		FundingAddress:       primarySP.FundingKey.GetAddr().String(),
+		StorageProvider:      primarySP.FundingKey.GetAddr().String(),
 		GlobalVirtualGroupId: newGVG.Id,
 		Deposit:              sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(1, types.DecimalBNB)),
 	}
@@ -117,7 +117,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	s.Require().NoError(err)
 
 	msgWithdraw := virtualgroupmoduletypes.MsgWithdraw{
-		FundingAddress:       primarySP.FundingKey.GetAddr().String(),
+		StorageProvider:      primarySP.FundingKey.GetAddr().String(),
 		Withdraw:             sdk.NewCoin(s.Config.Denom, types.NewIntFromInt64WithDecimal(1, types.DecimalBNB)),
 		GlobalVirtualGroupId: newGVG.Id,
 	}
@@ -131,7 +131,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 
 	// test delete gvg
 	msgDeleteGVG := virtualgroupmoduletypes.MsgDeleteGlobalVirtualGroup{
-		PrimarySpAddress:     primarySP.OperatorKey.GetAddr().String(),
+		StorageProvider:      primarySP.OperatorKey.GetAddr().String(),
 		GlobalVirtualGroupId: newGVG.Id,
 	}
 	s.SendTxBlock(primarySP.OperatorKey, &msgDeleteGVG)
@@ -198,7 +198,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 
 	// settle gvg family
 	msgSettle := virtualgroupmoduletypes.MsgSettle{
-		FundingAddress:             primarySp.FundingKey.GetAddr().String(),
+		StorageProvider:            primarySp.FundingKey.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
 
@@ -219,7 +219,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 
 	// settle gvg
 	msgSettle = virtualgroupmoduletypes.MsgSettle{
-		FundingAddress:             lastSecondarySp.FundingKey.GetAddr().String(),
+		StorageProvider:            lastSecondarySp.FundingKey.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: 0,
 		GlobalVirtualGroupIds:      []uint32{gvgId},
 	}
@@ -390,7 +390,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 
 	// 5. sp exit
 	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
-		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
 	})
 
 	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
@@ -399,34 +399,90 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 
 	// 6. sp complete exit failed
 	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 		sp.OperatorKey,
 		"not swap out from all the family")
 
-	// 7. swapout, as primary sp
+	// 7. swap out, as primary sp
 	msgSwapOut := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
 	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
 	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
 
-	// 8. exist failed
+	// 9. cancel swap out
+	msgCancelSwapOut := virtualgroupmoduletypes.NewMsgCancelSwapOut(sp.OperatorKey.GetAddr(), familyID, nil)
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgCancelSwapOut)
+
+	// 10. complete swap out, as primary sp
+	msgCompleteSwapOut := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
+	s.Require().NoError(err)
+	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut, successorSp.OperatorKey, "not found when complete swap out")
+
+	// 11 swap again
+	msgSwapOut = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
+	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
+
+	// 12. sp complete exit failed
 	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+		sp.OperatorKey,
+		"not swap out from all the family")
+
+	// 13. complete swap out, as primary sp
+	msgCompleteSwapOut = virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
+	s.Require().NoError(err)
+	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut)
+
+	// 14. exist failed
+	s.SendTxBlockWithExpectErrorString(
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 		sp.OperatorKey,
 		"not swap out from all the gvgs")
 
-	// 7. swapout, as secondary sp
+	// 15. swap out, as secondary sp
 	msgSwapOut2 := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
 	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
 	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
 
-	// 8. sp complete exit success
+	// 16. exist failed
+	s.SendTxBlockWithExpectErrorString(
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+		sp.OperatorKey,
+		"not swap out from all the gvgs")
+
+	// 17 cancel swap out as secondary sp
+	msgCancelSwapOut = virtualgroupmoduletypes.NewMsgCancelSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgCancelSwapOut)
+
+	// 18. swap
+	msgCompleteSwapOut2 := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+	s.Require().NoError(err)
+	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut2, successorSp.OperatorKey, "not found when complete swap out")
+
+	// 19. swap out again, as secondary sp
+	msgSwapOut2 = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
+	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
+
+	// 20 complete swap out
+	msgCompleteSwapOut2 = virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+	s.Require().NoError(err)
+	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut2)
+
+	// 18. sp complete exit success
 	s.SendTxBlock(
 		sp.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 	)
 
 }
@@ -460,7 +516,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
 
 	// 4. sp apply exit
 	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
-		OperatorAddress: sp.OperatorKey.GetAddr().String(),
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
 	})
 
 	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
@@ -469,7 +525,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
 
 	// 5. sp complete exit failed
 	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 		sp.OperatorKey,
 		"not swap out from all the family")
 
@@ -484,7 +540,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
 	// 8. sp complete exit success
 	s.SendTxBlock(
 		sp.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{OperatorAddress: sp.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 	)
 
 }

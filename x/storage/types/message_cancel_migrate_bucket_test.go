@@ -3,28 +3,29 @@ package types
 import (
 	"testing"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
-
-	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
-func TestMsgStorageProviderExit_ValidateBasic(t *testing.T) {
+func TestMsgCancelMigrateBucket_ValidateBasic(t *testing.T) {
 	tests := []struct {
 		name string
-		msg  MsgStorageProviderExit
+		msg  MsgCancelMigrateBucket
 		err  error
 	}{
 		{
 			name: "invalid address",
-			msg: MsgStorageProviderExit{
-				StorageProvider: "invalid_address",
+			msg: MsgCancelMigrateBucket{
+				Operator:   "invalid_address",
+				BucketName: testBucketName,
 			},
 			err: sdkerrors.ErrInvalidAddress,
 		}, {
 			name: "valid address",
-			msg: MsgStorageProviderExit{
-				StorageProvider: sample.AccAddress(),
+			msg: MsgCancelMigrateBucket{
+				Operator:   sample.AccAddress(),
+				BucketName: testBucketName,
 			},
 		},
 	}

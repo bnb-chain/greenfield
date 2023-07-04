@@ -593,58 +593,13 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBucket) (*types.MsgMigrateBucketResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
-	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
-	if !found {
-		return nil, types.ErrNoSuchBucket
-	}
-
-	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
-		return nil, types.ErrInvalidBucketStatus.Wrapf("The bucket already been migrating")
-
-	}
-	srcSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operator)
-	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound
-	}
-
-	dstSP, found := k.spKeeper.GetStorageProvider(ctx, msg.DstPrimarySpId)
-	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("dst sp not found")
-	}
-
-	if srcSP.Status != sptypes.STATUS_IN_SERVICE || dstSP.Status != sptypes.STATUS_IN_SERVICE {
-		return nil, sptypes.ErrStorageProviderNotInService.Wrapf(
-			"origin SP status: %s, dst SP status: %s", srcSP.Status.String(), dstSP.Status.String())
-	}
-
-	// check approval
-	if msg.DstPrimarySpApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
-		return nil, types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
-	}
-	err := k.VerifySPAndSignature(ctx, dstSP.Id, msg.GetApprovalBytes(), msg.DstPrimarySpApproval.Sig)
+	err := k.Keeper.MigrateBucket(ctx, operator, msg.BucketName, msg.DstPrimarySpId, msg.DstPrimarySpApproval, msg.GetApprovalBytes())
 	if err != nil {
 		return nil, err
 	}
 
-	err = k.MigrationBucket(ctx, srcSP, dstSP, bucketInfo)
-	if err != nil {
-		return nil, err
-	}
-
-	bucketInfo.BucketStatus = types.BUCKET_STATUS_MIGRATING
-	k.SetBucketInfo(ctx, bucketInfo)
-
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventMigrationBucket{
-		Operator:       operator.String(),
-		BucketName:     msg.BucketName,
-		BucketId:       bucketInfo.Id,
-		DstPrimarySpId: dstSP.Id,
-	}); err != nil {
-		return nil, err
-	}
 	return &types.MsgMigrateBucketResponse{}, nil
 }
 
@@ -653,79 +608,25 @@ func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCo
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
 
-	bucketInfo, found := k.GetBucketInfo(ctx, msg.BucketName)
-	if !found {
-		return nil, types.ErrNoSuchBucket
-	}
-
-	dstSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operator)
-	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("dst SP not found.")
-	}
-
-	if bucketInfo.BucketStatus != types.BUCKET_STATUS_MIGRATING {
-		return nil, types.ErrInvalidBucketStatus.Wrapf("The bucket not been migrating")
-	}
-
-	migrationBucketInfo, found := k.GetMigrationBucketInfo(ctx, bucketInfo.Id)
-	if !found {
-		return nil, types.ErrMigrationBucketFailed.Wrapf("migration bucket info not found.")
-	}
-
-	if dstSP.Id != migrationBucketInfo.DstSpId {
-		return nil, types.ErrMigrationBucketFailed.Wrapf("dst sp info not match")
-	}
-
-	_, found = k.virtualGroupKeeper.GetGVGFamily(ctx, dstSP.Id, msg.GlobalVirtualGroupFamilyId)
-	if !found {
-		return nil, virtualgroupmoduletypes.ErrGVGFamilyNotExist
-	}
-
-	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
-	if !found {
-		return nil, virtualgroupmoduletypes.ErrGVGFamilyNotExist
-	}
-
-	err := k.virtualGroupKeeper.SettleAndDistributeGVGFamily(ctx, bucketInfo.PrimarySpId, srcGvgFamily)
+	err := k.Keeper.CompleteMigrateBucket(ctx, operator, msg.BucketName, msg.GlobalVirtualGroupFamilyId, msg.GvgMappings)
 	if err != nil {
-		return nil, virtualgroupmoduletypes.ErrSettleFailed.Wrapf("settle gvg family failed, err: %s", err)
-	}
-
-	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	err = k.UnChargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
-	if err != nil {
-		return nil, types.ErrMigrationBucketFailed.Wrapf("cancel charge bucket failed, err: %s", err)
-	}
-
-	bucketInfo.PrimarySpId = migrationBucketInfo.DstSpId
-	bucketInfo.GlobalVirtualGroupFamilyId = msg.GlobalVirtualGroupFamilyId
-
-	// check secondary sp signature
-	err = k.verifyGVGSignatures(ctx, bucketInfo.Id, dstSP, msg.GvgMappings)
-	if err != nil {
-		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
-	}
-
-	// rebinding gvg and lvg
-	err = k.RebindingVirtualGroup(ctx, bucketInfo, internalBucketInfo, msg.GvgMappings)
-	if err != nil {
-		return nil, types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
-	}
-
-	k.SetBucketInfo(ctx, bucketInfo)
-	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
-
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteMigrationBucket{
-		Operator:                   operator.String(),
-		BucketName:                 msg.BucketName,
-		BucketId:                   bucketInfo.Id,
-		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
-		GvgMappings:                msg.GvgMappings,
-	}); err != nil {
 		return nil, err
 	}
 
 	return &types.MsgCompleteMigrateBucketResponse{}, nil
+}
+
+func (k msgServer) CancelMigrateBucket(goCtx context.Context, msg *types.MsgCancelMigrateBucket) (*types.MsgCancelMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.CancelBucketMigration(ctx, operator, msg.BucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCancelMigrateBucketResponse{}, nil
 }
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
