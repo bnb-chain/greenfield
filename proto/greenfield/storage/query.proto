@@ -112,7 +112,7 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/policy_by_id/{policy_id}";
   }
 
-  // Queries a policy by policy id
+  // Queries lock fee for storing an object
   rpc QueryLockFee(QueryLockFeeRequest) returns (QueryLockFeeResponse) {
     option (google.api.http).get = "/greenfield/storage/lock_fee";
   }

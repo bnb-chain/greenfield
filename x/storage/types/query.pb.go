@@ -1917,7 +1917,7 @@ type QueryClient interface {
 	QueryPolicyForGroup(ctx context.Context, in *QueryPolicyForGroupRequest, opts ...grpc.CallOption) (*QueryPolicyForGroupResponse, error)
 	// Queries a policy by policy id
 	QueryPolicyById(ctx context.Context, in *QueryPolicyByIdRequest, opts ...grpc.CallOption) (*QueryPolicyByIdResponse, error)
-	// Queries a policy by policy id
+	// Queries lock fee for storing an object
 	QueryLockFee(ctx context.Context, in *QueryLockFeeRequest, opts ...grpc.CallOption) (*QueryLockFeeResponse, error)
 }
 
@@ -2149,7 +2149,7 @@ type QueryServer interface {
 	QueryPolicyForGroup(context.Context, *QueryPolicyForGroupRequest) (*QueryPolicyForGroupResponse, error)
 	// Queries a policy by policy id
 	QueryPolicyById(context.Context, *QueryPolicyByIdRequest) (*QueryPolicyByIdResponse, error)
-	// Queries a policy by policy id
+	// Queries lock fee for storing an object
 	QueryLockFee(context.Context, *QueryLockFeeRequest) (*QueryLockFeeResponse, error)
 }
 
