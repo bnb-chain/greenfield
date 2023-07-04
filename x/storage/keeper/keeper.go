@@ -1765,7 +1765,7 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 		return sptypes.ErrStorageProviderNotFound.Wrapf("dst sp not found")
 	}
 
-	if srcSP.Status != sptypes.STATUS_IN_SERVICE || dstSP.Status != sptypes.STATUS_IN_SERVICE {
+	if !srcSP.IsInService() || !dstSP.IsInService() {
 		return sptypes.ErrStorageProviderNotInService.Wrapf(
 			"origin SP status: %s, dst SP status: %s", srcSP.Status.String(), dstSP.Status.String())
 	}
