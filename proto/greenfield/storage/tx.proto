@@ -548,9 +548,9 @@ message MsgMigrateBucket {
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket that need to be migrated
   string bucket_name = 2;
-  // dst_primary_sp_id defines the target SP for migration
+  // dst_primary_sp_id defines the destination SP for migration
   uint32 dst_primary_sp_id = 3;
-  // dst_primary_sp_approval defines the approval of target sp
+  // dst_primary_sp_approval defines the approval of destination sp
   common.Approval dst_primary_sp_approval = 4;
 }
 
@@ -560,7 +560,7 @@ message MsgCompleteMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
 
   // operator defines the account address of the msg operator.
-  // The CompleteMigrateBucket transaction must be initiated by the target SP of the migration
+  // The CompleteMigrateBucket transaction must be initiated by the destination SP of the migration
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket that need to be migrated
   string bucket_name = 2;
@@ -574,8 +574,9 @@ message MsgCompleteMigrateBucketResponse {}
 
 message MsgCancelMigrateBucket {
   option (cosmos.msg.v1.signer) = "operator";
+
   // operator defines the account address of the msg operator.
-  // Only the use can send this transaction to cancel the migrate bucket
+  // Only the user can send this transaction to cancel the migrate bucket
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name defines the name of the bucket that need to be migrated
   string bucket_name = 2;

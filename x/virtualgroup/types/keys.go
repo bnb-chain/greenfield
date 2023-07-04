@@ -42,7 +42,7 @@ var (
 	GVGStatisticsWithinSPKey = []byte{0x41}
 
 	SwapOutFamilyKey = []byte{0x51}
-	SwapOutGVGKey    = []byte{0x51}
+	SwapOutGVGKey    = []byte{0x61}
 )
 
 func GetGVGKey(gvgID uint32) []byte {

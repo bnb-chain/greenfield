@@ -1870,10 +1870,14 @@ func (m *EventStalePolicyCleanup) GetDeleteInfo() *DeleteInfo {
 }
 
 type EventMigrationBucket struct {
-	Operator   string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The address of the operator that initiated the bucket migration,
+	// usually the owner of the bucket or another account which has permission to operate
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_id define an u256 id for object
-	BucketId       Uint   `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// The id of the destination primary sp
 	DstPrimarySpId uint32 `protobuf:"varint,4,opt,name=dst_primary_sp_id,json=dstPrimarySpId,proto3" json:"dst_primary_sp_id,omitempty"`
 }
 
@@ -1932,9 +1936,13 @@ func (m *EventMigrationBucket) GetDstPrimarySpId() uint32 {
 }
 
 type EventCancelMigrationBucket struct {
-	Operator   string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The address of the operator that canceled the bucket migration,
+	// usually the owner of the bucket or another account which has permission to operate
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	BucketId   Uint   `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// bucket_id define an u256 id for object
+	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 }
 
 func (m *EventCancelMigrationBucket) Reset()         { *m = EventCancelMigrationBucket{} }
@@ -1985,12 +1993,17 @@ func (m *EventCancelMigrationBucket) GetBucketName() string {
 }
 
 type EventCompleteMigrationBucket struct {
-	Operator   string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The address of the operator that initiated the bucket migration,
+	// usually the owner of the bucket or another account which has permission to operate
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_id define an u256 id for object
-	BucketId                   Uint          `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
-	GlobalVirtualGroupFamilyId uint32        `protobuf:"varint,4,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
-	GvgMappings                []*GVGMapping `protobuf:"bytes,5,rep,name=gvg_mappings,json=gvgMappings,proto3" json:"gvg_mappings,omitempty"`
+	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// The family id that the bucket to be migrated to
+	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,4,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
+	// The src and dst gvg mapping
+	GvgMappings []*GVGMapping `protobuf:"bytes,5,rep,name=gvg_mappings,json=gvgMappings,proto3" json:"gvg_mappings,omitempty"`
 }
 
 func (m *EventCompleteMigrationBucket) Reset()         { *m = EventCompleteMigrationBucket{} }

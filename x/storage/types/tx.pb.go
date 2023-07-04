@@ -2517,9 +2517,9 @@ type MsgMigrateBucket struct {
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name defines the name of the bucket that need to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	// dst_primary_sp_id defines the target SP for migration
+	// dst_primary_sp_id defines the destination SP for migration
 	DstPrimarySpId uint32 `protobuf:"varint,3,opt,name=dst_primary_sp_id,json=dstPrimarySpId,proto3" json:"dst_primary_sp_id,omitempty"`
-	// dst_primary_sp_approval defines the approval of target sp
+	// dst_primary_sp_approval defines the approval of destination sp
 	DstPrimarySpApproval *common.Approval `protobuf:"bytes,4,opt,name=dst_primary_sp_approval,json=dstPrimarySpApproval,proto3" json:"dst_primary_sp_approval,omitempty"`
 }
 
@@ -2622,7 +2622,7 @@ var xxx_messageInfo_MsgMigrateBucketResponse proto.InternalMessageInfo
 
 type MsgCompleteMigrateBucket struct {
 	// operator defines the account address of the msg operator.
-	// The CompleteMigrateBucket transaction must be initiated by the target SP of the migration
+	// The CompleteMigrateBucket transaction must be initiated by the destination SP of the migration
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name defines the name of the bucket that need to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
@@ -2731,7 +2731,7 @@ var xxx_messageInfo_MsgCompleteMigrateBucketResponse proto.InternalMessageInfo
 
 type MsgCancelMigrateBucket struct {
 	// operator defines the account address of the msg operator.
-	// Only the use can send this transaction to cancel the migrate bucket
+	// Only the user can send this transaction to cancel the migrate bucket
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// bucket_name defines the name of the bucket that need to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
