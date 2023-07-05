@@ -5,12 +5,10 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-
 	"cosmossdk.io/math"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/cosmos/cosmos-sdk/store/iavl"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 )
 
 const reconStoreKey = "reconciliation"
