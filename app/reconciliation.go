@@ -33,7 +33,7 @@ func (app *App) reconBalance(ctx sdk.Context, bankIavl *iavl.Store) {
 		panic(fmt.Sprintf("unbalanced state at block height %d, please use hardfork to bypass it", height))
 	}
 
-	balanced := app.getBankChanges(ctx, bankIavl)
+	balanced := app.reconBankChanges(ctx, bankIavl)
 	bankIavl.ResetDiff()
 
 	if !balanced {
@@ -41,7 +41,7 @@ func (app *App) reconBalance(ctx sdk.Context, bankIavl *iavl.Store) {
 	}
 }
 
-func (app *App) getBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
+func (app *App) reconBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 	supplyPre := sdk.Coins{}
 	balancePre := sdk.Coins{}
 	supplyCurrent := sdk.Coins{}
@@ -49,7 +49,7 @@ func (app *App) getBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 
 	diff := bankIavl.GetDiff()
 	version := ctx.BlockHeight() - 2
-	ctx.Logger().Debug("reconciliation changes", "height", ctx.BlockHeight(), "version", version)
+	ctx.Logger().Debug("reconciliation bank changes", "height", ctx.BlockHeight(), "version", version)
 	for k := range diff {
 		kBz := []byte(k)
 		denom := ""
@@ -93,7 +93,7 @@ func (app *App) getBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 
 	ctx.Logger().Debug("reconciliation change details", "supplyCurrent", supplyCurrent, "supplyPre", supplyPre,
 		"balanceCurrent", balanceCurrent, "balancePre", balancePre,
-		"supplyChanges", supplyChanges, "balanceChanges", balanceChanges)
+		"supplyChanges", supplyChanges, "balanceChanges", balanceChanges, "height", ctx.BlockHeight(), "version", version)
 	return supplyChanges.IsEqual(balanceChanges)
 }
 
