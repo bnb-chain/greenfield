@@ -6,7 +6,7 @@ Official Golang implementation of the Greenfield Blockchain. It uses [cometbft](
 for consensus and build on [cosmos-sdk](https://github.com/cosmos/cosmos-sdk).
 
 BNB Greenfield aims to facilitate the decentralized data economy by simplifying the process of storing and managing data
-access, as well as linking data ownership with the massive DeFi context of the Binance Smart Chain (BSC).
+access, as well as linking data ownership with the massive DeFi context of the BNB Smart Chain (BSC).
 
 BNB Greenfield operates through three core components, which distinguish it from existing centralized and decentralized
 storage systems::
@@ -34,7 +34,7 @@ The center of BNB Greenfield are two layers:
 This repo is the official implementation of Greenfield blockchain. 
 
 The blockchain of BNB Greenfield serves a dual purpose of maintaining the ledger for users as well as the storage metadata
-as common blockchain state data. The blockchain has its native token, BNB, which is transferred from the Binance Smart Chain,
+as common blockchain state data. The blockchain has its native token, BNB, which is transferred from the BNB Smart Chain,
 and is utilized for gas and governance functionalities. Governance is further enabled through the staking logic that is
 unique to the BNB Greenfield blockchain.
 
