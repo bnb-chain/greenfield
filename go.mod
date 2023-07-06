@@ -180,7 +180,7 @@ replace (
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230425074444-eb5869b05fe9
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.0
 	github.com/cometbft/cometbft => github.com/bnb-chain/greenfield-cometbft v0.0.0-20230705094342-460c09a1e1e0
-	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.0.0-20230622121817-0b90fd5c5d87
+	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.0.0-20230706092249-b0e93377dd4d
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-0.20230706090056-c25cd3634489
 	github.com/cosmos/iavl => github.com/bnb-chain/greenfield-iavl v0.0.0-20230704034816-734af4bed8ae
