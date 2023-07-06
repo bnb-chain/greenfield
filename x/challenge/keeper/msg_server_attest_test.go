@@ -3,8 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
 	"cosmossdk.io/math"
@@ -17,6 +15,7 @@ import (
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (s *TestSuite) TestAttest_Invalid() {
@@ -159,7 +158,7 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
 		Return(sp, true).AnyTimes()
 
-	gvg := &virtualgroupmoduletypes.GlobalVirtualGroup{
+	gvg := &virtualgrouptypes.GlobalVirtualGroup{
 		SecondarySpIds: []uint32{10},
 	}
 	s.storageKeeper.EXPECT().GetObjectGVG(gomock.Any(), gomock.Eq(existBucket.Id), gomock.Any()).
