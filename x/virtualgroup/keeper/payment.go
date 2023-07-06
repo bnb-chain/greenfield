@@ -5,10 +5,11 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
-func (k Keeper) SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, family *types.GlobalVirtualGroupFamily) error {
+func (k Keeper) SettleAndDistributeGVGFamily(ctx sdk.Context, sp *sptypes.StorageProvider, family *types.GlobalVirtualGroupFamily) error {
 	paymentAddress := sdk.MustAccAddressFromHex(family.GetVirtualPaymentAddress())
 	totalBalance, err := k.paymentKeeper.QueryDynamicBalance(ctx, paymentAddress)
 	if err != nil {
@@ -18,10 +19,6 @@ func (k Keeper) SettleAndDistributeGVGFamily(ctx sdk.Context, spID uint32, famil
 		return nil
 	}
 
-	sp, found := k.spKeeper.GetStorageProvider(ctx, spID)
-	if !found {
-		return fmt.Errorf("fail to find primary sp: %d", spID)
-	}
 	err = k.paymentKeeper.Withdraw(ctx, paymentAddress, sdk.MustAccAddressFromHex(sp.FundingAddress), totalBalance)
 	if err != nil {
 		return fmt.Errorf("fail to send coins: %s %s", paymentAddress, sp.FundingAddress)

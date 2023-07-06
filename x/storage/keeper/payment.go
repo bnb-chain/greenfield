@@ -203,7 +203,10 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
 		ibi.TotalChargeSize += chargeSize
 		for _, lvg := range ibi.LocalVirtualGroups {
-			lvg.TotalChargeSize += lvg.TotalChargeSize + chargeSize
+			if lvg.Id == objectInfo.LocalVirtualGroupId {
+				lvg.TotalChargeSize += lvg.TotalChargeSize + chargeSize
+				break
+			}
 		}
 		return nil
 	})
@@ -231,14 +234,12 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 
 	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
 		ibi.TotalChargeSize -= chargeSize
-		lvgs := make([]*storagetypes.LocalVirtualGroup, 0)
 		for _, lvg := range ibi.LocalVirtualGroups {
 			if lvg.Id == objectInfo.LocalVirtualGroupId {
 				lvg.TotalChargeSize -= chargeSize
+				break
 			}
-			lvgs = append(lvgs, lvg)
 		}
-		ibi.LocalVirtualGroups = lvgs
 		return nil
 	})
 }
