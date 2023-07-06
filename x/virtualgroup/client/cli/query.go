@@ -21,7 +21,6 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 	}
 
 	cmd.AddCommand(CmdGlobalVirtualGroup())
-	cmd.AddCommand(CmdGlobalVirtualGroupBySPID())
 	cmd.AddCommand(CmdGlobalVirtualGroupByFamilyID())
 	cmd.AddCommand(CmdGlobalVirtualGroupFamilies())
 	cmd.AddCommand(CmdGlobalVirtualGroupFamily())
