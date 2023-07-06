@@ -41,19 +41,12 @@ func (s Sequence[T]) CurVal(store storetypes.KVStore) T {
 	return any(ret).(T)
 }
 
-// PeekNextVal returns the CurVal + increment step. Not persistent.
-func (s Sequence[T]) PeekNextVal(store storetypes.KVStore) T {
-	v := store.Get(s.storeKey)
-	seq := s.DecodeSequence(v)
-	seq = s.IncreaseSequence(seq)
-	return any(seq).(T)
-}
-
 // InitVal this function sets the starting value for a sequence and can only be called once
 // on an empty database. If the key already exists, an error will be returned. The provided
 // start value will be stored as the current value. It is advised to use this function only
 // when the sequence start value is not '1', as calling it unnecessarily will consume
 // unnecessary gas. An example scenario would be importing from genesis.
+// WARNING: only for test now
 func (s Sequence[T]) InitVal(store storetypes.KVStore, seq T) error {
 	if store.Has(s.storeKey) {
 		return ErrSequenceUniqueConstraint

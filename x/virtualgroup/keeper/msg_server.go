@@ -436,6 +436,13 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 		return nil, err
 	}
 
+	// send back the total deposit
+	coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), sp.TotalDeposit))
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, sptypes.ModuleName, sdk.MustAccAddressFromHex(sp.FundingAddress), coins)
+	if err != nil {
+		return nil, err
+	}
+
 	err = k.spKeeper.Exit(ctx, sp)
 	if err != nil {
 		return nil, err

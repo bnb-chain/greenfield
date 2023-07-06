@@ -133,11 +133,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 
 	store.Delete(types.GetGVGKey(gvg.Id))
 
-	if len(gvgFamily.GlobalVirtualGroupIds) == 0 {
-		store.Delete(types.GetGVGFamilyKey(gvg.PrimarySpId, gvgFamily.Id))
-	} else {
-		k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
-	}
+	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
 	return nil
 }
 
@@ -506,6 +502,10 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 		bz := store.Get(key)
 		k.cdc.MustUnmarshal(bz, &swapOutInfo)
 
+		if swapOutInfo.SuccessorSpId != successorSP.Id {
+			return types.ErrSwapOutFailed.Wrapf("The successor sp(ID: %d) is mismatch with the specify successor sp (ID: %d)", successorSP.Id, swapOutInfo.SuccessorSpId)
+		}
+
 		sp, found := k.spKeeper.GetStorageProvider(ctx, swapOutInfo.SpId)
 		if !found {
 			return sptypes.ErrStorageProviderNotFound.Wrapf("The storage provider(ID: %d) not found when complete swap out.", swapOutInfo.SpId)
@@ -521,6 +521,10 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 			key := types.GetSwapOutGVGKey(gvgID)
 			bz := store.Get(key)
 			k.cdc.MustUnmarshal(bz, &swapOutInfo)
+
+			if swapOutInfo.SuccessorSpId != successorSP.Id {
+				return types.ErrSwapOutFailed.Wrapf("The successor sp(ID: %d) is mismatch with the specify successor sp (ID: %d)", successorSP.Id, swapOutInfo.SuccessorSpId)
+			}
 
 			sp, found := k.spKeeper.GetStorageProvider(ctx, swapOutInfo.SpId)
 			if !found {
