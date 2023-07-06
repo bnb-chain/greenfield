@@ -340,7 +340,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 				break
 			}
 			outFlow.Rate = types.ParseOutFlowValue(flowIterator.Value())
-			ctx.Logger().Info("auto settling record", "height", ctx.BlockHeight(),
+			ctx.Logger().Debug("auto settling record", "height", ctx.BlockHeight(),
 				"address", addr.String(),
 				"to address", outFlow.ToAddress,
 				"rate", outFlow.Rate.String())
@@ -426,13 +426,13 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 				break
 			}
 
-			rate := types.ParseOutFlowValue(flowIterator.Value())
+			outFlow.Rate = types.ParseOutFlowValue(flowIterator.Value())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
-			change := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(rate)
+			change := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(outFlow.Rate)
 			_, err := k.UpdateStreamRecordByAddr(ctx, change)
 			if err != nil {
-				return fmt.Errorf("update receiver stream record failed: %w", err)
+				return fmt.Errorf("try resume, update receiver stream record failed: %w", err)
 			}
 
 			flowStore.Delete(flowIterator.Key())
@@ -469,9 +469,9 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		addr := sdk.MustAccAddressFromHex(record.Addr)
 
 		streamRecord, found := k.GetStreamRecord(ctx, addr)
-		if !found {
+		if !found { // should not happen
 			ctx.Logger().Error("auto resume, stream record not found", "address", record.Addr)
-			panic("stream record not found")
+			continue
 		}
 
 		totalRate := sdk.ZeroInt()
@@ -492,14 +492,14 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 				break
 			}
 
-			rate := types.ParseOutFlowValue(flowIterator.Value())
-			ctx.Logger().Info("auto resuming record", "height", ctx.BlockHeight(),
+			outFlow.Rate = types.ParseOutFlowValue(flowIterator.Value())
+			ctx.Logger().Debug("auto resuming record", "height", ctx.BlockHeight(),
 				"address", addr.String(),
 				"to address", outFlow.ToAddress,
-				"rate", rate.String())
+				"rate", outFlow.Rate.String())
 
 			toAddr := sdk.MustAccAddressFromHex(outFlow.ToAddress)
-			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(rate)
+			flowChange := types.NewDefaultStreamRecordChangeWithAddr(toAddr).WithRateChange(outFlow.Rate)
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
 				ctx.Logger().Error("auto resume, update receiver stream record failed", "address", outFlow.ToAddress, "err", err.Error())
@@ -511,7 +511,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			outFlow.Status = types.OUT_FLOW_STATUS_ACTIVE
 			toUpdate = append(toUpdate, outFlow)
 
-			totalRate = totalRate.Add(rate)
+			totalRate = totalRate.Add(outFlow.Rate)
 			count++
 		}
 
