@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
@@ -411,7 +410,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 		Owner: owner,
 	}
 
-	encodedPackage, err := rlp.EncodeToBytes(mirrorPackage)
+	encodedPackage, err := mirrorPackage.Serialize()
 	if err != nil {
 		return nil, types.ErrInvalidCrossChainPackage
 	}
@@ -420,10 +419,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 		OperationType: types.OperationMirrorObject,
 		Package:       encodedPackage,
 	}
-	encodedWrapPackage, err := rlp.EncodeToBytes(wrapPackage)
-	if err != nil {
-		return nil, types.ErrInvalidCrossChainPackage
-	}
+	encodedWrapPackage := wrapPackage.MustSerialize()
 
 	relayerFee := k.Keeper.MirrorObjectRelayerFee(ctx)
 	ackRelayerFee := k.Keeper.MirrorObjectAckRelayerFee(ctx)
@@ -483,7 +479,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 		Owner: owner,
 	}
 
-	encodedPackage, err := rlp.EncodeToBytes(mirrorPackage)
+	encodedPackage, err := mirrorPackage.Serialize()
 	if err != nil {
 		return nil, types.ErrInvalidCrossChainPackage
 	}
@@ -492,10 +488,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 		OperationType: types.OperationMirrorBucket,
 		Package:       encodedPackage,
 	}
-	encodedWrapPackage, err := rlp.EncodeToBytes(wrapPackage)
-	if err != nil {
-		return nil, types.ErrInvalidCrossChainPackage
-	}
+	encodedWrapPackage := wrapPackage.MustSerialize()
 
 	relayerFee := k.Keeper.MirrorBucketRelayerFee(ctx)
 	ackRelayerFee := k.Keeper.MirrorBucketAckRelayerFee(ctx)
@@ -550,7 +543,7 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 		Owner: operator,
 	}
 
-	encodedPackage, err := rlp.EncodeToBytes(mirrorPackage)
+	encodedPackage, err := mirrorPackage.Serialize()
 	if err != nil {
 		return nil, types.ErrInvalidCrossChainPackage
 	}
@@ -559,10 +552,7 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 		OperationType: types.OperationMirrorGroup,
 		Package:       encodedPackage,
 	}
-	encodedWrapPackage, err := rlp.EncodeToBytes(wrapPackage)
-	if err != nil {
-		return nil, types.ErrInvalidCrossChainPackage
-	}
+	encodedWrapPackage := wrapPackage.MustSerialize()
 
 	relayerFee := k.Keeper.MirrorGroupRelayerFee(ctx)
 	ackRelayerFee := k.Keeper.MirrorGroupAckRelayerFee(ctx)

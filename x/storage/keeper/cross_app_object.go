@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -48,11 +47,7 @@ func (app *ObjectApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -83,11 +78,7 @@ func (app *ObjectApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -119,11 +110,7 @@ func (app *ObjectApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result

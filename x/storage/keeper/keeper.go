@@ -100,11 +100,9 @@ func (k Keeper) CreateBucket(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	if !ctx.IsCheckTx() {
-		err = k.VerifySPAndSignature(ctx, primarySpAcc, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
+	err = k.VerifySPAndSignature(ctx, primarySpAcc, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	if err != nil {
+		return sdkmath.ZeroUint(), err
 	}
 
 	bucketInfo := types.BucketInfo{
@@ -491,13 +489,10 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	var err error
-	if !ctx.IsCheckTx() { // no signature verification for simulation
-		err = k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
-			opts.PrimarySpApproval.Sig)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
+	err := k.VerifySPAndSignature(ctx, sdk.MustAccAddressFromHex(bucketInfo.PrimarySpAddress), opts.ApprovalMsgBytes,
+		opts.PrimarySpApproval.Sig)
+	if err != nil {
+		return sdkmath.ZeroUint(), err
 	}
 
 	objectKey := types.GetObjectKey(bucketName, objectName)
