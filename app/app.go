@@ -489,6 +489,7 @@ func New(
 	)
 	challengeModule := challengemodule.NewAppModule(appCodec, app.ChallengeKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.StakingKeeper.SetSlashHook(app.SlashingKeeper)
 	/****  Module Options ****/
 
 	// NOTE: we may consider parsing `appOpts` inside module constructors. For the moment
