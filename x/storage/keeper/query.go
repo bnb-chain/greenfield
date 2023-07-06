@@ -62,14 +62,22 @@ func (k Keeper) HeadObject(goCtx context.Context, req *types.QueryHeadObjectRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	objectInfo, found := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
-	if found {
-		return &types.QueryHeadObjectResponse{
-			ObjectInfo: objectInfo,
-		}, nil
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
 	}
-	return nil, types.ErrNoSuchObject
+	objectInfo, objectFound := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
+	if !objectFound {
+		return nil, types.ErrNoSuchObject
+	}
+	gvg, gvgFound := k.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+	if !gvgFound {
+		return nil, types.ErrInvalidGlobalVirtualGroup.Wrapf("gvg not found. objectInfo: %s", objectInfo.String())
+	}
+	return &types.QueryHeadObjectResponse{
+		ObjectInfo:         objectInfo,
+		GlobalVirtualGroup: gvg,
+	}, nil
 }
 
 func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObjectByIdRequest) (*types.QueryHeadObjectResponse, error) {
