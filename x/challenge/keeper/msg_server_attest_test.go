@@ -3,6 +3,8 @@ package keeper_test
 import (
 	"testing"
 
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
 	"cosmossdk.io/math"
@@ -130,10 +132,18 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 	s.stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).
 		Return(historicalInfo, true).AnyTimes()
 
-	existObjectName := "existobject"
+	existBucket := &storagetypes.BucketInfo{
+		Id:          math.NewUint(10),
+		BucketName:  "existbucket",
+		PrimarySpId: 1,
+	}
+	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
+		Return(existBucket, true).AnyTimes()
+
 	existObject := &storagetypes.ObjectInfo{
 		Id:           math.NewUint(10),
-		ObjectName:   existObjectName,
+		ObjectName:   "existobject",
+		BucketName:   existBucket.BucketName,
 		ObjectStatus: storagetypes.OBJECT_STATUS_SEALED,
 		PayloadSize:  500}
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
@@ -148,6 +158,12 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 	sp := &sptypes.StorageProvider{Id: 10, OperatorAddress: spOperatorAcc.String()}
 	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
 		Return(sp, true).AnyTimes()
+
+	gvg := &virtualgroupmoduletypes.GlobalVirtualGroup{
+		SecondarySpIds: []uint32{10},
+	}
+	s.storageKeeper.EXPECT().GetObjectGVG(gomock.Any(), gomock.Eq(existBucket.Id), gomock.Any()).
+		Return(gvg, true).AnyTimes()
 
 	attestMsg := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
@@ -196,10 +212,18 @@ func (s *TestSuite) TestAttest_Normal() {
 	s.stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).
 		Return(historicalInfo, true).AnyTimes()
 
-	existObjectName := "existobject"
+	existBucket := &storagetypes.BucketInfo{
+		Id:          math.NewUint(10),
+		BucketName:  "existbucket",
+		PrimarySpId: 1,
+	}
+	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
+		Return(existBucket, true).AnyTimes()
+
 	existObject := &storagetypes.ObjectInfo{
 		Id:           math.NewUint(10),
-		ObjectName:   existObjectName,
+		ObjectName:   "existobject",
+		BucketName:   existBucket.BucketName,
 		ObjectStatus: storagetypes.OBJECT_STATUS_SEALED,
 		PayloadSize:  500}
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).

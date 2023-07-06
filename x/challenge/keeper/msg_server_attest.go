@@ -52,16 +52,32 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		return nil, types.ErrNotInturnChallenger
 	}
 
+	// check attest validators and signatures
+	validators, err := k.verifySignature(msg, allValidators)
+	if err != nil {
+		return nil, err
+	}
+
 	//check object, and get object info
 	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
 	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
 		return nil, types.ErrUnknownBucketObject
 	}
 
-	// check attest validators and signatures
-	validators, err := k.verifySignature(msg, allValidators)
-	if err != nil {
-		return nil, err
+	//for migrating buckets, or swapping out, the process could be done when offline service does the verification
+	bucketInfo, _ := k.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
+	if bucketInfo.PrimarySpId != sp.Id {
+		gvg, _ := k.StorageKeeper.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		found = false
+		for _, id := range gvg.SecondarySpIds {
+			if id == sp.Id {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, errors.Wrapf(types.ErrNotStoredOnSp, "sp %s does not store the object anymore", sp.OperatorAddress)
+		}
 	}
 
 	if msg.VoteResult == types.CHALLENGE_SUCCEED {
