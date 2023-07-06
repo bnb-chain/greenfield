@@ -216,6 +216,7 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetBucketByIDKey(bucketInfo.Id))
 	store.Delete(types.GetQuotaKey(bucketInfo.Id))
 	store.Delete(types.GetInternalBucketInfoKey(bucketInfo.Id))
+	store.Delete(types.GetMigrationBucketKey(bucketInfo.Id))
 
 	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_BUCKET, bucketInfo.Id)
 	if err != nil {
