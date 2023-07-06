@@ -1,10 +1,10 @@
 package types
 
 import (
-	"github.com/bnb-chain/greenfield/types"
-
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/types"
 )
 
 func NewPrincipalWithAccount(addr sdk.AccAddress) *Principal {

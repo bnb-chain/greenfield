@@ -185,7 +185,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 
 	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
-	toSign := msgAttest.GetBlsSignBytes()
+	toSign := msgAttest.GetBlsSignBytes(s.Config.ChainId)
 
 	voteAggSignature, err := s.ValidatorBLS.Sign(toSign[:])
 	if err != nil {
@@ -266,7 +266,7 @@ func (s *ChallengeTestSuite) TestHeartbeatAttest() {
 
 	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId,
 		event.SpOperatorAddress, challengetypes.CHALLENGE_FAILED, "", valBitset.Bytes(), nil)
-	toSign := msgAttest.GetBlsSignBytes()
+	toSign := msgAttest.GetBlsSignBytes(s.Config.ChainId)
 
 	voteAggSignature, err := s.ValidatorBLS.Sign(toSign[:])
 	if err != nil {
@@ -336,7 +336,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 
 	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
-	toSign := msgAttest.GetBlsSignBytes()
+	toSign := msgAttest.GetBlsSignBytes(s.Config.ChainId)
 
 	voteAggSignature, err := s.ValidatorBLS.Sign(toSign[:])
 	if err != nil {

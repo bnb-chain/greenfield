@@ -5,7 +5,6 @@ import (
 
 	"cosmossdk.io/errors"
 	"github.com/cometbft/cometbft/libs/log"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -59,7 +58,7 @@ func (k Keeper) GetRefundTransferInPayload(transferInClaim *types.TransferInSynP
 		RefundReason:  refundReason,
 	}
 
-	encodedBytes, err := rlp.EncodeToBytes(refundPackage)
+	encodedBytes, err := refundPackage.Serialize()
 	if err != nil {
 		return nil, errors.Wrapf(types.ErrInvalidPackage, "encode refund package error")
 	}

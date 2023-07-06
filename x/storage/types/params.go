@@ -14,7 +14,7 @@ const (
 	DefaultMaxSegmentSize            uint64 = 16 * 1024 * 1024 // 16M
 	DefaultRedundantDataChunkNum     uint32 = 4
 	DefaultRedundantParityChunkNum   uint32 = 2
-	DefaultMaxPayloadSize            uint64 = 2 * 1024 * 1024 * 1024
+	DefaultMaxPayloadSize            uint64 = 64 * 1024 * 1024 * 1024
 	DefaultMaxBucketsPerAccount      uint32 = 100
 	DefaultMinChargeSize             uint64 = 1 * 1024 * 1024 // 1M
 	DefaultDiscontinueCountingWindow uint64 = 10000

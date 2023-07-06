@@ -27,6 +27,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/api"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
+	"github.com/cosmos/cosmos-sdk/store/iavl"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -294,6 +295,7 @@ func New(
 		permissionmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
 		challengemoduletypes.StoreKey,
+		reconStoreKey,
 	)
 	tKeys := sdk.NewTransientStoreKeys(challengemoduletypes.TStoreKey, storagemoduletypes.TStoreKey)
 	memKeys := sdk.NewMemoryStoreKeys(challengemoduletypes.MemStoreKey)
@@ -700,6 +702,13 @@ func New(
 		}
 	}
 
+	// enable diff for reconciliation
+	bankIavl, ok := ms.GetCommitStore(keys[banktypes.StoreKey]).(*iavl.Store)
+	if !ok {
+		tmos.Exit("cannot convert bank store to ival store")
+	}
+	bankIavl.EnableDiff()
+
 	app.initModules(ctx)
 
 	// add eth query router
@@ -740,7 +749,10 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	return app.mm.EndBlock(ctx, req)
+	resp := app.mm.EndBlock(ctx, req)
+	bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
+	app.reconBalance(ctx, bankIavl)
+	return resp
 }
 
 // InitChainer application update at chain initialization
