@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	errors2 "github.com/bnb-chain/greenfield/types/errors"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -63,13 +64,27 @@ func (k Keeper) HeadObject(goCtx context.Context, req *types.QueryHeadObjectRequ
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	objectInfo, found := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
-	if found {
-		return &types.QueryHeadObjectResponse{
-			ObjectInfo: objectInfo,
-		}, nil
+	objectInfo, objectFound := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
+	if !objectFound {
+		return nil, types.ErrNoSuchObject
 	}
-	return nil, types.ErrNoSuchObject
+
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	var gvg *types2.GlobalVirtualGroup
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
+		gvgFound := false
+		gvg, gvgFound = k.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		if !gvgFound {
+			return nil, types.ErrInvalidGlobalVirtualGroup.Wrapf("gvg not found. objectInfo: %s", objectInfo.String())
+		}
+	}
+	return &types.QueryHeadObjectResponse{
+		ObjectInfo:         objectInfo,
+		GlobalVirtualGroup: gvg,
+	}, nil
 }
 
 func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObjectByIdRequest) (*types.QueryHeadObjectResponse, error) {
@@ -84,12 +99,27 @@ func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObject
 	}
 
 	objectInfo, found := k.GetObjectInfoById(ctx, id)
-	if found {
-		return &types.QueryHeadObjectResponse{
-			ObjectInfo: objectInfo,
-		}, nil
+	if !found {
+		return nil, types.ErrNoSuchObject
 	}
-	return nil, types.ErrNoSuchObject
+
+	bucketInfo, found := k.GetBucketInfo(ctx, objectInfo.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	var gvg *types2.GlobalVirtualGroup
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
+		gvgFound := false
+		gvg, gvgFound = k.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		if !gvgFound {
+			return nil, types.ErrInvalidGlobalVirtualGroup.Wrapf("gvg not found. objectInfo: %s", objectInfo.String())
+		}
+	}
+	return &types.QueryHeadObjectResponse{
+		ObjectInfo:         objectInfo,
+		GlobalVirtualGroup: gvg,
+	}, nil
+
 }
 
 func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRequest) (*types.QueryListBucketsResponse, error) {
