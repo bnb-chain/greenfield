@@ -63,13 +63,15 @@ func (k Keeper) HeadObject(goCtx context.Context, req *types.QueryHeadObjectRequ
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
-	if !found {
-		return nil, types.ErrNoSuchBucket
-	}
+
 	objectInfo, objectFound := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
 	if !objectFound {
 		return nil, types.ErrNoSuchObject
+	}
+
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
 	}
 	var gvg *types2.GlobalVirtualGroup
 	if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
