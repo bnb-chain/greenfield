@@ -1842,7 +1842,9 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
 	}
 
-	err := k.virtualGroupKeeper.SettleAndDistributeGVGFamily(ctx, bucketInfo.PrimarySpId, srcGvgFamily)
+	sp, _ := k.spKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+
+	err := k.virtualGroupKeeper.SettleAndDistributeGVGFamily(ctx, sp, srcGvgFamily)
 	if err != nil {
 		return virtualgroupmoduletypes.ErrSettleFailed.Wrapf("settle gvg family failed, err: %s", err)
 	}

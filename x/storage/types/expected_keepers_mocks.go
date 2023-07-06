@@ -804,15 +804,15 @@ func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVG(ctx, gvg in
 }
 
 // SettleAndDistributeGVGFamily mocks base method.
-func (m *MockVirtualGroupKeeper) SettleAndDistributeGVGFamily(ctx types3.Context, spID uint32, family *types2.GlobalVirtualGroupFamily) error {
+func (m *MockVirtualGroupKeeper) SettleAndDistributeGVGFamily(ctx types3.Context, sp *types1.StorageProvider, family *types2.GlobalVirtualGroupFamily) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SettleAndDistributeGVGFamily", ctx, spID, family)
+	ret := m.ctrl.Call(m, "SettleAndDistributeGVGFamily", ctx, sp, family)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // SettleAndDistributeGVGFamily indicates an expected call of SettleAndDistributeGVGFamily.
-func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVGFamily(ctx, spID, family interface{}) *gomock.Call {
+func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVGFamily(ctx, sp, family interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SettleAndDistributeGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SettleAndDistributeGVGFamily), ctx, spID, family)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SettleAndDistributeGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SettleAndDistributeGVGFamily), ctx, sp, family)
 }

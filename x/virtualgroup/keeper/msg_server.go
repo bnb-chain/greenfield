@@ -353,7 +353,7 @@ func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.M
 			return nil, types.ErrGVGFamilyNotExist
 		}
 
-		err := k.SettleAndDistributeGVGFamily(ctx, sp.Id, family)
+		err := k.SettleAndDistributeGVGFamily(ctx, sp, family)
 		if err != nil {
 			return nil, types.ErrSettleFailed
 		}

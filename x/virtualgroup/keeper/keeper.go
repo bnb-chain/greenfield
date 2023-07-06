@@ -263,7 +263,7 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 	}
 
 	// settlement
-	err := k.SettleAndDistributeGVGFamily(ctx, primarySP.Id, family)
+	err := k.SettleAndDistributeGVGFamily(ctx, primarySP, family)
 	if err != nil {
 		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
 	}
