@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
-
+	"fmt"
+	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
+	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	clitx "github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
@@ -27,7 +29,7 @@ type TransactionClient interface {
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
-func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
+func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, grpcOpts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 
@@ -46,18 +48,36 @@ func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOp
 	if txOpt != nil && txOpt.Mode != nil {
 		mode = *txOpt.Mode
 	}
-	txRes, err := c.TxClient.BroadcastTx(
+
+	// use the tendermint websocket client
+	if c.useWebSocket {
+		var txRes *ctypes.ResultBroadcastTx
+		switch mode {
+		case tx.BroadcastMode_BROADCAST_MODE_SYNC:
+			txRes, err = c.tendermintClient.BroadcastTxSync(ctx, txSignedBytes)
+		case tx.BroadcastMode_BROADCAST_MODE_ASYNC:
+			txRes, err = c.tendermintClient.BroadcastTxAsync(ctx, txSignedBytes)
+		default:
+			return nil, fmt.Errorf("mode %s is not support broadcast mode when use websocket", mode.String())
+		}
+		if errRes := sdkclient.CheckTendermintError(err, txSignedBytes); errRes != nil {
+			return &tx.BroadcastTxResponse{TxResponse: errRes}, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		return &tx.BroadcastTxResponse{TxResponse: sdk.NewResponseFormatBroadcastTx(txRes)}, nil
+	}
+
+	// use cosmos sdk tx Client
+	return c.TxClient.BroadcastTx(
 		ctx,
 		&tx.BroadcastTxRequest{
 			Mode:    mode,
 			TxBytes: txSignedBytes,
 		},
-		opts...,
+		grpcOpts...,
 	)
-	if err != nil {
-		return nil, err
-	}
-	return txRes, nil
 }
 
 // SimulateTx simulates a tx and gets Gas info
