@@ -16,8 +16,10 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil/mock"
 	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
@@ -142,6 +144,8 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress
 	newChallengerAddr := core.GenRandomAddr()
 	blsSecretKey, _ := bls.RandKey()
 	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
+	pubKey, _ := codectypes.NewAnyWithValue(cryptotypes.PubKey(&ed25519.PubKey{}))
+
 	msgEdit := stakingtypes.NewMsgEditValidator(
 		from,
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
@@ -150,7 +154,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress
 		newRelayerAddr,
 		newChallengerAddr,
 		blsPk,
-		nil,
+		pubKey,
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
 }
