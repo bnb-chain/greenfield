@@ -54,7 +54,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	// check attest validators and signatures
-	validators, err := k.verifySignature(msg, allValidators)
+	validators, err := k.verifySignature(ctx, msg, allValidators)
 	if err != nil {
 		return nil, err
 	}
