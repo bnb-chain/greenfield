@@ -85,7 +85,7 @@ bash ./deployment/localup/localup.sh stop
 
 3. Send Tx
 ```bash
-./build/bin/gnfd tx bank send validator0 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block
+./build/bin/gnfd tx bank send validator0 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b sync
 ```
 
 4. Restart the chain without state initialization
