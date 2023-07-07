@@ -87,6 +87,7 @@ message MsgDeposit {
 message MsgDepositResponse {}
 
 // MsgEditStorageProvider defines a SDK message for editing an existing sp.
+// TODO: use sp id to edit the storage provider.
 message MsgEditStorageProvider {
   option (cosmos.msg.v1.signer) = "sp_address";
 
