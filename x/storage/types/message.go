@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -8,7 +9,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 
 	grn2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
@@ -56,6 +56,8 @@ const (
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
 	MaxDiscontinueObjects   = 128
+
+	BLSSignatureLength = 96
 )
 
 var (
@@ -103,7 +105,7 @@ func NewMsgCreateBucket(
 		Visibility:        Visibility,
 		PaymentAddress:    paymentAddress.String(),
 		PrimarySpAddress:  primarySPAddress.String(),
-		PrimarySpApproval: &Approval{timeoutHeight, sig},
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 		ChargedReadQuota:  chargedReadQuota,
 	}
 }
@@ -154,7 +156,7 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 	}
 
 	if msg.PrimarySpApproval == nil {
-		return errors.Wrapf(ErrInvalidApproval, "Empty approvals are not allowed.")
+		return ErrInvalidApproval.Wrap("Empty approvals are not allowed.")
 	}
 
 	// PaymentAddress is optional, use creator by default if not set.
@@ -284,25 +286,18 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
 	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
-	secondarySPAccs []sdk.AccAddress) *MsgCreateObject {
-
-	var secSPAddrs []string
-	for _, secondarySP := range secondarySPAccs {
-		secSPAddrs = append(secSPAddrs, secondarySP.String())
-	}
+	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte) *MsgCreateObject {
 
 	return &MsgCreateObject{
-		Creator:                    creator.String(),
-		BucketName:                 bucketName,
-		ObjectName:                 objectName,
-		PayloadSize:                payloadSize,
-		Visibility:                 Visibility,
-		ContentType:                contentType,
-		PrimarySpApproval:          &Approval{timeoutHeight, sig},
-		ExpectChecksums:            expectChecksums,
-		RedundancyType:             redundancyType,
-		ExpectSecondarySpAddresses: secSPAddrs,
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		ObjectName:        objectName,
+		PayloadSize:       payloadSize,
+		Visibility:        Visibility,
+		ContentType:       contentType,
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
+		ExpectChecksums:   expectChecksums,
+		RedundancyType:    redundancyType,
 	}
 }
 
@@ -360,12 +355,6 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	err = s3util.CheckValidContentType(msg.ContentType)
 	if err != nil {
 		return err
-	}
-
-	for _, spAddress := range msg.ExpectSecondarySpAddresses {
-		if _, err = sdk.AccAddressFromHexUnsafe(spAddress); err != nil {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s) in expect secondary SPs", err)
-		}
 	}
 
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
@@ -481,20 +470,15 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 }
 
 func NewMsgSealObject(
-	operator sdk.AccAddress, bucketName string, objectName string,
-	secondarySPAccs []sdk.AccAddress, secondarySpSignatures [][]byte) *MsgSealObject {
-
-	var secondarySPAddresses []string
-	for _, secondarySP := range secondarySPAccs {
-		secondarySPAddresses = append(secondarySPAddresses, secondarySP.String())
-	}
+	operator sdk.AccAddress, bucketName string, objectName string, globalVirtualGroupID uint32,
+	secondarySpBlsSignatures []byte) *MsgSealObject {
 
 	return &MsgSealObject{
-		Operator:              operator.String(),
-		BucketName:            bucketName,
-		ObjectName:            objectName,
-		SecondarySpAddresses:  secondarySPAddresses,
-		SecondarySpSignatures: secondarySpSignatures,
+		Operator:                    operator.String(),
+		BucketName:                  bucketName,
+		ObjectName:                  objectName,
+		GlobalVirtualGroupId:        globalVirtualGroupID,
+		SecondarySpBlsAggSignatures: secondarySpBlsSignatures,
 	}
 }
 
@@ -540,17 +524,10 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return err
 	}
 
-	for _, addr := range msg.SecondarySpAddresses {
-		_, err := sdk.AccAddressFromHexUnsafe(addr)
-		if err != nil {
-			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid secondary sp address (%s)", err)
-		}
-	}
-
-	for _, sig := range msg.SecondarySpSignatures {
-		if sig == nil && len(sig) != ethcrypto.SignatureLength {
-			return errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "invalid SP signatures")
-		}
+	if len(msg.GetSecondarySpBlsAggSignatures()) != BLSSignatureLength {
+		return errors.Wrap(sdkerrors.ErrInvalidRequest,
+			fmt.Sprintf("length of signature should be %d", BLSSignatureLength),
+		)
 	}
 
 	return nil
@@ -565,7 +542,7 @@ func NewMsgCopyObject(
 		DstBucketName:        dstBucketName,
 		SrcObjectName:        srcObjectName,
 		DstObjectName:        dstObjectName,
-		DstPrimarySpApproval: &Approval{timeoutHeight, sig},
+		DstPrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 	}
 }
 
@@ -1131,7 +1108,7 @@ func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
 		return err
 	}
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
-		return errors.Wrapf(ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
+		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
 	}
 
 	return nil

@@ -2,9 +2,11 @@ package sample
 
 import (
 	"crypto/rand"
+	"encoding/hex"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 )
 
 // AccAddress returns a sample account address
@@ -29,4 +31,14 @@ func RandStr(length int) []byte {
 	// #nosec
 	_, _ = rand.Read(randBytes)
 	return randBytes
+}
+
+func RandBlsPubKey() []byte {
+	blsPrivKey, _ := bls.RandKey()
+	return blsPrivKey.PublicKey().Marshal()
+}
+
+func RandBlsPubKeyHex() string {
+	blsPrivKey, _ := bls.RandKey()
+	return hex.EncodeToString(blsPrivKey.PublicKey().Marshal())
 }

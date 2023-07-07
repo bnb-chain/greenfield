@@ -18,7 +18,7 @@ func (k Keeper) SaveSlash(ctx sdk.Context, slash types.Slash) {
 	heightBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(heightBytes, slash.Height)
 
-	store.Set(getSlashKeyBytes(slash.SpOperatorAddress, slash.ObjectId), heightBytes)
+	store.Set(getSlashKeyBytes(slash.SpId, slash.ObjectId), heightBytes)
 }
 
 // RemoveSlashUntil removes slashes which are created earlier
@@ -36,14 +36,16 @@ func (k Keeper) RemoveSlashUntil(ctx sdk.Context, height uint64) {
 }
 
 // ExistsSlash check whether there exists recent slash for a pair of sp and object info or not
-func (k Keeper) ExistsSlash(ctx sdk.Context, spOperatorAddress sdk.AccAddress, objectId sdkmath.Uint) bool {
+func (k Keeper) ExistsSlash(ctx sdk.Context, spId uint32, objectId sdkmath.Uint) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SlashKeyPrefix)
 
-	return store.Has(getSlashKeyBytes(spOperatorAddress, objectId))
+	return store.Has(getSlashKeyBytes(spId, objectId))
 }
 
 // getSlashKeyBytes returns the byte representation of Slash key
-func getSlashKeyBytes(spOperatorAddress sdk.AccAddress, objectId sdkmath.Uint) []byte {
-	allBytes := append(spOperatorAddress.Bytes(), objectId.Bytes()...)
+func getSlashKeyBytes(spId uint32, objectId sdkmath.Uint) []byte {
+	idBytes := make([]byte, 4)
+	binary.BigEndian.PutUint32(idBytes, spId)
+	allBytes := append(idBytes, objectId.Bytes()...)
 	return sdk.Keccak256(allBytes)
 }

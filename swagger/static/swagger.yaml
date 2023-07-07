@@ -53,6 +53,214 @@ paths:
                       format: byte
       tags:
         - Query
+  /greenfield/challenge/inturn_attestation_submitter:
+    get:
+      summary: Queries the inturn challenger.
+      operationId: InturnAttestationSubmitter
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              bls_pub_key:
+                type: string
+              submit_interval:
+                type: object
+                properties:
+                  start:
+                    type: string
+                    format: uint64
+                  end:
+                    type: string
+                    format: uint64
+                description: >-
+                  SubmitInterval holds start and end (exclusive) (i.e., [start,
+                  end)) time of in turn attestation.
+            description: >-
+              QueryInturnAttestationSubmitterResponse is response type for the
+              Query/InturnAttestationSubmitter RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /greenfield/challenge/latest_attested_challenges:
+    get:
+      summary: Queries the latest attested challenges.
+      operationId: LatestAttestedChallenges
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              challenges:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      format: uint64
+                      description: The id of the challenge.
+                    result:
+                      description: The attestation result of the challenge.
+                      type: string
+                      enum:
+                        - CHALLENGE_FAILED
+                        - CHALLENGE_SUCCEED
+                      default: CHALLENGE_FAILED
+                  description: AttestedChallenge records the challenge which are attested.
+            description: >-
+              QueryLatestAttestedChallengesResponse is response type for the
+              Query/LatestAttestedChallenges RPC method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /greenfield/challenge/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: ChallengeParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  challenge_count_per_block:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Challenges which will be emitted in each block, including
+                      user submitted or randomly triggered.
+                  challenge_keep_alive_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Challenges will be expired after the period, including
+                      user submitted or randomly triggered.
+                  slash_cooling_off_period:
+                    type: string
+                    format: uint64
+                    description: >-
+                      The count of blocks to stand for the period in which the
+                      same storage and object info cannot be slashed again.
+                  slash_amount_size_rate:
+                    type: string
+                    description: >-
+                      The slash coin amount will be calculated from the size of
+                      object info, and adjusted by this rate.
+                  slash_amount_min:
+                    type: string
+                    description: The minimal slash amount.
+                  slash_amount_max:
+                    type: string
+                    description: The maximum slash amount.
+                  reward_validator_ratio:
+                    type: string
+                    description: >-
+                      The ratio of slash amount to reward all current
+                      validators.
+                  reward_submitter_ratio:
+                    type: string
+                    description: >-
+                      The ratio of reward amount to reward attestation
+                      submitter.
+                  reward_submitter_threshold:
+                    type: string
+                    description: >-
+                      The reward amount to submitter will be adjusted by the
+                      threshold.
+                  heartbeat_interval:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Heartbeat interval, based on challenge id, defines the
+                      frequency of heartbeat attestation.
+                  attestation_inturn_interval:
+                    type: string
+                    format: uint64
+                    description: >-
+                      The time duration for each submitter to submit
+                      attestations in turn.
+                  attestation_kept_count:
+                    type: string
+                    format: uint64
+                    description: >-
+                      The number of kept attested challenge ids, which can be
+                      queried by clients.
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /greenfield/payment/auto_settle_record:
     get:
       summary: Queries a list of AutoSettleRecord items.
@@ -266,25 +474,15 @@ paths:
                     type: string
                     format: int64
                     title: the unix timestamp when the stream account will be settled
-                  out_flows:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        to_address:
-                          type: string
-                          title: >-
-                            stream account address who receives the flow,
-                            usually SP(service provider)
-                        rate:
-                          type: string
-                          title: flow rate
-                      title: >-
-                        OutFlow defines the accumulative outflow stream rate in
-                        BNB
-
-                        from a stream account to a Storage Provider
-                    title: the accumulated outflow rates of the stream account
+                  out_flow_count:
+                    type: string
+                    format: uint64
+                    title: the count of its out flows
+                  frozen_netflow_rate:
+                    type: string
+                    title: >-
+                      the frozen netflow rate, which is used when resuming
+                      stream account
               current_timestamp:
                 type: string
                 format: int64
@@ -373,6 +571,72 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/payment/out_flows/{account}:
+    get:
+      summary: Queries a StreamRecord by index.
+      operationId: OutFlows
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              out_flows:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    to_address:
+                      type: string
+                      title: >-
+                        stream account address who receives the flow, usually
+                        SP(service provider)
+                    rate:
+                      type: string
+                      title: flow rate
+                    status:
+                      title: status
+                      type: string
+                      enum:
+                        - OUT_FLOW_STATUS_ACTIVE
+                        - OUT_FLOW_STATUS_FROZEN
+                      default: OUT_FLOW_STATUS_ACTIVE
+                      description: >-
+                        - OUT_FLOW_STATUS_ACTIVE: OUT_FLOW_STATUS_ACTIVE defines
+                        the active status of a out flow.
+                         - OUT_FLOW_STATUS_FROZEN: OUT_FLOW_STATUS_FROZEN defines the frozen status of a out flow.
+                  title: |-
+                    OutFlow defines the accumulative outflow stream rate in BNB
+                    from a stream account to a Storage Provider
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: account
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/payment/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -387,12 +651,23 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  reserve_time:
-                    type: string
-                    format: uint64
-                    title: >-
-                      Time duration which the buffer balance need to be reserved
-                      for NetOutFlow e.g. 6 month
+                  versioned_params:
+                    type: object
+                    properties:
+                      reserve_time:
+                        type: string
+                        format: uint64
+                        title: >-
+                          Time duration which the buffer balance need to be
+                          reserved for NetOutFlow e.g. 6 month
+                      validator_tax_rate:
+                        type: string
+                        title: >-
+                          The tax rate to pay for validators in storage payment.
+                          The default value is 1%(0.01)
+                    description: >-
+                      VersionedParams defines the parameters with multiple
+                      versions, each version is stored with different timestamp.
                   payment_account_count_limit:
                     type: string
                     format: uint64
@@ -407,20 +682,21 @@ paths:
 
                       If dynamic balance is less than NetOutFlowRate *
                       forcedSettleTime, the account can be forced settled.
-                  max_auto_force_settle_num:
+                  max_auto_settle_flow_count:
                     type: string
                     format: uint64
                     title: >-
-                      the maximum number of accounts that will be forced settled
-                      in one block
+                      the maximum number of flows that will be auto forced
+                      settled in one block
+                  max_auto_resume_flow_count:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the maximum number of flows that will be auto resumed in
+                      one block
                   fee_denom:
                     type: string
                     title: The denom of fee charged in payment module
-                  validator_tax_rate:
-                    type: string
-                    title: >-
-                      The tax rate to pay for validators in storage payment. The
-                      default value is 1%(0.01)
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -446,6 +722,100 @@ paths:
                     value:
                       type: string
                       format: byte
+      tags:
+        - Query
+  /greenfield/payment/params/{timestamp}:
+    get:
+      summary: ParamsByTimestamp queries the parameters of the module.
+      operationId: ParamsByTimestamp
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  versioned_params:
+                    type: object
+                    properties:
+                      reserve_time:
+                        type: string
+                        format: uint64
+                        title: >-
+                          Time duration which the buffer balance need to be
+                          reserved for NetOutFlow e.g. 6 month
+                      validator_tax_rate:
+                        type: string
+                        title: >-
+                          The tax rate to pay for validators in storage payment.
+                          The default value is 1%(0.01)
+                    description: >-
+                      VersionedParams defines the parameters with multiple
+                      versions, each version is stored with different timestamp.
+                  payment_account_count_limit:
+                    type: string
+                    format: uint64
+                    title: >-
+                      The maximum number of payment accounts that can be created
+                      by one user
+                  forced_settle_time:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Time duration threshold of forced settlement.
+
+                      If dynamic balance is less than NetOutFlowRate *
+                      forcedSettleTime, the account can be forced settled.
+                  max_auto_settle_flow_count:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the maximum number of flows that will be auto forced
+                      settled in one block
+                  max_auto_resume_flow_count:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the maximum number of flows that will be auto resumed in
+                      one block
+                  fee_denom:
+                    type: string
+                    title: The denom of fee charged in payment module
+            description: >-
+              QueryParamsByTimestampResponse is response type for the
+              Query/ParamsByTimestamp RPC method with timestamp.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: timestamp
+          description: the timestamp of the block time you want to query
+          in: path
+          required: true
+          type: string
+          format: int64
       tags:
         - Query
   /greenfield/payment/payment_account:
@@ -890,25 +1260,15 @@ paths:
                       title: >-
                         the unix timestamp when the stream account will be
                         settled
-                    out_flows:
-                      type: array
-                      items:
-                        type: object
-                        properties:
-                          to_address:
-                            type: string
-                            title: >-
-                              stream account address who receives the flow,
-                              usually SP(service provider)
-                          rate:
-                            type: string
-                            title: flow rate
-                        title: >-
-                          OutFlow defines the accumulative outflow stream rate
-                          in BNB
-
-                          from a stream account to a Storage Provider
-                      title: the accumulated outflow rates of the stream account
+                    out_flow_count:
+                      type: string
+                      format: uint64
+                      title: the count of its out flows
+                    frozen_netflow_rate:
+                      type: string
+                      title: >-
+                        the frozen netflow rate, which is used when resuming
+                        stream account
                   title: Stream Payment Record of a stream account
               pagination:
                 type: object
@@ -1084,25 +1444,15 @@ paths:
                     type: string
                     format: int64
                     title: the unix timestamp when the stream account will be settled
-                  out_flows:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        to_address:
-                          type: string
-                          title: >-
-                            stream account address who receives the flow,
-                            usually SP(service provider)
-                        rate:
-                          type: string
-                          title: flow rate
-                      title: >-
-                        OutFlow defines the accumulative outflow stream rate in
-                        BNB
-
-                        from a stream account to a Storage Provider
-                    title: the accumulated outflow rates of the stream account
+                  out_flow_count:
+                    type: string
+                    format: uint64
+                    title: the count of its out flows
+                  frozen_netflow_rate:
+                    type: string
+                    title: >-
+                      the frozen netflow rate, which is used when resuming
+                      stream account
                 title: Stream Payment Record of a stream account
         default:
           description: An unexpected error response.
@@ -1202,9 +1552,10 @@ paths:
               sp_storage_price:
                 type: object
                 properties:
-                  sp_address:
-                    type: string
-                    title: sp address
+                  sp_id:
+                    type: integer
+                    format: int64
+                    title: sp id
                   update_time_sec:
                     type: string
                     format: int64
@@ -1312,10 +1663,10 @@ paths:
                       format: byte
       tags:
         - Query
-  /greenfield/storage_provider/{spAddress}:
+  /greenfield/sp/storage_provider_by_operator_address:
     get:
-      summary: Queries a storage provider with specify address
-      operationId: StorageProvider
+      summary: Queries a StorageProvider by specify operator address.
+      operationId: StorageProviderByOperatorAddress
       responses:
         '200':
           description: A successful response.
@@ -1325,6 +1676,12 @@ paths:
               storageProvider:
                 type: object
                 properties:
+                  id:
+                    type: integer
+                    format: int64
+                    title: >-
+                      // id is the identifier of the storage provider, used in
+                      virtual group
                   operator_address:
                     type: string
                     description: >-
@@ -1401,6 +1758,12 @@ paths:
                       details:
                         type: string
                         description: details define other optional details.
+                  bls_key:
+                    type: string
+                    format: byte
+                    title: >-
+                      bls_key defines the bls pub key of the Storage provider
+                      for sealing object and completing migration
                 title: StorageProvider defines the meta info of storage provider
         default:
           description: An unexpected error response.
@@ -1425,10 +1788,142 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: spAddress
+        - name: operator_address
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
+  /greenfield/storage_provider/{id}:
+    get:
+      summary: Queries a storage provider with specify id
+      operationId: StorageProvider
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              storageProvider:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    title: >-
+                      // id is the identifier of the storage provider, used in
+                      virtual group
+                  operator_address:
+                    type: string
+                    description: >-
+                      operator_address defines the account address of the
+                      storage provider's operator; It also is the unique index
+                      key of sp.
+                  funding_address:
+                    type: string
+                    description: >-
+                      funding_address defines one of the storage provider's
+                      accounts which is used to deposit and reward.
+                  seal_address:
+                    type: string
+                    title: >-
+                      seal_address defines one of the storage provider's
+                      accounts which is used to SealObject
+                  approval_address:
+                    type: string
+                    title: >-
+                      approval_address defines one of the storage provider's
+                      accounts which is used to approve use's
+                      createBucket/createObject request
+                  gc_address:
+                    type: string
+                    description: >-
+                      gc_address defines one of the storage provider's accounts
+                      which is used for gc purpose.
+                  total_deposit:
+                    type: string
+                    description: >-
+                      total_deposit defines the number of tokens deposited by
+                      this storage provider for staking.
+                  status:
+                    title: >-
+                      status defines the current service status of this storage
+                      provider
+                    type: string
+                    enum:
+                      - STATUS_IN_SERVICE
+                      - STATUS_IN_JAILED
+                      - STATUS_GRACEFUL_EXITING
+                      - STATUS_OUT_OF_SERVICE
+                    default: STATUS_IN_SERVICE
+                    description: Status is the status of a storage provider.
+                  endpoint:
+                    type: string
+                    title: >-
+                      endpoint define the storage provider's network service
+                      address
+                  description:
+                    description: >-
+                      description defines the description terms for the storage
+                      provider.
+                    type: object
+                    properties:
+                      moniker:
+                        type: string
+                        title: >-
+                          moniker defines a human-readable name for the storage
+                          provider
+                      identity:
+                        type: string
+                        description: >-
+                          identity defines an optional identity signature (ex.
+                          UPort or Keybase).
+                      website:
+                        type: string
+                        description: website defines an optional website link.
+                      security_contact:
+                        type: string
+                        description: >-
+                          security_contact defines an optional email for
+                          security contact.
+                      details:
+                        type: string
+                        description: details define other optional details.
+                  bls_key:
+                    type: string
+                    format: byte
+                    title: >-
+                      bls_key defines the bls pub key of the Storage provider
+                      for sealing object and completing migration
+                title: StorageProvider defines the meta info of storage provider
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: id
           in: path
           required: true
-          type: string
+          type: integer
+          format: int64
       tags:
         - Query
   /greenfield/storage_providers:
@@ -1446,6 +1941,12 @@ paths:
                 items:
                   type: object
                   properties:
+                    id:
+                      type: integer
+                      format: int64
+                      title: >-
+                        // id is the identifier of the storage provider, used in
+                        virtual group
                     operator_address:
                       type: string
                       description: >-
@@ -1522,6 +2023,12 @@ paths:
                         details:
                           type: string
                           description: details define other optional details.
+                    bls_key:
+                      type: string
+                      format: byte
+                      title: >-
+                        bls_key defines the bls pub key of the Storage provider
+                        for sealing object and completing migration
                   title: StorageProvider defines the meta info of storage provider
               pagination:
                 description: pagination defines the pagination in the response.
@@ -1678,14 +2185,21 @@ paths:
                   payment_address:
                     type: string
                     title: payment_address is the address of the payment account
-                  primary_sp_address:
-                    type: string
+                  primary_sp_id:
+                    type: integer
+                    format: int64
                     description: >-
-                      primary_sp_address is the address of the primary sp.
-                      Objects belongs to this bucket will never
+                      primary_sp_id is the unique id of the primary sp. Objects
+                      belongs to this bucket will never
 
                       leave this SP, unless you explicitly shift them to another
                       SP.
+                  global_virtual_group_family_id:
+                    type: integer
+                    format: int64
+                    title: >-
+                      global_virtual_group_family_id defines the unique id of
+                      gvg family
                   charged_read_quota:
                     type: string
                     format: uint64
@@ -1697,44 +2211,13 @@ paths:
                       free read data provided by SP and
 
                       the ChargeReadQuota specified here.
-                  billing_info:
-                    title: billing info of the bucket
-                    type: object
-                    properties:
-                      price_time:
-                        type: string
-                        format: int64
-                        title: >-
-                          the time of the payment price, used to calculate the
-                          charge rate of the bucket
-                      total_charge_size:
-                        type: string
-                        format: uint64
-                        title: >-
-                          the total size of the objects in the bucket, used to
-                          calculate the charge rate of the bucket
-                      secondary_sp_objects_size:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            sp_address:
-                              type: string
-                              title: address is the address of the secondary sp
-                            total_charge_size:
-                              type: string
-                              format: uint64
-                              title: >-
-                                size is the total size of the objects in the
-                                secondary sp
-                          title: secondary sp objects size statistics
-                        title: secondary sp objects size statistics
                   bucket_status:
                     description: bucket_status define the status of the bucket.
                     type: string
                     enum:
                       - BUCKET_STATUS_CREATED
                       - BUCKET_STATUS_DISCONTINUED
+                      - BUCKET_STATUS_MIGRATING
                     default: BUCKET_STATUS_CREATED
         default:
           description: An unexpected error response.
@@ -1820,14 +2303,21 @@ paths:
                   payment_address:
                     type: string
                     title: payment_address is the address of the payment account
-                  primary_sp_address:
-                    type: string
+                  primary_sp_id:
+                    type: integer
+                    format: int64
                     description: >-
-                      primary_sp_address is the address of the primary sp.
-                      Objects belongs to this bucket will never
+                      primary_sp_id is the unique id of the primary sp. Objects
+                      belongs to this bucket will never
 
                       leave this SP, unless you explicitly shift them to another
                       SP.
+                  global_virtual_group_family_id:
+                    type: integer
+                    format: int64
+                    title: >-
+                      global_virtual_group_family_id defines the unique id of
+                      gvg family
                   charged_read_quota:
                     type: string
                     format: uint64
@@ -1839,44 +2329,13 @@ paths:
                       free read data provided by SP and
 
                       the ChargeReadQuota specified here.
-                  billing_info:
-                    title: billing info of the bucket
-                    type: object
-                    properties:
-                      price_time:
-                        type: string
-                        format: int64
-                        title: >-
-                          the time of the payment price, used to calculate the
-                          charge rate of the bucket
-                      total_charge_size:
-                        type: string
-                        format: uint64
-                        title: >-
-                          the total size of the objects in the bucket, used to
-                          calculate the charge rate of the bucket
-                      secondary_sp_objects_size:
-                        type: array
-                        items:
-                          type: object
-                          properties:
-                            sp_address:
-                              type: string
-                              title: address is the address of the secondary sp
-                            total_charge_size:
-                              type: string
-                              format: uint64
-                              title: >-
-                                size is the total size of the objects in the
-                                secondary sp
-                          title: secondary sp objects size statistics
-                        title: secondary sp objects size statistics
                   bucket_status:
                     description: bucket_status define the status of the bucket.
                     type: string
                     enum:
                       - BUCKET_STATUS_CREATED
                       - BUCKET_STATUS_DISCONTINUED
+                      - BUCKET_STATUS_MIGRATING
                     default: BUCKET_STATUS_CREATED
         default:
           description: An unexpected error response.
@@ -2181,6 +2640,12 @@ paths:
                 properties:
                   owner:
                     type: string
+                    title: owner is the object owner
+                  creator:
+                    type: string
+                    title: >-
+                      creator is the address of the uploader, it always be same
+                      as owner address
                   bucket_name:
                     type: string
                     title: bucket_name is the name of the bucket
@@ -2190,6 +2655,9 @@ paths:
                   id:
                     type: string
                     title: id is the unique identifier of object
+                  local_virtual_group_id:
+                    type: integer
+                    format: int64
                   payload_size:
                     type: string
                     format: uint64
@@ -2258,13 +2726,6 @@ paths:
 
                       add omit tag to omit the field when converting to NFT
                       metadata
-                  secondary_sp_addresses:
-                    type: array
-                    items:
-                      type: string
-                    title: >-
-                      secondary_sp_addresses define the addresses of
-                      secondary_sps
         default:
           description: An unexpected error response.
           schema:
@@ -2313,6 +2774,12 @@ paths:
                 properties:
                   owner:
                     type: string
+                    title: owner is the object owner
+                  creator:
+                    type: string
+                    title: >-
+                      creator is the address of the uploader, it always be same
+                      as owner address
                   bucket_name:
                     type: string
                     title: bucket_name is the name of the bucket
@@ -2322,6 +2789,9 @@ paths:
                   id:
                     type: string
                     title: id is the unique identifier of object
+                  local_virtual_group_id:
+                    type: integer
+                    format: int64
                   payload_size:
                     type: string
                     format: uint64
@@ -2390,13 +2860,6 @@ paths:
 
                       add omit tag to omit the field when converting to NFT
                       metadata
-                  secondary_sp_addresses:
-                    type: array
-                    items:
-                      type: string
-                    title: >-
-                      secondary_sp_addresses define the addresses of
-                      secondary_sps
         default:
           description: An unexpected error response.
           schema:
@@ -2547,14 +3010,21 @@ paths:
                     payment_address:
                       type: string
                       title: payment_address is the address of the payment account
-                    primary_sp_address:
-                      type: string
+                    primary_sp_id:
+                      type: integer
+                      format: int64
                       description: >-
-                        primary_sp_address is the address of the primary sp.
+                        primary_sp_id is the unique id of the primary sp.
                         Objects belongs to this bucket will never
 
                         leave this SP, unless you explicitly shift them to
                         another SP.
+                    global_virtual_group_family_id:
+                      type: integer
+                      format: int64
+                      title: >-
+                        global_virtual_group_family_id defines the unique id of
+                        gvg family
                     charged_read_quota:
                       type: string
                       format: uint64
@@ -2566,44 +3036,13 @@ paths:
                         free read data provided by SP and
 
                         the ChargeReadQuota specified here.
-                    billing_info:
-                      title: billing info of the bucket
-                      type: object
-                      properties:
-                        price_time:
-                          type: string
-                          format: int64
-                          title: >-
-                            the time of the payment price, used to calculate the
-                            charge rate of the bucket
-                        total_charge_size:
-                          type: string
-                          format: uint64
-                          title: >-
-                            the total size of the objects in the bucket, used to
-                            calculate the charge rate of the bucket
-                        secondary_sp_objects_size:
-                          type: array
-                          items:
-                            type: object
-                            properties:
-                              sp_address:
-                                type: string
-                                title: address is the address of the secondary sp
-                              total_charge_size:
-                                type: string
-                                format: uint64
-                                title: >-
-                                  size is the total size of the objects in the
-                                  secondary sp
-                            title: secondary sp objects size statistics
-                          title: secondary sp objects size statistics
                     bucket_status:
                       description: bucket_status define the status of the bucket.
                       type: string
                       enum:
                         - BUCKET_STATUS_CREATED
                         - BUCKET_STATUS_DISCONTINUED
+                        - BUCKET_STATUS_MIGRATING
                       default: BUCKET_STATUS_CREATED
               pagination:
                 type: object
@@ -2883,6 +3322,12 @@ paths:
                   properties:
                     owner:
                       type: string
+                      title: owner is the object owner
+                    creator:
+                      type: string
+                      title: >-
+                        creator is the address of the uploader, it always be
+                        same as owner address
                     bucket_name:
                       type: string
                       title: bucket_name is the name of the bucket
@@ -2892,6 +3337,9 @@ paths:
                     id:
                       type: string
                       title: id is the unique identifier of object
+                    local_virtual_group_id:
+                      type: integer
+                      format: int64
                     payload_size:
                       type: string
                       format: uint64
@@ -2960,13 +3408,6 @@ paths:
 
                         add omit tag to omit the field when converting to NFT
                         metadata
-                    secondary_sp_addresses:
-                      type: array
-                      items:
-                        type: string
-                      title: >-
-                        secondary_sp_addresses define the addresses of
-                        secondary_sps
               pagination:
                 type: object
                 properties:
@@ -3097,6 +3538,12 @@ paths:
                   properties:
                     owner:
                       type: string
+                      title: owner is the object owner
+                    creator:
+                      type: string
+                      title: >-
+                        creator is the address of the uploader, it always be
+                        same as owner address
                     bucket_name:
                       type: string
                       title: bucket_name is the name of the bucket
@@ -3106,6 +3553,9 @@ paths:
                     id:
                       type: string
                       title: id is the unique identifier of object
+                    local_virtual_group_id:
+                      type: integer
+                      format: int64
                     payload_size:
                       type: string
                       format: uint64
@@ -3174,13 +3624,6 @@ paths:
 
                         add omit tag to omit the field when converting to NFT
                         metadata
-                    secondary_sp_addresses:
-                      type: array
-                      items:
-                        type: string
-                      title: >-
-                        secondary_sp_addresses define the addresses of
-                        secondary_sps
               pagination:
                 type: object
                 properties:
@@ -3402,6 +3845,14 @@ paths:
                     type: string
                     format: uint64
                     title: The max number for deleting policy in each end block
+                  min_quota_update_interval:
+                    type: string
+                    format: uint64
+                    title: The min interval for making quota smaller in seconds
+                  max_local_virtual_group_num_per_bucket:
+                    type: integer
+                    format: int64
+                    title: the max number of local virtual group per bucket
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -3537,6 +3988,14 @@ paths:
                     type: string
                     format: uint64
                     title: The max number for deleting policy in each end block
+                  min_quota_update_interval:
+                    type: string
+                    format: uint64
+                    title: The min interval for making quota smaller in seconds
+                  max_local_virtual_group_num_per_bucket:
+                    type: integer
+                    format: int64
+                    title: the max number of local virtual group per bucket
             description: >-
               QueryVersionedParamsResponse is response type for the Query/Params
               RPC method with timestamp.
@@ -29775,6 +30234,209 @@ definitions:
                   "@type": "type.googleapis.com/google.protobuf.Duration",
                   "value": "1.212s"
                 }
+  greenfield.challenge.AttestedChallenge:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uint64
+        description: The id of the challenge.
+      result:
+        description: The attestation result of the challenge.
+        type: string
+        enum:
+          - CHALLENGE_FAILED
+          - CHALLENGE_SUCCEED
+        default: CHALLENGE_FAILED
+    description: AttestedChallenge records the challenge which are attested.
+  greenfield.challenge.Params:
+    type: object
+    properties:
+      challenge_count_per_block:
+        type: string
+        format: uint64
+        description: >-
+          Challenges which will be emitted in each block, including user
+          submitted or randomly triggered.
+      challenge_keep_alive_period:
+        type: string
+        format: uint64
+        description: >-
+          Challenges will be expired after the period, including user submitted
+          or randomly triggered.
+      slash_cooling_off_period:
+        type: string
+        format: uint64
+        description: >-
+          The count of blocks to stand for the period in which the same storage
+          and object info cannot be slashed again.
+      slash_amount_size_rate:
+        type: string
+        description: >-
+          The slash coin amount will be calculated from the size of object info,
+          and adjusted by this rate.
+      slash_amount_min:
+        type: string
+        description: The minimal slash amount.
+      slash_amount_max:
+        type: string
+        description: The maximum slash amount.
+      reward_validator_ratio:
+        type: string
+        description: The ratio of slash amount to reward all current validators.
+      reward_submitter_ratio:
+        type: string
+        description: The ratio of reward amount to reward attestation submitter.
+      reward_submitter_threshold:
+        type: string
+        description: The reward amount to submitter will be adjusted by the threshold.
+      heartbeat_interval:
+        type: string
+        format: uint64
+        description: >-
+          Heartbeat interval, based on challenge id, defines the frequency of
+          heartbeat attestation.
+      attestation_inturn_interval:
+        type: string
+        format: uint64
+        description: The time duration for each submitter to submit attestations in turn.
+      attestation_kept_count:
+        type: string
+        format: uint64
+        description: >-
+          The number of kept attested challenge ids, which can be queried by
+          clients.
+    description: Params defines the parameters for the module.
+  greenfield.challenge.QueryInturnAttestationSubmitterResponse:
+    type: object
+    properties:
+      bls_pub_key:
+        type: string
+      submit_interval:
+        type: object
+        properties:
+          start:
+            type: string
+            format: uint64
+          end:
+            type: string
+            format: uint64
+        description: >-
+          SubmitInterval holds start and end (exclusive) (i.e., [start, end))
+          time of in turn attestation.
+    description: >-
+      QueryInturnAttestationSubmitterResponse is response type for the
+      Query/InturnAttestationSubmitter RPC method.
+  greenfield.challenge.QueryLatestAttestedChallengesResponse:
+    type: object
+    properties:
+      challenges:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uint64
+              description: The id of the challenge.
+            result:
+              description: The attestation result of the challenge.
+              type: string
+              enum:
+                - CHALLENGE_FAILED
+                - CHALLENGE_SUCCEED
+              default: CHALLENGE_FAILED
+          description: AttestedChallenge records the challenge which are attested.
+    description: >-
+      QueryLatestAttestedChallengesResponse is response type for the
+      Query/LatestAttestedChallenges RPC method.
+  greenfield.challenge.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          challenge_count_per_block:
+            type: string
+            format: uint64
+            description: >-
+              Challenges which will be emitted in each block, including user
+              submitted or randomly triggered.
+          challenge_keep_alive_period:
+            type: string
+            format: uint64
+            description: >-
+              Challenges will be expired after the period, including user
+              submitted or randomly triggered.
+          slash_cooling_off_period:
+            type: string
+            format: uint64
+            description: >-
+              The count of blocks to stand for the period in which the same
+              storage and object info cannot be slashed again.
+          slash_amount_size_rate:
+            type: string
+            description: >-
+              The slash coin amount will be calculated from the size of object
+              info, and adjusted by this rate.
+          slash_amount_min:
+            type: string
+            description: The minimal slash amount.
+          slash_amount_max:
+            type: string
+            description: The maximum slash amount.
+          reward_validator_ratio:
+            type: string
+            description: The ratio of slash amount to reward all current validators.
+          reward_submitter_ratio:
+            type: string
+            description: The ratio of reward amount to reward attestation submitter.
+          reward_submitter_threshold:
+            type: string
+            description: The reward amount to submitter will be adjusted by the threshold.
+          heartbeat_interval:
+            type: string
+            format: uint64
+            description: >-
+              Heartbeat interval, based on challenge id, defines the frequency
+              of heartbeat attestation.
+          attestation_inturn_interval:
+            type: string
+            format: uint64
+            description: >-
+              The time duration for each submitter to submit attestations in
+              turn.
+          attestation_kept_count:
+            type: string
+            format: uint64
+            description: >-
+              The number of kept attested challenge ids, which can be queried by
+              clients.
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.challenge.SubmitInterval:
+    type: object
+    properties:
+      start:
+        type: string
+        format: uint64
+      end:
+        type: string
+        format: uint64
+    description: >-
+      SubmitInterval holds start and end (exclusive) (i.e., [start, end)) time
+      of in turn attestation.
+  greenfield.challenge.VoteResult:
+    type: string
+    enum:
+      - CHALLENGE_FAILED
+      - CHALLENGE_SUCCEED
+    default: CHALLENGE_FAILED
+    description: |-
+      VoteResult defines the result attestation for a challenge.
+
+       - CHALLENGE_FAILED: The challenge failed.
+       - CHALLENGE_SUCCEED: The challenge succeed.
   cosmos.base.query.v1beta1.PageRequest:
     type: object
     properties:
@@ -29882,18 +30544,51 @@ definitions:
       rate:
         type: string
         title: flow rate
+      status:
+        title: status
+        type: string
+        enum:
+          - OUT_FLOW_STATUS_ACTIVE
+          - OUT_FLOW_STATUS_FROZEN
+        default: OUT_FLOW_STATUS_ACTIVE
+        description: >-
+          - OUT_FLOW_STATUS_ACTIVE: OUT_FLOW_STATUS_ACTIVE defines the active
+          status of a out flow.
+           - OUT_FLOW_STATUS_FROZEN: OUT_FLOW_STATUS_FROZEN defines the frozen status of a out flow.
     title: |-
       OutFlow defines the accumulative outflow stream rate in BNB
       from a stream account to a Storage Provider
+  greenfield.payment.OutFlowStatus:
+    type: string
+    enum:
+      - OUT_FLOW_STATUS_ACTIVE
+      - OUT_FLOW_STATUS_FROZEN
+    default: OUT_FLOW_STATUS_ACTIVE
+    description: >-
+      - OUT_FLOW_STATUS_ACTIVE: OUT_FLOW_STATUS_ACTIVE defines the active status
+      of a out flow.
+       - OUT_FLOW_STATUS_FROZEN: OUT_FLOW_STATUS_FROZEN defines the frozen status of a out flow.
+    title: OutFlowStatus defines the status of a out flow
   greenfield.payment.Params:
     type: object
     properties:
-      reserve_time:
-        type: string
-        format: uint64
-        title: >-
-          Time duration which the buffer balance need to be reserved for
-          NetOutFlow e.g. 6 month
+      versioned_params:
+        type: object
+        properties:
+          reserve_time:
+            type: string
+            format: uint64
+            title: >-
+              Time duration which the buffer balance need to be reserved for
+              NetOutFlow e.g. 6 month
+          validator_tax_rate:
+            type: string
+            title: >-
+              The tax rate to pay for validators in storage payment. The default
+              value is 1%(0.01)
+        description: >-
+          VersionedParams defines the parameters with multiple versions, each
+          version is stored with different timestamp.
       payment_account_count_limit:
         type: string
         format: uint64
@@ -29906,20 +30601,19 @@ definitions:
 
           If dynamic balance is less than NetOutFlowRate * forcedSettleTime, the
           account can be forced settled.
-      max_auto_force_settle_num:
+      max_auto_settle_flow_count:
         type: string
         format: uint64
         title: >-
-          the maximum number of accounts that will be forced settled in one
+          the maximum number of flows that will be auto forced settled in one
           block
+      max_auto_resume_flow_count:
+        type: string
+        format: uint64
+        title: the maximum number of flows that will be auto resumed in one block
       fee_denom:
         type: string
         title: The denom of fee charged in payment module
-      validator_tax_rate:
-        type: string
-        title: >-
-          The tax rate to pay for validators in storage payment. The default
-          value is 1%(0.01)
     description: Params defines the parameters for the module.
   greenfield.payment.PaymentAccount:
     type: object
@@ -30140,23 +30834,15 @@ definitions:
               type: string
               format: int64
               title: the unix timestamp when the stream account will be settled
-            out_flows:
-              type: array
-              items:
-                type: object
-                properties:
-                  to_address:
-                    type: string
-                    title: >-
-                      stream account address who receives the flow, usually
-                      SP(service provider)
-                  rate:
-                    type: string
-                    title: flow rate
-                title: |-
-                  OutFlow defines the accumulative outflow stream rate in BNB
-                  from a stream account to a Storage Provider
-              title: the accumulated outflow rates of the stream account
+            out_flow_count:
+              type: string
+              format: uint64
+              title: the count of its out flows
+            frozen_netflow_rate:
+              type: string
+              title: >-
+                the frozen netflow rate, which is used when resuming stream
+                account
           title: Stream Payment Record of a stream account
       pagination:
         type: object
@@ -30242,23 +30928,15 @@ definitions:
             type: string
             format: int64
             title: the unix timestamp when the stream account will be settled
-          out_flows:
-            type: array
-            items:
-              type: object
-              properties:
-                to_address:
-                  type: string
-                  title: >-
-                    stream account address who receives the flow, usually
-                    SP(service provider)
-                rate:
-                  type: string
-                  title: flow rate
-              title: |-
-                OutFlow defines the accumulative outflow stream rate in BNB
-                from a stream account to a Storage Provider
-            title: the accumulated outflow rates of the stream account
+          out_flow_count:
+            type: string
+            format: uint64
+            title: the count of its out flows
+          frozen_netflow_rate:
+            type: string
+            title: >-
+              the frozen netflow rate, which is used when resuming stream
+              account
       current_timestamp:
         type: string
         format: int64
@@ -30366,37 +31044,70 @@ definitions:
             type: string
             format: int64
             title: the unix timestamp when the stream account will be settled
-          out_flows:
-            type: array
-            items:
-              type: object
-              properties:
-                to_address:
-                  type: string
-                  title: >-
-                    stream account address who receives the flow, usually
-                    SP(service provider)
-                rate:
-                  type: string
-                  title: flow rate
-              title: |-
-                OutFlow defines the accumulative outflow stream rate in BNB
-                from a stream account to a Storage Provider
-            title: the accumulated outflow rates of the stream account
+          out_flow_count:
+            type: string
+            format: uint64
+            title: the count of its out flows
+          frozen_netflow_rate:
+            type: string
+            title: >-
+              the frozen netflow rate, which is used when resuming stream
+              account
         title: Stream Payment Record of a stream account
-  greenfield.payment.QueryParamsResponse:
+  greenfield.payment.QueryOutFlowsResponse:
+    type: object
+    properties:
+      out_flows:
+        type: array
+        items:
+          type: object
+          properties:
+            to_address:
+              type: string
+              title: >-
+                stream account address who receives the flow, usually SP(service
+                provider)
+            rate:
+              type: string
+              title: flow rate
+            status:
+              title: status
+              type: string
+              enum:
+                - OUT_FLOW_STATUS_ACTIVE
+                - OUT_FLOW_STATUS_FROZEN
+              default: OUT_FLOW_STATUS_ACTIVE
+              description: >-
+                - OUT_FLOW_STATUS_ACTIVE: OUT_FLOW_STATUS_ACTIVE defines the
+                active status of a out flow.
+                 - OUT_FLOW_STATUS_FROZEN: OUT_FLOW_STATUS_FROZEN defines the frozen status of a out flow.
+          title: |-
+            OutFlow defines the accumulative outflow stream rate in BNB
+            from a stream account to a Storage Provider
+  greenfield.payment.QueryParamsByTimestampResponse:
     type: object
     properties:
       params:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          reserve_time:
-            type: string
-            format: uint64
-            title: >-
-              Time duration which the buffer balance need to be reserved for
-              NetOutFlow e.g. 6 month
+          versioned_params:
+            type: object
+            properties:
+              reserve_time:
+                type: string
+                format: uint64
+                title: >-
+                  Time duration which the buffer balance need to be reserved for
+                  NetOutFlow e.g. 6 month
+              validator_tax_rate:
+                type: string
+                title: >-
+                  The tax rate to pay for validators in storage payment. The
+                  default value is 1%(0.01)
+            description: >-
+              VersionedParams defines the parameters with multiple versions,
+              each version is stored with different timestamp.
           payment_account_count_limit:
             type: string
             format: uint64
@@ -30411,20 +31122,73 @@ definitions:
 
               If dynamic balance is less than NetOutFlowRate * forcedSettleTime,
               the account can be forced settled.
-          max_auto_force_settle_num:
+          max_auto_settle_flow_count:
             type: string
             format: uint64
             title: >-
-              the maximum number of accounts that will be forced settled in one
-              block
+              the maximum number of flows that will be auto forced settled in
+              one block
+          max_auto_resume_flow_count:
+            type: string
+            format: uint64
+            title: the maximum number of flows that will be auto resumed in one block
           fee_denom:
             type: string
             title: The denom of fee charged in payment module
-          validator_tax_rate:
+    description: >-
+      QueryParamsByTimestampResponse is response type for the
+      Query/ParamsByTimestamp RPC method with timestamp.
+  greenfield.payment.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          versioned_params:
+            type: object
+            properties:
+              reserve_time:
+                type: string
+                format: uint64
+                title: >-
+                  Time duration which the buffer balance need to be reserved for
+                  NetOutFlow e.g. 6 month
+              validator_tax_rate:
+                type: string
+                title: >-
+                  The tax rate to pay for validators in storage payment. The
+                  default value is 1%(0.01)
+            description: >-
+              VersionedParams defines the parameters with multiple versions,
+              each version is stored with different timestamp.
+          payment_account_count_limit:
             type: string
+            format: uint64
             title: >-
-              The tax rate to pay for validators in storage payment. The default
-              value is 1%(0.01)
+              The maximum number of payment accounts that can be created by one
+              user
+          forced_settle_time:
+            type: string
+            format: uint64
+            description: >-
+              Time duration threshold of forced settlement.
+
+              If dynamic balance is less than NetOutFlowRate * forcedSettleTime,
+              the account can be forced settled.
+          max_auto_settle_flow_count:
+            type: string
+            format: uint64
+            title: >-
+              the maximum number of flows that will be auto forced settled in
+              one block
+          max_auto_resume_flow_count:
+            type: string
+            format: uint64
+            title: the maximum number of flows that will be auto resumed in one block
+          fee_denom:
+            type: string
+            title: The denom of fee charged in payment module
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.payment.StreamAccountStatus:
     type: string
@@ -30488,24 +31252,31 @@ definitions:
         type: string
         format: int64
         title: the unix timestamp when the stream account will be settled
-      out_flows:
-        type: array
-        items:
-          type: object
-          properties:
-            to_address:
-              type: string
-              title: >-
-                stream account address who receives the flow, usually SP(service
-                provider)
-            rate:
-              type: string
-              title: flow rate
-          title: |-
-            OutFlow defines the accumulative outflow stream rate in BNB
-            from a stream account to a Storage Provider
-        title: the accumulated outflow rates of the stream account
+      out_flow_count:
+        type: string
+        format: uint64
+        title: the count of its out flows
+      frozen_netflow_rate:
+        type: string
+        title: the frozen netflow rate, which is used when resuming stream account
     title: Stream Payment Record of a stream account
+  greenfield.payment.VersionedParams:
+    type: object
+    properties:
+      reserve_time:
+        type: string
+        format: uint64
+        title: >-
+          Time duration which the buffer balance need to be reserved for
+          NetOutFlow e.g. 6 month
+      validator_tax_rate:
+        type: string
+        title: >-
+          The tax rate to pay for validators in storage payment. The default
+          value is 1%(0.01)
+    description: >-
+      VersionedParams defines the parameters with multiple versions, each
+      version is stored with different timestamp.
   greenfield.sp.Description:
     type: object
     properties:
@@ -30562,9 +31333,10 @@ definitions:
       sp_storage_price:
         type: object
         properties:
-          sp_address:
-            type: string
-            title: sp address
+          sp_id:
+            type: integer
+            format: int64
+            title: sp id
           update_time_sec:
             type: string
             format: int64
@@ -30601,12 +31373,18 @@ definitions:
               the ratio of the store price of the secondary sp to the primary
               sp, the default value is 80%
     description: QueryParamsResponse is response type for the Query/Params RPC method.
-  greenfield.sp.QueryStorageProviderResponse:
+  greenfield.sp.QueryStorageProviderByOperatorAddressResponse:
     type: object
     properties:
       storageProvider:
         type: object
         properties:
+          id:
+            type: integer
+            format: int64
+            title: >-
+              // id is the identifier of the storage provider, used in virtual
+              group
           operator_address:
             type: string
             description: >-
@@ -30675,6 +31453,99 @@ definitions:
               details:
                 type: string
                 description: details define other optional details.
+          bls_key:
+            type: string
+            format: byte
+            title: >-
+              bls_key defines the bls pub key of the Storage provider for
+              sealing object and completing migration
+        title: StorageProvider defines the meta info of storage provider
+  greenfield.sp.QueryStorageProviderResponse:
+    type: object
+    properties:
+      storageProvider:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+            title: >-
+              // id is the identifier of the storage provider, used in virtual
+              group
+          operator_address:
+            type: string
+            description: >-
+              operator_address defines the account address of the storage
+              provider's operator; It also is the unique index key of sp.
+          funding_address:
+            type: string
+            description: >-
+              funding_address defines one of the storage provider's accounts
+              which is used to deposit and reward.
+          seal_address:
+            type: string
+            title: >-
+              seal_address defines one of the storage provider's accounts which
+              is used to SealObject
+          approval_address:
+            type: string
+            title: >-
+              approval_address defines one of the storage provider's accounts
+              which is used to approve use's createBucket/createObject request
+          gc_address:
+            type: string
+            description: >-
+              gc_address defines one of the storage provider's accounts which is
+              used for gc purpose.
+          total_deposit:
+            type: string
+            description: >-
+              total_deposit defines the number of tokens deposited by this
+              storage provider for staking.
+          status:
+            title: status defines the current service status of this storage provider
+            type: string
+            enum:
+              - STATUS_IN_SERVICE
+              - STATUS_IN_JAILED
+              - STATUS_GRACEFUL_EXITING
+              - STATUS_OUT_OF_SERVICE
+            default: STATUS_IN_SERVICE
+            description: Status is the status of a storage provider.
+          endpoint:
+            type: string
+            title: endpoint define the storage provider's network service address
+          description:
+            description: >-
+              description defines the description terms for the storage
+              provider.
+            type: object
+            properties:
+              moniker:
+                type: string
+                title: moniker defines a human-readable name for the storage provider
+              identity:
+                type: string
+                description: >-
+                  identity defines an optional identity signature (ex. UPort or
+                  Keybase).
+              website:
+                type: string
+                description: website defines an optional website link.
+              security_contact:
+                type: string
+                description: >-
+                  security_contact defines an optional email for security
+                  contact.
+              details:
+                type: string
+                description: details define other optional details.
+          bls_key:
+            type: string
+            format: byte
+            title: >-
+              bls_key defines the bls pub key of the Storage provider for
+              sealing object and completing migration
         title: StorageProvider defines the meta info of storage provider
   greenfield.sp.QueryStorageProvidersResponse:
     type: object
@@ -30684,6 +31555,12 @@ definitions:
         items:
           type: object
           properties:
+            id:
+              type: integer
+              format: int64
+              title: >-
+                // id is the identifier of the storage provider, used in virtual
+                group
             operator_address:
               type: string
               description: >-
@@ -30756,6 +31633,12 @@ definitions:
                 details:
                   type: string
                   description: details define other optional details.
+            bls_key:
+              type: string
+              format: byte
+              title: >-
+                bls_key defines the bls pub key of the Storage provider for
+                sealing object and completing migration
           title: StorageProvider defines the meta info of storage provider
       pagination:
         description: pagination defines the pagination in the response.
@@ -30790,9 +31673,10 @@ definitions:
   greenfield.sp.SpStoragePrice:
     type: object
     properties:
-      sp_address:
-        type: string
-        title: sp address
+      sp_id:
+        type: integer
+        format: int64
+        title: sp id
       update_time_sec:
         type: string
         format: int64
@@ -30820,6 +31704,10 @@ definitions:
   greenfield.sp.StorageProvider:
     type: object
     properties:
+      id:
+        type: integer
+        format: int64
+        title: // id is the identifier of the storage provider, used in virtual group
       operator_address:
         type: string
         description: >-
@@ -30884,6 +31772,12 @@ definitions:
           details:
             type: string
             description: details define other optional details.
+      bls_key:
+        type: string
+        format: byte
+        title: >-
+          bls_key defines the bls pub key of the Storage provider for sealing
+          object and completing migration
     title: StorageProvider defines the meta info of storage provider
   greenfield.common.UInt64Value:
     type: object
@@ -31198,36 +32092,6 @@ definitions:
       - RESOURCE_TYPE_OBJECT
       - RESOURCE_TYPE_GROUP
     default: RESOURCE_TYPE_UNSPECIFIED
-  greenfield.storage.BillingInfo:
-    type: object
-    properties:
-      price_time:
-        type: string
-        format: int64
-        title: >-
-          the time of the payment price, used to calculate the charge rate of
-          the bucket
-      total_charge_size:
-        type: string
-        format: uint64
-        title: >-
-          the total size of the objects in the bucket, used to calculate the
-          charge rate of the bucket
-      secondary_sp_objects_size:
-        type: array
-        items:
-          type: object
-          properties:
-            sp_address:
-              type: string
-              title: address is the address of the secondary sp
-            total_charge_size:
-              type: string
-              format: uint64
-              title: size is the total size of the objects in the secondary sp
-          title: secondary sp objects size statistics
-        title: secondary sp objects size statistics
-    title: BillingInfo is the billing information of the bucket
   greenfield.storage.BucketInfo:
     type: object
     properties:
@@ -31270,13 +32134,18 @@ definitions:
       payment_address:
         type: string
         title: payment_address is the address of the payment account
-      primary_sp_address:
-        type: string
+      primary_sp_id:
+        type: integer
+        format: int64
         description: >-
-          primary_sp_address is the address of the primary sp. Objects belongs
-          to this bucket will never
+          primary_sp_id is the unique id of the primary sp. Objects belongs to
+          this bucket will never
 
           leave this SP, unless you explicitly shift them to another SP.
+      global_virtual_group_family_id:
+        type: integer
+        format: int64
+        title: global_virtual_group_family_id defines the unique id of gvg family
       charged_read_quota:
         type: string
         format: uint64
@@ -31288,42 +32157,13 @@ definitions:
           provided by SP and
 
           the ChargeReadQuota specified here.
-      billing_info:
-        title: billing info of the bucket
-        type: object
-        properties:
-          price_time:
-            type: string
-            format: int64
-            title: >-
-              the time of the payment price, used to calculate the charge rate
-              of the bucket
-          total_charge_size:
-            type: string
-            format: uint64
-            title: >-
-              the total size of the objects in the bucket, used to calculate the
-              charge rate of the bucket
-          secondary_sp_objects_size:
-            type: array
-            items:
-              type: object
-              properties:
-                sp_address:
-                  type: string
-                  title: address is the address of the secondary sp
-                total_charge_size:
-                  type: string
-                  format: uint64
-                  title: size is the total size of the objects in the secondary sp
-              title: secondary sp objects size statistics
-            title: secondary sp objects size statistics
       bucket_status:
         description: bucket_status define the status of the bucket.
         type: string
         enum:
           - BUCKET_STATUS_CREATED
           - BUCKET_STATUS_DISCONTINUED
+          - BUCKET_STATUS_MIGRATING
         default: BUCKET_STATUS_CREATED
   greenfield.storage.BucketMetaData:
     type: object
@@ -31355,6 +32195,7 @@ definitions:
     enum:
       - BUCKET_STATUS_CREATED
       - BUCKET_STATUS_DISCONTINUED
+      - BUCKET_STATUS_MIGRATING
     default: BUCKET_STATUS_CREATED
     description: >-
       BucketStatus represents the status of a bucket. After a user successfully
@@ -31417,6 +32258,12 @@ definitions:
     properties:
       owner:
         type: string
+        title: owner is the object owner
+      creator:
+        type: string
+        title: >-
+          creator is the address of the uploader, it always be same as owner
+          address
       bucket_name:
         type: string
         title: bucket_name is the name of the bucket
@@ -31426,6 +32273,9 @@ definitions:
       id:
         type: string
         title: id is the unique identifier of object
+      local_virtual_group_id:
+        type: integer
+        format: int64
       payload_size:
         type: string
         format: uint64
@@ -31486,11 +32336,6 @@ definitions:
         title: |-
           checksums define the root hash of the pieces which stored in a SP.
           add omit tag to omit the field when converting to NFT metadata
-      secondary_sp_addresses:
-        type: array
-        items:
-          type: string
-        title: secondary_sp_addresses define the addresses of secondary_sps
   greenfield.storage.ObjectMetaData:
     type: object
     properties:
@@ -31618,6 +32463,14 @@ definitions:
         type: string
         format: uint64
         title: The max number for deleting policy in each end block
+      min_quota_update_interval:
+        type: string
+        format: uint64
+        title: The min interval for making quota smaller in seconds
+      max_local_virtual_group_num_per_bucket:
+        type: integer
+        format: int64
+        title: the max number of local virtual group per bucket
     description: Params defines the parameters for the module.
   greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -31720,13 +32573,18 @@ definitions:
           payment_address:
             type: string
             title: payment_address is the address of the payment account
-          primary_sp_address:
-            type: string
+          primary_sp_id:
+            type: integer
+            format: int64
             description: >-
-              primary_sp_address is the address of the primary sp. Objects
-              belongs to this bucket will never
+              primary_sp_id is the unique id of the primary sp. Objects belongs
+              to this bucket will never
 
               leave this SP, unless you explicitly shift them to another SP.
+          global_virtual_group_family_id:
+            type: integer
+            format: int64
+            title: global_virtual_group_family_id defines the unique id of gvg family
           charged_read_quota:
             type: string
             format: uint64
@@ -31738,44 +32596,13 @@ definitions:
               data provided by SP and
 
               the ChargeReadQuota specified here.
-          billing_info:
-            title: billing info of the bucket
-            type: object
-            properties:
-              price_time:
-                type: string
-                format: int64
-                title: >-
-                  the time of the payment price, used to calculate the charge
-                  rate of the bucket
-              total_charge_size:
-                type: string
-                format: uint64
-                title: >-
-                  the total size of the objects in the bucket, used to calculate
-                  the charge rate of the bucket
-              secondary_sp_objects_size:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    sp_address:
-                      type: string
-                      title: address is the address of the secondary sp
-                    total_charge_size:
-                      type: string
-                      format: uint64
-                      title: >-
-                        size is the total size of the objects in the secondary
-                        sp
-                  title: secondary sp objects size statistics
-                title: secondary sp objects size statistics
           bucket_status:
             description: bucket_status define the status of the bucket.
             type: string
             enum:
               - BUCKET_STATUS_CREATED
               - BUCKET_STATUS_DISCONTINUED
+              - BUCKET_STATUS_MIGRATING
             default: BUCKET_STATUS_CREATED
   greenfield.storage.QueryHeadGroupMemberResponse:
     type: object
@@ -31830,6 +32657,12 @@ definitions:
         properties:
           owner:
             type: string
+            title: owner is the object owner
+          creator:
+            type: string
+            title: >-
+              creator is the address of the uploader, it always be same as owner
+              address
           bucket_name:
             type: string
             title: bucket_name is the name of the bucket
@@ -31839,6 +32672,9 @@ definitions:
           id:
             type: string
             title: id is the unique identifier of object
+          local_virtual_group_id:
+            type: integer
+            format: int64
           payload_size:
             type: string
             format: uint64
@@ -31899,11 +32735,6 @@ definitions:
             title: |-
               checksums define the root hash of the pieces which stored in a SP.
               add omit tag to omit the field when converting to NFT metadata
-          secondary_sp_addresses:
-            type: array
-            items:
-              type: string
-            title: secondary_sp_addresses define the addresses of secondary_sps
   greenfield.storage.QueryListBucketsResponse:
     type: object
     properties:
@@ -31951,13 +32782,20 @@ definitions:
             payment_address:
               type: string
               title: payment_address is the address of the payment account
-            primary_sp_address:
-              type: string
+            primary_sp_id:
+              type: integer
+              format: int64
               description: >-
-                primary_sp_address is the address of the primary sp. Objects
+                primary_sp_id is the unique id of the primary sp. Objects
                 belongs to this bucket will never
 
                 leave this SP, unless you explicitly shift them to another SP.
+            global_virtual_group_family_id:
+              type: integer
+              format: int64
+              title: >-
+                global_virtual_group_family_id defines the unique id of gvg
+                family
             charged_read_quota:
               type: string
               format: uint64
@@ -31969,44 +32807,13 @@ definitions:
                 read data provided by SP and
 
                 the ChargeReadQuota specified here.
-            billing_info:
-              title: billing info of the bucket
-              type: object
-              properties:
-                price_time:
-                  type: string
-                  format: int64
-                  title: >-
-                    the time of the payment price, used to calculate the charge
-                    rate of the bucket
-                total_charge_size:
-                  type: string
-                  format: uint64
-                  title: >-
-                    the total size of the objects in the bucket, used to
-                    calculate the charge rate of the bucket
-                secondary_sp_objects_size:
-                  type: array
-                  items:
-                    type: object
-                    properties:
-                      sp_address:
-                        type: string
-                        title: address is the address of the secondary sp
-                      total_charge_size:
-                        type: string
-                        format: uint64
-                        title: >-
-                          size is the total size of the objects in the secondary
-                          sp
-                    title: secondary sp objects size statistics
-                  title: secondary sp objects size statistics
             bucket_status:
               description: bucket_status define the status of the bucket.
               type: string
               enum:
                 - BUCKET_STATUS_CREATED
                 - BUCKET_STATUS_DISCONTINUED
+                - BUCKET_STATUS_MIGRATING
               default: BUCKET_STATUS_CREATED
       pagination:
         type: object
@@ -32102,6 +32909,12 @@ definitions:
           properties:
             owner:
               type: string
+              title: owner is the object owner
+            creator:
+              type: string
+              title: >-
+                creator is the address of the uploader, it always be same as
+                owner address
             bucket_name:
               type: string
               title: bucket_name is the name of the bucket
@@ -32111,6 +32924,9 @@ definitions:
             id:
               type: string
               title: id is the unique identifier of object
+            local_virtual_group_id:
+              type: integer
+              format: int64
             payload_size:
               type: string
               format: uint64
@@ -32173,11 +32989,6 @@ definitions:
                 SP.
 
                 add omit tag to omit the field when converting to NFT metadata
-            secondary_sp_addresses:
-              type: array
-              items:
-                type: string
-              title: secondary_sp_addresses define the addresses of secondary_sps
       pagination:
         type: object
         properties:
@@ -32325,6 +33136,14 @@ definitions:
             type: string
             format: uint64
             title: The max number for deleting policy in each end block
+          min_quota_update_interval:
+            type: string
+            format: uint64
+            title: The min interval for making quota smaller in seconds
+          max_local_virtual_group_num_per_bucket:
+            type: integer
+            format: int64
+            title: the max number of local virtual group per bucket
     description: >-
       QueryVersionedParamsResponse is response type for the Query/Params RPC
       method with timestamp.
@@ -32421,6 +33240,14 @@ definitions:
             type: string
             format: uint64
             title: The max number for deleting policy in each end block
+          min_quota_update_interval:
+            type: string
+            format: uint64
+            title: The min interval for making quota smaller in seconds
+          max_local_virtual_group_num_per_bucket:
+            type: integer
+            format: int64
+            title: the max number of local virtual group per bucket
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.storage.QueryPolicyByIdResponse:
     type: object
@@ -32900,17 +33727,6 @@ definitions:
     description: |-
       RedundancyType represents the redundancy algorithm type for object data,
       which can be either multi-replica or erasure coding.
-  greenfield.storage.SecondarySpObjectsSize:
-    type: object
-    properties:
-      sp_address:
-        type: string
-        title: address is the address of the secondary sp
-      total_charge_size:
-        type: string
-        format: uint64
-        title: size is the total size of the objects in the secondary sp
-    title: secondary sp objects size statistics
   greenfield.storage.SourceType:
     type: string
     enum:

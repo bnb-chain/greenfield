@@ -1,0 +1,28 @@
+syntax = "proto3";
+package greenfield.virtualgroup;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
+
+// Params defines the parameters for the module.
+message Params {
+  option (gogoproto.equal) = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // deposit_denom defines the staking coin denomination.
+  string deposit_denom = 1;
+  // store price, in bnb wei per charge byte
+  string gvg_staking_per_bytes = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+  // the max number of lvg which allowed in a bucket
+  uint32 max_local_virtual_group_num_per_bucket = 3;
+  // the max number of gvg which can exist in a family
+  uint32 max_global_virtual_group_num_per_family = 4;
+  // if the store size reach the exceed, the family is not allowed to sever more buckets
+  uint64 max_store_size_per_family = 5;
+}

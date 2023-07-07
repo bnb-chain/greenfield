@@ -11,6 +11,7 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // AccountKeeper defines the expected account keeper used for simulations (noalias)
@@ -26,18 +27,15 @@ type BankKeeper interface {
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-
 	// Methods imported from bank should be defined here
 }
 
 type SpKeeper interface {
-	GetStorageProvider(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
+	GetStorageProvider(ctx sdk.Context, id uint32) (*sptypes.StorageProvider, bool)
+	MustGetStorageProvider(ctx sdk.Context, id uint32) *sptypes.StorageProvider
+	GetStorageProviderByOperatorAddr(ctx sdk.Context, addr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderBySealAddr(ctx sdk.Context, sealAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
 	GetStorageProviderByGcAddr(ctx sdk.Context, gcAddr sdk.AccAddress) (sp *sptypes.StorageProvider, found bool)
-	IsStorageProviderExistAndInService(ctx sdk.Context, addr sdk.AccAddress) error
-	SetSpStoragePrice(ctx sdk.Context, SpStoragePrice sptypes.SpStoragePrice)
-	SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice sptypes.SecondarySpStorePrice)
-	GetSpStoragePriceByTime(ctx sdk.Context, spAddr sdk.AccAddress, time int64) (val sptypes.SpStoragePrice, err error)
 }
 
 type PaymentKeeper interface {
@@ -47,8 +45,8 @@ type PaymentKeeper interface {
 	GetStoragePrice(ctx sdk.Context, params paymenttypes.StoragePriceParams) (price paymenttypes.StoragePrice, err error)
 	ApplyUserFlowsList(ctx sdk.Context, userFlows []paymenttypes.UserFlows) (err error)
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
-	// GetStreamRecord
 	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
+	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
 }
 
 type PermissionKeeper interface {
@@ -75,8 +73,17 @@ type PermissionKeeper interface {
 
 type CrossChainKeeper interface {
 	CreateRawIBCPackageWithFee(ctx sdk.Context, channelID sdk.ChannelID, packageType sdk.CrossChainPackageType,
-		packageLoad []byte, relayerFee *big.Int, ackRelayerFee *big.Int,
-	) (uint64, error)
+		packageLoad []byte, relayerFee *big.Int, ackRelayerFee *big.Int) (uint64, error)
 
 	RegisterChannel(name string, id sdk.ChannelID, app sdk.CrossChainApplication) error
+}
+
+type VirtualGroupKeeper interface {
+	SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup)
+	GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, bool)
+	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
+	SettleAndDistributeGVGFamily(ctx sdk.Context, sp *sptypes.StorageProvider, family *types.GlobalVirtualGroupFamily) error
+	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
+	GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, error)
+	GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, expectedStoreSize uint64) (*types.GlobalVirtualGroup, error)
 }

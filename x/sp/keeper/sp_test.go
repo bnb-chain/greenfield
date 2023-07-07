@@ -3,9 +3,10 @@ package keeper_test
 import (
 	"fmt"
 
+	"github.com/golang/mock/gomock"
+
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 
 	types2 "github.com/bnb-chain/greenfield/sdk/types"
@@ -16,22 +17,21 @@ import (
 func (s *KeeperTestSuite) TestSetGetStorageProvider() {
 	keeper := s.spKeeper
 	ctx := s.ctx
-	sp := &types.StorageProvider{}
+	sp := &types.StorageProvider{Id: 100}
 	spAccStr := sample.AccAddress()
 	spAcc := sdk.MustAccAddressFromHex(spAccStr)
-
 	sp.OperatorAddress = spAcc.String()
 
 	keeper.SetStorageProvider(ctx, sp)
-	_, found := keeper.GetStorageProvider(ctx, spAcc)
+	_, found := keeper.GetStorageProvider(ctx, 100)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(s.T(), found, true)
 }
 
-// TestStorageProviderBasics tests GetStorageProvider, GetStorageProviderByFundingAddr,
-// GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr
+// TestStorageProviderBasics tests GetStorageProviderByOperatorAddr, GetStorageProviderByFundingAddr,
+// GetStorageProviderBySealAddr, GetStorageProviderByApprovalAddr, GetStorageProviderByBlsKey
 func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	k := s.spKeeper
 	ctx := s.ctx
@@ -47,15 +47,18 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	approvalAccStr := sample.AccAddress()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
+	blsPubKey := sample.RandBlsPubKey()
 	sp := &types.StorageProvider{
+		Id:              100,
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
+		BlsKey:          blsPubKey,
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	_, found := k.GetStorageProvider(ctx, spAcc)
+	_, found := k.GetStorageProvider(ctx, 100)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
@@ -81,6 +84,13 @@ func (s *KeeperTestSuite) TestStorageProviderBasics() {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
 	require.EqualValues(s.T(), found, true)
+
+	k.SetStorageProviderByBlsKey(ctx, sp)
+	_, found = k.GetStorageProviderByBlsKey(ctx, blsPubKey)
+	if !found {
+		fmt.Printf("no such sp: %s", spAcc)
+	}
+	require.EqualValues(s.T(), found, true)
 }
 
 func (s *KeeperTestSuite) TestSlashBasic() {
@@ -101,16 +111,20 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 	approvalAccStr := sample.AccAddress()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
+	blsPubKey := sample.RandBlsPubKey()
+
 	sp := &types.StorageProvider{
+		Id:              100,
 		OperatorAddress: spAcc.String(),
 		FundingAddress:  fundingAcc.String(),
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
+		BlsKey:          blsPubKey,
 		TotalDeposit:    math.NewIntWithDecimal(2010, types2.DecimalBNB),
 	}
 
 	k.SetStorageProvider(ctx, sp)
-	_, found := k.GetStorageProvider(ctx, spAcc)
+	_, found := k.GetStorageProvider(ctx, 100)
 	if !found {
 		fmt.Printf("no such sp: %s", spAcc)
 	}
@@ -121,10 +135,10 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 		Amount:  sdk.NewCoin(types2.Denom, math.NewIntWithDecimal(10, types2.DecimalBNB)),
 	}
 
-	err := k.Slash(ctx, spAcc, []types.RewardInfo{rewardInfo})
+	err := k.Slash(ctx, sp.Id, []types.RewardInfo{rewardInfo})
 	require.NoError(s.T(), err)
 
-	spAfterSlash, found := k.GetStorageProvider(ctx, spAcc)
+	spAfterSlash, found := k.GetStorageProvider(ctx, 100)
 	require.True(s.T(), found)
 	s.T().Logf("%s", spAfterSlash.TotalDeposit.String())
 	require.True(s.T(), spAfterSlash.TotalDeposit.Equal(math.NewIntWithDecimal(2000, types2.DecimalBNB)))

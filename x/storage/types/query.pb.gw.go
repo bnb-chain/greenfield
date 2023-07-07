@@ -13,7 +13,7 @@ import (
 	"io"
 	"net/http"
 
-	types_1 "github.com/bnb-chain/greenfield/x/permission/types"
+	types_2 "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/golang/protobuf/descriptor"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -805,13 +805,13 @@ func request_Query_VerifyPermission_0(ctx context.Context, marshaler runtime.Mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "action_type")
 	}
 
-	e, err = runtime.Enum(val, types_1.ActionType_value)
+	e, err = runtime.Enum(val, types_2.ActionType_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "action_type", err)
 	}
 
-	protoReq.ActionType = types_1.ActionType(e)
+	protoReq.ActionType = types_2.ActionType(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
@@ -864,13 +864,13 @@ func local_request_Query_VerifyPermission_0(ctx context.Context, marshaler runti
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "action_type")
 	}
 
-	e, err = runtime.Enum(val, types_1.ActionType_value)
+	e, err = runtime.Enum(val, types_2.ActionType_value)
 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "action_type", err)
 	}
 
-	protoReq.ActionType = types_1.ActionType(e)
+	protoReq.ActionType = types_2.ActionType(e)
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)

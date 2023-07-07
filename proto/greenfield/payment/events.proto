@@ -3,7 +3,7 @@ package greenfield.payment;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
+import "greenfield/payment/out_flow.proto";
 import "greenfield/payment/stream_record.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
@@ -30,31 +30,35 @@ message EventStreamRecordUpdate {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // The frozen netflow rate, which is used when resuming stream account
+  string frozen_netflow_rate = 4 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
   // The balance of the stream account at the latest CRUD timestamp.
-  string static_balance = 4 [
+  string static_balance = 5 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // reserved balance of the stream account
   // If the netflow rate is negative, the reserved balance is `netflow_rate * reserve_time`
-  string buffer_balance = 5 [
+  string buffer_balance = 6 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // the locked balance of the stream account after it puts a new object and before the object is sealed
-  string lock_balance = 6 [
+  string lock_balance = 7 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // the status of the stream account
-  StreamAccountStatus status = 7;
+  StreamAccountStatus status = 8;
   // the unix timestamp when the stream account will be settled
-  int64 settle_timestamp = 8;
-  // the accumulated outflow rates of the stream account
-  repeated OutFlow out_flows = 9 [(gogoproto.nullable) = false];
+  int64 settle_timestamp = 9;
 }
 
 // EventForceSettle may be emitted on all Msgs and EndBlocker when a payment account's

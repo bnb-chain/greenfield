@@ -1,11 +1,14 @@
 syntax = "proto3";
 package greenfield.storage;
 
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
-import "greenfield/payment/base.proto";
+import "greenfield/payment/out_flow.proto";
+import "greenfield/payment/stream_record.proto";
 import "greenfield/storage/common.proto";
 
+// this line is used by starport scaffolding # proto/tx/import
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 message BucketInfo {
@@ -27,68 +30,63 @@ message BucketInfo {
   int64 create_at = 6;
   // payment_address is the address of the payment account
   string payment_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // primary_sp_address is the address of the primary sp. Objects belongs to this bucket will never
+  // primary_sp_id is the unique id of the primary sp. Objects belongs to this bucket will never
   // leave this SP, unless you explicitly shift them to another SP.
-  string primary_sp_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  uint32 primary_sp_id = 8;
+  // global_virtual_group_family_id defines the unique id of gvg family
+  uint32 global_virtual_group_family_id = 9;
   // charged_read_quota defines the traffic quota for read in bytes per month.
   // The available read data for each user is the sum of the free read data provided by SP and
   // the ChargeReadQuota specified here.
-  uint64 charged_read_quota = 9;
-  // billing info of the bucket
-  BillingInfo billing_info = 10 [(gogoproto.nullable) = false];
+  uint64 charged_read_quota = 10;
   // bucket_status define the status of the bucket.
   BucketStatus bucket_status = 11;
 }
 
-// BillingInfo is the billing information of the bucket
-message BillingInfo {
+message InternalBucketInfo {
   // the time of the payment price, used to calculate the charge rate of the bucket
   int64 price_time = 1;
   // the total size of the objects in the bucket, used to calculate the charge rate of the bucket
   uint64 total_charge_size = 2;
-  // secondary sp objects size statistics
-  repeated SecondarySpObjectsSize secondary_sp_objects_size = 3 [(gogoproto.nullable) = false];
-}
-
-// secondary sp objects size statistics
-message SecondarySpObjectsSize {
-  // address is the address of the secondary sp
-  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // size is the total size of the objects in the secondary sp
-  uint64 total_charge_size = 2;
+  // local_virtual_groups contains all the lvg of this bucket.
+  repeated LocalVirtualGroup local_virtual_groups = 3;
+  // next_local_virtual_group_id store the next id used by local virtual group
+  uint32 next_local_virtual_group_id = 4;
 }
 
 message ObjectInfo {
+  // owner is the object owner
   string owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // creator is the address of the uploader, it always be same as owner address
+  string creator = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bucket_name is the name of the bucket
-  string bucket_name = 2;
+  string bucket_name = 3;
   // object_name is the name of object
-  string object_name = 3;
+  string object_name = 4;
   // id is the unique identifier of object
-  string id = 4 [
+  string id = 5 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  uint32 local_virtual_group_id = 6;
   // payloadSize is the total size of the object payload
-  uint64 payload_size = 5;
+  uint64 payload_size = 7;
   // visibility defines the highest permissions for object. When an object is public, everyone can access it.
-  VisibilityType visibility = 6;
+  VisibilityType visibility = 8;
   // content_type define the format of the object which should be a standard MIME type.
-  string content_type = 7;
+  string content_type = 9;
   // create_at define the block timestamp when the object is created
-  int64 create_at = 8;
+  int64 create_at = 10;
   // object_status define the upload status of the object.
-  ObjectStatus object_status = 9;
+  ObjectStatus object_status = 11;
   // redundancy_type define the type of the redundancy which can be multi-replication or EC.
-  RedundancyType redundancy_type = 10;
+  RedundancyType redundancy_type = 12;
   // source_type define the source of the object.
-  SourceType source_type = 11;
+  SourceType source_type = 13;
   // checksums define the root hash of the pieces which stored in a SP.
   // add omit tag to omit the field when converting to NFT metadata
-  repeated bytes checksums = 12 [(gogoproto.moretags) = "traits:\"omit\""];
-  // secondary_sp_addresses define the addresses of secondary_sps
-  repeated string secondary_sp_addresses = 13 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated bytes checksums = 14 [(gogoproto.moretags) = "traits:\"omit\""];
 }
 
 message GroupInfo {
@@ -165,4 +163,16 @@ message DeleteInfo {
   Ids bucket_ids = 1;
   Ids object_ids = 2;
   Ids group_ids = 3;
+}
+
+message MigrationBucketInfo {
+  uint32 src_sp_id = 1;
+  uint32 src_global_virtual_group_family_id = 2;
+  uint32 dst_sp_id = 3;
+  // id is the unique identifier of bucket
+  string bucket_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
 }

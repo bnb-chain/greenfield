@@ -37,7 +37,7 @@ func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmat
 }
 
 type StoragePriceParams struct {
-	PrimarySp string
+	PrimarySp uint32
 	PriceTime int64
 }
 

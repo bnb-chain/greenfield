@@ -28,24 +28,28 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // EventCreateStorageProvider is emitted when there is a storage provider created
 type EventCreateStorageProvider struct {
+	// sp_id defines the identifier of storage provider which generated on-chain
+	SpId uint32 `protobuf:"varint,1,opt,name=sp_id,json=spId,proto3" json:"sp_id,omitempty"`
 	// sp_address is the operator address of the storage provider
-	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	SpAddress string `protobuf:"bytes,2,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	// funding_address is the funding account address of the storage provider
-	FundingAddress string `protobuf:"bytes,2,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
+	FundingAddress string `protobuf:"bytes,3,opt,name=funding_address,json=fundingAddress,proto3" json:"funding_address,omitempty"`
 	// seal_address is the account address for SealObject Tx
-	SealAddress string `protobuf:"bytes,3,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
+	SealAddress string `protobuf:"bytes,4,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
 	// approval_address is the account address for approve create bucket/object signature
-	ApprovalAddress string `protobuf:"bytes,4,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
+	ApprovalAddress string `protobuf:"bytes,5,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
 	// gc_address defines one of the storage provider's accounts which is used for gc purpose
-	GcAddress string `protobuf:"bytes,5,opt,name=gc_address,json=gcAddress,proto3" json:"gc_address,omitempty"`
+	GcAddress string `protobuf:"bytes,6,opt,name=gc_address,json=gcAddress,proto3" json:"gc_address,omitempty"`
 	// endpoint is the domain name address used by SP to provide storage services
-	Endpoint string `protobuf:"bytes,6,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Endpoint string `protobuf:"bytes,7,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// total_deposit is the token coin that the storage provider deposit to the storage module
-	TotalDeposit *types.Coin `protobuf:"bytes,7,opt,name=total_deposit,json=totalDeposit,proto3" json:"total_deposit,omitempty"`
+	TotalDeposit *types.Coin `protobuf:"bytes,8,opt,name=total_deposit,json=totalDeposit,proto3" json:"total_deposit,omitempty"`
 	// status defines the status of the storage provider
-	Status Status `protobuf:"varint,8,opt,name=status,proto3,enum=greenfield.sp.Status" json:"status,omitempty"`
+	Status Status `protobuf:"varint,9,opt,name=status,proto3,enum=greenfield.sp.Status" json:"status,omitempty"`
 	// description defines the description terms for the storage provider
-	Description Description `protobuf:"bytes,9,opt,name=description,proto3" json:"description"`
+	Description Description `protobuf:"bytes,10,opt,name=description,proto3" json:"description"`
+	// bls_key defines the bls pub key owned by storage provider used when sealing object and completing migration
+	BlsKey string `protobuf:"bytes,11,opt,name=bls_key,json=blsKey,proto3" json:"bls_key,omitempty"`
 }
 
 func (m *EventCreateStorageProvider) Reset()         { *m = EventCreateStorageProvider{} }
@@ -80,6 +84,13 @@ func (m *EventCreateStorageProvider) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_EventCreateStorageProvider proto.InternalMessageInfo
+
+func (m *EventCreateStorageProvider) GetSpId() uint32 {
+	if m != nil {
+		return m.SpId
+	}
+	return 0
+}
 
 func (m *EventCreateStorageProvider) GetSpAddress() string {
 	if m != nil {
@@ -144,20 +155,31 @@ func (m *EventCreateStorageProvider) GetDescription() Description {
 	return Description{}
 }
 
+func (m *EventCreateStorageProvider) GetBlsKey() string {
+	if m != nil {
+		return m.BlsKey
+	}
+	return ""
+}
+
 // EventEditStorageProvider is emitted when SP's metadata is edited.
 type EventEditStorageProvider struct {
+	// sp_id defines the identifier of storage provider which generated on-chain
+	SpId uint32 `protobuf:"varint,1,opt,name=sp_id,json=spId,proto3" json:"sp_id,omitempty"`
 	// sp_address is the operator address of the storage provider
-	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	SpAddress string `protobuf:"bytes,2,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	// endpoint is the service endpoint of the storage provider
-	Endpoint string `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
+	Endpoint string `protobuf:"bytes,3,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
 	// description defines the description terms for the storage provider
-	Description Description `protobuf:"bytes,3,opt,name=description,proto3" json:"description"`
+	Description Description `protobuf:"bytes,4,opt,name=description,proto3" json:"description"`
 	// seal_address is the account address for SealObject Tx
-	SealAddress string `protobuf:"bytes,4,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
+	SealAddress string `protobuf:"bytes,5,opt,name=seal_address,json=sealAddress,proto3" json:"seal_address,omitempty"`
 	// approval_address is the account address for approve create bucket/object signature
-	ApprovalAddress string `protobuf:"bytes,5,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
+	ApprovalAddress string `protobuf:"bytes,6,opt,name=approval_address,json=approvalAddress,proto3" json:"approval_address,omitempty"`
 	// gc_address defines one of the storage provider's accounts which is used for gc purpose
-	GcAddress string `protobuf:"bytes,6,opt,name=gc_address,json=gcAddress,proto3" json:"gc_address,omitempty"`
+	GcAddress string `protobuf:"bytes,7,opt,name=gc_address,json=gcAddress,proto3" json:"gc_address,omitempty"`
+	// bls_key defines the bls pub key owned by storage provider used when sealing object
+	BlsKey string `protobuf:"bytes,8,opt,name=bls_key,json=blsKey,proto3" json:"bls_key,omitempty"`
 }
 
 func (m *EventEditStorageProvider) Reset()         { *m = EventEditStorageProvider{} }
@@ -192,6 +214,13 @@ func (m *EventEditStorageProvider) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_EventEditStorageProvider proto.InternalMessageInfo
+
+func (m *EventEditStorageProvider) GetSpId() uint32 {
+	if m != nil {
+		return m.SpId
+	}
+	return 0
+}
 
 func (m *EventEditStorageProvider) GetSpAddress() string {
 	if m != nil {
@@ -231,6 +260,13 @@ func (m *EventEditStorageProvider) GetApprovalAddress() string {
 func (m *EventEditStorageProvider) GetGcAddress() string {
 	if m != nil {
 		return m.GcAddress
+	}
+	return ""
+}
+
+func (m *EventEditStorageProvider) GetBlsKey() string {
+	if m != nil {
+		return m.BlsKey
 	}
 	return ""
 }
@@ -300,8 +336,8 @@ func (m *EventDeposit) GetTotalDeposit() string {
 }
 
 type EventSpStoragePriceUpdate struct {
-	// sp address
-	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
+	// sp id
+	SpId uint32 `protobuf:"varint,1,opt,name=sp_id,json=spId,proto3" json:"sp_id,omitempty"`
 	// update time, in unix timestamp
 	UpdateTimeSec int64 `protobuf:"varint,2,opt,name=update_time_sec,json=updateTimeSec,proto3" json:"update_time_sec,omitempty"`
 	// read price, in bnb wei per charge byte
@@ -345,11 +381,11 @@ func (m *EventSpStoragePriceUpdate) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventSpStoragePriceUpdate proto.InternalMessageInfo
 
-func (m *EventSpStoragePriceUpdate) GetSpAddress() string {
+func (m *EventSpStoragePriceUpdate) GetSpId() uint32 {
 	if m != nil {
-		return m.SpAddress
+		return m.SpId
 	}
-	return ""
+	return 0
 }
 
 func (m *EventSpStoragePriceUpdate) GetUpdateTimeSec() int64 {
@@ -424,49 +460,52 @@ func init() {
 func init() { proto.RegisterFile("greenfield/sp/events.proto", fileDescriptor_685cbfa50fdf0841) }
 
 var fileDescriptor_685cbfa50fdf0841 = []byte{
-	// 666 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x55, 0xc1, 0x4e, 0x1b, 0x3d,
-	0x10, 0xce, 0x86, 0x10, 0x88, 0x43, 0xe0, 0xd7, 0x8a, 0x5f, 0x5a, 0x72, 0x58, 0xa2, 0x54, 0x42,
-	0xa8, 0x52, 0x76, 0x05, 0x3d, 0x70, 0x68, 0x55, 0x89, 0x10, 0xee, 0xed, 0xa6, 0xbd, 0xb4, 0xaa,
-	0x56, 0xce, 0x7a, 0x58, 0xac, 0x92, 0xb5, 0x6b, 0x3b, 0x51, 0x79, 0x0b, 0x9e, 0xa1, 0xb7, 0xde,
-	0x79, 0x08, 0x8e, 0x88, 0x53, 0xd5, 0x03, 0x42, 0x70, 0xef, 0x33, 0x54, 0xeb, 0xf5, 0x86, 0x24,
-	0x45, 0x4a, 0x0b, 0x39, 0x25, 0x9e, 0x99, 0x6f, 0xe6, 0xdb, 0xcf, 0x9f, 0x6d, 0x54, 0x8f, 0x05,
-	0x40, 0x72, 0x44, 0xe1, 0x84, 0xf8, 0x92, 0xfb, 0x30, 0x84, 0x44, 0x49, 0x8f, 0x0b, 0xa6, 0x98,
-	0x5d, 0xbb, 0xcf, 0x79, 0x92, 0xd7, 0xdd, 0x88, 0xc9, 0x3e, 0x93, 0x7e, 0x0f, 0x4b, 0xf0, 0x87,
-	0x3b, 0x3d, 0x50, 0x78, 0xc7, 0x8f, 0x18, 0x4d, 0xb2, 0xf2, 0xfa, 0x46, 0x96, 0x0f, 0xf5, 0xca,
-	0xcf, 0x16, 0x26, 0xb5, 0x1e, 0xb3, 0x98, 0x65, 0xf1, 0xf4, 0x5f, 0x0e, 0x98, 0x9c, 0xad, 0x4e,
-	0x39, 0x18, 0x40, 0xf3, 0x5b, 0x09, 0xd5, 0x0f, 0x53, 0x2e, 0x07, 0x02, 0xb0, 0x82, 0xae, 0x62,
-	0x02, 0xc7, 0xf0, 0x46, 0xb0, 0x21, 0x25, 0x20, 0xec, 0x3d, 0x84, 0x24, 0x0f, 0x31, 0x21, 0x02,
-	0xa4, 0x74, 0xac, 0x86, 0xb5, 0x5d, 0x69, 0x3b, 0x57, 0xe7, 0xad, 0x75, 0x33, 0x75, 0x3f, 0xcb,
-	0x74, 0x95, 0xa0, 0x49, 0x1c, 0x54, 0x24, 0x37, 0x01, 0x7b, 0x1f, 0xad, 0x1d, 0x0d, 0x12, 0x42,
-	0x93, 0x78, 0x84, 0x2e, 0xce, 0x40, 0xaf, 0x1a, 0x40, 0xde, 0xe2, 0x25, 0x5a, 0x91, 0x80, 0x4f,
-	0x46, 0xf8, 0x85, 0x19, 0xf8, 0x6a, 0x5a, 0x9d, 0x83, 0x0f, 0xd0, 0x7f, 0x98, 0x73, 0xc1, 0x86,
-	0x63, 0x0d, 0x4a, 0x33, 0x1a, 0xac, 0xe5, 0x88, 0xbc, 0xc9, 0x1e, 0x42, 0x71, 0x34, 0x82, 0x2f,
-	0xce, 0xfa, 0xfa, 0x38, 0xca, 0x81, 0x75, 0xb4, 0x0c, 0x09, 0xe1, 0x8c, 0x26, 0xca, 0x29, 0xa7,
-	0xb0, 0x60, 0xb4, 0xb6, 0x5f, 0xa3, 0x9a, 0x62, 0x0a, 0x9f, 0x84, 0x04, 0x38, 0x93, 0x54, 0x39,
-	0x4b, 0x0d, 0x6b, 0xbb, 0xba, 0xbb, 0xe1, 0x99, 0xa6, 0xe9, 0xae, 0x7b, 0x66, 0xd7, 0xbd, 0x03,
-	0x46, 0x93, 0x60, 0x45, 0xd7, 0x77, 0xb2, 0x72, 0xbb, 0x85, 0xca, 0x52, 0x61, 0x35, 0x90, 0xce,
-	0x72, 0xc3, 0xda, 0x5e, 0xdd, 0xfd, 0xdf, 0x9b, 0x70, 0x8f, 0xd7, 0xd5, 0xc9, 0xc0, 0x14, 0xd9,
-	0x6d, 0x54, 0x25, 0x20, 0x23, 0x41, 0xb9, 0xa2, 0x2c, 0x71, 0x2a, 0x7a, 0x58, 0x7d, 0x0a, 0xd3,
-	0xb9, 0xaf, 0x68, 0x97, 0x2e, 0xae, 0x37, 0x0b, 0xc1, 0x38, 0xa8, 0xf9, 0xab, 0x88, 0x1c, 0x6d,
-	0x92, 0x43, 0x42, 0xd5, 0xdc, 0x2c, 0x32, 0x2e, 0x52, 0x71, 0x4a, 0xa4, 0x29, 0xd6, 0x0b, 0x8f,
-	0x60, 0xfd, 0x87, 0x7f, 0x4a, 0x4f, 0xf5, 0xcf, 0xe2, 0xd3, 0xfc, 0x53, 0xfe, 0x6b, 0xff, 0x34,
-	0xcf, 0x2c, 0xb4, 0xa2, 0x05, 0xcf, 0x37, 0xfd, 0x81, 0xe3, 0x64, 0xfd, 0xe3, 0x71, 0x72, 0xd0,
-	0x52, 0xee, 0xb8, 0x4c, 0xed, 0x7c, 0x69, 0x3f, 0x9b, 0x76, 0xa4, 0x3e, 0x69, 0x93, 0xb6, 0x6b,
-	0xde, 0x14, 0xd1, 0x86, 0xa6, 0xd4, 0xe5, 0x23, 0x07, 0xd0, 0x08, 0xde, 0x73, 0x82, 0x15, 0x3c,
-	0xde, 0x04, 0x5b, 0x68, 0x6d, 0xa0, 0x5b, 0x84, 0x8a, 0xf6, 0x21, 0x94, 0x10, 0x69, 0x76, 0x0b,
-	0x41, 0x2d, 0x0b, 0xbf, 0xa3, 0x7d, 0xe8, 0x42, 0x64, 0x7f, 0x44, 0x48, 0x00, 0x26, 0x21, 0x4f,
-	0x87, 0x9a, 0xab, 0xe0, 0x55, 0xba, 0xe7, 0x3f, 0xaf, 0x37, 0xb7, 0x62, 0xaa, 0x8e, 0x07, 0x3d,
-	0x2f, 0x62, 0x7d, 0x73, 0x1b, 0x9a, 0x9f, 0x96, 0x24, 0x9f, 0xcd, 0x6d, 0xd7, 0x81, 0xe8, 0xea,
-	0xbc, 0x85, 0x0c, 0x9d, 0x0e, 0x44, 0x41, 0x25, 0xed, 0xa7, 0xbf, 0x21, 0x25, 0x71, 0x24, 0x00,
-	0x42, 0x3d, 0xe1, 0xcb, 0x80, 0x29, 0xac, 0xcd, 0x52, 0x0a, 0x6a, 0x69, 0x38, 0x00, 0x4c, 0xde,
-	0xa6, 0x41, 0xfb, 0x13, 0xaa, 0x4a, 0xc5, 0x04, 0x18, 0x16, 0x8b, 0x73, 0x60, 0x81, 0x74, 0x43,
-	0x4d, 0xa3, 0xf9, 0xdd, 0x42, 0x8d, 0x4c, 0x62, 0x88, 0x58, 0x42, 0xb0, 0x38, 0xcd, 0xb4, 0x9e,
-	0x50, 0xfa, 0x01, 0xc1, 0xac, 0x87, 0x04, 0x9b, 0xe2, 0x5a, 0x9c, 0x2f, 0xd7, 0x76, 0xe7, 0xe2,
-	0xd6, 0xb5, 0x2e, 0x6f, 0x5d, 0xeb, 0xe6, 0xd6, 0xb5, 0xce, 0xee, 0xdc, 0xc2, 0xe5, 0x9d, 0x5b,
-	0xf8, 0x71, 0xe7, 0x16, 0x3e, 0x3c, 0x1f, 0xeb, 0xdd, 0x4b, 0x7a, 0xad, 0xe8, 0x18, 0xd3, 0xc4,
-	0x1f, 0x7b, 0x81, 0xbe, 0x8e, 0xde, 0xa0, 0x5e, 0x59, 0x3f, 0x42, 0x2f, 0x7e, 0x07, 0x00, 0x00,
-	0xff, 0xff, 0xd2, 0x8f, 0x72, 0x18, 0x1d, 0x07, 0x00, 0x00,
+	// 711 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x55, 0xcd, 0x4e, 0xdb, 0x4a,
+	0x14, 0x8e, 0xc9, 0x1f, 0x99, 0x10, 0xb8, 0xf2, 0xe5, 0xea, 0x9a, 0x2c, 0x42, 0x94, 0x4a, 0x28,
+	0xaa, 0x14, 0x47, 0xd0, 0x05, 0x8b, 0x56, 0x95, 0x08, 0x61, 0x51, 0x75, 0xd3, 0x3a, 0xed, 0xa6,
+	0x55, 0x65, 0x8d, 0x3d, 0x07, 0x33, 0x22, 0xf1, 0x4c, 0x3d, 0x93, 0xa8, 0x79, 0x0b, 0x1e, 0xa0,
+	0x2f, 0xd0, 0x3d, 0xcb, 0x3e, 0x00, 0x4b, 0xc4, 0xaa, 0xea, 0x02, 0x55, 0xf0, 0x22, 0x95, 0xc7,
+	0xe3, 0x90, 0x44, 0x91, 0xd2, 0x16, 0xba, 0x4a, 0xe6, 0x9c, 0xf3, 0x7d, 0xf3, 0xcd, 0x39, 0x9f,
+	0x67, 0x50, 0x35, 0x88, 0x00, 0xc2, 0x63, 0x0a, 0x7d, 0xd2, 0x16, 0xbc, 0x0d, 0x23, 0x08, 0xa5,
+	0xb0, 0x79, 0xc4, 0x24, 0x33, 0x2b, 0x77, 0x39, 0x5b, 0xf0, 0x6a, 0xcd, 0x67, 0x62, 0xc0, 0x44,
+	0xdb, 0xc3, 0x02, 0xda, 0xa3, 0x5d, 0x0f, 0x24, 0xde, 0x6d, 0xfb, 0x8c, 0x86, 0x49, 0x79, 0x75,
+	0x2b, 0xc9, 0xbb, 0x6a, 0xd5, 0x4e, 0x16, 0x3a, 0xb5, 0x19, 0xb0, 0x80, 0x25, 0xf1, 0xf8, 0x5f,
+	0x0a, 0x98, 0xdd, 0x5b, 0x8e, 0x39, 0x68, 0x40, 0xe3, 0x32, 0x87, 0xaa, 0x47, 0xb1, 0x96, 0xc3,
+	0x08, 0xb0, 0x84, 0x9e, 0x64, 0x11, 0x0e, 0xe0, 0x55, 0xc4, 0x46, 0x94, 0x40, 0x64, 0xfe, 0x8b,
+	0xf2, 0x82, 0xbb, 0x94, 0x58, 0x46, 0xdd, 0x68, 0x56, 0x9c, 0x9c, 0xe0, 0x2f, 0x88, 0xb9, 0x8f,
+	0x90, 0xe0, 0x2e, 0x26, 0x24, 0x02, 0x21, 0xac, 0x95, 0xba, 0xd1, 0x2c, 0x75, 0xac, 0xab, 0xf3,
+	0xd6, 0xa6, 0x96, 0x72, 0x90, 0x64, 0x7a, 0x32, 0xa2, 0x61, 0xe0, 0x94, 0x04, 0xd7, 0x01, 0xf3,
+	0x00, 0x6d, 0x1c, 0x0f, 0x43, 0x42, 0xc3, 0x60, 0x82, 0xce, 0x2e, 0x41, 0xaf, 0x6b, 0x40, 0x4a,
+	0xf1, 0x14, 0xad, 0x09, 0xc0, 0xfd, 0x09, 0x3e, 0xb7, 0x04, 0x5f, 0x8e, 0xab, 0x53, 0xf0, 0x21,
+	0xfa, 0x07, 0x73, 0x1e, 0xb1, 0xd1, 0x14, 0x41, 0x7e, 0x09, 0xc1, 0x46, 0x8a, 0x48, 0x49, 0xf6,
+	0x11, 0x0a, 0xfc, 0x09, 0xbc, 0xb0, 0xec, 0xf4, 0x81, 0x9f, 0x02, 0xab, 0x68, 0x15, 0x42, 0xc2,
+	0x19, 0x0d, 0xa5, 0x55, 0x8c, 0x61, 0xce, 0x64, 0x6d, 0x3e, 0x47, 0x15, 0xc9, 0x24, 0xee, 0xbb,
+	0x04, 0x38, 0x13, 0x54, 0x5a, 0xab, 0x75, 0xa3, 0x59, 0xde, 0xdb, 0xb2, 0x35, 0x69, 0x6c, 0x05,
+	0x5b, 0x5b, 0xc1, 0x3e, 0x64, 0x34, 0x74, 0xd6, 0x54, 0x7d, 0x37, 0x29, 0x37, 0x5b, 0xa8, 0x20,
+	0x24, 0x96, 0x43, 0x61, 0x95, 0xea, 0x46, 0x73, 0x7d, 0xef, 0x3f, 0x7b, 0xc6, 0x52, 0x76, 0x4f,
+	0x25, 0x1d, 0x5d, 0x64, 0x76, 0x50, 0x99, 0x80, 0xf0, 0x23, 0xca, 0x25, 0x65, 0xa1, 0x85, 0xd4,
+	0x66, 0xd5, 0x39, 0x4c, 0xf7, 0xae, 0xa2, 0x93, 0xbb, 0xb8, 0xde, 0xce, 0x38, 0xd3, 0x20, 0xf3,
+	0x7f, 0x54, 0xf4, 0xfa, 0xc2, 0x3d, 0x85, 0xb1, 0x55, 0x56, 0xa7, 0x29, 0x78, 0x7d, 0xf1, 0x12,
+	0xc6, 0x8d, 0xcf, 0x59, 0x64, 0x29, 0x4b, 0x1d, 0x11, 0x2a, 0xff, 0xae, 0xa1, 0xa6, 0x5b, 0x9a,
+	0x9d, 0x6b, 0xe9, 0xdc, 0x19, 0x73, 0x7f, 0x72, 0xc6, 0x79, 0xb7, 0xe5, 0xef, 0xeb, 0xb6, 0xc2,
+	0xfd, 0xdc, 0x56, 0xfc, 0x75, 0xb7, 0x4d, 0x8d, 0x67, 0x75, 0x66, 0x3c, 0x67, 0x06, 0x5a, 0x53,
+	0xe3, 0x49, 0xbd, 0xb3, 0xe0, 0xab, 0x34, 0x7e, 0xf3, 0xab, 0xb4, 0x50, 0x31, 0x35, 0xae, 0x9a,
+	0x9e, 0x93, 0x2e, 0xcd, 0x47, 0xf3, 0xc6, 0x4e, 0xc6, 0x34, 0xe3, 0xde, 0xc6, 0xd7, 0x15, 0xb4,
+	0xa5, 0x24, 0xf5, 0xf8, 0xc4, 0x2f, 0xd4, 0x87, 0xb7, 0x9c, 0x60, 0x09, 0x8b, 0x2d, 0xb3, 0x83,
+	0x36, 0x86, 0x2a, 0xed, 0x4a, 0x3a, 0x00, 0x57, 0x80, 0xaf, 0x76, 0xce, 0x3a, 0x95, 0x24, 0xfc,
+	0x86, 0x0e, 0xa0, 0x07, 0xbe, 0xf9, 0x1e, 0xa1, 0x08, 0x30, 0x71, 0x79, 0x4c, 0xa8, 0x6f, 0x9b,
+	0x67, 0xf1, 0xa0, 0xbf, 0x5f, 0x6f, 0xef, 0x04, 0x54, 0x9e, 0x0c, 0x3d, 0xdb, 0x67, 0x03, 0x7d,
+	0x8b, 0xea, 0x9f, 0x96, 0x20, 0xa7, 0xfa, 0x96, 0xec, 0x82, 0x7f, 0x75, 0xde, 0x42, 0xba, 0x0b,
+	0x5d, 0xf0, 0x9d, 0x52, 0xcc, 0xa7, 0xf4, 0xc5, 0x22, 0x8e, 0x23, 0x00, 0x57, 0xed, 0xf0, 0x71,
+	0xc8, 0x24, 0x56, 0x36, 0xcb, 0x39, 0x95, 0x38, 0xec, 0x00, 0x26, 0xaf, 0xe3, 0xa0, 0xf9, 0x01,
+	0x95, 0x85, 0x64, 0x11, 0x68, 0x15, 0xf9, 0x07, 0x50, 0x81, 0x14, 0xa1, 0x92, 0xd1, 0xf8, 0x62,
+	0xa0, 0x7a, 0xd2, 0x3e, 0xf0, 0x59, 0x48, 0x70, 0x34, 0x4e, 0xfa, 0x38, 0xd3, 0xc5, 0x05, 0x0d,
+	0x33, 0x16, 0x35, 0x6c, 0x4e, 0xeb, 0xca, 0xc3, 0x6a, 0xed, 0x74, 0x2f, 0x6e, 0x6a, 0xc6, 0xe5,
+	0x4d, 0xcd, 0xf8, 0x71, 0x53, 0x33, 0xce, 0x6e, 0x6b, 0x99, 0xcb, 0xdb, 0x5a, 0xe6, 0xdb, 0x6d,
+	0x2d, 0xf3, 0xee, 0xf1, 0x14, 0xb7, 0x17, 0x7a, 0x2d, 0xff, 0x04, 0xd3, 0xb0, 0x3d, 0xf5, 0x72,
+	0x7d, 0x9a, 0xbc, 0x5d, 0x5e, 0x41, 0x3d, 0x5e, 0x4f, 0x7e, 0x06, 0x00, 0x00, 0xff, 0xff, 0xa7,
+	0xee, 0x58, 0xf0, 0x55, 0x07, 0x00, 0x00,
 }
 
 func (m *EventCreateStorageProvider) Marshal() (dAtA []byte, err error) {
@@ -489,6 +528,13 @@ func (m *EventCreateStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, err
 	_ = i
 	var l int
 	_ = l
+	if len(m.BlsKey) > 0 {
+		i -= len(m.BlsKey)
+		copy(dAtA[i:], m.BlsKey)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BlsKey)))
+		i--
+		dAtA[i] = 0x5a
+	}
 	{
 		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
 		if err != nil {
@@ -498,11 +544,11 @@ func (m *EventCreateStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, err
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x4a
+	dAtA[i] = 0x52
 	if m.Status != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.Status))
 		i--
-		dAtA[i] = 0x40
+		dAtA[i] = 0x48
 	}
 	if m.TotalDeposit != nil {
 		{
@@ -514,49 +560,54 @@ func (m *EventCreateStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, err
 			i = encodeVarintEvents(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x3a
+		dAtA[i] = 0x42
 	}
 	if len(m.Endpoint) > 0 {
 		i -= len(m.Endpoint)
 		copy(dAtA[i:], m.Endpoint)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.Endpoint)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x3a
 	}
 	if len(m.GcAddress) > 0 {
 		i -= len(m.GcAddress)
 		copy(dAtA[i:], m.GcAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.GcAddress)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x32
 	}
 	if len(m.ApprovalAddress) > 0 {
 		i -= len(m.ApprovalAddress)
 		copy(dAtA[i:], m.ApprovalAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.ApprovalAddress)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	if len(m.SealAddress) > 0 {
 		i -= len(m.SealAddress)
 		copy(dAtA[i:], m.SealAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.SealAddress)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.FundingAddress) > 0 {
 		i -= len(m.FundingAddress)
 		copy(dAtA[i:], m.FundingAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.FundingAddress)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 	}
 	if len(m.SpAddress) > 0 {
 		i -= len(m.SpAddress)
 		copy(dAtA[i:], m.SpAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.SpAddress)))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
+	}
+	if m.SpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.SpId))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -581,26 +632,33 @@ func (m *EventEditStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, error
 	_ = i
 	var l int
 	_ = l
+	if len(m.BlsKey) > 0 {
+		i -= len(m.BlsKey)
+		copy(dAtA[i:], m.BlsKey)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BlsKey)))
+		i--
+		dAtA[i] = 0x42
+	}
 	if len(m.GcAddress) > 0 {
 		i -= len(m.GcAddress)
 		copy(dAtA[i:], m.GcAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.GcAddress)))
 		i--
-		dAtA[i] = 0x32
+		dAtA[i] = 0x3a
 	}
 	if len(m.ApprovalAddress) > 0 {
 		i -= len(m.ApprovalAddress)
 		copy(dAtA[i:], m.ApprovalAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.ApprovalAddress)))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x32
 	}
 	if len(m.SealAddress) > 0 {
 		i -= len(m.SealAddress)
 		copy(dAtA[i:], m.SealAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.SealAddress)))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x2a
 	}
 	{
 		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
@@ -611,20 +669,25 @@ func (m *EventEditStorageProvider) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i = encodeVarintEvents(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x1a
+	dAtA[i] = 0x22
 	if len(m.Endpoint) > 0 {
 		i -= len(m.Endpoint)
 		copy(dAtA[i:], m.Endpoint)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.Endpoint)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x1a
 	}
 	if len(m.SpAddress) > 0 {
 		i -= len(m.SpAddress)
 		copy(dAtA[i:], m.SpAddress)
 		i = encodeVarintEvents(dAtA, i, uint64(len(m.SpAddress)))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x12
+	}
+	if m.SpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.SpId))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -723,12 +786,10 @@ func (m *EventSpStoragePriceUpdate) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		i--
 		dAtA[i] = 0x10
 	}
-	if len(m.SpAddress) > 0 {
-		i -= len(m.SpAddress)
-		copy(dAtA[i:], m.SpAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.SpAddress)))
+	if m.SpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.SpId))
 		i--
-		dAtA[i] = 0xa
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -788,6 +849,9 @@ func (m *EventCreateStorageProvider) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.SpId != 0 {
+		n += 1 + sovEvents(uint64(m.SpId))
+	}
 	l = len(m.SpAddress)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -821,6 +885,10 @@ func (m *EventCreateStorageProvider) Size() (n int) {
 	}
 	l = m.Description.Size()
 	n += 1 + l + sovEvents(uint64(l))
+	l = len(m.BlsKey)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
 	return n
 }
 
@@ -830,6 +898,9 @@ func (m *EventEditStorageProvider) Size() (n int) {
 	}
 	var l int
 	_ = l
+	if m.SpId != 0 {
+		n += 1 + sovEvents(uint64(m.SpId))
+	}
 	l = len(m.SpAddress)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
@@ -849,6 +920,10 @@ func (m *EventEditStorageProvider) Size() (n int) {
 		n += 1 + l + sovEvents(uint64(l))
 	}
 	l = len(m.GcAddress)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.BlsKey)
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
@@ -882,9 +957,8 @@ func (m *EventSpStoragePriceUpdate) Size() (n int) {
 	}
 	var l int
 	_ = l
-	l = len(m.SpAddress)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
+	if m.SpId != 0 {
+		n += 1 + sovEvents(uint64(m.SpId))
 	}
 	if m.UpdateTimeSec != 0 {
 		n += 1 + sovEvents(uint64(m.UpdateTimeSec))
@@ -949,6 +1023,25 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpId", wireType)
+			}
+			m.SpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
 			}
@@ -980,7 +1073,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.SpAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FundingAddress", wireType)
 			}
@@ -1012,7 +1105,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.FundingAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SealAddress", wireType)
 			}
@@ -1044,7 +1137,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.SealAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ApprovalAddress", wireType)
 			}
@@ -1076,7 +1169,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.ApprovalAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GcAddress", wireType)
 			}
@@ -1108,7 +1201,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.GcAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Endpoint", wireType)
 			}
@@ -1140,7 +1233,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.Endpoint = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 7:
+		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field TotalDeposit", wireType)
 			}
@@ -1176,7 +1269,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 8:
+		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -1195,7 +1288,7 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
-		case 9:
+		case 10:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
@@ -1227,6 +1320,38 @@ func (m *EventCreateStorageProvider) Unmarshal(dAtA []byte) error {
 			if err := m.Description.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlsKey", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BlsKey = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1279,6 +1404,25 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpId", wireType)
+			}
+			m.SpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
 			}
@@ -1310,7 +1454,7 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.SpAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 2:
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Endpoint", wireType)
 			}
@@ -1342,7 +1486,7 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.Endpoint = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
@@ -1375,7 +1519,7 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field SealAddress", wireType)
 			}
@@ -1407,7 +1551,7 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.SealAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ApprovalAddress", wireType)
 			}
@@ -1439,7 +1583,7 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 			}
 			m.ApprovalAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field GcAddress", wireType)
 			}
@@ -1470,6 +1614,38 @@ func (m *EventEditStorageProvider) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.GcAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BlsKey", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BlsKey = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -1668,10 +1844,10 @@ func (m *EventSpStoragePriceUpdate) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SpId", wireType)
 			}
-			var stringLen uint64
+			m.SpId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -1681,24 +1857,11 @@ func (m *EventSpStoragePriceUpdate) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.SpId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SpAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UpdateTimeSec", wireType)
