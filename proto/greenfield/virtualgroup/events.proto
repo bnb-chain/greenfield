@@ -99,10 +99,12 @@ message EventSwapOut {
 message EventCompleteSwapOut {
   // The id of the storage provider who complete swap out.
   uint32 storage_provider_id = 1;
+  // The id of the storage provider who swap out the family or gvgs
+  uint32 src_storage_provider_id = 2;
   // The id of the gvg family
-  uint32 global_virtual_group_family_id = 2;
+  uint32 global_virtual_group_family_id = 3;
   // The ids of the gvgs
-  repeated uint32 global_virtual_group_ids = 3;
+  repeated uint32 global_virtual_group_ids = 4;
 }
 
 message EventCancelSwapOut {
