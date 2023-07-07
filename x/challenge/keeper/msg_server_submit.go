@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/challenge/types"
@@ -18,50 +19,66 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	challenger := sdk.MustAccAddressFromHex(msg.Challenger)
 
 	// check sp status
-	sp, found := k.SpKeeper.GetStorageProvider(ctx, spOperator)
+	bucketInfo, found := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
+	if !found {
+		return nil, types.ErrUnknownBucketObject
+	}
+	sp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
 	if !found {
 		return nil, types.ErrUnknownSp
 	}
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 		return nil, types.ErrInvalidSpStatus
 	}
 
 	// check object & read needed data
 	objectInfo, found := k.StorageKeeper.GetObjectInfo(ctx, msg.BucketName, msg.ObjectName)
 	if !found {
-		return nil, types.ErrUnknownObject
+		return nil, types.ErrUnknownBucketObject
 	}
 	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
 		return nil, types.ErrInvalidObjectStatus
 	}
 
-	// check whether the sp stores the object info
+	// check whether the sp stores the object info, generate redundancy index
 	stored := false
-	for _, sp := range objectInfo.GetSecondarySpAddresses() {
-		if spOperator.Equals(sdk.MustAccAddressFromHex(sp)) {
-			stored = true
-			break
+	redundancyIndex := types.RedundancyIndexPrimary
+
+	// check primary sp
+	tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
+	if !found {
+		return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find storage provider: %d", bucketInfo.PrimarySpId)
+	}
+	if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
+		stored = true
+	}
+
+	if !stored {
+		gvg, found := k.StorageKeeper.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		if !found {
+			return nil, errors.Wrapf(types.ErrCannotFindGVG, "no GVG binding for LVG: %d", objectInfo.LocalVirtualGroupId)
+		}
+
+		// check secondary sp
+		for i, spId := range gvg.SecondarySpIds {
+			tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, spId)
+			if !found {
+				return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find storage provider: %d", spId)
+			}
+			if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
+				redundancyIndex = int32(i)
+				stored = true
+				break
+			}
 		}
 	}
 	if !stored {
-		bucket, _ := k.StorageKeeper.GetBucketInfo(ctx, msg.BucketName)
-		if !spOperator.Equals(sdk.MustAccAddressFromHex(bucket.GetPrimarySpAddress())) {
-			return nil, types.ErrNotStoredOnSp
-		}
+		return nil, types.ErrNotStoredOnSp
 	}
 
 	// check sp recent slash
-	if k.ExistsSlash(ctx, spOperator, objectInfo.Id) {
+	if k.ExistsSlash(ctx, sp.Id, objectInfo.Id) {
 		return nil, types.ErrExistsRecentSlash
-	}
-
-	// generate redundancy index
-	redundancyIndex := types.RedundancyIndexPrimary
-	for i, sp := range objectInfo.GetSecondarySpAddresses() {
-		if spOperator.Equals(sdk.MustAccAddressFromHex(sp)) {
-			redundancyIndex = int32(i)
-			break
-		}
 	}
 
 	// generate segment index

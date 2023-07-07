@@ -30,6 +30,8 @@ func TestEip712TestSuite(t *testing.T) {
 func (s *Eip712TestSuite) TestMultiMessages() {
 	var err error
 	sp := s.StorageProviders[0]
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	// CreateBucket
@@ -37,6 +39,7 @@ func (s *Eip712TestSuite) TestMultiMessages() {
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
 		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 

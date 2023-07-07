@@ -49,7 +49,11 @@ func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.Q
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid sp address")
 	}
-	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, spAddr, req.Timestamp)
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, spAddr)
+	if !found {
+		return nil, status.Error(codes.InvalidArgument, "unknown sp with the operator address")
+	}
+	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, sp.Id, req.Timestamp)
 	if err != nil {
 		return nil, status.Errorf(codes.NotFound, "not found, err: %s", err)
 	}
@@ -82,11 +86,7 @@ func (k Keeper) StorageProvider(goCtx context.Context, req *types.QueryStoragePr
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	spAddr, err := sdk.AccAddressFromHexUnsafe(req.SpAddress)
-	if err != nil {
-		return nil, err
-	}
-	sp, found := k.GetStorageProvider(ctx, spAddr)
+	sp, found := k.GetStorageProvider(ctx, req.Id)
 	if !found {
 		return nil, types.ErrStorageProviderNotFound
 	}
@@ -100,4 +100,22 @@ func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types
 	ctx := sdk.UnwrapSDKContext(c)
 
 	return &types.QueryParamsResponse{Params: k.GetParams(ctx)}, nil
+}
+
+func (k Keeper) StorageProviderByOperatorAddress(goCtx context.Context, req *types.QueryStorageProviderByOperatorAddressRequest) (*types.QueryStorageProviderByOperatorAddressResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr, err := sdk.AccAddressFromHexUnsafe(req.OperatorAddress)
+	if err != nil {
+		return nil, err
+	}
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, types.ErrStorageProviderNotFound
+	}
+	return &types.QueryStorageProviderByOperatorAddressResponse{StorageProvider: sp}, nil
 }

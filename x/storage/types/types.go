@@ -18,20 +18,20 @@ const (
 	MaxPaginationLimit = 200 // the default limit is 100 if pagination parameters is not provided
 )
 
-func EncodeSequence(u Uint) []byte {
-	return u.Bytes()
-}
-
-func DecodeSequence(bz []byte) Uint {
-	u := sdkmath.NewUint(0)
-	return u.SetBytes(bz)
-}
-
 func (m *BucketInfo) ToNFTMetadata() *BucketMetaData {
 	return &BucketMetaData{
 		BucketName: m.BucketName,
 		Attributes: getNFTAttributes(*m),
 	}
+}
+
+func (m *BucketInfo) CheckBucketStatus() error {
+	if m.BucketStatus == BUCKET_STATUS_DISCONTINUED {
+		return ErrBucketDiscontinued
+	} else if m.BucketStatus == BUCKET_STATUS_MIGRATING {
+		return ErrBucketMigrating
+	}
+	return nil
 }
 
 func (m *ObjectInfo) ToNFTMetadata() *ObjectMetaData {
@@ -82,4 +82,49 @@ func (di *DeleteInfo) IsEmpty() bool {
 		isGroupIdsEmpty = true
 	}
 	return isBucketIdsEmpty && isObjectIdsEmpty && isGroupIdsEmpty
+}
+
+func (b *InternalBucketInfo) GetLVGByGVGID(gvgID uint32) (*LocalVirtualGroup, bool) {
+	for _, lvg := range b.LocalVirtualGroups {
+		if lvg.GlobalVirtualGroupId == gvgID {
+			return lvg, true
+		}
+	}
+	return nil, false
+}
+
+func (b *InternalBucketInfo) AppendLVG(lvg *LocalVirtualGroup) {
+	if len(b.LocalVirtualGroups) != 0 {
+		lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
+		if lvg.Id <= lastLVG.Id {
+			panic("Not allow to append a lvg which id is smaller than the last lvg")
+		}
+	}
+	b.LocalVirtualGroups = append(b.LocalVirtualGroups, lvg)
+}
+
+func (b *InternalBucketInfo) GetMaxLVGID() uint32 {
+	if len(b.LocalVirtualGroups) == 0 {
+		return 0
+	} else {
+		lastLVG := b.LocalVirtualGroups[len(b.LocalVirtualGroups)-1]
+		return lastLVG.Id
+	}
+}
+
+func (b *InternalBucketInfo) GetLVG(lvgID uint32) (*LocalVirtualGroup, bool) {
+	for _, lvg := range b.LocalVirtualGroups {
+		if lvg.Id == lvgID {
+			return lvg, true
+		}
+	}
+	return nil, false
+}
+
+func (b *InternalBucketInfo) MustGetLVG(lvgID uint32) *LocalVirtualGroup {
+	lvg, found := b.GetLVG(lvgID)
+	if !found {
+		panic("lvg not found in internal bucket info")
+	}
+	return lvg
 }

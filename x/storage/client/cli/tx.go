@@ -21,7 +21,7 @@ import (
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd() *cobra.Command {
-	storageTxCmd := &cobra.Command{
+	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -29,7 +29,7 @@ func GetTxCmd() *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	storageTxCmd.AddCommand(
+	cmd.AddCommand(
 		CmdCreateBucket(),
 		CmdDeleteBucket(),
 		CmdUpdateBucketInfo(),
@@ -37,7 +37,7 @@ func GetTxCmd() *cobra.Command {
 		CmdDiscontinueBucket(),
 	)
 
-	storageTxCmd.AddCommand(
+	cmd.AddCommand(
 		CmdCreateObject(),
 		CmdDeleteObject(),
 		CmdCancelCreateObject(),
@@ -47,7 +47,7 @@ func GetTxCmd() *cobra.Command {
 		CmdUpdateObjectInfo(),
 	)
 
-	storageTxCmd.AddCommand(
+	cmd.AddCommand(
 		CmdCreateGroup(),
 		CmdDeleteGroup(),
 		CmdUpdateGroupMember(),
@@ -56,14 +56,15 @@ func GetTxCmd() *cobra.Command {
 		CmdMirrorGroup(),
 	)
 
-	storageTxCmd.AddCommand(
+	cmd.AddCommand(
 		CmdPutPolicy(),
 		CmdDeletePolicy(),
 	)
 
+	cmd.AddCommand(CmdCancelMigrateBucket())
 	// this line is used by starport scaffolding # 1
 
-	return storageTxCmd
+	return cmd
 }
 
 // CmdCreateBucket returns a CLI command handler for creating a MsgCreateBucket transaction.
@@ -318,7 +319,6 @@ func CmdCreateObject() *cobra.Command {
 				redundancyType,
 				approveTimeoutHeight,
 				approveSignatureBytes,
-				nil,
 			)
 			primarySP, err := cmd.Flags().GetString(FlagPrimarySP)
 			if err != nil {

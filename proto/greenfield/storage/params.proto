@@ -40,6 +40,8 @@ message Params {
   uint64 stale_policy_cleanup_max = 15;
   // The min interval for making quota smaller in seconds
   uint64 min_quota_update_interval = 16;
+  // the max number of local virtual group per bucket
+  uint32 max_local_virtual_group_num_per_bucket = 17;
 }
 
 // VersionedParams defines the parameters for the storage module with multi version, each version store with different timestamp.

@@ -25,6 +25,11 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	submitter := sdk.MustAccAddressFromHex(msg.Submitter)
 	spOperator := sdk.MustAccAddressFromHex(msg.SpOperatorAddress)
 
+	sp, found := k.SpKeeper.GetStorageProviderByOperatorAddr(ctx, spOperator)
+	if !found {
+		return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find sp with operator address: %s", msg.SpOperatorAddress)
+	}
+
 	challenger := sdk.AccAddress{}
 	if msg.ChallengerAddress != "" {
 		challenger = sdk.MustAccAddressFromHex(msg.ChallengerAddress)
@@ -47,35 +52,51 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		return nil, types.ErrNotInturnChallenger
 	}
 
-	//check object, and get object info
-	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
-	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
-		return nil, types.ErrUnknownObject
-	}
-
 	// check attest validators and signatures
 	validators, err := k.verifySignature(ctx, msg, allValidators)
 	if err != nil {
 		return nil, err
 	}
 
+	//check object, and get object info
+	objectInfo, found := k.StorageKeeper.GetObjectInfoById(ctx, msg.ObjectId)
+	if !found { // be noted: even the object info is not in service now, we will continue slash the storage provider
+		return nil, types.ErrUnknownBucketObject
+	}
+
+	//for migrating buckets, or swapping out, the process could be done when offline service does the verification
+	bucketInfo, _ := k.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
+	if bucketInfo.PrimarySpId != sp.Id {
+		gvg, _ := k.StorageKeeper.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		found = false
+		for _, id := range gvg.SecondarySpIds {
+			if id == sp.Id {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return nil, errors.Wrapf(types.ErrNotStoredOnSp, "sp %s does not store the object anymore", sp.OperatorAddress)
+		}
+	}
+
 	if msg.VoteResult == types.CHALLENGE_SUCCEED {
 		// check slash
-		if k.ExistsSlash(ctx, spOperator, msg.ObjectId) {
+		if k.ExistsSlash(ctx, sp.Id, msg.ObjectId) {
 			return nil, types.ErrDuplicatedSlash
 		}
 
 		// do slash & reward
 		objectSize := objectInfo.PayloadSize
-		err = k.doSlashAndRewards(ctx, msg.ChallengeId, msg.VoteResult, objectSize, spOperator, submitter, challenger, validators)
+		err = k.doSlashAndRewards(ctx, msg.ChallengeId, msg.VoteResult, objectSize, sp.Id, submitter, challenger, validators)
 		if err != nil {
 			return nil, err
 		}
 
 		slash := types.Slash{
-			SpOperatorAddress: spOperator,
-			ObjectId:          msg.ObjectId,
-			Height:            uint64(ctx.BlockHeight()),
+			SpId:     sp.Id,
+			ObjectId: msg.ObjectId,
+			Height:   uint64(ctx.BlockHeight()),
 		}
 		k.SaveSlash(ctx, slash)
 	} else {
@@ -86,7 +107,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		}
 
 		// reward validators & tx submitter
-		err = k.doHeartbeatAndRewards(ctx, msg.ChallengeId, msg.VoteResult, spOperator, submitter, challenger)
+		err = k.doHeartbeatAndRewards(ctx, msg.ChallengeId, msg.VoteResult, sp.Id, submitter, challenger)
 		if err != nil {
 			return nil, err
 		}
@@ -151,7 +172,7 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 
 // doSlashAndRewards will execute the slash, transfer the rewards and emit events.
 func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, objectSize uint64,
-	spOperator, submitter, challenger sdk.AccAddress, validators []string) error {
+	spID uint32, submitter, challenger sdk.AccAddress, validators []string) error {
 
 	slashAmount := k.calculateSlashAmount(ctx, objectSize)
 	challengerReward, eachValidatorReward, submitterReward := k.calculateSlashRewards(ctx, slashAmount,
@@ -184,7 +205,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 			Amount: submitterReward,
 		}})
 
-	err := k.SpKeeper.Slash(ctx, spOperator, rewards)
+	err := k.SpKeeper.Slash(ctx, spID, rewards)
 	if err != nil {
 		return err
 	}
@@ -192,7 +213,7 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 	event := types.EventAttestChallenge{
 		ChallengeId:            challengeId,
 		Result:                 voteResult,
-		SpOperatorAddress:      spOperator.String(),
+		SpId:                   spID,
 		SlashAmount:            slashAmount.String(),
 		ChallengerAddress:      challenger.String(),
 		ChallengerRewardAmount: challengerReward.String(),
@@ -217,7 +238,7 @@ func (k msgServer) calculateHeartbeatRewards(ctx sdk.Context, total sdkmath.Int)
 
 // doHeartbeatAndRewards will transfer the tax to distribution account and rewards to submitter.
 func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult,
-	spOperator, submitter, challenger sdk.AccAddress) error {
+	spID uint32, submitter, challenger sdk.AccAddress) error {
 	totalAmount, err := k.paymentKeeper.QueryDynamicBalance(ctx, paymentmoduletypes.ValidatorTaxPoolAddress)
 	if err != nil {
 		return err
@@ -243,7 +264,7 @@ func (k msgServer) doHeartbeatAndRewards(ctx sdk.Context, challengeId uint64, vo
 	return ctx.EventManager().EmitTypedEvents(&types.EventAttestChallenge{
 		ChallengeId:            challengeId,
 		Result:                 voteResult,
-		SpOperatorAddress:      spOperator.String(),
+		SpId:                   spID,
 		SlashAmount:            "",
 		ChallengerAddress:      challenger.String(),
 		ChallengerRewardAmount: "",

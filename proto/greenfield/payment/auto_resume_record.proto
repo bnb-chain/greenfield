@@ -1,0 +1,16 @@
+syntax = "proto3";
+package greenfield.payment;
+
+import "cosmos_proto/cosmos.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
+
+// AutoResumeRecord is the record keeps the auto resume information.
+// The EndBlocker of payment module will scan the list of AutoResumeRecord
+// and resume the stream account one by one.
+message AutoResumeRecord {
+  // timestamp is the unix timestamp to order the records
+  int64 timestamp = 1;
+  // the stream account address
+  string addr = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}

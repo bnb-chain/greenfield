@@ -30,10 +30,12 @@ message EventCreateBucket {
   uint64 charged_read_quota = 7;
   // payment_address is the address of the payment account
   string payment_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // primary_sp_address is the operator address of the primary sp.
-  string primary_sp_address = 9 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id is the unique id of primary sp.
+  uint32 primary_sp_id = 9;
+  // global_virtual_group_family_id defines the unique id of gvg family
+  uint32 global_virtual_group_family_id = 10;
   // status define the status of the bucket.
-  BucketStatus status = 10;
+  BucketStatus status = 11;
 }
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
@@ -50,8 +52,8 @@ message EventDeleteBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_address define the account address of primary sp
-  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id is the unique id of primary sp.
+  uint32 primary_sp_id = 5;
 }
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
@@ -116,8 +118,8 @@ message EventCreateObject {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_address define the account address of primary sp
-  string primary_sp_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id define the unique id of primary sp
+  uint32 primary_sp_id = 8;
   // payload_size define the size of payload data which you want upload
   uint64 payload_size = 9;
   // visibility defines the highest permission of object.
@@ -136,7 +138,7 @@ message EventCreateObject {
   repeated bytes checksums = 16;
 }
 
-// EventSealObject is emitted on MsgSealObject
+// EventCancelCreateObject is emitted on MsgCancelCreateObject
 message EventCancelCreateObject {
   // operator define the account address of operator who cancel create object
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
@@ -144,8 +146,8 @@ message EventCancelCreateObject {
   string bucket_name = 2;
   // object_name define the name of the object
   string object_name = 3;
-  // primary_sp_address define the operator account address of the sp
-  string primary_sp_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // primary_sp_id define the unique id of primary sp
+  uint32 primary_sp_id = 4;
   // id define an u256 id for object
   string object_id = 6 [
     (cosmos_proto.scalar) = "cosmos.Uint",
@@ -170,8 +172,10 @@ message EventSealObject {
   ];
   // status define the status of the object. INIT or IN_SERVICE or others
   ObjectStatus status = 6;
-  // secondary_sp_address define all the operator address of the secondary sps
-  repeated string secondary_sp_addresses = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // global_virtual_group_id defines the unique id of gvg which the object stored
+  uint32 global_virtual_group_id = 7;
+  // local_virtual_group_id defines the unique id of lvg which the object stored
+  uint32 local_virtual_group_id = 8;
 }
 
 // EventCopyObject is emitted on MsgCopyObject
@@ -214,10 +218,8 @@ message EventDeleteObject {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_address define the operator account address of the sp
-  string primary_sp_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // secondary_sp_address define all the operator address of the secondary sps
-  repeated string secondary_sp_addresses = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // local_virtual_group_id defines the unique id of lvg which the object stored
+  uint32 local_virtual_group_id = 5;
 }
 
 // EventRejectSealObject is emitted on MsgRejectSealObject
@@ -462,4 +464,52 @@ message EventMirrorGroupResult {
 message EventStalePolicyCleanup {
   int64 blockNum = 1;
   DeleteInfo delete_info = 2;
+}
+
+message EventMigrationBucket {
+  // The address of the operator that initiated the bucket migration,
+  // usually the owner of the bucket or another account which has permission to operate
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
+  string bucket_name = 2;
+  // bucket_id define an u256 id for object
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // The id of the destination primary sp
+  uint32 dst_primary_sp_id = 4;
+}
+
+message EventCancelMigrationBucket {
+  // The address of the operator that canceled the bucket migration,
+  // usually the owner of the bucket or another account which has permission to operate
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
+  string bucket_name = 2;
+  // bucket_id define an u256 id for object
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventCompleteMigrationBucket {
+  // The address of the operator that initiated the bucket migration,
+  // usually the owner of the bucket or another account which has permission to operate
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
+  string bucket_name = 2;
+  // bucket_id define an u256 id for object
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // The family id that the bucket to be migrated to
+  uint32 global_virtual_group_family_id = 4;
+  // The src and dst gvg mapping
+  repeated GVGMapping gvg_mappings = 5;
 }

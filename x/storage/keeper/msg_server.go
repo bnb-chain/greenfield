@@ -3,16 +3,18 @@ package keeper
 import (
 	"context"
 
-	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type msgServer struct {
@@ -103,21 +105,20 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx)) {
+	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
 		return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
 			1+k.Keeper.RedundantParityChunkNum(ctx)+k.Keeper.RedundantParityChunkNum(ctx),
 			len(msg.ExpectChecksums))
 	}
 
 	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, CreateObjectOptions{
-		SourceType:           types.SOURCE_TYPE_ORIGIN,
-		Visibility:           msg.Visibility,
-		ContentType:          msg.ContentType,
-		RedundancyType:       msg.RedundancyType,
-		Checksums:            msg.ExpectChecksums,
-		PrimarySpApproval:    msg.PrimarySpApproval,
-		ApprovalMsgBytes:     msg.GetApprovalBytes(),
-		SecondarySpAddresses: msg.ExpectSecondarySpAddresses,
+		SourceType:        types.SOURCE_TYPE_ORIGIN,
+		Visibility:        msg.Visibility,
+		ContentType:       msg.ContentType,
+		RedundancyType:    msg.RedundancyType,
+		Checksums:         msg.ExpectChecksums,
+		PrimarySpApproval: msg.PrimarySpApproval,
+		ApprovalMsgBytes:  msg.GetApprovalBytes(),
 	})
 	if err != nil {
 		return nil, err
@@ -146,20 +147,9 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 
 	spSealAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx)
-	if len(msg.SecondarySpAddresses) != (int)(expectSecondarySPNum) {
-		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPAddress, "Missing SP expect (%d), but (%d)", expectSecondarySPNum,
-			len(msg.SecondarySpAddresses))
-	}
-
-	if len(msg.SecondarySpSignatures) != (int)(expectSecondarySPNum) {
-		return nil, errors.Wrapf(gnfderrors.ErrInvalidSPSignature, "Missing SP signatures, expect (%d), but (%d)",
-			expectSecondarySPNum, len(msg.SecondarySpSignatures))
-	}
-
 	err := k.Keeper.SealObject(ctx, spSealAcc, msg.BucketName, msg.ObjectName, SealObjectOptions{
-		SecondarySpAddresses:  msg.SecondarySpAddresses,
-		SecondarySpSignatures: msg.SecondarySpSignatures,
+		GlobalVirtualGroupId:     msg.GlobalVirtualGroupId,
+		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
 	})
 
 	if err != nil {
@@ -592,4 +582,59 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+func (k msgServer) MigrateBucket(goCtx context.Context, msg *types.MsgMigrateBucket) (*types.MsgMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.MigrateBucket(ctx, operator, msg.BucketName, msg.DstPrimarySpId, msg.DstPrimarySpApproval, msg.GetApprovalBytes())
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgMigrateBucketResponse{}, nil
+}
+
+func (k msgServer) CompleteMigrateBucket(goCtx context.Context, msg *types.MsgCompleteMigrateBucket) (*types.MsgCompleteMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.Keeper.CompleteMigrateBucket(ctx, operator, msg.BucketName, msg.GlobalVirtualGroupFamilyId, msg.GvgMappings)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCompleteMigrateBucketResponse{}, nil
+}
+
+func (k msgServer) CancelMigrateBucket(goCtx context.Context, msg *types.MsgCancelMigrateBucket) (*types.MsgCancelMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.CancelBucketMigration(ctx, operator, msg.BucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgCancelMigrateBucketResponse{}, nil
+}
+
+func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
+	// verify secondary sp signature
+	for _, newLvg2gvg := range gvgMappings {
+		dstGVG, found := k.virtualGroupKeeper.GetGVG(ctx, newLvg2gvg.DstGlobalVirtualGroupId)
+		if !found {
+			return virtualgroupmoduletypes.ErrGVGNotExist.Wrapf("dst gvg not found")
+		}
+		// validate the aggregated bls signature
+		migrationBucketSignDocBlsSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(ctx.ChainID(), bucketID, dstSP.Id, newLvg2gvg.SrcGlobalVirtualGroupId, dstGVG.Id).GetBlsSignHash()
+		err := k.VerifyGVGSecondarySPsBlsSignature(ctx, dstGVG, migrationBucketSignDocBlsSignHash, newLvg2gvg.SecondarySpBlsSignature)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

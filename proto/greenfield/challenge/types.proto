@@ -20,7 +20,7 @@ enum VoteResult {
 // Slash records the storage provider slashes, which will be pruned periodically.
 message Slash {
   // The slashed storage provider.
-  bytes sp_operator_address = 1;
+  uint32 sp_id = 1;
 
   // The slashed object info.
   string object_id = 2 [

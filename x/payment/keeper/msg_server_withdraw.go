@@ -31,11 +31,11 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		}
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(from).WithStaticBalanceChange(msg.Amount.Neg())
-	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
-	k.SetStreamRecord(ctx, streamRecord)
+	err := k.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return nil, err
 	}
+	k.SetStreamRecord(ctx, streamRecord)
 	if streamRecord.StaticBalance.IsNegative() {
 		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}

@@ -5,6 +5,9 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
+	"github.com/bnb-chain/greenfield/internal/sequence"
+	errors2 "github.com/bnb-chain/greenfield/types/errors"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -12,7 +15,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfd "github.com/bnb-chain/greenfield/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -62,13 +64,27 @@ func (k Keeper) HeadObject(goCtx context.Context, req *types.QueryHeadObjectRequ
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	objectInfo, found := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
-	if found {
-		return &types.QueryHeadObjectResponse{
-			ObjectInfo: objectInfo,
-		}, nil
+	objectInfo, objectFound := k.GetObjectInfo(ctx, req.BucketName, req.ObjectName)
+	if !objectFound {
+		return nil, types.ErrNoSuchObject
 	}
-	return nil, types.ErrNoSuchObject
+
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	var gvg *types2.GlobalVirtualGroup
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
+		gvgFound := false
+		gvg, gvgFound = k.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		if !gvgFound {
+			return nil, types.ErrInvalidGlobalVirtualGroup.Wrapf("gvg not found. objectInfo: %s", objectInfo.String())
+		}
+	}
+	return &types.QueryHeadObjectResponse{
+		ObjectInfo:         objectInfo,
+		GlobalVirtualGroup: gvg,
+	}, nil
 }
 
 func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObjectByIdRequest) (*types.QueryHeadObjectResponse, error) {
@@ -83,12 +99,27 @@ func (k Keeper) HeadObjectById(goCtx context.Context, req *types.QueryHeadObject
 	}
 
 	objectInfo, found := k.GetObjectInfoById(ctx, id)
-	if found {
-		return &types.QueryHeadObjectResponse{
-			ObjectInfo: objectInfo,
-		}, nil
+	if !found {
+		return nil, types.ErrNoSuchObject
 	}
-	return nil, types.ErrNoSuchObject
+
+	bucketInfo, found := k.GetBucketInfo(ctx, objectInfo.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+	var gvg *types2.GlobalVirtualGroup
+	if objectInfo.ObjectStatus == types.OBJECT_STATUS_SEALED {
+		gvgFound := false
+		gvg, gvgFound = k.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
+		if !gvgFound {
+			return nil, types.ErrInvalidGlobalVirtualGroup.Wrapf("gvg not found. objectInfo: %s", objectInfo.String())
+		}
+	}
+	return &types.QueryHeadObjectResponse{
+		ObjectInfo:         objectInfo,
+		GlobalVirtualGroup: gvg,
+	}, nil
+
 }
 
 func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRequest) (*types.QueryListBucketsResponse, error) {
@@ -133,7 +164,7 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(req.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
-		objectInfo, found := k.GetObjectInfoById(ctx, sequence.DecodeSequence(value))
+		objectInfo, found := k.GetObjectInfoById(ctx, k.objectSeq.DecodeSequence(value))
 		if found {
 			objectInfos = append(objectInfos, objectInfo)
 		}
@@ -169,7 +200,8 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 	objectPrefixStore := prefix.NewStore(store, types.GetObjectKeyOnlyBucketPrefix(bucketInfo.BucketName))
 
 	pageRes, err := query.Paginate(objectPrefixStore, req.Pagination, func(key []byte, value []byte) error {
-		objectInfo, found := k.GetObjectInfoById(ctx, types.DecodeSequence(value))
+		u256Seq := sequence.Sequence[math.Uint]{}
+		objectInfo, found := k.GetObjectInfoById(ctx, u256Seq.DecodeSequence(value))
 		if found {
 			objectInfos = append(objectInfos, objectInfo)
 		}
@@ -306,7 +338,7 @@ func (k Keeper) VerifyPermission(goCtx context.Context, req *types.QueryVerifyPe
 	}
 
 	if req.BucketName == "" {
-		return nil, errors.Wrapf(types.ErrInvalidParameter, "No bucket specified")
+		return nil, errors.Wrapf(errors2.ErrInvalidParameter, "No bucket specified")
 	}
 
 	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
@@ -369,7 +401,7 @@ func (k Keeper) ListGroup(goCtx context.Context, req *types.QueryListGroupReques
 	groupStore := prefix.NewStore(store, types.GetGroupKeyOnlyOwnerPrefix(owner))
 
 	pageRes, err := query.Paginate(groupStore, req.Pagination, func(key []byte, value []byte) error {
-		groupInfo, found := k.GetGroupInfoById(ctx, sequence.DecodeSequence(value))
+		groupInfo, found := k.GetGroupInfoById(ctx, k.groupSeq.DecodeSequence(value))
 		if found {
 			groupInfos = append(groupInfos, groupInfo)
 		}

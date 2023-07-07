@@ -22,7 +22,8 @@
       "read_price": "0.087",
       "store_price": "0.0048",
       "free_read_quota": 10000000000,
-      "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2"
+      "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2",
+      "bls_key": "89f5e82d1bbb7c751b063d6d69d30c5812a088cabb9ed015b1741939a45a896d83b5435d63257b954450c26d857de4e1"
     }
   ],
   "title": "create sp",

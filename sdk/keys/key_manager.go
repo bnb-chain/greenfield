@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
+	ethbls "github.com/cosmos/cosmos-sdk/crypto/keys/eth/bls"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
 	ctypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/cosmos/cosmos-sdk/types"
@@ -38,6 +39,12 @@ func NewPrivateKeyManager(priKey string) (KeyManager, error) {
 func NewMnemonicKeyManager(mnemonic string) (KeyManager, error) {
 	k := keyManager{}
 	err := k.recoveryFromMnemonic(mnemonic, FullPath)
+	return &k, err
+}
+
+func NewBlsPrivateKeyManager(priKey string) (KeyManager, error) {
+	k := keyManager{}
+	err := k.recoveryFromBlsPrivateKey(priKey)
 	return &k, err
 }
 
@@ -82,6 +89,23 @@ func (km *keyManager) recoveryFromMnemonic(mnemonic, keyPath string) error {
 	priKey := hd.EthSecp256k1.Generate()(derivedPriv[:]).(*ethsecp256k1.PrivKey)
 	km.privKey = priKey
 	km.mnemonic = mnemonic
+	km.addr = types.AccAddress(km.privKey.PubKey().Address())
+	return nil
+}
+
+func (km *keyManager) recoveryFromBlsPrivateKey(privateKey string) error {
+	priBytes, err := hex.DecodeString(privateKey)
+	if err != nil {
+		return err
+	}
+
+	if len(priBytes) != 32 {
+		return fmt.Errorf("Len of Keybytes is not equal to 32 ")
+	}
+	var keyBytesArray [32]byte
+	copy(keyBytesArray[:], priBytes[:32])
+	priKey := hd.EthBLS.Generate()(keyBytesArray[:]).(*ethbls.PrivKey)
+	km.privKey = priKey
 	km.addr = types.AccAddress(km.privKey.PubKey().Address())
 	return nil
 }

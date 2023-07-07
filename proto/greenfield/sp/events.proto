@@ -10,40 +10,48 @@ option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // EventCreateStorageProvider is emitted when there is a storage provider created
 message EventCreateStorageProvider {
+  // sp_id defines the identifier of storage provider which generated on-chain
+  uint32 sp_id = 1;
   // sp_address is the operator address of the storage provider
-  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string sp_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // funding_address is the funding account address of the storage provider
-  string funding_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // seal_address is the account address for SealObject Tx
-  string seal_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // approval_address is the account address for approve create bucket/object signature
-  string approval_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // gc_address defines one of the storage provider's accounts which is used for gc purpose
-  string gc_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // endpoint is the domain name address used by SP to provide storage services
-  string endpoint = 6;
-  // total_deposit is the token coin that the storage provider deposit to the storage module
-  cosmos.base.v1beta1.Coin total_deposit = 7;
-  // status defines the status of the storage provider
-  Status status = 8;
-  // description defines the description terms for the storage provider
-  Description description = 9 [(gogoproto.nullable) = false];
-}
-
-// EventEditStorageProvider is emitted when SP's metadata is edited.
-message EventEditStorageProvider {
-  // sp_address is the operator address of the storage provider
-  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // endpoint is the service endpoint of the storage provider
-  string endpoint = 2;
-  // description defines the description terms for the storage provider
-  Description description = 3 [(gogoproto.nullable) = false];
+  string funding_address = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // seal_address is the account address for SealObject Tx
   string seal_address = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // approval_address is the account address for approve create bucket/object signature
   string approval_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose
   string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // endpoint is the domain name address used by SP to provide storage services
+  string endpoint = 7;
+  // total_deposit is the token coin that the storage provider deposit to the storage module
+  cosmos.base.v1beta1.Coin total_deposit = 8;
+  // status defines the status of the storage provider
+  Status status = 9;
+  // description defines the description terms for the storage provider
+  Description description = 10 [(gogoproto.nullable) = false];
+  // bls_key defines the bls pub key owned by storage provider used when sealing object and completing migration
+  string bls_key = 11;
+}
+
+// EventEditStorageProvider is emitted when SP's metadata is edited.
+message EventEditStorageProvider {
+  // sp_id defines the identifier of storage provider which generated on-chain
+  uint32 sp_id = 1;
+  // sp_address is the operator address of the storage provider
+  string sp_address = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // endpoint is the service endpoint of the storage provider
+  string endpoint = 3;
+  // description defines the description terms for the storage provider
+  Description description = 4 [(gogoproto.nullable) = false];
+  // seal_address is the account address for SealObject Tx
+  string seal_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // approval_address is the account address for approve create bucket/object signature
+  string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // gc_address defines one of the storage provider's accounts which is used for gc purpose
+  string gc_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bls_key defines the bls pub key owned by storage provider used when sealing object
+  string bls_key = 8;
 }
 
 // EventDeposit is emitted when sp deposit tokens.
@@ -57,8 +65,8 @@ message EventDeposit {
 }
 
 message EventSpStoragePriceUpdate {
-  // sp address
-  string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // sp id
+  uint32 sp_id = 1;
   // update time, in unix timestamp
   int64 update_time_sec = 2;
   // read price, in bnb wei per charge byte
