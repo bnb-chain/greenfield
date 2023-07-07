@@ -3,6 +3,7 @@ package sample
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -41,4 +42,16 @@ func RandBlsPubKey() []byte {
 func RandBlsPubKeyHex() string {
 	blsPrivKey, _ := bls.RandKey()
 	return hex.EncodeToString(blsPrivKey.PublicKey().Marshal())
+}
+
+func RandBlsPubKeyAndBlsProofBz() ([]byte, []byte) {
+	blsPriv, _ := bls.RandKey()
+	blsPubKeyBz := blsPriv.PublicKey().Marshal()
+	blsProofBz := blsPriv.Sign(tmhash.Sum(blsPubKeyBz)).Marshal()
+	return blsPubKeyBz, blsProofBz
+}
+
+func RandBlsPubKeyAndBlsProof() (string, string) {
+	blsPubKey, proof := RandBlsPubKeyAndBlsProofBz()
+	return hex.EncodeToString(blsPubKey), hex.EncodeToString(proof)
 }

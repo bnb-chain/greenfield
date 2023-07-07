@@ -3,6 +3,8 @@ package tests
 import (
 	"context"
 	"encoding/hex"
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	"sort"
 	"testing"
 
@@ -63,6 +65,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	ctx := context.Background()
 	sp := s.StorageProviders[0]
+	blsProof, _ := sp.BlsKey.Sign(tmhash.Sum(sp.BlsKey.PubKey().Bytes()))
 
 	// 1. query previous storage provider
 	querySPByOperatorAddressReq := sptypes.QueryStorageProviderByOperatorAddressRequest{
@@ -74,13 +77,15 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	prevSP := querySPByOperatorAddressResp.StorageProvider
 
 	// 2. edit storage provider
+	newBlsPubKeyBz, newBlsProofBz := sample.RandBlsPubKeyAndBlsProofBz()
+
 	newSP := &sptypes.StorageProvider{
 		OperatorAddress: prevSP.OperatorAddress,
 		FundingAddress:  prevSP.FundingAddress,
 		SealAddress:     prevSP.SealAddress,
 		ApprovalAddress: prevSP.ApprovalAddress,
 		GcAddress:       prevSP.GcAddress,
-		BlsKey:          prevSP.BlsKey,
+		BlsKey:          newBlsPubKeyBz,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
 			Identity: "",
@@ -88,10 +93,13 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 		Endpoint:     "http://127.0.0.1:9034",
 		TotalDeposit: prevSP.TotalDeposit,
 	}
-
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), hex.EncodeToString(sp.BlsKey.PubKey().Bytes()))
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(),
+		hex.EncodeToString(newBlsPubKeyBz),
+		hex.EncodeToString(newBlsProofBz),
+	)
+
 	txRes := s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 
@@ -109,7 +117,8 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
 		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(),
-		hex.EncodeToString(sp.BlsKey.PubKey().Bytes()))
+		hex.EncodeToString(prevSP.BlsKey), hex.EncodeToString(blsProof))
+
 	txRes = s.SendTxBlock(sp.OperatorKey, msgEditSP)
 	s.Require().Equal(txRes.Code, uint32(0))
 

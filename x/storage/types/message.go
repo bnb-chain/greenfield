@@ -56,8 +56,6 @@ const (
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
 	MaxDiscontinueObjects   = 128
-
-	BLSSignatureLength = 96
 )
 
 var (
@@ -524,9 +522,9 @@ func (msg *MsgSealObject) ValidateBasic() error {
 		return err
 	}
 
-	if len(msg.GetSecondarySpBlsAggSignatures()) != BLSSignatureLength {
+	if len(msg.GetSecondarySpBlsAggSignatures()) != sdk.BLSSignatureLength {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest,
-			fmt.Sprintf("length of signature should be %d", BLSSignatureLength),
+			fmt.Sprintf("length of signature should be %d", sdk.BLSSignatureLength),
 		)
 	}
 
