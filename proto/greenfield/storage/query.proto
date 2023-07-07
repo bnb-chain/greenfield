@@ -112,6 +112,11 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/policy_by_id/{policy_id}";
   }
 
+  // Queries lock fee for storing an object
+  rpc QueryLockFee(QueryLockFeeRequest) returns (QueryLockFeeResponse) {
+    option (google.api.http).get = "/greenfield/storage/lock_fee";
+  }
+
   // this line is used by starport scaffolding # 2
 }
 
@@ -265,6 +270,23 @@ message QueryPolicyByIdRequest {
 
 message QueryPolicyByIdResponse {
   permission.Policy policy = 1;
+}
+
+message QueryLockFeeRequest {
+  // primary_sp_address is the address of the primary sp.
+  string primary_sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // create_at define the block timestamp when the object created.
+  int64 create_at = 2;
+  // payloadSize is the total size of the object payload
+  uint64 payload_size = 3;
+}
+
+message QueryLockFeeResponse {
+  string amount = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // this line is used by starport scaffolding # 3
