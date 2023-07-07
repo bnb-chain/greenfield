@@ -418,7 +418,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	// 10. complete swap out, as primary sp
 	msgCompleteSwapOut := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
 	s.Require().NoError(err)
-	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut, successorSp.OperatorKey, "not found when complete swap out")
+	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut, successorSp.OperatorKey, "The swap info not found in blockchain")
 
 	// 11 swap again
 	msgSwapOut = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
@@ -465,7 +465,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	// 18. swap
 	msgCompleteSwapOut2 := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
 	s.Require().NoError(err)
-	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut2, successorSp.OperatorKey, "not found when complete swap out")
+	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut2, successorSp.OperatorKey, "The swap info not found in blockchain")
 
 	// 19. swap out again, as secondary sp
 	msgSwapOut2 = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)

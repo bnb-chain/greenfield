@@ -133,7 +133,11 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 
 	store.Delete(types.GetGVGKey(gvg.Id))
 
-	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	if k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) {
+		store.Delete(types.GetGVGFamilyKey(primarySp.Id, gvg.FamilyId))
+	} else {
+		k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	}
 	return nil
 }
 
@@ -500,6 +504,9 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 	if gvgFamilyID != types.NoSpecifiedFamilyId {
 		key := types.GetSwapOutFamilyKey(gvgFamilyID)
 		bz := store.Get(key)
+		if bz == nil {
+			return types.ErrSwapOutFailed.Wrapf("The swap info not found in blockchain.")
+		}
 		k.cdc.MustUnmarshal(bz, &swapOutInfo)
 
 		if swapOutInfo.SuccessorSpId != successorSP.Id {
@@ -520,6 +527,9 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 		for _, gvgID := range gvgIDs {
 			key := types.GetSwapOutGVGKey(gvgID)
 			bz := store.Get(key)
+			if bz == nil {
+				return types.ErrSwapOutFailed.Wrapf("The swap info not found in blockchain.")
+			}
 			k.cdc.MustUnmarshal(bz, &swapOutInfo)
 
 			if swapOutInfo.SuccessorSpId != successorSP.Id {
