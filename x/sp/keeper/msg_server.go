@@ -2,17 +2,20 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
-
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
+	"encoding/hex"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/bnb-chain/greenfield/x/sp/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type msgServer struct {
@@ -86,11 +89,12 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	if _, found := k.GetStorageProviderByBlsKey(ctx, blsPk); found {
 		return nil, types.ErrStorageProviderBlsKeyExists
 	}
-
-	if err := msg.Description.EnsureLength(); err != nil {
+	if err = k.checkBlsProof(blsPk, msg.BlsProof); err != nil {
 		return nil, err
 	}
-
+	if err = msg.Description.EnsureLength(); err != nil {
+		return nil, err
+	}
 	if msg.Deposit.Amount.LT(k.MinDeposit(ctx)) {
 		return nil, types.ErrInsufficientDepositAmount
 	}
@@ -210,10 +214,13 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		changed = true
 	}
 
-	if msg.BlsKey != "" {
+	if msg.BlsKey != "" && len(msg.BlsProof) != 0 {
 		blsPk, err := hex.DecodeString(msg.BlsKey)
 		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
 			return nil, types.ErrStorageProviderInvalidBlsKey
+		}
+		if err = k.checkBlsProof(blsPk, msg.BlsProof); err != nil {
+			return nil, err
 		}
 		sp.BlsKey = blsPk
 		changed = true
@@ -325,4 +332,28 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+// checkBlsProof checks the BLS signature of the Storage Provider
+func (k msgServer) checkBlsProof(blsPk []byte, sig string) error {
+	// check to see if the bls proof is signed from sp
+	blsProof, err := hex.DecodeString(sig)
+	if err != nil {
+		return gnfderrors.ErrInvalidBlsSignature
+	}
+	if len(blsProof) != sdk.BLSSignatureLength {
+		return gnfderrors.ErrInvalidBlsSignature
+	}
+	signature, err := bls.SignatureFromBytes(blsProof)
+	if err != nil {
+		return gnfderrors.ErrInvalidBlsSignature
+	}
+	blsPubKey, err := bls.PublicKeyFromBytes(blsPk)
+	if err != nil {
+		return types.ErrStorageProviderInvalidBlsKey
+	}
+	if !signature.Verify(blsPubKey, tmhash.Sum(blsPk)) {
+		return sdkerrors.ErrorInvalidSigner
+	}
+	return nil
 }
