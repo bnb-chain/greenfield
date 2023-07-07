@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	types2 "github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -53,12 +54,17 @@ func (k Keeper) QueryLockFee(c context.Context, req *types.QueryLockFeeRequest) 
 		createAt = ctx.BlockTime().Unix()
 	}
 
-	primary, err := sdk.AccAddressFromHexUnsafe(req.PrimarySpAddress)
+	primaryAcc, err := sdk.AccAddressFromHexUnsafe(req.PrimarySpAddress)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid primary storage provider address")
 	}
 
-	amount, err := k.GetObjectLockFee(ctx, primary.String(), createAt, req.PayloadSize)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primaryAcc)
+	if !found {
+		return nil, types2.ErrStorageProviderNotFound
+	}
+
+	amount, err := k.GetObjectLockFee(ctx, sp.GetId(), createAt, req.PayloadSize)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

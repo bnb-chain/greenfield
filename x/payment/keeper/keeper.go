@@ -53,7 +53,7 @@ func (k Keeper) QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amoun
 		return sdkmath.ZeroInt(), nil
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(addr)
-	err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
+	err = k.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return sdkmath.ZeroInt(), errors.Wrapf(err, "update stream record failed")
 	}
@@ -66,7 +66,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amoun
 		return errors.Wrapf(types.ErrStreamRecordNotFound, "validator tax pool stream record not found")
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(fromAddr).WithStaticBalanceChange(amount.Neg())
-	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
+	err := k.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return errors.Wrapf(err, "update stream record failed")
 	}

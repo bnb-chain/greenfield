@@ -24,7 +24,6 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 	tStoreKey := storetypes.NewTransientStoreKey(types.TStoreKey)
 
 	testCtx := testutil.DefaultContextWithDB(t, key, storetypes.NewTransientStoreKey("transient_test"))
-
 	k := keeper.NewKeeper(
 		encCfg.Codec,
 		key,
@@ -34,6 +33,7 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 		&types.MockPaymentKeeper{},
 		&types.MockPermissionKeeper{},
 		&types.MockCrossChainKeeper{},
+		&types.MockVirtualGroupKeeper{},
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
