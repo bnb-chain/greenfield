@@ -47,6 +47,7 @@ type PaymentKeeper interface {
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
 	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
 	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
+	Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount math.Int) error
 }
 
 type PermissionKeeper interface {

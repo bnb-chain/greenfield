@@ -37,6 +37,20 @@ func (m *MockSpKeeper) EXPECT() *MockSpKeeperMockRecorder {
 	return m.recorder
 }
 
+// DepositDenomForSP mocks base method.
+func (m *MockSpKeeper) DepositDenomForSP(ctx types0.Context) string {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DepositDenomForSP", ctx)
+	ret0, _ := ret[0].(string)
+	return ret0
+}
+
+// DepositDenomForSP indicates an expected call of DepositDenomForSP.
+func (mr *MockSpKeeperMockRecorder) DepositDenomForSP(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DepositDenomForSP", reflect.TypeOf((*MockSpKeeper)(nil).DepositDenomForSP), ctx)
+}
+
 // Exit mocks base method.
 func (m *MockSpKeeper) Exit(ctx types0.Context, sp *types.StorageProvider) error {
 	m.ctrl.T.Helper()
