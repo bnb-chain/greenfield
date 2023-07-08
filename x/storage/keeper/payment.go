@@ -224,6 +224,27 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}
 
+	if !priceChanged {
+		err = k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, chargeSize, true)
+		if err != nil {
+			return fmt.Errorf("apply object store bill error: %w", err)
+		}
+	} else {
+		err = k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
+			ibi.TotalChargeSize -= chargeSize
+			for _, lvg := range ibi.LocalVirtualGroups {
+				if lvg.Id == objectInfo.LocalVirtualGroupId {
+					lvg.TotalChargeSize -= chargeSize
+					break
+				}
+			}
+			return nil
+		})
+		if err != nil {
+			return fmt.Errorf("apply object store bill error: %w", err)
+		}
+	}
+
 	blockTime := ctx.BlockTime().Unix()
 	versionParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
@@ -236,25 +257,7 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 			return fmt.Errorf("fail to pay for early deletion, error: %w", err)
 		}
 	}
-
-	if !priceChanged {
-		err := k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, chargeSize, true)
-		if err != nil {
-			return fmt.Errorf("apply object store bill error: %w", err)
-		}
-		return nil
-	}
-
-	return k.ChargeViaBucketChange(ctx, bucketInfo, internalBucketInfo, func(bi *storagetypes.BucketInfo, ibi *storagetypes.InternalBucketInfo) error {
-		ibi.TotalChargeSize -= chargeSize
-		for _, lvg := range ibi.LocalVirtualGroups {
-			if lvg.Id == objectInfo.LocalVirtualGroupId {
-				lvg.TotalChargeSize -= chargeSize
-				break
-			}
-		}
-		return nil
-	})
+	return nil
 }
 
 func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
