@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"math/big"
 	"testing"
 	"time"
@@ -11,6 +12,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -98,6 +100,8 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 	privEd := ed25519.GenPrivKey()
 	blsSecretKey, _ := bls.RandKey()
 	blsPubkey := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
+	blsProofBuf := blsSecretKey.Sign(tmhash.Sum(blsSecretKey.PublicKey().Marshal()))
+	blsProof := hex.EncodeToString(blsProofBuf.Marshal())
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		from,
 		privEd.PubKey(),
@@ -110,6 +114,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 		from,
 		from,
 		blsPubkey,
+		blsProof,
 	)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgCreate)
@@ -142,6 +147,8 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress
 	newChallengerAddr := core.GenRandomAddr()
 	blsSecretKey, _ := bls.RandKey()
 	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
+	blsProofBuf := blsSecretKey.Sign(tmhash.Sum(blsSecretKey.PublicKey().Marshal()))
+	blsProof := hex.EncodeToString(blsProofBuf.Marshal())
 	msgEdit := stakingtypes.NewMsgEditValidator(
 		from,
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
@@ -150,6 +157,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress
 		newRelayerAddr,
 		newChallengerAddr,
 		blsPk,
+		blsProof,
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
 }
@@ -169,6 +177,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgSubmitEvidence(from sdk.AccAddres
 
 func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	privEd := ed25519.GenPrivKey()
+	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		from,
 		privEd.PubKey(),
@@ -180,7 +189,8 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sd
 		from,
 		from,
 		from,
-		"test",
+		blsPubKey,
+		blsProof,
 	)
 	suite.Require().NoError(err)
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
