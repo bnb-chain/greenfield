@@ -1,12 +1,12 @@
 package types
 
 import (
-	"github.com/bnb-chain/greenfield/types/common"
-	"github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/bnb-chain/greenfield/types/common"
+	"github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/s3util"
 )
 
