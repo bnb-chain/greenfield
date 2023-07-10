@@ -210,6 +210,7 @@ function generate_sp_genesis {
     spfund_addr=("$(${bin} keys show sp${i}_fund -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     bls_pub_key=("$(${bin} keys show sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --output json | jq -r .pubkey_hex)")
+    bls_proof=("$(${bin} keys sign "${bls_pub_key}" --from sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
@@ -221,6 +222,7 @@ function generate_sp_genesis {
       --funding-address=${spfund_addr} \
       --seal-address=${spseal_addr} \
       --bls-pub-key=${bls_pub_key} \
+      --bls-proof=${bls_proof} \
       --approval-address=${spapproval_addr} \
       --gc-address=${spgc_addr} \
       --keyring-backend=test \

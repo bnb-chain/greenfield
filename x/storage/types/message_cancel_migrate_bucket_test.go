@@ -3,9 +3,10 @@ package types
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stretchr/testify/require"
+
+	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
 func TestMsgCancelMigrateBucket_ValidateBasic(t *testing.T) {

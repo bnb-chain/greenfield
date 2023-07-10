@@ -19,18 +19,18 @@ var (
 func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
 	spAddr := sdk.AccAddress(pk1.Address())
-	blsPubKey := sample.RandBlsPubKeyHex()
+	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
 
 	tests := []struct {
 		name, moniker, identity, website, details                                   string
 		creator, spAddress, fundingAddress, sealAddress, approvalAddress, gcAddress sdk.AccAddress
-		blsKey                                                                      string
+		blsKey, blsProof                                                            string
 		deposit                                                                     sdk.Coin
 		err                                                                         error
 	}{
-		{"basic", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, coinPos, nil},
-		{"basic_empty", "a", "b", "c", "d", sdk.AccAddress{}, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, coinPos, sdkerrors.ErrInvalidAddress},
-		{"zero deposit", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, coinZero, nil},
+		{"basic", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinPos, nil},
+		{"basic_empty", "a", "b", "c", "d", sdk.AccAddress{}, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinPos, sdkerrors.ErrInvalidAddress},
+		{"zero deposit", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinZero, nil},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -43,6 +43,7 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				ApprovalAddress: tt.approvalAddress.String(),
 				GcAddress:       tt.gcAddress.String(),
 				BlsKey:          tt.blsKey,
+				BlsProof:        tt.blsProof,
 				Endpoint:        "http://127.0.0.1:9033",
 				StorePrice:      sdk.ZeroDec(),
 				ReadPrice:       sdk.ZeroDec(),
@@ -61,16 +62,16 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 func TestMsgEditStorageProvider_ValidateBasic(t *testing.T) {
 	pk1 := ed25519.GenPrivKey().PubKey()
 	spAddr := sdk.AccAddress(pk1.Address())
-	blsPubKey := sample.RandBlsPubKeyHex()
+	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
 
 	tests := []struct {
 		name, moniker, identity, website, details string
 		spAddress                                 sdk.AccAddress
-		blsKey                                    string
+		blsKey, blsProof                          string
 		err                                       error
 	}{
-		{"basic", "a1", "b1", "c1", "d1", spAddr, blsPubKey, nil},
-		{"empty", "", "", "", "", spAddr, blsPubKey, sdkerrors.ErrInvalidRequest},
+		{"basic", "a1", "b1", "c1", "d1", spAddr, blsPubKey, blsProof, nil},
+		{"empty", "", "", "", "", spAddr, blsPubKey, blsProof, sdkerrors.ErrInvalidRequest},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
