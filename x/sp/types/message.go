@@ -112,6 +112,11 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "invalid bls sig")
 	}
 
+	_, err = bls.SignatureFromBytes(blsProof)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
+	}
+
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
