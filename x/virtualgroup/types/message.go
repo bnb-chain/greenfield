@@ -2,10 +2,11 @@ package types
 
 import (
 	"cosmossdk.io/errors"
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/gogoproto/proto"
+
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 const (

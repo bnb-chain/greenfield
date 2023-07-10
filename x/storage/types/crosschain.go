@@ -6,10 +6,10 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
-	gnfdcommon "github.com/bnb-chain/greenfield/types/common"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+
+	gnfdcommon "github.com/bnb-chain/greenfield/types/common"
 )
 
 const (

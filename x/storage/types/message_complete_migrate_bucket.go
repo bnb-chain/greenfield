@@ -2,12 +2,12 @@ package types
 
 import (
 	"cosmossdk.io/errors"
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/s3util"
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 const TypeMsgCompleteMigrateBucket = "complete_migrate_bucket"

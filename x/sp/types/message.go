@@ -1,12 +1,14 @@
 package types
 
 import (
-	"cosmossdk.io/errors"
 	"encoding/hex"
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
+
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 const (

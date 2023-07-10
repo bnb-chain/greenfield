@@ -3,8 +3,8 @@ package sample
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"

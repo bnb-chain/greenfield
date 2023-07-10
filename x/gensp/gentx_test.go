@@ -3,7 +3,6 @@ package gensp_test
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	"math/rand"
 	"testing"
 	"time"
@@ -24,6 +23,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/gensp"
 	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 )

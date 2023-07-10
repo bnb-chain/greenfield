@@ -5,9 +5,6 @@ import (
 
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/internal/sequence"
-	errors2 "github.com/bnb-chain/greenfield/types/errors"
-	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -15,9 +12,12 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfd "github.com/bnb-chain/greenfield/types"
+	errors2 "github.com/bnb-chain/greenfield/types/errors"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) HeadBucket(goCtx context.Context, req *types.QueryHeadBucketRequest) (*types.QueryHeadBucketResponse, error) {
