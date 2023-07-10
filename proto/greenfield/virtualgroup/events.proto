@@ -114,6 +114,8 @@ message EventCancelSwapOut {
   uint32 global_virtual_group_family_id = 2;
   // The ids of the gvgs
   repeated uint32 global_virtual_group_ids = 3;
+  // The id of the successor sp who take over this family or these gvgs
+  uint32 successor_sp_id = 4;
 }
 
 message EventStorageProviderExit {

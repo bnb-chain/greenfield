@@ -311,6 +311,7 @@ func (m *MsgDepositResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_MsgDepositResponse proto.InternalMessageInfo
 
 // MsgEditStorageProvider defines a SDK message for editing an existing sp.
+// TODO: use sp id to edit the storage provider.
 type MsgEditStorageProvider struct {
 	SpAddress   string       `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
 	Endpoint    string       `protobuf:"bytes,2,opt,name=endpoint,proto3" json:"endpoint,omitempty"`
