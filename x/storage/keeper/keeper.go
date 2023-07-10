@@ -1867,6 +1867,7 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		return types.ErrMigrationBucketFailed.Wrapf("err: %s", err)
 	}
 
+	bucketInfo.BucketStatus = types.BUCKET_STATUS_CREATED
 	k.SetBucketInfo(ctx, bucketInfo)
 	k.DeleteMigrationBucketInfo(ctx, bucketInfo.Id)
 
