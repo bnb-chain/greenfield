@@ -2,6 +2,7 @@ package types
 
 import (
 	"cosmossdk.io/errors"
+
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 

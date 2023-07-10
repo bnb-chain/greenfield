@@ -3,16 +3,16 @@ package tests
 import (
 	"context"
 	"encoding/hex"
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 	"sort"
 	"testing"
 
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )

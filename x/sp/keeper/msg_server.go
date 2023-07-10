@@ -2,20 +2,21 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
+
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
-	"encoding/hex"
-	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/x/sp/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 type msgServer struct {

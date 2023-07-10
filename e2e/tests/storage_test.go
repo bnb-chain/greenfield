@@ -11,7 +11,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -26,6 +25,7 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type StorageTestSuite struct {

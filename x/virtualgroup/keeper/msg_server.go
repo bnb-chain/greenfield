@@ -5,11 +5,11 @@ import (
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/types/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
+	"github.com/bnb-chain/greenfield/types/errors"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
