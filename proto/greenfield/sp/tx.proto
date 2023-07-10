@@ -66,6 +66,7 @@ message MsgCreateStorageProvider {
   ];
   // bls_key defines the bls pub key of the Storage provider for sealing object
   string bls_key = 13;
+  string bls_proof = 14;
 }
 
 // MsgCreateStorageProviderResponse defines the Msg/CreateStorageProvider response type.
@@ -102,6 +103,7 @@ message MsgEditStorageProvider {
   string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bls_key defines the bls pub key of the Storage provider for sealing object
   string bls_key = 7;
+  string bls_proof = 8;
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.

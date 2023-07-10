@@ -12,6 +12,7 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -392,13 +393,20 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	newReadPrice := sdk.NewDec(RandInt64(100, 200))
 	newStorePrice := sdk.NewDec(RandInt64(10000, 20000))
 
+	// bls pub key
+	newSpBlsKm := newSP.BlsKey
+	blsProofBz, err := newSpBlsKm.Sign(tmhash.Sum(newSpBlsKm.PubKey().Bytes()))
+	s.Require().NoError(err)
+
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(),
 		newSP.GcKey.GetAddr(), description,
 		endpoint, deposit, newReadPrice, 10000, newStorePrice,
-		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()))
+		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()),
+		hex.EncodeToString(blsProofBz),
+	)
 
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreateSP},

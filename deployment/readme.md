@@ -49,13 +49,14 @@ VALIDATOR=$(./build/bin/gnfd keys show validator -a --keyring-backend test)
 RELAYER=$(./build/bin/gnfd keys show relayer -a --keyring-backend test)
 CHALLENGER=$(./build/bin/gnfd keys show challenger -a --keyring-backend test)
 BLS=$(./build/bin/gnfd keys show bls --keyring-backend test --output json | jq -r .pubkey_hex)
+BLS_PROOF=$(./build/bin/gnfd keys sign ${BLS} --keyring-backend test --from validator)
 ./build/bin/gnfd add-genesis-account $VALIDATOR 100000000000000000000000000BNB
 ```
 
 5. Create validator in genesis state
 ```bash
 # create a gentx.
-./build/bin/gnfd gentx validator 10000000000000000000000000BNB $VALIDATOR $RELAYER $CHALLENGER $BLS --keyring-backend=test --chain-id=greenfield_9000-1 \
+./build/bin/gnfd gentx validator 10000000000000000000000000BNB $VALIDATOR $RELAYER $CHALLENGER $BLS $BLS_PROOF --keyring-backend=test --chain-id=greenfield_9000-1 \
     --moniker="validator" \
     --commission-max-change-rate=0.01 \
     --commission-max-rate=1.0 \
@@ -85,7 +86,7 @@ bash ./deployment/localup/localup.sh stop
 
 3. Send Tx
 ```bash
-./build/bin/gnfd tx bank send validator0 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b block
+./build/bin/gnfd tx bank send validator0 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b sync
 ```
 
 4. Restart the chain without state initialization
