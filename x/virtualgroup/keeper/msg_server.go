@@ -299,13 +299,6 @@ func (k msgServer) CancelSwapOut(goCtx context.Context, msg *types.MsgCancelSwap
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvents(&types.EventCancelSwapOut{
-		StorageProviderId:          sp.Id,
-		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
-		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
-	}); err != nil {
-		return nil, err
-	}
 	return &types.MsgCancelSwapOutResponse{}, nil
 }
 
@@ -323,13 +316,6 @@ func (k msgServer) CompleteSwapOut(goCtx context.Context, msg *types.MsgComplete
 		return nil, err
 	}
 
-	if err = ctx.EventManager().EmitTypedEvents(&types.EventCompleteSwapOut{
-		StorageProviderId:          sp.Id,
-		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
-		GlobalVirtualGroupIds:      msg.GlobalVirtualGroupIds,
-	}); err != nil {
-		return nil, err
-	}
 	return &types.MsgCompleteSwapOutResponse{}, nil
 }
 

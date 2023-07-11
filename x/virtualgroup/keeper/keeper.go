@@ -495,6 +495,15 @@ func (k Keeper) DeleteSwapOutInfo(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []
 			}
 		}
 	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelSwapOut{
+		StorageProviderId:          swapOutInfo.SpId,
+		GlobalVirtualGroupFamilyId: gvgFamilyID,
+		GlobalVirtualGroupIds:      gvgIDs,
+		SuccessorSpId:              swapOutInfo.SuccessorSpId,
+	}); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -548,6 +557,14 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 			}
 			store.Delete(key)
 		}
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteSwapOut{
+		StorageProviderId:          successorSP.Id,
+		SrcStorageProviderId:       swapOutInfo.SpId,
+		GlobalVirtualGroupFamilyId: gvgFamilyID,
+		GlobalVirtualGroupIds:      gvgIDs,
+	}); err != nil {
+		return err
 	}
 	return nil
 }
