@@ -708,6 +708,11 @@ func New(
 		tmos.Exit("cannot convert bank store to ival store")
 	}
 	bankIavl.EnableDiff()
+	paymentIavl, ok := ms.GetCommitStore(keys[paymentmoduletypes.StoreKey]).(*iavl.Store)
+	if !ok {
+		tmos.Exit("cannot convert payment store to ival store")
+	}
+	paymentIavl.EnableDiff()
 
 	app.initModules(ctx)
 
@@ -751,7 +756,8 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	resp := app.mm.EndBlock(ctx, req)
 	bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
-	app.reconBalance(ctx, bankIavl)
+	paymentIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(paymentmoduletypes.StoreKey)).(*iavl.Store)
+	app.reconcile(ctx, bankIavl, paymentIavl)
 	return resp
 }
 
