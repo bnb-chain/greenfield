@@ -12,5 +12,5 @@ var (
 )
 
 const (
-	ForceUpdateFrozenStreamRecordKey = "force_update_frozen_stream_record"
+	ForceUpdateStreamRecordKey = "force_update_stream_record"
 )
