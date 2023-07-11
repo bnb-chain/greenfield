@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/hex"
+
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 )
 

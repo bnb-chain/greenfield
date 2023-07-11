@@ -2,13 +2,14 @@ package client
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
 )
 
 func TestTmClient(t *testing.T) {
