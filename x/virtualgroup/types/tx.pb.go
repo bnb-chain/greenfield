@@ -528,8 +528,8 @@ type MsgSwapOut struct {
 	// storage_provider defines the operator account address of the storage provider who want to swap out from the global virtual group.
 	StorageProvider string `protobuf:"bytes,1,opt,name=storage_provider,json=storageProvider,proto3" json:"storage_provider,omitempty"`
 	// virtual_group_family_id is the identifier of the virtual group family.
-	// if it set to 0, it represents that the operator swap out as the primary storage provider
-	// it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
+	// if it set to non-zero, it represents that the operator swap out as the primary storage provider
+	// it it set to zero, it represents that the operator swap out as the secondary storage provider.
 	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
 	// global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
 	// It allows to be empty only when the operator is the primary storage provider.
@@ -649,8 +649,8 @@ type MsgCompleteSwapOut struct {
 	// storage_provider defines the operator account address of the storage provider who complete swap out task.
 	StorageProvider string `protobuf:"bytes,1,opt,name=storage_provider,json=storageProvider,proto3" json:"storage_provider,omitempty"`
 	// virtual_group_family_id is the identifier of the virtual group family.
-	// if it set to 0, it represents that the operator swap out as the primary storage provider
-	// it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
+	// if it set to non-zero, it represents that the operator swap out as the primary storage provider
+	// it it set to zero, it represents that the operator swap out as the secondary storage provider.
 	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
 	// global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
 	// It allows to be empty only when the operator is the primary storage provider.
@@ -751,8 +751,8 @@ type MsgCancelSwapOut struct {
 	// storage_provider defines the operator account address of the storage provider who cancel the swap out task.
 	StorageProvider string `protobuf:"bytes,1,opt,name=storage_provider,json=storageProvider,proto3" json:"storage_provider,omitempty"`
 	// virtual_group_family_id is the identifier of the virtual group family.
-	// if it set to 0, it represents that the operator swap out as the primary storage provider
-	// it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
+	// if it set to non-zero, it represents that the operator swap out as the primary storage provider
+	// it it set to zero, it represents that the operator swap out as the secondary storage provider.
 	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
 	// global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
 	// It allows to be empty only when the operator is the primary storage provider.

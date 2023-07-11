@@ -108,8 +108,8 @@ message MsgSwapOut {
   // storage_provider defines the operator account address of the storage provider who want to swap out from the global virtual group.
   string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // virtual_group_family_id is the identifier of the virtual group family.
-  // if it set to 0, it represents that the operator swap out as the primary storage provider
-  // it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
+  // if it set to non-zero, it represents that the operator swap out as the primary storage provider
+  // it it set to zero, it represents that the operator swap out as the secondary storage provider.
   uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
   // It allows to be empty only when the operator is the primary storage provider.
@@ -129,8 +129,8 @@ message MsgCompleteSwapOut {
   // storage_provider defines the operator account address of the storage provider who complete swap out task.
   string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // virtual_group_family_id is the identifier of the virtual group family.
-  // if it set to 0, it represents that the operator swap out as the primary storage provider
-  // it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
+  // if it set to non-zero, it represents that the operator swap out as the primary storage provider
+  // it it set to zero, it represents that the operator swap out as the secondary storage provider.
   uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
   // It allows to be empty only when the operator is the primary storage provider.
@@ -145,8 +145,8 @@ message MsgCancelSwapOut {
   // storage_provider defines the operator account address of the storage provider who cancel the swap out task.
   string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // virtual_group_family_id is the identifier of the virtual group family.
-  // if it set to 0, it represents that the operator swap out as the primary storage provider
-  // it it set to non-zero, it represents that the operator swap out as the secondary storage provider.
+  // if it set to non-zero, it represents that the operator swap out as the primary storage provider
+  // it it set to zero, it represents that the operator swap out as the secondary storage provider.
   uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
   // It allows to be empty only when the operator is the primary storage provider.
