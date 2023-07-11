@@ -1313,18 +1313,14 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 func (s *PaymentTestSuite) TestForceDeletion_AfterPriceChange() {
 	ctx := context.Background()
 
-	priceRes, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{})
-	s.Require().NoError(err)
-
 	// set storage price
 	sp := s.StorageProviders[0]
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     sdk.NewDecWithPrec(1, 4),
-		FreeReadQuota: 10240000,
-		StorePrice:    priceRes.SecondarySpStorePrice.StorePrice.MulInt64(2),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    sp.OperatorKey.GetAddr().String(),
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log("price", priceRes.SpStoragePrice)
 
 	// create bucket
 	user, bucketName := s.createBucket()
@@ -1337,11 +1333,11 @@ func (s *PaymentTestSuite) TestForceDeletion_AfterPriceChange() {
 	s.sealObject(bucketName, objectName2, objectId2, checksums2)
 
 	// update new price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
+	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     sdk.NewDecWithPrec(1, 4),
-		FreeReadQuota: 10240000,
-		StorePrice:    priceRes.SecondarySpStorePrice.StorePrice.MulInt64(200),
+		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
+		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
+		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(10000),
 	}
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 
@@ -1397,6 +1393,15 @@ func (s *PaymentTestSuite) TestForceDeletion_AfterPriceChange() {
 
 	_, err = s.Client.HeadBucket(ctx, &storagetypes.QueryHeadBucketRequest{BucketName: bucketName})
 	s.Require().ErrorContains(err, "No such bucket")
+
+	// revert price
+	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     sp.OperatorKey.GetAddr().String(),
+		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
+		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
+		StorePrice:    priceRes.SpStoragePrice.StorePrice,
+	}
+	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamRecord) {
