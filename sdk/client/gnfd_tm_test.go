@@ -23,7 +23,7 @@ func TestTmClient(t *testing.T) {
 	assert.NoError(t, err)
 	time.Sleep(2 * time.Second)
 	// get tx
-	res, err := gnfdCli.GetTx(context.Background(), response.TxResponse.TxHash)
+	res, err := gnfdCli.Tx(context.Background(), response.TxResponse.TxHash)
 	assert.NoError(t, err)
 	t.Log(res.Hash)
 	t.Log(res.TxResult.String())

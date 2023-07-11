@@ -11,8 +11,8 @@ func (c *GreenfieldClient) GetBlock(ctx context.Context, height *int64) (*ctypes
 	return c.tendermintClient.Block(ctx, height)
 }
 
-// GetTx gets a tx by detail by the tx hash
-func (c *GreenfieldClient) GetTx(ctx context.Context, txHash string) (*ctypes.ResultTx, error) {
+// Tx gets a tx by detail by the tx hash
+func (c *GreenfieldClient) Tx(ctx context.Context, txHash string) (*ctypes.ResultTx, error) {
 	hash, err := hex.DecodeString(txHash)
 	if err != nil {
 		return nil, err
