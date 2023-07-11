@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"cosmossdk.io/math"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -20,10 +21,12 @@ var (
 	SupplyKey          = banktypes.SupplyKey
 	DenomAddressPrefix = banktypes.DenomAddressPrefix
 	BalancesPrefix     = banktypes.BalancesPrefix
+
+	StreamRecordKeyPrefix = paymenttypes.StreamRecordKeyPrefix
 )
 
-// reconBalance will do reconciliation for accounts balances.
-func (app *App) reconBalance(ctx sdk.Context, bankIavl *iavl.Store) {
+// reconcile will do reconciliation for accounts balances.
+func (app *App) reconcile(ctx sdk.Context, bankIavl *iavl.Store, paymentIavl *iavl.Store) {
 	if ctx.BlockHeight() <= 2 {
 		return
 	}
@@ -33,14 +36,20 @@ func (app *App) reconBalance(ctx sdk.Context, bankIavl *iavl.Store) {
 		panic(fmt.Sprintf("unbalanced state at block height %d, please use hardfork to bypass it", height))
 	}
 
-	balanced := app.reconBankChanges(ctx, bankIavl)
+	bankBalanced := app.reconBankChanges(ctx, bankIavl)
 	bankIavl.ResetDiff()
 
-	if !balanced {
+	paymentBalanced := app.reconPaymentChanges(ctx, paymentIavl)
+	paymentIavl.ResetDiff()
+
+	if !bankBalanced || !paymentBalanced {
+		ctx.Logger().Error("reconciliation unbalanced", "bank", bankBalanced, "payment", paymentBalanced,
+			"height", ctx.BlockHeight())
 		app.saveUnbalancedBlockHeight(ctx)
 	}
 }
 
+// reconBankChanges will reconcile bank balance changes
 func (app *App) reconBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 	supplyPre := sdk.Coins{}
 	balancePre := sdk.Coins{}
@@ -54,7 +63,7 @@ func (app *App) reconBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 		kBz := []byte(k)
 		denom := ""
 		isSupply := false
-		if bytes.HasPrefix([]byte(k), SupplyKey) {
+		if bytes.HasPrefix(kBz, SupplyKey) {
 			isSupply = true
 			denom = parseDenomFromSupplyKey(kBz)
 			amount := math.ZeroInt()
@@ -62,7 +71,7 @@ func (app *App) reconBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 				amount = parseAmountFromValue(vBz)
 			}
 			supplyCurrent = supplyCurrent.Add(sdk.NewCoin(denom, amount))
-		} else if bytes.HasPrefix([]byte(k), BalancesPrefix) {
+		} else if bytes.HasPrefix(kBz, BalancesPrefix) {
 			denom = parseDenomFromBalanceKey(kBz)
 			amount := math.ZeroInt()
 			if vBz := bankIavl.Get(kBz); vBz != nil {
@@ -95,6 +104,49 @@ func (app *App) reconBankChanges(ctx sdk.Context, bankIavl *iavl.Store) bool {
 		"balanceCurrent", balanceCurrent, "balancePre", balancePre,
 		"supplyChanges", supplyChanges, "balanceChanges", balanceChanges, "height", ctx.BlockHeight(), "version", version)
 	return supplyChanges.IsEqual(balanceChanges)
+}
+
+// reconPaymentChanges will reconcile payment flow rate changes
+func (app *App) reconPaymentChanges(ctx sdk.Context, paymentIavl *iavl.Store) bool {
+	flowCurrent := sdk.ZeroInt()
+	flowPre := sdk.ZeroInt()
+
+	diff := paymentIavl.GetDiff()
+	version := ctx.BlockHeight() - 2
+	ctx.Logger().Debug("reconciliation payment changes", "height", ctx.BlockHeight(), "version", version)
+	for k := range diff {
+		kBz := []byte(k)
+		if bytes.HasPrefix(kBz, StreamRecordKeyPrefix) {
+			if vBz := paymentIavl.Get(kBz); vBz != nil {
+				var sr paymenttypes.StreamRecord
+				err := app.cdc.Unmarshal(vBz, &sr)
+				if err != nil {
+					ctx.Logger().Error("fail to unmarshal stream record", "err", err.Error())
+				} else {
+					flowCurrent = flowCurrent.Add(sr.NetflowRate)
+				}
+			}
+
+			preStore, err := paymentIavl.GetImmutable(version)
+			if err != nil {
+				panic(fmt.Sprintf("fail to find store at version %d", version))
+			}
+			vBz := preStore.Get(kBz)
+			if vBz != nil {
+				var sr paymenttypes.StreamRecord
+				err = app.cdc.Unmarshal(vBz, &sr)
+				if err != nil {
+					ctx.Logger().Error("fail to unmarshal stream record", "err", err.Error())
+				} else {
+					flowPre = flowPre.Add(sr.NetflowRate)
+				}
+			}
+		}
+	}
+
+	ctx.Logger().Debug("reconciliation payment details", "flowCurrent", flowCurrent.String(), "flowPre", flowPre.String(),
+		"height", ctx.BlockHeight(), "version", version)
+	return flowCurrent.Equal(flowPre)
 }
 
 func (app *App) saveUnbalancedBlockHeight(ctx sdk.Context) {
