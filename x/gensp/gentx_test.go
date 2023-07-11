@@ -9,7 +9,6 @@ import (
 
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"

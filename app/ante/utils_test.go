@@ -11,7 +11,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
 	tmtypes "github.com/cometbft/cometbft/types"
@@ -109,7 +108,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 		from,
 		from,
 		from,
-		blsPubkey,
+		blsPubKey,
 		blsProof,
 	)
 	suite.Require().NoError(err)
@@ -141,14 +140,7 @@ func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, 
 func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	newRelayerAddr := core.GenRandomAddr()
 	newChallengerAddr := core.GenRandomAddr()
-<<<<<<< HEAD
-	blsSecretKey, _ := bls.RandKey()
-	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
-	blsProofBuf := blsSecretKey.Sign(tmhash.Sum(blsSecretKey.PublicKey().Marshal()))
-	blsProof := hex.EncodeToString(blsProofBuf.Marshal())
-=======
 	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
->>>>>>> 90d1f2f (feat: add bls signature verification for sp creation and edition  (#334))
 	msgEdit := stakingtypes.NewMsgEditValidator(
 		from,
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
@@ -156,11 +148,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgEditValidator(from sdk.AccAddress
 		nil,
 		newRelayerAddr,
 		newChallengerAddr,
-<<<<<<< HEAD
-		blsPk,
-=======
 		blsPubKey,
->>>>>>> 90d1f2f (feat: add bls signature verification for sp creation and edition  (#334))
 		blsProof,
 	)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgEdit)
@@ -181,14 +169,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgSubmitEvidence(from sdk.AccAddres
 
 func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	privEd := ed25519.GenPrivKey()
-<<<<<<< HEAD
-	blsSecretKey, _ := bls.RandKey()
-	blsPubkey := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
-	blsProofBuf := blsSecretKey.Sign(tmhash.Sum(blsSecretKey.PublicKey().Marshal()))
-	blsProof := hex.EncodeToString(blsProofBuf.Marshal())
-=======
 	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
->>>>>>> 90d1f2f (feat: add bls signature verification for sp creation and edition  (#334))
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		from,
 		privEd.PubKey(),
@@ -200,11 +181,7 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sd
 		from,
 		from,
 		from,
-<<<<<<< HEAD
-		blsPubkey,
-=======
 		blsPubKey,
->>>>>>> 90d1f2f (feat: add bls signature verification for sp creation and edition  (#334))
 		blsProof,
 	)
 	suite.Require().NoError(err)
