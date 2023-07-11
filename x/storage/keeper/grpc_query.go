@@ -41,3 +41,27 @@ func (k Keeper) QueryParamsByTimestamp(c context.Context, req *types.QueryParams
 
 	return &types.QueryParamsByTimestampResponse{Params: params}, nil
 }
+
+func (k Keeper) QueryLockFee(c context.Context, req *types.QueryLockFeeRequest) (*types.QueryLockFeeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+
+	createAt := req.GetCreateAt()
+	if createAt == 0 {
+		createAt = ctx.BlockTime().Unix()
+	}
+
+	primary, err := sdk.AccAddressFromHexUnsafe(req.PrimarySpAddress)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid primary storage provider address")
+	}
+
+	amount, err := k.GetObjectLockFee(ctx, primary.String(), createAt, req.PayloadSize)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryLockFeeResponse{Amount: amount}, nil
+}
