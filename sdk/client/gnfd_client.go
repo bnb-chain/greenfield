@@ -34,8 +34,8 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-	bfthttp "github.com/cometbft/cometbft/rpc/client/http"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	bfthttp "github.com/cometbft/cometbft/rpc/client/http"
 )
 
 // AuthQueryClient is a type to define the auth types Query Client
