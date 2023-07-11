@@ -259,7 +259,8 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 	timeToPay := objectInfo.CreateAt + int64(versionParams.ReserveTime) - blockTime
 	if timeToPay > 0 { // store less than reserve time
 		err = k.ChargeObjectStoreFeeForEarlyDeletion(ctx, bucketInfo, oldInternalBucketInfo, objectInfo, chargeSize, timeToPay)
-		if err != nil {
+		forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool) // force update in end block
+		if !forced && err != nil {
 			return fmt.Errorf("fail to pay for early deletion, error: %w", err)
 		}
 	}

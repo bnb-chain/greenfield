@@ -61,8 +61,6 @@ func (k Keeper) QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amoun
 }
 
 func (k Keeper) Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount sdkmath.Int) error {
-	forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool) // force update in end block
-
 	streamRecord, found := k.GetStreamRecord(ctx, fromAddr)
 	if !found {
 		return errors.Wrapf(types.ErrStreamRecordNotFound, "stream record not found %s", fromAddr.String())
@@ -74,7 +72,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amoun
 	}
 	k.SetStreamRecord(ctx, streamRecord)
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, amount)))
-	if !forced && err != nil {
+	if err != nil {
 		return errors.Wrapf(err, "send coins from module to account failed %s", toAddr.String())
 	}
 	return nil
