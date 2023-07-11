@@ -35,6 +35,7 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	bfthttp "github.com/cometbft/cometbft/rpc/client/http"
 )
 
 // AuthQueryClient is a type to define the auth types Query Client
@@ -139,7 +140,8 @@ type GreenfieldClient struct {
 	TxClient
 	// TmService holds the tendermint service client
 	TmClient
-
+	// tendermintClient directly interact with tendermint Node
+	tendermintClient *bfthttp.HTTP
 	// keyManager is the manager used for generating and managing keys.
 	keyManager keys.KeyManager
 	// chainId is the id of the chain.
@@ -176,6 +178,7 @@ func newGreenfieldClient(rpcAddr, chainId string, rpcClient *rpchttp.HTTP, opts 
 		chainId: chainId,
 		codec:   cdc,
 	}
+	client.tendermintClient = rpcClient
 	for _, opt := range opts {
 		opt.Apply(client)
 	}
