@@ -183,7 +183,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	}
 	// if the change is a pay(which decreases the static balance or netflow rate), the left static balance should be enough
 	if isPay && streamRecord.StaticBalance.IsNegative() {
-		return fmt.Errorf("stream account %s balance not enough, lack of %s BNB wei", streamRecord.Account, streamRecord.StaticBalance.Abs())
+		return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
 	}
 	//calculate settle time
 	var settleTimestamp int64 = 0

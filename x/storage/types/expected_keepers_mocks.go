@@ -385,6 +385,20 @@ func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecordByAddr(ctx, change in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecordByAddr", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecordByAddr), ctx, change)
 }
 
+// Withdraw mocks base method.
+func (m *MockPaymentKeeper) Withdraw(ctx types3.Context, fromAddr, toAddr types3.AccAddress, amount math.Int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Withdraw", ctx, fromAddr, toAddr, amount)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Withdraw indicates an expected call of Withdraw.
+func (mr *MockPaymentKeeperMockRecorder) Withdraw(ctx, fromAddr, toAddr, amount interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Withdraw", reflect.TypeOf((*MockPaymentKeeper)(nil).Withdraw), ctx, fromAddr, toAddr, amount)
+}
+
 // MockPermissionKeeper is a mock of PermissionKeeper interface.
 type MockPermissionKeeper struct {
 	ctrl     *gomock.Controller
