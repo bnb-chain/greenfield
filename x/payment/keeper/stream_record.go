@@ -218,7 +218,7 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 			coins := sdk.NewCoins(sdk.NewCoin(params.FeeDenom, streamRecord.StaticBalance.Abs()))
 			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
 			if err != nil {
-				ctx.Logger().Info("auto transfer failed", "account", streamRecord.Account, "err", err, "coins", coins)
+				ctx.Logger().Info("auto transfer failed when settling", "account", streamRecord.Account, "err", err, "coins", coins)
 			} else {
 				streamRecord.StaticBalance = sdkmath.ZeroInt()
 			}
@@ -368,7 +368,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 
 		if !flowIterator.Valid() || finished {
 			if !streamRecord.NetflowRate.IsZero() {
-				panic("should not happen") // assertion for fail quick
+				ctx.Logger().Error("should not happen, stream netflow rate is not zero", "address", streamRecord.Account)
 			}
 			k.RemoveAutoSettleRecord(ctx, record.Timestamp, addr)
 		}
@@ -521,7 +521,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
 		if !flowIterator.Valid() || finished {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
-				panic("should not happen") // assertion for fail quick
+				ctx.Logger().Error("should not happen, stream frozen netflow rate is not zero", "address", streamRecord.Account)
 			}
 			streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)
