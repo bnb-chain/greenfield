@@ -107,9 +107,6 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 // it only handles the lock balance change and ignore the other changes(since the streams are already changed and the
 // accumulated OutFlows are changed outside this function)
 func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
-	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_FROZEN {
-		return fmt.Errorf("stream account %s is not frozen", streamRecord.Account)
-	}
 	currentTimestamp := ctx.BlockTime().Unix()
 	streamRecord.CrudTimestamp = currentTimestamp
 	// update lock balance
@@ -124,14 +121,14 @@ func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.St
 }
 
 func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
+	forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool) // force update in end block
 	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_ACTIVE {
-		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN {
-			if forced, ok := ctx.Value(types.ForceUpdateFrozenStreamRecordKey).(bool); forced && ok {
-				return k.UpdateFrozenStreamRecord(ctx, streamRecord, change)
-			}
+		if forced { //stream record is frozen
+			return k.UpdateFrozenStreamRecord(ctx, streamRecord, change)
 		}
 		return fmt.Errorf("stream account %s is frozen", streamRecord.Account)
 	}
+
 	isPay := change.StaticBalanceChange.IsNegative() || change.RateChange.IsNegative()
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
@@ -182,7 +179,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 	}
 	// if the change is a pay(which decreases the static balance or netflow rate), the left static balance should be enough
-	if isPay && streamRecord.StaticBalance.IsNegative() {
+	if !forced && isPay && streamRecord.StaticBalance.IsNegative() {
 		return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
 	}
 	//calculate settle time
@@ -190,10 +187,11 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	if streamRecord.NetflowRate.IsNegative() {
 		payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
 		if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
-			return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
-		} else {
-			settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
+			if !forced {
+				return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
+			}
 		}
+		settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
 	}
 	k.UpdateAutoSettleRecord(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), streamRecord.SettleTimestamp, settleTimestamp)
 	streamRecord.SettleTimestamp = settleTimestamp
@@ -220,7 +218,7 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 			coins := sdk.NewCoins(sdk.NewCoin(params.FeeDenom, streamRecord.StaticBalance.Abs()))
 			err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, account, types.ModuleName, coins)
 			if err != nil {
-				ctx.Logger().Info("auto transfer failed", "account", streamRecord.Account, "err", err, "coins", coins)
+				ctx.Logger().Info("auto transfer failed when settling", "account", streamRecord.Account, "err", err, "coins", coins)
 			} else {
 				streamRecord.StaticBalance = sdkmath.ZeroInt()
 			}
@@ -370,7 +368,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 
 		if !flowIterator.Valid() || finished {
 			if !streamRecord.NetflowRate.IsZero() {
-				panic("should not happen") // assertion for fail quick
+				ctx.Logger().Error("should not happen, stream netflow rate is not zero", "address", streamRecord.Account)
 			}
 			k.RemoveAutoSettleRecord(ctx, record.Timestamp, addr)
 		}
@@ -523,7 +521,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(totalRate)
 		if !flowIterator.Valid() || finished {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
-				panic("should not happen") // assertion for fail quick
+				ctx.Logger().Error("should not happen, stream frozen netflow rate is not zero", "address", streamRecord.Account)
 			}
 			streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)

@@ -224,6 +224,12 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}
 
+	oldInternalBucketInfo := &storagetypes.InternalBucketInfo{
+		PriceTime:          internalBucketInfo.PriceTime,
+		TotalChargeSize:    internalBucketInfo.TotalChargeSize,
+		LocalVirtualGroups: internalBucketInfo.LocalVirtualGroups,
+	}
+
 	if !priceChanged {
 		err = k.ChargeViaObjectChange(ctx, bucketInfo, internalBucketInfo, objectInfo, chargeSize, true)
 		if err != nil {
@@ -246,14 +252,15 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 	}
 
 	blockTime := ctx.BlockTime().Unix()
-	versionParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, internalBucketInfo.PriceTime)
+	versionParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, oldInternalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("failed to get versioned params: %w", err)
 	}
 	timeToPay := objectInfo.CreateAt + int64(versionParams.ReserveTime) - blockTime
 	if timeToPay > 0 { // store less than reserve time
-		err = k.ChargeObjectStoreFeeForEarlyDeletion(ctx, bucketInfo, internalBucketInfo, objectInfo, chargeSize, timeToPay)
-		if err != nil {
+		err = k.ChargeObjectStoreFeeForEarlyDeletion(ctx, bucketInfo, oldInternalBucketInfo, objectInfo, chargeSize, timeToPay)
+		forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool) // force update in end block
+		if !forced && err != nil {
 			return fmt.Errorf("fail to pay for early deletion, error: %w", err)
 		}
 	}

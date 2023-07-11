@@ -160,7 +160,7 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 	s.T().Logf("new params: %s", params.String())
 }
 
-func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
+func (s *PaymentTestSuite) createBucketAndObject() (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
 	var err error
 	sp := s.StorageProviders[0]
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -176,6 +176,72 @@ func (s *PaymentTestSuite) createObject() (keys.KeyManager, string, string, stor
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(user, msgCreateBucket)
+
+	// CreateObject
+	objectName := storagetestutils.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize),
+		storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType,
+		storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateObject)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+
+	return user, bucketName, objectName, queryHeadObjectResponse.ObjectInfo.Id, expectChecksum
+}
+
+func (s *PaymentTestSuite) createBucket() (keys.KeyManager, string) {
+	var err error
+	sp := s.StorageProviders[0]
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	// CreateBucket
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := "ch" + storagetestutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	return user, bucketName
+}
+
+func (s *PaymentTestSuite) createObject(user keys.KeyManager, bucketName string) (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
+	var err error
+	sp := s.StorageProviders[0]
 
 	// CreateObject
 	objectName := storagetestutils.GenRandomObjectName()
@@ -266,7 +332,7 @@ func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange(
 	s.Require().NoError(err)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createObject()
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject()
 
 	// update params
 	params := queryParamsResponse.GetParams()
@@ -329,7 +395,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createObject()
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject()
 
 	// seal object
 	s.sealObject(bucketName, objectName, objectId, checksums)
@@ -376,7 +442,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 	s.Require().NoError(err)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createObject()
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject()
 
 	// seal object
 	s.sealObject(bucketName, objectName, objectId, checksums)
@@ -1240,6 +1306,102 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	deleteObjectMsg := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
 	deleteObjectSimRes := s.SimulateTx(deleteObjectMsg, user)
 	s.T().Logf("deleteObjectSimRes %v", deleteObjectSimRes.Result)
+}
+
+// TestForceDeletion_DeleteAfterPriceChange will cover the following case:
+// create an object, sp increase the price a lot, the object can be force deleted even the object's own has no enough balance.
+func (s *PaymentTestSuite) TestForceDeletion_AfterPriceChange() {
+	ctx := context.Background()
+
+	// set storage price
+	sp := s.StorageProviders[0]
+	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    sp.OperatorKey.GetAddr().String(),
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log("price", priceRes.SpStoragePrice)
+
+	// create bucket
+	user, bucketName := s.createBucket()
+
+	// create & seal objects
+	_, _, objectName1, objectId1, checksums1 := s.createObject(user, bucketName)
+	s.sealObject(bucketName, objectName1, objectId1, checksums1)
+
+	_, _, objectName2, objectId2, checksums2 := s.createObject(user, bucketName)
+	s.sealObject(bucketName, objectName2, objectId2, checksums2)
+
+	// update new price
+	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     sp.OperatorKey.GetAddr().String(),
+		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
+		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
+		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(10000),
+	}
+	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+
+	// for payment
+	time.Sleep(2 * time.Second)
+
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: user.GetAddr().String()}
+	queryBalanceResponse, err := s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+
+	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.SubRaw(5*types.DecimalGwei)),
+	))
+
+	simulateResponse := s.SimulateTx(msgSend, user)
+	gasLimit := simulateResponse.GasInfo.GetGasUsed()
+	gasPrice, err := sdk.ParseCoinNormalized(simulateResponse.GasInfo.GetMinGasPrice())
+	s.Require().NoError(err)
+
+	msgSend.Amount = sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.Sub(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))),
+	)
+	s.SendTxBlock(user, msgSend)
+	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(int64(0), queryBalanceResponse.Balance.Amount.Int64())
+
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName1,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+
+	// force delete bucket
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
+	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime > deleteAt {
+			break
+		}
+	}
+
+	_, err = s.Client.HeadBucket(ctx, &storagetypes.QueryHeadBucketRequest{BucketName: bucketName})
+	s.Require().ErrorContains(err, "No such bucket")
+
+	// revert price
+	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     sp.OperatorKey.GetAddr().String(),
+		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
+		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
+		StorePrice:    priceRes.SpStoragePrice.StorePrice,
+	}
+	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) GetStreamRecord(addr string) (sr paymenttypes.StreamRecord) {

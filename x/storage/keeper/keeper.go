@@ -883,6 +883,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 
 	err = k.doDeleteObject(ctx, sdk.MustAccAddressFromHex(sp.OperatorAddress), bucketInfo, objectInfo)
 	if err != nil {
+		ctx.Logger().Error("do delete object err", "err", err)
 		return err
 	}
 	return nil
@@ -1480,7 +1481,7 @@ func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, 
 
 			err = k.ForceDeleteObject(ctx, id)
 			if err != nil {
-				ctx.Logger().Error("delete object error", "err", err, "height", ctx.BlockHeight())
+				ctx.Logger().Error("delete object error", "err", err, "id", id, "height", ctx.BlockHeight())
 				return deleted, err
 			}
 			deleted++
@@ -1562,7 +1563,7 @@ func (k Keeper) DeleteDiscontinueBucketsUntil(ctx sdk.Context, timestamp int64, 
 
 			bucketDeleted, objectDeleted, err := k.ForceDeleteBucket(ctx, id, maxToDelete-deleted)
 			if err != nil {
-				ctx.Logger().Error("force delete bucket error", "err", err)
+				ctx.Logger().Error("force delete bucket error", "err", err, "id", id, "height", ctx.BlockHeight())
 				return deleted, err
 			}
 			deleted = deleted + objectDeleted
