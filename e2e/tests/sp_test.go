@@ -64,7 +64,7 @@ func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	ctx := context.Background()
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	blsProof, _ := sp.BlsKey.Sign(tmhash.Sum(sp.BlsKey.PubKey().Bytes()))
 
 	// 1. query previous storage provider
@@ -133,7 +133,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 }
 
 func (s *StorageProviderTestSuite) TestDeposit() {
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 
 	deposit := sdk.Coin{
 		Denom:  s.Config.Denom,
@@ -149,7 +149,7 @@ func (s *StorageProviderTestSuite) TestDeposit() {
 func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	ctx := context.Background()
 	s.CheckSecondarySpPrice()
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	spAddr := sp.OperatorKey.GetAddr().String()
 	spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr:    spAddr,

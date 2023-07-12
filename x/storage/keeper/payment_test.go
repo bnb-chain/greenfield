@@ -132,7 +132,7 @@ func (s *TestSuite) TestGetBucketBill() {
 		Id:                    1,
 		VirtualPaymentAddress: sample.RandAccAddress().String(),
 	}
-	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any(), gomock.Any()).
+	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any()).
 		Return(gvgFamily, true).AnyTimes()
 
 	primarySp := &sptypes.StorageProvider{
@@ -160,7 +160,6 @@ func (s *TestSuite) TestGetBucketBill() {
 		BucketName:                 "bucketname",
 		Id:                         sdk.NewUint(1),
 		PaymentAddress:             sample.RandAccAddress().String(),
-		PrimarySpId:                primarySp.Id,
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		ChargedReadQuota:           0,
 	}
@@ -175,7 +174,6 @@ func (s *TestSuite) TestGetBucketBill() {
 		BucketName:                 "bucketname",
 		Id:                         sdk.NewUint(1),
 		PaymentAddress:             sample.RandAccAddress().String(),
-		PrimarySpId:                primarySp.Id,
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		ChargedReadQuota:           100,
 	}
@@ -195,7 +193,6 @@ func (s *TestSuite) TestGetBucketBill() {
 		BucketName:                 "bucketname",
 		Id:                         sdk.NewUint(1),
 		PaymentAddress:             sample.RandAccAddress().String(),
-		PrimarySpId:                primarySp.Id,
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		ChargedReadQuota:           100,
 	}

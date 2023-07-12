@@ -160,9 +160,9 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 	s.T().Logf("new params: %s", params.String())
 }
 
-func (s *PaymentTestSuite) createBucketAndObject() (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
+func (s *PaymentTestSuite) createBucketAndObject(sp *core.StorageProvider) (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
 	var err error
-	sp := s.StorageProviders[0]
+
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 
@@ -221,7 +221,7 @@ func (s *PaymentTestSuite) createBucketAndObject() (keys.KeyManager, string, str
 
 func (s *PaymentTestSuite) createBucket() (keys.KeyManager, string) {
 	var err error
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 
@@ -241,7 +241,8 @@ func (s *PaymentTestSuite) createBucket() (keys.KeyManager, string) {
 
 func (s *PaymentTestSuite) createObject(user keys.KeyManager, bucketName string) (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
 	var err error
-	sp := s.StorageProviders[0]
+
+	sp := s.BaseSuite.PickStorageProviderByBucketName(bucketName)
 
 	// CreateObject
 	objectName := storagetestutils.GenRandomObjectName()
@@ -286,7 +287,7 @@ func (s *PaymentTestSuite) createObject(user keys.KeyManager, bucketName string)
 }
 
 func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId storagetypes.Uint, checksums [][]byte) {
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProviderByBucketName(bucketName)
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	s.T().Log("GVG info: ", gvg.String())
@@ -298,11 +299,11 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, objectId, storagetypes.GenerateHash(checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -327,12 +328,13 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 // create an object, increase the reserve time, seal the object without error.
 func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange() {
 	ctx := context.Background()
+	sp := s.BaseSuite.PickStorageProvider()
 	queryParamsRequest := paymenttypes.QueryParamsRequest{}
 	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
 	s.Require().NoError(err)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject()
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
 
 	// update params
 	params := queryParamsResponse.GetParams()
@@ -383,6 +385,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
 	s.Require().NoError(err)
 
+	sp := s.BaseSuite.PickStorageProvider()
 	validatorTaxPoolRate := sdk.ZeroInt()
 	queryStreamRequest := paymenttypes.QueryGetStreamRecordRequest{Account: paymenttypes.ValidatorTaxPoolAddress.String()}
 	queryStreamResponse, err := s.Client.PaymentQueryClient.StreamRecord(ctx, &queryStreamRequest)
@@ -395,7 +398,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject()
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
 
 	// seal object
 	s.sealObject(bucketName, objectName, objectId, checksums)
@@ -437,12 +440,13 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 // create an object, change the reserve time, the object can be force deleted even the object's own has no enough balance.
 func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChange() {
 	ctx := context.Background()
+	sp := s.BaseSuite.PickStorageProvider()
 	queryParamsRequest := paymenttypes.QueryParamsRequest{}
 	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
 	s.Require().NoError(err)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject()
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
 
 	// seal object
 	s.sealObject(bucketName, objectName, objectId, checksums)
@@ -494,8 +498,6 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
-	sp := s.StorageProviders[0]
-
 	// force delete bucket
 	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
 	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
@@ -525,7 +527,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 
 func (s *PaymentTestSuite) TestDepositAndResume_InOneBlock() {
 	ctx := context.Background()
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -654,7 +656,7 @@ func (s *PaymentTestSuite) TestDepositAndResume_InBlocks() {
 	params = queryParamsResponse.GetParams()
 	s.T().Logf("params: %s", params.String())
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -776,16 +778,16 @@ func (s *PaymentTestSuite) TestDepositAndResume_InBlocks() {
 
 func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	ctx := context.Background()
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
+	s.T().Log(gvg.String())
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	userAddr := user.GetAddr().String()
 	var err error
 
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -953,7 +955,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 	params = queryParamsResponse.GetParams()
 	s.T().Logf("params: %s", params.String())
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -1021,7 +1023,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 		if currentTimestamp > paymentAccountStreamRecord.SettleTimestamp {
 			break
 		}
-		time.Sleep(time.Second)
+		time.Sleep(2 * time.Second)
 		retryCount++
 		if retryCount > 60 {
 			s.T().Fatalf("wait for settle time timeout")
@@ -1034,7 +1036,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 		if paymentStreamRecordAfterAutoSettle.NetflowRate.IsZero() {
 			break
 		}
-		time.Sleep(500 * time.Millisecond)
+		time.Sleep(1000 * time.Millisecond)
 		retryCount++
 		if retryCount > 60 {
 			s.T().Fatalf("wait for settle time timeout")
@@ -1052,12 +1054,11 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
 	var err error
 	ctx := context.Background()
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1098,12 +1099,11 @@ func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
 func (s *PaymentTestSuite) TestStorageSmoke() {
 	var err error
 	ctx := context.Background()
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1246,11 +1246,11 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(expectChecksum[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -1312,18 +1312,17 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 // create an object, sp increase the price a lot, the object can be force deleted even the object's own has no enough balance.
 func (s *PaymentTestSuite) TestForceDeletion_AfterPriceChange() {
 	ctx := context.Background()
+	// create bucket
+	user, bucketName := s.createBucket()
 
 	// set storage price
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProviderByBucketName(bucketName)
 	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr:    sp.OperatorKey.GetAddr().String(),
 		Timestamp: 0,
 	})
 	s.Require().NoError(err)
 	s.T().Log("price", priceRes.SpStoragePrice)
-
-	// create bucket
-	user, bucketName := s.createBucket()
 
 	// create & seal objects
 	_, _, objectName1, objectId1, checksums1 := s.createObject(user, bucketName)

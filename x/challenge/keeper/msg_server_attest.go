@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -65,8 +66,14 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 	}
 
 	//for migrating buckets, or swapping out, the process could be done when offline service does the verification
-	bucketInfo, _ := k.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
-	if bucketInfo.PrimarySpId != sp.Id {
+	bucketInfo, found := k.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
+	if !found {
+		return nil, storagetypes.ErrNoSuchBucket.Wrapf("bucket not found when attest")
+	}
+
+	spInState := k.StorageKeeper.MustGetPrimarySPForBucket(ctx, bucketInfo)
+
+	if spInState.Id != sp.Id {
 		gvg, _ := k.StorageKeeper.GetObjectGVG(ctx, bucketInfo.Id, objectInfo.LocalVirtualGroupId)
 		found = false
 		for _, id := range gvg.SecondarySpIds {

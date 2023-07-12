@@ -30,6 +30,7 @@ type StorageKeeper interface {
 	GetBucketInfo(ctx sdk.Context, bucketName string) (*storage.BucketInfo, bool)
 	MaxSegmentSize(ctx sdk.Context) (res uint64)
 	GetObjectGVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool)
+	MustGetPrimarySPForBucket(ctx sdk.Context, bucketInfo *storage.BucketInfo) *sp.StorageProvider
 }
 
 type PaymentKeeper interface {

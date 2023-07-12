@@ -23,10 +23,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	if !found {
 		return nil, types.ErrUnknownBucketObject
 	}
-	sp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return nil, types.ErrUnknownSp
-	}
+	sp := k.StorageKeeper.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 		return nil, types.ErrInvalidSpStatus
 	}
@@ -44,12 +41,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	stored := false
 	redundancyIndex := types.RedundancyIndexPrimary
 
-	// check primary sp
-	tmpSp, found := k.SpKeeper.GetStorageProvider(ctx, bucketInfo.PrimarySpId)
-	if !found {
-		return nil, errors.Wrapf(types.ErrUnknownSp, "cannot find storage provider: %d", bucketInfo.PrimarySpId)
-	}
-	if spOperator.Equals(sdk.MustAccAddressFromHex(tmpSp.OperatorAddress)) {
+	if spOperator.Equals(sdk.MustAccAddressFromHex(sp.OperatorAddress)) {
 		stored = true
 	}
 
