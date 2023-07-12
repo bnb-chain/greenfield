@@ -1429,8 +1429,8 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230712012407-b1fb3db16b92 h1:kTFogM5XfEPkDoIDdsYG9CAU0QaoOFu5Nj57dfPsbKc=
-github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230712012407-b1fb3db16b92/go.mod h1:WBBOJnhjYebXPD7Qrm+Z7RpgOWJYpFAh4NGKu42MHXo=
+github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230712070231-83799325520b h1:FuSQdZ/KJCC/7CrlHfnu2xl7hUyEugBcetCrPlrbodk=
+github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230712070231-83799325520b/go.mod h1:WBBOJnhjYebXPD7Qrm+Z7RpgOWJYpFAh4NGKu42MHXo=
 github.com/zondax/hid v0.9.1 h1:gQe66rtmyZ8VeGFcOpbuH3r7erYtNEAezCAYu8LdkJo=
 github.com/zondax/hid v0.9.1/go.mod h1:l5wttcP0jwtdLjqjMMWFVEE7d1zO0jvSPA9OPZxWpEM=
 github.com/zondax/ledger-go v0.14.1 h1:Pip65OOl4iJ84WTpA4BKChvOufMhhbxED3BaihoZN4c=

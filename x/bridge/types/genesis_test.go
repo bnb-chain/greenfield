@@ -24,8 +24,8 @@ func TestGenesisState_Validate(t *testing.T) {
 			desc: "valid genesis state",
 			genState: &types.GenesisState{
 				Params: types.Params{
-					TransferOutRelayerFee:    sdkmath.NewInt(1),
-					TransferOutAckRelayerFee: sdkmath.NewInt(0),
+					BscTransferOutRelayerFee:    sdkmath.NewInt(1),
+					BscTransferOutAckRelayerFee: sdkmath.NewInt(0),
 				},
 				// this line is used by starport scaffolding # types/genesis/validField
 			},
