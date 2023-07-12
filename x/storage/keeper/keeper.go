@@ -1073,7 +1073,6 @@ func (k Keeper) UpdateObjectInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		BucketName: bucketName,
 		ObjectName: objectName,
 		Visibility: visibility,
-		ObjectId:   objectInfo.Id,
 	}); err != nil {
 		return err
 	}
@@ -1120,7 +1119,6 @@ func (k Keeper) CreateGroup(
 		GroupId:    groupInfo.Id,
 		SourceType: groupInfo.SourceType,
 		Members:    opts.Members,
-		Extra:      opts.Extra,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
