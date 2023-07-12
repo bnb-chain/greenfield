@@ -287,7 +287,7 @@ message MsgUpdateGroupExtra {
   // group_name defines the name of the group which to be updated
   string group_name = 3;
   // extra defines extra info for the group to update
-  string extra = 4;
+  string Extra = 4;
 }
 
 message MsgUpdateGroupExtraResponse {}
