@@ -26,7 +26,7 @@ func (k Keeper) MaxPayloadSize(ctx sdk.Context) (res uint64) {
 
 func (k Keeper) MirrorBucketRelayerFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	relayerFeeParam := params.MirrorBucketRelayerFee
+	relayerFeeParam := params.BscMirrorBucketRelayerFee
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
 		panic(fmt.Sprintf("invalid relayer fee: %s", relayerFeeParam))
@@ -37,7 +37,7 @@ func (k Keeper) MirrorBucketRelayerFee(ctx sdk.Context) *big.Int {
 
 func (k Keeper) MirrorBucketAckRelayerFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	relayerFeeParam := params.MirrorBucketAckRelayerFee
+	relayerFeeParam := params.BscMirrorBucketAckRelayerFee
 
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
@@ -49,7 +49,7 @@ func (k Keeper) MirrorBucketAckRelayerFee(ctx sdk.Context) *big.Int {
 
 func (k Keeper) MirrorObjectRelayerFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	relayerFeeParam := params.MirrorObjectRelayerFee
+	relayerFeeParam := params.BscMirrorObjectRelayerFee
 
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
@@ -61,7 +61,7 @@ func (k Keeper) MirrorObjectRelayerFee(ctx sdk.Context) *big.Int {
 
 func (k Keeper) MirrorObjectAckRelayerFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	relayerFeeParam := params.MirrorObjectAckRelayerFee
+	relayerFeeParam := params.BscMirrorObjectAckRelayerFee
 
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
@@ -73,7 +73,7 @@ func (k Keeper) MirrorObjectAckRelayerFee(ctx sdk.Context) *big.Int {
 
 func (k Keeper) MirrorGroupRelayerFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	relayerFeeParam := params.MirrorGroupRelayerFee
+	relayerFeeParam := params.BscMirrorGroupRelayerFee
 
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {
@@ -85,7 +85,7 @@ func (k Keeper) MirrorGroupRelayerFee(ctx sdk.Context) *big.Int {
 
 func (k Keeper) MirrorGroupAckRelayerFee(ctx sdk.Context) *big.Int {
 	params := k.GetParams(ctx)
-	relayerFeeParam := params.MirrorGroupAckRelayerFee
+	relayerFeeParam := params.BscMirrorGroupAckRelayerFee
 
 	relayerFee, valid := big.NewInt(0).SetString(relayerFeeParam, 10)
 	if !valid {

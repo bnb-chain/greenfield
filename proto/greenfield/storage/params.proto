@@ -12,18 +12,18 @@ message Params {
 
   // max_payload_size is the maximum size of the payload, default: 2G
   uint64 max_payload_size = 2;
-  // relayer fee for the mirror bucket tx
-  string mirror_bucket_relayer_fee = 3;
-  // relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx
-  string mirror_bucket_ack_relayer_fee = 4;
-  // relayer fee for the mirror object tx
-  string mirror_object_relayer_fee = 5;
-  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
-  string mirror_object_ack_relayer_fee = 6;
-  // relayer fee for the mirror object tx
-  string mirror_group_relayer_fee = 7;
-  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
-  string mirror_group_ack_relayer_fee = 8;
+  // relayer fee for the mirror bucket tx to bsc
+  string bsc_mirror_bucket_relayer_fee = 3;
+  // relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx to bsc
+  string bsc_mirror_bucket_ack_relayer_fee = 4;
+  // relayer fee for the mirror object tx to bsc
+  string bsc_mirror_object_relayer_fee = 5;
+  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to bsc
+  string bsc_mirror_object_ack_relayer_fee = 6;
+  // relayer fee for the mirror object tx to bsc
+  string bsc_mirror_group_relayer_fee = 7;
+  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to bsc
+  string bsc_mirror_group_ack_relayer_fee = 8;
   // The maximum number of buckets that can be created per account
   uint32 max_buckets_per_account = 9;
   // The window to count the discontinued objects or buckets

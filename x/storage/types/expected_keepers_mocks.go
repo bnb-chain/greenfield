@@ -9,13 +9,14 @@ import (
 	reflect "reflect"
 
 	math "cosmossdk.io/math"
+	types2 "github.com/cosmos/cosmos-sdk/types"
+	types3 "github.com/cosmos/cosmos-sdk/x/auth/types"
+	gomock "github.com/golang/mock/gomock"
+
 	resource "github.com/bnb-chain/greenfield/types/resource"
 	types "github.com/bnb-chain/greenfield/x/payment/types"
 	types0 "github.com/bnb-chain/greenfield/x/permission/types"
 	types1 "github.com/bnb-chain/greenfield/x/sp/types"
-	types2 "github.com/cosmos/cosmos-sdk/types"
-	types3 "github.com/cosmos/cosmos-sdk/x/auth/types"
-	gomock "github.com/golang/mock/gomock"
 )
 
 // MockAccountKeeper is a mock of AccountKeeper interface.
@@ -675,18 +676,32 @@ func (m *MockCrossChainKeeper) EXPECT() *MockCrossChainKeeperMockRecorder {
 }
 
 // CreateRawIBCPackageWithFee mocks base method.
-func (m *MockCrossChainKeeper) CreateRawIBCPackageWithFee(ctx types2.Context, channelID types2.ChannelID, packageType types2.CrossChainPackageType, packageLoad []byte, relayerFee, ackRelayerFee *big.Int) (uint64, error) {
+func (m *MockCrossChainKeeper) CreateRawIBCPackageWithFee(ctx types2.Context, chainID types2.ChainID, channelID types2.ChannelID, packageType types2.CrossChainPackageType, packageLoad []byte, relayerFee, ackRelayerFee *big.Int) (uint64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreateRawIBCPackageWithFee", ctx, channelID, packageType, packageLoad, relayerFee, ackRelayerFee)
+	ret := m.ctrl.Call(m, "CreateRawIBCPackageWithFee", ctx, chainID, channelID, packageType, packageLoad, relayerFee, ackRelayerFee)
 	ret0, _ := ret[0].(uint64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // CreateRawIBCPackageWithFee indicates an expected call of CreateRawIBCPackageWithFee.
-func (mr *MockCrossChainKeeperMockRecorder) CreateRawIBCPackageWithFee(ctx, channelID, packageType, packageLoad, relayerFee, ackRelayerFee interface{}) *gomock.Call {
+func (mr *MockCrossChainKeeperMockRecorder) CreateRawIBCPackageWithFee(ctx, chainID, channelID, packageType, packageLoad, relayerFee, ackRelayerFee interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRawIBCPackageWithFee", reflect.TypeOf((*MockCrossChainKeeper)(nil).CreateRawIBCPackageWithFee), ctx, channelID, packageType, packageLoad, relayerFee, ackRelayerFee)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateRawIBCPackageWithFee", reflect.TypeOf((*MockCrossChainKeeper)(nil).CreateRawIBCPackageWithFee), ctx, chainID, channelID, packageType, packageLoad, relayerFee, ackRelayerFee)
+}
+
+// GetDestBscChainID mocks base method.
+func (m *MockCrossChainKeeper) GetDestBscChainID() types2.ChainID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDestBscChainID")
+	ret0, _ := ret[0].(types2.ChainID)
+	return ret0
+}
+
+// GetDestBscChainID indicates an expected call of GetDestBscChainID.
+func (mr *MockCrossChainKeeperMockRecorder) GetDestBscChainID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDestBscChainID", reflect.TypeOf((*MockCrossChainKeeper)(nil).GetDestBscChainID))
 }
 
 // RegisterChannel mocks base method.

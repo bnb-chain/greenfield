@@ -13,7 +13,7 @@ type AppConfig struct {
 type CrossChainConfig struct {
 	SrcChainId uint32 `mapstructure:"src-chain-id"`
 
-	DestChainId uint32 `mapstructure:"dest-chain-id"`
+	DestBscChainId uint32 `mapstructure:"dest-bsc-chain-id"`
 }
 
 var CustomAppTemplate = serverconfig.DefaultConfigTemplate + `
@@ -23,8 +23,8 @@ var CustomAppTemplate = serverconfig.DefaultConfigTemplate + `
 [cross-chain]
 # chain-id for current chain
 src-chain-id = {{ .CrossChain.SrcChainId }}
-# chain-id for destination chain(bsc)
-dest-chain-id = {{ .CrossChain.DestChainId }}
+# chain-id for bsc destination chain
+dest-bsc-chain-id = {{ .CrossChain.DestBscChainId }}
 `
 
 func NewDefaultAppConfig() *AppConfig {
@@ -46,8 +46,8 @@ func NewDefaultAppConfig() *AppConfig {
 	return &AppConfig{
 		Config: *srvCfg,
 		CrossChain: CrossChainConfig{
-			SrcChainId:  1,
-			DestChainId: 2,
+			SrcChainId:     1,
+			DestBscChainId: 2,
 		},
 	}
 }

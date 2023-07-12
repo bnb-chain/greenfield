@@ -42,7 +42,7 @@ func (s *BridgeTestSuite) TestTransferOut() {
 	params, err := s.Client.BridgeQueryClient.Params(ctx, &bridgetypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
-	totalTransferOutRelayerFee := params.Params.TransferOutRelayerFee.Add(params.Params.TransferOutAckRelayerFee)
+	totalTransferOutRelayerFee := params.Params.BscTransferOutRelayerFee.Add(params.Params.BscTransferOutAckRelayerFee)
 
 	moduleAccount := types.MustAccAddressFromHex("0xB73C0Aac4C1E606C6E495d848196355e6CB30381")
 	// query balance before

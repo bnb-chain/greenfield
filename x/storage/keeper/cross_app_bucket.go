@@ -140,9 +140,10 @@ func (app *BucketApp) handleMirrorBucketAckPackage(ctx sdk.Context, appCtx *sdk.
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucketResult{
-		Status:     uint32(ackPackage.Status),
-		BucketName: bucketInfo.BucketName,
-		BucketId:   bucketInfo.Id,
+		Status:      uint32(ackPackage.Status),
+		BucketName:  bucketInfo.BucketName,
+		BucketId:    bucketInfo.Id,
+		DestChainId: uint32(appCtx.SrcChainId),
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
@@ -165,9 +166,10 @@ func (app *BucketApp) handleMirrorBucketFailAckPackage(ctx sdk.Context, appCtx *
 	app.storageKeeper.SetBucketInfo(ctx, bucketInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucketResult{
-		Status:     uint32(types.StatusFail),
-		BucketName: bucketInfo.BucketName,
-		BucketId:   bucketInfo.Id,
+		Status:      uint32(types.StatusFail),
+		BucketName:  bucketInfo.BucketName,
+		BucketId:    bucketInfo.Id,
+		DestChainId: uint32(appCtx.SrcChainId),
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
