@@ -74,7 +74,8 @@ type PermissionKeeper interface {
 }
 
 type CrossChainKeeper interface {
-	CreateRawIBCPackageWithFee(ctx sdk.Context, channelID sdk.ChannelID, packageType sdk.CrossChainPackageType,
+	GetDestBscChainID() sdk.ChainID
+	CreateRawIBCPackageWithFee(ctx sdk.Context, chainID sdk.ChainID, channelID sdk.ChannelID, packageType sdk.CrossChainPackageType,
 		packageLoad []byte, relayerFee *big.Int, ackRelayerFee *big.Int,
 	) (uint64, error)
 

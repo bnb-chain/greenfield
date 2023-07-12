@@ -7,26 +7,26 @@ import (
 )
 
 var (
-	DefaultTransferOutRelayerFeeParam    = sdkmath.NewInt(250000000000000) // 0.00025
-	DefaultTransferOutAckRelayerFeeParam = sdkmath.NewInt(0)
+	DefaultBscTransferOutRelayerFeeParam    = sdkmath.NewInt(250000000000000) // 0.00025
+	DefaultBscTransferOutAckRelayerFeeParam = sdkmath.NewInt(0)
 )
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return Params{
-		TransferOutRelayerFee:    DefaultTransferOutRelayerFeeParam,
-		TransferOutAckRelayerFee: DefaultTransferOutAckRelayerFeeParam,
+		BscTransferOutRelayerFee:    DefaultBscTransferOutRelayerFeeParam,
+		BscTransferOutAckRelayerFee: DefaultBscTransferOutAckRelayerFeeParam,
 	}
 }
 
 // Validate validates the set of params
 func (p Params) Validate() error {
-	err := validateRelayerFee(p.TransferOutRelayerFee)
+	err := validateRelayerFee(p.BscTransferOutRelayerFee)
 	if err != nil {
 		return err
 	}
 
-	err = validateRelayerFee(p.TransferOutAckRelayerFee)
+	err = validateRelayerFee(p.BscTransferOutAckRelayerFee)
 	if err != nil {
 		return err
 	}

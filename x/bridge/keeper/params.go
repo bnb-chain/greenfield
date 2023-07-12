@@ -36,5 +36,5 @@ func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
 func (k Keeper) GetTransferOutRelayerFee(ctx sdk.Context) (sdkmath.Int, sdkmath.Int) {
 	params := k.GetParams(ctx)
 
-	return params.TransferOutRelayerFee, params.TransferOutAckRelayerFee
+	return params.BscTransferOutRelayerFee, params.BscTransferOutAckRelayerFee
 }

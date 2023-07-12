@@ -370,6 +370,8 @@ message EventMirrorBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // chain id of the destination chain
+  uint32 dest_chain_id = 5;
 }
 
 // EventMirrorBucketResult is emitted on receiving ack package from destination chain
@@ -384,6 +386,8 @@ message EventMirrorBucketResult {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // chain id of the destination chain
+  uint32 dest_chain_id = 5;
 }
 
 // EventMirrorObject is emitted on MirrorObject
@@ -400,6 +404,8 @@ message EventMirrorObject {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // chain id of the destination chain
+  uint32 dest_chain_id = 5;
 }
 
 // EventMirrorObjectResult is emitted on receiving ack package from destination chain
@@ -416,6 +422,8 @@ message EventMirrorObjectResult {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // chain id of the destination chain
+  uint32 dest_chain_id = 5;
 }
 
 // EventMirrorGroup is emitted on MirrorGroup
@@ -430,6 +438,8 @@ message EventMirrorGroup {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // chain id of the destination chain
+  uint32 dest_chain_id = 4;
 }
 
 // EventMirrorGroupResult is emitted on receiving ack package from destination chain
@@ -444,6 +454,8 @@ message EventMirrorGroupResult {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+  // chain id of the destination chain
+  uint32 dest_chain_id = 4;
 }
 
 // EventStalePolicyCleanup is emitted when specified block height's stale policies need to be Garbage collected
