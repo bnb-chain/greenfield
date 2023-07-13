@@ -10,6 +10,7 @@ Features
 * [#326](https://github.com/bnb-chain/greenfield/pull/326) feat: add bls verification
 * [#336](https://github.com/bnb-chain/greenfield/pull/336) feat: add tendermint to sdk
 * [#341](https://github.com/bnb-chain/greenfield/pull/341) feat: support cross chain for multiple blockchains
+* [#328](https://github.com/bnb-chain/greenfield/pull/328) feat: refactor for sp exit and bucket migrate 
 
 Bugfixes
 * [#307](https://github.com/bnb-chain/greenfield/pull/307) fix DefaultMaxPayloadSize from 2GB to 64GB 
