@@ -10,6 +10,7 @@ import "greenfield/permission/common.proto";
 import "greenfield/permission/types.proto";
 import "greenfield/storage/params.proto";
 import "greenfield/storage/types.proto";
+import "greenfield/virtualgroup/types.proto";
 
 // this line is used by starport scaffolding # 1
 
@@ -164,6 +165,7 @@ message QueryHeadObjectByIdRequest {
 
 message QueryHeadObjectResponse {
   ObjectInfo object_info = 1;
+  virtualgroup.GlobalVirtualGroup global_virtual_group = 2;
 }
 
 message QueryListBucketsRequest {

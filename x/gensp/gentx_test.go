@@ -1,7 +1,6 @@
 package gensp_test
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -10,7 +9,6 @@ import (
 
 	"cosmossdk.io/math"
 	abci "github.com/cometbft/cometbft/abci/types"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -23,9 +21,9 @@ import (
 	genutiltestutil "github.com/cosmos/cosmos-sdk/x/genutil/testutil"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/golang/mock/gomock"
-	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/gensp"
 	gensptypes "github.com/bnb-chain/greenfield/x/gensp/types"
 )
@@ -67,21 +65,20 @@ func (suite *GenTxTestSuite) SetupTest() {
 	var err error
 	amount := sdk.NewInt64Coin(sdk.DefaultBondDenom, 50)
 	one := math.OneInt()
-	blsSecretKey, _ := bls.RandKey()
-	blsPk := hex.EncodeToString(blsSecretKey.PublicKey().Marshal())
-	blsProofBuf := blsSecretKey.Sign(tmhash.Sum(blsSecretKey.PublicKey().Marshal()))
-	blsProof := hex.EncodeToString(blsProofBuf.Marshal())
+	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
 	suite.msg1, err = stakingtypes.NewMsgCreateValidator(
 		sdk.AccAddress(pk1.Address()), pk1,
 		amount, desc, comm, one,
 		sdk.AccAddress(pk1.Address()), sdk.AccAddress(pk1.Address()),
-		sdk.AccAddress(pk1.Address()), sdk.AccAddress(pk1.Address()), blsPk, blsProof)
+		sdk.AccAddress(pk1.Address()), sdk.AccAddress(pk1.Address()),
+		blsPubKey, blsProof)
 	suite.NoError(err)
 	suite.msg2, err = stakingtypes.NewMsgCreateValidator(
 		sdk.AccAddress(pk2.Address()), pk1,
 		amount, desc, comm, one,
 		sdk.AccAddress(pk2.Address()), sdk.AccAddress(pk2.Address()),
-		sdk.AccAddress(pk2.Address()), sdk.AccAddress(pk1.Address()), blsPk, blsProof)
+		sdk.AccAddress(pk2.Address()), sdk.AccAddress(pk1.Address()),
+		blsPubKey, blsProof)
 	suite.NoError(err)
 }
 

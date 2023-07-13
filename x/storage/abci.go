@@ -23,12 +23,14 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	}
 
 	blockTime := ctx.BlockTime().Unix()
-	// set ForceUpdateFrozenStreamRecordKey to true in context to force update frozen stream record
-	ctx = ctx.WithValue(paymenttypes.ForceUpdateFrozenStreamRecordKey, true)
+
+	// set ForceUpdateStreamRecordKey to true in context to force update frozen stream record
+	ctx = ctx.WithValue(paymenttypes.ForceUpdateStreamRecordKey, true)
+
 	// delete objects
 	deleted, err := keeper.DeleteDiscontinueObjectsUntil(ctx, blockTime, deletionMax)
 	if err != nil {
-		panic("fail to delete objects, err " + err.Error())
+		ctx.Logger().Error("should not happen, fail to delete objects, err " + err.Error())
 	}
 
 	if deleted >= deletionMax {
@@ -38,7 +40,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	// delete buckets
 	_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
 	if err != nil {
-		panic("fail to delete buckets, err " + err.Error())
+		ctx.Logger().Error("should not happen, fail to delete buckets, err " + err.Error())
 	}
 	keeper.PersistDeleteInfo(ctx)
 

@@ -1,9 +1,14 @@
 package types
 
 import (
+	"encoding/hex"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 const (
@@ -11,6 +16,7 @@ const (
 	TypeMsgEditStorageProvider   = "edit_storage_provider"
 	TypeMsgDeposit               = "deposit"
 	TypeMsgUpdateSpStoragePrice  = "update_sp_storage_price"
+	TypeMsgUpdateParams          = "update_params"
 )
 
 var (
@@ -26,13 +32,15 @@ var (
 // creator is the module account of gov module
 // SpAddress is the account address of storage provider
 // fundAddress is another accoutn address of storage provider which used to deposit or rewarding
+// blsKey is the public key of bls private key, which is used for sealing object and completing migration signature.
+// blsProof is the signature signed via bls private key on bls public key bytes
 func NewMsgCreateStorageProvider(
-	creator sdk.AccAddress, SpAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
+	creator sdk.AccAddress, spAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
-	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec) (*MsgCreateStorageProvider, error) {
+	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec, blsKey, blsProof string) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
 		Creator:         creator.String(),
-		SpAddress:       SpAddress.String(),
+		SpAddress:       spAddress.String(),
 		FundingAddress:  fundingAddress.String(),
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
@@ -43,6 +51,8 @@ func NewMsgCreateStorageProvider(
 		ReadPrice:       readPrice,
 		FreeReadQuota:   freeReadQuota,
 		StorePrice:      storePrice,
+		BlsKey:          blsKey,
+		BlsProof:        blsProof,
 	}, nil
 }
 
@@ -91,6 +101,22 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.GcAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
 	}
+
+	blsPk, err := hex.DecodeString(msg.BlsKey)
+	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
+	}
+
+	blsProof, err := hex.DecodeString(msg.BlsProof)
+	if err != nil || len(blsProof) != sdk.BLSSignatureLength {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "invalid bls sig")
+	}
+
+	_, err = bls.SignatureFromBytes(blsProof)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
+	}
+
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
@@ -99,7 +125,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 
-	err := IsValidEndpointURL(msg.Endpoint)
+	err = IsValidEndpointURL(msg.Endpoint)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
 	}
@@ -111,7 +137,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
 func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description *Description,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress) *MsgEditStorageProvider {
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, blsKey, blsProof string) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
 		SpAddress:       spAddress.String(),
 		Endpoint:        endpoint,
@@ -119,6 +145,8 @@ func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, descri
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
 		GcAddress:       gcAddress.String(),
+		BlsKey:          blsKey,
+		BlsProof:        blsProof,
 	}
 }
 
@@ -180,6 +208,23 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 	if msg.GcAddress != "" {
 		if _, err := sdk.AccAddressFromHexUnsafe(msg.GcAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
+		}
+	}
+	if msg.BlsKey != "" {
+		if msg.BlsProof == "" {
+			return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "bls proof is not provided")
+		}
+		blsPk, err := hex.DecodeString(msg.BlsKey)
+		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
+			return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
+		}
+		blsProof, err := hex.DecodeString(msg.BlsProof)
+		if err != nil || len(blsProof) != sdk.BLSSignatureLength {
+			return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
+		}
+		_, err = bls.SignatureFromBytes(blsProof)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
 		}
 	}
 	return nil
@@ -270,8 +315,6 @@ func (msg *MsgUpdateSpStoragePrice) ValidateBasic() error {
 	}
 	return nil
 }
-
-var _ sdk.Msg = &MsgUpdateParams{}
 
 // GetSignBytes implements the LegacyMsg interface.
 func (m MsgUpdateParams) GetSignBytes() []byte {

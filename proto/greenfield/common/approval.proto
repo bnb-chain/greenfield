@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package greenfield.common;
+
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/types/common";
+
+// Approval is the signature information returned by the Primary Storage Provider (SP) to the user
+// after allowing them to create a bucket or object, which is then used for verification on the chain
+// to ensure agreement between the Primary SP and the user.
+message Approval {
+  // expired_height is the block height at which the signature expires.
+  uint64 expired_height = 1;
+  // global_virtual_group_family_id is the family id that stored.
+  uint32 global_virtual_group_family_id = 2;
+  // The signature needs to conform to the EIP 712 specification.
+  bytes sig = 3;
+}

@@ -33,6 +33,7 @@ func makeKeeper(t *testing.T) (*keeper.Keeper, sdk.Context) {
 		&types.MockPaymentKeeper{},
 		&types.MockPermissionKeeper{},
 		&types.MockCrossChainKeeper{},
+		&types.MockVirtualGroupKeeper{},
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 

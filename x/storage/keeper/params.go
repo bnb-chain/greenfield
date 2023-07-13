@@ -15,8 +15,12 @@ func (k Keeper) MaxBucketsPerAccount(ctx sdk.Context) (res uint32) {
 	return params.MaxBucketsPerAccount
 }
 
-func (k Keeper) GetExpectSecondarySPNumForECObject(ctx sdk.Context) (res uint32) {
-	return k.RedundantDataChunkNum(ctx) + k.RedundantParityChunkNum(ctx)
+func (k Keeper) GetExpectSecondarySPNumForECObject(ctx sdk.Context, createTime int64) (res uint32) {
+	versionParams, err := k.GetVersionedParamsWithTs(ctx, createTime)
+	if err != nil {
+		panic(fmt.Sprintf("get expect secondary sp num error, msg: %s", err))
+	}
+	return versionParams.RedundantParityChunkNum + versionParams.RedundantDataChunkNum
 }
 
 func (k Keeper) MaxPayloadSize(ctx sdk.Context) (res uint64) {
@@ -206,4 +210,9 @@ func (k Keeper) GetVersionedParamsWithTs(ctx sdk.Context, ts int64) (verParams t
 	k.cdc.MustUnmarshal(iterator.Value(), &verParams)
 
 	return verParams, nil
+}
+
+func (k Keeper) MaxLocalVirtualGroupNumPerBucket(ctx sdk.Context) (res uint32) {
+	params := k.GetParams(ctx)
+	return params.MaxLocalVirtualGroupNumPerBucket
 }

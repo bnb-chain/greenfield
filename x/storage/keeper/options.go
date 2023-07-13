@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -9,7 +10,7 @@ type CreateBucketOptions struct {
 	SourceType        types.SourceType
 	ChargedReadQuota  uint64
 	PaymentAddress    string
-	PrimarySpApproval *types.Approval
+	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
 }
 
@@ -25,14 +26,13 @@ type UpdateBucketOptions struct {
 }
 
 type CreateObjectOptions struct {
-	Visibility           types.VisibilityType
-	ContentType          string
-	SourceType           types.SourceType
-	RedundancyType       types.RedundancyType
-	Checksums            [][]byte
-	SecondarySpAddresses []string
-	PrimarySpApproval    *types.Approval
-	ApprovalMsgBytes     []byte
+	Visibility        types.VisibilityType
+	ContentType       string
+	SourceType        types.SourceType
+	RedundancyType    types.RedundancyType
+	Checksums         [][]byte
+	PrimarySpApproval *common.Approval
+	ApprovalMsgBytes  []byte
 }
 
 type CancelCreateObjectOptions struct {
@@ -46,7 +46,7 @@ type DeleteObjectOptions struct {
 type CopyObjectOptions struct {
 	SourceType        types.SourceType
 	Visibility        types.VisibilityType
-	PrimarySpApproval *types.Approval
+	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
 }
 type CreateGroupOptions struct {

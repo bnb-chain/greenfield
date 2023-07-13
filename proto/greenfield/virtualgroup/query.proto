@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package greenfield.virtualgroup;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "greenfield/virtualgroup/params.proto";
+import "greenfield/virtualgroup/types.proto";
+
+// this line is used by starport scaffolding # 1
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
+
+// Query defines the gRPC query service.
+service Query {
+  // Parameters queries the parameters of the module.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/params";
+  }
+
+  // Queries a global virtual group by its id.
+  rpc GlobalVirtualGroup(QueryGlobalVirtualGroupRequest) returns (QueryGlobalVirtualGroupResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group";
+  }
+
+  // Queries a list of global virtual groups by family id.
+  rpc GlobalVirtualGroupByFamilyID(QueryGlobalVirtualGroupByFamilyIDRequest) returns (QueryGlobalVirtualGroupByFamilyIDResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_by_family_id";
+  }
+
+  // Queries a list of global virtual group families by storage provider id.
+  rpc GlobalVirtualGroupFamilies(QueryGlobalVirtualGroupFamiliesRequest) returns (QueryGlobalVirtualGroupFamiliesResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_families";
+  }
+
+  // Queries a global virtual group family by its id.
+  rpc GlobalVirtualGroupFamily(QueryGlobalVirtualGroupFamilyRequest) returns (QueryGlobalVirtualGroupFamilyResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_family";
+  }
+
+  // this line is used by starport scaffolding # 2
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+message QueryGlobalVirtualGroupRequest {
+  uint32 global_virtual_group_id = 1;
+}
+
+message QueryGlobalVirtualGroupResponse {
+  GlobalVirtualGroup global_virtual_group = 1;
+}
+
+message QueryGlobalVirtualGroupByFamilyIDRequest {
+  uint32 storage_provider_id = 1;
+  uint32 global_virtual_group_family_id = 2;
+}
+
+message QueryGlobalVirtualGroupByFamilyIDResponse {
+  repeated GlobalVirtualGroup global_virtual_groups = 1;
+}
+
+message QueryGlobalVirtualGroupFamiliesRequest {
+  uint32 storage_provider_id = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryGlobalVirtualGroupFamiliesResponse {
+  repeated GlobalVirtualGroupFamily global_virtual_group_families = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryGlobalVirtualGroupFamilyRequest {
+  uint32 storage_provider_id = 1;
+  uint32 family_id = 2;
+}
+
+message QueryGlobalVirtualGroupFamilyResponse {
+  GlobalVirtualGroupFamily global_virtual_group_family = 1;
+}
+// this line is used by starport scaffolding # 3

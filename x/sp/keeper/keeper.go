@@ -8,6 +8,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/bnb-chain/greenfield/internal/sequence"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
@@ -19,7 +20,8 @@ type (
 		bankKeeper    types.BankKeeper
 		authzKeeper   types.AuthzKeeper
 
-		authority string
+		spSequence sequence.Sequence[uint32]
+		authority  string
 	}
 )
 
@@ -33,7 +35,7 @@ func NewKeeper(
 
 ) *Keeper {
 
-	return &Keeper{
+	k := &Keeper{
 		cdc:           cdc,
 		storeKey:      key,
 		accountKeeper: ak,
@@ -41,6 +43,9 @@ func NewKeeper(
 		authzKeeper:   azk,
 		authority:     authority,
 	}
+
+	k.spSequence = sequence.NewSequence[uint32](types.StorageProviderSequenceKey)
+	return k
 }
 
 func (k Keeper) GetAuthority() string {
@@ -49,4 +54,11 @@ func (k Keeper) GetAuthority() string {
 
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+}
+
+func (k Keeper) GetNextSpID(ctx sdk.Context) uint32 {
+	store := ctx.KVStore(k.storeKey)
+
+	seq := k.spSequence.NextVal(store)
+	return seq
 }

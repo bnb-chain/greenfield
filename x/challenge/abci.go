@@ -64,36 +64,38 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// random redundancy index (sp address)
-		var spOperatorAddress string
-		secondarySpAddresses := objectInfo.SecondarySpAddresses
+		var spOperatorId uint32
 
-		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(secondarySpAddresses)+1))
+		bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
+		if !found {
+			continue
+		}
+		gvg, found := keeper.StorageKeeper.GetObjectGVG(ctx, bucket.Id, objectInfo.LocalVirtualGroupId)
+		if !found {
+			continue
+		}
+		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(gvg.SecondarySpIds)+1))
 		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
-			bucket, found := keeper.StorageKeeper.GetBucketInfo(ctx, objectInfo.BucketName)
-			if !found {
-				continue
-			}
-			spOperatorAddress = bucket.PrimarySpAddress
+			spOperatorId = bucket.PrimarySpId
 		} else {
-			spOperatorAddress = secondarySpAddresses[redundancyIndex]
+			spOperatorId = gvg.SecondarySpIds[redundancyIndex]
 		}
 
-		spOperatorAddr, err := sdk.AccAddressFromHexUnsafe(spOperatorAddress)
-		if err != nil {
+		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorId)
+		if !found {
 			continue
 		}
-		sp, found := keeper.SpKeeper.GetStorageProvider(ctx, spOperatorAddr)
-		if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
+		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 			continue
 		}
 
-		mapKey := fmt.Sprintf("%s-%s", spOperatorAddress, objectInfo.Id.String())
+		mapKey := fmt.Sprintf("%d-%s", spOperatorId, objectInfo.Id.String())
 		if _, ok := objectMap[mapKey]; ok { // already generated for this pair
 			continue
 		}
 
 		// check recent slash
-		if keeper.ExistsSlash(ctx, spOperatorAddr, objectInfo.Id) {
+		if keeper.ExistsSlash(ctx, sp.Id, objectInfo.Id) {
 			continue
 		}
 
@@ -112,7 +114,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,
 			SegmentIndex:      segmentIndex,
-			SpOperatorAddress: spOperatorAddress,
+			SpOperatorAddress: sp.OperatorAddress,
 			RedundancyIndex:   redundancyIndex,
 			ChallengerAddress: "",
 			ExpiredHeight:     expiredHeight,

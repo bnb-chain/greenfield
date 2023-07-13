@@ -42,10 +42,12 @@ type EventCreateBucket struct {
 	ChargedReadQuota uint64 `protobuf:"varint,7,opt,name=charged_read_quota,json=chargedReadQuota,proto3" json:"charged_read_quota,omitempty"`
 	// payment_address is the address of the payment account
 	PaymentAddress string `protobuf:"bytes,8,opt,name=payment_address,json=paymentAddress,proto3" json:"payment_address,omitempty"`
-	// primary_sp_address is the operator address of the primary sp.
-	PrimarySpAddress string `protobuf:"bytes,9,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// primary_sp_id is the unique id of primary sp.
+	PrimarySpId uint32 `protobuf:"varint,9,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
+	// global_virtual_group_family_id defines the unique id of gvg family
+	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,10,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
 	// status define the status of the bucket.
-	Status BucketStatus `protobuf:"varint,10,opt,name=status,proto3,enum=greenfield.storage.BucketStatus" json:"status,omitempty"`
+	Status BucketStatus `protobuf:"varint,11,opt,name=status,proto3,enum=greenfield.storage.BucketStatus" json:"status,omitempty"`
 }
 
 func (m *EventCreateBucket) Reset()         { *m = EventCreateBucket{} }
@@ -130,11 +132,18 @@ func (m *EventCreateBucket) GetPaymentAddress() string {
 	return ""
 }
 
-func (m *EventCreateBucket) GetPrimarySpAddress() string {
+func (m *EventCreateBucket) GetPrimarySpId() uint32 {
 	if m != nil {
-		return m.PrimarySpAddress
+		return m.PrimarySpId
 	}
-	return ""
+	return 0
+}
+
+func (m *EventCreateBucket) GetGlobalVirtualGroupFamilyId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyId
+	}
+	return 0
 }
 
 func (m *EventCreateBucket) GetStatus() BucketStatus {
@@ -154,8 +163,8 @@ type EventDeleteBucket struct {
 	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// bucket_id define an u256 id for bucket
 	BucketId Uint `protobuf:"bytes,4,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
-	// primary_sp_address define the account address of primary sp
-	PrimarySpAddress string `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// primary_sp_id is the unique id of primary sp.
+	PrimarySpId uint32 `protobuf:"varint,5,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
 }
 
 func (m *EventDeleteBucket) Reset()         { *m = EventDeleteBucket{} }
@@ -212,11 +221,11 @@ func (m *EventDeleteBucket) GetBucketName() string {
 	return ""
 }
 
-func (m *EventDeleteBucket) GetPrimarySpAddress() string {
+func (m *EventDeleteBucket) GetPrimarySpId() uint32 {
 	if m != nil {
-		return m.PrimarySpAddress
+		return m.PrimarySpId
 	}
-	return ""
+	return 0
 }
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
@@ -401,8 +410,8 @@ type EventCreateObject struct {
 	BucketId Uint `protobuf:"bytes,6,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 	// object_id define an u256 id for object
 	ObjectId Uint `protobuf:"bytes,7,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
-	// primary_sp_address define the account address of primary sp
-	PrimarySpAddress string `protobuf:"bytes,8,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// primary_sp_id define the unique id of primary sp
+	PrimarySpId uint32 `protobuf:"varint,8,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
 	// payload_size define the size of payload data which you want upload
 	PayloadSize uint64 `protobuf:"varint,9,opt,name=payload_size,json=payloadSize,proto3" json:"payload_size,omitempty"`
 	// visibility defines the highest permission of object.
@@ -482,11 +491,11 @@ func (m *EventCreateObject) GetObjectName() string {
 	return ""
 }
 
-func (m *EventCreateObject) GetPrimarySpAddress() string {
+func (m *EventCreateObject) GetPrimarySpId() uint32 {
 	if m != nil {
-		return m.PrimarySpAddress
+		return m.PrimarySpId
 	}
-	return ""
+	return 0
 }
 
 func (m *EventCreateObject) GetPayloadSize() uint64 {
@@ -545,7 +554,7 @@ func (m *EventCreateObject) GetChecksums() [][]byte {
 	return nil
 }
 
-// EventSealObject is emitted on MsgSealObject
+// EventCancelCreateObject is emitted on MsgCancelCreateObject
 type EventCancelCreateObject struct {
 	// operator define the account address of operator who cancel create object
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
@@ -553,8 +562,8 @@ type EventCancelCreateObject struct {
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of the object
 	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	// primary_sp_address define the operator account address of the sp
-	PrimarySpAddress string `protobuf:"bytes,4,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
+	// primary_sp_id define the unique id of primary sp
+	PrimarySpId uint32 `protobuf:"varint,4,opt,name=primary_sp_id,json=primarySpId,proto3" json:"primary_sp_id,omitempty"`
 	// id define an u256 id for object
 	ObjectId Uint `protobuf:"bytes,6,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
 }
@@ -613,11 +622,11 @@ func (m *EventCancelCreateObject) GetObjectName() string {
 	return ""
 }
 
-func (m *EventCancelCreateObject) GetPrimarySpAddress() string {
+func (m *EventCancelCreateObject) GetPrimarySpId() uint32 {
 	if m != nil {
-		return m.PrimarySpAddress
+		return m.PrimarySpId
 	}
-	return ""
+	return 0
 }
 
 // EventSealObject is emitted on MsgSealObject
@@ -632,8 +641,10 @@ type EventSealObject struct {
 	ObjectId Uint `protobuf:"bytes,5,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
 	// status define the status of the object. INIT or IN_SERVICE or others
 	Status ObjectStatus `protobuf:"varint,6,opt,name=status,proto3,enum=greenfield.storage.ObjectStatus" json:"status,omitempty"`
-	// secondary_sp_address define all the operator address of the secondary sps
-	SecondarySpAddresses []string `protobuf:"bytes,7,rep,name=secondary_sp_addresses,json=secondarySpAddresses,proto3" json:"secondary_sp_addresses,omitempty"`
+	// global_virtual_group_id defines the unique id of gvg which the object stored
+	GlobalVirtualGroupId uint32 `protobuf:"varint,7,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	// local_virtual_group_id defines the unique id of lvg which the object stored
+	LocalVirtualGroupId uint32 `protobuf:"varint,8,opt,name=local_virtual_group_id,json=localVirtualGroupId,proto3" json:"local_virtual_group_id,omitempty"`
 }
 
 func (m *EventSealObject) Reset()         { *m = EventSealObject{} }
@@ -697,11 +708,18 @@ func (m *EventSealObject) GetStatus() ObjectStatus {
 	return OBJECT_STATUS_CREATED
 }
 
-func (m *EventSealObject) GetSecondarySpAddresses() []string {
+func (m *EventSealObject) GetGlobalVirtualGroupId() uint32 {
 	if m != nil {
-		return m.SecondarySpAddresses
+		return m.GlobalVirtualGroupId
 	}
-	return nil
+	return 0
+}
+
+func (m *EventSealObject) GetLocalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.LocalVirtualGroupId
+	}
+	return 0
 }
 
 // EventCopyObject is emitted on MsgCopyObject
@@ -800,10 +818,8 @@ type EventDeleteObject struct {
 	ObjectName string `protobuf:"bytes,3,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
 	// id define an u256 id for object
 	ObjectId Uint `protobuf:"bytes,4,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
-	// primary_sp_address define the operator account address of the sp
-	PrimarySpAddress string `protobuf:"bytes,5,opt,name=primary_sp_address,json=primarySpAddress,proto3" json:"primary_sp_address,omitempty"`
-	// secondary_sp_address define all the operator address of the secondary sps
-	SecondarySpAddresses []string `protobuf:"bytes,6,rep,name=secondary_sp_addresses,json=secondarySpAddresses,proto3" json:"secondary_sp_addresses,omitempty"`
+	// local_virtual_group_id defines the unique id of lvg which the object stored
+	LocalVirtualGroupId uint32 `protobuf:"varint,5,opt,name=local_virtual_group_id,json=localVirtualGroupId,proto3" json:"local_virtual_group_id,omitempty"`
 }
 
 func (m *EventDeleteObject) Reset()         { *m = EventDeleteObject{} }
@@ -860,18 +876,11 @@ func (m *EventDeleteObject) GetObjectName() string {
 	return ""
 }
 
-func (m *EventDeleteObject) GetPrimarySpAddress() string {
+func (m *EventDeleteObject) GetLocalVirtualGroupId() uint32 {
 	if m != nil {
-		return m.PrimarySpAddress
+		return m.LocalVirtualGroupId
 	}
-	return ""
-}
-
-func (m *EventDeleteObject) GetSecondarySpAddresses() []string {
-	if m != nil {
-		return m.SecondarySpAddresses
-	}
-	return nil
+	return 0
 }
 
 // EventRejectSealObject is emitted on MsgRejectSealObject
@@ -1914,6 +1923,204 @@ func (m *EventStalePolicyCleanup) GetDeleteInfo() *DeleteInfo {
 	return nil
 }
 
+type EventMigrationBucket struct {
+	// The address of the operator that initiated the bucket migration,
+	// usually the owner of the bucket or another account which has permission to operate
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The name of the bucket to be migrated
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// bucket_id define an u256 id for object
+	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// The id of the destination primary sp
+	DstPrimarySpId uint32 `protobuf:"varint,4,opt,name=dst_primary_sp_id,json=dstPrimarySpId,proto3" json:"dst_primary_sp_id,omitempty"`
+}
+
+func (m *EventMigrationBucket) Reset()         { *m = EventMigrationBucket{} }
+func (m *EventMigrationBucket) String() string { return proto.CompactTextString(m) }
+func (*EventMigrationBucket) ProtoMessage()    {}
+func (*EventMigrationBucket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_946dcba4f763ddc4, []int{24}
+}
+func (m *EventMigrationBucket) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventMigrationBucket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventMigrationBucket.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventMigrationBucket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventMigrationBucket.Merge(m, src)
+}
+func (m *EventMigrationBucket) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventMigrationBucket) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventMigrationBucket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventMigrationBucket proto.InternalMessageInfo
+
+func (m *EventMigrationBucket) GetOperator() string {
+	if m != nil {
+		return m.Operator
+	}
+	return ""
+}
+
+func (m *EventMigrationBucket) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
+	}
+	return ""
+}
+
+func (m *EventMigrationBucket) GetDstPrimarySpId() uint32 {
+	if m != nil {
+		return m.DstPrimarySpId
+	}
+	return 0
+}
+
+type EventCancelMigrationBucket struct {
+	// The address of the operator that canceled the bucket migration,
+	// usually the owner of the bucket or another account which has permission to operate
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The name of the bucket to be migrated
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// bucket_id define an u256 id for object
+	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+}
+
+func (m *EventCancelMigrationBucket) Reset()         { *m = EventCancelMigrationBucket{} }
+func (m *EventCancelMigrationBucket) String() string { return proto.CompactTextString(m) }
+func (*EventCancelMigrationBucket) ProtoMessage()    {}
+func (*EventCancelMigrationBucket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_946dcba4f763ddc4, []int{25}
+}
+func (m *EventCancelMigrationBucket) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventCancelMigrationBucket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventCancelMigrationBucket.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventCancelMigrationBucket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventCancelMigrationBucket.Merge(m, src)
+}
+func (m *EventCancelMigrationBucket) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventCancelMigrationBucket) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventCancelMigrationBucket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventCancelMigrationBucket proto.InternalMessageInfo
+
+func (m *EventCancelMigrationBucket) GetOperator() string {
+	if m != nil {
+		return m.Operator
+	}
+	return ""
+}
+
+func (m *EventCancelMigrationBucket) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
+	}
+	return ""
+}
+
+type EventCompleteMigrationBucket struct {
+	// The address of the operator that initiated the bucket migration,
+	// usually the owner of the bucket or another account which has permission to operate
+	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
+	// The name of the bucket to be migrated
+	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
+	// bucket_id define an u256 id for object
+	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+	// The family id that the bucket to be migrated to
+	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,4,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
+	// The src and dst gvg mapping
+	GvgMappings []*GVGMapping `protobuf:"bytes,5,rep,name=gvg_mappings,json=gvgMappings,proto3" json:"gvg_mappings,omitempty"`
+}
+
+func (m *EventCompleteMigrationBucket) Reset()         { *m = EventCompleteMigrationBucket{} }
+func (m *EventCompleteMigrationBucket) String() string { return proto.CompactTextString(m) }
+func (*EventCompleteMigrationBucket) ProtoMessage()    {}
+func (*EventCompleteMigrationBucket) Descriptor() ([]byte, []int) {
+	return fileDescriptor_946dcba4f763ddc4, []int{26}
+}
+func (m *EventCompleteMigrationBucket) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventCompleteMigrationBucket) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventCompleteMigrationBucket.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventCompleteMigrationBucket) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventCompleteMigrationBucket.Merge(m, src)
+}
+func (m *EventCompleteMigrationBucket) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventCompleteMigrationBucket) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventCompleteMigrationBucket.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventCompleteMigrationBucket proto.InternalMessageInfo
+
+func (m *EventCompleteMigrationBucket) GetOperator() string {
+	if m != nil {
+		return m.Operator
+	}
+	return ""
+}
+
+func (m *EventCompleteMigrationBucket) GetBucketName() string {
+	if m != nil {
+		return m.BucketName
+	}
+	return ""
+}
+
+func (m *EventCompleteMigrationBucket) GetGlobalVirtualGroupFamilyId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyId
+	}
+	return 0
+}
+
+func (m *EventCompleteMigrationBucket) GetGvgMappings() []*GVGMapping {
+	if m != nil {
+		return m.GvgMappings
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*EventCreateBucket)(nil), "greenfield.storage.EventCreateBucket")
 	proto.RegisterType((*EventDeleteBucket)(nil), "greenfield.storage.EventDeleteBucket")
@@ -1939,103 +2146,115 @@ func init() {
 	proto.RegisterType((*EventMirrorGroup)(nil), "greenfield.storage.EventMirrorGroup")
 	proto.RegisterType((*EventMirrorGroupResult)(nil), "greenfield.storage.EventMirrorGroupResult")
 	proto.RegisterType((*EventStalePolicyCleanup)(nil), "greenfield.storage.EventStalePolicyCleanup")
+	proto.RegisterType((*EventMigrationBucket)(nil), "greenfield.storage.EventMigrationBucket")
+	proto.RegisterType((*EventCancelMigrationBucket)(nil), "greenfield.storage.EventCancelMigrationBucket")
+	proto.RegisterType((*EventCompleteMigrationBucket)(nil), "greenfield.storage.EventCompleteMigrationBucket")
 }
 
 func init() { proto.RegisterFile("greenfield/storage/events.proto", fileDescriptor_946dcba4f763ddc4) }
 
 var fileDescriptor_946dcba4f763ddc4 = []byte{
-	// 1451 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x59, 0xcf, 0x6f, 0x1b, 0xc5,
-	0x17, 0xcf, 0xda, 0x6b, 0xc7, 0x1e, 0xc7, 0x71, 0xba, 0xdf, 0x34, 0xdf, 0x6d, 0x0b, 0x8e, 0xbb,
-	0x87, 0x2a, 0x07, 0x9a, 0x48, 0xa1, 0x82, 0x72, 0xa1, 0x4a, 0xd2, 0x82, 0x22, 0x68, 0x0b, 0xeb,
-	0x96, 0x03, 0x97, 0xd5, 0x78, 0x77, 0xe2, 0x2c, 0xf5, 0xee, 0x2c, 0x33, 0xb3, 0xa1, 0xee, 0x91,
-	0x3b, 0x12, 0x12, 0x27, 0x24, 0x8e, 0x1c, 0x90, 0xb8, 0x20, 0xd1, 0x2b, 0xf7, 0x82, 0x84, 0x54,
-	0x7a, 0xe2, 0x87, 0xa8, 0x50, 0x7b, 0x2a, 0x7f, 0x05, 0xda, 0x99, 0xd9, 0xf5, 0xae, 0xed, 0xc6,
-	0x59, 0x87, 0x90, 0xf4, 0xe6, 0x7d, 0xfb, 0xde, 0xcc, 0x7b, 0x9f, 0xf9, 0xbc, 0x1f, 0x3b, 0x06,
-	0xcb, 0x5d, 0x82, 0x90, 0xbf, 0xe3, 0xa2, 0x9e, 0xb3, 0x46, 0x19, 0x26, 0xb0, 0x8b, 0xd6, 0xd0,
-	0x1e, 0xf2, 0x19, 0x5d, 0x0d, 0x08, 0x66, 0x58, 0xd3, 0x06, 0x0a, 0xab, 0x52, 0xe1, 0xec, 0x19,
-	0x1b, 0x53, 0x0f, 0x53, 0x8b, 0x6b, 0xac, 0x89, 0x07, 0xa1, 0x7e, 0x76, 0xb1, 0x8b, 0xbb, 0x58,
-	0xc8, 0xa3, 0x5f, 0x52, 0x3a, 0x6e, 0x17, 0x1b, 0x7b, 0x1e, 0xf6, 0xa5, 0x42, 0x73, 0x8c, 0x02,
-	0xeb, 0x07, 0x48, 0x2e, 0x6b, 0x7c, 0xaf, 0x82, 0x53, 0xd7, 0x22, 0xb7, 0xb6, 0x08, 0x82, 0x0c,
-	0x6d, 0x86, 0xf6, 0x1d, 0xc4, 0xb4, 0x55, 0x50, 0xc2, 0x9f, 0xf8, 0x88, 0xe8, 0x4a, 0x4b, 0x59,
-	0xa9, 0x6e, 0xea, 0x8f, 0xee, 0x5f, 0x5c, 0x94, 0xde, 0x6c, 0x38, 0x0e, 0x41, 0x94, 0xb6, 0x19,
-	0x71, 0xfd, 0xae, 0x29, 0xd4, 0xb4, 0x65, 0x50, 0xeb, 0x70, 0x4b, 0xcb, 0x87, 0x1e, 0xd2, 0x0b,
-	0x91, 0x95, 0x09, 0x84, 0xe8, 0x06, 0xf4, 0x90, 0xb6, 0x09, 0xc0, 0x9e, 0x4b, 0xdd, 0x8e, 0xdb,
-	0x73, 0x59, 0x5f, 0x2f, 0xb6, 0x94, 0x95, 0xf9, 0x75, 0x63, 0x75, 0x14, 0x81, 0xd5, 0x0f, 0x12,
-	0xad, 0x5b, 0xfd, 0x00, 0x99, 0x29, 0x2b, 0xed, 0x1c, 0xa8, 0xda, 0xdc, 0x49, 0x0b, 0x32, 0x5d,
-	0x6d, 0x29, 0x2b, 0x45, 0xb3, 0x22, 0x04, 0x1b, 0x4c, 0xbb, 0x0c, 0xaa, 0xd2, 0x03, 0xd7, 0xd1,
-	0x4b, 0xdc, 0xeb, 0x73, 0x0f, 0x1e, 0x2f, 0xcf, 0xfc, 0xfe, 0x78, 0x59, 0xbd, 0xed, 0xfa, 0xec,
-	0xd1, 0xfd, 0x8b, 0x35, 0x19, 0x41, 0xf4, 0x68, 0x56, 0x84, 0xf6, 0xb6, 0xa3, 0x5d, 0x01, 0x35,
-	0x8a, 0x43, 0x62, 0x23, 0x2b, 0xc2, 0x45, 0x2f, 0x73, 0xdf, 0x9a, 0xe3, 0x7c, 0x6b, 0x73, 0x35,
-	0xe1, 0x17, 0x4d, 0x7e, 0x6b, 0xaf, 0x00, 0xcd, 0xde, 0x85, 0xa4, 0x8b, 0x1c, 0x8b, 0x20, 0xe8,
-	0x58, 0x1f, 0x87, 0x98, 0x41, 0x7d, 0xb6, 0xa5, 0xac, 0xa8, 0xe6, 0x82, 0x7c, 0x63, 0x22, 0xe8,
-	0xbc, 0x1f, 0xc9, 0xb5, 0x0d, 0xd0, 0x08, 0x60, 0xdf, 0x43, 0x3e, 0xb3, 0xa0, 0x80, 0x52, 0xaf,
-	0x4c, 0x00, 0x79, 0x5e, 0x1a, 0x48, 0xa9, 0xf6, 0x16, 0xd0, 0x02, 0xe2, 0x7a, 0x90, 0xf4, 0x2d,
-	0x1a, 0x24, 0xab, 0x54, 0x27, 0xac, 0xb2, 0x20, 0x6d, 0xda, 0x41, 0xbc, 0xce, 0x65, 0x50, 0xa6,
-	0x0c, 0xb2, 0x90, 0xea, 0x80, 0x07, 0xdd, 0x1a, 0x17, 0xb4, 0x60, 0x44, 0x9b, 0xeb, 0x99, 0x52,
-	0xdf, 0xf8, 0xaa, 0x20, 0x59, 0x73, 0x15, 0xf5, 0x50, 0xc2, 0x9a, 0x4b, 0xa0, 0x82, 0x03, 0x44,
-	0x20, 0xc3, 0x93, 0x89, 0x93, 0x68, 0x0e, 0xb8, 0x56, 0x98, 0x8a, 0x6b, 0xc5, 0x11, 0xae, 0x65,
-	0xa8, 0xa0, 0xe6, 0xa1, 0xc2, 0x78, 0x60, 0x4b, 0x79, 0x81, 0x35, 0x7e, 0x2a, 0x82, 0xd3, 0x1c,
-	0x9e, 0xdb, 0x81, 0x93, 0x24, 0xd5, 0xb6, 0xbf, 0x83, 0xa7, 0x84, 0x68, 0x62, 0x7a, 0x65, 0x42,
-	0x2e, 0xe6, 0x09, 0xf9, 0x0d, 0x70, 0x66, 0x94, 0xbc, 0x56, 0x07, 0xed, 0x60, 0x82, 0x38, 0x78,
-	0xaa, 0xb9, 0x34, 0xcc, 0xe1, 0x4d, 0xfe, 0x56, 0x7b, 0x1d, 0xe8, 0x63, 0x4c, 0xe1, 0x0e, 0x43,
-	0x84, 0x63, 0xa6, 0x9a, 0xa7, 0x87, 0x2d, 0x37, 0xa2, 0x97, 0xda, 0x25, 0xb0, 0x34, 0x94, 0x02,
-	0xf1, 0x86, 0x65, 0x1e, 0xd9, 0x62, 0x96, 0xef, 0x72, 0xbb, 0x75, 0x70, 0x7a, 0xd8, 0x4a, 0xec,
-	0x35, 0xcb, 0x8d, 0xfe, 0x97, 0x35, 0x12, 0x3b, 0x65, 0xcb, 0x4e, 0x65, 0x9a, 0xb2, 0x63, 0x7c,
-	0xa3, 0x80, 0x25, 0xc1, 0x75, 0x97, 0xda, 0xd8, 0x67, 0xae, 0x1f, 0xc6, 0x84, 0xcf, 0xc0, 0xae,
-	0xe4, 0x81, 0x7d, 0xe2, 0x89, 0x2e, 0x81, 0x32, 0x41, 0x90, 0x62, 0x5f, 0x12, 0x5c, 0x3e, 0x45,
-	0x45, 0xd0, 0xe1, 0x39, 0x97, 0x2a, 0x82, 0x42, 0xb0, 0xc1, 0x8c, 0x4f, 0xcb, 0x99, 0x62, 0x7e,
-	0xb3, 0xf3, 0x11, 0xb2, 0x99, 0xb6, 0x0e, 0x66, 0x79, 0x99, 0x3c, 0x00, 0xe5, 0x62, 0xc5, 0x7f,
-	0x3f, 0x29, 0x97, 0x41, 0x0d, 0x73, 0x77, 0x84, 0x82, 0x2a, 0x14, 0x84, 0x68, 0x94, 0xc2, 0xe5,
-	0x3c, 0x58, 0x5e, 0x06, 0x55, 0xb9, 0xb4, 0xeb, 0x08, 0x32, 0x4c, 0xb0, 0x14, 0xda, 0xcf, 0xcd,
-	0xf7, 0x4a, 0xee, 0x42, 0x7a, 0x1e, 0xcc, 0x05, 0xb0, 0xdf, 0xc3, 0xd0, 0xb1, 0xa8, 0x7b, 0x0f,
-	0xf1, 0x52, 0xac, 0x9a, 0x35, 0x29, 0x6b, 0xbb, 0xf7, 0x86, 0x1b, 0x20, 0x98, 0xaa, 0x01, 0x9e,
-	0x07, 0x73, 0x11, 0x01, 0xa3, 0x0c, 0xe0, 0xad, 0xaa, 0xc6, 0x41, 0xac, 0x49, 0x19, 0xef, 0x45,
-	0x99, 0x1e, 0x39, 0x37, 0xd2, 0x23, 0xe3, 0x7a, 0x5f, 0x7f, 0x7e, 0xbd, 0x17, 0xa4, 0xc9, 0xd6,
-	0x7b, 0xed, 0x1d, 0xd0, 0x20, 0xc8, 0x09, 0x7d, 0x07, 0xfa, 0x76, 0x5f, 0x6c, 0x3e, 0xff, 0xfc,
-	0x10, 0xcc, 0x44, 0x95, 0x87, 0x30, 0x4f, 0x32, 0xcf, 0xc3, 0x0d, 0xb7, 0x91, 0xbb, 0xe1, 0xbe,
-	0x04, 0xaa, 0xf6, 0x2e, 0xb2, 0xef, 0xd0, 0xd0, 0xa3, 0xfa, 0x42, 0xab, 0xb8, 0x32, 0x67, 0x0e,
-	0x04, 0xc6, 0x17, 0x05, 0xf0, 0x7f, 0x91, 0x04, 0xd0, 0xb7, 0x51, 0x2f, 0x93, 0x0a, 0x47, 0x54,
-	0x7e, 0x87, 0xc8, 0x5d, 0x1c, 0x21, 0xf7, 0x78, 0xa2, 0xa9, 0x53, 0x74, 0xec, 0x14, 0xd5, 0xcb,
-	0x39, 0xa8, 0x6e, 0xfc, 0x5c, 0x00, 0x0d, 0x8e, 0x4a, 0x1b, 0xc1, 0xde, 0x31, 0xa3, 0x91, 0x89,
-	0xa2, 0x94, 0x27, 0x61, 0x07, 0x0c, 0x2e, 0xe7, 0x64, 0xf0, 0x0d, 0xb0, 0x44, 0x91, 0x8d, 0x7d,
-	0x27, 0x7b, 0x06, 0x88, 0xea, 0xb3, 0xad, 0xe2, 0xbe, 0x91, 0x2f, 0x26, 0x76, 0xc9, 0x39, 0x20,
-	0x6a, 0x3c, 0x8b, 0xf1, 0xdc, 0xc2, 0x41, 0xff, 0x50, 0x78, 0x5e, 0x00, 0x0d, 0x4a, 0x6c, 0x6b,
-	0x14, 0xd3, 0x3a, 0x25, 0xf6, 0xe6, 0x00, 0x56, 0xa9, 0x37, 0x0a, 0x6d, 0xa4, 0x77, 0x73, 0x80,
-	0xee, 0x05, 0xd0, 0x70, 0x28, 0xcb, 0xac, 0x27, 0xaa, 0x6d, 0xdd, 0xa1, 0x2c, 0xbb, 0x5e, 0xa4,
-	0x97, 0x5e, 0xaf, 0x94, 0xe8, 0xa5, 0xd6, 0xbb, 0x02, 0xea, 0xa9, 0x7d, 0x0f, 0xc6, 0xbb, 0x5a,
-	0xe2, 0x12, 0x1f, 0xb0, 0xeb, 0xa9, 0x8d, 0x0e, 0x56, 0xa3, 0x6b, 0x89, 0x0f, 0xdb, 0x8e, 0xf1,
-	0x67, 0x76, 0xda, 0x3c, 0x49, 0xec, 0x55, 0x0f, 0xdf, 0x6e, 0x72, 0x8f, 0x97, 0xfb, 0x70, 0xb9,
-	0x3c, 0x15, 0x97, 0x7f, 0x54, 0xe4, 0xb8, 0x6a, 0x22, 0x9e, 0x39, 0x27, 0xac, 0x42, 0xe4, 0xc1,
-	0x78, 0xec, 0xb4, 0x26, 0x83, 0x19, 0x72, 0x4b, 0x19, 0x37, 0x45, 0x0f, 0x76, 0x2d, 0xe4, 0x39,
-	0xd9, 0xa9, 0xa6, 0xb5, 0xcf, 0x0a, 0x99, 0xaf, 0x04, 0x49, 0xf7, 0x23, 0xfc, 0x4a, 0x38, 0x42,
-	0x6a, 0x67, 0xc7, 0x9b, 0xd2, 0x54, 0x83, 0xf6, 0xd7, 0x05, 0xb0, 0x90, 0x9a, 0x5e, 0xdf, 0x26,
-	0x38, 0x0c, 0x72, 0xdf, 0x44, 0xbc, 0x0c, 0x40, 0x37, 0x32, 0x4c, 0x63, 0x50, 0xe5, 0x12, 0x1e,
-	0xe1, 0x6b, 0xa0, 0x22, 0x5e, 0x1f, 0xec, 0x3b, 0x69, 0x96, 0x2b, 0x8f, 0x5e, 0x12, 0xa8, 0xb9,
-	0x67, 0x96, 0x75, 0x30, 0xeb, 0x21, 0xaf, 0x83, 0x48, 0x94, 0xf0, 0xfb, 0x27, 0x69, 0xac, 0xa8,
-	0x2d, 0x82, 0x12, 0xba, 0xcb, 0x08, 0x94, 0x9f, 0x45, 0xe2, 0xc1, 0xf8, 0x52, 0x91, 0x30, 0x89,
-	0x6a, 0x38, 0x04, 0x53, 0x61, 0x1a, 0x98, 0x8a, 0xfb, 0xc1, 0xa4, 0x1e, 0x1c, 0x26, 0xe3, 0x37,
-	0x45, 0x76, 0xc5, 0x77, 0x11, 0xdc, 0x93, 0xae, 0x5d, 0x01, 0xf3, 0x22, 0xa0, 0xa4, 0xe2, 0x4d,
-	0x3a, 0xca, 0xba, 0xd0, 0x8f, 0xcb, 0xdd, 0x09, 0x89, 0xed, 0x8f, 0x82, 0xac, 0x2c, 0x22, 0x5d,
-	0x79, 0x70, 0xd7, 0xb9, 0xa3, 0xff, 0xd1, 0xc5, 0xc7, 0xd1, 0xc4, 0xa5, 0xbd, 0x19, 0x9f, 0x0f,
-	0xb5, 0x18, 0x8e, 0xce, 0x68, 0x22, 0x41, 0xe7, 0xa4, 0xfe, 0x2d, 0xbc, 0xe1, 0x38, 0xda, 0x55,
-	0x70, 0x2a, 0x65, 0x2f, 0xaa, 0xdb, 0xc4, 0x46, 0xd4, 0x48, 0x96, 0x10, 0x2c, 0x36, 0xfe, 0x56,
-	0x32, 0xc5, 0x90, 0xa3, 0x7b, 0x2d, 0xe2, 0xfb, 0x8b, 0x0d, 0x6e, 0x92, 0xc2, 0xa5, 0x74, 0x0a,
-	0x3f, 0x50, 0xe4, 0x40, 0x73, 0xdd, 0x25, 0x04, 0x93, 0x43, 0x5d, 0x9f, 0xe5, 0xbb, 0x1b, 0xca,
-	0x75, 0x1d, 0x66, 0x80, 0xba, 0x83, 0x28, 0xb3, 0xec, 0x5d, 0xe8, 0xfa, 0xf1, 0xac, 0x5e, 0x37,
-	0x6b, 0x91, 0x70, 0x2b, 0x92, 0x6d, 0x3b, 0xc6, 0x77, 0x8a, 0xfc, 0xda, 0x4a, 0x87, 0x62, 0x22,
-	0x1a, 0xf6, 0x58, 0xd4, 0x15, 0xe5, 0xb4, 0xae, 0x70, 0xc3, 0x78, 0x16, 0x3f, 0x66, 0x97, 0x9f,
-	0x65, 0xd1, 0x7f, 0x61, 0xc7, 0xc9, 0x83, 0xc4, 0xfa, 0x4b, 0xf6, 0x78, 0x44, 0xac, 0x87, 0x3d,
-	0x9e, 0x63, 0x8e, 0xe9, 0x87, 0xb8, 0x01, 0x8a, 0x98, 0x4e, 0xd4, 0x9c, 0x30, 0xe2, 0xbf, 0x3a,
-	0xea, 0xff, 0xb7, 0xf1, 0x88, 0x9a, 0xf2, 0x7f, 0xc2, 0x91, 0x1c, 0xa3, 0xb7, 0x7b, 0x92, 0x40,
-	0x6d, 0x06, 0x7b, 0xe8, 0x3d, 0xdc, 0x73, 0xed, 0xfe, 0x56, 0x0f, 0x41, 0x3f, 0x0c, 0xb4, 0xb3,
-	0xa0, 0xd2, 0xe9, 0x61, 0xfb, 0xce, 0x8d, 0xd0, 0xe3, 0xfe, 0x16, 0xcd, 0xe4, 0x39, 0x1a, 0x98,
-	0xe4, 0xe4, 0xeb, 0xfa, 0x3b, 0x98, 0xbb, 0x5c, 0x1b, 0x3f, 0x30, 0x89, 0x06, 0x10, 0xcd, 0xbd,
-	0x26, 0x70, 0x92, 0xdf, 0x9b, 0xdb, 0x0f, 0x9e, 0x34, 0x95, 0x87, 0x4f, 0x9a, 0xca, 0x5f, 0x4f,
-	0x9a, 0xca, 0xe7, 0x4f, 0x9b, 0x33, 0x0f, 0x9f, 0x36, 0x67, 0x7e, 0x7d, 0xda, 0x9c, 0xf9, 0x70,
-	0xad, 0xeb, 0xb2, 0xdd, 0xb0, 0xb3, 0x6a, 0x63, 0x6f, 0xad, 0xe3, 0x77, 0x2e, 0x72, 0xef, 0xd7,
-	0x52, 0xff, 0x73, 0xdd, 0xcd, 0xfe, 0xd3, 0xd5, 0x29, 0xf3, 0xbf, 0xba, 0x5e, 0xfd, 0x27, 0x00,
-	0x00, 0xff, 0xff, 0x28, 0xd1, 0x70, 0xf3, 0x93, 0x1b, 0x00, 0x00,
+	// 1585 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x59, 0xbf, 0x6f, 0xdb, 0xc6,
+	0x17, 0x37, 0x25, 0x4a, 0x96, 0x4f, 0x96, 0x9d, 0x30, 0x8e, 0xc3, 0x38, 0xf9, 0xca, 0x0a, 0x87,
+	0xc0, 0x5f, 0xa0, 0xb1, 0x01, 0x27, 0x6d, 0xd3, 0xa5, 0x81, 0xed, 0xa4, 0x81, 0xd0, 0xe6, 0x47,
+	0xa9, 0x24, 0x43, 0x17, 0xe2, 0x44, 0x9e, 0x69, 0x36, 0x24, 0x8f, 0x3d, 0x9e, 0xd4, 0x28, 0xff,
+	0x43, 0x81, 0xae, 0xdd, 0x3b, 0x14, 0x28, 0x0a, 0x74, 0x08, 0xba, 0x75, 0x4f, 0x3b, 0xa5, 0xe9,
+	0xd2, 0x1f, 0x40, 0x50, 0x24, 0x53, 0xba, 0x74, 0x2d, 0x3a, 0x15, 0xbc, 0x3b, 0x51, 0xa4, 0x28,
+	0x47, 0xa6, 0x52, 0xc7, 0xce, 0x26, 0x3e, 0x7d, 0xde, 0xdd, 0x7b, 0x9f, 0xfb, 0xdc, 0xbb, 0xc7,
+	0x23, 0x58, 0xb6, 0x09, 0x42, 0xfe, 0xb6, 0x83, 0x5c, 0x6b, 0x2d, 0xa4, 0x98, 0x40, 0x1b, 0xad,
+	0xa1, 0x2e, 0xf2, 0x69, 0xb8, 0x1a, 0x10, 0x4c, 0xb1, 0xa2, 0x0c, 0x00, 0xab, 0x02, 0xb0, 0x74,
+	0xd2, 0xc4, 0xa1, 0x87, 0x43, 0x83, 0x21, 0xd6, 0xf8, 0x03, 0x87, 0x2f, 0x2d, 0xd8, 0xd8, 0xc6,
+	0xdc, 0x1e, 0xfd, 0x12, 0xd6, 0x51, 0xb3, 0x98, 0xd8, 0xf3, 0xb0, 0x2f, 0x00, 0xf5, 0x11, 0x00,
+	0xda, 0x0b, 0x90, 0x18, 0x56, 0xfb, 0x59, 0x06, 0x47, 0xaf, 0x44, 0x61, 0x6d, 0x11, 0x04, 0x29,
+	0xda, 0xec, 0x98, 0x77, 0x11, 0x55, 0x56, 0x41, 0x09, 0x7f, 0xea, 0x23, 0xa2, 0x4a, 0x0d, 0x69,
+	0x65, 0x66, 0x53, 0x7d, 0xfc, 0xe0, 0xdc, 0x82, 0x88, 0x66, 0xc3, 0xb2, 0x08, 0x0a, 0xc3, 0x16,
+	0x25, 0x8e, 0x6f, 0xeb, 0x1c, 0xa6, 0x2c, 0x83, 0x6a, 0x9b, 0x79, 0x1a, 0x3e, 0xf4, 0x90, 0x5a,
+	0x88, 0xbc, 0x74, 0xc0, 0x4d, 0xd7, 0xa1, 0x87, 0x94, 0x4d, 0x00, 0xba, 0x4e, 0xe8, 0xb4, 0x1d,
+	0xd7, 0xa1, 0x3d, 0xb5, 0xd8, 0x90, 0x56, 0xe6, 0xd6, 0xb5, 0xd5, 0x2c, 0x03, 0xab, 0x77, 0x62,
+	0xd4, 0xad, 0x5e, 0x80, 0xf4, 0x84, 0x97, 0x72, 0x0a, 0xcc, 0x98, 0x2c, 0x48, 0x03, 0x52, 0x55,
+	0x6e, 0x48, 0x2b, 0x45, 0xbd, 0xc2, 0x0d, 0x1b, 0x54, 0xb9, 0x08, 0x66, 0x44, 0x04, 0x8e, 0xa5,
+	0x96, 0x58, 0xd4, 0xa7, 0x1e, 0x3e, 0x59, 0x9e, 0xfa, 0xed, 0xc9, 0xb2, 0x7c, 0xdb, 0xf1, 0xe9,
+	0xe3, 0x07, 0xe7, 0xaa, 0x22, 0x83, 0xe8, 0x51, 0xaf, 0x70, 0x74, 0xd3, 0x52, 0x2e, 0x81, 0x6a,
+	0x88, 0x3b, 0xc4, 0x44, 0x46, 0xc4, 0x8b, 0x5a, 0x66, 0xb1, 0xd5, 0x47, 0xc5, 0xd6, 0x62, 0x30,
+	0x1e, 0x57, 0x18, 0xff, 0x56, 0xde, 0x00, 0x8a, 0xb9, 0x03, 0x89, 0x8d, 0x2c, 0x83, 0x20, 0x68,
+	0x19, 0x9f, 0x74, 0x30, 0x85, 0xea, 0x74, 0x43, 0x5a, 0x91, 0xf5, 0x23, 0xe2, 0x1f, 0x1d, 0x41,
+	0xeb, 0xc3, 0xc8, 0xae, 0x6c, 0x80, 0xf9, 0x00, 0xf6, 0x3c, 0xe4, 0x53, 0x03, 0x72, 0x2a, 0xd5,
+	0xca, 0x18, 0x92, 0xe7, 0x84, 0x83, 0xb0, 0x2a, 0x1a, 0xa8, 0x05, 0xc4, 0xf1, 0x20, 0xe9, 0x19,
+	0x61, 0x10, 0xe5, 0x3b, 0xd3, 0x90, 0x56, 0x6a, 0x7a, 0x55, 0x18, 0x5b, 0x41, 0xd3, 0x52, 0x36,
+	0x41, 0xdd, 0x76, 0x71, 0x1b, 0xba, 0x46, 0xd7, 0x21, 0xb4, 0x03, 0x5d, 0xc3, 0x26, 0xb8, 0x13,
+	0x18, 0xdb, 0xd0, 0x73, 0xdc, 0x5e, 0xe4, 0x04, 0x98, 0xd3, 0x12, 0x47, 0xdd, 0xe1, 0xa0, 0xab,
+	0x11, 0xe6, 0x3d, 0x06, 0x69, 0x5a, 0xca, 0x45, 0x50, 0x0e, 0x29, 0xa4, 0x9d, 0x50, 0xad, 0x32,
+	0x52, 0x1a, 0xa3, 0x48, 0xe1, 0x8a, 0x69, 0x31, 0x9c, 0x2e, 0xf0, 0xda, 0xdf, 0x92, 0x50, 0xd5,
+	0x65, 0xe4, 0xa2, 0x58, 0x55, 0x17, 0x40, 0x05, 0x07, 0x88, 0x40, 0x8a, 0xc7, 0x0b, 0x2b, 0x46,
+	0x0e, 0xb4, 0x58, 0x98, 0x48, 0x8b, 0xc5, 0x8c, 0x16, 0x53, 0x52, 0x91, 0xf3, 0x48, 0x25, 0x43,
+	0x7c, 0x29, 0x43, 0xbc, 0xf6, 0x63, 0x11, 0x1c, 0x67, 0xa9, 0xdf, 0x0e, 0xac, 0x78, 0x43, 0x35,
+	0xfd, 0x6d, 0x3c, 0x61, 0xfa, 0x63, 0xb7, 0x56, 0x2a, 0x9d, 0x62, 0x9e, 0x74, 0xde, 0x01, 0x27,
+	0xb3, 0xc2, 0x35, 0xda, 0x68, 0x1b, 0x13, 0xc4, 0x88, 0x91, 0xf5, 0xc5, 0x61, 0xfd, 0x6e, 0xb2,
+	0x7f, 0x95, 0xb7, 0x81, 0x3a, 0xc2, 0x15, 0x6e, 0x53, 0x44, 0x18, 0x29, 0xb2, 0x7e, 0x7c, 0xd8,
+	0x73, 0x23, 0xfa, 0x53, 0xb9, 0x00, 0x16, 0x87, 0xe4, 0xdf, 0x9f, 0xb0, 0xcc, 0x32, 0x5b, 0x48,
+	0x6b, 0x5d, 0x4c, 0xb7, 0x0e, 0x8e, 0x0f, 0x7b, 0xf1, 0xb9, 0xa6, 0x99, 0xd3, 0xb1, 0xb4, 0x13,
+	0x9f, 0x29, 0x5d, 0x72, 0x2a, 0x93, 0x94, 0x1c, 0xed, 0x2b, 0x09, 0x2c, 0x72, 0x1d, 0x3b, 0xa1,
+	0x89, 0x7d, 0xea, 0xf8, 0x9d, 0xbe, 0x98, 0x53, 0xb4, 0x4b, 0x79, 0x68, 0x1f, 0xbb, 0xa2, 0x8b,
+	0xa0, 0x4c, 0x10, 0x0c, 0xb1, 0x2f, 0xc4, 0x2b, 0x9e, 0xa2, 0x02, 0x68, 0xb1, 0xfd, 0x94, 0x28,
+	0x80, 0xdc, 0xb0, 0x41, 0xb5, 0x27, 0xa5, 0x54, 0x21, 0xbf, 0xd1, 0xfe, 0x18, 0x99, 0x54, 0x59,
+	0x07, 0xd3, 0xac, 0x44, 0xee, 0x41, 0x72, 0x7d, 0xe0, 0x7f, 0xbf, 0xe1, 0x96, 0x41, 0x15, 0xb3,
+	0x70, 0x38, 0x40, 0xe6, 0x00, 0x6e, 0xca, 0x4a, 0xb8, 0x9c, 0x87, 0xcb, 0x8b, 0x60, 0x46, 0x0c,
+	0xed, 0x58, 0x5c, 0x0c, 0x63, 0x3c, 0x39, 0x7a, 0xd4, 0x5e, 0xae, 0x64, 0x8b, 0xe8, 0x19, 0x30,
+	0x1b, 0xc0, 0x9e, 0x8b, 0xa1, 0x65, 0x84, 0xce, 0x7d, 0xc4, 0xea, 0xac, 0xac, 0x57, 0x85, 0xad,
+	0xe5, 0xdc, 0x1f, 0x3e, 0xd8, 0xc0, 0x44, 0x07, 0xdb, 0x19, 0x30, 0x1b, 0x89, 0x2b, 0x52, 0x37,
+	0x3b, 0x82, 0xaa, 0x8c, 0xa0, 0xaa, 0xb0, 0xb1, 0x33, 0x26, 0x75, 0xf6, 0xcd, 0x66, 0xce, 0xbe,
+	0x7e, 0x9d, 0xae, 0xed, 0x5e, 0xa7, 0xb9, 0x20, 0xd2, 0x75, 0x5a, 0x79, 0x1f, 0xcc, 0x13, 0x64,
+	0x75, 0x7c, 0x0b, 0xfa, 0x66, 0x8f, 0x4f, 0x3e, 0xb7, 0x7b, 0x0a, 0x7a, 0x0c, 0x65, 0x29, 0xcc,
+	0x91, 0xd4, 0xf3, 0xf0, 0x41, 0x3a, 0x9f, 0xfb, 0x20, 0x3d, 0x0d, 0x66, 0xcc, 0x1d, 0x64, 0xde,
+	0x0d, 0x3b, 0x5e, 0xa8, 0x1e, 0x69, 0x14, 0x57, 0x66, 0xf5, 0x81, 0x41, 0xfb, 0x4b, 0x02, 0x27,
+	0xb8, 0xc0, 0xa1, 0x6f, 0x22, 0x37, 0x25, 0xf3, 0x7d, 0x2a, 0xad, 0x43, 0xc2, 0x2d, 0x66, 0x84,
+	0x9b, 0x11, 0x91, 0x9c, 0x15, 0x51, 0x4a, 0xa2, 0xe5, 0x1c, 0x12, 0xd5, 0x9e, 0x17, 0xc0, 0x3c,
+	0xcb, 0xb8, 0x85, 0xa0, 0x7b, 0xc0, 0x99, 0xa6, 0xb2, 0x28, 0xe5, 0xd9, 0x68, 0x03, 0x75, 0x96,
+	0x73, 0xaa, 0xf3, 0x4d, 0x70, 0x62, 0x64, 0x0f, 0x23, 0xb6, 0x7a, 0x4d, 0x5f, 0xc8, 0x36, 0x2f,
+	0x4d, 0x4b, 0x39, 0x0f, 0x16, 0x5d, 0x6c, 0x8e, 0xf2, 0xe2, 0x5b, 0xfc, 0x18, 0xfb, 0x37, 0xed,
+	0x34, 0xe0, 0x7a, 0x0b, 0x07, 0xbd, 0x97, 0xe2, 0xfa, 0x2c, 0x98, 0x0f, 0x89, 0x69, 0x64, 0xf9,
+	0xae, 0x85, 0xc4, 0xdc, 0x1c, 0x50, 0x2e, 0x70, 0x59, 0xda, 0x23, 0xdc, 0x8d, 0x01, 0xf3, 0x67,
+	0xc1, 0xbc, 0x15, 0xd2, 0xd4, 0x78, 0xbc, 0x82, 0xd6, 0xac, 0x90, 0xa6, 0xc7, 0x8b, 0x70, 0xc9,
+	0xf1, 0x4a, 0x31, 0x2e, 0x31, 0xde, 0x25, 0x50, 0x4b, 0xcc, 0xbb, 0x37, 0x4d, 0x56, 0xe3, 0x90,
+	0x58, 0xc3, 0x5c, 0x4b, 0x4c, 0xb4, 0xb7, 0xba, 0x5b, 0x8d, 0x63, 0x68, 0x5a, 0xda, 0x3f, 0xe9,
+	0xee, 0xf0, 0x30, 0x29, 0x5b, 0xce, 0xa3, 0xec, 0xdd, 0x85, 0x56, 0xda, 0x5d, 0x68, 0x3f, 0x48,
+	0xa2, 0x3f, 0xd4, 0x11, 0x93, 0xfc, 0x21, 0xdb, 0xda, 0x79, 0x08, 0x18, 0xd9, 0x1e, 0x89, 0x64,
+	0x86, 0xc2, 0x92, 0x46, 0xb5, 0xad, 0x83, 0x59, 0x0b, 0x79, 0x68, 0x9f, 0xa8, 0x3d, 0xfa, 0xac,
+	0x90, 0x6a, 0xcb, 0x85, 0x16, 0xf7, 0xb1, 0x2d, 0xdf, 0x47, 0xdd, 0xa5, 0x7b, 0x8e, 0xd2, 0x44,
+	0x9d, 0xed, 0x97, 0x05, 0x70, 0x24, 0xd1, 0x2e, 0x32, 0x75, 0xe6, 0x7e, 0xed, 0xff, 0x1f, 0x00,
+	0x5c, 0xf2, 0x09, 0x0e, 0x66, 0x98, 0x85, 0x65, 0xf8, 0x16, 0xa8, 0xc4, 0x3b, 0x62, 0x0f, 0x2f,
+	0x26, 0xd3, 0xb6, 0x28, 0xe0, 0x43, 0x8d, 0x84, 0x9c, 0xbb, 0x91, 0x58, 0x07, 0xd3, 0x1e, 0xf2,
+	0xda, 0x88, 0x84, 0x6a, 0xa9, 0x51, 0x7c, 0x71, 0xd7, 0x2b, 0x80, 0xca, 0x02, 0x28, 0xa1, 0x7b,
+	0x94, 0x40, 0xf1, 0x1e, 0xc2, 0x1f, 0xb4, 0x2f, 0x24, 0x41, 0x13, 0x2f, 0x55, 0x43, 0x34, 0x15,
+	0x26, 0xa1, 0xa9, 0xf8, 0x22, 0x9a, 0xe4, 0xbd, 0xd3, 0xa4, 0xfd, 0x2a, 0x89, 0x23, 0xeb, 0x03,
+	0x04, 0xbb, 0x22, 0xb4, 0x4b, 0x60, 0x8e, 0x27, 0x14, 0x5f, 0x2e, 0x8c, 0x5b, 0xca, 0x1a, 0xc7,
+	0xf7, 0xef, 0x16, 0x0e, 0x49, 0x6e, 0xbf, 0x17, 0x44, 0x65, 0xe1, 0xdb, 0x95, 0x25, 0x77, 0x8d,
+	0x05, 0xfa, 0x8a, 0x6e, 0x11, 0xf6, 0x27, 0x2f, 0xe5, 0xdd, 0xfe, 0xfa, 0x84, 0x06, 0xc5, 0xd1,
+	0x1a, 0x8d, 0x15, 0xe8, 0xac, 0xc0, 0xdf, 0xc2, 0x1b, 0x96, 0xa5, 0x5c, 0x06, 0x47, 0x13, 0xfe,
+	0xbc, 0xba, 0xa9, 0xe5, 0x31, 0x43, 0xcc, 0xc7, 0x43, 0x70, 0x15, 0x6b, 0x7f, 0x4a, 0xa9, 0x62,
+	0xc8, 0xd8, 0xbd, 0x12, 0xe9, 0xfd, 0xf5, 0x26, 0x37, 0xde, 0xc2, 0xa5, 0xe4, 0x16, 0x7e, 0xd8,
+	0xef, 0x36, 0xae, 0x39, 0x84, 0x60, 0xf2, 0x52, 0x77, 0x51, 0xf9, 0x2e, 0x63, 0xf2, 0xde, 0x2d,
+	0x59, 0x28, 0xa4, 0x86, 0xb9, 0x03, 0x1d, 0x3f, 0x71, 0xb7, 0x14, 0x19, 0xb7, 0x22, 0x5b, 0xd3,
+	0xd2, 0xbe, 0xed, 0xbf, 0x02, 0x25, 0x53, 0xd1, 0x51, 0xd8, 0x71, 0x69, 0x74, 0x2a, 0x8a, 0x36,
+	0x5b, 0x62, 0x8e, 0xfd, 0x26, 0xfa, 0x80, 0x43, 0x7e, 0x9e, 0x66, 0xff, 0xb5, 0xed, 0xf5, 0xf6,
+	0x92, 0xeb, 0x4f, 0xe9, 0xe5, 0xe1, 0xb9, 0xbe, 0xec, 0xf2, 0x1c, 0x70, 0x4e, 0xdf, 0xf7, 0x0f,
+	0x40, 0x9e, 0xd3, 0xa1, 0xea, 0x13, 0x32, 0xf1, 0xcb, 0xd9, 0xf8, 0xbf, 0xee, 0xb7, 0xa8, 0x89,
+	0xf8, 0xc7, 0x2c, 0xc9, 0x01, 0x46, 0xdb, 0x15, 0x02, 0x6a, 0x51, 0xe8, 0xa2, 0x9b, 0xd8, 0x75,
+	0xcc, 0xde, 0x96, 0x8b, 0xa0, 0xdf, 0x09, 0x94, 0x25, 0x50, 0x69, 0xbb, 0xd8, 0xbc, 0x7b, 0xbd,
+	0xe3, 0xb1, 0x78, 0x8b, 0x7a, 0xfc, 0x1c, 0x35, 0x4c, 0xa2, 0xf3, 0x75, 0xfc, 0x6d, 0xcc, 0x42,
+	0xae, 0x8e, 0x6e, 0x98, 0xf8, 0x01, 0x10, 0xf5, 0xbd, 0x3a, 0xb0, 0xe2, 0xdf, 0xda, 0x63, 0x09,
+	0x2c, 0x08, 0x96, 0x6c, 0x02, 0xa9, 0x83, 0xfd, 0x57, 0x58, 0x26, 0x73, 0xdd, 0x59, 0xff, 0x1f,
+	0x1c, 0x8d, 0x5e, 0x3e, 0x47, 0xdd, 0xba, 0xcc, 0x59, 0x21, 0xbd, 0x99, 0xb8, 0x89, 0xff, 0x46,
+	0x02, 0x4b, 0x89, 0x0b, 0xa3, 0xc3, 0x9e, 0x9a, 0xf6, 0x5d, 0x01, 0x9c, 0x16, 0x57, 0x10, 0x5e,
+	0x10, 0x2d, 0xcd, 0xa1, 0x5f, 0x8c, 0xf1, 0x1f, 0x99, 0xe4, 0xb1, 0x1f, 0x99, 0x36, 0xc0, 0xac,
+	0xdd, 0xb5, 0x0d, 0x0f, 0x06, 0x81, 0xe3, 0xdb, 0xbc, 0x61, 0xdf, 0x45, 0xbc, 0x57, 0xef, 0x5c,
+	0xbd, 0xc6, 0x61, 0x7a, 0xd5, 0xee, 0xda, 0xe2, 0x77, 0xb8, 0xd9, 0x7c, 0xf8, 0xb4, 0x2e, 0x3d,
+	0x7a, 0x5a, 0x97, 0xfe, 0x78, 0x5a, 0x97, 0x3e, 0x7f, 0x56, 0x9f, 0x7a, 0xf4, 0xac, 0x3e, 0xf5,
+	0xcb, 0xb3, 0xfa, 0xd4, 0x47, 0x6b, 0xb6, 0x43, 0x77, 0x3a, 0xed, 0x55, 0x13, 0x7b, 0x6b, 0x6d,
+	0xbf, 0x7d, 0x8e, 0xed, 0xbd, 0xb5, 0xc4, 0x27, 0xd1, 0x7b, 0xe9, 0x8f, 0xa2, 0xed, 0x32, 0xfb,
+	0x2a, 0x7a, 0xfe, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xf3, 0x5a, 0x77, 0xe1, 0xbe, 0x1d, 0x00,
+	0x00,
 }
 
 func (m *EventCreateBucket) Marshal() (dAtA []byte, err error) {
@@ -2061,14 +2280,17 @@ func (m *EventCreateBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.Status != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.Status))
 		i--
+		dAtA[i] = 0x58
+	}
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.GlobalVirtualGroupFamilyId))
+		i--
 		dAtA[i] = 0x50
 	}
-	if len(m.PrimarySpAddress) > 0 {
-		i -= len(m.PrimarySpAddress)
-		copy(dAtA[i:], m.PrimarySpAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.PrimarySpAddress)))
+	if m.PrimarySpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.PrimarySpId))
 		i--
-		dAtA[i] = 0x4a
+		dAtA[i] = 0x48
 	}
 	if len(m.PaymentAddress) > 0 {
 		i -= len(m.PaymentAddress)
@@ -2144,12 +2366,10 @@ func (m *EventDeleteBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.PrimarySpAddress) > 0 {
-		i -= len(m.PrimarySpAddress)
-		copy(dAtA[i:], m.PrimarySpAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.PrimarySpAddress)))
+	if m.PrimarySpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.PrimarySpId))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x28
 	}
 	{
 		size := m.BucketId.Size()
@@ -2381,12 +2601,10 @@ func (m *EventCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x48
 	}
-	if len(m.PrimarySpAddress) > 0 {
-		i -= len(m.PrimarySpAddress)
-		copy(dAtA[i:], m.PrimarySpAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.PrimarySpAddress)))
+	if m.PrimarySpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.PrimarySpId))
 		i--
-		dAtA[i] = 0x42
+		dAtA[i] = 0x40
 	}
 	{
 		size := m.ObjectId.Size()
@@ -2469,12 +2687,10 @@ func (m *EventCancelCreateObject) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	}
 	i--
 	dAtA[i] = 0x32
-	if len(m.PrimarySpAddress) > 0 {
-		i -= len(m.PrimarySpAddress)
-		copy(dAtA[i:], m.PrimarySpAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.PrimarySpAddress)))
+	if m.PrimarySpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.PrimarySpId))
 		i--
-		dAtA[i] = 0x22
+		dAtA[i] = 0x20
 	}
 	if len(m.ObjectName) > 0 {
 		i -= len(m.ObjectName)
@@ -2520,14 +2736,15 @@ func (m *EventSealObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.SecondarySpAddresses) > 0 {
-		for iNdEx := len(m.SecondarySpAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.SecondarySpAddresses[iNdEx])
-			copy(dAtA[i:], m.SecondarySpAddresses[iNdEx])
-			i = encodeVarintEvents(dAtA, i, uint64(len(m.SecondarySpAddresses[iNdEx])))
-			i--
-			dAtA[i] = 0x3a
-		}
+	if m.LocalVirtualGroupId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.LocalVirtualGroupId))
+		i--
+		dAtA[i] = 0x40
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x38
 	}
 	if m.Status != 0 {
 		i = encodeVarintEvents(dAtA, i, uint64(m.Status))
@@ -2666,21 +2883,10 @@ func (m *EventDeleteObject) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.SecondarySpAddresses) > 0 {
-		for iNdEx := len(m.SecondarySpAddresses) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.SecondarySpAddresses[iNdEx])
-			copy(dAtA[i:], m.SecondarySpAddresses[iNdEx])
-			i = encodeVarintEvents(dAtA, i, uint64(len(m.SecondarySpAddresses[iNdEx])))
-			i--
-			dAtA[i] = 0x32
-		}
-	}
-	if len(m.PrimarySpAddress) > 0 {
-		i -= len(m.PrimarySpAddress)
-		copy(dAtA[i:], m.PrimarySpAddress)
-		i = encodeVarintEvents(dAtA, i, uint64(len(m.PrimarySpAddress)))
+	if m.LocalVirtualGroupId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.LocalVirtualGroupId))
 		i--
-		dAtA[i] = 0x2a
+		dAtA[i] = 0x28
 	}
 	{
 		size := m.ObjectId.Size()
@@ -3543,6 +3749,171 @@ func (m *EventStalePolicyCleanup) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
+func (m *EventMigrationBucket) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventMigrationBucket) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventMigrationBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.DstPrimarySpId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.DstPrimarySpId))
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventCancelMigrationBucket) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventCancelMigrationBucket) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventCancelMigrationBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventCompleteMigrationBucket) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventCompleteMigrationBucket) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventCompleteMigrationBucket) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.GvgMappings) > 0 {
+		for iNdEx := len(m.GvgMappings) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.GvgMappings[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintEvents(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		i = encodeVarintEvents(dAtA, i, uint64(m.GlobalVirtualGroupFamilyId))
+		i--
+		dAtA[i] = 0x20
+	}
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintEvents(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
+	if len(m.BucketName) > 0 {
+		i -= len(m.BucketName)
+		copy(dAtA[i:], m.BucketName)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.BucketName)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Operator) > 0 {
+		i -= len(m.Operator)
+		copy(dAtA[i:], m.Operator)
+		i = encodeVarintEvents(dAtA, i, uint64(len(m.Operator)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvents(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvents(v)
 	base := offset
@@ -3586,9 +3957,11 @@ func (m *EventCreateBucket) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.PrimarySpAddress)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
+	if m.PrimarySpId != 0 {
+		n += 1 + sovEvents(uint64(m.PrimarySpId))
+	}
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		n += 1 + sovEvents(uint64(m.GlobalVirtualGroupFamilyId))
 	}
 	if m.Status != 0 {
 		n += 1 + sovEvents(uint64(m.Status))
@@ -3616,9 +3989,8 @@ func (m *EventDeleteBucket) Size() (n int) {
 	}
 	l = m.BucketId.Size()
 	n += 1 + l + sovEvents(uint64(l))
-	l = len(m.PrimarySpAddress)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
+	if m.PrimarySpId != 0 {
+		n += 1 + sovEvents(uint64(m.PrimarySpId))
 	}
 	return n
 }
@@ -3707,9 +4079,8 @@ func (m *EventCreateObject) Size() (n int) {
 	n += 1 + l + sovEvents(uint64(l))
 	l = m.ObjectId.Size()
 	n += 1 + l + sovEvents(uint64(l))
-	l = len(m.PrimarySpAddress)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
+	if m.PrimarySpId != 0 {
+		n += 1 + sovEvents(uint64(m.PrimarySpId))
 	}
 	if m.PayloadSize != 0 {
 		n += 1 + sovEvents(uint64(m.PayloadSize))
@@ -3760,9 +4131,8 @@ func (m *EventCancelCreateObject) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvents(uint64(l))
 	}
-	l = len(m.PrimarySpAddress)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
+	if m.PrimarySpId != 0 {
+		n += 1 + sovEvents(uint64(m.PrimarySpId))
 	}
 	l = m.ObjectId.Size()
 	n += 1 + l + sovEvents(uint64(l))
@@ -3792,11 +4162,11 @@ func (m *EventSealObject) Size() (n int) {
 	if m.Status != 0 {
 		n += 1 + sovEvents(uint64(m.Status))
 	}
-	if len(m.SecondarySpAddresses) > 0 {
-		for _, s := range m.SecondarySpAddresses {
-			l = len(s)
-			n += 1 + l + sovEvents(uint64(l))
-		}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovEvents(uint64(m.GlobalVirtualGroupId))
+	}
+	if m.LocalVirtualGroupId != 0 {
+		n += 1 + sovEvents(uint64(m.LocalVirtualGroupId))
 	}
 	return n
 }
@@ -3854,15 +4224,8 @@ func (m *EventDeleteObject) Size() (n int) {
 	}
 	l = m.ObjectId.Size()
 	n += 1 + l + sovEvents(uint64(l))
-	l = len(m.PrimarySpAddress)
-	if l > 0 {
-		n += 1 + l + sovEvents(uint64(l))
-	}
-	if len(m.SecondarySpAddresses) > 0 {
-		for _, s := range m.SecondarySpAddresses {
-			l = len(s)
-			n += 1 + l + sovEvents(uint64(l))
-		}
+	if m.LocalVirtualGroupId != 0 {
+		n += 1 + sovEvents(uint64(m.LocalVirtualGroupId))
 	}
 	return n
 }
@@ -4227,6 +4590,75 @@ func (m *EventStalePolicyCleanup) Size() (n int) {
 	return n
 }
 
+func (m *EventMigrationBucket) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Operator)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.BucketId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.DstPrimarySpId != 0 {
+		n += 1 + sovEvents(uint64(m.DstPrimarySpId))
+	}
+	return n
+}
+
+func (m *EventCancelMigrationBucket) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Operator)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.BucketId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	return n
+}
+
+func (m *EventCompleteMigrationBucket) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Operator)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = len(m.BucketName)
+	if l > 0 {
+		n += 1 + l + sovEvents(uint64(l))
+	}
+	l = m.BucketId.Size()
+	n += 1 + l + sovEvents(uint64(l))
+	if m.GlobalVirtualGroupFamilyId != 0 {
+		n += 1 + sovEvents(uint64(m.GlobalVirtualGroupFamilyId))
+	}
+	if len(m.GvgMappings) > 0 {
+		for _, e := range m.GvgMappings {
+			l = e.Size()
+			n += 1 + l + sovEvents(uint64(l))
+		}
+	}
+	return n
+}
+
 func sovEvents(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
@@ -4469,10 +4901,10 @@ func (m *EventCreateBucket) Unmarshal(dAtA []byte) error {
 			m.PaymentAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 9:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpId", wireType)
 			}
-			var stringLen uint64
+			m.PrimarySpId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -4482,25 +4914,31 @@ func (m *EventCreateBucket) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.PrimarySpId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 10:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyId", wireType)
+			}
+			m.GlobalVirtualGroupFamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupFamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 11:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
 			}
@@ -4700,10 +5138,10 @@ func (m *EventDeleteBucket) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpId", wireType)
 			}
-			var stringLen uint64
+			m.PrimarySpId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -4713,24 +5151,11 @@ func (m *EventDeleteBucket) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.PrimarySpId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -5414,10 +5839,10 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 8:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpId", wireType)
 			}
-			var stringLen uint64
+			m.PrimarySpId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -5427,24 +5852,11 @@ func (m *EventCreateObject) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.PrimarySpId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 9:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field PayloadSize", wireType)
@@ -5770,10 +6182,10 @@ func (m *EventCancelCreateObject) Unmarshal(dAtA []byte) error {
 			m.ObjectName = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpId", wireType)
 			}
-			var stringLen uint64
+			m.PrimarySpId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -5783,24 +6195,11 @@ func (m *EventCancelCreateObject) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.PrimarySpId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
@@ -6035,10 +6434,10 @@ func (m *EventSealObject) Unmarshal(dAtA []byte) error {
 				}
 			}
 		case 7:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SecondarySpAddresses", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
 			}
-			var stringLen uint64
+			m.GlobalVirtualGroupId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -6048,24 +6447,30 @@ func (m *EventSealObject) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
+		case 8:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LocalVirtualGroupId", wireType)
 			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
+			m.LocalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.LocalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
 			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SecondarySpAddresses = append(m.SecondarySpAddresses, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -6525,10 +6930,10 @@ func (m *EventDeleteObject) Unmarshal(dAtA []byte) error {
 			}
 			iNdEx = postIndex
 		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PrimarySpAddress", wireType)
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LocalVirtualGroupId", wireType)
 			}
-			var stringLen uint64
+			m.LocalVirtualGroupId = 0
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvents
@@ -6538,56 +6943,11 @@ func (m *EventDeleteObject) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				m.LocalVirtualGroupId |= uint32(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PrimarySpAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 6:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SecondarySpAddresses", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvents
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvents
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvents
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.SecondarySpAddresses = append(m.SecondarySpAddresses, string(dAtA[iNdEx:postIndex]))
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvents(dAtA[iNdEx:])
@@ -9278,6 +9638,522 @@ func (m *EventStalePolicyCleanup) Unmarshal(dAtA []byte) error {
 				m.DeleteInfo = &DeleteInfo{}
 			}
 			if err := m.DeleteInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventMigrationBucket) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventMigrationBucket: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventMigrationBucket: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Operator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DstPrimarySpId", wireType)
+			}
+			m.DstPrimarySpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DstPrimarySpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventCancelMigrationBucket) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventCancelMigrationBucket: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventCancelMigrationBucket: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Operator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvents(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventCompleteMigrationBucket) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvents
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventCompleteMigrationBucket: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventCompleteMigrationBucket: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Operator", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Operator = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketName", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BucketName = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyId", wireType)
+			}
+			m.GlobalVirtualGroupFamilyId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupFamilyId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GvgMappings", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvents
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvents
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvents
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GvgMappings = append(m.GvgMappings, &GVGMapping{})
+			if err := m.GvgMappings[len(m.GvgMappings)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
