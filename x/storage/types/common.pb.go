@@ -62,16 +62,19 @@ type BucketStatus int32
 const (
 	BUCKET_STATUS_CREATED      BucketStatus = 0
 	BUCKET_STATUS_DISCONTINUED BucketStatus = 1
+	BUCKET_STATUS_MIGRATING    BucketStatus = 2
 )
 
 var BucketStatus_name = map[int32]string{
 	0: "BUCKET_STATUS_CREATED",
 	1: "BUCKET_STATUS_DISCONTINUED",
+	2: "BUCKET_STATUS_MIGRATING",
 }
 
 var BucketStatus_value = map[string]int32{
 	"BUCKET_STATUS_CREATED":      0,
 	"BUCKET_STATUS_DISCONTINUED": 1,
+	"BUCKET_STATUS_MIGRATING":    2,
 }
 
 func (x BucketStatus) String() string {
@@ -175,86 +178,31 @@ func (VisibilityType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_4eff6c0fa4aaf4c9, []int{4}
 }
 
-// Approval is the signature information returned by the Primary Storage Provider (SP) to the user
-// after allowing them to create a bucket or object, which is then used for verification on the chain
-// to ensure agreement between the Primary SP and the user."
-type Approval struct {
-	// expired_height is the block height at which the signature expires.
-	ExpiredHeight uint64 `protobuf:"varint,1,opt,name=expired_height,json=expiredHeight,proto3" json:"expired_height,omitempty"`
-	// The signature needs to conform to the EIP 712 specification.
-	Sig []byte `protobuf:"bytes,2,opt,name=sig,proto3" json:"sig,omitempty"`
-}
-
-func (m *Approval) Reset()         { *m = Approval{} }
-func (m *Approval) String() string { return proto.CompactTextString(m) }
-func (*Approval) ProtoMessage()    {}
-func (*Approval) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4eff6c0fa4aaf4c9, []int{0}
-}
-func (m *Approval) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *Approval) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_Approval.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *Approval) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_Approval.Merge(m, src)
-}
-func (m *Approval) XXX_Size() int {
-	return m.Size()
-}
-func (m *Approval) XXX_DiscardUnknown() {
-	xxx_messageInfo_Approval.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_Approval proto.InternalMessageInfo
-
-func (m *Approval) GetExpiredHeight() uint64 {
-	if m != nil {
-		return m.ExpiredHeight
-	}
-	return 0
-}
-
-func (m *Approval) GetSig() []byte {
-	if m != nil {
-		return m.Sig
-	}
-	return nil
-}
-
-// SecondarySpSignDoc used to generate seal signature of secondary SP
+// SecondarySpSealObjectSignDoc used to generate seal signature of secondary SP
 // If the secondary SP only signs the checksum to declare the object pieces are saved,
 // it might be reused by the primary SP to fake it's declaration.
 // Then the primary SP can challenge and slash the secondary SP.
 // So the id of the object is needed to prevent this.
-type SecondarySpSignDoc struct {
-	SpAddress string `protobuf:"bytes,1,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`
-	ObjectId  Uint   `protobuf:"bytes,2,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
-	Checksum  []byte `protobuf:"bytes,3,opt,name=checksum,proto3" json:"checksum,omitempty"`
+type SecondarySpSealObjectSignDoc struct {
+	ChainId              string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	GlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	ObjectId             Uint   `protobuf:"bytes,3,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
+	// checksum is the sha256 hash of slice of integrity hash from secondary sps
+	Checksum []byte `protobuf:"bytes,4,opt,name=checksum,proto3" json:"checksum,omitempty"`
 }
 
-func (m *SecondarySpSignDoc) Reset()         { *m = SecondarySpSignDoc{} }
-func (m *SecondarySpSignDoc) String() string { return proto.CompactTextString(m) }
-func (*SecondarySpSignDoc) ProtoMessage()    {}
-func (*SecondarySpSignDoc) Descriptor() ([]byte, []int) {
-	return fileDescriptor_4eff6c0fa4aaf4c9, []int{1}
+func (m *SecondarySpSealObjectSignDoc) Reset()         { *m = SecondarySpSealObjectSignDoc{} }
+func (m *SecondarySpSealObjectSignDoc) String() string { return proto.CompactTextString(m) }
+func (*SecondarySpSealObjectSignDoc) ProtoMessage()    {}
+func (*SecondarySpSealObjectSignDoc) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4eff6c0fa4aaf4c9, []int{0}
 }
-func (m *SecondarySpSignDoc) XXX_Unmarshal(b []byte) error {
+func (m *SecondarySpSealObjectSignDoc) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *SecondarySpSignDoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *SecondarySpSealObjectSignDoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_SecondarySpSignDoc.Marshal(b, m, deterministic)
+		return xxx_messageInfo_SecondarySpSealObjectSignDoc.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -264,30 +212,243 @@ func (m *SecondarySpSignDoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, 
 		return b[:n], nil
 	}
 }
-func (m *SecondarySpSignDoc) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_SecondarySpSignDoc.Merge(m, src)
+func (m *SecondarySpSealObjectSignDoc) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SecondarySpSealObjectSignDoc.Merge(m, src)
 }
-func (m *SecondarySpSignDoc) XXX_Size() int {
+func (m *SecondarySpSealObjectSignDoc) XXX_Size() int {
 	return m.Size()
 }
-func (m *SecondarySpSignDoc) XXX_DiscardUnknown() {
-	xxx_messageInfo_SecondarySpSignDoc.DiscardUnknown(m)
+func (m *SecondarySpSealObjectSignDoc) XXX_DiscardUnknown() {
+	xxx_messageInfo_SecondarySpSealObjectSignDoc.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_SecondarySpSignDoc proto.InternalMessageInfo
+var xxx_messageInfo_SecondarySpSealObjectSignDoc proto.InternalMessageInfo
 
-func (m *SecondarySpSignDoc) GetSpAddress() string {
+func (m *SecondarySpSealObjectSignDoc) GetChainId() string {
 	if m != nil {
-		return m.SpAddress
+		return m.ChainId
 	}
 	return ""
 }
 
-func (m *SecondarySpSignDoc) GetChecksum() []byte {
+func (m *SecondarySpSealObjectSignDoc) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *SecondarySpSealObjectSignDoc) GetChecksum() []byte {
 	if m != nil {
 		return m.Checksum
 	}
 	return nil
+}
+
+type GVGMapping struct {
+	SrcGlobalVirtualGroupId uint32 `protobuf:"varint,1,opt,name=src_global_virtual_group_id,json=srcGlobalVirtualGroupId,proto3" json:"src_global_virtual_group_id,omitempty"`
+	DstGlobalVirtualGroupId uint32 `protobuf:"varint,2,opt,name=dst_global_virtual_group_id,json=dstGlobalVirtualGroupId,proto3" json:"dst_global_virtual_group_id,omitempty"`
+	SecondarySpBlsSignature []byte `protobuf:"bytes,3,opt,name=secondary_sp_bls_signature,json=secondarySpBlsSignature,proto3" json:"secondary_sp_bls_signature,omitempty"`
+}
+
+func (m *GVGMapping) Reset()         { *m = GVGMapping{} }
+func (m *GVGMapping) String() string { return proto.CompactTextString(m) }
+func (*GVGMapping) ProtoMessage()    {}
+func (*GVGMapping) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4eff6c0fa4aaf4c9, []int{1}
+}
+func (m *GVGMapping) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GVGMapping) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GVGMapping.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GVGMapping) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GVGMapping.Merge(m, src)
+}
+func (m *GVGMapping) XXX_Size() int {
+	return m.Size()
+}
+func (m *GVGMapping) XXX_DiscardUnknown() {
+	xxx_messageInfo_GVGMapping.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GVGMapping proto.InternalMessageInfo
+
+func (m *GVGMapping) GetSrcGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.SrcGlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *GVGMapping) GetDstGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.DstGlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *GVGMapping) GetSecondarySpBlsSignature() []byte {
+	if m != nil {
+		return m.SecondarySpBlsSignature
+	}
+	return nil
+}
+
+type SecondarySpMigrationBucketSignDoc struct {
+	ChainId                 string `protobuf:"bytes,1,opt,name=chain_id,json=chainId,proto3" json:"chain_id,omitempty"`
+	DstPrimarySpId          uint32 `protobuf:"varint,2,opt,name=dst_primary_sp_id,json=dstPrimarySpId,proto3" json:"dst_primary_sp_id,omitempty"`
+	SrcGlobalVirtualGroupId uint32 `protobuf:"varint,3,opt,name=src_global_virtual_group_id,json=srcGlobalVirtualGroupId,proto3" json:"src_global_virtual_group_id,omitempty"`
+	DstGlobalVirtualGroupId uint32 `protobuf:"varint,4,opt,name=dst_global_virtual_group_id,json=dstGlobalVirtualGroupId,proto3" json:"dst_global_virtual_group_id,omitempty"`
+	BucketId                Uint   `protobuf:"bytes,5,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) Reset()         { *m = SecondarySpMigrationBucketSignDoc{} }
+func (m *SecondarySpMigrationBucketSignDoc) String() string { return proto.CompactTextString(m) }
+func (*SecondarySpMigrationBucketSignDoc) ProtoMessage()    {}
+func (*SecondarySpMigrationBucketSignDoc) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4eff6c0fa4aaf4c9, []int{2}
+}
+func (m *SecondarySpMigrationBucketSignDoc) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *SecondarySpMigrationBucketSignDoc) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_SecondarySpMigrationBucketSignDoc.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *SecondarySpMigrationBucketSignDoc) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SecondarySpMigrationBucketSignDoc.Merge(m, src)
+}
+func (m *SecondarySpMigrationBucketSignDoc) XXX_Size() int {
+	return m.Size()
+}
+func (m *SecondarySpMigrationBucketSignDoc) XXX_DiscardUnknown() {
+	xxx_messageInfo_SecondarySpMigrationBucketSignDoc.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SecondarySpMigrationBucketSignDoc proto.InternalMessageInfo
+
+func (m *SecondarySpMigrationBucketSignDoc) GetChainId() string {
+	if m != nil {
+		return m.ChainId
+	}
+	return ""
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) GetDstPrimarySpId() uint32 {
+	if m != nil {
+		return m.DstPrimarySpId
+	}
+	return 0
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) GetSrcGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.SrcGlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) GetDstGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.DstGlobalVirtualGroupId
+	}
+	return 0
+}
+
+// Local virtual group(LVG) uniquely associated with a global virtual group.
+// Each bucket maintains a mapping from local virtual group to global virtual group
+// Each local virtual group is associated with a unique virtual payment account,
+// where all object fees are streamed to.
+type LocalVirtualGroup struct {
+	// id is the identifier of the local virtual group.
+	Id uint32 `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	// global_virtual_group_id is the identifier of the global virtual group.
+	GlobalVirtualGroupId uint32 `protobuf:"varint,3,opt,name=global_virtual_group_id,json=globalVirtualGroupId,proto3" json:"global_virtual_group_id,omitempty"`
+	// stored_size is the size of the stored data in the local virtual group.
+	StoredSize uint64 `protobuf:"varint,4,opt,name=stored_size,json=storedSize,proto3" json:"stored_size,omitempty"`
+	// total_charge_size is the total charged size of the objects in the LVG.
+	// Notice that the minimum unit of charge is 128K
+	TotalChargeSize uint64 `protobuf:"varint,5,opt,name=total_charge_size,json=totalChargeSize,proto3" json:"total_charge_size,omitempty"`
+}
+
+func (m *LocalVirtualGroup) Reset()         { *m = LocalVirtualGroup{} }
+func (m *LocalVirtualGroup) String() string { return proto.CompactTextString(m) }
+func (*LocalVirtualGroup) ProtoMessage()    {}
+func (*LocalVirtualGroup) Descriptor() ([]byte, []int) {
+	return fileDescriptor_4eff6c0fa4aaf4c9, []int{3}
+}
+func (m *LocalVirtualGroup) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *LocalVirtualGroup) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_LocalVirtualGroup.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *LocalVirtualGroup) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_LocalVirtualGroup.Merge(m, src)
+}
+func (m *LocalVirtualGroup) XXX_Size() int {
+	return m.Size()
+}
+func (m *LocalVirtualGroup) XXX_DiscardUnknown() {
+	xxx_messageInfo_LocalVirtualGroup.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_LocalVirtualGroup proto.InternalMessageInfo
+
+func (m *LocalVirtualGroup) GetId() uint32 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *LocalVirtualGroup) GetGlobalVirtualGroupId() uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupId
+	}
+	return 0
+}
+
+func (m *LocalVirtualGroup) GetStoredSize() uint64 {
+	if m != nil {
+		return m.StoredSize
+	}
+	return 0
+}
+
+func (m *LocalVirtualGroup) GetTotalChargeSize() uint64 {
+	if m != nil {
+		return m.TotalChargeSize
+	}
+	return 0
 }
 
 func init() {
@@ -296,56 +457,70 @@ func init() {
 	proto.RegisterEnum("greenfield.storage.RedundancyType", RedundancyType_name, RedundancyType_value)
 	proto.RegisterEnum("greenfield.storage.ObjectStatus", ObjectStatus_name, ObjectStatus_value)
 	proto.RegisterEnum("greenfield.storage.VisibilityType", VisibilityType_name, VisibilityType_value)
-	proto.RegisterType((*Approval)(nil), "greenfield.storage.Approval")
-	proto.RegisterType((*SecondarySpSignDoc)(nil), "greenfield.storage.SecondarySpSignDoc")
+	proto.RegisterType((*SecondarySpSealObjectSignDoc)(nil), "greenfield.storage.SecondarySpSealObjectSignDoc")
+	proto.RegisterType((*GVGMapping)(nil), "greenfield.storage.GVGMapping")
+	proto.RegisterType((*SecondarySpMigrationBucketSignDoc)(nil), "greenfield.storage.SecondarySpMigrationBucketSignDoc")
+	proto.RegisterType((*LocalVirtualGroup)(nil), "greenfield.storage.LocalVirtualGroup")
 }
 
 func init() { proto.RegisterFile("greenfield/storage/common.proto", fileDescriptor_4eff6c0fa4aaf4c9) }
 
 var fileDescriptor_4eff6c0fa4aaf4c9 = []byte{
-	// 610 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x93, 0xc1, 0x4a, 0xdc, 0x40,
-	0x18, 0xc7, 0x13, 0x95, 0xe2, 0x4e, 0xad, 0x84, 0xc1, 0xd6, 0x75, 0x17, 0xb2, 0x22, 0x14, 0x44,
-	0xd0, 0x3d, 0xf4, 0xd0, 0x5e, 0x93, 0xc9, 0x54, 0xa7, 0x6e, 0x93, 0x65, 0x26, 0x11, 0xec, 0x25,
-	0x64, 0x93, 0x69, 0x76, 0xaa, 0x9b, 0x09, 0x49, 0xb6, 0xb8, 0x6f, 0xd0, 0x63, 0xe9, 0x2b, 0xf8,
-	0x0a, 0x3e, 0x84, 0x47, 0xf1, 0x54, 0x7a, 0x90, 0xa2, 0x2f, 0x52, 0x92, 0xac, 0xba, 0x4b, 0xf7,
-	0x36, 0xdf, 0xff, 0xff, 0xe7, 0xfb, 0x7e, 0xf3, 0xc1, 0x07, 0x3a, 0x71, 0xc6, 0x79, 0xf2, 0x55,
-	0xf0, 0xf3, 0xa8, 0x9b, 0x17, 0x32, 0x0b, 0x62, 0xde, 0x0d, 0xe5, 0x68, 0x24, 0x93, 0x83, 0x34,
-	0x93, 0x85, 0x84, 0xf0, 0x39, 0x70, 0x30, 0x0d, 0xb4, 0xb6, 0x42, 0x99, 0x8f, 0x64, 0xee, 0x57,
-	0x89, 0x6e, 0x5d, 0xd4, 0xf1, 0xd6, 0x46, 0x2c, 0x63, 0x59, 0xeb, 0xe5, 0xab, 0x56, 0x77, 0x10,
-	0x58, 0x35, 0xd2, 0x34, 0x93, 0xdf, 0x83, 0x73, 0xf8, 0x16, 0xac, 0xf3, 0x8b, 0x54, 0x64, 0x3c,
-	0xf2, 0x87, 0x5c, 0xc4, 0xc3, 0xa2, 0xa9, 0x6e, 0xab, 0xbb, 0x2b, 0xf4, 0xd5, 0x54, 0x3d, 0xaa,
-	0x44, 0xa8, 0x81, 0xe5, 0x5c, 0xc4, 0xcd, 0xa5, 0x6d, 0x75, 0x77, 0x8d, 0x96, 0xcf, 0x9d, 0x4b,
-	0x15, 0x40, 0xc6, 0x43, 0x99, 0x44, 0x41, 0x36, 0x61, 0x29, 0x13, 0x71, 0x62, 0xc9, 0x10, 0xbe,
-	0x07, 0x20, 0x4f, 0xfd, 0x20, 0x8a, 0x32, 0x9e, 0xe7, 0x55, 0xaf, 0x86, 0xd9, 0xbc, 0xbd, 0xda,
-	0xdf, 0x98, 0x72, 0x19, 0xb5, 0xc3, 0x8a, 0x4c, 0x24, 0x31, 0x6d, 0xe4, 0xe9, 0x54, 0x80, 0x1f,
-	0x40, 0x43, 0x0e, 0xbe, 0xf1, 0xb0, 0xf0, 0x45, 0x54, 0xcd, 0x69, 0x98, 0xed, 0xeb, 0xbb, 0x8e,
-	0xf2, 0xe7, 0xae, 0xb3, 0xe2, 0x89, 0xa4, 0xb8, 0xbd, 0xda, 0x7f, 0x39, 0xed, 0x51, 0x96, 0x74,
-	0xb5, 0x4e, 0x93, 0x08, 0xb6, 0xc0, 0x6a, 0x38, 0xe4, 0xe1, 0x59, 0x3e, 0x1e, 0x35, 0x97, 0x2b,
-	0xc0, 0xa7, 0x7a, 0xef, 0x0c, 0x00, 0x26, 0xc7, 0x59, 0xc8, 0xdd, 0x49, 0xca, 0xe1, 0x1b, 0x00,
-	0x99, 0xe3, 0x51, 0x84, 0x7d, 0xf7, 0xb4, 0x8f, 0x7d, 0x87, 0x92, 0x43, 0x62, 0x6b, 0x0a, 0xec,
-	0x80, 0xf6, 0xac, 0x6e, 0x32, 0xe4, 0x23, 0xea, 0x30, 0xe6, 0xa3, 0x23, 0x83, 0xd8, 0x9a, 0x0a,
-	0x75, 0xd0, 0x9a, 0x0d, 0x7c, 0x26, 0x94, 0x3a, 0xd4, 0xef, 0x63, 0xdb, 0x22, 0xf6, 0xa1, 0xb6,
-	0xd4, 0x5a, 0xf9, 0x71, 0xa9, 0x2b, 0x7b, 0x0e, 0x58, 0x33, 0xc7, 0xe1, 0x19, 0x2f, 0x58, 0x11,
-	0x14, 0xe3, 0x1c, 0x6e, 0x81, 0xd7, 0xa6, 0x87, 0x8e, 0xb1, 0xeb, 0x33, 0xd7, 0x70, 0x3d, 0xe6,
-	0x23, 0x8a, 0x0d, 0x17, 0x5b, 0x9a, 0x52, 0x36, 0x9c, 0xb7, 0x2c, 0xc2, 0x90, 0x63, 0xbb, 0xc4,
-	0xf6, 0xb0, 0xa5, 0xa9, 0xd3, 0x86, 0xc7, 0x60, 0x9d, 0xf2, 0x68, 0x9c, 0x44, 0x41, 0x12, 0x4e,
-	0x1e, 0x7f, 0x40, 0xb1, 0xe5, 0xd9, 0x96, 0x61, 0xa3, 0x53, 0x1f, 0xa3, 0x8a, 0x47, 0x53, 0x60,
-	0x1b, 0x6c, 0xce, 0xe8, 0x14, 0xf7, 0x7b, 0x04, 0x19, 0xb5, 0xf9, 0xd8, 0x4c, 0x80, 0x35, 0xa7,
-	0x5a, 0xd9, 0x33, 0x9d, 0x63, 0x7e, 0xc2, 0x68, 0x01, 0x5d, 0x13, 0x6c, 0xcc, 0x5b, 0x0c, 0x1b,
-	0xbd, 0x92, 0xab, 0xe4, 0x9e, 0x77, 0xe6, 0xb8, 0x1f, 0x17, 0xf1, 0x4b, 0x05, 0xeb, 0x27, 0x22,
-	0x17, 0x03, 0x71, 0x2e, 0x8a, 0x1a, 0xbc, 0x03, 0xda, 0x27, 0x84, 0x11, 0x93, 0xf4, 0x88, 0x7b,
-	0x5a, 0x6f, 0xd1, 0xb3, 0x59, 0x1f, 0x23, 0xf2, 0x91, 0x54, 0x33, 0x17, 0x04, 0xfa, 0x9e, 0xd9,
-	0x23, 0xc8, 0xa7, 0xd8, 0x28, 0x47, 0xb7, 0xc1, 0xe6, 0x7f, 0x01, 0x4a, 0x4e, 0x0c, 0x17, 0x6b,
-	0x4b, 0x8b, 0x4c, 0x62, 0x1f, 0x61, 0x4a, 0x5c, 0x6d, 0xb9, 0x86, 0x32, 0xc9, 0xf5, 0xbd, 0xae,
-	0xde, 0xdc, 0xeb, 0xea, 0xdf, 0x7b, 0x5d, 0xfd, 0xf9, 0xa0, 0x2b, 0x37, 0x0f, 0xba, 0xf2, 0xfb,
-	0x41, 0x57, 0xbe, 0x74, 0x63, 0x51, 0x0c, 0xc7, 0x83, 0x83, 0x50, 0x8e, 0xba, 0x83, 0x64, 0xb0,
-	0x1f, 0x0e, 0x03, 0x91, 0x74, 0x67, 0x4e, 0xf1, 0xe2, 0xe9, 0x18, 0x8b, 0x49, 0xca, 0xf3, 0xc1,
-	0x8b, 0xea, 0x8e, 0xde, 0xfd, 0x0b, 0x00, 0x00, 0xff, 0xff, 0x4e, 0xd4, 0x1c, 0xd6, 0xaf, 0x03,
-	0x00, 0x00,
+	// 815 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x95, 0x4f, 0x6f, 0xe3, 0x44,
+	0x18, 0xc6, 0xe3, 0x34, 0x0b, 0xdb, 0xd9, 0x52, 0x52, 0xab, 0x90, 0x36, 0x41, 0x4e, 0xe9, 0xa9,
+	0x54, 0xda, 0xe6, 0x80, 0x90, 0x56, 0x62, 0x2f, 0xb6, 0x33, 0x64, 0x87, 0x4d, 0x9d, 0x68, 0xc6,
+	0x89, 0x54, 0x2e, 0x23, 0xff, 0x19, 0xdc, 0xa1, 0x8e, 0xc7, 0xf2, 0x8c, 0x11, 0xdd, 0x4f, 0xc0,
+	0x11, 0xf1, 0x05, 0x38, 0x70, 0xe0, 0x0b, 0xf0, 0x15, 0x40, 0x7b, 0x5c, 0x71, 0x42, 0x1c, 0x56,
+	0xa8, 0xfd, 0x22, 0xc8, 0x76, 0x92, 0x4d, 0x44, 0x88, 0x56, 0xe2, 0x96, 0x79, 0x9f, 0x5f, 0xde,
+	0xf7, 0x79, 0xdf, 0x79, 0x6d, 0x83, 0x6e, 0x94, 0x31, 0x96, 0x7c, 0xcd, 0x59, 0x1c, 0xf6, 0xa4,
+	0x12, 0x99, 0x17, 0xb1, 0x5e, 0x20, 0x66, 0x33, 0x91, 0x5c, 0xa4, 0x99, 0x50, 0x42, 0xd7, 0xdf,
+	0x00, 0x17, 0x73, 0xa0, 0x7d, 0x1c, 0x08, 0x39, 0x13, 0x92, 0x96, 0x44, 0xaf, 0x3a, 0x54, 0x78,
+	0xfb, 0x30, 0x12, 0x91, 0xa8, 0xe2, 0xc5, 0xaf, 0x2a, 0x7a, 0xfa, 0xbb, 0x06, 0x3e, 0x22, 0x2c,
+	0x10, 0x49, 0xe8, 0x65, 0xb7, 0x24, 0x25, 0xcc, 0x8b, 0x47, 0xfe, 0x37, 0x2c, 0x50, 0x84, 0x47,
+	0x49, 0x5f, 0x04, 0xfa, 0x31, 0x78, 0x18, 0x5c, 0x7b, 0x3c, 0xa1, 0x3c, 0x3c, 0xd2, 0x4e, 0xb4,
+	0xb3, 0x5d, 0xfc, 0x6e, 0x79, 0x46, 0xa1, 0xfe, 0x19, 0x68, 0x45, 0xb1, 0xf0, 0xbd, 0x98, 0x7e,
+	0xcb, 0x33, 0x95, 0x7b, 0x31, 0x8d, 0x32, 0x91, 0xa7, 0x05, 0x59, 0x3f, 0xd1, 0xce, 0xde, 0xc3,
+	0x87, 0x95, 0x3c, 0xad, 0xd4, 0x41, 0x21, 0xa2, 0x50, 0x7f, 0x02, 0x76, 0x45, 0x59, 0xa2, 0x00,
+	0x77, 0x8a, 0x94, 0x56, 0xe7, 0xe5, 0xeb, 0x6e, 0xed, 0xaf, 0xd7, 0xdd, 0xc6, 0x84, 0x27, 0xea,
+	0x8f, 0x5f, 0x1f, 0x3f, 0x9a, 0x3b, 0x2f, 0x8e, 0xf8, 0x61, 0x45, 0xa3, 0x50, 0x6f, 0x17, 0x5e,
+	0x58, 0x70, 0x23, 0xf3, 0xd9, 0x51, 0xe3, 0x44, 0x3b, 0xdb, 0xc3, 0xcb, 0xf3, 0xe9, 0x6f, 0x1a,
+	0x00, 0x83, 0xe9, 0xe0, 0xd2, 0x4b, 0x53, 0x9e, 0x44, 0xfa, 0x53, 0xd0, 0x91, 0x59, 0x40, 0xff,
+	0xcb, 0x9f, 0x56, 0xfa, 0x6b, 0xc9, 0x2c, 0x18, 0x6c, 0xb2, 0xf8, 0x14, 0x74, 0x42, 0xa9, 0xe8,
+	0xf6, 0xee, 0x5a, 0xa1, 0x54, 0x1b, 0xff, 0xfd, 0x39, 0x68, 0xcb, 0xc5, 0x48, 0xa9, 0x4c, 0xa9,
+	0x1f, 0x4b, 0x2a, 0x79, 0x94, 0x78, 0x2a, 0xcf, 0x58, 0xd9, 0xf1, 0x1e, 0x6e, 0xc9, 0x37, 0x43,
+	0xb7, 0x62, 0x49, 0x16, 0xf2, 0xe9, 0x4f, 0x75, 0xf0, 0xf1, 0xca, 0x85, 0x5c, 0xf2, 0x28, 0xf3,
+	0x14, 0x17, 0x89, 0x95, 0x07, 0x37, 0xec, 0x6d, 0x6e, 0xe5, 0x13, 0x70, 0x50, 0x78, 0x4f, 0x33,
+	0x3e, 0x9b, 0xd7, 0x5f, 0x3a, 0xde, 0x0f, 0xa5, 0x1a, 0x57, 0x71, 0x32, 0x6f, 0x73, 0xdb, 0x90,
+	0x76, 0xfe, 0xd7, 0x90, 0x1a, 0xdb, 0x87, 0xf4, 0x04, 0xec, 0xfa, 0x65, 0x4b, 0x05, 0xfb, 0xe0,
+	0x2d, 0xb6, 0xa0, 0xa2, 0x51, 0x78, 0xfa, 0x8b, 0x06, 0x0e, 0x86, 0x22, 0x58, 0xcf, 0xa8, 0xef,
+	0x83, 0xfa, 0xf2, 0x5e, 0xeb, 0x7c, 0xeb, 0x72, 0xee, 0x6c, 0x59, 0xce, 0x2e, 0x78, 0x54, 0x3c,
+	0x4b, 0x2c, 0xa4, 0x92, 0xbf, 0x60, 0x65, 0x13, 0x0d, 0x0c, 0xaa, 0x10, 0xe1, 0x2f, 0x98, 0x7e,
+	0x0e, 0x0e, 0x94, 0x50, 0x5e, 0x4c, 0x83, 0x6b, 0x2f, 0x8b, 0x58, 0x85, 0x3d, 0x28, 0xb1, 0xf7,
+	0x4b, 0xc1, 0x2e, 0xe3, 0x05, 0x7b, 0x7e, 0x03, 0x00, 0x11, 0x79, 0x16, 0x30, 0xf7, 0x36, 0x65,
+	0xfa, 0x87, 0x40, 0x27, 0xa3, 0x09, 0xb6, 0x21, 0x75, 0xaf, 0xc6, 0x90, 0x8e, 0x30, 0x1a, 0x20,
+	0xa7, 0x59, 0xd3, 0xbb, 0xa0, 0xb3, 0x1a, 0xb7, 0x88, 0x4d, 0x6d, 0x3c, 0x22, 0x84, 0xda, 0xcf,
+	0x4c, 0xe4, 0x34, 0x35, 0xdd, 0x00, 0xed, 0x55, 0xe0, 0x12, 0x61, 0x3c, 0xc2, 0x74, 0x0c, 0x9d,
+	0x3e, 0x72, 0x06, 0xcd, 0x7a, 0xbb, 0xf1, 0xfd, 0xcf, 0x46, 0xed, 0x3c, 0x06, 0x7b, 0xf3, 0x1d,
+	0x51, 0x9e, 0xca, 0xa5, 0x7e, 0x0c, 0x3e, 0xb0, 0x26, 0xf6, 0x73, 0xe8, 0x52, 0xe2, 0x9a, 0xee,
+	0x84, 0x50, 0x1b, 0x43, 0xd3, 0x85, 0xfd, 0x66, 0xad, 0x48, 0xb8, 0x2e, 0xf5, 0x11, 0xb1, 0x47,
+	0x8e, 0x8b, 0x9c, 0x09, 0xec, 0x37, 0x35, 0xbd, 0x03, 0x5a, 0xeb, 0xfa, 0x25, 0x1a, 0x60, 0xd3,
+	0x5d, 0xad, 0xf6, 0x1c, 0xec, 0x63, 0x16, 0xe6, 0x49, 0xe8, 0x25, 0xc1, 0xed, 0xa2, 0x3d, 0x0c,
+	0xfb, 0x13, 0xa7, 0x6f, 0x3a, 0xf6, 0x15, 0x85, 0x76, 0x69, 0xb6, 0x59, 0x2b, 0x92, 0xad, 0xc4,
+	0x31, 0x1c, 0x0f, 0x91, 0x6d, 0x56, 0xa2, 0x36, 0x4f, 0xc6, 0xc1, 0xde, 0xfc, 0xa5, 0xb3, 0xb4,
+	0x3e, 0xb2, 0xbe, 0x84, 0xf6, 0x06, 0xeb, 0x47, 0xe0, 0x70, 0x5d, 0x22, 0xd0, 0x1c, 0x96, 0xa6,
+	0x0d, 0xd0, 0x5e, 0x57, 0xd6, 0x9a, 0x5a, 0xf8, 0xfe, 0x51, 0x03, 0xfb, 0x53, 0x2e, 0xb9, 0xcf,
+	0x63, 0xae, 0x2a, 0xe3, 0x5d, 0xd0, 0x99, 0x22, 0x82, 0x2c, 0x34, 0x44, 0xee, 0x55, 0x35, 0xe2,
+	0x89, 0x43, 0xc6, 0xd0, 0x46, 0x5f, 0xa0, 0xb2, 0xe6, 0x06, 0x60, 0x3c, 0xb1, 0x86, 0xc8, 0xa6,
+	0x18, 0x9a, 0xf3, 0x79, 0xfd, 0x0b, 0xc0, 0x68, 0x6a, 0xba, 0xb0, 0x59, 0xdf, 0x24, 0x22, 0xe7,
+	0x19, 0xc4, 0xc8, 0x6d, 0xee, 0x54, 0xa6, 0x2c, 0xf4, 0xf2, 0xce, 0xd0, 0x5e, 0xdd, 0x19, 0xda,
+	0xdf, 0x77, 0x86, 0xf6, 0xc3, 0xbd, 0x51, 0x7b, 0x75, 0x6f, 0xd4, 0xfe, 0xbc, 0x37, 0x6a, 0x5f,
+	0xf5, 0x22, 0xae, 0xae, 0x73, 0xff, 0x22, 0x10, 0xb3, 0x9e, 0x9f, 0xf8, 0x8f, 0xcb, 0x87, 0xbc,
+	0xb7, 0xf2, 0x65, 0xf8, 0x6e, 0xf9, 0x6d, 0x50, 0xb7, 0x29, 0x93, 0xfe, 0x3b, 0xe5, 0x6b, 0xfd,
+	0xd3, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x82, 0x66, 0xda, 0x32, 0x3e, 0x06, 0x00, 0x00,
 }
 
-func (m *Approval) Marshal() (dAtA []byte, err error) {
+func (m *SecondarySpSealObjectSignDoc) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -355,47 +530,12 @@ func (m *Approval) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *Approval) MarshalTo(dAtA []byte) (int, error) {
+func (m *SecondarySpSealObjectSignDoc) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *Approval) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Sig) > 0 {
-		i -= len(m.Sig)
-		copy(dAtA[i:], m.Sig)
-		i = encodeVarintCommon(dAtA, i, uint64(len(m.Sig)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if m.ExpiredHeight != 0 {
-		i = encodeVarintCommon(dAtA, i, uint64(m.ExpiredHeight))
-		i--
-		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *SecondarySpSignDoc) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *SecondarySpSignDoc) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *SecondarySpSignDoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *SecondarySpSealObjectSignDoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -405,7 +545,7 @@ func (m *SecondarySpSignDoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.Checksum)
 		i = encodeVarintCommon(dAtA, i, uint64(len(m.Checksum)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	{
 		size := m.ObjectId.Size()
@@ -416,13 +556,156 @@ func (m *SecondarySpSignDoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintCommon(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x12
-	if len(m.SpAddress) > 0 {
-		i -= len(m.SpAddress)
-		copy(dAtA[i:], m.SpAddress)
-		i = encodeVarintCommon(dAtA, i, uint64(len(m.SpAddress)))
+	dAtA[i] = 0x1a
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.ChainId) > 0 {
+		i -= len(m.ChainId)
+		copy(dAtA[i:], m.ChainId)
+		i = encodeVarintCommon(dAtA, i, uint64(len(m.ChainId)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GVGMapping) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GVGMapping) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GVGMapping) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.SecondarySpBlsSignature) > 0 {
+		i -= len(m.SecondarySpBlsSignature)
+		copy(dAtA[i:], m.SecondarySpBlsSignature)
+		i = encodeVarintCommon(dAtA, i, uint64(len(m.SecondarySpBlsSignature)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.DstGlobalVirtualGroupId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.DstGlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.SrcGlobalVirtualGroupId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.SrcGlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.BucketId.Size()
+		i -= size
+		if _, err := m.BucketId.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintCommon(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	if m.DstGlobalVirtualGroupId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.DstGlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.SrcGlobalVirtualGroupId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.SrcGlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.DstPrimarySpId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.DstPrimarySpId))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.ChainId) > 0 {
+		i -= len(m.ChainId)
+		copy(dAtA[i:], m.ChainId)
+		i = encodeVarintCommon(dAtA, i, uint64(len(m.ChainId)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *LocalVirtualGroup) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *LocalVirtualGroup) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *LocalVirtualGroup) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.TotalChargeSize != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.TotalChargeSize))
+		i--
+		dAtA[i] = 0x28
+	}
+	if m.StoredSize != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.StoredSize))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.GlobalVirtualGroupId))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Id != 0 {
+		i = encodeVarintCommon(dAtA, i, uint64(m.Id))
+		i--
+		dAtA[i] = 0x8
 	}
 	return len(dAtA) - i, nil
 }
@@ -438,31 +721,18 @@ func encodeVarintCommon(dAtA []byte, offset int, v uint64) int {
 	dAtA[offset] = uint8(v)
 	return base
 }
-func (m *Approval) Size() (n int) {
+func (m *SecondarySpSealObjectSignDoc) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.ExpiredHeight != 0 {
-		n += 1 + sovCommon(uint64(m.ExpiredHeight))
-	}
-	l = len(m.Sig)
+	l = len(m.ChainId)
 	if l > 0 {
 		n += 1 + l + sovCommon(uint64(l))
 	}
-	return n
-}
-
-func (m *SecondarySpSignDoc) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.SpAddress)
-	if l > 0 {
-		n += 1 + l + sovCommon(uint64(l))
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovCommon(uint64(m.GlobalVirtualGroupId))
 	}
 	l = m.ObjectId.Size()
 	n += 1 + l + sovCommon(uint64(l))
@@ -473,13 +743,77 @@ func (m *SecondarySpSignDoc) Size() (n int) {
 	return n
 }
 
+func (m *GVGMapping) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.SrcGlobalVirtualGroupId != 0 {
+		n += 1 + sovCommon(uint64(m.SrcGlobalVirtualGroupId))
+	}
+	if m.DstGlobalVirtualGroupId != 0 {
+		n += 1 + sovCommon(uint64(m.DstGlobalVirtualGroupId))
+	}
+	l = len(m.SecondarySpBlsSignature)
+	if l > 0 {
+		n += 1 + l + sovCommon(uint64(l))
+	}
+	return n
+}
+
+func (m *SecondarySpMigrationBucketSignDoc) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.ChainId)
+	if l > 0 {
+		n += 1 + l + sovCommon(uint64(l))
+	}
+	if m.DstPrimarySpId != 0 {
+		n += 1 + sovCommon(uint64(m.DstPrimarySpId))
+	}
+	if m.SrcGlobalVirtualGroupId != 0 {
+		n += 1 + sovCommon(uint64(m.SrcGlobalVirtualGroupId))
+	}
+	if m.DstGlobalVirtualGroupId != 0 {
+		n += 1 + sovCommon(uint64(m.DstGlobalVirtualGroupId))
+	}
+	l = m.BucketId.Size()
+	n += 1 + l + sovCommon(uint64(l))
+	return n
+}
+
+func (m *LocalVirtualGroup) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Id != 0 {
+		n += 1 + sovCommon(uint64(m.Id))
+	}
+	if m.GlobalVirtualGroupId != 0 {
+		n += 1 + sovCommon(uint64(m.GlobalVirtualGroupId))
+	}
+	if m.StoredSize != 0 {
+		n += 1 + sovCommon(uint64(m.StoredSize))
+	}
+	if m.TotalChargeSize != 0 {
+		n += 1 + sovCommon(uint64(m.TotalChargeSize))
+	}
+	return n
+}
+
 func sovCommon(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
 func sozCommon(x uint64) (n int) {
 	return sovCommon(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
-func (m *Approval) Unmarshal(dAtA []byte) error {
+func (m *SecondarySpSealObjectSignDoc) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -502,118 +836,15 @@ func (m *Approval) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: Approval: wiretype end group for non-group")
+			return fmt.Errorf("proto: SecondarySpSealObjectSignDoc: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Approval: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ExpiredHeight", wireType)
-			}
-			m.ExpiredHeight = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCommon
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.ExpiredHeight |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sig", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowCommon
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthCommon
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthCommon
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sig = append(m.Sig[:0], dAtA[iNdEx:postIndex]...)
-			if m.Sig == nil {
-				m.Sig = []byte{}
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipCommon(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthCommon
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *SecondarySpSignDoc) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowCommon
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: SecondarySpSignDoc: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: SecondarySpSignDoc: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: SecondarySpSealObjectSignDoc: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field SpAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainId", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -641,9 +872,28 @@ func (m *SecondarySpSignDoc) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.SpAddress = string(dAtA[iNdEx:postIndex])
+			m.ChainId = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ObjectId", wireType)
 			}
@@ -677,7 +927,7 @@ func (m *SecondarySpSignDoc) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Checksum", wireType)
 			}
@@ -711,6 +961,427 @@ func (m *SecondarySpSignDoc) Unmarshal(dAtA []byte) error {
 				m.Checksum = []byte{}
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCommon(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GVGMapping) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCommon
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GVGMapping: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GVGMapping: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SrcGlobalVirtualGroupId", wireType)
+			}
+			m.SrcGlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SrcGlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DstGlobalVirtualGroupId", wireType)
+			}
+			m.DstGlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DstGlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SecondarySpBlsSignature", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthCommon
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.SecondarySpBlsSignature = append(m.SecondarySpBlsSignature[:0], dAtA[iNdEx:postIndex]...)
+			if m.SecondarySpBlsSignature == nil {
+				m.SecondarySpBlsSignature = []byte{}
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCommon(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *SecondarySpMigrationBucketSignDoc) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCommon
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: SecondarySpMigrationBucketSignDoc: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: SecondarySpMigrationBucketSignDoc: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ChainId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCommon
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ChainId = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DstPrimarySpId", wireType)
+			}
+			m.DstPrimarySpId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DstPrimarySpId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field SrcGlobalVirtualGroupId", wireType)
+			}
+			m.SrcGlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.SrcGlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field DstGlobalVirtualGroupId", wireType)
+			}
+			m.DstGlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.DstGlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BucketId", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthCommon
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BucketId.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipCommon(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthCommon
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *LocalVirtualGroup) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowCommon
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: LocalVirtualGroup: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: LocalVirtualGroup: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Id", wireType)
+			}
+			m.Id = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Id |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupId", wireType)
+			}
+			m.GlobalVirtualGroupId = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.GlobalVirtualGroupId |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field StoredSize", wireType)
+			}
+			m.StoredSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.StoredSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalChargeSize", wireType)
+			}
+			m.TotalChargeSize = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowCommon
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.TotalChargeSize |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipCommon(dAtA[iNdEx:])

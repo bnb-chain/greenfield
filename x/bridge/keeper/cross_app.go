@@ -96,6 +96,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossC
 		},
 		RefundReason: types.RefundReason(refundPackage.RefundReason),
 		Sequence:     appCtx.Sequence,
+		DestChainId:  uint32(appCtx.SrcChainId),
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
@@ -146,6 +147,7 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 		},
 		RefundReason: types.REFUND_REASON_FAIL_ACK,
 		Sequence:     appCtx.Sequence,
+		DestChainId:  uint32(appCtx.SrcChainId),
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())
@@ -233,6 +235,7 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 		ReceiverAddress: transferInPackage.ReceiverAddress.String(),
 		RefundAddress:   transferInPackage.RefundAddress.String(),
 		Sequence:        appCtx.Sequence,
+		SrcChainId:      uint32(appCtx.SrcChainId),
 	})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("emit event error", "err", err.Error())

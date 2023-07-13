@@ -5,6 +5,7 @@ import (
 
 	"cosmossdk.io/errors"
 	"github.com/bits-and-blooms/bitset"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
@@ -14,7 +15,7 @@ import (
 // BlsSignedMsg defined the interface of a bls signed message.
 type BlsSignedMsg interface {
 	// GetBlsSignBytes returns the bls signed message in bytes.
-	GetBlsSignBytes() [32]byte
+	GetBlsSignBytes(chainId string) [32]byte
 
 	// GetVoteValidatorSet returns the validators who signed the message.
 	GetVoteValidatorSet() []uint64
@@ -24,7 +25,7 @@ type BlsSignedMsg interface {
 }
 
 // verifySignature verifies whether the signature is valid or not.
-func (k Keeper) verifySignature(signedMsg BlsSignedMsg, validators []stakingtypes.Validator) ([]string, error) {
+func (k Keeper) verifySignature(ctx sdk.Context, signedMsg BlsSignedMsg, validators []stakingtypes.Validator) ([]string, error) {
 	validatorsBitSet := bitset.From(signedMsg.GetVoteValidatorSet())
 	if validatorsBitSet.Count() > uint(len(validators)) {
 		return nil, errors.Wrap(types.ErrInvalidVoteValidatorSet, "number of validator set is larger than validators")
@@ -54,7 +55,7 @@ func (k Keeper) verifySignature(signedMsg BlsSignedMsg, validators []stakingtype
 		return nil, errors.Wrapf(types.ErrInvalidVoteAggSignature, fmt.Sprintf("BLS signature converts failed: %v", err))
 	}
 
-	if !aggSig.FastAggregateVerify(votedPubKeys, signedMsg.GetBlsSignBytes()) {
+	if !aggSig.FastAggregateVerify(votedPubKeys, signedMsg.GetBlsSignBytes(ctx.ChainID())) {
 		return nil, errors.Wrap(types.ErrInvalidVoteAggSignature, "Signature verify failed")
 	}
 

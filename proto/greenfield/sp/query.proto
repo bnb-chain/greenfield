@@ -10,7 +10,6 @@ import "greenfield/sp/params.proto";
 import "greenfield/sp/types.proto";
 
 // this line is used by starport scaffolding # 1
-
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Query defines the gRPC querier service.
@@ -37,9 +36,14 @@ service Query {
     option (google.api.http).get = "/greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}";
   }
 
-  // Queries a storage provider with specify address
+  // Queries a storage provider with specify id
   rpc StorageProvider(QueryStorageProviderRequest) returns (QueryStorageProviderResponse) {
-    option (google.api.http).get = "/greenfield/storage_provider/{spAddress}";
+    option (google.api.http).get = "/greenfield/storage_provider/{id}";
+  }
+
+  // Queries a StorageProvider by specify operator address.
+  rpc StorageProviderByOperatorAddress(QueryStorageProviderByOperatorAddressRequest) returns (QueryStorageProviderByOperatorAddressResponse) {
+    option (google.api.http).get = "/greenfield/sp/storage_provider_by_operator_address";
   }
 }
 
@@ -86,9 +90,17 @@ message QueryGetSecondarySpStorePriceByTimeResponse {
 }
 
 message QueryStorageProviderRequest {
-  string spAddress = 1;
+  uint32 id = 1;
 }
 
 message QueryStorageProviderResponse {
+  StorageProvider storageProvider = 1;
+}
+
+message QueryStorageProviderByOperatorAddressRequest {
+  string operator_address = 1;
+}
+
+message QueryStorageProviderByOperatorAddressResponse {
   StorageProvider storageProvider = 1;
 }

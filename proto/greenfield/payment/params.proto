@@ -14,10 +14,12 @@ message Params {
   // Time duration threshold of forced settlement.
   // If dynamic balance is less than NetOutFlowRate * forcedSettleTime, the account can be forced settled.
   uint64 forced_settle_time = 3 [(gogoproto.moretags) = "yaml:\"forced_settle_time\""];
-  // the maximum number of accounts that will be forced settled in one block
-  uint64 max_auto_force_settle_num = 4 [(gogoproto.moretags) = "yaml:\"max_auto_force_settle_num\""];
+  // the maximum number of flows that will be auto forced settled in one block
+  uint64 max_auto_settle_flow_count = 4 [(gogoproto.moretags) = "yaml:\"max_auto_settle_flow_count\""];
+  // the maximum number of flows that will be auto resumed in one block
+  uint64 max_auto_resume_flow_count = 5 [(gogoproto.moretags) = "yaml:\"max_auto_resume_flow_count\""];
   // The denom of fee charged in payment module
-  string fee_denom = 5 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
+  string fee_denom = 6 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
 }
 
 // VersionedParams defines the parameters with multiple versions, each version is stored with different timestamp.

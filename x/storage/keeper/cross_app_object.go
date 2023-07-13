@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -48,11 +47,7 @@ func (app *ObjectApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -83,11 +78,7 @@ func (app *ObjectApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -119,11 +110,7 @@ func (app *ObjectApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -148,10 +135,11 @@ func (app *ObjectApp) handleMirrorObjectAckPackage(ctx sdk.Context, appCtx *sdk.
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObjectResult{
-		Status:     uint32(ackPackage.Status),
-		BucketName: objectInfo.BucketName,
-		ObjectName: objectInfo.ObjectName,
-		ObjectId:   objectInfo.Id,
+		Status:      uint32(ackPackage.Status),
+		BucketName:  objectInfo.BucketName,
+		ObjectName:  objectInfo.ObjectName,
+		ObjectId:    objectInfo.Id,
+		DestChainId: uint32(appCtx.SrcChainId),
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
@@ -176,10 +164,11 @@ func (app *ObjectApp) handleMirrorObjectFailAckPackage(ctx sdk.Context, appCtx *
 	app.storageKeeper.SetObjectInfo(ctx, objectInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorObjectResult{
-		Status:     uint32(types.StatusFail),
-		BucketName: objectInfo.BucketName,
-		ObjectName: objectInfo.ObjectName,
-		ObjectId:   objectInfo.Id,
+		Status:      uint32(types.StatusFail),
+		BucketName:  objectInfo.BucketName,
+		ObjectName:  objectInfo.ObjectName,
+		ObjectId:    objectInfo.Id,
+		DestChainId: uint32(appCtx.SrcChainId),
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,

@@ -64,6 +64,9 @@ message MsgCreateStorageProvider {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // bls_key defines the bls pub key of the Storage provider for sealing object
+  string bls_key = 13;
+  string bls_proof = 14;
 }
 
 // MsgCreateStorageProviderResponse defines the Msg/CreateStorageProvider response type.
@@ -85,6 +88,7 @@ message MsgDeposit {
 message MsgDepositResponse {}
 
 // MsgEditStorageProvider defines a SDK message for editing an existing sp.
+// TODO: use sp id to edit the storage provider.
 message MsgEditStorageProvider {
   option (cosmos.msg.v1.signer) = "sp_address";
 
@@ -97,6 +101,9 @@ message MsgEditStorageProvider {
   string approval_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose
   string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bls_key defines the bls pub key of the Storage provider for sealing object
+  string bls_key = 7;
+  string bls_proof = 8;
 }
 
 // MsgEditStorageProviderResponse defines the Msg/EditStorageProvider response type.

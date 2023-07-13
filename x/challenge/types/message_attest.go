@@ -80,7 +80,7 @@ func (msg *MsgAttest) ValidateBasic() error {
 	return nil
 }
 
-func (msg *MsgAttest) GetBlsSignBytes() [32]byte {
+func (msg *MsgAttest) GetBlsSignBytes(chainId string) [32]byte {
 	challengeIdBz := make([]byte, 8)
 	binary.BigEndian.PutUint64(challengeIdBz, msg.ChallengeId)
 	objectIdBz := msg.ObjectId.Bytes()
@@ -94,6 +94,7 @@ func (msg *MsgAttest) GetBlsSignBytes() [32]byte {
 	}
 
 	bs := make([]byte, 0)
+	bs = append(bs, []byte(chainId)...)
 	bs = append(bs, challengeIdBz...)
 	bs = append(bs, objectIdBz...)
 	bs = append(bs, resultBz...)

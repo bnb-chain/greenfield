@@ -8,6 +8,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	ethcrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/crypto/secp256k1"
+	"github.com/prysmaticlabs/prysm/crypto/bls"
+
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 func VerifySignature(sigAccAddress sdk.AccAddress, sigHash []byte, sig []byte) error {
@@ -44,5 +47,27 @@ func VerifySignature(sigAccAddress sdk.AccAddress, sigHash []byte, sig []byte) e
 		return errors.Wrap(sdkerrors.ErrorInvalidSigner, "unable to verify signer signature of EIP712 typed data")
 	}
 
+	return nil
+}
+
+func VerifyBlsSignature(blsPubKey bls.PublicKey, sigHash [32]byte, blsSig []byte) error {
+	sig, err := bls.SignatureFromBytes(blsSig)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature conversion failed: %v", err)
+	}
+	if !sig.Verify(blsPubKey, sigHash[:]) {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "signature verification failed")
+	}
+	return nil
+}
+
+func VerifyBlsAggSignature(blsPubKeys []bls.PublicKey, sigHash [32]byte, blsAggSig []byte) error {
+	aggSig, err := bls.SignatureFromBytes(blsAggSig)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "BLS signature conversion failed: %v", err)
+	}
+	if !aggSig.FastAggregateVerify(blsPubKeys[:], sigHash) {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "aggregated signature verification failed")
+	}
 	return nil
 }

@@ -97,6 +97,18 @@ func CmdEditStorageProvider() *cobra.Command {
 				}
 			}
 
+			// bls key
+			blsPubKey, err := cmd.Flags().GetString(FlagBlsPubKey)
+			if err != nil {
+				return err
+			}
+			if len(blsPubKey) != 2*sdk.BLSPubKeyLength {
+				return fmt.Errorf("invalid bls pubkey")
+			}
+
+			// bls proof
+			blsProof, _ := cmd.Flags().GetString(FlagBlsProof)
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -109,6 +121,8 @@ func CmdEditStorageProvider() *cobra.Command {
 				sealAddress,
 				approvalAddress,
 				gcAddress,
+				blsPubKey,
+				blsProof,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -126,6 +140,8 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagDetails, types.DoNotModifyDesc, "The storage provider's (optional) details")
 
 	cmd.Flags().String(FlagSealAddress, "", "The seal address of storage provider")
+	cmd.Flags().String(FlagBlsPubKey, "", "The Bls public key of storage provider")
+	cmd.Flags().String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
 	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
 
@@ -288,6 +304,8 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagOperatorAddress, "", "The operator address of storage provider")
 	fsCreateStorageProvider.String(FlagFundingAddress, "", "The funding address of storage provider")
 	fsCreateStorageProvider.String(FlagSealAddress, "", "The seal address of storage provider")
+	fsCreateStorageProvider.String(FlagBlsPubKey, "", "The bls public key of storage provider")
+	fsCreateStorageProvider.String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
 	fsCreateStorageProvider.String(FlagGcAddress, "", "The gc address of storage provider")
 
@@ -316,6 +334,8 @@ type TxCreateStorageProviderConfig struct {
 	SpAddress       sdk.AccAddress
 	FundingAddress  sdk.AccAddress
 	SealAddress     sdk.AccAddress
+	BlsPubKey       string
+	BlsProof        string
 	ApprovalAddress sdk.AccAddress
 	GcAddress       sdk.AccAddress
 
@@ -407,6 +427,23 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.SealAddress = addr
 
+	// bls key
+	blsPubKey, err := flagSet.GetString(FlagBlsPubKey)
+	if err != nil {
+		return c, err
+	}
+	if len(blsPubKey) != 2*sdk.BLSPubKeyLength {
+		return c, fmt.Errorf("invalid bls pubkey")
+	}
+	c.BlsPubKey = blsPubKey
+
+	// bls proof
+	blsProof, err := flagSet.GetString(FlagBlsProof)
+	if err != nil {
+		return c, err
+	}
+	c.BlsProof = blsProof
+
 	// approval address
 	approvalAddress, err := flagSet.GetString(FlagApprovalAddress)
 	if err != nil {
@@ -484,6 +521,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 		config.Creator, config.SpAddress, config.FundingAddress,
 		config.SealAddress, config.ApprovalAddress, config.GcAddress, description,
 		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
+		config.BlsPubKey, config.BlsProof,
 	)
 	if err != nil {
 		return txBldr, msg, err

@@ -53,7 +53,7 @@ func (k Keeper) QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amoun
 		return sdkmath.ZeroInt(), nil
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(addr)
-	err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
+	err = k.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
 		return sdkmath.ZeroInt(), errors.Wrapf(err, "update stream record failed")
 	}
@@ -63,17 +63,17 @@ func (k Keeper) QueryDynamicBalance(ctx sdk.Context, addr sdk.AccAddress) (amoun
 func (k Keeper) Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount sdkmath.Int) error {
 	streamRecord, found := k.GetStreamRecord(ctx, fromAddr)
 	if !found {
-		return errors.Wrapf(types.ErrStreamRecordNotFound, "validator tax pool stream record not found")
+		return errors.Wrapf(types.ErrStreamRecordNotFound, "stream record not found %s", fromAddr.String())
 	}
 	change := types.NewDefaultStreamRecordChangeWithAddr(fromAddr).WithStaticBalanceChange(amount.Neg())
-	err := k.UpdateStreamRecord(ctx, streamRecord, change, false)
+	err := k.UpdateStreamRecord(ctx, streamRecord, change)
 	if err != nil {
-		return errors.Wrapf(err, "update stream record failed")
+		return errors.Wrapf(err, "update stream record failed %s", fromAddr.String())
 	}
 	k.SetStreamRecord(ctx, streamRecord)
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, toAddr, sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, amount)))
 	if err != nil {
-		return errors.Wrapf(err, "send coins from module to account failed")
+		return errors.Wrapf(err, "send coins from module to account failed %s", toAddr.String())
 	}
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -72,7 +71,7 @@ func (s *TestSuite) TestTransferOutAck() {
 		RefundReason: 1,
 	}
 
-	packageBytes, err := rlp.EncodeToBytes(&refundPackage)
+	packageBytes, err := refundPackage.Serialize()
 	s.Require().Nil(err, "encode refund package error")
 
 	transferOutApp := keeper.NewTransferOutApp(*s.bridgeKeeper)
@@ -94,12 +93,12 @@ func (s *TestSuite) TestTransferOutFailAck() {
 		RefundAddress: addr1,
 	}
 
-	packageBytes, err := rlp.EncodeToBytes(&synPackage)
+	packageBytes, err := synPackage.Serialize()
 	s.Require().Nil(err, "encode refund package error")
 
 	transferOutApp := keeper.NewTransferOutApp(*s.bridgeKeeper)
 
-	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
+	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
 	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
 	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 
@@ -172,12 +171,12 @@ func (s *TestSuite) TestTransferInSyn() {
 		RefundAddress:   sdk.AccAddress{1},
 	}
 
-	packageBytes, err := rlp.EncodeToBytes(&transferInSynPackage)
+	packageBytes, err := transferInSynPackage.Serialize()
 	s.Require().Nil(err, "encode refund package error")
 
 	transferInApp := keeper.NewTransferInApp(*s.bridgeKeeper)
 
-	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
+	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
 	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
 	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
 

@@ -34,6 +34,8 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	bfthttp "github.com/cometbft/cometbft/rpc/client/http"
 )
 
 // AuthQueryClient is a type to define the auth types Query Client
@@ -90,6 +92,9 @@ type TxClient = tx.ServiceClient
 // UpgradeQueryClient is a type to define the upgrade types Query Client
 type UpgradeQueryClient = upgradetypes.QueryClient
 
+// VirtualGroupQueryClient is a type to define the virtual group types Query Client
+type VirtualGroupQueryClient = virtualgroupmoduletypes.QueryClient
+
 // TmClient is a type to define the tendermint service client
 type TmClient = tmservice.ServiceClient
 
@@ -129,11 +134,14 @@ type GreenfieldClient struct {
 	StakingQueryClient
 	// UpgradeQueryClient holds the upgrade query client.
 	UpgradeQueryClient
+	// VirtualGroupQueryClient holds the virtual group query client
+	VirtualGroupQueryClient
 	// TxClient holds the tx service client.
 	TxClient
 	// TmService holds the tendermint service client
 	TmClient
-
+	// tendermintClient directly interact with tendermint Node
+	tendermintClient *bfthttp.HTTP
 	// keyManager is the manager used for generating and managing keys.
 	keyManager keys.KeyManager
 	// chainId is the id of the chain.
@@ -170,6 +178,7 @@ func newGreenfieldClient(rpcAddr, chainId string, rpcClient *rpchttp.HTTP, opts 
 		chainId: chainId,
 		codec:   cdc,
 	}
+	client.tendermintClient = rpcClient
 	for _, opt := range opts {
 		opt.Apply(client)
 	}
@@ -211,6 +220,7 @@ func setClientsConn(c *GreenfieldClient, conn grpc1.ClientConn) {
 	c.SlashingQueryClient = slashingtypes.NewQueryClient(conn)
 	c.StakingQueryClient = stakingtypes.NewQueryClient(conn)
 	c.UpgradeQueryClient = upgradetypes.NewQueryClient(conn)
+	c.VirtualGroupQueryClient = virtualgroupmoduletypes.NewQueryClient(conn)
 	c.TmClient = tmservice.NewServiceClient(conn)
 	c.TxClient = tx.NewServiceClient(conn)
 }

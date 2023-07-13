@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -17,7 +16,7 @@ func createSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Slash {
 	for i := range items {
 		items[i].ObjectId = sdkmath.NewUint(uint64(i))
 		items[i].Height = uint64(i)
-		items[i].SpOperatorAddress = []byte(fmt.Sprintf("addr-%d", i))
+		items[i].SpId = uint32(i + 1)
 		keeper.SaveSlash(ctx, items[i])
 	}
 	return items
@@ -28,7 +27,7 @@ func TestRecentSlashRemove(t *testing.T) {
 	items := createSlash(keeper, ctx, 10)
 	for _, item := range items {
 		keeper.RemoveSlashUntil(ctx, item.Height)
-		found := keeper.ExistsSlash(ctx, item.SpOperatorAddress, item.ObjectId)
+		found := keeper.ExistsSlash(ctx, item.SpId, item.ObjectId)
 		require.False(t, found)
 	}
 }

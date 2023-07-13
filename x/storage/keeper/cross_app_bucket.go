@@ -4,9 +4,9 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -50,11 +50,7 @@ func (app *BucketApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -88,11 +84,7 @@ func (app *BucketApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -126,11 +118,7 @@ func (app *BucketApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 			OperationType: operationType,
 			Package:       result.Payload,
 		}
-		wrapPayloadBts, err := rlp.EncodeToBytes(wrapPayload)
-		if err != nil {
-			panic(err)
-		}
-		result.Payload = wrapPayloadBts
+		result.Payload = wrapPayload.MustSerialize()
 	}
 
 	return result
@@ -153,9 +141,10 @@ func (app *BucketApp) handleMirrorBucketAckPackage(ctx sdk.Context, appCtx *sdk.
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucketResult{
-		Status:     uint32(ackPackage.Status),
-		BucketName: bucketInfo.BucketName,
-		BucketId:   bucketInfo.Id,
+		Status:      uint32(ackPackage.Status),
+		BucketName:  bucketInfo.BucketName,
+		BucketId:    bucketInfo.Id,
+		DestChainId: uint32(appCtx.SrcChainId),
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
@@ -178,9 +167,10 @@ func (app *BucketApp) handleMirrorBucketFailAckPackage(ctx sdk.Context, appCtx *
 	app.storageKeeper.SetBucketInfo(ctx, bucketInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventMirrorBucketResult{
-		Status:     uint32(types.StatusFail),
-		BucketName: bucketInfo.BucketName,
-		BucketId:   bucketInfo.Id,
+		Status:      uint32(types.StatusFail),
+		BucketName:  bucketInfo.BucketName,
+		BucketId:    bucketInfo.Id,
+		DestChainId: uint32(appCtx.SrcChainId),
 	}); err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
@@ -231,7 +221,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 			SourceType:       types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
 			PaymentAddress:   createBucketPackage.PaymentAddress.String(),
-			PrimarySpApproval: &types.Approval{
+			PrimarySpApproval: &common.Approval{
 				ExpiredHeight: createBucketPackage.PrimarySpApprovalExpiredHeight,
 				Sig:           createBucketPackage.PrimarySpApprovalSignature,
 			},

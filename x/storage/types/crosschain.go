@@ -4,9 +4,12 @@ import (
 	"math/big"
 
 	"cosmossdk.io/errors"
-	"github.com/cosmos/cosmos-sdk/bsc/rlp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/ethereum/go-ethereum/accounts/abi"
+	"github.com/ethereum/go-ethereum/common"
+
+	gnfdcommon "github.com/bnb-chain/greenfield/types/common"
 )
 
 const (
@@ -38,24 +41,26 @@ const (
 	OperationUpdateGroupMember uint8 = 4
 )
 
+func SafeBigInt(input *big.Int) *big.Int {
+	if input == nil {
+		return big.NewInt(0)
+	}
+	return input
+}
+
 type CrossChainPackage struct {
 	OperationType uint8
 	Package       []byte
 }
 
 func (p CrossChainPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
-	if err != nil {
-		panic("encode delete cross chain package error")
-	}
-	return encodedBytes
+	return append([]byte{p.OperationType}, p.Package...)
 }
 
 func DeserializeRawCrossChainPackage(serializedPackage []byte) (*CrossChainPackage, error) {
-	var tp CrossChainPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
-	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize raw cross chain package failed")
+	tp := CrossChainPackage{
+		OperationType: serializedPackage[0],
+		Package:       serializedPackage[1:],
 	}
 	return &tp, nil
 }
@@ -144,26 +149,89 @@ type MirrorBucketSynPackage struct {
 	Owner sdk.AccAddress
 }
 
+type GeneralMirrorSynPackageStruct struct {
+	Id    *big.Int
+	Owner common.Address
+}
+
 type MirrorBucketAckPackage struct {
 	Status uint8
 	Id     *big.Int
 }
 
-func DeserializeMirrorBucketSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp MirrorBucketSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+var (
+	generalMirrorSynPackageStructType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Id", Type: "uint256"},
+		{Name: "Owner", Type: "address"},
+	})
+
+	generalMirrorSynPackageArgs = abi.Arguments{
+		{Type: generalMirrorSynPackageStructType},
+	}
+
+	generalMirrorAckPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Status", Type: "uint8"},
+		{Name: "Id", Type: "uint256"},
+	})
+
+	generalMirrorAckPackageArgs = abi.Arguments{
+		{Type: generalMirrorAckPackageType},
+	}
+)
+
+func (pkg *MirrorBucketSynPackage) Serialize() ([]byte, error) {
+	return generalMirrorSynPackageArgs.Pack(&GeneralMirrorSynPackageStruct{
+		SafeBigInt(pkg.Id),
+		common.BytesToAddress(pkg.Owner),
+	})
+}
+
+func deserializeMirrorSynPackage(serializedPackage []byte) (*GeneralMirrorSynPackageStruct, error) {
+	unpacked, err := generalMirrorSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror bucket syn package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralMirrorSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralMirrorSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect mirror syn package failed")
+	}
+	return &pkgStruct, nil
+}
+
+func DeserializeMirrorBucketSynPackage(serializedPackage []byte) (interface{}, error) {
+	pkgStruct, err := deserializeMirrorSynPackage(serializedPackage)
+	if err != nil {
+		return nil, err
+	}
+
+	tp := MirrorBucketSynPackage{
+		pkgStruct.Id,
+		pkgStruct.Owner.Bytes(),
 	}
 	return &tp, nil
 }
 
+func (pkg *MirrorBucketAckPackage) Serialize() ([]byte, error) {
+	return generalMirrorAckPackageArgs.Pack(&MirrorBucketAckPackage{
+		pkg.Status,
+		SafeBigInt(pkg.Id),
+	})
+}
+
 func DeserializeMirrorBucketAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp MirrorBucketAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalMirrorAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror bucket ack package failed")
 	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], MirrorBucketAckPackage{})
+	tp, ok := unpackedStruct.(MirrorBucketAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect mirror bucket ack package failed")
+	}
+
 	return &tp, nil
 }
 
@@ -177,21 +245,45 @@ type MirrorObjectAckPackage struct {
 	Id     *big.Int
 }
 
+func (pkg *MirrorObjectSynPackage) Serialize() ([]byte, error) {
+	return generalMirrorSynPackageArgs.Pack(&GeneralMirrorSynPackageStruct{
+		SafeBigInt(pkg.Id),
+		common.BytesToAddress(pkg.Owner),
+	})
+}
+
 func DeserializeMirrorObjectSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp MirrorObjectSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	pkgStruct, err := deserializeMirrorSynPackage(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror object syn package failed")
+		return nil, err
+	}
+
+	tp := MirrorObjectSynPackage{
+		pkgStruct.Id,
+		pkgStruct.Owner.Bytes(),
 	}
 	return &tp, nil
 }
 
+func (pkg *MirrorObjectAckPackage) Serialize() ([]byte, error) {
+	return generalMirrorAckPackageArgs.Pack(&MirrorObjectAckPackage{
+		pkg.Status,
+		SafeBigInt(pkg.Id),
+	})
+}
+
 func DeserializeMirrorObjectAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp MirrorObjectAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalMirrorAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror object ack package failed")
 	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], MirrorObjectAckPackage{})
+	tp, ok := unpackedStruct.(MirrorObjectAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect mirror object ack package failed")
+	}
+
 	return &tp, nil
 }
 
@@ -205,21 +297,45 @@ type MirrorGroupAckPackage struct {
 	Id     *big.Int
 }
 
+func (pkg *MirrorGroupSynPackage) Serialize() ([]byte, error) {
+	return generalMirrorSynPackageArgs.Pack(&GeneralMirrorSynPackageStruct{
+		SafeBigInt(pkg.Id),
+		common.BytesToAddress(pkg.Owner),
+	})
+}
+
 func DeserializeMirrorGroupSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp MirrorGroupSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	pkgStruct, err := deserializeMirrorSynPackage(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror group syn package failed")
+		return nil, err
+	}
+
+	tp := MirrorGroupSynPackage{
+		pkgStruct.Id,
+		pkgStruct.Owner.Bytes(),
 	}
 	return &tp, nil
 }
 
+func (pkg *MirrorGroupAckPackage) Serialize() ([]byte, error) {
+	return generalMirrorAckPackageArgs.Pack(&MirrorGroupAckPackage{
+		pkg.Status,
+		SafeBigInt(pkg.Id),
+	})
+}
+
 func DeserializeMirrorGroupAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp MirrorGroupAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalMirrorAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize mirror group ack package failed")
 	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], MirrorGroupAckPackage{})
+	tp, ok := unpackedStruct.(MirrorGroupAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect mirror group ack package failed")
+	}
+
 	return &tp, nil
 }
 
@@ -235,6 +351,36 @@ type CreateBucketSynPackage struct {
 	ExtraData                      []byte
 }
 
+type CreateBucketSynPackageStruct struct {
+	Creator                        common.Address
+	BucketName                     string
+	Visibility                     uint32
+	PaymentAddress                 common.Address
+	PrimarySpAddress               common.Address
+	PrimarySpApprovalExpiredHeight uint64
+	PrimarySpApprovalSignature     []byte
+	ChargedReadQuota               uint64
+	ExtraData                      []byte
+}
+
+var (
+	createBucketSynPackageStructType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Creator", Type: "address"},
+		{Name: "BucketName", Type: "string"},
+		{Name: "Visibility", Type: "uint32"},
+		{Name: "PaymentAddress", Type: "address"},
+		{Name: "PrimarySpAddress", Type: "address"},
+		{Name: "PrimarySpApprovalExpiredHeight", Type: "uint64"},
+		{Name: "PrimarySpApprovalSignature", Type: "bytes"},
+		{Name: "ChargedReadQuota", Type: "uint64"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	createBucketSynPackageStructArgs = abi.Arguments{
+		{Type: createBucketSynPackageStructType},
+	}
+)
+
 func (p CreateBucketSynPackage) ValidateBasic() error {
 	msg := MsgCreateBucket{
 		Creator:          p.Creator.String(),
@@ -242,7 +388,7 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 		Visibility:       VisibilityType(p.Visibility),
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
-		PrimarySpApproval: &Approval{
+		PrimarySpApproval: &gnfdcommon.Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
@@ -259,7 +405,7 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 		Visibility:       VisibilityType(p.Visibility),
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
-		PrimarySpApproval: &Approval{
+		PrimarySpApproval: &gnfdcommon.Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
@@ -269,10 +415,27 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 }
 
 func DeserializeCreateBucketSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp CreateBucketSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := createBucketSynPackageStructArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create bucket syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], CreateBucketSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(CreateBucketSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create bucket syn package failed")
+	}
+
+	tp := CreateBucketSynPackage{
+		pkgStruct.Creator.Bytes(),
+		pkgStruct.BucketName,
+		pkgStruct.Visibility,
+		pkgStruct.PaymentAddress.Bytes(),
+		pkgStruct.PrimarySpAddress.Bytes(),
+		pkgStruct.PrimarySpApprovalExpiredHeight,
+		pkgStruct.PrimarySpApprovalSignature,
+		pkgStruct.ChargedReadQuota,
+		pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -284,8 +447,33 @@ type CreateBucketAckPackage struct {
 	ExtraData []byte
 }
 
+type GeneralCreateAckPackageStruct struct {
+	Status    uint8
+	Id        *big.Int
+	Creator   common.Address
+	ExtraData []byte
+}
+
+var (
+	generalCreateAckPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Status", Type: "uint8"},
+		{Name: "Id", Type: "uint256"},
+		{Name: "Creator", Type: "address"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	generalCreateAckPackageArgs = abi.Arguments{
+		{Type: generalCreateAckPackageType},
+	}
+)
+
 func (p CreateBucketAckPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
+	encodedBytes, err := generalCreateAckPackageArgs.Pack(&GeneralCreateAckPackageStruct{
+		Status:    p.Status,
+		Id:        SafeBigInt(p.Id),
+		Creator:   common.BytesToAddress(p.Creator),
+		ExtraData: p.ExtraData,
+	})
 	if err != nil {
 		panic("encode create bucket ack package error")
 	}
@@ -293,10 +481,22 @@ func (p CreateBucketAckPackage) MustSerialize() []byte {
 }
 
 func DeserializeCreateBucketAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp CreateBucketAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalCreateAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create bucket ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralCreateAckPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralCreateAckPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create bucket ack package failed")
+	}
+
+	tp := CreateBucketAckPackage{
+		Status:    pkgStruct.Status,
+		Id:        pkgStruct.Id,
+		Creator:   pkgStruct.Creator.Bytes(),
+		ExtraData: pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -306,6 +506,24 @@ type DeleteBucketSynPackage struct {
 	Id        *big.Int
 	ExtraData []byte
 }
+
+type GeneralDeleteSynPackageStruct struct {
+	Operator  common.Address
+	Id        *big.Int
+	ExtraData []byte
+}
+
+var (
+	generalDeleteSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Operator", Type: "address"},
+		{Name: "Id", Type: "uint256"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	generalDeleteSynPackageArgs = abi.Arguments{
+		{Type: generalDeleteSynPackageType},
+	}
+)
 
 func (p DeleteBucketSynPackage) ValidateBasic() error {
 	if p.Operator.Empty() {
@@ -318,10 +536,21 @@ func (p DeleteBucketSynPackage) ValidateBasic() error {
 }
 
 func DeserializeDeleteBucketSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp DeleteBucketSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalDeleteSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete bucket syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralDeleteSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralDeleteSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete bucket syn package failed")
+	}
+
+	tp := DeleteBucketSynPackage{
+		Operator:  pkgStruct.Operator.Bytes(),
+		Id:        pkgStruct.Id,
+		ExtraData: pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -332,8 +561,24 @@ type DeleteBucketAckPackage struct {
 	ExtraData []byte
 }
 
+var (
+	generalDeleteAckPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Status", Type: "uint8"},
+		{Name: "Id", Type: "uint256"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	generalDeleteAckPackageArgs = abi.Arguments{
+		{Type: generalDeleteAckPackageType},
+	}
+)
+
 func (p DeleteBucketAckPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
+	encodedBytes, err := generalCreateAckPackageArgs.Pack(&DeleteBucketAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete bucket ack package error")
 	}
@@ -341,10 +586,15 @@ func (p DeleteBucketAckPackage) MustSerialize() []byte {
 }
 
 func DeserializeDeleteBucketAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp DeleteBucketAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalDeleteAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete bucket ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], DeleteBucketAckPackage{})
+	tp, ok := unpackedStruct.(DeleteBucketAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete bucket ack package failed")
 	}
 	return &tp, nil
 }
@@ -355,6 +605,24 @@ type CreateGroupSynPackage struct {
 	ExtraData []byte
 }
 
+type CreateGroupSynPackageStruct struct {
+	Creator   common.Address
+	GroupName string
+	ExtraData []byte
+}
+
+var (
+	createGroupSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Creator", Type: "address"},
+		{Name: "GroupName", Type: "string"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	createGroupSynPackageArgs = abi.Arguments{
+		{Type: createGroupSynPackageType},
+	}
+)
+
 func (p CreateGroupSynPackage) ValidateBasic() error {
 	msg := MsgCreateGroup{
 		Creator:   p.Creator.String(),
@@ -364,10 +632,21 @@ func (p CreateGroupSynPackage) ValidateBasic() error {
 }
 
 func DeserializeCreateGroupSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp CreateGroupSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := createGroupSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create group syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], CreateGroupSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(CreateGroupSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create group syn package failed")
+	}
+
+	tp := CreateGroupSynPackage{
+		pkgStruct.Creator.Bytes(),
+		pkgStruct.GroupName,
+		pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -380,7 +659,12 @@ type CreateGroupAckPackage struct {
 }
 
 func (p CreateGroupAckPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
+	encodedBytes, err := generalCreateAckPackageArgs.Pack(&GeneralCreateAckPackageStruct{
+		Status:    p.Status,
+		Id:        SafeBigInt(p.Id),
+		Creator:   common.BytesToAddress(p.Creator),
+		ExtraData: p.ExtraData,
+	})
 	if err != nil {
 		panic("encode create group ack package error")
 	}
@@ -388,10 +672,22 @@ func (p CreateGroupAckPackage) MustSerialize() []byte {
 }
 
 func DeserializeCreateGroupAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp CreateGroupAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalCreateAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create group ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralCreateAckPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralCreateAckPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create group ack package failed")
+	}
+
+	tp := CreateGroupAckPackage{
+		Status:    pkgStruct.Status,
+		Id:        pkgStruct.Id,
+		Creator:   pkgStruct.Creator.Bytes(),
+		ExtraData: pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -413,10 +709,21 @@ func (p DeleteObjectSynPackage) ValidateBasic() error {
 }
 
 func DeserializeDeleteObjectSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp DeleteObjectSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalDeleteSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete object syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralDeleteSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralDeleteSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete object syn package failed")
+	}
+
+	tp := DeleteObjectSynPackage{
+		Operator:  pkgStruct.Operator.Bytes(),
+		Id:        pkgStruct.Id,
+		ExtraData: pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -428,7 +735,11 @@ type DeleteObjectAckPackage struct {
 }
 
 func (p DeleteObjectAckPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeleteObjectAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete object ack package error")
 	}
@@ -436,10 +747,15 @@ func (p DeleteObjectAckPackage) MustSerialize() []byte {
 }
 
 func DeserializeDeleteObjectAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp DeleteObjectAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalDeleteAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete object syn package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete object ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], DeleteObjectAckPackage{})
+	tp, ok := unpackedStruct.(DeleteObjectAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete object ack package failed")
 	}
 	return &tp, nil
 }
@@ -461,10 +777,21 @@ func (p DeleteGroupSynPackage) ValidateBasic() error {
 }
 
 func DeserializeDeleteGroupSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp DeleteGroupSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalDeleteSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete group syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralDeleteSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralDeleteSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete group syn package failed")
+	}
+
+	tp := DeleteGroupSynPackage{
+		Operator:  pkgStruct.Operator.Bytes(),
+		Id:        pkgStruct.Id,
+		ExtraData: pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -476,16 +803,25 @@ type DeleteGroupAckPackage struct {
 }
 
 func DeserializeDeleteGroupAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp DeleteGroupAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := generalDeleteAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete group ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], DeleteGroupAckPackage{})
+	tp, ok := unpackedStruct.(DeleteGroupAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete group ack package failed")
 	}
 	return &tp, nil
 }
 
 func (p DeleteGroupAckPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeleteGroupAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete group ack package error")
 	}
@@ -504,6 +840,28 @@ type UpdateGroupMemberSynPackage struct {
 	Members       []sdk.AccAddress
 	ExtraData     []byte
 }
+
+type UpdateGroupMemberSynPackageStruct struct {
+	Operator      common.Address
+	GroupId       *big.Int
+	OperationType uint8
+	Members       []common.Address
+	ExtraData     []byte
+}
+
+var (
+	updateGroupMemberSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Operator", Type: "address"},
+		{Name: "GroupId", Type: "uint256"},
+		{Name: "OperationType", Type: "uint8"},
+		{Name: "Members", Type: "address[]"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	updateGroupMemberSynPackageArgs = abi.Arguments{
+		{Type: updateGroupMemberSynPackageType},
+	}
+)
 
 func (p UpdateGroupMemberSynPackage) GetMembers() []string {
 	members := make([]string, 0, len(p.Members))
@@ -534,10 +892,28 @@ func (p UpdateGroupMemberSynPackage) ValidateBasic() error {
 }
 
 func DeserializeUpdateGroupMemberSynPackage(serializedPackage []byte) (interface{}, error) {
-	var tp UpdateGroupMemberSynPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := updateGroupMemberSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize update group member syn package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete bucket ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], UpdateGroupMemberSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(UpdateGroupMemberSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete bucket ack package failed")
+	}
+
+	totalMember := len(pkgStruct.Members)
+	members := make([]sdk.AccAddress, totalMember)
+	for i, member := range pkgStruct.Members {
+		members[i] = member.Bytes()
+	}
+	tp := UpdateGroupMemberSynPackage{
+		pkgStruct.Operator.Bytes(),
+		pkgStruct.GroupId,
+		pkgStruct.OperationType,
+		members,
+		pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
@@ -551,17 +927,73 @@ type UpdateGroupMemberAckPackage struct {
 	ExtraData     []byte
 }
 
+type UpdateGroupMemberAckPackageStruct struct {
+	Status        uint8
+	Id            *big.Int
+	Operator      common.Address
+	OperationType uint8
+	Members       []common.Address
+	ExtraData     []byte
+}
+
+var (
+	updateGroupMemberAckPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Status", Type: "uint8"},
+		{Name: "Id", Type: "uint256"},
+		{Name: "Operator", Type: "address"},
+		{Name: "OperationType", Type: "uint8"},
+		{Name: "Members", Type: "address[]"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	updateGroupMemberAckPackageArgs = abi.Arguments{
+		{Type: updateGroupMemberAckPackageType},
+	}
+)
+
 func DeserializeUpdateGroupMemberAckPackage(serializedPackage []byte) (interface{}, error) {
-	var tp UpdateGroupMemberAckPackage
-	err := rlp.DecodeBytes(serializedPackage, &tp)
+	unpacked, err := updateGroupMemberAckPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize update group member ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], UpdateGroupMemberAckPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(UpdateGroupMemberAckPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect update group member ack package failed")
+	}
+
+	totalMember := len(pkgStruct.Members)
+	members := make([]sdk.AccAddress, totalMember)
+	for i, member := range pkgStruct.Members {
+		members[i] = member.Bytes()
+	}
+	tp := UpdateGroupMemberAckPackage{
+		pkgStruct.Status,
+		pkgStruct.Id,
+		pkgStruct.Operator.Bytes(),
+		pkgStruct.OperationType,
+		members,
+		pkgStruct.ExtraData,
 	}
 	return &tp, nil
 }
 
 func (p UpdateGroupMemberAckPackage) MustSerialize() []byte {
-	encodedBytes, err := rlp.EncodeToBytes(p)
+	totalMember := len(p.Members)
+	members := make([]common.Address, totalMember)
+	for i, member := range p.Members {
+		members[i] = common.BytesToAddress(member)
+	}
+
+	encodedBytes, err := updateGroupMemberAckPackageArgs.Pack(&UpdateGroupMemberAckPackageStruct{
+		p.Status,
+		SafeBigInt(p.Id),
+		common.BytesToAddress(p.Operator),
+		p.OperationType,
+		members,
+		p.ExtraData,
+	})
 	if err != nil {
 		panic("encode delete group ack package error")
 	}
