@@ -27,6 +27,9 @@ func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
 	if streamRecord.NetflowRate.IsNil() {
 		panic(fmt.Sprintf("invalid streamRecord netflowRate %s", streamRecord.NetflowRate))
 	}
+	if !streamRecord.FrozenNetflowRate.IsNil() && streamRecord.FrozenNetflowRate.IsPositive() {
+		panic(fmt.Sprintf("invalid streamRecord frozenNetflowRate %s", streamRecord.NetflowRate))
+	}
 	if streamRecord.LockBalance.IsNil() || streamRecord.LockBalance.IsNegative() {
 		panic(fmt.Sprintf("invalid streamRecord lockBalance %s", streamRecord.LockBalance))
 	}
@@ -178,7 +181,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 			}
 		}
 	}
-	// if the change is a pay(which decreases the static balance or netflow rate), the left static balance should be enough
+	// if the change is a pay (which decreases the static balance or netflow rate), the left static balance should be enough
 	if !forced && isPay && streamRecord.StaticBalance.IsNegative() {
 		return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
 	}
@@ -230,6 +233,7 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
 			err := k.ForceSettle(ctx, streamRecord)
 			if err != nil {
+				ctx.Logger().Error("fail to force settle stream record", "err", err, "record", streamRecord.Account)
 				return err
 			}
 		} else {
@@ -348,6 +352,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
 				ctx.Logger().Error("auto settle, update stream record failed", "address", outFlow.ToAddress, "rate", outFlow.Rate.Neg())
+				panic("should not happen")
 			}
 
 			flowStore.Delete(flowIterator.Key())
@@ -369,6 +374,7 @@ func (k Keeper) AutoSettle(ctx sdk.Context) {
 		if !flowIterator.Valid() || finished {
 			if !streamRecord.NetflowRate.IsZero() {
 				ctx.Logger().Error("should not happen, stream netflow rate is not zero", "address", streamRecord.Account)
+				panic("should not happen")
 			}
 			k.RemoveAutoSettleRecord(ctx, record.Timestamp, addr)
 		}
@@ -382,8 +388,8 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 		return fmt.Errorf("stream account %s status is not frozen", streamRecord.Account)
 	}
 
-	if !streamRecord.NetflowRate.IsNil() && !streamRecord.NetflowRate.IsZero() { // the account is resuming
-		return fmt.Errorf("stream account %s status is resuming, although it is frozen now", streamRecord.Account)
+	if !streamRecord.NetflowRate.IsZero() { // the account is resuming or settling
+		return fmt.Errorf("stream account %s status is resuming or settling, please wait", streamRecord.Account)
 	}
 
 	params := k.GetParams(ctx)
@@ -501,7 +507,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			_, err := k.UpdateStreamRecordByAddr(ctx, flowChange)
 			if err != nil {
 				ctx.Logger().Error("auto resume, update receiver stream record failed", "address", outFlow.ToAddress, "err", err.Error())
-				break
+				panic("should not happen")
 			}
 
 			flowStore.Delete(flowIterator.Key())
@@ -528,6 +534,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 			err := k.UpdateStreamRecord(ctx, streamRecord, change)
 			if err != nil {
 				ctx.Logger().Error("auto resume, update  stream record failed", "err", err.Error())
+				panic("should not happen")
 			}
 			k.RemoveAutoResumeRecord(ctx, record.Timestamp, addr)
 		}
