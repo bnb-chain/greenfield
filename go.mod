@@ -176,7 +176,7 @@ replace (
 	cosmossdk.io/api => github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230425074444-eb5869b05fe9
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.0
-	github.com/cometbft/cometbft => github.com/alexgao001/greenfield-cometbft v0.0.0-20230714052225-80cb642bf8dc
+	github.com/cometbft/cometbft => github.com/alexgao001/greenfield-cometbft v0.0.0-20230714091711-f411f589d7bf
 	//github.com/cometbft/cometbft => ../greenfield-cometbft
 
 	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1
