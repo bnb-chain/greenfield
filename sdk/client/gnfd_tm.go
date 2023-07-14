@@ -40,3 +40,11 @@ func (c *GreenfieldClient) GetHeader(ctx context.Context, height *int64) (*ctype
 func (c *GreenfieldClient) GetUnconfirmedTxs(ctx context.Context, limit *int) (*ctypes.ResultUnconfirmedTxs, error) {
 	return c.tendermintClient.UnconfirmedTxs(ctx, limit)
 }
+
+func (c *GreenfieldClient) GetCommit(ctx context.Context, height int64) (*ctypes.ResultCommit, error) {
+	return c.tendermintClient.Commit(ctx, &height)
+}
+
+func (c *GreenfieldClient) GetStatus(ctx context.Context) (*ctypes.ResultStatus, error) {
+	return c.tendermintClient.Status(ctx)
+}
