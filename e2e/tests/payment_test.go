@@ -814,7 +814,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 	s.updateParams(params)
 }
 
-func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
+func (s *PaymentTestSuite) TestStorageBill_DeleteBucket_WithReadQuota() {
 	var err error
 	ctx := context.Background()
 	sp := s.StorageProviders[0]
@@ -860,7 +860,7 @@ func (s *PaymentTestSuite) TestDeleteBucketWithReadQuota() {
 	s.Require().Equal(streamRecordsAfterDelete.User.NetflowRate.String(), "0")
 }
 
-func (s *PaymentTestSuite) TestStorageSmoke() {
+func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	var err error
 	ctx := context.Background()
 	sp := s.StorageProviders[0]
@@ -1073,9 +1073,9 @@ func (s *PaymentTestSuite) TestStorageSmoke() {
 	s.T().Logf("deleteObjectSimRes %v", deleteObjectSimRes.Result)
 }
 
-// TestForceDeletion_DeleteAfterPriceChange will cover the following case:
+// TestStorageBill_DeleteObjectBucket_WithPriceChange will cover the following case:
 // create an object, sp increase the price a lot, the object can be force deleted even the object's own has no enough balance.
-func (s *PaymentTestSuite) TestForceDeletion_AfterPriceChange() {
+func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() {
 	ctx := context.Background()
 
 	// set storage price
@@ -1534,6 +1534,172 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().True(!streamRecordsAfter.User.StaticBalance.IsZero())
+	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
+}
+
+func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
+	var err error
+	ctx := context.Background()
+	sp := s.StorageProviders[0]
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
+		StorageProviderId: sp.Info.Id,
+		FamilyId:          gvg.FamilyId,
+	})
+	s.Require().NoError(err)
+	family := queryFamilyResponse.GlobalVirtualGroupFamily
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	bucketName := s.createBucket(user, 1024)
+	_, _, objectName, objectId, checksums, _ := s.createObject(user, bucketName, false)
+	s.sealObject(bucketName, objectName, objectId, checksums)
+
+	// sleep seconds
+	time.Sleep(3 * time.Second)
+
+	streamAddresses := []string{
+		user.GetAddr().String(),
+		family.VirtualPaymentAddress,
+		gvg.VirtualPaymentAddress,
+		paymenttypes.ValidatorTaxPoolAddress.String(),
+	}
+	streamRecordsBefore := s.getStreamRecords(streamAddresses)
+
+	// settle gvg family
+	msgSettle := virtualgrouptypes.MsgSettle{
+		StorageProvider:            sp.FundingKey.GetAddr().String(),
+		GlobalVirtualGroupFamilyId: family.Id,
+	}
+	s.SendTxBlock(sp.FundingKey, &msgSettle)
+
+	// settle gvg
+	var secondarySp *core.StorageProvider
+	for _, sp := range s.StorageProviders {
+		for _, id := range gvg.SecondarySpIds {
+			if sp.Info.Id == id {
+				secondarySp = &sp
+				break
+			}
+		}
+	}
+	msgSettle = virtualgrouptypes.MsgSettle{
+		StorageProvider:            secondarySp.FundingKey.GetAddr().String(),
+		GlobalVirtualGroupFamilyId: 0,
+		GlobalVirtualGroupIds:      []uint32{gvg.Id},
+	}
+	s.SendTxBlock(secondarySp.FundingKey, &msgSettle)
+
+	// assertions - balance has been checked in other tests in virtual group
+	streamRecordsAfter := s.getStreamRecords(streamAddresses)
+
+	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
+}
+
+func (s *PaymentTestSuite) TestVirtualGroup_SwapOut() {
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	// create a new storage provider
+	sp := s.BaseSuite.CreateNewStorageProvider()
+	s.T().Logf("new SP Info: %s", sp.Info.String())
+
+	successorSp := s.StorageProviders[0]
+
+	// create a new gvg group for this storage provider
+	var secondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != successorSp.Info.Id {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+		}
+		if len(secondarySPIDs) == 6 {
+			break
+		}
+	}
+
+	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
+
+	// create object
+	s.BaseSuite.CreateObject(user, sp, gvgID, storagetestutils.GenRandomBucketName(), storagetestutils.GenRandomObjectName())
+
+	// Create another gvg contains this new sp
+	anotherSP := s.StorageProviders[1]
+	var anotherSecondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != successorSp.Info.Id && ssp.Info.Id != anotherSP.Info.Id {
+			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
+		}
+		if len(anotherSecondarySPIDs) == 5 {
+			break
+		}
+	}
+	anotherSecondarySPIDs = append(anotherSecondarySPIDs, sp.Info.Id)
+
+	familyResp, err := s.Client.GlobalVirtualGroupFamilies(
+		context.Background(),
+		&virtualgrouptypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: anotherSP.Info.Id})
+	s.Require().NoError(err)
+	anotherSPsFamilies := familyResp.GlobalVirtualGroupFamilies
+	s.Require().Greater(len(anotherSPsFamilies), 0)
+	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(&anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
+
+	gvgResp, err := s.Client.GlobalVirtualGroup(
+		context.Background(),
+		&virtualgrouptypes.QueryGlobalVirtualGroupRequest{GlobalVirtualGroupId: anotherGVGID})
+	s.Require().NoError(err)
+
+	streamAddresses := []string{
+		user.GetAddr().String(),
+		anotherSPsFamilies[0].VirtualPaymentAddress,
+		gvgResp.GlobalVirtualGroup.VirtualPaymentAddress,
+		paymenttypes.ValidatorTaxPoolAddress.String(),
+	}
+	streamRecordsBefore := s.getStreamRecords(streamAddresses)
+
+	// sp exit
+	s.SendTxBlock(sp.OperatorKey, &virtualgrouptypes.MsgStorageProviderExit{
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
+	})
+
+	spResp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(spResp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// swap out, as primary sp
+	msgSwapOut := virtualgrouptypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
+	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
+
+	msgCompleteSwapOut := virtualgrouptypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
+	s.Require().NoError(err)
+	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut)
+
+	// swap out again, as secondary sp
+	msgSwapOut2 := virtualgrouptypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
+	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
+
+	//  complete swap out
+	msgCompleteSwapOut2 := virtualgrouptypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut2)
+
+	// sp complete exit success
+	s.SendTxBlock(
+		sp.OperatorKey,
+		&virtualgrouptypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+	)
+
+	// assertions
+	streamRecordsAfter := s.getStreamRecords(streamAddresses)
+
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
@@ -2021,9 +2187,9 @@ func (s *PaymentTestSuite) deleteBucket(user keys.KeyManager, bucketName string)
 	s.SendTxBlock(user, msgDeleteObject)
 
 	// HeadObject
-	queryHeadBucektRequest := storagetypes.QueryHeadBucketRequest{
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	}
-	_, err := s.Client.HeadBucket(context.Background(), &queryHeadBucektRequest)
+	_, err := s.Client.HeadBucket(context.Background(), &queryHeadBucketRequest)
 	return err
 }
