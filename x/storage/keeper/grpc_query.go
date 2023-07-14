@@ -71,3 +71,47 @@ func (k Keeper) QueryLockFee(c context.Context, req *types.QueryLockFeeRequest) 
 
 	return &types.QueryLockFeeResponse{Amount: amount}, nil
 }
+
+func (k Keeper) HeadBucketExtra(c context.Context, req *types.QueryHeadBucketExtraRequest) (*types.QueryHeadBucketExtraResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+
+	return &types.QueryHeadBucketExtraResponse{
+		ExtraInfo: internalBucketInfo,
+	}, nil
+}
+
+func (k Keeper) QueryIsPriceChanged(c context.Context, req *types.QueryIsPriceChangedRequest) (*types.QueryIsPriceChangedResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+	changed, currentRead, currentPrimary, currentSecondary, newRead, newPrimary, newSecondary, err := k.IsPriceChanged(ctx, bucketInfo.PrimarySpId, internalBucketInfo.PriceTime)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryIsPriceChangedResponse{
+		Changed:                    changed,
+		CurrentReadPrice:           currentRead,
+		CurrentPrimaryStorePrice:   currentPrimary,
+		CurrentSecondaryStorePrice: currentSecondary,
+		NewReadPrice:               newRead,
+		NewPrimaryStorePrice:       newPrimary,
+		NewSecondaryStorePrice:     newSecondary,
+	}, nil
+}

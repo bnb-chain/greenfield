@@ -1614,28 +1614,19 @@ func (s *PaymentTestSuite) calculateLockFee(sp core.StorageProvider, bucketName,
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	//queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
-	//	BucketName: bucketName,
-	//	ObjectName: objectName,
-	//}
-	//headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
-	//s.Require().NoError(err)
-
-	//s.Client.GlobalVirtualGroup(ctx, virtualgrouptypes.QueryGlobalVirtualGroupRequest{GlobalVirtualGroupId: headObjectResponse.ObjectInfo.})
-	//gvgCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
-	gvgCount := 6
-
-	headBucketRequest := storagetypes.QueryHeadBucketRequest{
-		BucketName: bucketName,
-	}
-	headBucketResponse, err := s.Client.HeadBucket(ctx, &headBucketRequest)
+	headBucketExtraResponse, err := s.Client.HeadBucketExtra(ctx, &storagetypes.QueryHeadBucketExtraRequest{BucketName: bucketName})
 	s.Require().NoError(err)
 
+	storageParams, err := s.Client.StorageQueryClient.Params(ctx, &storagetypes.QueryParamsRequest{})
+	s.T().Logf("storageParams %s, err: %v", storageParams, err)
+	s.Require().NoError(err)
+	secondarySpCount := storageParams.Params.VersionedParams.RedundantDataChunkNum + storageParams.Params.VersionedParams.RedundantParityChunkNum
+
 	chargeSize := int64(s.getChargeSize(payloadSize))
-	_, primaryPrice, secondaryPrice := s.getPrices(sp, headBucketResponse.BucketInfo.CreateAt)
+	_, primaryPrice, secondaryPrice := s.getPrices(sp, headBucketExtraResponse.ExtraInfo.PriceTime)
 
 	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
-	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(gvgCount)).TruncateInt()
+	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(secondarySpCount)).TruncateInt()
 	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
 	return gvgFamilyRate.Add(gvgRate).Add(taxRate).MulRaw(int64(paymentParams.Params.VersionedParams.ReserveTime))
 }
@@ -1714,6 +1705,7 @@ func (s *PaymentTestSuite) calculateStorageRates(sp core.StorageProvider, bucket
 	headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
 	s.Require().NoError(err)
 	gvgCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
+	fmt.Println("gvgCount", gvgCount)
 
 	headBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,

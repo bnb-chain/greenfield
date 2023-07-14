@@ -159,25 +159,32 @@ func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, bucketInfo *stora
 	return k.ChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 }
 
-func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, error) {
+func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, error) {
 	prePrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySpId,
 		PriceTime: priceTime,
 	})
 	if err != nil {
-		return false, fmt.Errorf("get storage price failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get storage price failed: %w", err)
 	}
 	currentPrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySpId,
 		PriceTime: ctx.BlockTime().Unix(),
 	})
 	if err != nil {
-		return false, fmt.Errorf("get storage price failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get storage price failed: %w", err)
 	}
 
 	return !(prePrice.ReadPrice.Equal(currentPrice.ReadPrice) &&
-		prePrice.PrimaryStorePrice.Equal(currentPrice.PrimaryStorePrice) &&
-		prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice)), nil
+			prePrice.PrimaryStorePrice.Equal(currentPrice.PrimaryStorePrice) &&
+			prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice)),
+		prePrice.ReadPrice,
+		prePrice.PrimaryStorePrice,
+		prePrice.SecondaryStorePrice,
+		currentPrice.ReadPrice,
+		currentPrice.PrimaryStorePrice,
+		currentPrice.SecondaryStorePrice,
+		nil
 }
 
 func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
@@ -187,7 +194,7 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.B
 		return fmt.Errorf("get charge size error: %w", err)
 	}
 
-	priceChanged, err := k.IsPriceChanged(ctx, bucketInfo.PrimarySpId, internalBucketInfo.PriceTime)
+	priceChanged, _, _, _, _, _, _, err := k.IsPriceChanged(ctx, bucketInfo.PrimarySpId, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}
