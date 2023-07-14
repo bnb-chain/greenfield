@@ -27,6 +27,6 @@ type BankKeeper interface {
 
 // SpKeeper defines the expected interface needed to retrieve storage provider.
 type SpKeeper interface {
-	GetSpStoragePriceByTime(ctx sdk.Context, spAddr sdk.AccAddress, time int64) (val sptypes.SpStoragePrice, err error)
+	GetSpStoragePriceByTime(ctx sdk.Context, spId uint32, time int64) (val sptypes.SpStoragePrice, err error)
 	GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val sptypes.SecondarySpStorePrice, err error)
 }

@@ -12,76 +12,76 @@ import (
 	gomock "github.com/golang/mock/gomock"
 )
 
-// MockAccountKeeper is a mock of AccountKeeper interface
+// MockAccountKeeper is a mock of AccountKeeper interface.
 type MockAccountKeeper struct {
 	ctrl     *gomock.Controller
 	recorder *MockAccountKeeperMockRecorder
 }
 
-// MockAccountKeeperMockRecorder is the mock recorder for MockAccountKeeper
+// MockAccountKeeperMockRecorder is the mock recorder for MockAccountKeeper.
 type MockAccountKeeperMockRecorder struct {
 	mock *MockAccountKeeper
 }
 
-// NewMockAccountKeeper creates a new mock instance
+// NewMockAccountKeeper creates a new mock instance.
 func NewMockAccountKeeper(ctrl *gomock.Controller) *MockAccountKeeper {
 	mock := &MockAccountKeeper{ctrl: ctrl}
 	mock.recorder = &MockAccountKeeperMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockAccountKeeper) EXPECT() *MockAccountKeeperMockRecorder {
 	return m.recorder
 }
 
-// GetAccount mocks base method
-func (m *MockAccountKeeper) GetAccount(arg0 types.Context, arg1 types.AccAddress) types0.AccountI {
+// GetAccount mocks base method.
+func (m *MockAccountKeeper) GetAccount(ctx types.Context, addr types.AccAddress) types0.AccountI {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccount", arg0, arg1)
+	ret := m.ctrl.Call(m, "GetAccount", ctx, addr)
 	ret0, _ := ret[0].(types0.AccountI)
 	return ret0
 }
 
-// GetAccount indicates an expected call of GetAccount
-func (mr *MockAccountKeeperMockRecorder) GetAccount(arg0, arg1 interface{}) *gomock.Call {
+// GetAccount indicates an expected call of GetAccount.
+func (mr *MockAccountKeeperMockRecorder) GetAccount(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetAccount), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccount", reflect.TypeOf((*MockAccountKeeper)(nil).GetAccount), ctx, addr)
 }
 
-// MockBankKeeper is a mock of BankKeeper interface
+// MockBankKeeper is a mock of BankKeeper interface.
 type MockBankKeeper struct {
 	ctrl     *gomock.Controller
 	recorder *MockBankKeeperMockRecorder
 }
 
-// MockBankKeeperMockRecorder is the mock recorder for MockBankKeeper
+// MockBankKeeperMockRecorder is the mock recorder for MockBankKeeper.
 type MockBankKeeperMockRecorder struct {
 	mock *MockBankKeeper
 }
 
-// NewMockBankKeeper creates a new mock instance
+// NewMockBankKeeper creates a new mock instance.
 func NewMockBankKeeper(ctrl *gomock.Controller) *MockBankKeeper {
 	mock := &MockBankKeeper{ctrl: ctrl}
 	mock.recorder = &MockBankKeeperMockRecorder{mock}
 	return mock
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
+// EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockBankKeeper) EXPECT() *MockBankKeeperMockRecorder {
 	return m.recorder
 }
 
-// SpendableCoins mocks base method
-func (m *MockBankKeeper) SpendableCoins(arg0 types.Context, arg1 types.AccAddress) types.Coins {
+// SpendableCoins mocks base method.
+func (m *MockBankKeeper) SpendableCoins(ctx types.Context, addr types.AccAddress) types.Coins {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SpendableCoins", arg0, arg1)
+	ret := m.ctrl.Call(m, "SpendableCoins", ctx, addr)
 	ret0, _ := ret[0].(types.Coins)
 	return ret0
 }
 
-// SpendableCoins indicates an expected call of SpendableCoins
-func (mr *MockBankKeeperMockRecorder) SpendableCoins(arg0, arg1 interface{}) *gomock.Call {
+// SpendableCoins indicates an expected call of SpendableCoins.
+func (mr *MockBankKeeperMockRecorder) SpendableCoins(ctx, addr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoins", reflect.TypeOf((*MockBankKeeper)(nil).SpendableCoins), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SpendableCoins", reflect.TypeOf((*MockBankKeeper)(nil).SpendableCoins), ctx, addr)
 }

@@ -1,0 +1,191 @@
+syntax = "proto3";
+
+package greenfield.virtualgroup;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/msg/v1/msg.proto";
+// this line is used by starport scaffolding # proto/tx/import
+import "cosmos_proto/cosmos.proto";
+import "gogoproto/gogo.proto";
+import "greenfield/common/approval.proto";
+import "greenfield/virtualgroup/params.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
+
+// Msg defines the Msg service.
+service Msg {
+  // this line is used by starport scaffolding # proto/tx/import
+  rpc CreateGlobalVirtualGroup(MsgCreateGlobalVirtualGroup) returns (MsgCreateGlobalVirtualGroupResponse);
+  rpc DeleteGlobalVirtualGroup(MsgDeleteGlobalVirtualGroup) returns (MsgDeleteGlobalVirtualGroupResponse);
+  rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
+  rpc Withdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  rpc SwapOut(MsgSwapOut) returns (MsgSwapOutResponse);
+  rpc Settle(MsgSettle) returns (MsgSettleResponse);
+
+  // UpdateParams defines a governance operation for updating the x/virtual module parameters.
+  // The authority is defined in the keeper.
+
+  // Since: cosmos-sdk 0.47
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+  rpc StorageProviderExit(MsgStorageProviderExit) returns (MsgStorageProviderExitResponse);
+  rpc CompleteStorageProviderExit(MsgCompleteStorageProviderExit) returns (MsgCompleteStorageProviderExitResponse);
+  rpc CompleteSwapOut(MsgCompleteSwapOut) returns (MsgCompleteSwapOutResponse);
+  rpc CancelSwapOut(MsgCancelSwapOut) returns (MsgCancelSwapOutResponse);
+}
+
+// MsgUpdateParams is the Msg/UpdateParams request type.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address that controls the module (defaults to x/gov unless overwritten).
+  string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // params defines the x/virtualgroup parameters to update.
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [(gogoproto.nullable) = false];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
+
+message MsgCreateGlobalVirtualGroup {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who create the global virtual group.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // family_id is the identifier for the virtual group's family.
+  uint32 family_id = 2;
+  // secondary_sp_id is a list of secondary storage provider IDs associated with the virtual group.
+  repeated uint32 secondary_sp_ids = 3;
+  // total_deposit is the total deposit amount required for the virtual group.
+  // The tokens needs deposited and the size of storage are correlated.
+  cosmos.base.v1beta1.Coin deposit = 4 [(gogoproto.nullable) = false];
+}
+
+message MsgCreateGlobalVirtualGroupResponse {}
+
+message MsgDeleteGlobalVirtualGroup {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who delete the global virtual group.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // global_virtual_group_id is the identifier of the global virtual group.
+  uint32 global_virtual_group_id = 2;
+}
+
+message MsgDeleteGlobalVirtualGroupResponse {}
+
+message MsgDeposit {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator/funding account address of the storage provider who deposit to the global virtual group.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // global_virtual_group_id is the identifier of the global virtual group.
+  uint32 global_virtual_group_id = 2;
+  // deposit is the amount of tokens being deposited for the global virtual group.
+  cosmos.base.v1beta1.Coin deposit = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgDepositResponse {}
+
+message MsgWithdraw {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator/funding account address of the storage provider who withdraw from the global virtual group.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // global_virtual_group_id is the identifier of the global virtual group.
+  uint32 global_virtual_group_id = 2;
+  // withdraw is the amount of coins to be withdrawn.
+  // The amount needs to be smaller than stored_size * storage_staking_price
+  cosmos.base.v1beta1.Coin withdraw = 3 [(gogoproto.nullable) = false];
+}
+
+message MsgWithdrawResponse {}
+
+message MsgSwapOut {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who want to swap out from the global virtual group.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // virtual_group_family_id is the identifier of the virtual group family.
+  // if it set to non-zero, it represents that the operator swap out as the primary storage provider
+  // it it set to zero, it represents that the operator swap out as the secondary storage provider.
+  uint32 global_virtual_group_family_id = 2;
+  // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
+  // It allows to be empty only when the operator is the primary storage provider.
+  repeated uint32 global_virtual_group_ids = 3;
+  // successor_sp_id is the unique id of the successor storage provider.
+  uint32 successor_sp_id = 4;
+  // approval includes an expiration time and a signature.
+  // The fields to be signed with contains the necessary information of the successor.
+  common.Approval successor_sp_approval = 5;
+}
+
+message MsgSwapOutResponse {}
+
+message MsgCompleteSwapOut {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who complete swap out task.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // virtual_group_family_id is the identifier of the virtual group family.
+  // if it set to non-zero, it represents that the operator swap out as the primary storage provider
+  // it it set to zero, it represents that the operator swap out as the secondary storage provider.
+  uint32 global_virtual_group_family_id = 2;
+  // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
+  // It allows to be empty only when the operator is the primary storage provider.
+  repeated uint32 global_virtual_group_ids = 3;
+}
+
+message MsgCompleteSwapOutResponse {}
+
+message MsgCancelSwapOut {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who cancel the swap out task.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // virtual_group_family_id is the identifier of the virtual group family.
+  // if it set to non-zero, it represents that the operator swap out as the primary storage provider
+  // it it set to zero, it represents that the operator swap out as the secondary storage provider.
+  uint32 global_virtual_group_family_id = 2;
+  // global_virtual_group_ids is a list of global virtual group IDs associated with the swap out.
+  // It allows to be empty only when the operator is the primary storage provider.
+  repeated uint32 global_virtual_group_ids = 3;
+}
+
+message MsgCancelSwapOutResponse {}
+
+// MsgSettle define the message for settling storage income of GVG family or several GVGs.
+// Firstly, the handler will do stream settlement for the payment account; and
+// secondly, the income will be distributed to related storage providers.
+message MsgSettle {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator/funding account address of the storage provider who initial settle request.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // global_virtual_group_family_id is the identifier of the global virtual group family.
+  uint32 global_virtual_group_family_id = 2;
+  // global_virtual_group_id is the identifier of the global virtual group.
+  repeated uint32 global_virtual_group_ids = 3;
+}
+
+message MsgSettleResponse {}
+
+// this line is used by starport scaffolding # proto/tx/message
+message MsgStorageProviderExit {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who want to exit from the greenfield storage network.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgStorageProviderExitResponse {}
+
+message MsgCompleteStorageProviderExit {
+  option (cosmos.msg.v1.signer) = "storage_provider";
+
+  // storage_provider defines the operator account address of the storage provider who want to exit from the greenfield storage network.
+  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message MsgCompleteStorageProviderExitResponse {}

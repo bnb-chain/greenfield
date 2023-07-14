@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.2.3-alpha.5
+This release adds 6 new features and 2 bugfixes.
+
+Features
+* [#315](https://github.com/bnb-chain/greenfield/pull/315) feat: add api for querying lock fee
+* [#290](https://github.com/bnb-chain/greenfield/pull/290) feat: replace rlp with abi.encode in cross-chain transfer
+* [#323](https://github.com/bnb-chain/greenfield/pull/323) feat: enable asset reconciliation
+* [#326](https://github.com/bnb-chain/greenfield/pull/326) feat: add bls verification
+* [#336](https://github.com/bnb-chain/greenfield/pull/336) feat: add tendermint to sdk
+* [#341](https://github.com/bnb-chain/greenfield/pull/341) feat: support cross chain for multiple blockchains
+* [#328](https://github.com/bnb-chain/greenfield/pull/328) feat: refactor for sp exit and bucket migrate 
+
+Bugfixes
+* [#307](https://github.com/bnb-chain/greenfield/pull/307) fix DefaultMaxPayloadSize from 2GB to 64GB 
+* [#312](https://github.com/bnb-chain/greenfield/pull/312) fix: add chainid to sign bytes to prevent replay attack
+
+Documentation
+* [#316](https://github.com/bnb-chain/greenfield/pull/316) Update readme.md 
+* [#282](https://github.com/bnb-chain/greenfield/pull/282) update readme for helm deployment
+
+Chores
+* [#324](https://github.com/bnb-chain/greenfield/pull/324) chore: update greenfield-cometbft-db version 
+
 ## v0.2.3-alpha.2
 This release enables 2 new features:  
 

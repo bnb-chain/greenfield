@@ -8,6 +8,8 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
+
+	gnfdcommon "github.com/bnb-chain/greenfield/types/common"
 )
 
 const (
@@ -386,7 +388,7 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 		Visibility:       VisibilityType(p.Visibility),
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
-		PrimarySpApproval: &Approval{
+		PrimarySpApproval: &gnfdcommon.Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},
@@ -403,7 +405,7 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 		Visibility:       VisibilityType(p.Visibility),
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
-		PrimarySpApproval: &Approval{
+		PrimarySpApproval: &gnfdcommon.Approval{
 			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
 			Sig:           p.PrimarySpApprovalSignature,
 		},

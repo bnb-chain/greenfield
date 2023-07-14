@@ -3,6 +3,7 @@ module github.com/bnb-chain/greenfield
 go 1.19
 
 require (
+	cosmossdk.io/api v0.4.0
 	cosmossdk.io/errors v1.0.0-beta.7
 	cosmossdk.io/math v1.0.1
 	github.com/bits-and-blooms/bitset v1.2.0
@@ -13,10 +14,13 @@ require (
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.10
 	github.com/ethereum/go-ethereum v1.10.22
+	github.com/ghodss/yaml v1.0.0
+	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/pkg/errors v0.9.1
 	github.com/prysmaticlabs/prysm v0.0.0-20220124113610-e26cde5e091b
+	github.com/rakyll/statik v0.1.7
 	github.com/samber/lo v1.37.0
 	github.com/spf13/cast v1.5.0
 	github.com/spf13/cobra v1.7.0
@@ -28,13 +32,6 @@ require (
 	google.golang.org/protobuf v1.30.0
 	gopkg.in/yaml.v2 v2.4.0
 	sigs.k8s.io/yaml v1.3.0
-)
-
-require (
-	cosmossdk.io/api v0.4.0
-	github.com/ghodss/yaml v1.0.0
-	github.com/golang/mock v1.6.0
-	github.com/rakyll/statik v0.1.7
 )
 
 require (
@@ -179,10 +176,12 @@ replace (
 	cosmossdk.io/api => github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230425074444-eb5869b05fe9
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.0
-	github.com/cometbft/cometbft => ../greenfield-cometbft
-	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.0.0-20230706092249-b0e93377dd4d
+	github.com/cometbft/cometbft => github.com/alexgao001/greenfield-cometbft v0.0.0-20230714052225-80cb642bf8dc
+	//github.com/cometbft/cometbft => ../greenfield-cometbft
+
+	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => ../greenfield-cosmos-sdk
-	github.com/cosmos/iavl => github.com/bnb-chain/greenfield-iavl v0.0.0-20230704034816-734af4bed8ae
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3
+	github.com/cosmos/iavl => github.com/bnb-chain/greenfield-iavl v0.20.1-alpha.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )

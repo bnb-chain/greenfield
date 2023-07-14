@@ -26,7 +26,7 @@ var (
 )
 
 var (
-	KeyDepostDenom                = []byte("DepositDenom")
+	KeyDepositDenom               = []byte("DepositDenom")
 	KeyMinDeposit                 = []byte("MinDeposit")
 	KeySecondarySpStorePriceRatio = []byte("SecondarySpStorePriceRatio")
 )
@@ -55,7 +55,7 @@ func DefaultParams() Params {
 // ParamSetPairs get the params.ParamSet
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyDepostDenom, &p.DepositDenom, validateDepositDenom),
+		paramtypes.NewParamSetPair(KeyDepositDenom, &p.DepositDenom, validateDepositDenom),
 		paramtypes.NewParamSetPair(KeyMinDeposit, &p.MinDeposit, validateMinDeposit),
 		paramtypes.NewParamSetPair(KeySecondarySpStorePriceRatio, &p.SecondarySpStorePriceRatio, validateSecondarySpStorePriceRatio),
 	}

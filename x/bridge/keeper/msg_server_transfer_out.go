@@ -46,7 +46,7 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 		return nil, errors.Wrapf(types.ErrInvalidPackage, "encode transfer out package error")
 	}
 
-	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, types.TransferOutChannelID, sdk.SynCrossChainPackageType,
+	sendSeq, err := k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(), types.TransferOutChannelID, sdk.SynCrossChainPackageType,
 		encodedPackage, relayerFeeAmount.BigInt(), ackRelayerFeeAmount.BigInt())
 	if err != nil {
 		return nil, err
@@ -54,11 +54,12 @@ func (k msgServer) TransferOut(goCtx context.Context, msg *types.MsgTransferOut)
 
 	// emit event
 	transferOutEvent := types.EventCrossTransferOut{
-		From:       fromAddress.String(),
-		To:         toAddress.String(),
-		Amount:     msg.Amount,
-		RelayerFee: &relayerFee,
-		Sequence:   sendSeq,
+		From:        fromAddress.String(),
+		To:          toAddress.String(),
+		Amount:      msg.Amount,
+		RelayerFee:  &relayerFee,
+		Sequence:    sendSeq,
+		DestChainId: uint32(k.crossChainKeeper.GetDestBscChainID()),
 	}
 	err = ctx.EventManager().EmitTypedEvent(&transferOutEvent)
 	if err != nil {

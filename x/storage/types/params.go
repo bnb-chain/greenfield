@@ -25,34 +25,36 @@ const (
 	DefaultStalePolicyCleanupMax     uint64 = 200
 	DefaultMinUpdateQuotaInterval    uint64 = 2592000 // 30 days (in second)
 
-	DefaultMirrorBucketRelayerFee    = "250000000000000" // 0.00025
-	DefaultMirrorBucketAckRelayerFee = "250000000000000" // 0.00025
-	DefaultMirrorObjectRelayerFee    = "250000000000000" // 0.00025
-	DefaultMirrorObjectAckRelayerFee = "250000000000000" // 0.00025
-	DefaultMirrorGroupRelayerFee     = "250000000000000" // 0.00025
-	DefaultMirrorGroupAckRelayerFee  = "250000000000000" // 0.00025
+	DefaultMaxLocalVirtualGroupNumPerBucket uint32 = 10
+	DefaultMirrorBucketRelayerFee                  = "250000000000000" // 0.00025
+	DefaultMirrorBucketAckRelayerFee               = "250000000000000" // 0.00025
+	DefaultMirrorObjectRelayerFee                  = "250000000000000" // 0.00025
+	DefaultMirrorObjectAckRelayerFee               = "250000000000000" // 0.00025
+	DefaultMirrorGroupRelayerFee                   = "250000000000000" // 0.00025
+	DefaultMirrorGroupAckRelayerFee                = "250000000000000" // 0.00025
 )
 
 var (
-	KeyMaxSegmentSize            = []byte("MaxSegmentSize")
-	KeyRedundantDataChunkNum     = []byte("RedundantDataChunkNum")
-	KeyRedundantParityChunkNum   = []byte("RedundantParityChunkNum")
-	KeyMaxPayloadSize            = []byte("MaxPayloadSize")
-	KeyMinChargeSize             = []byte("MinChargeSize")
-	KeyMaxBucketsPerAccount      = []byte("MaxBucketsPerAccount")
-	KeyDiscontinueCountingWindow = []byte("DiscontinueCountingWindow")
-	KeyDiscontinueObjectMax      = []byte("DiscontinueObjectMax")
-	KeyDiscontinueBucketMax      = []byte("DiscontinueBucketMax")
-	KeyDiscontinueConfirmPeriod  = []byte("DiscontinueConfirmPeriod")
-	KeyDiscontinueDeletionMax    = []byte("DiscontinueDeletionMax")
-	KeyStalePolicyCleanupMax     = []byte("StalePolicyCleanupMax")
-	KeyMinUpdateQuotaInterval    = []byte("MinUpdateQuotaInterval")
-	KeyMirrorBucketRelayerFee    = []byte("MirrorBucketRelayerFee")
-	KeyMirrorBucketAckRelayerFee = []byte("MirrorBucketAckRelayerFee")
-	KeyMirrorObjectRelayerFee    = []byte("MirrorObjectRelayerFee")
-	KeyMirrorObjectAckRelayerFee = []byte("MirrorObjectAckRelayerFee")
-	KeyMirrorGroupRelayerFee     = []byte("MirrorGroupRelayerFee")
-	KeyMirrorGroupAckRelayerFee  = []byte("MirrorGroupAckRelayerFee")
+	KeyMaxSegmentSize                   = []byte("MaxSegmentSize")
+	KeyRedundantDataChunkNum            = []byte("RedundantDataChunkNum")
+	KeyRedundantParityChunkNum          = []byte("RedundantParityChunkNum")
+	KeyMaxPayloadSize                   = []byte("MaxPayloadSize")
+	KeyMinChargeSize                    = []byte("MinChargeSize")
+	KeyMaxBucketsPerAccount             = []byte("MaxBucketsPerAccount")
+	KeyDiscontinueCountingWindow        = []byte("DiscontinueCountingWindow")
+	KeyDiscontinueObjectMax             = []byte("DiscontinueObjectMax")
+	KeyDiscontinueBucketMax             = []byte("DiscontinueBucketMax")
+	KeyDiscontinueConfirmPeriod         = []byte("DiscontinueConfirmPeriod")
+	KeyDiscontinueDeletionMax           = []byte("DiscontinueDeletionMax")
+	KeyStalePolicyCleanupMax            = []byte("StalePolicyCleanupMax")
+	KeyMinUpdateQuotaInterval           = []byte("MinUpdateQuotaInterval")
+	KeyBscMirrorBucketRelayerFee        = []byte("BscMirrorBucketRelayerFee")
+	KeyBscMirrorBucketAckRelayerFee     = []byte("BscMirrorBucketAckRelayerFee")
+	KeyBscMirrorObjectRelayerFee        = []byte("BscMirrorObjectRelayerFee")
+	KeyBscMirrorObjectAckRelayerFee     = []byte("BscMirrorObjectAckRelayerFee")
+	KeyBscMirrorGroupRelayerFee         = []byte("BscMirrorGroupRelayerFee")
+	KeyBscMirrorGroupAckRelayerFee      = []byte("BscMirrorGroupAckRelayerFee")
+	KeyMaxLocalVirtualGroupNumPerBucket = []byte("MaxLocalVirtualGroupNumPerBucket")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -74,6 +76,7 @@ func NewParams(
 	discontinueDeletionMax uint64,
 	stalePoliesCleanupMax uint64,
 	minUpdateQuotaInterval uint64,
+	maxLocalVirtualGroupNumPerBucket uint32,
 ) Params {
 	return Params{
 		VersionedParams: VersionedParams{
@@ -82,21 +85,22 @@ func NewParams(
 			RedundantParityChunkNum: redundantParityChunkNum,
 			MinChargeSize:           minChargeSize,
 		},
-		MaxPayloadSize:            maxPayloadSize,
-		MaxBucketsPerAccount:      maxBucketsPerAccount,
-		MirrorBucketRelayerFee:    mirrorBucketRelayerFee,
-		MirrorBucketAckRelayerFee: mirrorBucketAckRelayerFee,
-		MirrorObjectRelayerFee:    mirrorObjectRelayerFee,
-		MirrorObjectAckRelayerFee: mirrorObjectAckRelayerFee,
-		MirrorGroupRelayerFee:     mirrorGroupRelayerFee,
-		MirrorGroupAckRelayerFee:  mirrorGroupAckRelayerFee,
-		DiscontinueCountingWindow: discontinueCountingWindow,
-		DiscontinueObjectMax:      discontinueObjectMax,
-		DiscontinueBucketMax:      discontinueBucketMax,
-		DiscontinueConfirmPeriod:  discontinueConfirmPeriod,
-		DiscontinueDeletionMax:    discontinueDeletionMax,
-		StalePolicyCleanupMax:     stalePoliesCleanupMax,
-		MinQuotaUpdateInterval:    minUpdateQuotaInterval,
+		MaxPayloadSize:                   maxPayloadSize,
+		MaxBucketsPerAccount:             maxBucketsPerAccount,
+		BscMirrorBucketRelayerFee:        mirrorBucketRelayerFee,
+		BscMirrorBucketAckRelayerFee:     mirrorBucketAckRelayerFee,
+		BscMirrorObjectRelayerFee:        mirrorObjectRelayerFee,
+		BscMirrorObjectAckRelayerFee:     mirrorObjectAckRelayerFee,
+		BscMirrorGroupRelayerFee:         mirrorGroupRelayerFee,
+		BscMirrorGroupAckRelayerFee:      mirrorGroupAckRelayerFee,
+		DiscontinueCountingWindow:        discontinueCountingWindow,
+		DiscontinueObjectMax:             discontinueObjectMax,
+		DiscontinueBucketMax:             discontinueBucketMax,
+		DiscontinueConfirmPeriod:         discontinueConfirmPeriod,
+		DiscontinueDeletionMax:           discontinueDeletionMax,
+		StalePolicyCleanupMax:            stalePoliesCleanupMax,
+		MinQuotaUpdateInterval:           minUpdateQuotaInterval,
+		MaxLocalVirtualGroupNumPerBucket: maxLocalVirtualGroupNumPerBucket,
 	}
 }
 
@@ -110,7 +114,7 @@ func DefaultParams() Params {
 		DefaultMirrorGroupRelayerFee, DefaultMirrorGroupAckRelayerFee,
 		DefaultDiscontinueCountingWindow, DefaultDiscontinueObjectMax, DefaultDiscontinueBucketMax,
 		DefaultDiscontinueConfirmPeriod, DefaultDiscontinueDeletionMax, DefaultStalePolicyCleanupMax,
-		DefaultMinUpdateQuotaInterval,
+		DefaultMinUpdateQuotaInterval, DefaultMaxLocalVirtualGroupNumPerBucket,
 	)
 }
 
@@ -124,12 +128,12 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 		paramtypes.NewParamSetPair(KeyMaxPayloadSize, &p.MaxPayloadSize, validateMaxPayloadSize),
 		paramtypes.NewParamSetPair(KeyMaxBucketsPerAccount, &p.MaxBucketsPerAccount, validateMaxBucketsPerAccount),
-		paramtypes.NewParamSetPair(KeyMirrorBucketRelayerFee, &p.MirrorBucketRelayerFee, validateRelayerFee),
-		paramtypes.NewParamSetPair(KeyMirrorBucketAckRelayerFee, &p.MirrorBucketAckRelayerFee, validateRelayerFee),
-		paramtypes.NewParamSetPair(KeyMirrorObjectRelayerFee, &p.MirrorObjectRelayerFee, validateRelayerFee),
-		paramtypes.NewParamSetPair(KeyMirrorObjectAckRelayerFee, &p.MirrorObjectAckRelayerFee, validateRelayerFee),
-		paramtypes.NewParamSetPair(KeyMirrorGroupRelayerFee, &p.MirrorGroupRelayerFee, validateRelayerFee),
-		paramtypes.NewParamSetPair(KeyMirrorGroupAckRelayerFee, &p.MirrorGroupAckRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyBscMirrorBucketRelayerFee, &p.BscMirrorBucketRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyBscMirrorBucketAckRelayerFee, &p.BscMirrorBucketAckRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyBscMirrorObjectRelayerFee, &p.BscMirrorObjectRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyBscMirrorObjectAckRelayerFee, &p.BscMirrorObjectAckRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyBscMirrorGroupRelayerFee, &p.BscMirrorGroupRelayerFee, validateRelayerFee),
+		paramtypes.NewParamSetPair(KeyBscMirrorGroupAckRelayerFee, &p.BscMirrorGroupAckRelayerFee, validateRelayerFee),
 		paramtypes.NewParamSetPair(KeyDiscontinueCountingWindow, &p.DiscontinueCountingWindow, validateDiscontinueCountingWindow),
 		paramtypes.NewParamSetPair(KeyDiscontinueObjectMax, &p.DiscontinueObjectMax, validateDiscontinueObjectMax),
 		paramtypes.NewParamSetPair(KeyDiscontinueBucketMax, &p.DiscontinueBucketMax, validateDiscontinueBucketMax),
@@ -137,6 +141,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyDiscontinueDeletionMax, &p.DiscontinueDeletionMax, validateDiscontinueDeletionMax),
 		paramtypes.NewParamSetPair(KeyStalePolicyCleanupMax, &p.StalePolicyCleanupMax, validateStalePolicyCleanupMax),
 		paramtypes.NewParamSetPair(KeyMinUpdateQuotaInterval, &p.MinQuotaUpdateInterval, validateMinUpdateQuotaInterval),
+		paramtypes.NewParamSetPair(KeyMaxLocalVirtualGroupNumPerBucket, &p.MaxLocalVirtualGroupNumPerBucket, validateMaxLocalVirtualGroupNumPerBucket),
 	}
 }
 
@@ -154,29 +159,28 @@ func (p Params) Validate() error {
 	if err := validateMinChargeSize(p.VersionedParams.MinChargeSize); err != nil {
 		return err
 	}
-
 	if err := validateMaxPayloadSize(p.MaxPayloadSize); err != nil {
 		return err
 	}
 	if err := validateMaxBucketsPerAccount(p.MaxBucketsPerAccount); err != nil {
 		return err
 	}
-	if err := validateRelayerFee(p.MirrorBucketRelayerFee); err != nil {
+	if err := validateRelayerFee(p.BscMirrorBucketRelayerFee); err != nil {
 		return err
 	}
-	if err := validateRelayerFee(p.MirrorBucketAckRelayerFee); err != nil {
+	if err := validateRelayerFee(p.BscMirrorBucketAckRelayerFee); err != nil {
 		return err
 	}
-	if err := validateRelayerFee(p.MirrorObjectRelayerFee); err != nil {
+	if err := validateRelayerFee(p.BscMirrorObjectRelayerFee); err != nil {
 		return err
 	}
-	if err := validateRelayerFee(p.MirrorObjectAckRelayerFee); err != nil {
+	if err := validateRelayerFee(p.BscMirrorObjectAckRelayerFee); err != nil {
 		return err
 	}
-	if err := validateRelayerFee(p.MirrorGroupRelayerFee); err != nil {
+	if err := validateRelayerFee(p.BscMirrorGroupRelayerFee); err != nil {
 		return err
 	}
-	if err := validateRelayerFee(p.MirrorGroupAckRelayerFee); err != nil {
+	if err := validateRelayerFee(p.BscMirrorGroupAckRelayerFee); err != nil {
 		return err
 	}
 	if err := validateDiscontinueCountingWindow(p.DiscontinueCountingWindow); err != nil {
@@ -402,6 +406,19 @@ func validateMinUpdateQuotaInterval(i interface{}) error {
 	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
+func validateMaxLocalVirtualGroupNumPerBucket(i interface{}) error {
+	v, ok := i.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v == 0 {
+		return fmt.Errorf("max buckets per account must be positive: %d", v)
 	}
 
 	return nil

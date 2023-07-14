@@ -107,6 +107,9 @@ import (
 	storagemodule "github.com/bnb-chain/greenfield/x/storage"
 	storagemodulekeeper "github.com/bnb-chain/greenfield/x/storage/keeper"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
+	virtualgroupmodulekeeper "github.com/bnb-chain/greenfield/x/virtualgroup/keeper"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 const (
@@ -158,22 +161,24 @@ var (
 		spmodule.AppModuleBasic{},
 		paymentmodule.AppModuleBasic{},
 		permissionmodule.AppModuleBasic{},
+		virtualgroupmodule.AppModuleBasic{},
 		storagemodule.AppModuleBasic{},
 		challengemodule.AppModuleBasic{},
 	)
 
 	// module account permissions
 	maccPerms = map[string][]string{
-		authtypes.FeeCollectorName:       nil,
-		distrtypes.ModuleName:            nil,
-		stakingtypes.BondedPoolName:      {authtypes.Burner, authtypes.Staking},
-		stakingtypes.NotBondedPoolName:   {authtypes.Burner, authtypes.Staking},
-		govtypes.ModuleName:              {authtypes.Burner},
-		paymentmoduletypes.ModuleName:    {authtypes.Minter, authtypes.Burner, authtypes.Staking},
-		crosschaintypes.ModuleName:       {authtypes.Minter},
-		permissionmoduletypes.ModuleName: nil,
-		bridgemoduletypes.ModuleName:     nil,
-		spmoduletypes.ModuleName:         {authtypes.Staking},
+		authtypes.FeeCollectorName:         nil,
+		distrtypes.ModuleName:              nil,
+		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
+		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
+		govtypes.ModuleName:                {authtypes.Burner},
+		paymentmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		crosschaintypes.ModuleName:         {authtypes.Minter},
+		permissionmoduletypes.ModuleName:   nil,
+		bridgemoduletypes.ModuleName:       nil,
+		spmoduletypes.ModuleName:           {authtypes.Staking},
+		virtualgroupmoduletypes.ModuleName: nil,
 	}
 )
 
@@ -230,6 +235,7 @@ type App struct {
 	PaymentKeeper          paymentmodulekeeper.Keeper
 	ChallengeKeeper        challengemodulekeeper.Keeper
 	PermissionmoduleKeeper permissionmodulekeeper.Keeper
+	VirtualgroupKeeper     virtualgroupmodulekeeper.Keeper
 	StorageKeeper          storagemodulekeeper.Keeper
 
 	// mm is the module manager
@@ -284,6 +290,7 @@ func New(
 		bridgemoduletypes.StoreKey,
 		gashubtypes.StoreKey,
 		spmoduletypes.StoreKey,
+		virtualgroupmoduletypes.StoreKey,
 		paymentmoduletypes.StoreKey,
 		permissionmoduletypes.StoreKey,
 		storagemoduletypes.StoreKey,
@@ -457,6 +464,18 @@ func New(
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
 
+	app.VirtualgroupKeeper = *virtualgroupmodulekeeper.NewKeeper(
+		appCodec,
+		keys[virtualgroupmoduletypes.StoreKey],
+		tKeys[virtualgroupmoduletypes.TStoreKey],
+		authtypes.NewModuleAddress(virtualgroupmoduletypes.ModuleName).String(),
+		app.SpKeeper,
+		app.AccountKeeper,
+		app.BankKeeper,
+		app.PaymentKeeper,
+	)
+	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
+
 	app.PermissionmoduleKeeper = *permissionmodulekeeper.NewKeeper(
 		appCodec,
 		keys[permissionmoduletypes.StoreKey],
@@ -474,6 +493,7 @@ func New(
 		app.PaymentKeeper,
 		app.PermissionmoduleKeeper,
 		app.CrossChainKeeper,
+		app.VirtualgroupKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
@@ -521,6 +541,7 @@ func New(
 		bridgeModule,
 		gashubModule,
 		spModule,
+		virtualgroupModule,
 		paymentModule,
 		permissionModule,
 		storageModule,
@@ -549,6 +570,7 @@ func New(
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
+		virtualgroupmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
@@ -573,6 +595,7 @@ func New(
 		bridgemoduletypes.ModuleName,
 		gashubtypes.ModuleName,
 		spmoduletypes.ModuleName,
+		virtualgroupmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
@@ -602,6 +625,7 @@ func New(
 		oracletypes.ModuleName,
 		bridgemoduletypes.ModuleName,
 		spmoduletypes.ModuleName,
+		virtualgroupmoduletypes.ModuleName,
 		paymentmoduletypes.ModuleName,
 		permissionmoduletypes.ModuleName,
 		storagemoduletypes.ModuleName,
@@ -684,6 +708,11 @@ func New(
 		tmos.Exit("cannot convert bank store to ival store")
 	}
 	bankIavl.EnableDiff()
+	paymentIavl, ok := ms.GetCommitStore(keys[paymentmoduletypes.StoreKey]).(*iavl.Store)
+	if !ok {
+		tmos.Exit("cannot convert payment store to ival store")
+	}
+	paymentIavl.EnableDiff()
 
 	app.initModules(ctx)
 
@@ -704,7 +733,7 @@ func (app *App) initModules(ctx sdk.Context) {
 
 func (app *App) initCrossChain() {
 	app.CrossChainKeeper.SetSrcChainID(sdk.ChainID(app.appConfig.CrossChain.SrcChainId))
-	app.CrossChainKeeper.SetDestChainID(sdk.ChainID(app.appConfig.CrossChain.DestChainId))
+	app.CrossChainKeeper.SetDestChainID(sdk.ChainID(app.appConfig.CrossChain.DestBscChainId))
 }
 
 func (app *App) initBridge() {
@@ -727,7 +756,8 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	resp := app.mm.EndBlock(ctx, req)
 	bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
-	app.reconBalance(ctx, bankIavl)
+	paymentIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(paymentmoduletypes.StoreKey)).(*iavl.Store)
+	app.reconcile(ctx, bankIavl, paymentIavl)
 	return resp
 }
 
@@ -740,12 +770,12 @@ func (app *App) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.Res
 	app.UpgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 
 	// init cross chain channel permissions
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), storagemoduletypes.BucketChannelId, sdk.ChannelAllow)
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
-	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestBscChainId), bridgemoduletypes.TransferOutChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestBscChainId), bridgemoduletypes.TransferInChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestBscChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestBscChainId), storagemoduletypes.BucketChannelId, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestBscChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
+	app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestBscChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
 
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }

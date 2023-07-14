@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	"cosmossdk.io/errors"
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,11 +18,19 @@ const (
 
 // NewStorageProvider constructs a new StorageProvider
 func NewStorageProvider(
-	operator sdk.AccAddress, fundingAddress sdk.AccAddress,
+	spID uint32, operator sdk.AccAddress, fundingAddress sdk.AccAddress,
 	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
 	totalDeposit math.Int, endpoint string,
-	description Description) (StorageProvider, error) {
+	description Description,
+	blsKey string) (StorageProvider, error) {
+
+	blsKeyBytes, err := hex.DecodeString(blsKey)
+	if err != nil {
+		return StorageProvider{}, err
+	}
+
 	return StorageProvider{
+		Id:              spID,
 		OperatorAddress: operator.String(),
 		FundingAddress:  fundingAddress.String(),
 		SealAddress:     sealAddress.String(),
@@ -29,10 +39,11 @@ func NewStorageProvider(
 		TotalDeposit:    totalDeposit,
 		Endpoint:        endpoint,
 		Description:     description,
+		BlsKey:          blsKeyBytes,
 	}, nil
 }
 
-func (sp *StorageProvider) GetOperator() sdk.AccAddress {
+func (sp *StorageProvider) GetOperatorAccAddress() sdk.AccAddress {
 	addr := sdk.MustAccAddressFromHex(sp.OperatorAddress)
 	return addr
 }
@@ -130,8 +141,4 @@ func (d *Description) UpdateDescription(d2 *Description) (*Description, error) {
 	}
 
 	return d2, nil
-}
-
-func (s *SpStoragePrice) GetSpAccAddress() sdk.AccAddress {
-	return sdk.MustAccAddressFromHex(s.SpAddress)
 }

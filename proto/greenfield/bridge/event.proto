@@ -28,6 +28,8 @@ message EventCrossTransferOut {
   cosmos.base.v1beta1.Coin relayer_fee = 4;
   // Sequence of the corresponding cross chain package
   uint64 sequence = 5;
+  // Destination chain id of the cross chain transfer tx
+  uint32 dest_chain_id = 6;
 }
 
 // EventCrossTransferOutRefund is emitted when a cross chain transfer out tx failed
@@ -40,6 +42,8 @@ message EventCrossTransferOutRefund {
   RefundReason refund_reason = 3;
   // Sequence of the corresponding cross chain package
   uint64 sequence = 4;
+  // Destination chain id of the cross chain transfer tx
+  uint32 dest_chain_id = 5;
 }
 
 // EventCrossTransferIn is emitted when a cross chain transfer in tx happened
@@ -52,4 +56,6 @@ message EventCrossTransferIn {
   string refund_address = 3;
   // Sequence of the corresponding cross chain package
   uint64 sequence = 4;
+  // Source chain id of the cross chain transfer tx
+  uint32 src_chain_id = 5;
 }

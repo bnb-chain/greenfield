@@ -6,6 +6,8 @@ const (
 	FlagOperatorAddress = "operator-address"
 	FlagFundingAddress  = "funding-address"
 	FlagSealAddress     = "seal-address"
+	FlagBlsPubKey       = "bls-pub-key"
+	FlagBlsProof        = "bls-proof"
 	FlagApprovalAddress = "approval-address"
 	FlagGcAddress       = "gc-address"
 	FlagCreator         = "creator"

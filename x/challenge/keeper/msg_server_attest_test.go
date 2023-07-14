@@ -12,7 +12,9 @@ import (
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (s *TestSuite) TestAttest_Invalid() {
@@ -42,6 +44,11 @@ func (s *TestSuite) TestAttest_Invalid() {
 		PayloadSize:  500}
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
 		Return(existObject, true).AnyTimes()
+
+	spOperatorAcc := sample.RandAccAddress()
+	sp := &sptypes.StorageProvider{Id: 10, OperatorAddress: spOperatorAcc.String()}
+	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
+		Return(sp, true).AnyTimes()
 
 	tests := []struct {
 		name string
@@ -123,10 +130,18 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 	s.stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).
 		Return(historicalInfo, true).AnyTimes()
 
-	existObjectName := "existobject"
+	existBucket := &storagetypes.BucketInfo{
+		Id:          math.NewUint(10),
+		BucketName:  "existbucket",
+		PrimarySpId: 1,
+	}
+	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
+		Return(existBucket, true).AnyTimes()
+
 	existObject := &storagetypes.ObjectInfo{
 		Id:           math.NewUint(10),
-		ObjectName:   existObjectName,
+		ObjectName:   "existobject",
+		BucketName:   existBucket.BucketName,
 		ObjectStatus: storagetypes.OBJECT_STATUS_SEALED,
 		PayloadSize:  500}
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
@@ -138,11 +153,21 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 		Return(nil).AnyTimes()
 
 	spOperatorAcc := sample.RandAccAddress()
+	sp := &sptypes.StorageProvider{Id: 10, OperatorAddress: spOperatorAcc.String()}
+	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
+		Return(sp, true).AnyTimes()
+
+	gvg := &virtualgrouptypes.GlobalVirtualGroup{
+		SecondarySpIds: []uint32{10},
+	}
+	s.storageKeeper.EXPECT().GetObjectGVG(gomock.Any(), gomock.Eq(existBucket.Id), gomock.Any()).
+		Return(gvg, true).AnyTimes()
+
 	attestMsg := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
 		ChallengeId:       challengeId,
 		ObjectId:          math.NewUint(10),
-		SpOperatorAddress: spOperatorAcc.String(),
+		SpOperatorAddress: sp.OperatorAddress,
 		VoteResult:        types.CHALLENGE_FAILED,
 		ChallengerAddress: "",
 		VoteValidatorSet:  []uint64{1},
@@ -185,21 +210,32 @@ func (s *TestSuite) TestAttest_Normal() {
 	s.stakingKeeper.EXPECT().GetHistoricalInfo(gomock.Any(), gomock.Any()).
 		Return(historicalInfo, true).AnyTimes()
 
-	existObjectName := "existobject"
+	existBucket := &storagetypes.BucketInfo{
+		Id:          math.NewUint(10),
+		BucketName:  "existbucket",
+		PrimarySpId: 1,
+	}
+	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
+		Return(existBucket, true).AnyTimes()
+
 	existObject := &storagetypes.ObjectInfo{
 		Id:           math.NewUint(10),
-		ObjectName:   existObjectName,
+		ObjectName:   "existobject",
+		BucketName:   existBucket.BucketName,
 		ObjectStatus: storagetypes.OBJECT_STATUS_SEALED,
 		PayloadSize:  500}
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
 		Return(existObject, true).AnyTimes()
 
+	spOperatorAcc := sample.RandAccAddress()
+	sp := &sptypes.StorageProvider{Id: 1, OperatorAddress: spOperatorAcc.String()}
 	s.spKeeper.EXPECT().DepositDenomForSP(gomock.Any()).
 		Return("BNB").AnyTimes()
 	s.spKeeper.EXPECT().Slash(gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).AnyTimes()
+	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
+		Return(sp, true).AnyTimes()
 
-	spOperatorAcc := sample.RandAccAddress()
 	attestMsg := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
 		ChallengeId:       challengeId,
@@ -225,5 +261,5 @@ func (s *TestSuite) TestAttest_Normal() {
 		}
 	}
 	s.Require().True(found)
-	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, spOperatorAcc, attestMsg.ObjectId))
+	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, sp.Id, attestMsg.ObjectId))
 }

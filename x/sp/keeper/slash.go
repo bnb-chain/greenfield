@@ -7,8 +7,8 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-func (k Keeper) Slash(ctx sdk.Context, spAcc sdk.AccAddress, rewardInfos []types.RewardInfo) error {
-	sp, found := k.GetStorageProvider(ctx, spAcc)
+func (k Keeper) Slash(ctx sdk.Context, spID uint32, rewardInfos []types.RewardInfo) error {
+	sp, found := k.GetStorageProvider(ctx, spID)
 	if !found {
 		return types.ErrStorageProviderNotFound
 	}

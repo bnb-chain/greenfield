@@ -1,0 +1,16 @@
+syntax = "proto3";
+package greenfield.virtualgroup;
+
+import "gogoproto/gogo.proto";
+import "greenfield/virtualgroup/params.proto";
+
+option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
+
+// this line is used by starport scaffolding # genesis/proto/import
+
+// GenesisState defines the virtualgroup module's genesis state.
+// GenesisState defines the raw genesis transaction in JSON.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}

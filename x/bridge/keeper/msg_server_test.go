@@ -84,7 +84,8 @@ func (s *TestSuite) TestCrossTransferOut() {
 
 	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
 	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
-	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
+	s.crossChainKeeper.EXPECT().GetDestBscChainID().Return(sdk.ChainID(714)).AnyTimes()
+	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
 
 	msgTransferOut := types.NewMsgTransferOut(addr1.String(), addr2.String(), &sdk.Coin{
 		Denom:  "BNB",

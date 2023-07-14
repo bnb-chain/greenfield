@@ -36,7 +36,7 @@ func (k msgServer) Deposit(goCtx context.Context, msg *types.MsgDeposit) (*types
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
 			// add static balance
 			change := types.NewDefaultStreamRecordChangeWithAddr(to).WithStaticBalanceChange(msg.Amount)
-			err = k.UpdateStreamRecord(ctx, streamRecord, change, false)
+			err = k.UpdateStreamRecord(ctx, streamRecord, change)
 			if err != nil {
 				return nil, err
 			}

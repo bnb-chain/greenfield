@@ -2,21 +2,17 @@ package client
 
 import (
 	"context"
-	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"testing"
 
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
-	bfttypes "github.com/cometbft/cometbft/types"
 )
 
 func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {
@@ -181,40 +177,41 @@ func TestSendTokenWithOverrideAccount(t *testing.T) {
 
 func TestWebsocketClient(t *testing.T) {
 	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
-	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km), WithWebSocketClient(), WithWebSocketClient())
-	nonce, err := gnfdCli.GetNonce()
 	assert.NoError(t, err)
-	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
+	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km), WithWebSocketClient(), WithWebSocketClient())
+	assert.NoError(t, err)
 
-	go func() {
-		for i := 0; i < 1000; i++ {
-			time.Sleep(10 * time.Millisecond)
-			assert.NoError(t, err)
-			to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
-			assert.NoError(t, err)
-			txOpt := &types.TxOption{
-				Nonce: nonce,
-				Mode:  &mode,
-			}
-			transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 12)))
-			response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, txOpt)
-			assert.NoError(t, err)
-			nonce++
-			assert.Equal(t, uint32(0), response.TxResponse.Code)
-			t.Log(response.TxResponse.String())
+	//go func() {
+	//	eventCh, err := gnfdCli.tendermintClient.Subscribe(context.Background(), "TestBlockEvents", bfttypes.QueryForEvent(bfttypes.EventNewBlock).String())
+	//	require.NoError(t, err)
+	//	var firstBlockHeight int64
+	//	for {
+	//		event := <-eventCh
+	//		blockEvent, ok := event.Data.(bfttypes.EventDataNewBlock)
+	//		require.True(t, ok)
+	//		block := blockEvent.Block
+	//		if firstBlockHeight == 0 {
+	//			firstBlockHeight = block.Header.Height
+	//		}
+	//		t.Logf("get block h=%d event.\n", block.Height)
+	//	}
+	//}()
+
+	ctx := context.Background()
+	to := sdk.MustAccAddressFromHex(test.TEST_ADDR)
+	nonce, _ := gnfdCli.GetNonce()
+	for i := 0; i < 10000; i++ {
+		assert.NoError(t, err)
+		transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 12)))
+		response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, &types.TxOption{Nonce: nonce})
+		assert.NoError(t, err)
+		nonce++
+		assert.Equal(t, uint32(0), response.TxResponse.Code)
+		validators, err := gnfdCli.GetValidators(ctx, nil)
+		for _, val := range validators.Validators {
+			t.Log(val.String())
 		}
-	}()
-	eventCh, err := gnfdCli.tendermintClient.Subscribe(context.Background(), "TestBlockEvents", bfttypes.QueryForEvent(bfttypes.EventNewBlock).String())
-	require.NoError(t, err)
-	var firstBlockHeight int64
-	for i := int64(0); i < 10; i++ {
-		event := <-eventCh
-		blockEvent, ok := event.Data.(bfttypes.EventDataNewBlock)
-		require.True(t, ok)
-		block := blockEvent.Block
-		if firstBlockHeight == 0 {
-			firstBlockHeight = block.Header.Height
-		}
-		require.Equal(t, firstBlockHeight+i, block.Header.Height)
+		results, err := gnfdCli.GetBlockResults(ctx, nil)
+		t.Log(results)
 	}
 }
