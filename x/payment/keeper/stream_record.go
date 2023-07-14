@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/telemetry"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -262,6 +264,7 @@ func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) e
 		change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress).WithStaticBalanceChange(totalBalance)
 		_, err := k.UpdateStreamRecordByAddr(ctx, change)
 		if err != nil {
+			telemetry.IncrCounter(1, types.GovernanceAddressLackBalanceLabel)
 			return fmt.Errorf("update governance stream record failed: %w", err)
 		}
 	}
