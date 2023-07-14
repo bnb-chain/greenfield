@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/hex"
+	"github.com/cometbft/cometbft/votepool"
 
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 )
@@ -47,4 +48,13 @@ func (c *GreenfieldClient) GetCommit(ctx context.Context, height int64) (*ctypes
 
 func (c *GreenfieldClient) GetStatus(ctx context.Context) (*ctypes.ResultStatus, error) {
 	return c.tendermintClient.Status(ctx)
+}
+
+func (c *GreenfieldClient) BroadcastVote(ctx context.Context, vote votepool.Vote) error {
+	_, err := c.tendermintClient.BroadcastVote(ctx, vote)
+	return err
+}
+
+func (c *GreenfieldClient) QueryVote(ctx context.Context, eventType int, eventHash []byte) (*ctypes.ResultQueryVote, error) {
+	return c.tendermintClient.QueryVote(ctx, eventType, eventHash)
 }
