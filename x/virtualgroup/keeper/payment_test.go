@@ -37,9 +37,7 @@ type TestSuite struct {
 	spKeeper      *types.MockSpKeeper
 	paymentKeeper *types.MockPaymentKeeper
 
-	ctx         sdk.Context
-	queryClient types.QueryClient
-	msgServer   types.MsgServer
+	ctx sdk.Context
 }
 
 func (s *TestSuite) SetupTest() {

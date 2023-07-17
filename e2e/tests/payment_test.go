@@ -1247,7 +1247,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithoutPriceChange
 		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.Sub(gas)),
 	)
 	s.SendTxBlock(user, msgSend)
-	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	_, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
 	s.Require().NoError(err)
 
 	s.SendTxBlock(user, msgDeleteObject)
@@ -1335,7 +1335,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.Sub(gas)),
 	)
 	s.SendTxBlock(user, msgSend)
-	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	_, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
 	s.Require().NoError(err)
 
 	// sp price changes
@@ -1570,7 +1570,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	}
-	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	_, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
 
 	// assertions
@@ -1587,7 +1587,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	queryHeadBucketRequest = storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	}
-	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
 
 	// check price and rate calculation
@@ -1889,10 +1889,10 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
 
 	time.Sleep(3 * time.Second)
 
-	s.deleteObject(user, bucketName1, objectName1)
-	s.deleteObject(user, bucketName1, objectName2)
-	s.deleteObject(user, bucketName2, objectName3)
-	s.deleteObject(user, bucketName2, objectName4)
+	_ = s.deleteObject(user, bucketName1, objectName1)
+	_ = s.deleteObject(user, bucketName1, objectName2)
+	_ = s.deleteObject(user, bucketName2, objectName3)
+	_ = s.deleteObject(user, bucketName2, objectName4)
 	err = s.deleteBucket(user, bucketName1)
 	s.Require().Error(err)
 	err = s.deleteBucket(user, bucketName2)

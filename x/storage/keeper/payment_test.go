@@ -122,8 +122,9 @@ func (s *TestSuite) TestGetObjectLockFee() {
 	amount, err := s.storageKeeper.GetObjectLockFee(s.ctx, 100, time.Now().Unix(), uint64(payloadSize))
 	s.Require().NoError(err)
 	secondarySPNum := int64(s.storageKeeper.GetExpectSecondarySPNumForECObject(s.ctx, time.Now().Unix()))
-	expectedAmount := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(secondarySPNum)).
-		MulInt64(payloadSize).MulInt64(int64(params.VersionedParams.ReserveTime)).TruncateInt()
+	spRate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(secondarySPNum)).MulInt64(payloadSize)
+	validatorTaxRate := params.VersionedParams.ValidatorTaxRate.MulInt(spRate.TruncateInt())
+	expectedAmount := spRate.Add(validatorTaxRate).MulInt64(int64(params.VersionedParams.ReserveTime)).TruncateInt()
 	s.Require().True(amount.Equal(expectedAmount))
 }
 
