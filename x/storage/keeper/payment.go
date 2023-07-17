@@ -270,8 +270,8 @@ func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo
 	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	if primaryRate.IsPositive() {
 		primaryTotalFlowRate = primaryRate
-		err = k.paymentKeeper.Withdraw(ctx, paymentAddr, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress),
-			primaryTotalFlowRate.MulRaw(timeToPay))
+		_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)).
+			WithStaticBalanceChange(primaryTotalFlowRate.MulRaw(timeToPay)))
 		if err != nil {
 			return fmt.Errorf("fail to pay GVG family: %s", err)
 		}
@@ -297,8 +297,8 @@ func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo
 	secondaryRate = secondaryRate.MulRaw(int64(len(gvg.SecondarySpIds)))
 	if secondaryRate.IsPositive() {
 		secondaryTotalFlowRate = secondaryTotalFlowRate.Add(secondaryRate)
-		err = k.paymentKeeper.Withdraw(ctx, paymentAddr, sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress),
-			secondaryTotalFlowRate.MulRaw(timeToPay))
+		_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(gvg.VirtualPaymentAddress)).
+			WithStaticBalanceChange(secondaryTotalFlowRate.MulRaw(timeToPay)))
 		if err != nil {
 			return fmt.Errorf("fail to pay GVG: %s", err)
 		}
@@ -311,11 +311,18 @@ func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo
 	}
 	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryTotalFlowRate.Add(secondaryTotalFlowRate)).TruncateInt()
 	if validatorTaxRate.IsPositive() {
-		err = k.paymentKeeper.Withdraw(ctx, paymentAddr, types.ValidatorTaxPoolAddress,
-			validatorTaxRate.MulRaw(timeToPay))
+		_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, types.NewDefaultStreamRecordChangeWithAddr(types.ValidatorTaxPoolAddress).
+			WithStaticBalanceChange(validatorTaxRate.MulRaw(timeToPay)))
 		if err != nil {
 			return fmt.Errorf("fail to pay validator: %s", err)
 		}
+	}
+
+	total := primaryTotalFlowRate.Add(secondaryTotalFlowRate).Add(validatorTaxRate).MulRaw(timeToPay)
+	_, err = k.paymentKeeper.UpdateStreamRecordByAddr(ctx, types.NewDefaultStreamRecordChangeWithAddr(paymentAddr).
+		WithStaticBalanceChange(total.Neg()))
+	if err != nil {
+		return fmt.Errorf("fail to substrct from payment account: %s", err)
 	}
 
 	return nil

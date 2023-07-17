@@ -193,7 +193,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		payDuration := streamRecord.StaticBalance.Add(streamRecord.BufferBalance).Quo(streamRecord.NetflowRate.Abs())
 		if payDuration.LTE(sdkmath.NewIntFromUint64(params.ForcedSettleTime)) {
 			if !forced {
-				return fmt.Errorf("stream account %s balance not enough, lack of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
+				return fmt.Errorf("stream account %s lacks of %s BNB", streamRecord.Account, streamRecord.StaticBalance.Abs())
 			}
 		}
 		settleTimestamp = currentTimestamp - int64(params.ForcedSettleTime) + payDuration.Int64()
