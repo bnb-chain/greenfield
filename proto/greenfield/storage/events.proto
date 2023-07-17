@@ -52,8 +52,8 @@ message EventDeleteBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_id is the unique id of primary sp.
-  uint32 primary_sp_id = 5;
+  // global_virtual_group_family_id defines the unique id of gvg family
+  uint32 global_virtual_group_family_id = 5;
 }
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo

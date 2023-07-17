@@ -57,22 +57,24 @@ func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupByFamily(spID, familyID u
 	return resp.GlobalVirtualGroups
 }
 
-func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupFamilies(spID uint32) []*virtualgroupmoduletypes.GlobalVirtualGroupFamily {
-	resp, err := s.Client.GlobalVirtualGroupFamilies(
-		context.Background(),
-		&virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: spID})
-	s.Require().NoError(err)
-	return resp.GlobalVirtualGroupFamilies
-}
-
 func (s *VirtualGroupTestSuite) TestBasic() {
-	primarySP := s.StorageProviders[0]
+	primarySP := s.BaseSuite.PickStorageProvider()
 
-	gvgFamilies := s.queryGlobalVirtualGroupFamilies(primarySP.Info.Id)
-	s.Require().Greater(len(gvgFamilies), 0)
+	s.BaseSuite.RefreshGVGFamilies()
+	s.Require().Greater(len(primarySP.GlobalVirtualGroupFamilies), 0)
 
-	family := gvgFamilies[0]
-	s.T().Log(family.String())
+	var gvgs []*virtualgroupmoduletypes.GlobalVirtualGroup
+	var gvg *virtualgroupmoduletypes.GlobalVirtualGroup
+	for _, g := range primarySP.GlobalVirtualGroupFamilies {
+		gvgs = g
+	}
+	s.Require().Greater(len(gvgs), 0)
+
+	for _, g := range gvgs {
+		gvg = g
+	}
+
+	srcGVGs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, gvg.FamilyId)
 
 	var secondarySPIDs []uint32
 	for _, ssp := range s.StorageProviders {
@@ -80,14 +82,14 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 		}
 	}
-	s.BaseSuite.CreateGlobalVirtualGroup(&primarySP, family.Id, secondarySPIDs, 1)
+	s.BaseSuite.CreateGlobalVirtualGroup(primarySP, gvg.FamilyId, secondarySPIDs, 1)
 
-	gvgs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, family.Id)
-	s.Require().Equal(len(gvgs), len(family.GlobalVirtualGroupIds)+1)
+	gvgs = s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, gvg.FamilyId)
+	s.Require().Equal(len(gvgs), len(srcGVGs)+1)
 
 	oldGVGIDs := make(map[uint32]bool)
-	for _, id := range family.GlobalVirtualGroupIds {
-		oldGVGIDs[id] = true
+	for _, gvg := range srcGVGs {
+		oldGVGIDs[gvg.Id] = true
 	}
 	var newGVG *virtualgroupmoduletypes.GlobalVirtualGroup
 
@@ -136,7 +138,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	}
 	s.SendTxBlock(primarySP.OperatorKey, &msgDeleteGVG)
 
-	newGVGs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, family.Id)
+	newGVGs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, newGVG.FamilyId)
 
 	for _, gvg := range newGVGs {
 		if gvg.Id == newGVG.Id {
@@ -156,8 +158,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	queryFamilyResp, err := s.Client.GlobalVirtualGroupFamily(
 		context.Background(),
 		&virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
-			StorageProviderId: primarySp.Info.Id,
-			FamilyId:          gvgFamilyId,
+			FamilyId: gvgFamilyId,
 		})
 	s.Require().NoError(err)
 	gvgFamily := queryFamilyResp.GlobalVirtualGroupFamily
@@ -178,7 +179,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	for _, secondarySp := range secondarySps {
 		if _, ok := secondarySpIds[secondarySp.Info.Id]; ok {
 			secondarySpAddrs = append(secondarySpAddrs, secondarySp.FundingKey.GetAddr().String())
-			lastSecondarySp = &secondarySp
+			lastSecondarySp = secondarySp
 		}
 	}
 
@@ -250,10 +251,10 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	}
 }
 
-func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProvider, []core.StorageProvider, uint32, uint32) {
+func (s *VirtualGroupTestSuite) createObject() (string, string, *core.StorageProvider, []*core.StorageProvider, uint32, uint32) {
 	var err error
-	sp := s.StorageProviders[0]
-	secondarySps := make([]core.StorageProvider, 0)
+	sp := s.BaseSuite.PickStorageProvider()
+	secondarySps := make([]*core.StorageProvider, 0)
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 
@@ -322,15 +323,15 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, core.StorageProv
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
-		if s.StorageProviders[i].Info.Id != sp.Info.Id {
-			secondarySps = append(secondarySps, s.StorageProviders[i])
+		if s.StorageProviders[spID].Info.Id != sp.Info.Id {
+			secondarySps = append(secondarySps, s.StorageProviders[spID])
 		}
 	}
 	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
@@ -353,7 +354,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	sp := s.BaseSuite.CreateNewStorageProvider()
 	s.T().Logf("new SP Info: %s", sp.Info.String())
 
-	successorSp := s.StorageProviders[0]
+	successorSp := s.BaseSuite.PickStorageProvider()
 
 	// 2, create a new gvg group for this storage provider
 	var secondarySPIDs []uint32
@@ -384,9 +385,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	}
 	anotherSecondarySPIDs = append(anotherSecondarySPIDs, sp.Info.Id)
 
-	anotherSPsFamilies := s.queryGlobalVirtualGroupFamilies(anotherSP.Info.Id)
-	s.Require().Greater(len(anotherSPsFamilies), 0)
-	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(&anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
+	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(anotherSP, 0, anotherSecondarySPIDs, 1)
 
 	// 5. sp exit
 	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
@@ -496,7 +495,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
 	sp := s.BaseSuite.CreateNewStorageProvider()
 	s.T().Logf("new SP Info: %s", sp.Info.String())
 
-	successorSp := s.StorageProviders[0]
+	successorSp := s.BaseSuite.PickStorageProvider()
 
 	// 2, create a new gvg group for this storage provider
 	var secondarySPIDs []uint32
