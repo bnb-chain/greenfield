@@ -194,7 +194,7 @@ func (s *TestSuite) TestGetBucketReadStoreBill() {
 		Id:                    1,
 		VirtualPaymentAddress: sample.RandAccAddress().String(),
 	}
-	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any(), gomock.Any()).
+	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any()).
 		Return(gvgFamily, true).AnyTimes()
 
 	primarySp := &sptypes.StorageProvider{

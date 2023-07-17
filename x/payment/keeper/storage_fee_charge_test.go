@@ -25,6 +25,15 @@ func TestApplyFlowChanges(t *testing.T) {
 		*types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userInitBalance).WithRateChange(rate.Neg()),
 		*types.NewDefaultStreamRecordChangeWithAddr(sp).WithRateChange(rate),
 	}
+	sr := &types.StreamRecord{Account: user.String(),
+		OutFlowCount:      1,
+		StaticBalance:     sdkmath.ZeroInt(),
+		BufferBalance:     sdkmath.ZeroInt(),
+		LockBalance:       sdkmath.ZeroInt(),
+		NetflowRate:       sdkmath.ZeroInt(),
+		FrozenNetflowRate: sdkmath.ZeroInt(),
+	}
+	keeper.SetStreamRecord(ctx, sr)
 	err := keeper.ApplyStreamRecordChanges(ctx, flowChanges)
 	require.NoError(t, err)
 	userStreamRecord, found := keeper.GetStreamRecord(ctx, user)
