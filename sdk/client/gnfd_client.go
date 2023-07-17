@@ -2,6 +2,8 @@ package client
 
 import (
 	_ "encoding/json"
+	"net/http"
+
 	"github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
 	bftws "github.com/cometbft/cometbft/rpc/client/http/v2"
@@ -25,7 +27,6 @@ import (
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	grpc1 "github.com/cosmos/gogoproto/grpc"
 	"google.golang.org/grpc"
-	"net/http"
 
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
@@ -192,7 +193,10 @@ func newGreenfieldClient(rpcAddr, chainId string, rpcClient *rpchttp.HTTP, opts 
 		if err != nil {
 			return nil, err
 		}
-		wsClient.Start()
+		err = wsClient.Start()
+		if err != nil {
+			return nil, err
+		}
 		// override the tendermintClient with wsClient and use it in the cosmos context
 		client.tendermintClient = wsClient
 	}

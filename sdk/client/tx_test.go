@@ -2,13 +2,15 @@ package client
 
 import (
 	"context"
+	"testing"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"testing"
 
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
@@ -18,7 +20,7 @@ import (
 func TestSendTokenSucceedWithSimulatedGas(t *testing.T) {
 	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
-	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km), WithWebSocketClient())
+	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
 	assert.NoError(t, err)
 	to, err := sdk.AccAddressFromHexUnsafe(test.TEST_ADDR)
 	assert.NoError(t, err)
@@ -100,7 +102,7 @@ func TestSendTokenWithCustomizedNonce(t *testing.T) {
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
-	nonce, err := gnfdCli.GetNonce()
+	nonce, err := gnfdCli.GetNonce(context.Background())
 	assert.NoError(t, err)
 	for i := 0; i < 50; i++ {
 		txOpt := &types.TxOption{
@@ -127,7 +129,7 @@ func TestSendTxWithGrpcConn(t *testing.T) {
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
-	nonce, err := gnfdCli.GetNonce()
+	nonce, err := gnfdCli.GetNonce(context.Background())
 	assert.NoError(t, err)
 	txOpt := &types.TxOption{
 		GasLimit: 123456,
@@ -175,43 +177,21 @@ func TestSendTokenWithOverrideAccount(t *testing.T) {
 	t.Log(response.TxResponse.String())
 }
 
-func TestWebsocketClient(t *testing.T) {
+func TestSendTXViaWebsocketClient(t *testing.T) {
 	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
 	assert.NoError(t, err)
-	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km), WithWebSocketClient(), WithWebSocketClient())
+	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km), WithWebSocketClient())
 	assert.NoError(t, err)
-
-	//go func() {
-	//	eventCh, err := gnfdCli.tendermintClient.Subscribe(context.Background(), "TestBlockEvents", bfttypes.QueryForEvent(bfttypes.EventNewBlock).String())
-	//	require.NoError(t, err)
-	//	var firstBlockHeight int64
-	//	for {
-	//		event := <-eventCh
-	//		blockEvent, ok := event.Data.(bfttypes.EventDataNewBlock)
-	//		require.True(t, ok)
-	//		block := blockEvent.Block
-	//		if firstBlockHeight == 0 {
-	//			firstBlockHeight = block.Header.Height
-	//		}
-	//		t.Logf("get block h=%d event.\n", block.Height)
-	//	}
-	//}()
-
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	to := sdk.MustAccAddressFromHex(test.TEST_ADDR)
-	nonce, _ := gnfdCli.GetNonce()
-	for i := 0; i < 10000; i++ {
+	nonce, _ := gnfdCli.GetNonce(ctx)
+	for i := 0; i < 500; i++ {
 		assert.NoError(t, err)
 		transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 12)))
-		response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{transfer}, &types.TxOption{Nonce: nonce})
+		response, err := gnfdCli.BroadcastTx(ctx, []sdk.Msg{transfer}, &types.TxOption{Nonce: nonce})
 		assert.NoError(t, err)
 		nonce++
 		assert.Equal(t, uint32(0), response.TxResponse.Code)
-		validators, err := gnfdCli.GetValidators(ctx, nil)
-		for _, val := range validators.Validators {
-			t.Log(val.String())
-		}
-		results, err := gnfdCli.GetBlockResults(ctx, nil)
-		t.Log(results)
 	}
 }

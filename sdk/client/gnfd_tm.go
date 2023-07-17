@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/hex"
+
 	"github.com/cometbft/cometbft/votepool"
 
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"

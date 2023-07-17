@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"fmt"
+
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
@@ -20,12 +21,12 @@ import (
 )
 
 type TransactionClient interface {
-	BroadcastTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error)
-	SimulateTx(msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
-	SignTx(msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
-	GetNonce() (uint64, error)
-	GetNonceByAddr(addr sdk.AccAddress) (uint64, error)
-	GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error)
+	BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, grpcOpts ...grpc.CallOption) (*tx.BroadcastTxResponse, error)
+	SimulateTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
+	SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
+	GetNonce(ctx context.Context) (uint64, error)
+	GetNonceByAddr(ctx context.Context, addr sdk.AccAddress) (uint64, error)
+	GetAccountByAddr(ctx context.Context, addr sdk.AccAddress) (authtypes.AccountI, error)
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
@@ -84,7 +85,7 @@ func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOp
 func (c *GreenfieldClient) SimulateTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
-	err := c.constructTx(msgs, txOpt, txBuilder)
+	err := c.constructTx(ctx, msgs, txOpt, txBuilder)
 	if err != nil {
 		return nil, err
 	}
@@ -137,7 +138,7 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 		}
 	}
 
-	account, err := c.GetAccountByAddr(km.GetAddr())
+	account, err := c.GetAccountByAddr(ctx, km.GetAddr())
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +175,7 @@ func (c *GreenfieldClient) signTx(ctx context.Context, txConfig client.TxConfig,
 }
 
 // setSingerInfo gathers the signer info by doing "empty signature" hack, and inject it into txBuilder
-func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *types.TxOption) error {
+func (c *GreenfieldClient) setSingerInfo(ctx context.Context, txBuilder client.TxBuilder, txOpt *types.TxOption) error {
 
 	var km keys.KeyManager
 	var err error
@@ -186,7 +187,7 @@ func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *type
 			return err
 		}
 	}
-	account, err := c.GetAccountByAddr(km.GetAddr())
+	account, err := c.GetAccountByAddr(ctx, km.GetAddr())
 	if err != nil {
 		return err
 	}
@@ -207,7 +208,7 @@ func (c *GreenfieldClient) setSingerInfo(txBuilder client.TxBuilder, txOpt *type
 	return nil
 }
 
-func (c *GreenfieldClient) constructTx(msgs []sdk.Msg, txOpt *types.TxOption, txBuilder client.TxBuilder) error {
+func (c *GreenfieldClient) constructTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, txBuilder client.TxBuilder) error {
 	for _, m := range msgs {
 		if err := m.ValidateBasic(); err != nil {
 			return err
@@ -232,12 +233,12 @@ func (c *GreenfieldClient) constructTx(msgs []sdk.Msg, txOpt *types.TxOption, tx
 		}
 	}
 	// inject signer info into txBuilder, it is needed for simulating and signing
-	return c.setSingerInfo(txBuilder, txOpt)
+	return c.setSingerInfo(ctx, txBuilder, txOpt)
 }
 
 func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, txConfig client.TxConfig, txBuilder client.TxBuilder) error {
 	// construct a tx with txOpt excluding GasLimit and
-	if err := c.constructTx(msgs, txOpt, txBuilder); err != nil {
+	if err := c.constructTx(ctx, msgs, txOpt, txBuilder); err != nil {
 		return err
 	}
 	txBytes, err := txConfig.TxEncoder()(txBuilder.GetTx())
@@ -278,28 +279,28 @@ func (c *GreenfieldClient) constructTxWithGasInfo(ctx context.Context, msgs []sd
 	return nil
 }
 
-func (c *GreenfieldClient) GetNonce() (uint64, error) {
+func (c *GreenfieldClient) GetNonce(ctx context.Context) (uint64, error) {
 	km, err := c.GetKeyManager()
 	if err != nil {
 		return 0, err
 	}
-	account, err := c.GetAccountByAddr(km.GetAddr())
+	account, err := c.GetAccountByAddr(ctx, km.GetAddr())
 	if err != nil {
 		return 0, err
 	}
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) GetNonceByAddr(addr sdk.AccAddress) (uint64, error) {
-	account, err := c.GetAccountByAddr(addr)
+func (c *GreenfieldClient) GetNonceByAddr(ctx context.Context, addr sdk.AccAddress) (uint64, error) {
+	account, err := c.GetAccountByAddr(ctx, addr)
 	if err != nil {
 		return 0, err
 	}
 	return account.GetSequence(), nil
 }
 
-func (c *GreenfieldClient) GetAccountByAddr(addr sdk.AccAddress) (authtypes.AccountI, error) {
-	acct, err := c.AuthQueryClient.Account(context.Background(), &authtypes.QueryAccountRequest{Address: addr.String()})
+func (c *GreenfieldClient) GetAccountByAddr(ctx context.Context, addr sdk.AccAddress) (authtypes.AccountI, error) {
+	acct, err := c.AuthQueryClient.Account(ctx, &authtypes.QueryAccountRequest{Address: addr.String()})
 	if err != nil {
 		return nil, err
 	}
