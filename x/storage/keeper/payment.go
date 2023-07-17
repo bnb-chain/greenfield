@@ -57,17 +57,17 @@ func (k Keeper) GetBucketReadBill(ctx sdk.Context, bucketInfo *storagetypes.Buck
 	if bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
 	}
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
+	}
+
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: bucketInfo.PrimarySpId,
+		PrimarySp: gvgFamily.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
-	}
-
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
-	if !found {
-		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
 	// primary sp total rate
@@ -108,9 +108,9 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 	return err
 }
 
-func (k Keeper) LockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+func (k Keeper) LockObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	amount, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
+	amount, err := k.GetObjectLockFee(ctx, primarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
@@ -134,8 +134,9 @@ func (k Keeper) LockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.Buc
 }
 
 // UnlockObjectStoreFee unlock store fee if the object is deleted in INIT state
-func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-	lockedBalance, err := k.GetObjectLockFee(ctx, bucketInfo.PrimarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
+func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+
+	lockedBalance, err := k.GetObjectLockFee(ctx, primarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %w", err)
 	}
@@ -148,15 +149,15 @@ func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	return nil
 }
 
-func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
+func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	// unlock store fee
-	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
+	err := k.UnlockObjectStoreFee(ctx, primarySpId, bucketInfo, objectInfo)
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %w", err)
 	}
 
-	return k.ChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+	return k.ChargeObjectStoreFee(ctx, primarySpId, bucketInfo, internalBucketInfo, objectInfo)
 }
 
 func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, error) {
@@ -187,14 +188,14 @@ func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime in
 		nil
 }
 
-func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
+func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	chargeSize, err := k.GetObjectChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	if err != nil {
 		return fmt.Errorf("get charge size error: %w", err)
 	}
 
-	priceChanged, _, _, _, _, _, _, err := k.IsPriceChanged(ctx, bucketInfo.PrimarySpId, internalBucketInfo.PriceTime)
+	priceChanged, _, _, _, _, _, _, err := k.IsPriceChanged(ctx, primarySpId, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}
@@ -219,7 +220,7 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.B
 	})
 }
 
-func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
+func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	chargeSize, err := k.GetObjectChargeSize(ctx, objectInfo.PayloadSize, objectInfo.CreateAt)
 	if err != nil {
@@ -250,9 +251,14 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes
 func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo,
 	chargeSize uint64, timeToPay int64) error {
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
+	}
+
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: bucketInfo.PrimarySpId,
+		PrimarySp: gvgFamily.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
@@ -261,11 +267,6 @@ func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo
 
 	// primary sp total rate
 	primaryTotalFlowRate := sdk.ZeroInt()
-
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
-	if !found {
-		return fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
-	}
 
 	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	if primaryRate.IsPositive() {
@@ -364,18 +365,17 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		From:  sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress),
 		Flows: make([]types.OutFlow, 0),
 	}
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
+	}
 
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: bucketInfo.PrimarySpId,
+		PrimarySp: gvgFamily.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
 		return fmt.Errorf("get storage price failed: %w", err)
-	}
-
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
-	if !found {
-		return fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
 	// primary sp total rate
@@ -454,20 +454,21 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) (userFlows types.UserFlows, err error) {
 	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
+
+	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
+	if !found {
+		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
+	}
+
 	if internalBucketInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
 		return userFlows, nil
 	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: bucketInfo.PrimarySpId,
+		PrimarySp: gvgFamily.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
 	})
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
-	}
-
-	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
-	if !found {
-		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
 	// primary sp total rate

@@ -746,18 +746,18 @@ func (m *MockVirtualGroupKeeper) EXPECT() *MockVirtualGroupKeeperMockRecorder {
 }
 
 // GetAndCheckGVGFamilyAvailableForNewBucket mocks base method.
-func (m *MockVirtualGroupKeeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx types3.Context, spID, familyID uint32) (*types2.GlobalVirtualGroupFamily, error) {
+func (m *MockVirtualGroupKeeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx types3.Context, familyID uint32) (*types2.GlobalVirtualGroupFamily, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAndCheckGVGFamilyAvailableForNewBucket", ctx, spID, familyID)
+	ret := m.ctrl.Call(m, "GetAndCheckGVGFamilyAvailableForNewBucket", ctx, familyID)
 	ret0, _ := ret[0].(*types2.GlobalVirtualGroupFamily)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // GetAndCheckGVGFamilyAvailableForNewBucket indicates an expected call of GetAndCheckGVGFamilyAvailableForNewBucket.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetAndCheckGVGFamilyAvailableForNewBucket(ctx, spID, familyID interface{}) *gomock.Call {
+func (mr *MockVirtualGroupKeeperMockRecorder) GetAndCheckGVGFamilyAvailableForNewBucket(ctx, familyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAndCheckGVGFamilyAvailableForNewBucket", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetAndCheckGVGFamilyAvailableForNewBucket), ctx, spID, familyID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAndCheckGVGFamilyAvailableForNewBucket", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetAndCheckGVGFamilyAvailableForNewBucket), ctx, familyID)
 }
 
 // GetGVG mocks base method.
@@ -776,18 +776,18 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetGVG(ctx, gvgID interface{}) *go
 }
 
 // GetGVGFamily mocks base method.
-func (m *MockVirtualGroupKeeper) GetGVGFamily(ctx types3.Context, spID, familyID uint32) (*types2.GlobalVirtualGroupFamily, bool) {
+func (m *MockVirtualGroupKeeper) GetGVGFamily(ctx types3.Context, familyID uint32) (*types2.GlobalVirtualGroupFamily, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGVGFamily", ctx, spID, familyID)
+	ret := m.ctrl.Call(m, "GetGVGFamily", ctx, familyID)
 	ret0, _ := ret[0].(*types2.GlobalVirtualGroupFamily)
 	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
 // GetGVGFamily indicates an expected call of GetGVGFamily.
-func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGFamily(ctx, spID, familyID interface{}) *gomock.Call {
+func (mr *MockVirtualGroupKeeperMockRecorder) GetGVGFamily(ctx, familyID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGFamily), ctx, spID, familyID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGVGFamily), ctx, familyID)
 }
 
 // GetGlobalVirtualGroupIfAvailable mocks base method.

@@ -55,6 +55,11 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
+
+	stat := k.GetOrCreateGVGStatisticsWithinSP(ctx, sp.Id)
+	stat.PrimaryCount++
+	gvgStatisticsWithinSPs = append(gvgStatisticsWithinSPs, stat)
+
 	var secondarySpIds []uint32
 	for _, id := range req.SecondarySpIds {
 		ssp, found := k.spKeeper.GetStorageProvider(ctx, id)
@@ -98,7 +103,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	gvgFamily.AppendGVG(gvg.Id)
 
 	k.SetGVG(ctx, gvg)
-	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	k.SetGVGFamily(ctx, gvgFamily)
 	k.BatchSetGVGStatisticsWithinSP(ctx, gvgStatisticsWithinSPs)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroup{
@@ -114,7 +119,8 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}
 	if req.FamilyId == types.NoSpecifiedFamilyId {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroupFamily{
-			Id:                    gvg.Id,
+			Id:                    gvgFamily.Id,
+			PrimarySpId:           gvgFamily.PrimarySpId,
 			VirtualPaymentAddress: gvgFamily.VirtualPaymentAddress,
 		}); err != nil {
 			return nil, err
@@ -334,7 +340,7 @@ func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.M
 	}
 
 	if req.GlobalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
-		family, found := k.GetGVGFamily(ctx, sp.Id, req.GlobalVirtualGroupFamilyId)
+		family, found := k.GetGVGFamily(ctx, req.GlobalVirtualGroupFamilyId)
 		if !found {
 			return nil, types.ErrGVGFamilyNotExist
 		}

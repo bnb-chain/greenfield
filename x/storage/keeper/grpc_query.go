@@ -99,8 +99,9 @@ func (k Keeper) QueryIsPriceChanged(c context.Context, req *types.QueryIsPriceCh
 		return nil, types.ErrNoSuchBucket
 	}
 
+	primarySp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	changed, currentRead, currentPrimary, currentSecondary, newRead, newPrimary, newSecondary, err := k.IsPriceChanged(ctx, bucketInfo.PrimarySpId, internalBucketInfo.PriceTime)
+	changed, currentRead, currentPrimary, currentSecondary, newRead, newPrimary, newSecondary, err := k.IsPriceChanged(ctx, primarySp.Id, internalBucketInfo.PriceTime)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}

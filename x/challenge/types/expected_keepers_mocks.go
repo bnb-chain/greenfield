@@ -261,6 +261,20 @@ func (mr *MockStorageKeeperMockRecorder) MaxSegmentSize(ctx interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxSegmentSize", reflect.TypeOf((*MockStorageKeeper)(nil).MaxSegmentSize), ctx)
 }
 
+// MustGetPrimarySPForBucket mocks base method.
+func (m *MockStorageKeeper) MustGetPrimarySPForBucket(ctx types2.Context, bucketInfo *types0.BucketInfo) *types.StorageProvider {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MustGetPrimarySPForBucket", ctx, bucketInfo)
+	ret0, _ := ret[0].(*types.StorageProvider)
+	return ret0
+}
+
+// MustGetPrimarySPForBucket indicates an expected call of MustGetPrimarySPForBucket.
+func (mr *MockStorageKeeperMockRecorder) MustGetPrimarySPForBucket(ctx, bucketInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustGetPrimarySPForBucket", reflect.TypeOf((*MockStorageKeeper)(nil).MustGetPrimarySPForBucket), ctx, bucketInfo)
+}
+
 // MockPaymentKeeper is a mock of PaymentKeeper interface.
 type MockPaymentKeeper struct {
 	ctrl     *gomock.Controller

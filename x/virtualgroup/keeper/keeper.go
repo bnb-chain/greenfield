@@ -8,7 +8,6 @@ import (
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/address"
@@ -119,12 +118,17 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 		}
 	}
 
-	gvgFamily, found := k.GetGVGFamily(ctx, primarySp.Id, gvg.FamilyId)
+	gvgFamily, found := k.GetGVGFamily(ctx, gvg.FamilyId)
 	if !found {
 		panic("not found gvg family when delete gvg")
 	}
 
 	gvgFamily.MustRemoveGVG(gvg.Id)
+
+	// update stat
+	stat := k.MustGetGVGStatisticsWithinSP(ctx, gvgFamily.Id)
+	stat.PrimaryCount--
+	k.SetGVGStatisticsWithSP(ctx, stat)
 
 	for _, secondarySPID := range gvg.SecondarySpIds {
 		gvgStatisticsWithinSP := k.MustGetGVGStatisticsWithinSP(ctx, secondarySPID)
@@ -135,9 +139,9 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 	store.Delete(types.GetGVGKey(gvg.Id))
 
 	if k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) {
-		store.Delete(types.GetGVGFamilyKey(primarySp.Id, gvg.FamilyId))
+		store.Delete(types.GetGVGFamilyKey(gvg.FamilyId))
 	} else {
-		k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+		k.SetGVGFamily(ctx, gvgFamily)
 	}
 	return nil
 }
@@ -155,19 +159,19 @@ func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup
 	return &gvg, true
 }
 
-func (k Keeper) SetGVGFamily(ctx sdk.Context, primarySpID uint32, gvgFamily *types.GlobalVirtualGroupFamily) {
+func (k Keeper) SetGVGFamily(ctx sdk.Context, gvgFamily *types.GlobalVirtualGroupFamily) {
 
 	store := ctx.KVStore(k.storeKey)
 
 	bz := k.cdc.MustMarshal(gvgFamily)
-	store.Set(types.GetGVGFamilyKey(primarySpID, gvgFamily.Id), bz)
+	store.Set(types.GetGVGFamilyKey(gvgFamily.Id), bz)
 }
 
-func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, bool) {
+func (k Keeper) GetGVGFamily(ctx sdk.Context, familyID uint32) (*types.GlobalVirtualGroupFamily, bool) {
 	store := ctx.KVStore(k.storeKey)
 
 	var gvgFamily types.GlobalVirtualGroupFamily
-	bz := store.Get(types.GetGVGFamilyKey(spID, familyID))
+	bz := store.Get(types.GetGVGFamilyKey(familyID))
 	if bz == nil {
 		return nil, false
 	}
@@ -175,8 +179,8 @@ func (k Keeper) GetGVGFamily(ctx sdk.Context, spID, familyID uint32) (*types.Glo
 	return &gvgFamily, true
 }
 
-func (k Keeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, spID, familyID uint32) (*types.GlobalVirtualGroupFamily, error) {
-	gvgFamily, found := k.GetGVGFamily(ctx, spID, familyID)
+func (k Keeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, familyID uint32) (*types.GlobalVirtualGroupFamily, error) {
+	gvgFamily, found := k.GetGVGFamily(ctx, familyID)
 	if !found {
 		return nil, types.ErrGVGFamilyNotExist
 	}
@@ -190,7 +194,7 @@ func (k Keeper) GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, spID,
 	return gvgFamily, nil
 }
 
-func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID uint32) (*types.GlobalVirtualGroupFamily, error) {
+func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, primarySPID uint32) (*types.GlobalVirtualGroupFamily, error) {
 	store := ctx.KVStore(k.storeKey)
 	var gvgFamily types.GlobalVirtualGroupFamily
 	// If familyID is not specified, a new family needs to be created
@@ -198,11 +202,12 @@ func (k Keeper) GetOrCreateEmptyGVGFamily(ctx sdk.Context, familyID uint32, spID
 		id := k.GenNextGVGFamilyID(ctx)
 		gvgFamily = types.GlobalVirtualGroupFamily{
 			Id:                    id,
+			PrimarySpId:           primarySPID,
 			VirtualPaymentAddress: k.DeriveVirtualPaymentAccount(types.GVGFamilyName, id).String(),
 		}
 		return &gvgFamily, nil
 	} else {
-		bz := store.Get(types.GetGVGFamilyKey(spID, familyID))
+		bz := store.Get(types.GetGVGFamilyKey(familyID))
 		if bz == nil {
 			return nil, types.ErrGVGFamilyNotExist
 		}
@@ -228,12 +233,18 @@ func (k Keeper) GetAvailableStakingTokens(ctx sdk.Context, gvg *types.GlobalVirt
 }
 
 func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *sptypes.StorageProvider, familyID uint32) error {
-	store := ctx.KVStore(k.storeKey)
 
-	family, found := k.GetGVGFamily(ctx, primarySP.Id, familyID)
+	family, found := k.GetGVGFamily(ctx, familyID)
 	if !found {
 		return types.ErrGVGFamilyNotExist
 	}
+	if family.PrimarySpId != primarySP.Id {
+		return types.ErrSwapOutFailed.Wrapf("the family(ID: %d) is not owned by primary sp(ID: %d)", family.Id, primarySP.Id)
+	}
+
+	srcStat := k.MustGetGVGStatisticsWithinSP(ctx, primarySP.Id)
+	dstStat := k.GetOrCreateGVGStatisticsWithinSP(ctx, successorSP.Id)
+
 	var gvgs []*types.GlobalVirtualGroup
 	for _, gvgID := range family.GlobalVirtualGroupIds {
 		gvg, found := k.GetGVG(ctx, gvgID)
@@ -261,7 +272,11 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 
 		gvg.PrimarySpId = successorSP.Id
 		gvgs = append(gvgs, gvg)
+		srcStat.PrimaryCount--
+		dstStat.PrimaryCount++
 	}
+
+	family.PrimarySpId = successorSP.Id
 
 	// settlement
 	err := k.SettleAndDistributeGVGFamily(ctx, primarySP, family)
@@ -269,11 +284,12 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
 	}
 
-	k.SetGVGFamily(ctx, successorSP.Id, family)
+	k.SetGVGFamily(ctx, family)
 	for _, gvg := range gvgs {
 		k.SetGVG(ctx, gvg)
 	}
-	store.Delete(types.GetGVGFamilyKey(primarySP.Id, familyID))
+	k.SetGVGStatisticsWithSP(ctx, srcStat)
+	k.SetGVGStatisticsWithSP(ctx, dstStat)
 	return nil
 }
 
@@ -379,19 +395,15 @@ func (k Keeper) BatchSetGVGStatisticsWithinSP(ctx sdk.Context, gvgsStatisticsWit
 }
 
 func (k Keeper) StorageProviderExitable(ctx sdk.Context, spID uint32) error {
-	store := ctx.KVStore(k.storeKey)
+	stat, found := k.GetGVGStatisticsWithinSP(ctx, spID)
+	if found {
+		if stat.PrimaryCount != 0 {
+			return types.ErrSPCanNotExit.Wrapf("not swap out from all the family, stat: %s", stat.String())
+		}
 
-	prefixStore := prefix.NewStore(store, types.GetGVGFamilyPrefixKey(spID))
-	iter := prefixStore.Iterator(nil, nil)
-	if iter.Valid() {
-		var family types.GlobalVirtualGroupFamily
-		k.cdc.MustUnmarshal(iter.Value(), &family)
-		return types.ErrSPCanNotExit.Wrapf("not swap out from all the family, key: %s", family.String())
-	}
-
-	gvgStat, found := k.GetGVGStatisticsWithinSP(ctx, spID)
-	if found && gvgStat.SecondaryCount != 0 {
-		return types.ErrSPCanNotExit.Wrapf("not swap out from all the gvgs, remain: %d", gvgStat.SecondaryCount)
+		if stat.SecondaryCount != 0 {
+			return types.ErrSPCanNotExit.Wrapf("not swap out from all the gvgs, stat: %s", stat.String())
+		}
 	}
 	return nil
 }

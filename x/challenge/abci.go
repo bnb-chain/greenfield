@@ -76,7 +76,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 		redundancyIndex := k.RandomRedundancyIndex(seed, uint64(len(gvg.SecondarySpIds)+1))
 		if redundancyIndex == types.RedundancyIndexPrimary { // primary sp
-			spOperatorId = bucket.PrimarySpId
+			spOperatorId = gvg.PrimarySpId
 		} else {
 			spOperatorId = gvg.SecondarySpIds[redundancyIndex]
 		}

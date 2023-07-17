@@ -50,7 +50,7 @@ func RandInt64(min, max int64) int64 {
 	return min + rand.Int63n(max-min)
 }
 
-func BlsSignAndVerify(sp StorageProvider, signBz [32]byte) ([]byte, error) {
+func BlsSignAndVerify(sp *StorageProvider, signBz [32]byte) ([]byte, error) {
 	secondarySig, err := sp.BlsKey.Sign(signBz[:])
 	if err != nil {
 		return nil, err

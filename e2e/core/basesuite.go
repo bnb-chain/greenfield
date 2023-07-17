@@ -14,6 +14,7 @@ import (
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
@@ -51,7 +52,7 @@ type BaseSuite struct {
 	ValidatorBLS     keys.KeyManager
 	Relayer          keys.KeyManager
 	Challenger       keys.KeyManager
-	StorageProviders []StorageProvider
+	StorageProviders map[uint32]*StorageProvider
 }
 
 func (s *BaseSuite) SetupSuite() {
@@ -69,7 +70,7 @@ func (s *BaseSuite) SetupSuite() {
 	s.Challenger, err = keys.NewMnemonicKeyManager(s.Config.ChallengerMnemonic)
 	s.Require().NoError(err)
 
-	var spIDs []uint32
+	s.StorageProviders = make(map[uint32]*StorageProvider, 7)
 	for i, spMnemonics := range s.Config.SPMnemonics {
 		sp := StorageProvider{}
 		sp.OperatorKey, err = keys.NewMnemonicKeyManager(spMnemonics.OperatorMnemonic)
@@ -91,46 +92,50 @@ func (s *BaseSuite) SetupSuite() {
 		s.Require().NoError(err)
 		sp.Info = resp.StorageProvider
 		sp.GlobalVirtualGroupFamilies = make(map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup)
-		s.StorageProviders = append(s.StorageProviders, sp)
-
-		spIDs = append(spIDs, sp.Info.Id)
+		s.StorageProviders[sp.Info.Id] = &sp
 	}
 
-	for i, sp := range s.StorageProviders {
-		var gvgFamilies []*virtualgroupmoduletypes.GlobalVirtualGroupFamily
-		resp1, err1 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
-		s.Require().NoError(err1)
-		if len(resp1.GlobalVirtualGroupFamilies) == 0 {
+	s.RefreshGVGFamilies()
+	for _, sp := range s.StorageProviders {
+		if len(sp.GlobalVirtualGroupFamilies) == 0 {
 			// Create a GVG for each sp by default
 			deposit := sdk.Coin{
 				Denom:  s.Config.Denom,
 				Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
 			}
-			secondaryIds := append(spIDs[:i], spIDs[i+1:]...)
+			var secondaryIDs []uint32
+			for _, ssp := range s.StorageProviders {
+				if ssp.Info.Id != sp.Info.Id {
+					secondaryIDs = append(secondaryIDs, ssp.Info.Id)
+				}
+			}
 			msgCreateGVG := &virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
 				StorageProvider: sp.OperatorKey.GetAddr().String(),
-				SecondarySpIds:  secondaryIds,
+				SecondarySpIds:  secondaryIDs,
 				Deposit:         deposit,
 			}
 			s.SendTxBlock(sp.OperatorKey, msgCreateGVG)
-			resp2, err2 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: sp.Info.Id})
-			s.Require().NoError(err2)
+		}
+	}
+	s.RefreshGVGFamilies()
+}
 
-			gvgFamilies = resp2.GlobalVirtualGroupFamilies
-		} else {
-			gvgFamilies = resp1.GlobalVirtualGroupFamilies
-
+func (s *BaseSuite) RefreshGVGFamilies() {
+	resp1, err1 := s.Client.GlobalVirtualGroupFamilies(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamiliesRequest{Pagination: &query.PageRequest{Limit: math.MaxUint64}})
+	s.Require().NoError(err1)
+	for _, gvgFamily := range resp1.GvgFamilies {
+		sp, ok := s.StorageProviders[gvgFamily.PrimarySpId]
+		if !ok {
+			continue
 		}
 
-		for _, family := range gvgFamilies {
-			gvgsResp, err3 := s.Client.GlobalVirtualGroupByFamilyID(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{
-				StorageProviderId:          sp.Info.Id,
-				GlobalVirtualGroupFamilyId: family.Id,
-			})
-			s.Require().NoError(err3)
-			sp.GlobalVirtualGroupFamilies[family.Id] = gvgsResp.GlobalVirtualGroups
-			s.StorageProviders[i] = sp
-		}
+		gvgsResp, err3 := s.Client.GlobalVirtualGroupByFamilyID(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{
+			StorageProviderId:          sp.Info.Id,
+			GlobalVirtualGroupFamilyId: gvgFamily.Id,
+		})
+		s.Require().NoError(err3)
+		sp.GlobalVirtualGroupFamilies[gvgFamily.Id] = gvgsResp.GlobalVirtualGroups
+		s.StorageProviders[gvgFamily.PrimarySpId] = sp
 	}
 }
 
@@ -342,8 +347,8 @@ func (s *BaseSuite) LatestHeight() (int64, error) {
 
 func (sp *StorageProvider) GetFirstGlobalVirtualGroup() (*virtualgroupmoduletypes.GlobalVirtualGroup, bool) {
 	for _, family := range sp.GlobalVirtualGroupFamilies {
-		if len(family) != 0 {
-			return family[0], true
+		for _, gvg := range family {
+			return gvg, true
 		}
 	}
 	return nil, false
@@ -547,16 +552,16 @@ func (s *BaseSuite) CreateObject(user keys.KeyManager, primarySP *StorageProvide
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
-		if s.StorageProviders[i].Info.Id != primarySP.Info.Id {
-			ssp := s.StorageProviders[i]
-			secondarySps = append(secondarySps, &ssp)
+		if s.StorageProviders[spID].Info.Id != primarySP.Info.Id {
+			ssp := s.StorageProviders[spID]
+			secondarySps = append(secondarySps, ssp)
 		}
 	}
 	aggBlsSig, err := BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
@@ -623,4 +628,25 @@ func (s *BaseSuite) CreateGlobalVirtualGroup(sp *StorageProvider, familyID uint3
 
 func (s *BaseSuite) GetChainID() string {
 	return s.Config.ChainId
+}
+
+func (s *BaseSuite) PickStorageProvider() *StorageProvider {
+	for _, sp := range s.StorageProviders {
+		return sp
+	}
+	return nil
+}
+
+func (s *BaseSuite) PickStorageProviderByBucketName(bucketName string) *StorageProvider {
+	queryHeadBucketResponse, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	})
+	s.Require().NoError(err)
+
+	family, err := s.Client.GlobalVirtualGroupFamily(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
+		FamilyId: queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId,
+	})
+	s.Require().NoError(err)
+
+	return s.StorageProviders[family.GlobalVirtualGroupFamily.PrimarySpId]
 }

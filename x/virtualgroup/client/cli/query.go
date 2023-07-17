@@ -22,8 +22,9 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 
 	cmd.AddCommand(CmdGlobalVirtualGroup())
 	cmd.AddCommand(CmdGlobalVirtualGroupByFamilyID())
-	cmd.AddCommand(CmdGlobalVirtualGroupFamilies())
 	cmd.AddCommand(CmdGlobalVirtualGroupFamily())
+
+	cmd.AddCommand(CmdGlobalVirtualGroupFamilies())
 
 	// this line is used by starport scaffolding # 1
 

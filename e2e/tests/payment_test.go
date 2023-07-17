@@ -552,8 +552,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	var err error
 
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -826,8 +825,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteBucket_WithReadQuota() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -872,8 +870,7 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1018,10 +1015,10 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(expectChecksum[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[uint32(i)], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[uint32(i)].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -1272,8 +1269,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithoutPriceChange
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1360,8 +1356,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1474,8 +1469,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserve
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1540,8 +1534,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserve
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1635,8 +1628,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1724,8 +1716,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1780,8 +1771,7 @@ func (s *PaymentTestSuite) TestStorageBill_CancelCreateObject() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1834,8 +1824,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithoutPriceChange() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1889,8 +1878,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChange() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -1951,8 +1939,7 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -2005,8 +1992,7 @@ func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		StorageProviderId: sp.Info.Id,
-		FamilyId:          gvg.FamilyId,
+		FamilyId: gvg.FamilyId,
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
@@ -2039,7 +2025,7 @@ func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
 	for _, sp := range s.StorageProviders {
 		for _, id := range gvg.SecondarySpIds {
 			if sp.Info.Id == id {
-				secondarySp = &sp
+				secondarySp = sp
 				break
 			}
 		}
@@ -2099,11 +2085,11 @@ func (s *PaymentTestSuite) TestVirtualGroup_SwapOut() {
 
 	familyResp, err := s.Client.GlobalVirtualGroupFamilies(
 		context.Background(),
-		&virtualgrouptypes.QueryGlobalVirtualGroupFamiliesRequest{StorageProviderId: anotherSP.Info.Id})
+		&virtualgrouptypes.QueryGlobalVirtualGroupFamiliesRequest{})
 	s.Require().NoError(err)
-	anotherSPsFamilies := familyResp.GlobalVirtualGroupFamilies
+	anotherSPsFamilies := familyResp.GvgFamilies
 	s.Require().Greater(len(anotherSPsFamilies), 0)
-	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(&anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
+	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(anotherSP, anotherSPsFamilies[0].Id, anotherSecondarySPIDs, 1)
 
 	gvgResp, err := s.Client.GlobalVirtualGroup(
 		context.Background(),
@@ -2231,7 +2217,7 @@ func (s *PaymentTestSuite) getChargeSize(payloadSize uint64) uint64 {
 	}
 }
 
-func (s *PaymentTestSuite) calculateLockFee(sp core.StorageProvider, bucketName, objectName string, payloadSize uint64) sdkmath.Int {
+func (s *PaymentTestSuite) calculateLockFee(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) sdkmath.Int {
 	ctx := context.Background()
 
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
@@ -2255,7 +2241,7 @@ func (s *PaymentTestSuite) calculateLockFee(sp core.StorageProvider, bucketName,
 	return gvgFamilyRate.Add(gvgRate).Add(taxRate).MulRaw(int64(paymentParams.Params.VersionedParams.ReserveTime))
 }
 
-func (s *PaymentTestSuite) getPrices(sp core.StorageProvider, timestamp int64) (sdk.Dec, sdk.Dec, sdk.Dec) {
+func (s *PaymentTestSuite) getPrices(sp *core.StorageProvider, timestamp int64) (sdk.Dec, sdk.Dec, sdk.Dec) {
 	ctx := context.Background()
 
 	spStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
@@ -2275,7 +2261,7 @@ func (s *PaymentTestSuite) getPrices(sp core.StorageProvider, timestamp int64) (
 		secondaryStoragePriceByTimeResp.SecondarySpStorePrice.StorePrice
 }
 
-func (s *PaymentTestSuite) calculateReadRates(sp core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
+func (s *PaymentTestSuite) calculateReadRates(sp *core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
@@ -2295,7 +2281,7 @@ func (s *PaymentTestSuite) calculateReadRates(sp core.StorageProvider, bucketNam
 	return gvgFamilyRate, taxRate, gvgFamilyRate.Add(taxRate)
 }
 
-func (s *PaymentTestSuite) calculateReadRatesCurrentTimestamp(sp core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
+func (s *PaymentTestSuite) calculateReadRatesCurrentTimestamp(sp *core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
@@ -2315,7 +2301,7 @@ func (s *PaymentTestSuite) calculateReadRatesCurrentTimestamp(sp core.StoragePro
 	return gvgFamilyRate, taxRate, gvgFamilyRate.Add(taxRate)
 }
 
-func (s *PaymentTestSuite) calculateStorageRates(sp core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
+func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
@@ -2346,7 +2332,7 @@ func (s *PaymentTestSuite) calculateStorageRates(sp core.StorageProvider, bucket
 	return gvgFamilyRate, gvgRate, taxRate, gvgFamilyRate.Add(gvgRate).Add(taxRate)
 }
 
-func (s *PaymentTestSuite) calculateStorageRatesCurrentTimestamp(sp core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
+func (s *PaymentTestSuite) calculateStorageRatesCurrentTimestamp(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
@@ -2601,10 +2587,10 @@ func (s *PaymentTestSuite) sealObject(bucketName, objectName string, objectId st
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, objectId, storagetypes.GenerateHash(checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
 	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[uint32(i)], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[uint32(i)].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
