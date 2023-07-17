@@ -56,6 +56,15 @@ func TestSettleStreamRecord(t *testing.T) {
 	rate := sdkmath.NewInt(-100)
 	staticBalance := sdkmath.NewInt(1e10)
 	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithRateChange(rate).WithStaticBalanceChange(staticBalance)
+	sr := &types.StreamRecord{Account: user.String(),
+		OutFlowCount:      1,
+		StaticBalance:     sdkmath.ZeroInt(),
+		BufferBalance:     sdkmath.ZeroInt(),
+		LockBalance:       sdkmath.ZeroInt(),
+		NetflowRate:       sdkmath.ZeroInt(),
+		FrozenNetflowRate: sdkmath.ZeroInt(),
+	}
+	keeper.SetStreamRecord(ctx, sr)
 	_, err := keeper.UpdateStreamRecordByAddr(ctx, change)
 	require.NoError(t, err)
 	// check
