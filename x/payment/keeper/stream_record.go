@@ -38,6 +38,9 @@ func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
 	if streamRecord.BufferBalance.IsNil() || streamRecord.BufferBalance.IsNegative() {
 		panic(fmt.Sprintf("invalid streamRecord bufferBalance %s", streamRecord.BufferBalance))
 	}
+	if streamRecord.NetflowRate.IsNegative() && streamRecord.OutFlowCount == 0 {
+		panic(fmt.Sprintf("invalid streamRecord netflowRate %s when outFlowCount is zero", streamRecord.NetflowRate))
+	}
 }
 
 // SetStreamRecord set a specific streamRecord in the store from its index
@@ -112,8 +115,6 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 // it only handles the lock balance change and ignore the other changes(since the streams are already changed and the
 // accumulated OutFlows are changed outside this function)
 func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
-	currentTimestamp := ctx.BlockTime().Unix()
-	streamRecord.CrudTimestamp = currentTimestamp
 	// update lock balance
 	if !change.LockBalanceChange.IsZero() {
 		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
@@ -121,6 +122,11 @@ func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.St
 		if streamRecord.LockBalance.IsNegative() {
 			return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
 		}
+	}
+	// update netflow
+	// when there are object/bucket deletions in end block, the frozen rate should be updated
+	if !change.RateChange.IsZero() {
+		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(change.RateChange)
 	}
 	return nil
 }

@@ -52,8 +52,9 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFlows) (err error) {
 	userFlowsList = k.MergeUserFlows(userFlowsList)
 	currentTime := ctx.BlockTime().Unix()
-	var streamRecordChanges []types.StreamRecordChange
+
 	for _, userFlows := range userFlowsList {
+		var streamRecordChanges []types.StreamRecordChange
 		from := userFlows.From
 		streamRecord, found := k.GetStreamRecord(ctx, from)
 		if !found {
@@ -91,11 +92,18 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 		streamRecord.OutFlowCount = uint64(int64(streamRecord.OutFlowCount) + int64(deltaFlowCount))
 
 		k.SetStreamRecord(ctx, streamRecord)
+
+		// when the account is frozen, the flows to GVG/GVG family had or will be deducted,
+		// then should not update the flow rate
+		// for user's payment account, the frozen flow rate will be updated
+		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
+			err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+			if err != nil {
+				return fmt.Errorf("apply stream record changes failed: %w", err)
+			}
+		}
 	}
-	err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
-	if err != nil {
-		return fmt.Errorf("apply stream record changes failed: %w", err)
-	}
+
 	return nil
 }
 

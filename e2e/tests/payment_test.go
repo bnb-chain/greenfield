@@ -636,6 +636,8 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	s.T().Logf("familyStreamRecord %s", core.YamlString(familyStreamRecord))
 	govStreamRecord := s.getStreamRecord(paymenttypes.GovernanceAddress.String())
 	s.T().Logf("govStreamRecord %s", core.YamlString(govStreamRecord))
+	paymentStreamRecord := s.getStreamRecord(paymentAddr)
+	s.T().Logf("paymentStreamRecord %s", core.YamlString(paymentStreamRecord))
 
 	// wait until settle time
 	retryCount := 0
@@ -672,7 +674,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	s.T().Logf("govStreamRecordAfterSettle %s", core.YamlString(govStreamRecordAfterSettle))
 	s.Require().NotEqual(govStreamRecordAfterSettle.StaticBalance.String(), govStreamRecord.StaticBalance.String())
 	govStreamRecordStaticBalanceDelta := govStreamRecordAfterSettle.StaticBalance.Sub(govStreamRecord.StaticBalance)
-	expectedGovBalanceDelta := userStreamRecord.NetflowRate.Neg().MulRaw(userStreamRecordAfterAutoSettle.CrudTimestamp - userStreamRecord.CrudTimestamp)
+	expectedGovBalanceDelta := paymentStreamRecord.NetflowRate.Neg().MulRaw(paymentAccountStreamRecordAfterAutoSettle.CrudTimestamp - paymentStreamRecord.CrudTimestamp)
 	s.Require().Equal(expectedGovBalanceDelta.String(), govStreamRecordStaticBalanceDelta.String())
 
 	// deposit, balance not enough to resume
@@ -1075,6 +1077,95 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	deleteObjectMsg := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
 	deleteObjectSimRes := s.SimulateTx(deleteObjectMsg, user)
 	s.T().Logf("deleteObjectSimRes %v", deleteObjectSimRes.Result)
+}
+
+func (s *PaymentTestSuite) TestStorageBill_ForceDeleteObjectBucket_WhenPaymentAccountFrozen() {
+	ctx := context.Background()
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	sp := s.StorageProviders[0]
+
+	queryParamsRequest := paymenttypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+	s.T().Log("queryParamsResponse", core.YamlString(queryParamsResponse))
+	oldReserveTime := queryParamsResponse.Params.VersionedParams.ReserveTime
+	oldForceSettleTime := queryParamsResponse.Params.ForcedSettleTime
+
+	params := queryParamsResponse.Params
+	params.VersionedParams.ReserveTime = 5
+	params.ForcedSettleTime = 2
+	s.updateParams(params)
+
+	// create bucket
+	bucketName := s.createBucket(user, 0)
+
+	// create & seal objects
+	_, _, objectName1, objectId1, checksums1, _ := s.createObject(user, bucketName, false)
+	s.sealObject(bucketName, objectName1, objectId1, checksums1)
+
+	_, _, objectName2, objectId2, checksums2, _ := s.createObject(user, bucketName, false)
+	s.sealObject(bucketName, objectName2, objectId2, checksums2)
+
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: user.GetAddr().String()}
+	queryBalanceResponse, err := s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+
+	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.SubRaw(5*types.DecimalGwei)),
+	))
+
+	simulateResponse := s.SimulateTx(msgSend, user)
+	gasLimit := simulateResponse.GasInfo.GetGasUsed()
+	gasPrice, err := sdk.ParseCoinNormalized(simulateResponse.GasInfo.GetMinGasPrice())
+	s.Require().NoError(err)
+
+	msgSend.Amount = sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.Sub(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))),
+	)
+	s.SendTxBlock(user, msgSend)
+	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(ctx, &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(int64(0), queryBalanceResponse.Balance.Amount.Int64())
+
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName1,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
+
+	// for freeze account
+	time.Sleep(5 * time.Second)
+	userStreamRecord := s.getStreamRecord(user.GetAddr().String())
+	s.Require().True(userStreamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
+
+	// force delete bucket
+	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(sp.GcKey.GetAddr(), bucketName, "test")
+	txRes := s.SendTxBlock(sp.GcKey, msgDiscontinueBucket)
+	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
+
+	for {
+		time.Sleep(200 * time.Millisecond)
+		statusRes, err := s.TmClient.TmClient.Status(context.Background())
+		s.Require().NoError(err)
+		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
+
+		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
+
+		if blockTime > deleteAt {
+			break
+		}
+	}
+
+	_, err = s.Client.HeadBucket(ctx, &storagetypes.QueryHeadBucketRequest{BucketName: bucketName})
+	s.Require().ErrorContains(err, "No such bucket")
+
+	// revert params
+	params = queryParamsResponse.Params
+	params.VersionedParams.ReserveTime = oldReserveTime
+	params.ForcedSettleTime = oldForceSettleTime
+	s.updateParams(params)
 }
 
 // TestStorageBill_ForceDeleteObjectBucket_WithPriceChange will cover the following case:
