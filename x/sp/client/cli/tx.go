@@ -69,14 +69,14 @@ Where create_storagep_provider.json contains:
       "seal_address": "0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
       "approval_address": "0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
       "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
-      "endpoint": "https://www.greenfield.io",
+      "endpoint": "https://sp0.greenfield.io",
       "deposit": {
         "denom": "BNB",
-        "amount": "10000000000000000000000"
+        "amount": "1000000000000000000000"
       },
-      "read_price": "0.087",
-      "store_price": "0.0048",
-      "free_read_quota": 10000000000,
+      "read_price": "0.108", 
+      "store_price": "0.016",
+      "free_read_quota": 1073741824,
       "creator": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2",
       "bls_key": "af8c586885a490a1775bcbef95e6162de1904777f3fb91e3bfd0ffd690fe0d477d0984f11852c64dc77d4583c99f34cb",
       "bls_proof": "8bbce5330c5a46416ec41bfb93d938e8fb2e01d0a4035bd7b87efb98762e5e71faf00427d991003680325b7f97b362640f8e58e69bf774cd59e2267bdfe5a2e6578194b6834531893a39253c718edae2511977991895cdc8dd9e1136e43d721c"
@@ -87,8 +87,11 @@ Where create_storagep_provider.json contains:
   "metadata": "4pIMOgIGx1vZGU=",
   "deposit": "1000000000000000000BNB"
 }
-modify the related configrations as you need.
-`, version.AppName, version.AppName)),
+modify the related configrations as you need. Example:
+1) read_price = $0.09/1024/1024/1024/300(bnb price)*10^18/30/24/60/60 = 0.108 wei/bytes/s
+2) store_price = $0.023*(1-6*0.07)/1024/1024/1024/300(bnb price)*10^18/30/24/60/60 = 0.016 wei/bytes/s. (0.07 division for each secondary SP)
+3) free_read_quota defines free read quota for each bucket, uint bytes.
+`, version.AppName)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
