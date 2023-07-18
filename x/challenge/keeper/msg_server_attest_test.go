@@ -131,9 +131,9 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 		Return(historicalInfo, true).AnyTimes()
 
 	existBucket := &storagetypes.BucketInfo{
-		Id:          math.NewUint(10),
-		BucketName:  "existbucket",
-		PrimarySpId: 1,
+		Id:                         math.NewUint(10),
+		GlobalVirtualGroupFamilyId: 10,
+		BucketName:                 "existbucket",
 	}
 	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
 		Return(existBucket, true).AnyTimes()
@@ -154,8 +154,11 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 
 	spOperatorAcc := sample.RandAccAddress()
 	sp := &sptypes.StorageProvider{Id: 10, OperatorAddress: spOperatorAcc.String()}
+
 	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
 		Return(sp, true).AnyTimes()
+
+	s.storageKeeper.EXPECT().MustGetPrimarySPForBucket(gomock.Any(), gomock.Any()).Return(sp).AnyTimes()
 
 	gvg := &virtualgrouptypes.GlobalVirtualGroup{
 		SecondarySpIds: []uint32{10},
@@ -211,9 +214,8 @@ func (s *TestSuite) TestAttest_Normal() {
 		Return(historicalInfo, true).AnyTimes()
 
 	existBucket := &storagetypes.BucketInfo{
-		Id:          math.NewUint(10),
-		BucketName:  "existbucket",
-		PrimarySpId: 1,
+		Id:         math.NewUint(10),
+		BucketName: "existbucket",
 	}
 	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
 		Return(existBucket, true).AnyTimes()
@@ -235,7 +237,7 @@ func (s *TestSuite) TestAttest_Normal() {
 		Return(nil).AnyTimes()
 	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
 		Return(sp, true).AnyTimes()
-
+	s.storageKeeper.EXPECT().MustGetPrimarySPForBucket(gomock.Any(), gomock.Any()).Return(sp).AnyTimes()
 	attestMsg := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
 		ChallengeId:       challengeId,

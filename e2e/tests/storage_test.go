@@ -56,7 +56,7 @@ var (
 
 func (s *StorageTestSuite) TestCreateBucket() {
 	var err error
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.User
@@ -79,7 +79,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -104,7 +104,7 @@ func (s *StorageTestSuite) TestCreateBucket() {
 func (s *StorageTestSuite) TestCreateObject() {
 	var err error
 	// CreateBucket
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -126,7 +126,7 @@ func (s *StorageTestSuite) TestCreateObject() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -173,11 +173,11 @@ func (s *StorageTestSuite) TestCreateObject() {
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -292,7 +292,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 func (s *StorageTestSuite) TestDeleteBucket() {
 	var err error
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	s.T().Logf("Global virtual group: %s", gvg.String())
@@ -354,11 +354,11 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -384,7 +384,7 @@ func (s *StorageTestSuite) TestDeleteBucket() {
 
 func (s *StorageTestSuite) TestMirrorBucket() {
 	var err error
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.User
@@ -407,7 +407,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -434,7 +434,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 func (s *StorageTestSuite) TestMirrorObject() {
 	var err error
 	// CreateBucket
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -456,7 +456,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -502,11 +502,11 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvg.Id, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -556,11 +556,11 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	secondarySPBlsPubKeys = make([]bls.PublicKey, 0)
 	blsSignHash = storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -763,7 +763,7 @@ func (s *StorageTestSuite) TestDiscontinueBucket_Normal() {
 	deleteAt1 := filterDiscontinueBucketEventFromTx(txRes1).DeleteAt
 
 	time.Sleep(3 * time.Second)
-	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp1.GcKey.GetAddr(), bucketName2, "test")
+	msgDiscontinueBucket2 := storagetypes.NewMsgDiscontinueBucket(sp2.GcKey.GetAddr(), bucketName2, "test")
 	txRes2 := s.SendTxBlock(sp2.GcKey, msgDiscontinueBucket2)
 	deleteAt2 := filterDiscontinueBucketEventFromTx(txRes2).DeleteAt
 
@@ -903,14 +903,14 @@ func (s *StorageTestSuite) TestDiscontinueBucket_UserDeleted() {
 }
 
 // createObject with default VISIBILITY_TYPE_PRIVATE
-func (s *StorageTestSuite) createObject() (core.StorageProvider, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
+func (s *StorageTestSuite) createObject() (*core.StorageProvider, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
 	return s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PRIVATE)
 }
 
-func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityType) (core.StorageProvider, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
+func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityType) (*core.StorageProvider, keys.KeyManager, string, storagetypes.Uint, string, storagetypes.Uint) {
 	var err error
 	// CreateBucket
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -932,7 +932,7 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, v)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -990,11 +990,11 @@ func (s *StorageTestSuite) createObjectWithVisibility(v storagetypes.VisibilityT
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -1137,7 +1137,7 @@ func filterDeleteBucketEventFromTx(txRes *sdk.TxResponse) storagetypes.EventDele
 func (s *StorageTestSuite) TestCancelCreateObject() {
 	var err error
 	// CreateBucket
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -1159,7 +1159,7 @@ func (s *StorageTestSuite) TestCancelCreateObject() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -1208,7 +1208,7 @@ func (s *StorageTestSuite) TestCancelCreateObject() {
 func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 	var err error
 	// CreateBucket
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -1230,7 +1230,7 @@ func (s *StorageTestSuite) TestCreateObjectWithCommonPrefix() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -1421,7 +1421,7 @@ func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
 func (s *StorageTestSuite) TestRejectSealObject() {
 	var err error
 	// CreateBucket
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -1443,7 +1443,7 @@ func (s *StorageTestSuite) TestRejectSealObject() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -1499,13 +1499,13 @@ func (s *StorageTestSuite) TestRejectSealObject() {
 
 func (s *StorageTestSuite) TestMigrationBucket() {
 	// construct bucket and object
-	primarySP := s.StorageProviders[0]
+	primarySP := s.BaseSuite.PickStorageProvider()
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := storageutils.GenRandomBucketName()
 	objectName := storageutils.GenRandomObjectName()
-	_, _, _, bucketInfo := s.BaseSuite.CreateObject(user, &primarySP, gvg.Id, bucketName, objectName)
+	_, _, _, bucketInfo := s.BaseSuite.CreateObject(user, primarySP, gvg.Id, bucketName, objectName)
 
 	var err error
 	dstPrimarySP := s.CreateNewStorageProvider()
@@ -1524,7 +1524,7 @@ func (s *StorageTestSuite) TestMigrationBucket() {
 
 	// complete migration bucket
 	var secondarySPIDs []uint32
-	var secondarySPs []core.StorageProvider
+	var secondarySPs []*core.StorageProvider
 
 	for _, ssp := range s.StorageProviders {
 		if ssp.Info.Id != primarySP.Info.Id {

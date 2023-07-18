@@ -29,7 +29,7 @@ func TestEip712TestSuite(t *testing.T) {
 
 func (s *Eip712TestSuite) TestMultiMessages() {
 	var err error
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	user := s.GenAndChargeAccounts(1, 1000000)[0]

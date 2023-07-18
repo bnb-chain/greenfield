@@ -29,17 +29,17 @@ service Query {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_by_family_id";
   }
 
-  // Queries a list of global virtual group families by storage provider id.
-  rpc GlobalVirtualGroupFamilies(QueryGlobalVirtualGroupFamiliesRequest) returns (QueryGlobalVirtualGroupFamiliesResponse) {
-    option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_families";
-  }
-
   // Queries a global virtual group family by its id.
   rpc GlobalVirtualGroupFamily(QueryGlobalVirtualGroupFamilyRequest) returns (QueryGlobalVirtualGroupFamilyResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_family";
   }
 
   // this line is used by starport scaffolding # 2
+
+  // Queries a list of GlobalVirtualGroupFamilies items.
+  rpc GlobalVirtualGroupFamilies(QueryGlobalVirtualGroupFamiliesRequest) returns (QueryGlobalVirtualGroupFamiliesResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_families";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -68,22 +68,20 @@ message QueryGlobalVirtualGroupByFamilyIDResponse {
   repeated GlobalVirtualGroup global_virtual_groups = 1;
 }
 
-message QueryGlobalVirtualGroupFamiliesRequest {
-  uint32 storage_provider_id = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-
-message QueryGlobalVirtualGroupFamiliesResponse {
-  repeated GlobalVirtualGroupFamily global_virtual_group_families = 1;
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-}
-
 message QueryGlobalVirtualGroupFamilyRequest {
-  uint32 storage_provider_id = 1;
-  uint32 family_id = 2;
+  uint32 family_id = 1;
 }
 
 message QueryGlobalVirtualGroupFamilyResponse {
   GlobalVirtualGroupFamily global_virtual_group_family = 1;
 }
+
 // this line is used by starport scaffolding # 3
+message QueryGlobalVirtualGroupFamiliesRequest {
+  cosmos.base.query.v1beta1.PageRequest pagination = 1;
+}
+
+message QueryGlobalVirtualGroupFamiliesResponse {
+  repeated GlobalVirtualGroupFamily gvg_families = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

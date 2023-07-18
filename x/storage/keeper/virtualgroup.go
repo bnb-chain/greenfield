@@ -123,13 +123,13 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 
 	if objectInfo.PayloadSize == 0 {
 		// unlock and charge store fee
-		err = k.ChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+		err = k.ChargeObjectStoreFee(ctx, gvg.PrimarySpId, bucketInfo, internalBucketInfo, objectInfo)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		// unlock and charge store fee
-		err = k.UnlockAndChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+		err = k.UnlockAndChargeObjectStoreFee(ctx, gvg.PrimarySpId, bucketInfo, internalBucketInfo, objectInfo)
 		if err != nil {
 			return nil, err
 		}
@@ -161,7 +161,7 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 }
 
 func (k Keeper) SealEmptyObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, objectInfo *types.ObjectInfo) (*types.LocalVirtualGroup, error) {
-	family, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.PrimarySpId, bucketInfo.GlobalVirtualGroupFamilyId)
+	family, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
 	if !found {
 		return nil, vgtypes.ErrGVGFamilyNotExist
 	}
