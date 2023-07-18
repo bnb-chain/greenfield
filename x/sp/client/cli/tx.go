@@ -87,7 +87,7 @@ Where create_storagep_provider.json contains:
   "metadata": "4pIMOgIGx1vZGU=",
   "deposit": "1000000000000000000BNB"
 }
-modify the related configrations as you need, where you can get the pubkey using "%s tendermint show-validator"
+modify the related configrations as you need.
 `, version.AppName, version.AppName)),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
