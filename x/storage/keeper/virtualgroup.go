@@ -32,7 +32,6 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 }
 
 func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketInfo, internalBucketInfo *types.InternalBucketInfo, gvgMappings []*types.GVGMapping) error {
-
 	gvgsMap := make(map[uint32]uint32)
 	for _, mapping := range gvgMappings {
 		gvgsMap[mapping.SrcGlobalVirtualGroupId] = mapping.DstGlobalVirtualGroupId
@@ -66,6 +65,16 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 
 		k.virtualGroupKeeper.SetGVG(ctx, srcGVG)
 		k.virtualGroupKeeper.SetGVG(ctx, dstGVG)
+
+		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
+			Id:                      lvg.Id,
+			BucketId:                bucketInfo.Id,
+			SrcGlobalVirtualGroupId: srcGVG.Id,
+			DstGlobalVirtualGroupId: dstGVG.Id,
+			StoredSize:              lvg.StoredSize,
+		}); err != nil {
+			return err
+		}
 	}
 
 	err := k.ChargeBucketReadStoreFee(ctx, bucketInfo, internalBucketInfo)
@@ -149,10 +158,11 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 		}
 	} else {
 		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
-			Id:                   lvg.Id,
-			BucketId:             bucketInfo.Id,
-			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
-			StoredSize:           lvg.StoredSize,
+			Id:                      lvg.Id,
+			BucketId:                bucketInfo.Id,
+			SrcGlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			DstGlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:              lvg.StoredSize,
 		}); err != nil {
 			return nil, err
 		}
