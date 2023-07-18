@@ -33,6 +33,13 @@ func WithGrpcConnectionAndDialOption(grpcAddr string, opts ...grpc.DialOption) G
 	})
 }
 
+// WithWebSocketClient returns a GreenfieldClientOption which specify that connection is a websocket connection
+func WithWebSocketClient() GreenfieldClientOption {
+	return GreenfieldClientOptionFunc(func(client *GreenfieldClient) {
+		client.useWebSocket = true
+	})
+}
+
 // grpcConn is used to establish a connection with a given address and dial options.
 func grpcConn(addr string, opts ...grpc.DialOption) *grpc.ClientConn {
 	conn, err := grpc.Dial(

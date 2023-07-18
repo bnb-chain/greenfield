@@ -1280,7 +1280,7 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 
 	s.Client.SetKeyManager(owner)
 
-	nonce, _ := s.Client.GetNonce()
+	nonce, _ := s.Client.GetNonce(ctx)
 	bucketNames := make([]string, 0)
 
 	// Create 250 Buckets
