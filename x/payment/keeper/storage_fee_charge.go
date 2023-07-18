@@ -104,13 +104,14 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 
 			// the stream record could be totally frozen, or in the process of resuming
 			var activeOutFlows, frozenOutFlows []types.OutFlow
-			var activeRateChanges, frozenRateChanges []types.StreamRecordChange
+			var activeRateChanges []types.StreamRecordChange
+			//var frozenRateChanges []types.StreamRecordChange
 			totalActiveRate, totalFrozenRate := sdk.ZeroInt(), sdk.ZeroInt()
 			for _, flowChange := range userFlows.Flows {
 				outFlow := k.GetOutFlow(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), types.OUT_FLOW_STATUS_FROZEN, sdk.MustAccAddressFromHex(flowChange.ToAddress))
 				if outFlow != nil {
 					frozenOutFlows = append(frozenOutFlows, flowChange)
-					frozenRateChanges = append(frozenRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithFrozenRateChange(flowChange.Rate))
+					//frozenRateChanges = append(frozenRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithFrozenRateChange(flowChange.Rate))
 					totalFrozenRate = totalFrozenRate.Add(flowChange.Rate)
 				} else {
 					activeOutFlows = append(activeOutFlows, flowChange)
