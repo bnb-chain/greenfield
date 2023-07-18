@@ -123,23 +123,17 @@ func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.St
 			return fmt.Errorf("lock balance can not become negative, current: %s", streamRecord.LockBalance)
 		}
 	}
-	// update netflow
-	// when there are object/bucket deletions in end block, the frozen rate should be updated
 	if !change.RateChange.IsZero() {
-		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(change.RateChange)
+		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(change.RateChange)
+	}
+	if !change.FrozenRateChange.IsZero() {
+		streamRecord.FrozenNetflowRate = streamRecord.FrozenNetflowRate.Add(change.FrozenRateChange)
 	}
 	return nil
 }
 
 func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
 	forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool) // force update in end block
-	if streamRecord.Status != types.STREAM_ACCOUNT_STATUS_ACTIVE {
-		if forced { //stream record is frozen
-			return k.UpdateFrozenStreamRecord(ctx, streamRecord, change)
-		}
-		return fmt.Errorf("stream account %s is frozen", streamRecord.Account)
-	}
-
 	isPay := change.StaticBalanceChange.IsNegative() || change.RateChange.IsNegative()
 	currentTimestamp := ctx.BlockTime().Unix()
 	timestamp := streamRecord.CrudTimestamp
