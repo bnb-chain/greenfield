@@ -10,7 +10,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -28,6 +32,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	spTxCmd.AddCommand(
+		CmdCreateStorageProvider(),
 		CmdDeposit(),
 		CmdEditStorageProvider(),
 		CmdGrantDepositAuthorization(),
@@ -36,6 +41,108 @@ func GetTxCmd() *cobra.Command {
 	// this line is used by starport scaffolding # 1
 
 	return spTxCmd
+}
+
+func CmdCreateStorageProvider() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-storage-provider [path/to/create_storage_provider_proposal.json]",
+		Short: "submit a create new storage provider proposal",
+		Args:  cobra.ExactArgs(1),
+		Long:  `Submit a create new storage provider proposal by submitting a JSON file with the new storage provider details, once the proposal has been passed, create a new storage provider initialized with a self deposit.`,
+		Example: strings.TrimSpace(
+			fmt.Sprintf(`
+$ %s tx sp create-storage-provider path/to/create_validator_proposal.json --from keyname
+Where create_storagep_provider.json contains:
+{
+  "messages":[
+    {
+      "@type":"/greenfield.sp.MsgCreateStorageProvider",
+      "description":{
+        "moniker": "sp0",
+        "identity":"",
+        "website":"",
+        "security_contact":"",
+        "details":""
+      },
+      "sp_address":"0x012Eadb23D670db68Ba8e67e6F34DE6ACE55b547",
+      "funding_address":"0x84b3307313e253eF5787b55616BB1F6F7139C2c0",
+      "seal_address":"0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
+      "approval_address":"0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
+      "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
+      "endpoint": "https://www.greenfield.io",
+      "deposit":{
+        "denom":"BNB",
+        "amount":"10000000000000000000000"
+      },
+      "read_price": "0.087",
+      "store_price": "0.0048",
+      "free_read_quota": 10000000000,
+      "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2",
+      "bls_key": "89f5e82d1bbb7c751b063d6d69d30c5812a088cabb9ed015b1741939a45a896d83b5435d63257b954450c26d857de4e1",
+      "bls_proof": "987406f0dd2e5f5f3e9e3e447f832dbf73809479ea552fe9b23e06e65651c01a5893e92a797d12078ef9b0c9eb72b8d90faaee65f738e222793d94b80a58cd0f329375ee04e8460f12f4772cf42859d30dd6444ed3350c3335aedf1dbde3bb68"
+    }
+  ],
+  "title": "create sp for test",
+  "summary": "test",
+  "metadata": "4pIMOgIGx1vZGU=",
+  "deposit": "1000000000000000000BNB"
+}
+modify the related configrations as you need, where you can get the pubkey using "%s tendermint show-validator"
+`, version.AppName, version.AppName)),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msgs, metadata, title, summary, deposit, err := govcli.ParseSubmitProposal(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			govMsg, err := v1.NewMsgSubmitProposal(msgs, deposit, clientCtx.GetFromAddress().String(), metadata, title, summary)
+			if err != nil {
+				return fmt.Errorf("invalid message: %w", err)
+			}
+
+			if len(msgs) != 1 {
+				return fmt.Errorf("invalid message length: %d", len(msgs))
+			}
+
+			spMsg, ok := msgs[0].(*types.MsgCreateStorageProvider)
+			if !ok || spMsg.ValidateBasic() != nil {
+				return fmt.Errorf("invalid create storage provider message")
+			}
+
+			fundingAddr, err := sdk.AccAddressFromHexUnsafe(spMsg.FundingAddress)
+			if err != nil {
+				return err
+			}
+			if !fundingAddr.Equals(clientCtx.GetFromAddress()) {
+				return fmt.Errorf("the from address should be the funding address: %s", fundingAddr.String())
+			}
+
+			spAddr, err := sdk.AccAddressFromHexUnsafe(spMsg.SpAddress)
+			if err != nil {
+				return err
+			}
+
+			grantee := authtypes.NewModuleAddress(govtypes.ModuleName)
+			authorization := types.NewDepositAuthorization(spAddr, &spMsg.Deposit)
+			authzMsg, err := authz.NewMsgGrant(clientCtx.GetFromAddress(), grantee, authorization, nil)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), authzMsg, govMsg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
 }
 
 func CmdEditStorageProvider() *cobra.Command {

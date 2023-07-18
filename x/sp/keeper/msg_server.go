@@ -354,7 +354,7 @@ func (k msgServer) checkBlsProof(blsPk []byte, sig string) error {
 		return types.ErrStorageProviderInvalidBlsKey
 	}
 	if !signature.Verify(blsPubKey, tmhash.Sum(blsPk)) {
-		return sdkerrors.ErrorInvalidSigner
+		return sdkerrors.ErrorInvalidSigner.Wrapf("check bls proof failed.")
 	}
 	return nil
 }
