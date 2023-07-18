@@ -150,6 +150,7 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 	} else {
 		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
 			Id:                   lvg.Id,
+			BucketId:             bucketInfo.Id,
 			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
 			StoredSize:           lvg.StoredSize,
 		}); err != nil {
