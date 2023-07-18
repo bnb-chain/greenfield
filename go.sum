@@ -163,6 +163,8 @@ github.com/bnb-chain/greenfield-cometbft v0.0.2-alpha.1 h1:DU/lvMpzyS5PzLaAcBu1x
 github.com/bnb-chain/greenfield-cometbft v0.0.2-alpha.1/go.mod h1:EBmwmUdaNbGPyGjf1cMuoN3pAeM2tQu7Lfg95813EAw=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1 h1:XcWulGacHVRiSCx90Q8Y//ajOrLNBQWR/KDB89dy3cU=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1/go.mod h1:ey1CiK4bYo1RBNJLRiVbYr5CMdSxci9S/AZRINLtppI=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230718023847-c7fa23e94e05 h1:qTCt70nuOAtBjZeOSkBbhFDnxAxw9jYP2WAezsV6qTU=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230718023847-c7fa23e94e05/go.mod h1:5nt4nrz2hgtz5i5funaQZnrjrmRstzUCa4yR2fmQyKs=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9 h1:6fLpmmI0EZvDTfPvI0zy5dBaaTUboHnEkoC5/p/w8TQ=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9/go.mod h1:rbc4o84RSEvhf09o2+4Qiazsv0snRJLiEZdk17HeIDw=
 github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230425074444-eb5869b05fe9 h1:1ZdK+iR1Up02bOa2YTZCml7PBpP//kcdamOcK6aWO/s=
@@ -1423,8 +1425,6 @@ github.com/yuin/goldmark v1.1.32/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9de
 github.com/yuin/goldmark v1.2.1/go.mod h1:3hX8gzYuyVAZsxl0MRgGTJEmQBFcNTphYh9decYSb74=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
 github.com/yuin/goldmark v1.4.1/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230717102632-da639ef3175c h1:Uz+8JTHkrMJfsbwg1bGSrgAedKen/nPb8MrdnwWYVQs=
-github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230717102632-da639ef3175c/go.mod h1:5nt4nrz2hgtz5i5funaQZnrjrmRstzUCa4yR2fmQyKs=
 github.com/zondax/hid v0.9.1 h1:gQe66rtmyZ8VeGFcOpbuH3r7erYtNEAezCAYu8LdkJo=
 github.com/zondax/hid v0.9.1/go.mod h1:l5wttcP0jwtdLjqjMMWFVEE7d1zO0jvSPA9OPZxWpEM=
 github.com/zondax/ledger-go v0.14.1 h1:Pip65OOl4iJ84WTpA4BKChvOufMhhbxED3BaihoZN4c=
