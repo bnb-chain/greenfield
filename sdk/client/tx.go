@@ -21,7 +21,7 @@ import (
 )
 
 type TransactionClient interface {
-	BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, grpcOpts ...grpc.CallOption) (*tx.BroadcastTxResponse, error)
+	BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error)
 	SimulateTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.SimulateResponse, error)
 	SignTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption) ([]byte, error)
 	GetNonce(ctx context.Context) (uint64, error)
@@ -30,7 +30,7 @@ type TransactionClient interface {
 }
 
 // BroadcastTx signs and broadcasts a tx with simulated gas(if not provided in txOpt)
-func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, grpcOpts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
+func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOpt *types.TxOption, opts ...grpc.CallOption) (*tx.BroadcastTxResponse, error) {
 	txConfig := authtx.NewTxConfig(c.codec, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	txBuilder := txConfig.NewTxBuilder()
 
@@ -77,7 +77,7 @@ func (c *GreenfieldClient) BroadcastTx(ctx context.Context, msgs []sdk.Msg, txOp
 			Mode:    mode,
 			TxBytes: txSignedBytes,
 		},
-		grpcOpts...,
+		opts...,
 	)
 }
 
