@@ -75,7 +75,7 @@ func (s *BridgeTestSuite) TestTransferOut() {
 	s.Require().Equal(moduleBalanceBefore.Balance.Amount.Add(transferAmount).Add(totalTransferOutRelayerFee).String(), moduleBalanceAfter.Balance.Amount.String())
 }
 
-func (s *BridgeTestSuite) TestGovChanel() {
+func (s *BridgeTestSuite) TestGovChannel() {
 	var err error
 	validator := s.Validator.GetAddr()
 
