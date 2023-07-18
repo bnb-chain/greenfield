@@ -54,32 +54,32 @@ func CmdCreateStorageProvider() *cobra.Command {
 $ %s tx sp create-storage-provider path/to/create_validator_proposal.json --from keyname
 Where create_storagep_provider.json contains:
 {
-  "messages":[
+  "messages": [
     {
-      "@type":"/greenfield.sp.MsgCreateStorageProvider",
-      "description":{
+      "@type": "/greenfield.sp.MsgCreateStorageProvider",
+      "description": {
         "moniker": "sp0",
-        "identity":"",
-        "website":"",
-        "security_contact":"",
-        "details":""
+        "identity": "",
+        "website": "",
+        "security_contact": "",
+        "details": ""
       },
-      "sp_address":"0x012Eadb23D670db68Ba8e67e6F34DE6ACE55b547",
-      "funding_address":"0x84b3307313e253eF5787b55616BB1F6F7139C2c0",
-      "seal_address":"0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
-      "approval_address":"0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
+      "sp_address": "0x012Eadb23D670db68Ba8e67e6F34DE6ACE55b547",
+      "funding_address": "0x84b3307313e253eF5787b55616BB1F6F7139C2c0",
+      "seal_address": "0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
+      "approval_address": "0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
       "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
       "endpoint": "https://www.greenfield.io",
-      "deposit":{
-        "denom":"BNB",
-        "amount":"10000000000000000000000"
+      "deposit": {
+        "denom": "BNB",
+        "amount": "10000000000000000000000"
       },
       "read_price": "0.087",
       "store_price": "0.0048",
       "free_read_quota": 10000000000,
-      "creator":"0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2",
-      "bls_key": "89f5e82d1bbb7c751b063d6d69d30c5812a088cabb9ed015b1741939a45a896d83b5435d63257b954450c26d857de4e1",
-      "bls_proof": "987406f0dd2e5f5f3e9e3e447f832dbf73809479ea552fe9b23e06e65651c01a5893e92a797d12078ef9b0c9eb72b8d90faaee65f738e222793d94b80a58cd0f329375ee04e8460f12f4772cf42859d30dd6444ed3350c3335aedf1dbde3bb68"
+      "creator": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2",
+      "bls_key": "af8c586885a490a1775bcbef95e6162de1904777f3fb91e3bfd0ffd690fe0d477d0984f11852c64dc77d4583c99f34cb",
+      "bls_proof": "8bbce5330c5a46416ec41bfb93d938e8fb2e01d0a4035bd7b87efb98762e5e71faf00427d991003680325b7f97b362640f8e58e69bf774cd59e2267bdfe5a2e6578194b6834531893a39253c718edae2511977991895cdc8dd9e1136e43d721c"
     }
   ],
   "title": "create sp for test",
