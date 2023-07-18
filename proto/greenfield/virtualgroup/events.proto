@@ -75,10 +75,18 @@ message EventCreateLocalVirtualGroup {
 message EventUpdateLocalVirtualGroup {
   // The id of the local virtual group
   uint32 id = 1;
-  // The id of the global virtual group
-  uint32 global_virtual_group_id = 2;
+  // The id of the bucket
+  string bucket_id = 2 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // The src_global_virtual_group_id is gvgid of lvg before migrate
+  uint32 src_global_virtual_group_id = 3;
+  // The dst_global_virtual_group_id is gvgid of lvg after migrate
+  uint32 dst_global_virtual_group_id = 4;
   // The stored size of all the objects stores in this lvg
-  uint64 stored_size = 3;
+  uint64 stored_size = 5;
 }
 
 message EventSwapOut {

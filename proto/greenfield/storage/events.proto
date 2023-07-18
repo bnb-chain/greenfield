@@ -510,6 +510,4 @@ message EventCompleteMigrationBucket {
   ];
   // The family id that the bucket to be migrated to
   uint32 global_virtual_group_family_id = 4;
-  // The src and dst gvg mapping
-  repeated GVGMapping gvg_mappings = 5;
 }
