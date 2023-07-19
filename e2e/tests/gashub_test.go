@@ -100,7 +100,7 @@ func (s *GashubTestSuite) TestUpdateParams() {
 	}
 }
 
-func (s *VirtualGroupTestSuite) TestUpdateGasHubParams() {
+func (s *GashubTestSuite) TestUpdateGasHubParams() {
 	// 1. create proposal
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.GashubQueryClient.Params(context.Background(), &gashubtypes.QueryParamsRequest{})
@@ -110,7 +110,7 @@ func (s *VirtualGroupTestSuite) TestUpdateGasHubParams() {
 	updatedParams.MaxTxSize = 65535
 	msgUpdateParams := &gashubtypes.MsgUpdateParams{
 		Authority: govAddr,
-		Params:    queryParamsResp.Params,
+		Params:    updatedParams,
 	}
 
 	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgUpdateParams}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),

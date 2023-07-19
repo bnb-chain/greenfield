@@ -238,7 +238,7 @@ func TestStorageProviderTestSuite(t *testing.T) {
 	suite.Run(t, new(StorageProviderTestSuite))
 }
 
-func (s *VirtualGroupTestSuite) TestUpdateStorageProviderParams() {
+func (s *StorageProviderTestSuite) TestUpdateStorageProviderParams() {
 	// 1. create proposal
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.SpQueryClient.Params(context.Background(), &sptypes.QueryParamsRequest{})

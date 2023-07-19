@@ -558,7 +558,7 @@ func (s *VirtualGroupTestSuite) TestUpdateVirtualGroupParams() {
 	queryParamsResp, err := s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	updatedParams := queryParamsResp.Params
-	updatedParams.MaxStoreSizePerFamily = 171798691840
+	updatedParams.MaxLocalVirtualGroupNumPerBucket = 1000
 
 	msgUpdateParams := &virtualgroupmoduletypes.MsgUpdateParams{
 		Authority: govAddr,

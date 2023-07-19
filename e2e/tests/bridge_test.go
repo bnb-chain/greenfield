@@ -219,17 +219,17 @@ func (s *BridgeTestSuite) TestGovChannel() {
 	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
 }
 
-func (s *VirtualGroupTestSuite) TestUpdateBridgeParams() {
+func (s *BridgeTestSuite) TestUpdateBridgeParams() {
 	// 1. create proposal
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.BridgeQueryClient.Params(context.Background(), &bridgetypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	updatedParams := queryParamsResp.Params
-	updatedParams.BscTransferOutRelayerFee = sdkmath.NewInt(300000000000000)
+	updatedParams.BscTransferOutRelayerFee = sdkmath.NewInt(250000000000000)
 	msgUpdateParams := &bridgetypes.MsgUpdateParams{
 		Authority: govAddr,
-		Params:    queryParamsResp.Params,
+		Params:    updatedParams,
 	}
 
 	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgUpdateParams}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),

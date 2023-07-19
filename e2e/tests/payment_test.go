@@ -1471,14 +1471,14 @@ func TestPaymentTestSuite(t *testing.T) {
 	suite.Run(t, new(PaymentTestSuite))
 }
 
-func (s *VirtualGroupTestSuite) TestUpdatePaymentParams() {
+func (s *PaymentTestSuite) TestUpdatePaymentParams() {
 	// 1. create proposal
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.PaymentQueryClient.Params(context.Background(), &paymenttypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 
 	updatedParams := queryParamsResp.Params
-	updatedParams.ForcedSettleTime = 1800
+	updatedParams.PaymentAccountCountLimit = 300
 	msgUpdateParams := &paymenttypes.MsgUpdateParams{
 		Authority: govAddr,
 		Params:    updatedParams,

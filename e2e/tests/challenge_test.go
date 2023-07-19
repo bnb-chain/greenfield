@@ -443,7 +443,7 @@ func filterChallengeEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStart
 	}
 }
 
-func (s *VirtualGroupTestSuite) TestUpdateChallengerParams() {
+func (s *ChallengeTestSuite) TestUpdateChallengerParams() {
 	// 1. create proposal
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.ChallengeQueryClient.Params(context.Background(), &challengetypes.QueryParamsRequest{})
@@ -453,7 +453,7 @@ func (s *VirtualGroupTestSuite) TestUpdateChallengerParams() {
 	updatedParams.HeartbeatInterval = 1800
 	msgUpdateParams := &challengetypes.MsgUpdateParams{
 		Authority: govAddr,
-		Params:    queryParamsResp.Params,
+		Params:    updatedParams,
 	}
 
 	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgUpdateParams}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),

@@ -1581,7 +1581,7 @@ func (s *StorageTestSuite) TestMigrationBucket() {
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
 }
 
-func (s *VirtualGroupTestSuite) TestUpdateStorageParams() {
+func (s *StorageTestSuite) TestUpdateStorageParams() {
 	// 1. create proposal
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.StorageQueryClient.Params(context.Background(), &storagetypes.QueryParamsRequest{})
