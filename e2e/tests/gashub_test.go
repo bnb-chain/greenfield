@@ -2,6 +2,7 @@ package tests
 
 import (
 	"context"
+	"reflect"
 	"strconv"
 	"testing"
 	"time"
@@ -104,6 +105,9 @@ func (s *VirtualGroupTestSuite) TestUpdateGasHubParams() {
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.GashubQueryClient.Params(context.Background(), &gashubtypes.QueryParamsRequest{})
 	s.Require().NoError(err)
+
+	updatedParams := queryParamsResp.Params
+	updatedParams.MaxTxSize = 65535
 	msgUpdateParams := &gashubtypes.MsgUpdateParams{
 		Authority: govAddr,
 		Params:    queryParamsResp.Params,
@@ -153,6 +157,7 @@ func (s *VirtualGroupTestSuite) TestUpdateGasHubParams() {
 	}
 
 	// 3. query proposal until it is end voting period
+CheckProposalStatus:
 	for {
 		queryProposalResp, err := s.Client.Proposal(context.Background(), &v1.QueryProposalRequest{ProposalId: uint64(proposalID)})
 		s.Require().NoError(err)
@@ -166,13 +171,25 @@ func (s *VirtualGroupTestSuite) TestUpdateGasHubParams() {
 				return
 			case v1.StatusPassed:
 				s.T().Logf("proposal passed")
-				return
+				break CheckProposalStatus
 			case v1.StatusFailed:
 				s.T().Errorf("proposal failed, reason %s", queryProposalResp.Proposal.FailedReason)
 				return
 			}
 		}
 		time.Sleep(1 * time.Second)
+	}
+
+	// 4. check params updated
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	updatedQueryParamsResp, err := s.Client.GashubQueryClient.Params(context.Background(), &gashubtypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	if reflect.DeepEqual(updatedQueryParamsResp.Params, updatedParams) {
+		s.T().Logf("update params success")
+	} else {
+		s.T().Errorf("update params failed")
 	}
 }
 

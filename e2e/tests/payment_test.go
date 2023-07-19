@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"reflect"
 	"sort"
 	"strconv"
 	"testing"
@@ -1475,9 +1476,12 @@ func (s *VirtualGroupTestSuite) TestUpdatePaymentParams() {
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.PaymentQueryClient.Params(context.Background(), &paymenttypes.QueryParamsRequest{})
 	s.Require().NoError(err)
+
+	updatedParams := queryParamsResp.Params
+	updatedParams.ForcedSettleTime = 1800
 	msgUpdateParams := &paymenttypes.MsgUpdateParams{
 		Authority: govAddr,
-		Params:    queryParamsResp.Params,
+		Params:    updatedParams,
 	}
 
 	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgUpdateParams}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
@@ -1524,6 +1528,7 @@ func (s *VirtualGroupTestSuite) TestUpdatePaymentParams() {
 	}
 
 	// 3. query proposal until it is end voting period
+CheckProposalStatus:
 	for {
 		queryProposalResp, err := s.Client.Proposal(context.Background(), &v1.QueryProposalRequest{ProposalId: uint64(proposalID)})
 		s.Require().NoError(err)
@@ -1537,12 +1542,24 @@ func (s *VirtualGroupTestSuite) TestUpdatePaymentParams() {
 				return
 			case v1.StatusPassed:
 				s.T().Logf("proposal passed")
-				return
+				break CheckProposalStatus
 			case v1.StatusFailed:
 				s.T().Errorf("proposal failed, reason %s", queryProposalResp.Proposal.FailedReason)
 				return
 			}
 		}
 		time.Sleep(1 * time.Second)
+	}
+
+	// 4. check params updated
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	updatedQueryParamsResp, err := s.Client.PaymentQueryClient.Params(context.Background(), &paymenttypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	if reflect.DeepEqual(updatedQueryParamsResp.Params, updatedParams) {
+		s.T().Logf("update params success")
+	} else {
+		s.T().Errorf("update params failed")
 	}
 }
