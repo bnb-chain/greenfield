@@ -13,5 +13,5 @@ keyring-backend = "test"
 output = "text"
 # <host>:<port> to Tendermint RPC interface for this chain
 node = "tcp://127.0.0.1:26750"
-# Transaction broadcasting mode (sync|async|block)
-broadcast-mode = "block"
+# Transaction broadcasting mode (sync|async)
+broadcast-mode = "sync"
