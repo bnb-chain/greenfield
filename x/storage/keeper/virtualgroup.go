@@ -39,7 +39,19 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 		}
 	}
 
-	k.virtualGroupKeeper.SetGVG(ctx, gvg)
+	if err := k.virtualGroupKeeper.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil {
+		return err
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
+			Id:                   lvg.Id,
+			BucketId:             bucketInfo.Id,
+			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:           lvg.StoredSize,
+		}); err != nil {
+			return err
+		}
+
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	return nil
 }
@@ -76,15 +88,18 @@ func (k Keeper) RebindingVirtualGroup(ctx sdk.Context, bucketInfo *types.BucketI
 
 		lvg.GlobalVirtualGroupId = dstGVGID
 
-		k.virtualGroupKeeper.SetGVG(ctx, srcGVG)
-		k.virtualGroupKeeper.SetGVG(ctx, dstGVG)
+		if err := k.virtualGroupKeeper.SetGVGAndEmitUpdateEvent(ctx, srcGVG); err != nil {
+			return types.ErrVirtualGroupOperateFailed.Wrapf("fail to set src gvg. ID: %d, err: %s", srcGVG.Id, err)
+		}
+		if err := k.virtualGroupKeeper.SetGVGAndEmitUpdateEvent(ctx, dstGVG); err != nil {
+			return types.ErrVirtualGroupOperateFailed.Wrapf("fail to set dst gvg. ID: %d, err: %s", dstGVG.Id, err)
+		}
 
 		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
-			Id:                      lvg.Id,
-			BucketId:                bucketInfo.Id,
-			SrcGlobalVirtualGroupId: srcGVG.Id,
-			DstGlobalVirtualGroupId: dstGVG.Id,
-			StoredSize:              lvg.StoredSize,
+			Id:                   lvg.Id,
+			BucketId:             bucketInfo.Id,
+			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:           lvg.StoredSize,
 		}); err != nil {
 			return err
 		}
@@ -156,7 +171,9 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 		}
 	}
 
-	k.virtualGroupKeeper.SetGVG(ctx, gvg)
+	if err := k.virtualGroupKeeper.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil {
+		return nil, err
+	}
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
 	if !found {
@@ -170,11 +187,10 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 		}
 	} else {
 		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
-			Id:                      lvg.Id,
-			BucketId:                bucketInfo.Id,
-			SrcGlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
-			DstGlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
-			StoredSize:              lvg.StoredSize,
+			Id:                   lvg.Id,
+			BucketId:             bucketInfo.Id,
+			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+			StoredSize:           lvg.StoredSize,
 		}); err != nil {
 			return nil, err
 		}

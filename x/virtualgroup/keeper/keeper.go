@@ -92,8 +92,21 @@ func (k Keeper) SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) {
 	store.Set(types.GetGVGKey(gvg.Id), bz)
 }
 
-func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, gvgID uint32) error {
+func (k Keeper) SetGVGAndEmitUpdateEvent(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error {
+	k.SetGVG(ctx, gvg)
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
+		Id:             gvg.Id,
+		PrimarySpId:    gvg.PrimarySpId,
+		StoreSize:      gvg.StoredSize,
+		TotalDeposit:   gvg.TotalDeposit,
+		SecondarySpIds: gvg.SecondarySpIds,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
 
+func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, gvgID uint32) error {
 	store := ctx.KVStore(k.storeKey)
 
 	gvg, found := k.GetGVG(ctx, gvgID)
@@ -137,10 +150,15 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 	}
 
 	store.Delete(types.GetGVGKey(gvg.Id))
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroup{
+		Id:          gvg.Id,
+		PrimarySpId: gvg.PrimarySpId,
+	}); err != nil {
+		return err
+	}
 
 	if k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) {
 		store.Delete(types.GetGVGFamilyKey(gvg.FamilyId))
-
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroupFamily{
 			Id:          gvgFamily.Id,
 			PrimarySpId: gvgFamily.PrimarySpId,
@@ -148,7 +166,8 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 			return err
 		}
 	} else {
-		k.SetGVGFamily(ctx, gvgFamily)
+		if err := k.SetGVGFamilyAndEmitUpdateEvent(ctx, gvgFamily); err != nil {
+		}
 	}
 	return nil
 }
@@ -166,8 +185,19 @@ func (k Keeper) GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup
 	return &gvg, true
 }
 
-func (k Keeper) SetGVGFamily(ctx sdk.Context, gvgFamily *types.GlobalVirtualGroupFamily) {
+func (k Keeper) SetGVGFamilyAndEmitUpdateEvent(ctx sdk.Context, gvgFamily *types.GlobalVirtualGroupFamily) error {
+	k.SetGVGFamily(ctx, gvgFamily)
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroupFamily{
+		Id:                    gvgFamily.Id,
+		PrimarySpId:           gvgFamily.PrimarySpId,
+		GlobalVirtualGroupIds: gvgFamily.GlobalVirtualGroupIds,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
 
+func (k Keeper) SetGVGFamily(ctx sdk.Context, gvgFamily *types.GlobalVirtualGroupFamily) {
 	store := ctx.KVStore(k.storeKey)
 
 	bz := k.cdc.MustMarshal(gvgFamily)
@@ -291,12 +321,18 @@ func (k Keeper) SwapOutAsPrimarySP(ctx sdk.Context, primarySP, successorSP *spty
 		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
 	}
 
-	k.SetGVGFamily(ctx, family)
+	if err := k.SetGVGFamilyAndEmitUpdateEvent(ctx, family); err != nil {
+		return types.ErrSwapOutFailed.Wrapf("failed to set gvg family and emit update event, err: %s", err)
+	}
+
 	for _, gvg := range gvgs {
-		k.SetGVG(ctx, gvg)
+		if err := k.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil {
+			return types.ErrSwapOutFailed.Wrapf("failed to set gvg and emit update event, err: %s", err)
+		}
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)
 	k.SetGVGStatisticsWithSP(ctx, dstStat)
+
 	return nil
 }
 
@@ -341,7 +377,11 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySP, successorSP *
 	successor.SecondaryCount++
 	k.SetGVGStatisticsWithSP(ctx, origin)
 	k.SetGVGStatisticsWithSP(ctx, successor)
-	k.SetGVG(ctx, gvg)
+
+	if err := k.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil{
+		return err
+	}
+
 	return nil
 }
 

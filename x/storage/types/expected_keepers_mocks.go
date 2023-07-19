@@ -805,16 +805,18 @@ func (mr *MockVirtualGroupKeeperMockRecorder) GetGlobalVirtualGroupIfAvailable(c
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalVirtualGroupIfAvailable", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetGlobalVirtualGroupIfAvailable), ctx, gvgID, expectedStoreSize)
 }
 
-// SetGVG mocks base method.
-func (m *MockVirtualGroupKeeper) SetGVG(ctx types3.Context, gvg *types2.GlobalVirtualGroup) {
+// SetGVGAndEmitUpdateEvent mocks base method.
+func (m *MockVirtualGroupKeeper) SetGVGAndEmitUpdateEvent(ctx types3.Context, gvg *types2.GlobalVirtualGroup) error {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "SetGVG", ctx, gvg)
+	ret := m.ctrl.Call(m, "SetGVGAndEmitUpdateEvent", ctx, gvg)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// SetGVG indicates an expected call of SetGVG.
-func (mr *MockVirtualGroupKeeperMockRecorder) SetGVG(ctx, gvg interface{}) *gomock.Call {
+// SetGVGAndEmitUpdateEvent indicates an expected call of SetGVGAndEmitUpdateEvent.
+func (mr *MockVirtualGroupKeeperMockRecorder) SetGVGAndEmitUpdateEvent(ctx, gvg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetGVG", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SetGVG), ctx, gvg)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetGVGAndEmitUpdateEvent", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SetGVGAndEmitUpdateEvent), ctx, gvg)
 }
 
 // SettleAndDistributeGVG mocks base method.
