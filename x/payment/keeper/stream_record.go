@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/telemetry"
@@ -140,9 +139,6 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	timestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
 	// update delta balance
-	j, _ := json.Marshal(streamRecord)
-	fmt.Println("sr_before", string(j))
-
 	if currentTimestamp != timestamp {
 		if !streamRecord.NetflowRate.IsZero() {
 			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
@@ -151,8 +147,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 		streamRecord.CrudTimestamp = currentTimestamp
 	}
-	j, _ = json.Marshal(streamRecord)
-	fmt.Println("sr_after", string(j))
+
 	// update lock balance
 	if !change.LockBalanceChange.IsZero() {
 		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
@@ -215,9 +210,6 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	crudTimestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
 
-	j, _ := json.Marshal(streamRecord)
-	fmt.Println("sr_before", j)
-
 	if currentTimestamp != crudTimestamp {
 		if !streamRecord.NetflowRate.IsZero() {
 			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - crudTimestamp)
@@ -226,8 +218,6 @@ func (k Keeper) SettleStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 		streamRecord.CrudTimestamp = currentTimestamp
 	}
-	j, _ = json.Marshal(streamRecord)
-	fmt.Println("sr_after", j)
 
 	if streamRecord.StaticBalance.IsNegative() {
 		account := sdk.MustAccAddressFromHex(streamRecord.Account)
@@ -545,6 +535,7 @@ func (k Keeper) AutoResume(ctx sdk.Context) {
 		if !flowIterator.Valid() || finished {
 			if !streamRecord.FrozenNetflowRate.IsZero() {
 				ctx.Logger().Error("should not happen, stream frozen netflow rate is not zero", "address", streamRecord.Account)
+				panic("should not happen")
 			}
 			streamRecord.Status = types.STREAM_ACCOUNT_STATUS_ACTIVE
 			change := types.NewDefaultStreamRecordChangeWithAddr(addr)
