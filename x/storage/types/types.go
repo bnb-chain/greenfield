@@ -128,3 +128,12 @@ func (b *InternalBucketInfo) MustGetLVG(lvgID uint32) *LocalVirtualGroup {
 	}
 	return lvg
 }
+
+func (b *InternalBucketInfo) DeleteLVG(lvgID uint32) {
+	for i, lvg := range b.LocalVirtualGroups {
+		if lvg.Id == lvgID {
+			b.LocalVirtualGroups = append(b.LocalVirtualGroups[:i], b.LocalVirtualGroups[i+1:]...)
+			break
+		}
+	}
+}
