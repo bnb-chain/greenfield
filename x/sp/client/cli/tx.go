@@ -10,7 +10,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/authz"
+	govcli "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -28,6 +32,7 @@ func GetTxCmd() *cobra.Command {
 	}
 
 	spTxCmd.AddCommand(
+		CmdCreateStorageProvider(),
 		CmdDeposit(),
 		CmdEditStorageProvider(),
 		CmdGrantDepositAuthorization(),
@@ -36,6 +41,111 @@ func GetTxCmd() *cobra.Command {
 	// this line is used by starport scaffolding # 1
 
 	return spTxCmd
+}
+
+func CmdCreateStorageProvider() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "create-storage-provider [path/to/create_storage_provider_proposal.json]",
+		Short: "submit a create new storage provider proposal",
+		Args:  cobra.ExactArgs(1),
+		Long:  `Submit a create new storage provider proposal by submitting a JSON file with the new storage provider details, once the proposal has been passed, create a new storage provider initialized with a self deposit.`,
+		Example: strings.TrimSpace(
+			fmt.Sprintf(`
+$ %s tx sp create-storage-provider path/to/create_validator_proposal.json --from keyname
+Where create_storagep_provider.json contains:
+{
+  "messages": [
+    {
+      "@type": "/greenfield.sp.MsgCreateStorageProvider",
+      "description": {
+        "moniker": "sp0",
+        "identity": "",
+        "website": "",
+        "security_contact": "",
+        "details": ""
+      },
+      "sp_address": "0x012Eadb23D670db68Ba8e67e6F34DE6ACE55b547",
+      "funding_address": "0x84b3307313e253eF5787b55616BB1F6F7139C2c0",
+      "seal_address": "0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
+      "approval_address": "0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
+      "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
+      "endpoint": "https://sp0.greenfield.io",
+      "deposit": {
+        "denom": "BNB",
+        "amount": "1000000000000000000000"
+      },
+      "read_price": "0.108", 
+      "store_price": "0.016",
+      "free_read_quota": 1073741824,
+      "creator": "0x7b5Fe22B5446f7C62Ea27B8BD71CeF94e03f3dF2",
+      "bls_key": "af8c586885a490a1775bcbef95e6162de1904777f3fb91e3bfd0ffd690fe0d477d0984f11852c64dc77d4583c99f34cb",
+      "bls_proof": "8bbce5330c5a46416ec41bfb93d938e8fb2e01d0a4035bd7b87efb98762e5e71faf00427d991003680325b7f97b362640f8e58e69bf774cd59e2267bdfe5a2e6578194b6834531893a39253c718edae2511977991895cdc8dd9e1136e43d721c"
+    }
+  ],
+  "title": "create sp for test",
+  "summary": "test",
+  "metadata": "4pIMOgIGx1vZGU=",
+  "deposit": "1000000000000000000BNB"
+}
+modify the related configrations as you need. Example:
+1) read_price = $0.09/1024/1024/1024/300(bnb price)*10^18/30/24/60/60 = 0.108 wei/bytes/s
+2) store_price = $0.023*(1-6*0.07)/1024/1024/1024/300(bnb price)*10^18/30/24/60/60 = 0.016 wei/bytes/s. (0.07 division for each secondary SP)
+3) free_read_quota defines free read quota for each bucket, uint bytes.
+`, version.AppName)),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msgs, metadata, title, summary, deposit, err := govcli.ParseSubmitProposal(clientCtx.Codec, args[0])
+			if err != nil {
+				return err
+			}
+
+			govMsg, err := v1.NewMsgSubmitProposal(msgs, deposit, clientCtx.GetFromAddress().String(), metadata, title, summary)
+			if err != nil {
+				return fmt.Errorf("invalid message: %w", err)
+			}
+
+			if len(msgs) != 1 {
+				return fmt.Errorf("invalid message length: %d", len(msgs))
+			}
+
+			spMsg, ok := msgs[0].(*types.MsgCreateStorageProvider)
+			if !ok || spMsg.ValidateBasic() != nil {
+				return fmt.Errorf("invalid create storage provider message")
+			}
+
+			fundingAddr, err := sdk.AccAddressFromHexUnsafe(spMsg.FundingAddress)
+			if err != nil {
+				return err
+			}
+			if !fundingAddr.Equals(clientCtx.GetFromAddress()) {
+				return fmt.Errorf("the from address should be the funding address: %s", fundingAddr.String())
+			}
+
+			spAddr, err := sdk.AccAddressFromHexUnsafe(spMsg.SpAddress)
+			if err != nil {
+				return err
+			}
+
+			grantee := authtypes.NewModuleAddress(govtypes.ModuleName)
+			authorization := types.NewDepositAuthorization(spAddr, &spMsg.Deposit)
+			authzMsg, err := authz.NewMsgGrant(clientCtx.GetFromAddress(), grantee, authorization, nil)
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), authzMsg, govMsg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
 }
 
 func CmdEditStorageProvider() *cobra.Command {
