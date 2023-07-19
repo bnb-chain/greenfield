@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"reflect"
 	"sort"
 	"strconv"
 	"testing"
@@ -17,6 +18,7 @@ import (
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/suite"
@@ -1467,4 +1469,97 @@ func (s *PaymentTestSuite) GetChargeSize(payloadSize uint64) uint64 {
 
 func TestPaymentTestSuite(t *testing.T) {
 	suite.Run(t, new(PaymentTestSuite))
+}
+
+func (s *PaymentTestSuite) TestUpdatePaymentParams() {
+	// 1. create proposal
+	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	queryParamsResp, err := s.Client.PaymentQueryClient.Params(context.Background(), &paymenttypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+
+	updatedParams := queryParamsResp.Params
+	updatedParams.PaymentAccountCountLimit = 300
+	msgUpdateParams := &paymenttypes.MsgUpdateParams{
+		Authority: govAddr,
+		Params:    updatedParams,
+	}
+
+	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgUpdateParams}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
+		s.Validator.GetAddr().String(), "", "update Payment params", "Test update Payment params")
+	s.Require().NoError(err)
+	txBroadCastResp, err := s.SendTxBlockWithoutCheck(proposal, s.Validator)
+	s.Require().NoError(err)
+	s.T().Log("create proposal tx hash: ", txBroadCastResp.TxResponse.TxHash)
+
+	// get proposal id
+	proposalID := 0
+	txResp, err := s.WaitForTx(txBroadCastResp.TxResponse.TxHash)
+	s.Require().NoError(err)
+	if txResp.Code == 0 && txResp.Height > 0 {
+		for _, event := range txResp.Events {
+			if event.Type == "submit_proposal" {
+				proposalID, err = strconv.Atoi(event.GetAttributes()[0].Value)
+				s.Require().NoError(err)
+			}
+		}
+	}
+
+	// 2. vote
+	if proposalID == 0 {
+		s.T().Errorf("proposalID is 0")
+		return
+	}
+	s.T().Log("proposalID: ", proposalID)
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
+	txOpt := &types.TxOption{
+		Mode:      &mode,
+		Memo:      "",
+		FeeAmount: sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
+	}
+	voteBroadCastResp, err := s.SendTxBlockWithoutCheckWithTxOpt(v1.NewMsgVote(s.Validator.GetAddr(), uint64(proposalID), v1.OptionYes, ""),
+		s.Validator, txOpt)
+	s.Require().NoError(err)
+	voteResp, err := s.WaitForTx(voteBroadCastResp.TxResponse.TxHash)
+	s.Require().NoError(err)
+	s.T().Log("vote tx hash: ", voteResp.TxHash)
+	if voteResp.Code > 0 {
+		s.T().Errorf("voteTxResp.Code > 0")
+		return
+	}
+
+	// 3. query proposal until it is end voting period
+CheckProposalStatus:
+	for {
+		queryProposalResp, err := s.Client.Proposal(context.Background(), &v1.QueryProposalRequest{ProposalId: uint64(proposalID)})
+		s.Require().NoError(err)
+		if queryProposalResp.Proposal.Status != v1.StatusVotingPeriod {
+			switch queryProposalResp.Proposal.Status {
+			case v1.StatusDepositPeriod:
+				s.T().Errorf("proposal deposit period")
+				return
+			case v1.StatusRejected:
+				s.T().Errorf("proposal rejected")
+				return
+			case v1.StatusPassed:
+				s.T().Logf("proposal passed")
+				break CheckProposalStatus
+			case v1.StatusFailed:
+				s.T().Errorf("proposal failed, reason %s", queryProposalResp.Proposal.FailedReason)
+				return
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	// 4. check params updated
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	updatedQueryParamsResp, err := s.Client.PaymentQueryClient.Params(context.Background(), &paymenttypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	if reflect.DeepEqual(updatedQueryParamsResp.Params, updatedParams) {
+		s.T().Logf("update params success")
+	} else {
+		s.T().Errorf("update params failed")
+	}
 }

@@ -34,8 +34,8 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 	// Some parameters cannot be modified
 	originParams := k.GetParams(ctx)
-	if req.Params.GvgStakingPerBytes != originParams.GvgStakingPerBytes || req.Params.DepositDenom != originParams.DepositDenom {
-		return nil, errors.ErrInvalidParameter.Wrap("GvgStakingPerBytes and depositDenom are not allow to update")
+	if !req.Params.GvgStakingPerBytes.Equal(originParams.GvgStakingPerBytes) || req.Params.DepositDenom != originParams.DepositDenom {
+		return nil, errors.ErrInvalidParameter.Wrapf("GvgStakingPerBytes and depositDenom are not allow to update, current: %v, %v, got: %v, %v", originParams.GvgStakingPerBytes, originParams.DepositDenom, req.Params.GvgStakingPerBytes, req.Params.DepositDenom)
 	}
 
 	if err := k.SetParams(ctx, req.Params); err != nil {
@@ -145,7 +145,8 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroup{
-		Id: req.GlobalVirtualGroupId,
+		Id:          req.GlobalVirtualGroupId,
+		PrimarySpId: sp.Id,
 	}); err != nil {
 		return nil, err
 	}

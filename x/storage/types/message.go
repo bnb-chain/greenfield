@@ -880,6 +880,9 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 	if len(msg.Members) > MaxGroupMemberLimitOnce {
 		return gnfderrors.ErrInvalidParameter.Wrapf("Once update group member limit exceeded")
 	}
+	if len(msg.Extra) > MaxGroupExtraInfoLimit {
+		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
+	}
 	return nil
 }
 
@@ -1106,7 +1109,7 @@ func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
 		return err
 	}
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
-		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d", len(msg.Extra))
+		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
 	}
 
 	return nil
