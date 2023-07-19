@@ -18,14 +18,14 @@ paths:
                 description: params holds all the parameters of this module.
                 type: object
                 properties:
-                  transfer_out_relayer_fee:
+                  bsc_transfer_out_relayer_fee:
                     type: string
-                    title: Relayer fee for the cross chain transfer out tx
-                  transfer_out_ack_relayer_fee:
+                    title: Relayer fee for the cross chain transfer out tx to bsc
+                  bsc_transfer_out_ack_relayer_fee:
                     type: string
                     title: >-
                       Relayer fee for the ACK or FAIL_ACK package of the cross
-                      chain transfer out tx
+                      chain transfer out tx to bsc
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -2185,15 +2185,6 @@ paths:
                   payment_address:
                     type: string
                     title: payment_address is the address of the payment account
-                  primary_sp_id:
-                    type: integer
-                    format: int64
-                    description: >-
-                      primary_sp_id is the unique id of the primary sp. Objects
-                      belongs to this bucket will never
-
-                      leave this SP, unless you explicitly shift them to another
-                      SP.
                   global_virtual_group_family_id:
                     type: integer
                     format: int64
@@ -2303,15 +2294,6 @@ paths:
                   payment_address:
                     type: string
                     title: payment_address is the address of the payment account
-                  primary_sp_id:
-                    type: integer
-                    format: int64
-                    description: >-
-                      primary_sp_id is the unique id of the primary sp. Objects
-                      belongs to this bucket will never
-
-                      leave this SP, unless you explicitly shift them to another
-                      SP.
                   global_virtual_group_family_id:
                     type: integer
                     format: int64
@@ -2726,6 +2708,59 @@ paths:
 
                       add omit tag to omit the field when converting to NFT
                       metadata
+              global_virtual_group:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      ID represents the unique identifier of the global virtual
+                      group.
+                  family_id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      Family ID represents the identifier of the GVG family that
+                      the group belongs to.
+                  primary_sp_id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      Primary SP ID represents the unique identifier of the
+                      primary storage provider in the group.
+                  secondary_sp_ids:
+                    type: array
+                    items:
+                      type: integer
+                      format: int64
+                    description: >-
+                      Secondary SP IDs represents the list of unique identifiers
+                      of the secondary storage providers in the group.
+                  stored_size:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Stored size represents the size of the stored objects
+                      within the group.
+                  virtual_payment_address:
+                    type: string
+                    description: >-
+                      Virtual payment address represents the payment address
+                      associated with the group.
+                  total_deposit:
+                    type: string
+                    description: >-
+                      Total deposit represents the number of tokens deposited by
+                      this storage provider for staking.
+                description: >-
+                  A global virtual group consists of one primary SP (SP) and
+                  multiple secondary SP.
+
+                  Every global virtual group must belong to a GVG family, and
+                  the objects of each
+
+                  bucket must be stored in a GVG within a group family.
         default:
           description: An unexpected error response.
           schema:
@@ -2860,6 +2895,59 @@ paths:
 
                       add omit tag to omit the field when converting to NFT
                       metadata
+              global_virtual_group:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      ID represents the unique identifier of the global virtual
+                      group.
+                  family_id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      Family ID represents the identifier of the GVG family that
+                      the group belongs to.
+                  primary_sp_id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      Primary SP ID represents the unique identifier of the
+                      primary storage provider in the group.
+                  secondary_sp_ids:
+                    type: array
+                    items:
+                      type: integer
+                      format: int64
+                    description: >-
+                      Secondary SP IDs represents the list of unique identifiers
+                      of the secondary storage providers in the group.
+                  stored_size:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Stored size represents the size of the stored objects
+                      within the group.
+                  virtual_payment_address:
+                    type: string
+                    description: >-
+                      Virtual payment address represents the payment address
+                      associated with the group.
+                  total_deposit:
+                    type: string
+                    description: >-
+                      Total deposit represents the number of tokens deposited by
+                      this storage provider for staking.
+                description: >-
+                  A global virtual group consists of one primary SP (SP) and
+                  multiple secondary SP.
+
+                  Every global virtual group must belong to a GVG family, and
+                  the objects of each
+
+                  bucket must be stored in a GVG within a group family.
         default:
           description: An unexpected error response.
           schema:
@@ -3010,15 +3098,6 @@ paths:
                     payment_address:
                       type: string
                       title: payment_address is the address of the payment account
-                    primary_sp_id:
-                      type: integer
-                      format: int64
-                      description: >-
-                        primary_sp_id is the unique id of the primary sp.
-                        Objects belongs to this bucket will never
-
-                        leave this SP, unless you explicitly shift them to
-                        another SP.
                     global_virtual_group_family_id:
                       type: integer
                       format: int64
@@ -3737,6 +3816,60 @@ paths:
           type: boolean
       tags:
         - Query
+  /greenfield/storage/lock_fee:
+    get:
+      summary: Queries lock fee for storing an object
+      operationId: QueryLockFee
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              amount:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: primary_sp_address
+          description: primary_sp_address is the address of the primary sp.
+          in: query
+          required: false
+          type: string
+        - name: create_at
+          description: create_at define the block timestamp when the object created.
+          in: query
+          required: false
+          type: string
+          format: int64
+        - name: payload_size
+          description: payloadSize is the total size of the object payload.
+          in: query
+          required: false
+          type: string
+          format: uint64
+      tags:
+        - Query
   /greenfield/storage/params:
     get:
       summary: Parameters queries the parameters of the module.
@@ -3789,30 +3922,30 @@ paths:
                     title: >-
                       max_payload_size is the maximum size of the payload,
                       default: 2G
-                  mirror_bucket_relayer_fee:
+                  bsc_mirror_bucket_relayer_fee:
                     type: string
-                    title: relayer fee for the mirror bucket tx
-                  mirror_bucket_ack_relayer_fee:
+                    title: relayer fee for the mirror bucket tx to bsc
+                  bsc_mirror_bucket_ack_relayer_fee:
                     type: string
                     title: >-
                       relayer fee for the ACK or FAIL_ACK package of the mirror
-                      bucket tx
-                  mirror_object_relayer_fee:
+                      bucket tx to bsc
+                  bsc_mirror_object_relayer_fee:
                     type: string
-                    title: relayer fee for the mirror object tx
-                  mirror_object_ack_relayer_fee:
-                    type: string
-                    title: >-
-                      Relayer fee for the ACK or FAIL_ACK package of the mirror
-                      object tx
-                  mirror_group_relayer_fee:
-                    type: string
-                    title: relayer fee for the mirror object tx
-                  mirror_group_ack_relayer_fee:
+                    title: relayer fee for the mirror object tx to bsc
+                  bsc_mirror_object_ack_relayer_fee:
                     type: string
                     title: >-
                       Relayer fee for the ACK or FAIL_ACK package of the mirror
-                      object tx
+                      object tx to bsc
+                  bsc_mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to bsc
+                  bsc_mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to bsc
                   max_buckets_per_account:
                     type: integer
                     format: int64
@@ -3932,30 +4065,30 @@ paths:
                     title: >-
                       max_payload_size is the maximum size of the payload,
                       default: 2G
-                  mirror_bucket_relayer_fee:
+                  bsc_mirror_bucket_relayer_fee:
                     type: string
-                    title: relayer fee for the mirror bucket tx
-                  mirror_bucket_ack_relayer_fee:
+                    title: relayer fee for the mirror bucket tx to bsc
+                  bsc_mirror_bucket_ack_relayer_fee:
                     type: string
                     title: >-
                       relayer fee for the ACK or FAIL_ACK package of the mirror
-                      bucket tx
-                  mirror_object_relayer_fee:
+                      bucket tx to bsc
+                  bsc_mirror_object_relayer_fee:
                     type: string
-                    title: relayer fee for the mirror object tx
-                  mirror_object_ack_relayer_fee:
-                    type: string
-                    title: >-
-                      Relayer fee for the ACK or FAIL_ACK package of the mirror
-                      object tx
-                  mirror_group_relayer_fee:
-                    type: string
-                    title: relayer fee for the mirror object tx
-                  mirror_group_ack_relayer_fee:
+                    title: relayer fee for the mirror object tx to bsc
+                  bsc_mirror_object_ack_relayer_fee:
                     type: string
                     title: >-
                       Relayer fee for the ACK or FAIL_ACK package of the mirror
-                      object tx
+                      object tx to bsc
+                  bsc_mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to bsc
+                  bsc_mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to bsc
                   max_buckets_per_account:
                     type: integer
                     format: int64
@@ -18165,6 +18298,9 @@ paths:
                       type: string
                       description: 'Since: cosmos-sdk 0.47'
                       title: Proposer is the address of the proposal sumbitter
+                    failed_reason:
+                      type: string
+                      title: The reason of the failure proposal
                   description: >-
                     Proposal defines the core field members of a governance
                     proposal.
@@ -18771,6 +18907,9 @@ paths:
                     type: string
                     description: 'Since: cosmos-sdk 0.47'
                     title: Proposer is the address of the proposal sumbitter
+                  failed_reason:
+                    type: string
+                    title: The reason of the failure proposal
                 description: >-
                   Proposal defines the core field members of a governance
                   proposal.
@@ -30033,14 +30172,14 @@ definitions:
   greenfield.bridge.Params:
     type: object
     properties:
-      transfer_out_relayer_fee:
+      bsc_transfer_out_relayer_fee:
         type: string
-        title: Relayer fee for the cross chain transfer out tx
-      transfer_out_ack_relayer_fee:
+        title: Relayer fee for the cross chain transfer out tx to bsc
+      bsc_transfer_out_ack_relayer_fee:
         type: string
         title: >-
           Relayer fee for the ACK or FAIL_ACK package of the cross chain
-          transfer out tx
+          transfer out tx to bsc
     description: Params defines the parameters for the module.
   greenfield.bridge.QueryParamsResponse:
     type: object
@@ -30049,14 +30188,14 @@ definitions:
         description: params holds all the parameters of this module.
         type: object
         properties:
-          transfer_out_relayer_fee:
+          bsc_transfer_out_relayer_fee:
             type: string
-            title: Relayer fee for the cross chain transfer out tx
-          transfer_out_ack_relayer_fee:
+            title: Relayer fee for the cross chain transfer out tx to bsc
+          bsc_transfer_out_ack_relayer_fee:
             type: string
             title: >-
               Relayer fee for the ACK or FAIL_ACK package of the cross chain
-              transfer out tx
+              transfer out tx to bsc
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   grpc.gateway.runtime.Error:
     type: object
@@ -32134,14 +32273,6 @@ definitions:
       payment_address:
         type: string
         title: payment_address is the address of the payment account
-      primary_sp_id:
-        type: integer
-        format: int64
-        description: >-
-          primary_sp_id is the unique id of the primary sp. Objects belongs to
-          this bucket will never
-
-          leave this SP, unless you explicitly shift them to another SP.
       global_virtual_group_family_id:
         type: integer
         format: int64
@@ -32417,24 +32548,30 @@ definitions:
         type: string
         format: uint64
         title: 'max_payload_size is the maximum size of the payload, default: 2G'
-      mirror_bucket_relayer_fee:
+      bsc_mirror_bucket_relayer_fee:
         type: string
-        title: relayer fee for the mirror bucket tx
-      mirror_bucket_ack_relayer_fee:
+        title: relayer fee for the mirror bucket tx to bsc
+      bsc_mirror_bucket_ack_relayer_fee:
         type: string
-        title: relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx
-      mirror_object_relayer_fee:
+        title: >-
+          relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx to
+          bsc
+      bsc_mirror_object_relayer_fee:
         type: string
-        title: relayer fee for the mirror object tx
-      mirror_object_ack_relayer_fee:
+        title: relayer fee for the mirror object tx to bsc
+      bsc_mirror_object_ack_relayer_fee:
         type: string
-        title: Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
-      mirror_group_relayer_fee:
+        title: >-
+          Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to
+          bsc
+      bsc_mirror_group_relayer_fee:
         type: string
-        title: relayer fee for the mirror object tx
-      mirror_group_ack_relayer_fee:
+        title: relayer fee for the mirror object tx to bsc
+      bsc_mirror_group_ack_relayer_fee:
         type: string
-        title: Relayer fee for the ACK or FAIL_ACK package of the mirror object tx
+        title: >-
+          Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to
+          bsc
       max_buckets_per_account:
         type: integer
         format: int64
@@ -32573,14 +32710,6 @@ definitions:
           payment_address:
             type: string
             title: payment_address is the address of the payment account
-          primary_sp_id:
-            type: integer
-            format: int64
-            description: >-
-              primary_sp_id is the unique id of the primary sp. Objects belongs
-              to this bucket will never
-
-              leave this SP, unless you explicitly shift them to another SP.
           global_virtual_group_family_id:
             type: integer
             format: int64
@@ -32735,6 +32864,57 @@ definitions:
             title: |-
               checksums define the root hash of the pieces which stored in a SP.
               add omit tag to omit the field when converting to NFT metadata
+      global_virtual_group:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+            description: ID represents the unique identifier of the global virtual group.
+          family_id:
+            type: integer
+            format: int64
+            description: >-
+              Family ID represents the identifier of the GVG family that the
+              group belongs to.
+          primary_sp_id:
+            type: integer
+            format: int64
+            description: >-
+              Primary SP ID represents the unique identifier of the primary
+              storage provider in the group.
+          secondary_sp_ids:
+            type: array
+            items:
+              type: integer
+              format: int64
+            description: >-
+              Secondary SP IDs represents the list of unique identifiers of the
+              secondary storage providers in the group.
+          stored_size:
+            type: string
+            format: uint64
+            description: >-
+              Stored size represents the size of the stored objects within the
+              group.
+          virtual_payment_address:
+            type: string
+            description: >-
+              Virtual payment address represents the payment address associated
+              with the group.
+          total_deposit:
+            type: string
+            description: >-
+              Total deposit represents the number of tokens deposited by this
+              storage provider for staking.
+        description: >-
+          A global virtual group consists of one primary SP (SP) and multiple
+          secondary SP.
+
+          Every global virtual group must belong to a GVG family, and the
+          objects of each
+
+          bucket must be stored in a GVG within a group family.
   greenfield.storage.QueryListBucketsResponse:
     type: object
     properties:
@@ -32782,14 +32962,6 @@ definitions:
             payment_address:
               type: string
               title: payment_address is the address of the payment account
-            primary_sp_id:
-              type: integer
-              format: int64
-              description: >-
-                primary_sp_id is the unique id of the primary sp. Objects
-                belongs to this bucket will never
-
-                leave this SP, unless you explicitly shift them to another SP.
             global_virtual_group_family_id:
               type: integer
               format: int64
@@ -33015,6 +33187,11 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  greenfield.storage.QueryLockFeeResponse:
+    type: object
+    properties:
+      amount:
+        type: string
   greenfield.storage.QueryObjectNFTResponse:
     type: object
     properties:
@@ -33084,30 +33261,30 @@ definitions:
             type: string
             format: uint64
             title: 'max_payload_size is the maximum size of the payload, default: 2G'
-          mirror_bucket_relayer_fee:
+          bsc_mirror_bucket_relayer_fee:
             type: string
-            title: relayer fee for the mirror bucket tx
-          mirror_bucket_ack_relayer_fee:
+            title: relayer fee for the mirror bucket tx to bsc
+          bsc_mirror_bucket_ack_relayer_fee:
             type: string
             title: >-
               relayer fee for the ACK or FAIL_ACK package of the mirror bucket
-              tx
-          mirror_object_relayer_fee:
+              tx to bsc
+          bsc_mirror_object_relayer_fee:
             type: string
-            title: relayer fee for the mirror object tx
-          mirror_object_ack_relayer_fee:
-            type: string
-            title: >-
-              Relayer fee for the ACK or FAIL_ACK package of the mirror object
-              tx
-          mirror_group_relayer_fee:
-            type: string
-            title: relayer fee for the mirror object tx
-          mirror_group_ack_relayer_fee:
+            title: relayer fee for the mirror object tx to bsc
+          bsc_mirror_object_ack_relayer_fee:
             type: string
             title: >-
               Relayer fee for the ACK or FAIL_ACK package of the mirror object
-              tx
+              tx to bsc
+          bsc_mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to bsc
+          bsc_mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to bsc
           max_buckets_per_account:
             type: integer
             format: int64
@@ -33188,30 +33365,30 @@ definitions:
             type: string
             format: uint64
             title: 'max_payload_size is the maximum size of the payload, default: 2G'
-          mirror_bucket_relayer_fee:
+          bsc_mirror_bucket_relayer_fee:
             type: string
-            title: relayer fee for the mirror bucket tx
-          mirror_bucket_ack_relayer_fee:
+            title: relayer fee for the mirror bucket tx to bsc
+          bsc_mirror_bucket_ack_relayer_fee:
             type: string
             title: >-
               relayer fee for the ACK or FAIL_ACK package of the mirror bucket
-              tx
-          mirror_object_relayer_fee:
+              tx to bsc
+          bsc_mirror_object_relayer_fee:
             type: string
-            title: relayer fee for the mirror object tx
-          mirror_object_ack_relayer_fee:
-            type: string
-            title: >-
-              Relayer fee for the ACK or FAIL_ACK package of the mirror object
-              tx
-          mirror_group_relayer_fee:
-            type: string
-            title: relayer fee for the mirror object tx
-          mirror_group_ack_relayer_fee:
+            title: relayer fee for the mirror object tx to bsc
+          bsc_mirror_object_ack_relayer_fee:
             type: string
             title: >-
               Relayer fee for the ACK or FAIL_ACK package of the mirror object
-              tx
+              tx to bsc
+          bsc_mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to bsc
+          bsc_mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to bsc
           max_buckets_per_account:
             type: integer
             format: int64
@@ -33784,6 +33961,57 @@ definitions:
       VisibilityType is the resources public status.
 
        - VISIBILITY_TYPE_INHERIT: If the bucket Visibility is inherit, it's finally set to private. If the object Visibility is inherit, it's the same as bucket.
+  greenfield.virtualgroup.GlobalVirtualGroup:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: ID represents the unique identifier of the global virtual group.
+      family_id:
+        type: integer
+        format: int64
+        description: >-
+          Family ID represents the identifier of the GVG family that the group
+          belongs to.
+      primary_sp_id:
+        type: integer
+        format: int64
+        description: >-
+          Primary SP ID represents the unique identifier of the primary storage
+          provider in the group.
+      secondary_sp_ids:
+        type: array
+        items:
+          type: integer
+          format: int64
+        description: >-
+          Secondary SP IDs represents the list of unique identifiers of the
+          secondary storage providers in the group.
+      stored_size:
+        type: string
+        format: uint64
+        description: >-
+          Stored size represents the size of the stored objects within the
+          group.
+      virtual_payment_address:
+        type: string
+        description: >-
+          Virtual payment address represents the payment address associated with
+          the group.
+      total_deposit:
+        type: string
+        description: >-
+          Total deposit represents the number of tokens deposited by this
+          storage provider for staking.
+    description: >-
+      A global virtual group consists of one primary SP (SP) and multiple
+      secondary SP.
+
+      Every global virtual group must belong to a GVG family, and the objects of
+      each
+
+      bucket must be stored in a GVG within a group family.
   cosmos.auth.v1beta1.BaseAccount:
     type: object
     properties:
@@ -44394,6 +44622,9 @@ definitions:
         type: string
         description: 'Since: cosmos-sdk 0.47'
         title: Proposer is the address of the proposal sumbitter
+      failed_reason:
+        type: string
+        title: The reason of the failure proposal
     description: Proposal defines the core field members of a governance proposal.
   cosmos.gov.v1.ProposalStatus:
     type: string
@@ -44922,6 +45153,9 @@ definitions:
             type: string
             description: 'Since: cosmos-sdk 0.47'
             title: Proposer is the address of the proposal sumbitter
+          failed_reason:
+            type: string
+            title: The reason of the failure proposal
         description: Proposal defines the core field members of a governance proposal.
     description: >-
       QueryProposalResponse is the response type for the Query/Proposal RPC
@@ -45201,6 +45435,9 @@ definitions:
               type: string
               description: 'Since: cosmos-sdk 0.47'
               title: Proposer is the address of the proposal sumbitter
+            failed_reason:
+              type: string
+              title: The reason of the failure proposal
           description: Proposal defines the core field members of a governance proposal.
         description: proposals defines all the requested governance proposals.
       pagination:
