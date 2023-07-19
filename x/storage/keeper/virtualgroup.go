@@ -25,12 +25,18 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 	lvg.StoredSize -= objectInfo.PayloadSize
 	gvg.StoredSize -= objectInfo.PayloadSize
 
-	// delete lvg when store size is 0
+	// delete lvg when total charge size is 0
 	if lvg.TotalChargeSize == 0 {
 		if lvg.StoredSize != 0 {
 			panic("The store size is non-zero when total charge size is zero.")
 		}
 		internalBucketInfo.DeleteLVG(lvg.Id)
+		if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventDeleteLocalVirtualGroup{
+			Id:       lvg.Id,
+			BucketId: bucketInfo.Id,
+		}); err != nil {
+			return err
+		}
 	}
 
 	k.virtualGroupKeeper.SetGVG(ctx, gvg)

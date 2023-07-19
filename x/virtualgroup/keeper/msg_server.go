@@ -145,7 +145,8 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroup{
-		Id: req.GlobalVirtualGroupId,
+		Id:          req.GlobalVirtualGroupId,
+		PrimarySpId: sp.Id,
 	}); err != nil {
 		return nil, err
 	}
