@@ -26,9 +26,9 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 	gvg.StoredSize -= objectInfo.PayloadSize
 
 	// delete lvg when store size is 0
-	if lvg.StoredSize == 0 {
-		if lvg.TotalChargeSize != 0 {
-			panic("The total charge size is non-zero when store size is zero.")
+	if lvg.TotalChargeSize == 0 {
+		if lvg.StoredSize != 0 {
+			panic("The store size is non-zero when total charge size is zero.")
 		}
 		internalBucketInfo.DeleteLVG(lvg.Id)
 	}
@@ -127,14 +127,13 @@ func (k Keeper) SealObjectOnVirtualGroup(ctx sdk.Context, bucketInfo *types.Buck
 		lvg = &types.LocalVirtualGroup{
 			Id:                   internalBucketInfo.GetMaxLVGID() + 1,
 			GlobalVirtualGroupId: gvg.Id,
-			StoredSize:           objectInfo.PayloadSize,
+			StoredSize:           0,
 		}
 		internalBucketInfo.AppendLVG(lvg)
-	} else {
-		lvg.StoredSize += objectInfo.PayloadSize
 	}
-	gvg.StoredSize += objectInfo.PayloadSize
 
+	lvg.StoredSize += objectInfo.PayloadSize
+	gvg.StoredSize += objectInfo.PayloadSize
 	objectInfo.LocalVirtualGroupId = lvg.Id
 
 	if objectInfo.PayloadSize == 0 {
