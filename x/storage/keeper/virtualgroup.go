@@ -22,9 +22,16 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 		return vgtypes.ErrGVGNotExist
 	}
 
-	// TODO: if the store size is 0, remove it.
 	lvg.StoredSize -= objectInfo.PayloadSize
 	gvg.StoredSize -= objectInfo.PayloadSize
+
+	// delete lvg when store size is 0
+	if lvg.StoredSize == 0 {
+		if lvg.TotalChargeSize != 0 {
+			panic("The total charge size is non-zero when store size is zero.")
+		}
+		internalBucketInfo.DeleteLVG(lvg.Id)
+	}
 
 	k.virtualGroupKeeper.SetGVG(ctx, gvg)
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
