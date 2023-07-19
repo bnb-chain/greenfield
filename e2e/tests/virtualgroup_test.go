@@ -58,7 +58,8 @@ func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupByFamily(spID, familyID u
 			StorageProviderId:          spID,
 			GlobalVirtualGroupFamilyId: familyID,
 		})
-	s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	_, err = s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	return resp.GlobalVirtualGroups
 }
