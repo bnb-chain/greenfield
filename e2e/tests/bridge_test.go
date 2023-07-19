@@ -220,7 +220,7 @@ func (s *BridgeTestSuite) TestGovChannel() {
 
 func (s *VirtualGroupTestSuite) TestUpdateBridgeParams() {
 	// 1. create proposal
-	govAddr := authtypes.NewModuleAddress(bridgetypes.ModuleName).String()
+	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	queryParamsResp, err := s.Client.BridgeQueryClient.Params(context.Background(), &bridgetypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	msgUpdateParams := &bridgetypes.MsgUpdateParams{
