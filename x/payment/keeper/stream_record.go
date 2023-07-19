@@ -142,7 +142,6 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	if currentTimestamp != timestamp {
 		if !streamRecord.NetflowRate.IsZero() {
 			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
-			fmt.Println("flowDelta", flowDelta.String())
 			streamRecord.StaticBalance = streamRecord.StaticBalance.Add(flowDelta)
 		}
 		streamRecord.CrudTimestamp = currentTimestamp
