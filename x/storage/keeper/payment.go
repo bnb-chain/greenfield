@@ -212,7 +212,7 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucket
 		ibi.TotalChargeSize += chargeSize
 		for _, lvg := range ibi.LocalVirtualGroups {
 			if lvg.Id == objectInfo.LocalVirtualGroupId {
-				lvg.TotalChargeSize += lvg.TotalChargeSize + chargeSize
+				lvg.TotalChargeSize = lvg.TotalChargeSize + chargeSize
 				break
 			}
 		}

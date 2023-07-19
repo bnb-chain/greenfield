@@ -851,12 +851,15 @@ func (k Keeper) doDeleteObject(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	store.Delete(types.GetObjectKey(bucketInfo.BucketName, objectInfo.ObjectName))
 	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 
-	err := k.DeleteObjectFromVirtualGroup(ctx, bucketInfo, objectInfo)
-	if err != nil {
-		return err
+	// when object was not sealed, the lvg id is 0 by default.
+	if objectInfo.LocalVirtualGroupId != 0 {
+		err := k.DeleteObjectFromVirtualGroup(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_OBJECT, objectInfo.Id)
+	err := k.appendResourceIdForGarbageCollection(ctx, resource.RESOURCE_TYPE_OBJECT, objectInfo.Id)
 	if err != nil {
 		return err
 	}
@@ -1898,7 +1901,6 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		BucketName:                 bucketName,
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: gvgFamilyID,
-		GvgMappings:                gvgMappings,
 	}); err != nil {
 		return err
 	}
