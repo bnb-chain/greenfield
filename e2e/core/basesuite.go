@@ -195,7 +195,7 @@ func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyM
 	}
 	s.Client.SetKeyManager(from)
 	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
-	s.T().Logf("tx failed, err: %s, expect error string: %s", err, expectErrorString)
+	s.T().Logf("tx failed, err: %v, expect error string: %s", err, expectErrorString)
 	s.Require().Error(err)
 	s.Require().True(strings.Contains(err.Error(), expectErrorString))
 }
@@ -351,6 +351,10 @@ func (sp *StorageProvider) GetFirstGlobalVirtualGroup() (*virtualgroupmoduletype
 			return gvg, true
 		}
 	}
+	return nil, false
+}
+func (sp *StorageProvider) UpdateSPPrice() (*virtualgroupmoduletypes.GlobalVirtualGroup, bool) {
+
 	return nil, false
 }
 
