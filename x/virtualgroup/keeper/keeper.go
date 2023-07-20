@@ -167,6 +167,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 		}
 	} else {
 		if err := k.SetGVGFamilyAndEmitUpdateEvent(ctx, gvgFamily); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -378,7 +379,7 @@ func (k Keeper) SwapOutAsSecondarySP(ctx sdk.Context, secondarySP, successorSP *
 	k.SetGVGStatisticsWithSP(ctx, origin)
 	k.SetGVGStatisticsWithSP(ctx, successor)
 
-	if err := k.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil{
+	if err := k.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil {
 		return err
 	}
 

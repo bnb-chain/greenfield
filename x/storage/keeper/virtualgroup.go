@@ -44,13 +44,13 @@ func (k Keeper) DeleteObjectFromVirtualGroup(ctx sdk.Context, bucketInfo *types.
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&vgtypes.EventUpdateLocalVirtualGroup{
-			Id:                   lvg.Id,
-			BucketId:             bucketInfo.Id,
-			GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
-			StoredSize:           lvg.StoredSize,
-		}); err != nil {
-			return err
-		}
+		Id:                   lvg.Id,
+		BucketId:             bucketInfo.Id,
+		GlobalVirtualGroupId: lvg.GlobalVirtualGroupId,
+		StoredSize:           lvg.StoredSize,
+	}); err != nil {
+		return err
+	}
 
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 	return nil
