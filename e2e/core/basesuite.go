@@ -641,6 +641,15 @@ func (s *BaseSuite) PickStorageProvider() *StorageProvider {
 	return nil
 }
 
+func (s *BaseSuite) PickDifferentStorageProvider(spId uint32) *StorageProvider {
+	for _, sp := range s.StorageProviders {
+		if sp.Info.Id != spId {
+			return sp
+		}
+	}
+	return nil
+}
+
 func (s *BaseSuite) PickStorageProviderByBucketName(bucketName string) *StorageProvider {
 	queryHeadBucketResponse, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,

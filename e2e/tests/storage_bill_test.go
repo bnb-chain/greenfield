@@ -94,7 +94,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
 
 	// case: seal object without price change
-	s.sealObject(bucketName, objectName, objectId, checksums)
+	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
 
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
@@ -112,7 +112,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 
 	objectIfo, err := s.copyObject(user0, sp, bucketName, objectName, distBucketName, distObjectName)
 	s.Require().NoError(err)
-	s.sealObject(distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
+	s.sealObject(sp, gvg, distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
 	// assertions
 	streamRecordsAfterCopy := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfterCopy.User.StaticBalance, sdkmath.ZeroInt())
@@ -166,7 +166,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
 
 	// case: seal object without price change
-	s.sealObject(bucketName, objectName, objectId, checksums)
+	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
 
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
@@ -195,7 +195,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	distObjectName := storagetestutils.GenRandomObjectName()
 	objectIfo, err := s.copyObject(user0, sp, bucketName, objectName, distBucketName, distObjectName)
 	s.Require().NoError(err)
-	s.sealObject(distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
+	s.sealObject(sp, gvg, distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
 	// assertions
 	streamRecordsAfterCopy := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfterCopy.User.StaticBalance, sdkmath.ZeroInt())
