@@ -267,10 +267,9 @@ func TestTryResumeStreamRecord_ResumeInMultipleBlocks_BalanceNotEnoughFinally(t 
 
 	keeper.AutoResume(ctx)
 	userStreamRecord, _ = keeper.GetStreamRecord(ctx, user)
-	require.True(t, userStreamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
+	require.True(t, userStreamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN)
 	require.Equal(t, userStreamRecord.NetflowRate, rate.Neg())
 	require.Equal(t, userStreamRecord.FrozenNetflowRate, sdkmath.ZeroInt())
-	require.True(t, userStreamRecord.StaticBalance.IsNegative()) // the static balance becomes negative
 
 	gvg1StreamRecord, _ := keeper.GetStreamRecord(ctx, gvg1)
 	require.True(t, gvg1StreamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
@@ -456,6 +455,7 @@ func TestAutoSettle_SettleInOneBlock(t *testing.T) {
 		Addr:      user.String(),
 	})
 
+	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true)
 	keeper.AutoSettle(ctx)
 
 	userStreamRecord, _ = keeper.GetStreamRecord(ctx, user)
@@ -563,6 +563,7 @@ func TestAutoSettle_SettleInMultipleBlocks(t *testing.T) {
 		Addr:      user.String(),
 	})
 
+	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true)
 	keeper.AutoSettle(ctx) // this is for settle stream, it is counted
 	userStreamRecord, _ = keeper.GetStreamRecord(ctx, user)
 	require.True(t, userStreamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN)

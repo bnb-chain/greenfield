@@ -544,6 +544,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	bucketInfo, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	})
+	s.Require().NoError(err)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
