@@ -439,6 +439,20 @@ func (k Keeper) GetTotalStakingStoreSize(ctx sdk.Context, gvg *types.GlobalVirtu
 	}
 }
 
+func (k Keeper) GetGlobalVirtualFamilyTotalStakingAndStoredSize(ctx sdk.Context, gvgFamily *types.GlobalVirtualGroupFamily) (uint64, uint64, error) {
+	var familyTotalStakingSize uint64
+	var familyStoredSize uint64
+	for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			return 0, 0, types.ErrGVGNotExist
+		}
+		familyTotalStakingSize += k.GetTotalStakingStoreSize(ctx, gvg)
+		familyStoredSize += gvg.GetStoredSize()
+	}
+	return familyTotalStakingSize, familyStoredSize, nil
+}
+
 func (k Keeper) GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, expectedStoreSize uint64) (*types.GlobalVirtualGroup, error) {
 	gvg, found := k.GetGVG(ctx, gvgID)
 	if !found {

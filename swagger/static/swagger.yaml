@@ -4829,6 +4829,56 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/virtualgroup/available_global_virtual_group_families:
+    get:
+      summary: >-
+        AvailableGlobalVirtualGroupFamilies filters a list of
+        GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+      operationId: AvailableGlobalVirtualGroupFamilies
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              global_virtual_group_family_ids:
+                type: array
+                items:
+                  type: integer
+                  format: int64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: global_virtual_group_family_ids
+          in: query
+          required: false
+          type: array
+          items:
+            type: integer
+            format: int64
+          collectionFormat: multi
+      tags:
+        - Query
   /greenfield/virtualgroup/global_virtual_group:
     get:
       summary: Queries a global virtual group by its id.
@@ -34488,6 +34538,14 @@ definitions:
       each
 
       bucket must be stored in a GVG within a group family.
+  greenfield.virtualgroup.AvailableGlobalVirtualGroupFamiliesResponse:
+    type: object
+    properties:
+      global_virtual_group_family_ids:
+        type: array
+        items:
+          type: integer
+          format: int64
   greenfield.virtualgroup.GlobalVirtualGroupFamily:
     type: object
     properties:

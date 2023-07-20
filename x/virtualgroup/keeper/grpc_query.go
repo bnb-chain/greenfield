@@ -2,14 +2,14 @@ package keeper
 
 import (
 	"context"
+	"math"
 
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
@@ -107,4 +107,26 @@ func (k Keeper) GlobalVirtualGroupFamilies(goCtx context.Context, req *types.Que
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return &types.QueryGlobalVirtualGroupFamiliesResponse{GvgFamilies: gvgFamilies, Pagination: pageRes}, nil
+}
+
+func (k Keeper) AvailableGlobalVirtualGroupFamilies(goCtx context.Context, req *types.AvailableGlobalVirtualGroupFamiliesRequest) (*types.AvailableGlobalVirtualGroupFamiliesResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	availableFamilyIds := make([]uint32, 0)
+	for _, gvgfID := range req.GlobalVirtualGroupFamilyIds {
+		gvgFamily, found := k.GetGVGFamily(ctx, gvgfID)
+		if !found {
+			return nil, types.ErrGVGFamilyNotExist
+		}
+		totalStakingSize, stored, err := k.GetGlobalVirtualFamilyTotalStakingAndStoredSize(ctx, gvgFamily)
+		if err != nil {
+			return nil, err
+		}
+		if float64(stored) < math.Min(float64(totalStakingSize), float64(k.MaxStoreSizePerFamily(ctx))) && uint32(len(gvgFamily.GlobalVirtualGroupIds)) < k.MaxGlobalVirtualGroupNumPerFamily(ctx) {
+			availableFamilyIds = append(availableFamilyIds, gvgfID)
+		}
+	}
+	return &types.AvailableGlobalVirtualGroupFamiliesResponse{GlobalVirtualGroupFamilyIds: availableFamilyIds}, nil
 }

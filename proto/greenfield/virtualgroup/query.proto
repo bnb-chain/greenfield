@@ -40,6 +40,11 @@ service Query {
   rpc GlobalVirtualGroupFamilies(QueryGlobalVirtualGroupFamiliesRequest) returns (QueryGlobalVirtualGroupFamiliesResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/global_virtual_group_families";
   }
+
+  // AvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+  rpc AvailableGlobalVirtualGroupFamilies(AvailableGlobalVirtualGroupFamiliesRequest) returns (AvailableGlobalVirtualGroupFamiliesResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/available_global_virtual_group_families";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -84,4 +89,12 @@ message QueryGlobalVirtualGroupFamiliesRequest {
 message QueryGlobalVirtualGroupFamiliesResponse {
   repeated GlobalVirtualGroupFamily gvg_families = 1;
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message AvailableGlobalVirtualGroupFamiliesRequest {
+  repeated uint32 global_virtual_group_family_ids = 1;
+}
+
+message AvailableGlobalVirtualGroupFamiliesResponse {
+  repeated uint32 global_virtual_group_family_ids = 1;
 }
