@@ -126,7 +126,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 	gvgFamily.MustRemoveGVG(gvg.Id)
 
 	// update stat
-	stat := k.MustGetGVGStatisticsWithinSP(ctx, gvgFamily.Id)
+	stat := k.MustGetGVGStatisticsWithinSP(ctx, gvgFamily.PrimarySpId)
 	stat.PrimaryCount--
 	k.SetGVGStatisticsWithSP(ctx, stat)
 
