@@ -1546,7 +1546,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserve
 	}
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 	_, _, userRateRead := s.calculateReadRates(sp, bucketName)
-	_, _, _, userRateStore := s.calculateStorageRates(sp, bucketName, objectName1, payloadSize)
+	_, _, _, userRateStore := s.calculateStorageRates(sp, bucketName, objectName1, payloadSize, 0)
 
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	s.SendTxBlock(user, msgDeleteObject)
@@ -1618,7 +1618,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserve
 	}
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 	_, _, userRateRead := s.calculateReadRates(sp, bucketName)
-	_, _, _, userRateStore := s.calculateStorageRates(sp, bucketName, objectName1, payloadSize)
+	_, _, _, userRateStore := s.calculateStorageRates(sp, bucketName, objectName1, payloadSize, 0)
 
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	simulateResponse := s.SimulateTx(msgDeleteObject, user)
@@ -1769,7 +1769,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -1946,7 +1946,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithoutPriceChange() {
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -3270,9 +3270,7 @@ func (s *PaymentTestSuite) calculateReadRatesCurrentTimestamp(sp *core.StoragePr
 	return gvgFamilyRate, taxRate, gvgFamilyRate.Add(taxRate)
 }
 
-func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
-	ctx := context.Background()
-
+func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64, priceTime int64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	params := s.queryParams()
 
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -3283,15 +3281,17 @@ func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucke
 	s.Require().NoError(err)
 	secondarySpCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
 	fmt.Println("secondarySpCount", secondarySpCount)
-
-	headBucketRequest := storagetypes.QueryHeadBucketRequest{
-		BucketName: bucketName,
+	if priceTime == 0 {
+		headBucketRequest := storagetypes.QueryHeadBucketRequest{
+			BucketName: bucketName,
+		}
+		headBucketResponse, err := s.Client.HeadBucket(context.Background(), &headBucketRequest)
+		s.Require().NoError(err)
+		priceTime = headBucketResponse.BucketInfo.CreateAt
 	}
-	headBucketResponse, err := s.Client.HeadBucket(ctx, &headBucketRequest)
-	s.Require().NoError(err)
 
 	chargeSize := s.getChargeSize(payloadSize)
-	_, primaryPrice, secondaryPrice := s.getPrices(sp, headBucketResponse.BucketInfo.CreateAt)
+	_, primaryPrice, secondaryPrice := s.getPrices(sp, priceTime)
 
 	gvgFamilyRate := primaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	gvgRate := secondaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()

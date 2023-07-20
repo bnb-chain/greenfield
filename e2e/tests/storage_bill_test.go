@@ -101,7 +101,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -172,7 +172,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -201,7 +201,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	streamRecordsAfterCopy := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfterCopy.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfterCopy.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate1, gvgRate1, taxRate1, userTotalRate1 := s.calculateStorageRates(sp, distBucketName, distObjectName, payloadSize)
+	gvgFamilyRate1, gvgRate1, taxRate1, userTotalRate1 := s.calculateStorageRates(sp, distBucketName, distObjectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfterCopy.GVGFamily.NetflowRate.Sub(streamRecordsAfter.GVGFamily.NetflowRate), gvgFamilyRate1)
 	s.Require().Equal(streamRecordsAfterCopy.GVG.NetflowRate.Sub(streamRecordsAfter.GVG.NetflowRate), gvgRate1)
 	s.Require().Equal(streamRecordsAfterCopy.Tax.NetflowRate.Sub(streamRecordsAfter.Tax.NetflowRate), taxRate1)
@@ -519,7 +519,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	ctx := context.Background()
 	primarySP := s.PickStorageProvider()
 	s.RecoverSPPrice(primarySP)
-	//primarySP = s.StorageProviders[1]
+
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -565,7 +565,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize, 0)
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
@@ -573,23 +573,12 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
-
+	taxRate0 := taxRate
 	dstPrimarySP := s.CreateNewStorageProvider()
 
 	s.RecoverSPPrice(dstPrimarySP)
-	// migrate bucket
-	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(user0.GetAddr(), bucketName, dstPrimarySP.Info.Id)
-	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
-	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
-	s.SendTxBlock(user0, msgMigrationBucket)
-	s.Require().NoError(err)
 
-	// cancel migration bucket
-	msgCancelMigrationBucket := storagetypes.NewMsgCancelMigrateBucket(user0.GetAddr(), bucketName)
-	s.SendTxBlock(user0, msgCancelMigrationBucket)
-	s.Require().NoError(err)
-
-	// complete migration bucket
+	// new sp CreateGlobalVirtualGroup
 	var secondarySPIDs []uint32
 	var secondarySPs []*core.StorageProvider
 
@@ -598,7 +587,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 			secondarySPs = append(secondarySPs, ssp)
 		}
-		if len(secondarySPIDs) == 5 {
+		if len(secondarySPIDs) == 6 {
 			break
 		}
 	}
@@ -609,10 +598,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().NoError(err)
 	dstGVG := gvgResp.GlobalVirtualGroup
 	s.Require().True(found)
-	// create object
-	//s.BaseSuite.CreateObject(user0, dstPrimarySP, gvgID, storagetestutils.GenRandomBucketName(), storagetestutils.GenRandomObjectName())
 
-	//gvg = dstGVG
 	queryFamilyResponse, err = s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
 		FamilyId: dstGVG.FamilyId,
 	})
@@ -624,6 +610,12 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 		dstGVG.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
+	fundAddress := primarySP.FundingKey.GetAddr()
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
+
+	fundBalanceBefore, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
+	s.Require().NoError(err)
+
 	streamRecordsBefore = s.getStreamRecords(streamAddresses)
 	// construct the signatures
 	var gvgMappings []*storagetypes.GVGMapping
@@ -646,7 +638,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	}
 
 	// send msgMigrationBucket
-	msgMigrationBucket = storagetypes.NewMsgMigrateBucket(user0.GetAddr(), bucketName, dstPrimarySP.Info.Id)
+	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(user0.GetAddr(), bucketName, dstPrimarySP.Info.Id)
 	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
 	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
 	s.SendTxBlock(user0, msgMigrationBucket)
@@ -656,14 +648,21 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	msgCompleteMigrationBucket := storagetypes.NewMsgCompleteMigrateBucket(dstPrimarySP.OperatorKey.GetAddr(), bucketName, dstGVG.FamilyId, gvgMappings)
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize)
+	fundBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
+	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(dstPrimarySP, bucketName, objectName, payloadSize, time.Now().Unix())
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
+	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
+
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
-	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
+	// tax rate diff
+	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
+	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 
 }
 
@@ -675,7 +674,7 @@ func (s *PaymentTestSuite) RecoverSPPrice(sp *core.StorageProvider) {
 		Timestamp: time.Now().Unix(),
 	})
 	s.Require().NoError(err)
-	recoverReadPrice, err := sdk.NewDecFromStr("0.0087")
+	recoverReadPrice, err := sdk.NewDecFromStr("100.0087")
 	s.Require().NoError(err)
 
 	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
