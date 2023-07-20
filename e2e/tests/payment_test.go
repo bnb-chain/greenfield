@@ -2103,7 +2103,9 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRateReadAfter.Sub(taxRateReadBefore).Add(taxRateStore))
 }
 
-func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
+func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
+	defer s.revertParams()
+
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
@@ -2115,6 +2117,14 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	// query storage price
+	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
+		SpAddr:    sp.OperatorKey.GetAddr().String(),
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log("price", priceRes.SpStoragePrice)
 
 	streamAddresses := []string{
 		user.GetAddr().String(),
@@ -2133,18 +2143,74 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
 	bucketName2 := s.createBucket(sp, user, 1024)
 	_, _, objectName3, objectId3, checksums3, _ := s.createObject(user, bucketName2, false)
 	s.sealObject(sp, gvg, bucketName2, objectName3, objectId3, checksums3)
+
+	// update params
+	params := s.queryParams()
+	params.VersionedParams.ReserveTime = params.VersionedParams.ReserveTime * 3
+	params.ForcedSettleTime = params.ForcedSettleTime * 2
+	s.updateParams(params)
+
 	_, _, objectName4, objectId4, checksums4, _ := s.createObject(user, bucketName2, false)
 	s.sealObject(sp, gvg, bucketName2, objectName4, objectId4, checksums4)
+
+	bucketName3 := s.createBucket(sp, user, 1024)
+	_, _, objectName5, objectId5, checksums5, _ := s.createObject(user, bucketName3, false)
+	s.sealObject(sp, gvg, bucketName3, objectName5, objectId5, checksums5)
+
+	// update new price
+	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     sp.OperatorKey.GetAddr().String(),
+		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
+		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
+		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(10000),
+	}
+	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+
+	// update params
+	params = s.queryParams()
+	params.VersionedParams.ReserveTime = params.VersionedParams.ReserveTime / 2
+	params.ForcedSettleTime = params.ForcedSettleTime / 3
+	s.updateParams(params)
+
+	_, _, objectName6, objectId6, checksums6, _ := s.createObject(user, bucketName3, false)
+	s.sealObject(sp, gvg, bucketName3, objectName6, objectId6, checksums6)
+
+	bucketName4 := s.createBucket(sp, user, 1024)
+	_, _, objectName7, objectId7, checksums7, _ := s.createObject(user, bucketName4, false)
+	s.sealObject(sp, gvg, bucketName4, objectName7, objectId7, checksums7)
+
+	// update params
+	params = s.queryParams()
+	params.VersionedParams.ValidatorTaxRate = params.VersionedParams.ValidatorTaxRate.MulInt64(2)
+	s.updateParams(params)
+
+	_, _, objectName8, objectId8, checksums8, _ := s.createObject(user, bucketName4, false)
+	s.sealObject(sp, gvg, bucketName4, objectName8, objectId8, checksums8)
 
 	time.Sleep(3 * time.Second)
 
 	_ = s.deleteObject(user, bucketName1, objectName1)
 	_ = s.deleteObject(user, bucketName1, objectName2)
+
+	// update params
+	params = s.queryParams()
+	params.VersionedParams.ValidatorTaxRate = params.VersionedParams.ValidatorTaxRate.MulInt64(3)
+	s.updateParams(params)
+
 	_ = s.deleteObject(user, bucketName2, objectName3)
 	_ = s.deleteObject(user, bucketName2, objectName4)
 	err = s.deleteBucket(user, bucketName1)
 	s.Require().Error(err)
 	err = s.deleteBucket(user, bucketName2)
+	s.Require().Error(err)
+
+	_ = s.deleteObject(user, bucketName3, objectName5)
+	_ = s.deleteObject(user, bucketName3, objectName6)
+	_ = s.deleteObject(user, bucketName4, objectName7)
+	_ = s.deleteObject(user, bucketName4, objectName8)
+	err = s.deleteBucket(user, bucketName3)
+	s.Require().Error(err)
+	err = s.deleteBucket(user, bucketName4)
 	s.Require().Error(err)
 
 	// assertions
@@ -2154,6 +2220,15 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
+
+	// revert price
+	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     sp.OperatorKey.GetAddr().String(),
+		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
+		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
+		StorePrice:    priceRes.SpStoragePrice.StorePrice,
+	}
+	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) TestVirtualGroup_Settle() {

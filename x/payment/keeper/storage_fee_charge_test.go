@@ -184,6 +184,7 @@ func TestAutoForceSettle(t *testing.T) {
 	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
 	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)
 
+	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true)
 	time.Sleep(1 * time.Second)
 	keeper.AutoSettle(ctx)
 

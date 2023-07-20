@@ -3,11 +3,10 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/telemetry"
-
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -155,16 +154,15 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 		}
 	}
 	// update buffer balance
-	if !change.RateChange.IsZero() {
-		streamRecord.NetflowRate = streamRecord.NetflowRate.Add(change.RateChange)
-		newBufferBalance := sdkmath.ZeroInt()
-		if streamRecord.NetflowRate.IsNegative() {
-			newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(params.VersionedParams.ReserveTime))
-		}
-		if !newBufferBalance.Equal(streamRecord.BufferBalance) {
-			streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(newBufferBalance).Add(streamRecord.BufferBalance)
-			streamRecord.BufferBalance = newBufferBalance
-		}
+	// because reserve time could be changed, so we need to re-calculate buffer balance even rate change is zero
+	streamRecord.NetflowRate = streamRecord.NetflowRate.Add(change.RateChange)
+	newBufferBalance := sdkmath.ZeroInt()
+	if streamRecord.NetflowRate.IsNegative() {
+		newBufferBalance = streamRecord.NetflowRate.Abs().Mul(sdkmath.NewIntFromUint64(params.VersionedParams.ReserveTime))
+	}
+	if !newBufferBalance.Equal(streamRecord.BufferBalance) {
+		streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(newBufferBalance).Add(streamRecord.BufferBalance)
+		streamRecord.BufferBalance = newBufferBalance
 	}
 	// update static balance
 	if !change.StaticBalanceChange.IsZero() {
@@ -351,7 +349,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	}
 
 	exists := k.ExistsAutoResumeRecord(ctx, 0, sdk.MustAccAddressFromHex(streamRecord.Account))
-	if exists { // the account is resuming or settling
+	if exists {
 		return fmt.Errorf("stream account %s status is resuming, please wait", streamRecord.Account)
 	}
 

@@ -182,6 +182,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 		SpAddr:    sp.OperatorKey.GetAddr().String(),
 		Timestamp: 0,
 	})
+	s.Require().NoError(err)
 	// update new price
 	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     sp.OperatorKey.GetAddr().String(),
@@ -372,7 +373,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	user := s.GenAndChargeAccounts(1, 100)[0]
 
 	paymentAccountAddr := s.CreatePaymentAccount(user, 1, 17)
-	paymentAcc, err := sdk.AccAddressFromHexUnsafe(paymentAccountAddr)
+	paymentAcc := sdk.MustAccAddressFromHex(paymentAccountAddr)
 	streamAddresses := []string{
 		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
@@ -505,7 +506,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	s.SendTxBlockWithExpectErrorString(msgUpdateBucketInfo, user, "apply user flows list failed")
 	// new payment account balance not enough
 	paymentAccountAddr = s.CreatePaymentAccount(user, 1, 13)
-	paymentAcc, err = sdk.AccAddressFromHexUnsafe(paymentAccountAddr)
+	paymentAcc = sdk.MustAccAddressFromHex(paymentAccountAddr)
 	msgUpdateBucketInfo = storagetypes.NewMsgUpdateBucketInfo(
 		user.GetAddr(), bucketName, &readQuota, paymentAcc, storagetypes.VISIBILITY_TYPE_PRIVATE)
 
@@ -534,6 +535,7 @@ func (s *PaymentTestSuite) RecoverSPPrice(sp *core.StorageProvider) {
 		SpAddr:    sp.OperatorKey.GetAddr().String(),
 		Timestamp: time.Now().Unix(),
 	})
+	s.Require().NoError(err)
 	s.T().Logf("queryGetSpStoragePriceByTimeResp read price: %s", queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice)
 }
 
@@ -554,7 +556,7 @@ func (s *PaymentTestSuite) CreatePaymentAccount(user keys.KeyManager, amount, de
 	s.T().Log(paymentAccounts)
 	paymentAccountAddr := paymentAccounts.PaymentAccounts[len(paymentAccounts.PaymentAccounts)-1]
 	// charge payment account
-	paymentAcc, err := sdk.AccAddressFromHexUnsafe(paymentAccountAddr)
+	paymentAcc := sdk.MustAccAddressFromHex(paymentAccountAddr)
 	msgSend := banktypes.NewMsgSend(user.GetAddr(), paymentAcc, []sdk.Coin{{Denom: "BNB", Amount: types.NewIntFromInt64WithDecimal(amount, decimal)}})
 	s.SendTxBlock(user, msgSend)
 
