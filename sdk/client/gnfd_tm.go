@@ -4,9 +4,8 @@ import (
 	"context"
 	"encoding/hex"
 
-	"github.com/cometbft/cometbft/votepool"
-
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
+	"github.com/cometbft/cometbft/votepool"
 )
 
 // GetBlock by height, gets the latest block if height is nil

@@ -4,14 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"cosmossdk.io/math"
-
-	"github.com/bnb-chain/greenfield/testutil/sample"
-	"github.com/bnb-chain/greenfield/x/challenge"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -20,8 +13,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/bnb-chain/greenfield/x/challenge"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/keeper"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )

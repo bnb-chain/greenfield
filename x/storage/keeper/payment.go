@@ -160,42 +160,38 @@ func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, primarySpId uint3
 	return k.ChargeObjectStoreFee(ctx, primarySpId, bucketInfo, internalBucketInfo, objectInfo)
 }
 
-func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, error) {
+func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, sdk.Dec, error) {
 	prePrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySpId,
 		PriceTime: priceTime,
 	})
 	if err != nil {
-		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get previous storage price failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), err
 	}
 	currentPrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySpId,
 		PriceTime: ctx.BlockTime().Unix(),
 	})
 	if err != nil {
-		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get current storage price failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), err
 	}
 
 	preParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
 	if err != nil {
-		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get previous payment params failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), err
 	}
 
 	currentParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, ctx.BlockTime().Unix())
 	if err != nil {
-		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get current payment params failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), err
 	}
 
 	return !(prePrice.ReadPrice.Equal(currentPrice.ReadPrice) &&
 			prePrice.PrimaryStorePrice.Equal(currentPrice.PrimaryStorePrice) &&
 			prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice) &&
 			preParams.ValidatorTaxRate.Equal(currentParams.ValidatorTaxRate)),
-		prePrice.ReadPrice,
-		prePrice.PrimaryStorePrice,
-		prePrice.SecondaryStorePrice,
-		currentPrice.ReadPrice,
-		currentPrice.PrimaryStorePrice,
-		currentPrice.SecondaryStorePrice,
+		prePrice.ReadPrice, prePrice.PrimaryStorePrice, prePrice.SecondaryStorePrice, preParams.ValidatorTaxRate,
+		currentPrice.ReadPrice, currentPrice.PrimaryStorePrice, currentPrice.SecondaryStorePrice, currentParams.ValidatorTaxRate,
 		nil
 }
 
@@ -206,7 +202,7 @@ func (k Keeper) ChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucket
 		return fmt.Errorf("get charge size error: %w", err)
 	}
 
-	priceChanged, _, _, _, _, _, _, err := k.IsPriceChanged(ctx, primarySpId, internalBucketInfo.PriceTime)
+	priceChanged, _, _, _, _, _, _, _, _, err := k.IsPriceChanged(ctx, primarySpId, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("check whether price changed error: %w", err)
 	}

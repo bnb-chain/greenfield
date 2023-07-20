@@ -11,18 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/suite"
-
 	sdkmath "cosmossdk.io/math"
-	"github.com/bnb-chain/greenfield/e2e/core"
-	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/bnb-chain/greenfield/sdk/types"
-	storagetestutils "github.com/bnb-chain/greenfield/testutil/storage"
-	"github.com/bnb-chain/greenfield/types/common"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -32,6 +21,17 @@ import (
 	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/samber/lo"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/sdk/types"
+	storagetestutils "github.com/bnb-chain/greenfield/testutil/storage"
+	"github.com/bnb-chain/greenfield/types/common"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type StreamRecords struct {
