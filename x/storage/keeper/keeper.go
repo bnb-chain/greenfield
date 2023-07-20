@@ -399,14 +399,13 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
-		Operator:               operator.String(),
-		BucketName:             bucketName,
-		BucketId:               bucketInfo.Id,
-		ChargedReadQuotaBefore: bucketInfo.ChargedReadQuota,
-		ChargedReadQuotaAfter:  *opts.ChargedReadQuota,
-		PaymentAddressBefore:   bucketInfo.PaymentAddress,
-		PaymentAddressAfter:    paymentAcc.String(),
-		Visibility:             bucketInfo.Visibility,
+		Operator:                   operator.String(),
+		BucketName:                 bucketName,
+		BucketId:                   bucketInfo.Id,
+		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
+		PaymentAddress:             bucketInfo.PaymentAddress,
+		Visibility:                 bucketInfo.Visibility,
+		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
 	}); err != nil {
 		return err
 	}
@@ -1901,6 +1900,19 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		BucketName:                 bucketName,
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: gvgFamilyID,
+		SrcPrimarySpId:             srcGvgFamily.Id,
+	}); err != nil {
+		return err
+	}
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventUpdateBucketInfo{
+		Operator:                   operator.String(),
+		BucketName:                 bucketName,
+		BucketId:                   bucketInfo.Id,
+		ChargedReadQuota:           bucketInfo.ChargedReadQuota,
+		PaymentAddress:             bucketInfo.PaymentAddress,
+		Visibility:                 bucketInfo.Visibility,
+		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
 	}); err != nil {
 		return err
 	}

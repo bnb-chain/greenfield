@@ -102,10 +102,10 @@ message LocalVirtualGroup {
   // id is the identifier of the local virtual group.
   uint32 id = 1;
   // global_virtual_group_id is the identifier of the global virtual group.
-  uint32 global_virtual_group_id = 3;
+  uint32 global_virtual_group_id = 2;
   // stored_size is the size of the stored data in the local virtual group.
-  uint64 stored_size = 4;
+  uint64 stored_size = 3;
   // total_charge_size is the total charged size of the objects in the LVG.
   // Notice that the minimum unit of charge is 128K
-  uint64 total_charge_size = 5;
+  uint64 total_charge_size = 4;
 }

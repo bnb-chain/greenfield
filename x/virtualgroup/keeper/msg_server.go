@@ -188,9 +188,11 @@ func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types
 	k.SetGVG(ctx, gvg)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
-		Id:           req.GlobalVirtualGroupId,
-		StoreSize:    gvg.StoredSize,
-		TotalDeposit: gvg.TotalDeposit,
+		Id:             gvg.Id,
+		PrimarySpId:    gvg.PrimarySpId,
+		StoreSize:      gvg.StoredSize,
+		TotalDeposit:   gvg.TotalDeposit,
+		SecondarySpIds: gvg.SecondarySpIds,
 	}); err != nil {
 		return nil, err
 	}

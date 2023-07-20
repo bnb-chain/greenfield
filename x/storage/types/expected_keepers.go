@@ -82,7 +82,7 @@ type CrossChainKeeper interface {
 }
 
 type VirtualGroupKeeper interface {
-	SetGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup)
+	SetGVGAndEmitUpdateEvent(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
 	GetGVGFamily(ctx sdk.Context, familyID uint32) (*types.GlobalVirtualGroupFamily, bool)
 	GetGVG(ctx sdk.Context, gvgID uint32) (*types.GlobalVirtualGroup, bool)
 	SettleAndDistributeGVGFamily(ctx sdk.Context, sp *sptypes.StorageProvider, family *types.GlobalVirtualGroupFamily) error
