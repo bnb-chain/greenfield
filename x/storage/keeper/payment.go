@@ -189,7 +189,7 @@ func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime in
 	return !(prePrice.ReadPrice.Equal(currentPrice.ReadPrice) &&
 			prePrice.PrimaryStorePrice.Equal(currentPrice.PrimaryStorePrice) &&
 			prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice) &&
-			preParams.ValidatorTaxRate == currentParams.ValidatorTaxRate),
+			preParams.ValidatorTaxRate.Equal(currentParams.ValidatorTaxRate)),
 		prePrice.ReadPrice,
 		prePrice.PrimaryStorePrice,
 		prePrice.SecondaryStorePrice,
@@ -389,12 +389,6 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get storage price failed: %w", err)
 	}
 
-	// primary sp total rate
-	primaryTotalFlowRate := sdk.ZeroInt()
-
-	// secondary sp total rate
-	secondaryTotalFlowRate := sdk.ZeroInt()
-
 	var lvg *storagetypes.LocalVirtualGroup
 	for _, l := range internalBucketInfo.LocalVirtualGroups {
 		if l.Id == objectInfo.LocalVirtualGroupId {
@@ -406,7 +400,10 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	// primary sp
 	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	if primaryRate.IsPositive() {
-		primaryTotalFlowRate = primaryTotalFlowRate.Add(primaryRate)
+		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
+			ToAddress: gvgFamily.VirtualPaymentAddress,
+			Rate:      primaryRate,
+		})
 	}
 
 	//secondary sp
@@ -422,21 +419,13 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 			ToAddress: gvg.VirtualPaymentAddress,
 			Rate:      secondaryRate,
 		})
-		secondaryTotalFlowRate = secondaryTotalFlowRate.Add(secondaryRate)
-	}
-
-	if primaryTotalFlowRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: gvgFamily.VirtualPaymentAddress,
-			Rate:      primaryTotalFlowRate,
-		})
 	}
 
 	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("failed to get validator tax rate: %w, time: %d", err, internalBucketInfo.PriceTime)
 	}
-	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryTotalFlowRate.Add(secondaryTotalFlowRate)).TruncateInt()
+	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryRate.Add(secondaryRate)).TruncateInt()
 	if validatorTaxRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: types.ValidatorTaxPoolAddress.String(),
@@ -591,13 +580,20 @@ func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpId uint32, priceTime 
 	if err != nil {
 		return amount, fmt.Errorf("get charge size error: %w", err)
 	}
+
+	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+
 	secondarySPNum := int64(k.GetExpectSecondarySPNumForECObject(ctx, priceTime))
-	rate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(secondarySPNum)).MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	secondaryRate = secondaryRate.MulRaw(int64(secondarySPNum))
+
 	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
 	if err != nil {
 		return amount, fmt.Errorf("get versioned reserve time error: %w", err)
 	}
-	rate = versionedParams.ValidatorTaxRate.MulInt(rate).TruncateInt().Add(rate) // should also lock for validator tax pool
+	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryRate.Add(secondaryRate)).TruncateInt()
+
+	rate := primaryRate.Add(secondaryRate).Add(validatorTaxRate) // should also lock for validator tax pool
 	amount = rate.Mul(sdkmath.NewIntFromUint64(versionedParams.ReserveTime))
 	return amount, nil
 }

@@ -3204,11 +3204,12 @@ func (s *PaymentTestSuite) calculateLockFee(sp *core.StorageProvider, bucketName
 	s.Require().NoError(err)
 	secondarySpCount := storageParams.Params.VersionedParams.RedundantDataChunkNum + storageParams.Params.VersionedParams.RedundantParityChunkNum
 
-	chargeSize := int64(s.getChargeSize(payloadSize))
+	chargeSize := s.getChargeSize(payloadSize)
 	_, primaryPrice, secondaryPrice := s.getPrices(sp, headBucketExtraResponse.ExtraInfo.PriceTime)
 
-	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
-	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(secondarySpCount)).TruncateInt()
+	gvgFamilyRate := primaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	gvgRate := secondaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	gvgRate = gvgRate.MulRaw(int64(secondarySpCount))
 	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
 	return gvgFamilyRate.Add(gvgRate).Add(taxRate).MulRaw(int64(params.VersionedParams.ReserveTime))
 }
@@ -3280,8 +3281,8 @@ func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucke
 	}
 	headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
 	s.Require().NoError(err)
-	gvgCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
-	fmt.Println("gvgCount", gvgCount)
+	secondarySpCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
+	fmt.Println("secondarySpCount", secondarySpCount)
 
 	headBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
@@ -3289,11 +3290,12 @@ func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucke
 	headBucketResponse, err := s.Client.HeadBucket(ctx, &headBucketRequest)
 	s.Require().NoError(err)
 
-	chargeSize := int64(s.getChargeSize(payloadSize))
+	chargeSize := s.getChargeSize(payloadSize)
 	_, primaryPrice, secondaryPrice := s.getPrices(sp, headBucketResponse.BucketInfo.CreateAt)
 
-	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
-	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(gvgCount)).TruncateInt()
+	gvgFamilyRate := primaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	gvgRate := secondaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	gvgRate = gvgRate.MulRaw(int64(secondarySpCount))
 	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
 	return gvgFamilyRate, gvgRate, taxRate, gvgFamilyRate.Add(gvgRate).Add(taxRate)
 }
@@ -3307,13 +3309,15 @@ func (s *PaymentTestSuite) calculateStorageRatesCurrentTimestamp(sp *core.Storag
 	}
 	headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
 	s.Require().NoError(err)
-	gvgCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
+	secondarySpCount := len(headObjectResponse.GlobalVirtualGroup.SecondarySpIds)
+	fmt.Println("secondarySpCount", secondarySpCount)
 
-	chargeSize := int64(s.getChargeSize(payloadSize))
+	chargeSize := s.getChargeSize(payloadSize)
 	_, primaryPrice, secondaryPrice := s.getPrices(sp, time.Now().Unix())
 
-	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
-	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(gvgCount)).TruncateInt()
+	gvgFamilyRate := primaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	gvgRate := secondaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
+	gvgRate = gvgRate.MulRaw(int64(secondarySpCount))
 	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
 	return gvgFamilyRate, gvgRate, taxRate, gvgFamilyRate.Add(gvgRate).Add(taxRate)
 }
