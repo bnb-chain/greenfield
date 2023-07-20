@@ -43,10 +43,13 @@ type StreamRecords struct {
 
 type PaymentTestSuite struct {
 	core.BaseSuite
+	defaultParams paymenttypes.Params
 }
 
 func (s *PaymentTestSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
+	s.defaultParams = s.queryParams()
+
 }
 
 func (s *PaymentTestSuite) SetupTest() {
@@ -95,31 +98,24 @@ func (s *PaymentTestSuite) TestCreatePaymentAccount() {
 // TestVersionedParams_SealAfterReserveTimeChange will cover the following case:
 // create an object, increase the reserve time, seal the object without error.
 func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
 
 	// create bucket, create object
 	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
 
 	// update params
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
 
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	// seal object
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
@@ -139,24 +135,18 @@ func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange(
 	// delete bucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	s.SendTxBlock(user, msgDeleteBucket)
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 // TestVersionedParams_DeleteAfterValidatorTaxRateChange will cover the following case:
 // create a bucket with non-zero read quota, change the validator tax rate, delete the bucket.
 // The rate of the validator tax address should be correct.
 func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRateChange() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
 
 	validatorTaxPoolRate := sdk.ZeroInt()
 	queryStreamRequest := paymenttypes.QueryGetStreamRecordRequest{Account: paymenttypes.ValidatorTaxPoolAddress.String()}
@@ -176,7 +166,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
 
 	// update params
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldForceSettleTime := params.ForcedSettleTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
@@ -185,12 +175,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	params.VersionedParams.ReserveTime = oldReserveTime / 2
 	params.ForcedSettleTime = oldForceSettleTime / 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	// delete object
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
@@ -203,24 +188,17 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	queryStreamResponse, err = s.Client.PaymentQueryClient.StreamRecord(ctx, &queryStreamRequest)
 	s.Require().NoError(err)
 	s.Require().Equal(validatorTaxPoolRate, queryStreamResponse.StreamRecord.NetflowRate)
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.ForcedSettleTime = oldForceSettleTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 // TestVersionedParams_DeleteObjectAfterReserveTimeChange will cover the following case:
 // create an object, change the reserve time, the object can be force deleted even the object's own has no enough balance.
 func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChange() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
 
 	// create bucket, create object
 	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
@@ -253,19 +231,13 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 	s.Require().Equal(int64(0), queryBalanceResponse.Balance.Amount.Int64())
 
 	// update params
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
 
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName,
@@ -295,11 +267,6 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 
 	_, err = s.Client.HeadObject(ctx, &queryHeadObjectRequest)
 	s.Require().ErrorContains(err, "No such object")
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
@@ -311,10 +278,8 @@ func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
 	userAddr := user.GetAddr().String()
 	var err error
 
-	params, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("params %s, err: %v", params, err)
-	s.Require().NoError(err)
-	reserveTime := params.Params.VersionedParams.ReserveTime
+	params := s.queryParams()
+	reserveTime := params.VersionedParams.ReserveTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
@@ -324,7 +289,7 @@ func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
 	bucketChargedReadQuota := uint64(1000)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := params.Params.VersionedParams.ValidatorTaxRate
+	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
 	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
@@ -399,10 +364,8 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInOneBlock() {
 	userAddr := user.GetAddr().String()
 	var err error
 
-	params, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("params %s, err: %v", params, err)
-	s.Require().NoError(err)
-	reserveTime := params.Params.VersionedParams.ReserveTime
+	params := s.queryParams()
+	reserveTime := params.VersionedParams.ReserveTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
@@ -412,7 +375,7 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInOneBlock() {
 	bucketChargedReadQuota := uint64(1000)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := params.Params.VersionedParams.ValidatorTaxRate
+	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
 	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
@@ -505,21 +468,13 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInOneBlock() {
 }
 
 func (s *PaymentTestSuite) TestDeposit_ResumeInBlocks() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	// update params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
-	oldMaxAutoResumeFlowCount := params.MaxAutoResumeFlowCount
-	s.T().Logf("params, MaxAutoResumeFlowCount: %d", oldMaxAutoResumeFlowCount)
-
+	params := s.queryParams()
 	params.MaxAutoResumeFlowCount = 1 // update to 1
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params: %s", params.String())
 
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -645,10 +600,6 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInBlocks() {
 			s.T().Fatalf("wait for resume time timeout")
 		}
 	}
-
-	// revert params
-	params.MaxAutoResumeFlowCount = oldMaxAutoResumeFlowCount
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
@@ -667,10 +618,8 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 
 	bucketChargedReadQuota := uint64(1000)
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
-	reserveTime := paymentParams.Params.VersionedParams.ReserveTime
+	params := s.queryParams()
+	reserveTime := params.VersionedParams.ReserveTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
@@ -678,7 +627,7 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	s.Require().NoError(err)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := paymentParams.Params.VersionedParams.ValidatorTaxRate
+	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
 	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
@@ -793,21 +742,13 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 }
 
 func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	// update params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
-	oldMaxAutoSettleFlowCount := params.MaxAutoSettleFlowCount
-	s.T().Logf("params, MaxAutoSettleFlowCount: %d", oldMaxAutoSettleFlowCount)
-
+	params := s.queryParams()
 	params.MaxAutoSettleFlowCount = 2 // update to 2
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params: %s", params.String())
 
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -899,10 +840,6 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 	paymentStreamRecordAfterAutoSettle := s.getStreamRecord(paymentAddr)
 	s.T().Logf("paymentStreamRecordAfterAutoSettle %s", core.YamlString(paymentStreamRecordAfterAutoSettle))
 	s.Require().NotEqual(paymentStreamRecordAfterAutoSettle.Status, paymenttypes.STREAM_ACCOUNT_STATUS_ACTIVE)
-
-	// revert params
-	params.MaxAutoSettleFlowCount = oldMaxAutoSettleFlowCount
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestWithdraw() {
@@ -914,10 +851,8 @@ func (s *PaymentTestSuite) TestWithdraw() {
 	userAddr := user.GetAddr().String()
 	var err error
 
-	params, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("params %s, err: %v", params, err)
-	s.Require().NoError(err)
-	reserveTime := params.Params.VersionedParams.ReserveTime
+	params := s.queryParams()
+	reserveTime := params.VersionedParams.ReserveTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
 		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
@@ -927,7 +862,7 @@ func (s *PaymentTestSuite) TestWithdraw() {
 	bucketChargedReadQuota := uint64(100000)
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := params.Params.VersionedParams.ValidatorTaxRate
+	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
 	expectedRate := totalUserRate.Add(taxStreamRate)
 	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
@@ -1060,9 +995,7 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	streamRecordsBeforeCreateBucket := s.getStreamRecords(streamAddresses)
 	s.T().Logf("streamRecordsBeforeCreateBucket: %s", core.YamlString(streamRecordsBeforeCreateBucket))
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	// create bucket
 	bucketName := storagetestutils.GenRandomBucketName()
@@ -1105,7 +1038,7 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
 	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
-	userTaxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
+	userTaxRate := params.VersionedParams.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
 	userTotalRate := readChargeRate.Add(userTaxRate)
 	s.Require().Equal(userStreamRecord.NetflowRate.Abs(), userTotalRate)
 	expectedOutFlows := []paymenttypes.OutFlow{
@@ -1173,8 +1106,8 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	secondaryStorePrice := queryGetSecondarySpStorePriceByTime.SecondarySpStorePrice.StorePrice
 	chargeSize := s.getChargeSize(queryHeadObjectResponse.ObjectInfo.PayloadSize)
 	expectedChargeRate := primaryStorePrice.Add(secondaryStorePrice.MulInt64(6)).MulInt(sdk.NewIntFromUint64(chargeSize)).TruncateInt()
-	expectedChargeRate = paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(expectedChargeRate).TruncateInt().Add(expectedChargeRate)
-	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(paymentParams.Params.VersionedParams.ReserveTime))
+	expectedChargeRate = params.VersionedParams.ValidatorTaxRate.MulInt(expectedChargeRate).TruncateInt().Add(expectedChargeRate)
+	expectedLockedBalance := expectedChargeRate.Mul(sdkmath.NewIntFromUint64(params.VersionedParams.ReserveTime))
 
 	streamRecordsAfterCreateObject := s.getStreamRecords(streamAddresses)
 	s.T().Logf("streamRecordsAfterCreateObject %s", core.YamlString(streamRecordsAfterCreateObject))
@@ -1452,6 +1385,8 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 }
 
 func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeReserveTimeChange() {
+	defer s.revertParams()
+
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
@@ -1544,22 +1479,13 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 
 	// update params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
 
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	s.SendTxBlock(user, msgDeleteObject)
 	s.SendTxBlock(user, msgDeleteBucket)
@@ -1580,12 +1506,6 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 		StorePrice:    priceRes.SpStoragePrice.StorePrice,
 	}
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
-
-	// revert params
-	params = queryParamsResponse.Params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserveTime() {
@@ -1601,11 +1521,8 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserve
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	s.T().Log("queryParamsResponse", core.YamlString(queryParamsResponse))
-	reserveTime := queryParamsResponse.Params.VersionedParams.ReserveTime
+	params := s.queryParams()
+	reserveTime := params.VersionedParams.ReserveTime
 
 	// create bucket
 	bucketName := s.createBucket(sp, user, 256)
@@ -1654,6 +1571,8 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserve
 }
 
 func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserveTime() {
+	defer s.revertParams()
+
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
@@ -1666,14 +1585,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserve
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	s.T().Log("queryParamsResponse", core.YamlString(queryParamsResponse))
-	oldReserveTime := queryParamsResponse.Params.VersionedParams.ReserveTime
-	oldForceSettleTime := queryParamsResponse.Params.ForcedSettleTime
-
-	params := queryParamsResponse.Params
+	params := s.queryParams()
 	params.VersionedParams.ReserveTime = 5
 	params.ForcedSettleTime = 2
 	s.updateParams(params)
@@ -1739,12 +1651,6 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserve
 	taxPoolDelta := streamRecordsAfter.Tax.StaticBalance.Sub(streamRecordsBefore.Tax.StaticBalance)
 	s.T().Log("familyDelta", familyDelta, "gvgDelta", gvgDelta, "taxPoolDelta", taxPoolDelta)
 	s.Require().True(familyDelta.Add(gvgDelta).Add(taxPoolDelta).Int64() >= balanceDelta.Int64()) // could exist other buckets/objects on the gvg & family
-
-	// revert params
-	params = queryParamsResponse.Params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.ForcedSettleTime = oldForceSettleTime
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuota() {
@@ -1768,9 +1674,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	}
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	// case: create bucket with zero read quota
 	bucketName := s.createBucket(sp, user, 0)
@@ -1810,7 +1714,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
 	readChargeRate := readPrice.MulInt(sdk.NewIntFromUint64(queryHeadBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
 	s.T().Logf("readPrice: %s, readChargeRate: %s", readPrice, readChargeRate)
-	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
+	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(readChargeRate).TruncateInt()
 	userTotalRate := readChargeRate.Add(taxRate)
 
 	// assertions
@@ -1855,10 +1759,6 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
-
 	bucketName := s.createBucket(sp, user, 0)
 
 	// case: create object with zero payload size
@@ -1891,6 +1791,8 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 }
 
 func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidatorTaxRateChange() {
+	defer s.revertParams()
+
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
@@ -1910,10 +1812,6 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidator
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
-
 	bucketName := s.createBucket(sp, user, 0)
 
 	// create object with none zero payload size
@@ -1931,22 +1829,14 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidator
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
 
 	// update params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
+
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
 
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	// create another object after parameter changes
 	streamRecordsBefore = s.getStreamRecords(streamAddresses)
@@ -1962,11 +1852,6 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidator
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
 	s.Require().True(lockFeeAfterParameterChange.GT(lockFee.MulRaw(2)))
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_CancelCreateObject() {
@@ -1988,10 +1873,6 @@ func (s *PaymentTestSuite) TestStorageBill_CancelCreateObject() {
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
-
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
 
 	bucketName := s.createBucket(sp, user, 0)
 
@@ -2041,10 +1922,6 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithoutPriceChange() {
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
-
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
 
 	bucketName := s.createBucket(sp, user, 0)
 
@@ -2096,10 +1973,6 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChange() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
-
 	bucketName := s.createBucket(sp, user, 102400)
 
 	// case: seal object with read price change and storage price change
@@ -2140,6 +2013,8 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChange() {
 }
 
 func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTaxRateChange() {
+	defer s.revertParams()
+
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
@@ -2158,10 +2033,6 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
-
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
 
 	bucketName := s.createBucket(sp, user, 102400)
 
@@ -2202,22 +2073,13 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRateReadAfter.Sub(taxRateReadBefore).Add(taxRateStore))
 
 	// update params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
 
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	_, _, objectName, objectId, checksums, payloadSize = s.createObject(user, bucketName, false)
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
@@ -2239,11 +2101,6 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRateStore)
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRateReadAfter.Sub(gvgFamilyRateReadBefore).Add(gvgFamilyRateStore))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRateReadAfter.Sub(taxRateReadBefore).Add(taxRateStore))
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_FullLifecycle_WithEnoughBalance() {
@@ -2888,6 +2745,8 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChange() {
 }
 
 func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeChange() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -2976,22 +2835,13 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	s.Require().Equal(int64(0), queryBalanceResponse.Balance.Amount.Int64())
 
 	// update params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", oldReserveTime, oldValidatorTaxRate)
 
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	// for payment
 	time.Sleep(2 * time.Second)
@@ -3039,14 +2889,11 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 		StorePrice:    priceRes.SpStoragePrice.StorePrice,
 	}
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeChange_FrozenAccount() {
+	defer s.revertParams()
+
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -3059,14 +2906,9 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	// params
-	queryParamsRequest := paymenttypes.QueryParamsRequest{}
-	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params := queryParamsResponse.GetParams()
+	params := s.queryParams()
 	oldReserveTime := params.VersionedParams.ReserveTime
-	oldForceSettleTime := params.ForcedSettleTime
 	oldValidatorTaxRate := params.VersionedParams.ValidatorTaxRate
-	s.T().Log("params", core.YamlString(params))
 
 	streamAddresses := []string{
 		user.GetAddr().String(),
@@ -3157,12 +2999,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	// update params
 	params.VersionedParams.ReserveTime = oldReserveTime * 2
 	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate.MulInt64(2)
-
 	s.updateParams(params)
-	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, &queryParamsRequest)
-	s.Require().NoError(err)
-	params = queryParamsResponse.GetParams()
-	s.T().Logf("params, ReserveTime: %d, ValidatorTaxRate: %s", params.VersionedParams.ReserveTime, params.VersionedParams.ValidatorTaxRate)
 
 	// for payment
 	time.Sleep(2 * time.Second)
@@ -3210,12 +3047,6 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 		StorePrice:    priceRes.SpStoragePrice.StorePrice,
 	}
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
-
-	// revert params
-	params.VersionedParams.ReserveTime = oldReserveTime
-	params.ForcedSettleTime = oldForceSettleTime
-	params.VersionedParams.ValidatorTaxRate = oldValidatorTaxRate
-	s.updateParams(params)
 }
 
 func TestPaymentTestSuite(t *testing.T) {
@@ -3288,9 +3119,7 @@ func (s *PaymentTestSuite) getChargeSize(payloadSize uint64) uint64 {
 func (s *PaymentTestSuite) calculateLockFee(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) sdkmath.Int {
 	ctx := context.Background()
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	headBucketExtraResponse, err := s.Client.HeadBucketExtra(ctx, &storagetypes.QueryHeadBucketExtraRequest{BucketName: bucketName})
 	s.Require().NoError(err)
@@ -3305,8 +3134,8 @@ func (s *PaymentTestSuite) calculateLockFee(sp *core.StorageProvider, bucketName
 
 	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
 	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(secondarySpCount)).TruncateInt()
-	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
-	return gvgFamilyRate.Add(gvgRate).Add(taxRate).MulRaw(int64(paymentParams.Params.VersionedParams.ReserveTime))
+	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
+	return gvgFamilyRate.Add(gvgRate).Add(taxRate).MulRaw(int64(params.VersionedParams.ReserveTime))
 }
 
 func (s *PaymentTestSuite) getPrices(sp *core.StorageProvider, timestamp int64) (sdk.Dec, sdk.Dec, sdk.Dec) {
@@ -3332,9 +3161,7 @@ func (s *PaymentTestSuite) getPrices(sp *core.StorageProvider, timestamp int64) 
 func (s *PaymentTestSuite) calculateReadRates(sp *core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	headBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
@@ -3345,16 +3172,14 @@ func (s *PaymentTestSuite) calculateReadRates(sp *core.StorageProvider, bucketNa
 	readPrice, _, _ := s.getPrices(sp, headBucketResponse.BucketInfo.CreateAt)
 
 	gvgFamilyRate := readPrice.MulInt64(int64(headBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
-	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate).TruncateInt()
+	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate).TruncateInt()
 	return gvgFamilyRate, taxRate, gvgFamilyRate.Add(taxRate)
 }
 
 func (s *PaymentTestSuite) calculateReadRatesCurrentTimestamp(sp *core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	headBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
@@ -3365,16 +3190,14 @@ func (s *PaymentTestSuite) calculateReadRatesCurrentTimestamp(sp *core.StoragePr
 	readPrice, _, _ := s.getPrices(sp, time.Now().Unix())
 
 	gvgFamilyRate := readPrice.MulInt64(int64(headBucketResponse.BucketInfo.ChargedReadQuota)).TruncateInt()
-	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate).TruncateInt()
+	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate).TruncateInt()
 	return gvgFamilyRate, taxRate, gvgFamilyRate.Add(taxRate)
 }
 
 func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
 	ctx := context.Background()
 
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName,
@@ -3396,16 +3219,12 @@ func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucke
 
 	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
 	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(gvgCount)).TruncateInt()
-	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
+	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
 	return gvgFamilyRate, gvgRate, taxRate, gvgFamilyRate.Add(gvgRate).Add(taxRate)
 }
 
 func (s *PaymentTestSuite) calculateStorageRatesCurrentTimestamp(sp *core.StorageProvider, bucketName, objectName string, payloadSize uint64) (sdkmath.Int, sdkmath.Int, sdkmath.Int, sdkmath.Int) {
-	ctx := context.Background()
-
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
+	params := s.queryParams()
 
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName,
@@ -3420,7 +3239,7 @@ func (s *PaymentTestSuite) calculateStorageRatesCurrentTimestamp(sp *core.Storag
 
 	gvgFamilyRate := primaryPrice.MulInt64(chargeSize).TruncateInt()
 	gvgRate := secondaryPrice.MulInt64(chargeSize * int64(gvgCount)).TruncateInt()
-	taxRate := paymentParams.Params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
+	taxRate := params.VersionedParams.ValidatorTaxRate.MulInt(gvgFamilyRate.Add(gvgRate)).TruncateInt()
 	return gvgFamilyRate, gvgRate, taxRate, gvgFamilyRate.Add(gvgRate).Add(taxRate)
 }
 
@@ -3434,7 +3253,7 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 	queryParamsRequest := &paymenttypes.QueryParamsRequest{}
 	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(ctx, queryParamsRequest)
 	s.Require().NoError(err)
-	s.T().Log("queryParamsResponse", core.YamlString(queryParamsResponse.Params))
+	s.T().Log("params before", core.YamlString(queryParamsResponse.Params))
 
 	msgUpdateParams := &paymenttypes.MsgUpdateParams{
 		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
@@ -3492,9 +3311,14 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 	queryParamsByTimestampRequest := &paymenttypes.QueryParamsByTimestampRequest{Timestamp: ts}
 	queryParamsByTimestampResponse, err := s.Client.PaymentQueryClient.ParamsByTimestamp(ctx, queryParamsByTimestampRequest)
 	s.Require().NoError(err)
-	s.T().Log("queryParamsByTimestampResponse", core.YamlString(queryParamsResponse.Params))
+	s.T().Log("params by timestamp", core.YamlString(queryParamsResponse.Params))
 	s.Require().Equal(queryParamsResponse.Params.VersionedParams.ReserveTime,
 		queryParamsByTimestampResponse.Params.VersionedParams.ReserveTime)
+
+	queryParamsRequest = &paymenttypes.QueryParamsRequest{}
+	queryParamsResponse, err = s.Client.PaymentQueryClient.Params(ctx, queryParamsRequest)
+	s.Require().NoError(err)
+	s.T().Log("params after", core.YamlString(queryParamsResponse.Params))
 }
 
 func (s *PaymentTestSuite) createBucketAndObject(sp *core.StorageProvider) (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
@@ -3791,4 +3615,16 @@ CheckProposalStatus:
 	} else {
 		s.T().Errorf("update params failed")
 	}
+}
+
+func (s *PaymentTestSuite) revertParams() {
+	s.updateParams(s.defaultParams)
+}
+
+func (s *PaymentTestSuite) queryParams() paymenttypes.Params {
+	queryParamsRequest := paymenttypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.PaymentQueryClient.Params(context.Background(), &queryParamsRequest)
+	s.Require().NoError(err)
+	s.T().Log("params", core.YamlString(queryParamsResponse.Params))
+	return queryParamsResponse.Params
 }
