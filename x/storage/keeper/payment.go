@@ -166,19 +166,30 @@ func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime in
 		PriceTime: priceTime,
 	})
 	if err != nil {
-		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get storage price failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get previous storage price failed: %w", err)
 	}
 	currentPrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: primarySpId,
 		PriceTime: ctx.BlockTime().Unix(),
 	})
 	if err != nil {
-		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get storage price failed: %w", err)
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get current storage price failed: %w", err)
+	}
+
+	preParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, priceTime)
+	if err != nil {
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get previous payment params failed: %w", err)
+	}
+
+	currentParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, ctx.BlockTime().Unix())
+	if err != nil {
+		return false, sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), sdk.ZeroDec(), fmt.Errorf("get current payment params failed: %w", err)
 	}
 
 	return !(prePrice.ReadPrice.Equal(currentPrice.ReadPrice) &&
 			prePrice.PrimaryStorePrice.Equal(currentPrice.PrimaryStorePrice) &&
-			prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice)),
+			prePrice.SecondaryStorePrice.Equal(currentPrice.SecondaryStorePrice) &&
+			preParams.ValidatorTaxRate == currentParams.ValidatorTaxRate),
 		prePrice.ReadPrice,
 		prePrice.PrimaryStorePrice,
 		prePrice.SecondaryStorePrice,
