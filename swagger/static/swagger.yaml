@@ -4829,6 +4829,482 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/virtualgroup/global_virtual_group:
+    get:
+      summary: Queries a global virtual group by its id.
+      operationId: GlobalVirtualGroup
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              global_virtual_group:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      ID represents the unique identifier of the global virtual
+                      group.
+                  family_id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      Family ID represents the identifier of the GVG family that
+                      the group belongs to.
+                  primary_sp_id:
+                    type: integer
+                    format: int64
+                    description: >-
+                      Primary SP ID represents the unique identifier of the
+                      primary storage provider in the group.
+                  secondary_sp_ids:
+                    type: array
+                    items:
+                      type: integer
+                      format: int64
+                    description: >-
+                      Secondary SP IDs represents the list of unique identifiers
+                      of the secondary storage providers in the group.
+                  stored_size:
+                    type: string
+                    format: uint64
+                    description: >-
+                      Stored size represents the size of the stored objects
+                      within the group.
+                  virtual_payment_address:
+                    type: string
+                    description: >-
+                      Virtual payment address represents the payment address
+                      associated with the group.
+                  total_deposit:
+                    type: string
+                    description: >-
+                      Total deposit represents the number of tokens deposited by
+                      this storage provider for staking.
+                description: >-
+                  A global virtual group consists of one primary SP (SP) and
+                  multiple secondary SP.
+
+                  Every global virtual group must belong to a GVG family, and
+                  the objects of each
+
+                  bucket must be stored in a GVG within a group family.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: global_virtual_group_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+      tags:
+        - Query
+  /greenfield/virtualgroup/global_virtual_group_by_family_id:
+    get:
+      summary: Queries a list of global virtual groups by family id.
+      operationId: GlobalVirtualGroupByFamilyID
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              global_virtual_groups:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: >-
+                        ID represents the unique identifier of the global
+                        virtual group.
+                    family_id:
+                      type: integer
+                      format: int64
+                      description: >-
+                        Family ID represents the identifier of the GVG family
+                        that the group belongs to.
+                    primary_sp_id:
+                      type: integer
+                      format: int64
+                      description: >-
+                        Primary SP ID represents the unique identifier of the
+                        primary storage provider in the group.
+                    secondary_sp_ids:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                      description: >-
+                        Secondary SP IDs represents the list of unique
+                        identifiers of the secondary storage providers in the
+                        group.
+                    stored_size:
+                      type: string
+                      format: uint64
+                      description: >-
+                        Stored size represents the size of the stored objects
+                        within the group.
+                    virtual_payment_address:
+                      type: string
+                      description: >-
+                        Virtual payment address represents the payment address
+                        associated with the group.
+                    total_deposit:
+                      type: string
+                      description: >-
+                        Total deposit represents the number of tokens deposited
+                        by this storage provider for staking.
+                  description: >-
+                    A global virtual group consists of one primary SP (SP) and
+                    multiple secondary SP.
+
+                    Every global virtual group must belong to a GVG family, and
+                    the objects of each
+
+                    bucket must be stored in a GVG within a group family.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: storage_provider_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+        - name: global_virtual_group_family_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+      tags:
+        - Query
+  /greenfield/virtualgroup/global_virtual_group_families:
+    get:
+      summary: Queries a list of GlobalVirtualGroupFamilies items.
+      operationId: GlobalVirtualGroupFamilies
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              gvg_families:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      format: int64
+                      description: id is the identifier of the global virtual group family.
+                    primary_sp_id:
+                      type: integer
+                      format: int64
+                      title: primary_sp_id
+                    global_virtual_group_ids:
+                      type: array
+                      items:
+                        type: integer
+                        format: int64
+                      description: >-
+                        global_virtual_group_ids is a list of identifiers of the
+                        global virtual groups associated with the family.
+                    virtual_payment_address:
+                      type: string
+                      description: >-
+                        virtual_payment_address is the payment address
+                        associated with the global virtual group family.
+                  description: >-
+                    Global virtual group family serve as a means of grouping
+                    global virtual groups.
+
+                    Each bucket must be associated with a unique global virtual
+                    group family and cannot cross families.
+              pagination:
+                type: object
+                properties:
+                  next_key:
+                    type: string
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
+                    type: string
+                    format: uint64
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /greenfield/virtualgroup/global_virtual_group_family:
+    get:
+      summary: Queries a global virtual group family by its id.
+      operationId: GlobalVirtualGroupFamily
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              global_virtual_group_family:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    format: int64
+                    description: id is the identifier of the global virtual group family.
+                  primary_sp_id:
+                    type: integer
+                    format: int64
+                    title: primary_sp_id
+                  global_virtual_group_ids:
+                    type: array
+                    items:
+                      type: integer
+                      format: int64
+                    description: >-
+                      global_virtual_group_ids is a list of identifiers of the
+                      global virtual groups associated with the family.
+                  virtual_payment_address:
+                    type: string
+                    description: >-
+                      virtual_payment_address is the payment address associated
+                      with the global virtual group family.
+                description: >-
+                  Global virtual group family serve as a means of grouping
+                  global virtual groups.
+
+                  Each bucket must be associated with a unique global virtual
+                  group family and cannot cross families.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: family_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+      tags:
+        - Query
+  /greenfield/virtualgroup/params:
+    get:
+      summary: Parameters queries the parameters of the module.
+      operationId: VirtualGroupParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  deposit_denom:
+                    type: string
+                    description: deposit_denom defines the staking coin denomination.
+                  gvg_staking_per_bytes:
+                    type: string
+                    title: store price, in bnb wei per charge byte
+                  max_local_virtual_group_num_per_bucket:
+                    type: integer
+                    format: int64
+                    title: the max number of lvg which allowed in a bucket
+                  max_global_virtual_group_num_per_family:
+                    type: integer
+                    format: int64
+                    title: the max number of gvg which can exist in a family
+                  max_store_size_per_family:
+                    type: string
+                    format: uint64
+                    title: >-
+                      if the store size reach the exceed, the family is not
+                      allowed to sever more buckets
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
   /cosmos/auth/v1beta1/account_info/{address}:
     get:
       summary: AccountInfo queries account info which is common to all account types.
@@ -34012,6 +34488,292 @@ definitions:
       each
 
       bucket must be stored in a GVG within a group family.
+  greenfield.virtualgroup.GlobalVirtualGroupFamily:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: id is the identifier of the global virtual group family.
+      primary_sp_id:
+        type: integer
+        format: int64
+        title: primary_sp_id
+      global_virtual_group_ids:
+        type: array
+        items:
+          type: integer
+          format: int64
+        description: >-
+          global_virtual_group_ids is a list of identifiers of the global
+          virtual groups associated with the family.
+      virtual_payment_address:
+        type: string
+        description: >-
+          virtual_payment_address is the payment address associated with the
+          global virtual group family.
+    description: >-
+      Global virtual group family serve as a means of grouping global virtual
+      groups.
+
+      Each bucket must be associated with a unique global virtual group family
+      and cannot cross families.
+  greenfield.virtualgroup.Params:
+    type: object
+    properties:
+      deposit_denom:
+        type: string
+        description: deposit_denom defines the staking coin denomination.
+      gvg_staking_per_bytes:
+        type: string
+        title: store price, in bnb wei per charge byte
+      max_local_virtual_group_num_per_bucket:
+        type: integer
+        format: int64
+        title: the max number of lvg which allowed in a bucket
+      max_global_virtual_group_num_per_family:
+        type: integer
+        format: int64
+        title: the max number of gvg which can exist in a family
+      max_store_size_per_family:
+        type: string
+        format: uint64
+        title: >-
+          if the store size reach the exceed, the family is not allowed to sever
+          more buckets
+    description: Params defines the parameters for the module.
+  greenfield.virtualgroup.QueryGlobalVirtualGroupByFamilyIDResponse:
+    type: object
+    properties:
+      global_virtual_groups:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: ID represents the unique identifier of the global virtual group.
+            family_id:
+              type: integer
+              format: int64
+              description: >-
+                Family ID represents the identifier of the GVG family that the
+                group belongs to.
+            primary_sp_id:
+              type: integer
+              format: int64
+              description: >-
+                Primary SP ID represents the unique identifier of the primary
+                storage provider in the group.
+            secondary_sp_ids:
+              type: array
+              items:
+                type: integer
+                format: int64
+              description: >-
+                Secondary SP IDs represents the list of unique identifiers of
+                the secondary storage providers in the group.
+            stored_size:
+              type: string
+              format: uint64
+              description: >-
+                Stored size represents the size of the stored objects within the
+                group.
+            virtual_payment_address:
+              type: string
+              description: >-
+                Virtual payment address represents the payment address
+                associated with the group.
+            total_deposit:
+              type: string
+              description: >-
+                Total deposit represents the number of tokens deposited by this
+                storage provider for staking.
+          description: >-
+            A global virtual group consists of one primary SP (SP) and multiple
+            secondary SP.
+
+            Every global virtual group must belong to a GVG family, and the
+            objects of each
+
+            bucket must be stored in a GVG within a group family.
+  greenfield.virtualgroup.QueryGlobalVirtualGroupFamiliesResponse:
+    type: object
+    properties:
+      gvg_families:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: id is the identifier of the global virtual group family.
+            primary_sp_id:
+              type: integer
+              format: int64
+              title: primary_sp_id
+            global_virtual_group_ids:
+              type: array
+              items:
+                type: integer
+                format: int64
+              description: >-
+                global_virtual_group_ids is a list of identifiers of the global
+                virtual groups associated with the family.
+            virtual_payment_address:
+              type: string
+              description: >-
+                virtual_payment_address is the payment address associated with
+                the global virtual group family.
+          description: >-
+            Global virtual group family serve as a means of grouping global
+            virtual groups.
+
+            Each bucket must be associated with a unique global virtual group
+            family and cannot cross families.
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  greenfield.virtualgroup.QueryGlobalVirtualGroupFamilyResponse:
+    type: object
+    properties:
+      global_virtual_group_family:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+            description: id is the identifier of the global virtual group family.
+          primary_sp_id:
+            type: integer
+            format: int64
+            title: primary_sp_id
+          global_virtual_group_ids:
+            type: array
+            items:
+              type: integer
+              format: int64
+            description: >-
+              global_virtual_group_ids is a list of identifiers of the global
+              virtual groups associated with the family.
+          virtual_payment_address:
+            type: string
+            description: >-
+              virtual_payment_address is the payment address associated with the
+              global virtual group family.
+        description: >-
+          Global virtual group family serve as a means of grouping global
+          virtual groups.
+
+          Each bucket must be associated with a unique global virtual group
+          family and cannot cross families.
+  greenfield.virtualgroup.QueryGlobalVirtualGroupResponse:
+    type: object
+    properties:
+      global_virtual_group:
+        type: object
+        properties:
+          id:
+            type: integer
+            format: int64
+            description: ID represents the unique identifier of the global virtual group.
+          family_id:
+            type: integer
+            format: int64
+            description: >-
+              Family ID represents the identifier of the GVG family that the
+              group belongs to.
+          primary_sp_id:
+            type: integer
+            format: int64
+            description: >-
+              Primary SP ID represents the unique identifier of the primary
+              storage provider in the group.
+          secondary_sp_ids:
+            type: array
+            items:
+              type: integer
+              format: int64
+            description: >-
+              Secondary SP IDs represents the list of unique identifiers of the
+              secondary storage providers in the group.
+          stored_size:
+            type: string
+            format: uint64
+            description: >-
+              Stored size represents the size of the stored objects within the
+              group.
+          virtual_payment_address:
+            type: string
+            description: >-
+              Virtual payment address represents the payment address associated
+              with the group.
+          total_deposit:
+            type: string
+            description: >-
+              Total deposit represents the number of tokens deposited by this
+              storage provider for staking.
+        description: >-
+          A global virtual group consists of one primary SP (SP) and multiple
+          secondary SP.
+
+          Every global virtual group must belong to a GVG family, and the
+          objects of each
+
+          bucket must be stored in a GVG within a group family.
+  greenfield.virtualgroup.QueryParamsResponse:
+    type: object
+    properties:
+      params:
+        description: params holds all the parameters of this module.
+        type: object
+        properties:
+          deposit_denom:
+            type: string
+            description: deposit_denom defines the staking coin denomination.
+          gvg_staking_per_bytes:
+            type: string
+            title: store price, in bnb wei per charge byte
+          max_local_virtual_group_num_per_bucket:
+            type: integer
+            format: int64
+            title: the max number of lvg which allowed in a bucket
+          max_global_virtual_group_num_per_family:
+            type: integer
+            format: int64
+            title: the max number of gvg which can exist in a family
+          max_store_size_per_family:
+            type: string
+            format: uint64
+            title: >-
+              if the store size reach the exceed, the family is not allowed to
+              sever more buckets
+    description: QueryParamsResponse is response type for the Query/Params RPC method.
   cosmos.auth.v1beta1.BaseAccount:
     type: object
     properties:
