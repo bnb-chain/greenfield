@@ -1,5 +1,6 @@
 .PHONY: build build-linux build-macos build-windows
 .PHONY: tools proto-gen proto-format test e2e_test ci lint
+.PHONY: install-go-test-coverage check-coverage
 
 VERSION=$(shell git describe --tags --always)
 GIT_COMMIT=$(shell git rev-parse HEAD)
@@ -7,6 +8,8 @@ GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d'
 REPO=github.com/bnb-chain/greenfield
 IMAGE_NAME=ghcr.io/bnb-chain/greenfield
 REPO=github.com/bnb-chain/greenfield
+
+GOBIN ?= $$(go env GOPATH)/bin
 
 ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
@@ -52,7 +55,13 @@ e2e_start_localchain:
 	bash ./deployment/localup/localup.sh all 1 7
 
 e2e_test:
-	go test -p 1 -failfast -v ./e2e/... -timeout 99999s
+	go test -p 1 -failfast -v ./e2e/... -coverpkg=./... -covermode=atomic -coverprofile=./coverage.out -timeout 99999s
+
+install-go-test-coverage:
+	go install github.com/vladopajic/go-test-coverage/v2@latest
+
+check-coverage: install-go-test-coverage
+	go-test-coverage --config=./.testcoverage.yml
 
 lint:
 	golangci-lint run --fix
