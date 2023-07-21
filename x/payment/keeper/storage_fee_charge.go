@@ -60,9 +60,15 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 			streamRecord = types.NewStreamRecord(from, currentTime)
 		}
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
-			return k.applyActiveUerFlows(ctx, userFlows, from, streamRecord)
+			err = k.applyActiveUerFlows(ctx, userFlows, from, streamRecord)
+			if err != nil {
+				return err
+			}
 		} else { // frozen status, should be called in end block for stop serving
-			return k.applyFrozenUserFlows(ctx, userFlows, from, streamRecord)
+			err = k.applyFrozenUserFlows(ctx, userFlows, from, streamRecord)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

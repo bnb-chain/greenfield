@@ -347,7 +347,6 @@ func (k Keeper) ChargeViaBucketChange(ctx sdk.Context, bucketInfo *storagetypes.
 	if err = changeFunc(bucketInfo, internalBucketInfo); err != nil {
 		return errors.Wrapf(err, "change bucket internal info failed")
 	}
-
 	// calculate new bill
 	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	newBill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
