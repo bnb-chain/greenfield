@@ -58,3 +58,5 @@ jobs:
       continue-on-error: true
       if: github.event_name == 'pull_request'
       uses: codecov/codecov-action@v3
+      with:
+        gcov_ignore: "*.pb.go"
