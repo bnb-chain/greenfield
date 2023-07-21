@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.3-alpha.6
+This release includes 6 features and 5 bugfixes.
+
+Features:
+* [#346](https://github.com/bnb-chain/greenfield/pull/346) feat: Enable websocket client as a option in Greenfield sdk
+* [#349](https://github.com/bnb-chain/greenfield/pull/349) feat: add UpdateChannelPermissions tx for crosschain module
+* [#350](https://github.com/bnb-chain/greenfield/pull/350) feat: add create storage provider command
+* [#357](https://github.com/bnb-chain/greenfield/pull/357) feat: add api to filter virtual group families qualification
+* [#352](https://github.com/bnb-chain/greenfield/pull/352) feat: add query params for virtual group
+* [#348](https://github.com/bnb-chain/greenfield/pull/348) feat: fix issues and add test cases for payment
+
+Bugfixes:
+* [#351](https://github.com/bnb-chain/greenfield/pull/351) fix: update local virtual group event
+* [#353](https://github.com/bnb-chain/greenfield/pull/353) fix: panic when delete unsealed object from lvg
+* [#354](https://github.com/bnb-chain/greenfield/pull/354) fix: incorrect authority for keepers
+* [#342](https://github.com/bnb-chain/greenfield/pull/342) fix: remove primary sp id from bucket info
+* [#356](https://github.com/bnb-chain/greenfield/pull/356) fix: add validation of extra field when creating group
+
+Chores:
+* [#359](https://github.com/bnb-chain/greenfield/pull/359) chore: add swagger check
+* [#358](https://github.com/bnb-chain/greenfield/pull/358) chore: Refine event for sp exit and bucket migration
+
 ## v0.2.3-alpha.5
 This release adds 6 new features and 2 bugfixes.
 
