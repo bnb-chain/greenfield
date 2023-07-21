@@ -122,12 +122,13 @@ func (s *TestSuite) TestGetObjectLockFee() {
 	amount, err := s.storageKeeper.GetObjectLockFee(s.ctx, 100, time.Now().Unix(), uint64(payloadSize))
 	s.Require().NoError(err)
 	secondarySPNum := int64(s.storageKeeper.GetExpectSecondarySPNumForECObject(s.ctx, time.Now().Unix()))
-	expectedAmount := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(secondarySPNum)).
-		MulInt64(payloadSize).MulInt64(int64(params.VersionedParams.ReserveTime)).TruncateInt()
+	spRate := price.PrimaryStorePrice.Add(price.SecondaryStorePrice.MulInt64(secondarySPNum)).MulInt64(payloadSize)
+	validatorTaxRate := params.VersionedParams.ValidatorTaxRate.MulInt(spRate.TruncateInt())
+	expectedAmount := spRate.Add(validatorTaxRate).MulInt64(int64(params.VersionedParams.ReserveTime)).TruncateInt()
 	s.Require().True(amount.Equal(expectedAmount))
 }
 
-func (s *TestSuite) TestGetBucketBill() {
+func (s *TestSuite) TestGetBucketReadBill() {
 	gvgFamily := &virtualgroupmoduletypes.GlobalVirtualGroupFamily{
 		Id:                    1,
 		VirtualPaymentAddress: sample.RandAccAddress().String(),
@@ -186,9 +187,37 @@ func (s *TestSuite) TestGetBucketBill() {
 	taxPoolRate := params.VersionedParams.ValidatorTaxRate.MulInt(readRate).TruncateInt()
 	s.Require().Equal(flows.Flows[1].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
 	s.Require().Equal(flows.Flows[1].Rate, taxPoolRate)
+}
+
+func (s *TestSuite) TestGetBucketReadStoreBill() {
+	gvgFamily := &virtualgroupmoduletypes.GlobalVirtualGroupFamily{
+		Id:                    1,
+		VirtualPaymentAddress: sample.RandAccAddress().String(),
+	}
+	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any()).
+		Return(gvgFamily, true).AnyTimes()
+
+	primarySp := &sptypes.StorageProvider{
+		Status:          sptypes.STATUS_IN_SERVICE,
+		Id:              100,
+		OperatorAddress: sample.RandAccAddress().String(),
+		FundingAddress:  sample.RandAccAddress().String()}
+	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
+		Return(primarySp, true).AnyTimes()
+
+	price := paymenttypes.StoragePrice{
+		ReadPrice:           sdk.NewDec(100),
+		PrimaryStorePrice:   sdk.NewDec(1000),
+		SecondaryStorePrice: sdk.NewDec(500),
+	}
+	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
+		Return(price, nil).AnyTimes()
+	params := paymenttypes.DefaultParams()
+	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).
+		Return(params.VersionedParams, nil).AnyTimes()
 
 	// none empty bucket
-	bucketInfo = &types.BucketInfo{
+	bucketInfo := &types.BucketInfo{
 		Owner:                      "",
 		BucketName:                 "bucketname",
 		Id:                         sdk.NewUint(1),
@@ -197,7 +226,7 @@ func (s *TestSuite) TestGetBucketBill() {
 		ChargedReadQuota:           100,
 	}
 
-	internalBucketInfo = &types.InternalBucketInfo{
+	internalBucketInfo := &types.InternalBucketInfo{
 		TotalChargeSize: 300,
 		LocalVirtualGroups: []*types.LocalVirtualGroup{
 			{
@@ -229,7 +258,7 @@ func (s *TestSuite) TestGetBucketBill() {
 	s.virtualGroupKeeper.EXPECT().GetGVG(gomock.Any(), gvg2.Id).
 		Return(gvg2, true).AnyTimes()
 
-	flows, err = s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
+	flows, err := s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 
 	gvg1StoreSize := internalBucketInfo.LocalVirtualGroups[0].TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
@@ -242,13 +271,13 @@ func (s *TestSuite) TestGetBucketBill() {
 	s.Require().Equal(flows.Flows[1].ToAddress, gvg2.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[1].Rate, gvg2StoreRate)
 
-	readRate = price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
+	readRate := price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
 	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(internalBucketInfo.TotalChargeSize)).TruncateInt()
 	s.Require().Equal(flows.Flows[2].ToAddress, gvgFamily.VirtualPaymentAddress)
 	s.Require().Equal(flows.Flows[2].Rate, readRate.Add(primaryStoreRate))
 
 	totalRate := readRate.Add(primaryStoreRate).Add(gvg1StoreRate).Add(gvg2StoreRate)
-	taxPoolRate = params.VersionedParams.ValidatorTaxRate.MulInt(totalRate).TruncateInt()
+	taxPoolRate := params.VersionedParams.ValidatorTaxRate.MulInt(totalRate).TruncateInt()
 	s.Require().Equal(flows.Flows[3].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
 	s.Require().Equal(flows.Flows[3].Rate, taxPoolRate)
 }

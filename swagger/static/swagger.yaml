@@ -2348,6 +2348,109 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/storage/head_bucket_extra/{bucket_name}:
+    get:
+      summary: >-
+        Queries a bucket extra info (with gvg bindings and price time) with
+        specify name.
+      operationId: HeadBucketExtra
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              extra_info:
+                type: object
+                properties:
+                  price_time:
+                    type: string
+                    format: int64
+                    title: >-
+                      the time of the payment price, used to calculate the
+                      charge rate of the bucket
+                  total_charge_size:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the total size of the objects in the bucket, used to
+                      calculate the charge rate of the bucket
+                  local_virtual_groups:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          format: int64
+                          description: id is the identifier of the local virtual group.
+                        global_virtual_group_id:
+                          type: integer
+                          format: int64
+                          description: >-
+                            global_virtual_group_id is the identifier of the
+                            global virtual group.
+                        stored_size:
+                          type: string
+                          format: uint64
+                          description: >-
+                            stored_size is the size of the stored data in the
+                            local virtual group.
+                        total_charge_size:
+                          type: string
+                          format: uint64
+                          title: >-
+                            total_charge_size is the total charged size of the
+                            objects in the LVG.
+
+                            Notice that the minimum unit of charge is 128K
+                      description: >-
+                        Local virtual group(LVG) uniquely associated with a
+                        global virtual group.
+
+                        Each bucket maintains a mapping from local virtual group
+                        to global virtual group
+
+                        Each local virtual group is associated with a unique
+                        virtual payment account,
+
+                        where all object fees are streamed to.
+                    description: local_virtual_groups contains all the lvg of this bucket.
+                  next_local_virtual_group_id:
+                    type: integer
+                    format: int64
+                    title: >-
+                      next_local_virtual_group_id store the next id used by
+                      local virtual group
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_name
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/storage/head_bucket_nft/{token_id}:
     get:
       summary: Queries a bucket with EIP712 standard metadata info
@@ -3036,6 +3139,63 @@ paths:
                       format: byte
       parameters:
         - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/is_price_changed/{bucket_name}:
+    get:
+      summary: Queries whether read and storage prices changed for the bucket.
+      operationId: QueryIsPriceChanged
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              changed:
+                type: boolean
+              current_read_price:
+                type: string
+              current_primary_store_price:
+                type: string
+              current_secondary_store_price:
+                type: string
+              current_validator_tax_rate:
+                type: string
+              new_read_price:
+                type: string
+              new_primary_store_price:
+                type: string
+              new_secondary_store_price:
+                type: string
+              new_validator_tax_rate:
+                type: string
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_name
           in: path
           required: true
           type: string
@@ -33138,6 +33298,99 @@ definitions:
             value:
               type: string
         title: attributes
+  greenfield.storage.InternalBucketInfo:
+    type: object
+    properties:
+      price_time:
+        type: string
+        format: int64
+        title: >-
+          the time of the payment price, used to calculate the charge rate of
+          the bucket
+      total_charge_size:
+        type: string
+        format: uint64
+        title: >-
+          the total size of the objects in the bucket, used to calculate the
+          charge rate of the bucket
+      local_virtual_groups:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              description: id is the identifier of the local virtual group.
+            global_virtual_group_id:
+              type: integer
+              format: int64
+              description: >-
+                global_virtual_group_id is the identifier of the global virtual
+                group.
+            stored_size:
+              type: string
+              format: uint64
+              description: >-
+                stored_size is the size of the stored data in the local virtual
+                group.
+            total_charge_size:
+              type: string
+              format: uint64
+              title: >-
+                total_charge_size is the total charged size of the objects in
+                the LVG.
+
+                Notice that the minimum unit of charge is 128K
+          description: >-
+            Local virtual group(LVG) uniquely associated with a global virtual
+            group.
+
+            Each bucket maintains a mapping from local virtual group to global
+            virtual group
+
+            Each local virtual group is associated with a unique virtual payment
+            account,
+
+            where all object fees are streamed to.
+        description: local_virtual_groups contains all the lvg of this bucket.
+      next_local_virtual_group_id:
+        type: integer
+        format: int64
+        title: >-
+          next_local_virtual_group_id store the next id used by local virtual
+          group
+  greenfield.storage.LocalVirtualGroup:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+        description: id is the identifier of the local virtual group.
+      global_virtual_group_id:
+        type: integer
+        format: int64
+        description: global_virtual_group_id is the identifier of the global virtual group.
+      stored_size:
+        type: string
+        format: uint64
+        description: stored_size is the size of the stored data in the local virtual group.
+      total_charge_size:
+        type: string
+        format: uint64
+        title: |-
+          total_charge_size is the total charged size of the objects in the LVG.
+          Notice that the minimum unit of charge is 128K
+    description: >-
+      Local virtual group(LVG) uniquely associated with a global virtual group.
+
+      Each bucket maintains a mapping from local virtual group to global virtual
+      group
+
+      Each local virtual group is associated with a unique virtual payment
+      account,
+
+      where all object fees are streamed to.
   greenfield.storage.ObjectInfo:
     type: object
     properties:
@@ -33419,6 +33672,71 @@ definitions:
                 value:
                   type: string
             title: attributes
+  greenfield.storage.QueryHeadBucketExtraResponse:
+    type: object
+    properties:
+      extra_info:
+        type: object
+        properties:
+          price_time:
+            type: string
+            format: int64
+            title: >-
+              the time of the payment price, used to calculate the charge rate
+              of the bucket
+          total_charge_size:
+            type: string
+            format: uint64
+            title: >-
+              the total size of the objects in the bucket, used to calculate the
+              charge rate of the bucket
+          local_virtual_groups:
+            type: array
+            items:
+              type: object
+              properties:
+                id:
+                  type: integer
+                  format: int64
+                  description: id is the identifier of the local virtual group.
+                global_virtual_group_id:
+                  type: integer
+                  format: int64
+                  description: >-
+                    global_virtual_group_id is the identifier of the global
+                    virtual group.
+                stored_size:
+                  type: string
+                  format: uint64
+                  description: >-
+                    stored_size is the size of the stored data in the local
+                    virtual group.
+                total_charge_size:
+                  type: string
+                  format: uint64
+                  title: >-
+                    total_charge_size is the total charged size of the objects
+                    in the LVG.
+
+                    Notice that the minimum unit of charge is 128K
+              description: >-
+                Local virtual group(LVG) uniquely associated with a global
+                virtual group.
+
+                Each bucket maintains a mapping from local virtual group to
+                global virtual group
+
+                Each local virtual group is associated with a unique virtual
+                payment account,
+
+                where all object fees are streamed to.
+            description: local_virtual_groups contains all the lvg of this bucket.
+          next_local_virtual_group_id:
+            type: integer
+            format: int64
+            title: >-
+              next_local_virtual_group_id store the next id used by local
+              virtual group
   greenfield.storage.QueryHeadBucketResponse:
     type: object
     properties:
@@ -33669,6 +33987,27 @@ definitions:
           objects of each
 
           bucket must be stored in a GVG within a group family.
+  greenfield.storage.QueryIsPriceChangedResponse:
+    type: object
+    properties:
+      changed:
+        type: boolean
+      current_read_price:
+        type: string
+      current_primary_store_price:
+        type: string
+      current_secondary_store_price:
+        type: string
+      current_validator_tax_rate:
+        type: string
+      new_read_price:
+        type: string
+      new_primary_store_price:
+        type: string
+      new_secondary_store_price:
+        type: string
+      new_validator_tax_rate:
+        type: string
   greenfield.storage.QueryListBucketsResponse:
     type: object
     properties:

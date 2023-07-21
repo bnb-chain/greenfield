@@ -10,6 +10,7 @@ type StreamRecordChange struct {
 	RateChange          sdkmath.Int
 	StaticBalanceChange sdkmath.Int
 	LockBalanceChange   sdkmath.Int
+	FrozenRateChange    sdkmath.Int
 }
 
 func NewDefaultStreamRecordChangeWithAddr(addr sdk.AccAddress) *StreamRecordChange {
@@ -18,6 +19,7 @@ func NewDefaultStreamRecordChangeWithAddr(addr sdk.AccAddress) *StreamRecordChan
 		RateChange:          sdkmath.ZeroInt(),
 		StaticBalanceChange: sdkmath.ZeroInt(),
 		LockBalanceChange:   sdkmath.ZeroInt(),
+		FrozenRateChange:    sdkmath.ZeroInt(),
 	}
 }
 
@@ -33,6 +35,11 @@ func (change *StreamRecordChange) WithStaticBalanceChange(staticBalanceChange sd
 
 func (change *StreamRecordChange) WithLockBalanceChange(lockBalanceChange sdkmath.Int) *StreamRecordChange {
 	change.LockBalanceChange = lockBalanceChange
+	return change
+}
+
+func (change *StreamRecordChange) WithFrozenRateChange(frozenRateChange sdkmath.Int) *StreamRecordChange {
+	change.FrozenRateChange = frozenRateChange
 	return change
 }
 

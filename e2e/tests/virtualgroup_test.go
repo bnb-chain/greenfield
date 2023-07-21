@@ -381,7 +381,13 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	s.BaseSuite.CreateObject(user, sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
 
 	// 4. Create another gvg contains this new sp
-	anotherSP := s.StorageProviders[1]
+	var anotherSP *core.StorageProvider
+	for _, tsp := range s.StorageProviders {
+		if tsp.Info.Id != sp.Info.Id && tsp.Info.Id != successorSp.Info.Id {
+			anotherSP = tsp
+			break
+		}
+	}
 	var anotherSecondarySPIDs []uint32
 	for _, ssp := range s.StorageProviders {
 		if ssp.Info.Id != successorSp.Info.Id && ssp.Info.Id != anotherSP.Info.Id {

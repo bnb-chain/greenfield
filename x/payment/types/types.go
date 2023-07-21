@@ -14,3 +14,8 @@ var (
 const (
 	ForceUpdateStreamRecordKey = "force_update_stream_record"
 )
+
+const (
+	// GovernanceAddressLackBalanceLabel is the metrics label to notify that the governance account has no enough balance
+	GovernanceAddressLackBalanceLabel = "governance_address_lack_balance"
+)

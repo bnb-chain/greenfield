@@ -8,7 +8,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	gnfdtypes "github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
@@ -22,6 +21,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
+	gnfdtypes "github.com/bnb-chain/greenfield/sdk/types"
 	types2 "github.com/bnb-chain/greenfield/sdk/types"
 	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
 )

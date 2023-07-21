@@ -3,13 +3,15 @@ package app
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 
 	"cosmossdk.io/math"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	"github.com/cosmos/cosmos-sdk/store/iavl"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 )
 
 const reconStoreKey = "reconciliation"
@@ -124,6 +126,9 @@ func (app *App) reconPaymentChanges(ctx sdk.Context, paymentIavl *iavl.Store) bo
 					ctx.Logger().Error("fail to unmarshal stream record", "err", err.Error())
 				} else {
 					flowCurrent = flowCurrent.Add(sr.NetflowRate)
+					//TODO: impact performance, remove it later
+					j, _ := json.Marshal(sr)
+					ctx.Logger().Debug("stream_record_current", "stream record", j, "addr", parseAddressFromStreamRecordKey(kBz))
 				}
 			}
 
@@ -139,6 +144,9 @@ func (app *App) reconPaymentChanges(ctx sdk.Context, paymentIavl *iavl.Store) bo
 					ctx.Logger().Error("fail to unmarshal stream record", "err", err.Error())
 				} else {
 					flowPre = flowPre.Add(sr.NetflowRate)
+					//TODO: impact performance, remove it later
+					j, _ := json.Marshal(sr)
+					ctx.Logger().Debug("stream_record_previous", "stream record", j, "addr", parseAddressFromStreamRecordKey(kBz))
 				}
 			}
 		}
@@ -195,4 +203,9 @@ func parseAmountFromValue(value []byte) math.Int {
 		panic(fmt.Errorf("unable to unmarshal amount value %v", err))
 	}
 	return amount
+}
+
+func parseAddressFromStreamRecordKey(key []byte) string {
+	start := len(StreamRecordKeyPrefix)
+	return sdk.AccAddress(key[start:]).String()
 }

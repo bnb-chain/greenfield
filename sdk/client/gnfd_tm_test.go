@@ -7,10 +7,10 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestTmClient(t *testing.T) {

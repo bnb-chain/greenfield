@@ -155,7 +155,7 @@ func (s *BaseSuite) SendTxBlock(from keys.KeyManager, msg ...sdk.Msg) *sdk.TxRes
 	})
 	s.Require().NoError(err)
 
-	s.T().Logf("block_height: %d, tx_hash: 0x%s", getTxRes.TxResponse.Height, response.TxResponse.TxHash)
+	s.T().Logf("block_height: %d, tx_hash: 0x%s, GasUsed: %v", getTxRes.TxResponse.Height, response.TxResponse.TxHash, response.TxResponse.GasUsed)
 	return getTxRes.TxResponse
 }
 
@@ -200,7 +200,7 @@ func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyM
 	}
 	s.Client.SetKeyManager(from)
 	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
-	s.T().Logf("tx failed, err: %s, expect error string: %s", err, expectErrorString)
+	s.T().Logf("tx failed, err: %v, expect error string: %s", err, expectErrorString)
 	s.Require().Error(err)
 	s.Require().True(strings.Contains(err.Error(), expectErrorString))
 }
@@ -638,6 +638,15 @@ func (s *BaseSuite) GetChainID() string {
 func (s *BaseSuite) PickStorageProvider() *StorageProvider {
 	for _, sp := range s.StorageProviders {
 		return sp
+	}
+	return nil
+}
+
+func (s *BaseSuite) PickDifferentStorageProvider(spId uint32) *StorageProvider {
+	for _, sp := range s.StorageProviders {
+		if sp.Info.Id != spId {
+			return sp
+		}
 	}
 	return nil
 }

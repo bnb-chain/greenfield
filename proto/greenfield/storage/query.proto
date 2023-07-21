@@ -118,6 +118,16 @@ service Query {
     option (google.api.http).get = "/greenfield/storage/lock_fee";
   }
 
+  // Queries a bucket extra info (with gvg bindings and price time) with specify name.
+  rpc HeadBucketExtra(QueryHeadBucketExtraRequest) returns (QueryHeadBucketExtraResponse) {
+    option (google.api.http).get = "/greenfield/storage/head_bucket_extra/{bucket_name}";
+  }
+
+  // Queries whether read and storage prices changed for the bucket.
+  rpc QueryIsPriceChanged(QueryIsPriceChangedRequest) returns (QueryIsPriceChangedResponse) {
+    option (google.api.http).get = "/greenfield/storage/is_price_changed/{bucket_name}";
+  }
+
   // this line is used by starport scaffolding # 2
 }
 
@@ -291,4 +301,59 @@ message QueryLockFeeResponse {
   ];
 }
 
+message QueryHeadBucketExtraRequest {
+  string bucket_name = 1;
+}
+
+message QueryHeadBucketExtraResponse {
+  InternalBucketInfo extra_info = 1;
+}
+
+message QueryIsPriceChangedRequest {
+  string bucket_name = 1;
+}
+
+message QueryIsPriceChangedResponse {
+  bool changed = 1;
+  string current_read_price = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string current_primary_store_price = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string current_secondary_store_price = 4 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string current_validator_tax_rate = 5 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string new_read_price = 6 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string new_primary_store_price = 7 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string new_secondary_store_price = 8 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  string new_validator_tax_rate = 9 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+}
 // this line is used by starport scaffolding # 3

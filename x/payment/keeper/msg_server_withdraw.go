@@ -17,6 +17,10 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	if !found {
 		return nil, types.ErrStreamRecordNotFound
 	}
+	// check status
+	if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN {
+		return nil, errors.Wrapf(types.ErrInvalidStreamAccountStatus, "stream record is frozen")
+	}
 	// check whether creator can withdraw
 	if msg.Creator != msg.From {
 		paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, from)
