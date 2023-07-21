@@ -23,7 +23,12 @@ proto-gen:
 	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  && rm -rf github.com && go mod tidy
 
 proto-swagger-gen:
-	sh ./scripts/protoc-swagger-gen.sh
+	bash ./scripts/protoc-swagger-gen.sh
+
+proto-swagger-check:
+	npm install -g swagger-combine
+	bash -x ./scripts/protoc-swagger-gen.sh
+	git diff --exit-code
 
 proto-format:
 	buf format -w
