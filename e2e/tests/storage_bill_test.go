@@ -21,38 +21,6 @@ import (
 	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
-func (s *PaymentTestSuite) copyObject(user keys.KeyManager, sp *core.StorageProvider, bucketName, objectName, dstBucketName, dstObjectName string) (*storagetypes.ObjectInfo, error) {
-	msgCopyObject := storagetypes.NewMsgCopyObject(user.GetAddr(), bucketName, dstBucketName, objectName, dstObjectName, math.MaxUint, nil)
-	msgCopyObject.DstPrimarySpApproval.Sig, _ = sp.ApprovalKey.Sign(msgCopyObject.GetApprovalBytes())
-
-	s.SendTxBlock(user, msgCopyObject)
-	// HeadObject
-	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
-		BucketName: dstBucketName,
-		ObjectName: dstObjectName,
-	}
-	headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
-	return headObjectResponse.ObjectInfo, err
-
-}
-
-func (s *PaymentTestSuite) updateBucket(user keys.KeyManager, bucketName string, paymentAddress string, chargedReadQuota uint64) (*storagetypes.BucketInfo, error) {
-
-	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
-		user.GetAddr(), bucketName, &chargedReadQuota, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
-	if paymentAddress != "" {
-		msgUpdateBucketInfo.PaymentAddress = paymentAddress
-	}
-	s.SendTxBlock(user, msgUpdateBucketInfo)
-
-	queryHeadObjectRequest := storagetypes.QueryHeadBucketRequest{
-		BucketName: bucketName,
-	}
-	headObjectResponse, err := s.Client.HeadBucket(context.Background(), &queryHeadObjectRequest)
-	return headObjectResponse.BucketInfo, err
-
-}
-
 // TestStorageBill_CopyObject_WithoutPriceChange
 func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	var err error
@@ -215,7 +183,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	// recover price
-	defer s.RecoverSPPrice(sp)
+	defer s.SetSPPrice(sp, "12.34", "0")
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -362,7 +330,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
-	defer s.RecoverSPPrice(sp)
+	defer s.SetSPPrice(sp, "12.34", "0")
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -518,7 +486,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	var err error
 	ctx := context.Background()
 	primarySP := s.PickStorageProvider()
-	s.RecoverSPPrice(primarySP)
+	s.SetSPPrice(primarySP, "1", "1.15")
 
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
@@ -527,7 +495,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
-	user0 := s.GenAndChargeAccounts(1, 1000000)[0]
+	user0 := s.GenAndChargeAccounts(1, 10)[0]
 
 	streamAddresses := []string{
 		user0.GetAddr().String(),
@@ -536,6 +504,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
+	streamAddresses0 := streamAddresses
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
@@ -576,21 +545,8 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	taxRate0 := taxRate
 	dstPrimarySP := s.CreateNewStorageProvider()
 
-	s.RecoverSPPrice(dstPrimarySP)
-
-	// new sp CreateGlobalVirtualGroup
-	var secondarySPIDs []uint32
-	var secondarySPs []*core.StorageProvider
-
-	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != primarySP.Info.Id {
-			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
-			secondarySPs = append(secondarySPs, ssp)
-		}
-		if len(secondarySPIDs) == 6 {
-			break
-		}
-	}
+	s.SetSPPrice(dstPrimarySP, "2", "1.45")
+	_, secondarySPIDs := s.GetSecondarySP(dstPrimarySP, primarySP)
 	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(dstPrimarySP, 0, secondarySPIDs, 1)
 	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgrouptypes.QueryGlobalVirtualGroupRequest{
 		GlobalVirtualGroupId: gvgID,
@@ -611,41 +567,18 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 	fundAddress := primarySP.FundingKey.GetAddr()
-	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
+	streamRecordsBefore = s.getStreamRecords(streamAddresses)
 
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
 	fundBalanceBefore, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 
-	streamRecordsBefore = s.getStreamRecords(streamAddresses)
-	// construct the signatures
-	var gvgMappings []*storagetypes.GVGMapping
-	gvgMappings = append(gvgMappings, &storagetypes.GVGMapping{SrcGlobalVirtualGroupId: gvg.Id, DstGlobalVirtualGroupId: dstGVG.Id})
-	for _, gvgMapping := range gvgMappings {
-		migrationBucketSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(s.GetChainID(), bucketInfo.BucketInfo.Id, dstPrimarySP.Info.Id, gvgMapping.SrcGlobalVirtualGroupId, gvgMapping.DstGlobalVirtualGroupId).GetBlsSignHash()
-		secondarySigs := make([][]byte, 0)
-		secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
-		for _, ssp := range secondarySPs {
-			sig, err := core.BlsSignAndVerify(ssp, migrationBucketSignHash)
-			s.Require().NoError(err)
-			secondarySigs = append(secondarySigs, sig)
-			pk, err := bls.PublicKeyFromBytes(ssp.BlsKey.PubKey().Bytes())
-			s.Require().NoError(err)
-			secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
-		}
-		aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, migrationBucketSignHash, secondarySigs)
-		s.Require().NoError(err)
-		gvgMapping.SecondarySpBlsSignature = aggBlsSig
-	}
-
-	// send msgMigrationBucket
-	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(user0.GetAddr(), bucketName, dstPrimarySP.Info.Id)
-	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
-	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
+	// MigrationBucket
+	msgMigrationBucket, msgCompleteMigrationBucket := s.NewMigrateBucket(primarySP, dstPrimarySP, user0, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
 	s.SendTxBlock(user0, msgMigrationBucket)
 	s.Require().NoError(err)
 
 	// complete MigrationBucket
-	msgCompleteMigrationBucket := storagetypes.NewMsgCompleteMigrateBucket(dstPrimarySP.OperatorKey.GetAddr(), bucketName, dstGVG.FamilyId, gvgMappings)
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	fundBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
@@ -664,9 +597,100 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 
+	s.SetSPPrice(primarySP, "12.3", "5000000000000000")
+	defer s.SetSPPrice(primarySP, "12.3", "5")
+
+	queryBalanceRequest.Address = dstPrimarySP.FundingKey.GetAddr().String()
+	fundBalanceBefore, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
+	s.Require().NoError(err)
+	streamRecordsBefore = s.getStreamRecords(streamAddresses0)
+
+	// send msgMigrationBucket
+	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user0, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
+
+	s.SendTxBlock(user0, msgMigrationBucket)
+	s.Require().NoError(err)
+
+	s.SendTxBlockWithExpectErrorString(msgCompleteMigrationBucket, primarySP.OperatorKey, "apply stream record changes for user failed")
+
+	s.SetSPPrice(primarySP, "12.3", "13")
+	readPrice, primaryPrice, secondaryPrice := s.getPrices(primarySP, time.Now().Unix())
+	s.T().Logf("readPrice: %v, primaryPrice: %v,secondaryPrice: %v", readPrice, primaryPrice, secondaryPrice)
+
+	s.SendTxBlock(primarySP.OperatorKey, msgCompleteMigrationBucket)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
+	fundBalanceAfter, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
+	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
+	taxRate1 := taxRate
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize, time.Now().Unix())
+	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
+	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
+
+	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
+	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
+	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
+	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
+	// tax rate diff
+	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate1))
+	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 }
 
-func (s *PaymentTestSuite) RecoverSPPrice(sp *core.StorageProvider) {
+func (s *PaymentTestSuite) GetSecondarySP(sps ...*core.StorageProvider) ([]*core.StorageProvider, []uint32) {
+	var secondarySPs []*core.StorageProvider
+	var secondarySPIDs []uint32
+
+	for _, ssp := range s.StorageProviders {
+		isSecondSP := true
+		for _, sp := range sps {
+			if ssp.Info.Id == sp.Info.Id {
+				isSecondSP = false
+				break
+			}
+		}
+		if isSecondSP {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+			secondarySPs = append(secondarySPs, ssp)
+		}
+		if len(secondarySPIDs) == 6 {
+			break
+		}
+	}
+	return secondarySPs, secondarySPIDs
+}
+func (s *PaymentTestSuite) NewMigrateBucket(srcSP, dstSP *core.StorageProvider, user keys.KeyManager, bucketName string, srcID, dstID uint32, bucketID sdkmath.Uint) (*storagetypes.MsgMigrateBucket, *storagetypes.MsgCompleteMigrateBucket) {
+
+	secondarySPs, _ := s.GetSecondarySP(srcSP, dstSP)
+	var gvgMappings []*storagetypes.GVGMapping
+	gvgMappings = append(gvgMappings, &storagetypes.GVGMapping{SrcGlobalVirtualGroupId: srcID, DstGlobalVirtualGroupId: dstID})
+	for _, gvgMapping := range gvgMappings {
+		migrationBucketSignHash := storagetypes.NewSecondarySpMigrationBucketSignDoc(s.GetChainID(), bucketID, dstSP.Info.Id, gvgMapping.SrcGlobalVirtualGroupId, gvgMapping.DstGlobalVirtualGroupId).GetBlsSignHash()
+		secondarySigs := make([][]byte, 0)
+		secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+		for _, ssp := range secondarySPs {
+			sig, err := core.BlsSignAndVerify(ssp, migrationBucketSignHash)
+			s.Require().NoError(err)
+			secondarySigs = append(secondarySigs, sig)
+			pk, err := bls.PublicKeyFromBytes(ssp.BlsKey.PubKey().Bytes())
+			s.Require().NoError(err)
+			secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+		}
+		aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, migrationBucketSignHash, secondarySigs)
+		s.Require().NoError(err)
+		gvgMapping.SecondarySpBlsSignature = aggBlsSig
+	}
+
+	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(user.GetAddr(), bucketName, dstSP.Info.Id)
+	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
+	msgMigrationBucket.DstPrimarySpApproval.Sig, _ = dstSP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
+
+	msgCompleteMigrationBucket := storagetypes.NewMsgCompleteMigrateBucket(dstSP.OperatorKey.GetAddr(), bucketName, dstID, gvgMappings)
+
+	return msgMigrationBucket, msgCompleteMigrationBucket
+
+}
+func (s *PaymentTestSuite) SetSPPrice(sp *core.StorageProvider, readPrice, storePrice string) {
 	ctx := context.Background()
 
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
@@ -674,14 +698,19 @@ func (s *PaymentTestSuite) RecoverSPPrice(sp *core.StorageProvider) {
 		Timestamp: time.Now().Unix(),
 	})
 	s.Require().NoError(err)
-	recoverReadPrice, err := sdk.NewDecFromStr("100.0087")
+	ReadPrice, err := sdk.NewDecFromStr(readPrice)
 	s.Require().NoError(err)
+	StorePrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice
+	if storePrice != "0" {
+		StorePrice, err = sdk.NewDecFromStr(storePrice)
+		s.Require().NoError(err)
+	}
 
 	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     recoverReadPrice,
+		ReadPrice:     ReadPrice,
 		FreeReadQuota: queryGetSpStoragePriceByTimeResp.SpStoragePrice.FreeReadQuota,
-		StorePrice:    queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice,
+		StorePrice:    StorePrice,
 	}
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 	queryGetSpStoragePriceByTimeResp, err = s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
@@ -689,7 +718,8 @@ func (s *PaymentTestSuite) RecoverSPPrice(sp *core.StorageProvider) {
 		Timestamp: time.Now().Unix(),
 	})
 	s.Require().NoError(err)
-	s.T().Logf("queryGetSpStoragePriceByTimeResp read price: %s", queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice)
+	s.T().Logf("queryGetSpStoragePriceByTimeResp read price: %s, store price: %v", readPrice, storePrice)
+
 }
 
 // CreatePaymentAccount create new payment account and return latest payment account
@@ -714,4 +744,36 @@ func (s *PaymentTestSuite) CreatePaymentAccount(user keys.KeyManager, amount, de
 	s.SendTxBlock(user, msgSend)
 
 	return paymentAccountAddr
+}
+
+func (s *PaymentTestSuite) copyObject(user keys.KeyManager, sp *core.StorageProvider, bucketName, objectName, dstBucketName, dstObjectName string) (*storagetypes.ObjectInfo, error) {
+	msgCopyObject := storagetypes.NewMsgCopyObject(user.GetAddr(), bucketName, dstBucketName, objectName, dstObjectName, math.MaxUint, nil)
+	msgCopyObject.DstPrimarySpApproval.Sig, _ = sp.ApprovalKey.Sign(msgCopyObject.GetApprovalBytes())
+
+	s.SendTxBlock(user, msgCopyObject)
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: dstBucketName,
+		ObjectName: dstObjectName,
+	}
+	headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	return headObjectResponse.ObjectInfo, err
+
+}
+
+func (s *PaymentTestSuite) updateBucket(user keys.KeyManager, bucketName string, paymentAddress string, chargedReadQuota uint64) (*storagetypes.BucketInfo, error) {
+
+	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
+		user.GetAddr(), bucketName, &chargedReadQuota, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
+	if paymentAddress != "" {
+		msgUpdateBucketInfo.PaymentAddress = paymentAddress
+	}
+	s.SendTxBlock(user, msgUpdateBucketInfo)
+
+	queryHeadObjectRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	headObjectResponse, err := s.Client.HeadBucket(context.Background(), &queryHeadObjectRequest)
+	return headObjectResponse.BucketInfo, err
+
 }

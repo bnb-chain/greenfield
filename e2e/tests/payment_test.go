@@ -3292,7 +3292,7 @@ func (s *PaymentTestSuite) calculateStorageRates(sp *core.StorageProvider, bucke
 
 	chargeSize := s.getChargeSize(payloadSize)
 	_, primaryPrice, secondaryPrice := s.getPrices(sp, priceTime)
-
+	s.T().Logf("===secondaryPrice: %v,primaryPrice: %v===", secondaryPrice, primaryPrice)
 	gvgFamilyRate := primaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	gvgRate := secondaryPrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
 	gvgRate = gvgRate.MulRaw(int64(secondarySpCount))
