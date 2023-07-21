@@ -18,7 +18,6 @@ format:
 tools:
 	go install github.com/cosmos/gogoproto/protoc-gen-gocosmos
 	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-grpc-gateway
-	go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 
 proto-gen:
 	cd proto && buf generate && cp -r github.com/bnb-chain/greenfield/x/* ../x  && cp -r github.com/bnb-chain/greenfield/types/* ../types  && rm -rf github.com && go mod tidy
@@ -27,8 +26,7 @@ proto-swagger-gen:
 	bash ./scripts/protoc-swagger-gen.sh
 
 proto-swagger-check:
-	npm install -g swagger-combine
-	bash -x ./scripts/protoc-swagger-gen.sh
+	bash ./scripts/protoc-swagger-gen.sh
 	git diff --exit-code
 
 proto-format:
