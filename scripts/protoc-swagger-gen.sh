@@ -4,6 +4,8 @@
 which swagger-combine || npm install -g swagger-combine
 which protoc-gen-swagger || go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
 
+swagger-combine -v
+
 set -eo pipefail
 
 mkdir -p ./tmp-swagger-gen
