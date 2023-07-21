@@ -27,3 +27,7 @@ jobs:
         run: |
           export PATH="$PATH:$(go env GOPATH)/bin"
           make tools proto-gen-check
+      - name: Test protobuf swagger changes
+        run: |
+          export PATH="$PATH:$(go env GOPATH)/bin"
+          make tools proto-swagger-check
