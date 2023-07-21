@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"testing"
+	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
@@ -101,7 +102,7 @@ func TestSendTokenWithCustomizedNonce(t *testing.T) {
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
-	nonce, err := gnfdCli.GetNonce()
+	nonce, err := gnfdCli.GetNonce(context.Background())
 	assert.NoError(t, err)
 	for i := 0; i < 50; i++ {
 		txOpt := &types.TxOption{
@@ -128,7 +129,7 @@ func TestSendTxWithGrpcConn(t *testing.T) {
 	transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 100)))
 	payerAddr, err := sdk.AccAddressFromHexUnsafe(km.GetAddr().String())
 	assert.NoError(t, err)
-	nonce, err := gnfdCli.GetNonce()
+	nonce, err := gnfdCli.GetNonce(context.Background())
 	assert.NoError(t, err)
 	txOpt := &types.TxOption{
 		GasLimit: 123456,
@@ -174,4 +175,23 @@ func TestSendTokenWithOverrideAccount(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(0), response.TxResponse.Code)
 	t.Log(response.TxResponse.String())
+}
+
+func TestSendTXViaWebsocketClient(t *testing.T) {
+	km, err := keys.NewPrivateKeyManager(test.TEST_PRIVATE_KEY)
+	assert.NoError(t, err)
+	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km), WithWebSocketClient())
+	assert.NoError(t, err)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	to := sdk.MustAccAddressFromHex(test.TEST_ADDR)
+	nonce, _ := gnfdCli.GetNonce(ctx)
+	for i := 0; i < 500; i++ {
+		assert.NoError(t, err)
+		transfer := banktypes.NewMsgSend(km.GetAddr(), to, sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 12)))
+		response, err := gnfdCli.BroadcastTx(ctx, []sdk.Msg{transfer}, &types.TxOption{Nonce: nonce})
+		assert.NoError(t, err)
+		nonce++
+		assert.Equal(t, uint32(0), response.TxResponse.Code)
+	}
 }

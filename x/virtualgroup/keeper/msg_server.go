@@ -34,8 +34,8 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 	// Some parameters cannot be modified
 	originParams := k.GetParams(ctx)
-	if req.Params.GvgStakingPerBytes != originParams.GvgStakingPerBytes || req.Params.DepositDenom != originParams.DepositDenom {
-		return nil, errors.ErrInvalidParameter.Wrap("GvgStakingPerBytes and depositDenom are not allow to update")
+	if !req.Params.GvgStakingPerBytes.Equal(originParams.GvgStakingPerBytes) || req.Params.DepositDenom != originParams.DepositDenom {
+		return nil, errors.ErrInvalidParameter.Wrapf("GvgStakingPerBytes and depositDenom are not allow to update, current: %v, %v, got: %v, %v", originParams.GvgStakingPerBytes, originParams.DepositDenom, req.Params.GvgStakingPerBytes, req.Params.DepositDenom)
 	}
 
 	if err := k.SetParams(ctx, req.Params); err != nil {
@@ -55,6 +55,11 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
+
+	stat := k.GetOrCreateGVGStatisticsWithinSP(ctx, sp.Id)
+	stat.PrimaryCount++
+	gvgStatisticsWithinSPs = append(gvgStatisticsWithinSPs, stat)
+
 	var secondarySpIds []uint32
 	for _, id := range req.SecondarySpIds {
 		ssp, found := k.spKeeper.GetStorageProvider(ctx, id)
@@ -98,7 +103,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	gvgFamily.AppendGVG(gvg.Id)
 
 	k.SetGVG(ctx, gvg)
-	k.SetGVGFamily(ctx, gvg.PrimarySpId, gvgFamily)
+	k.SetGVGFamily(ctx, gvgFamily)
 	k.BatchSetGVGStatisticsWithinSP(ctx, gvgStatisticsWithinSPs)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroup{
@@ -114,7 +119,8 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}
 	if req.FamilyId == types.NoSpecifiedFamilyId {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroupFamily{
-			Id:                    gvg.Id,
+			Id:                    gvgFamily.Id,
+			PrimarySpId:           gvgFamily.PrimarySpId,
 			VirtualPaymentAddress: gvgFamily.VirtualPaymentAddress,
 		}); err != nil {
 			return nil, err
@@ -139,7 +145,8 @@ func (k msgServer) DeleteGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroup{
-		Id: req.GlobalVirtualGroupId,
+		Id:          req.GlobalVirtualGroupId,
+		PrimarySpId: sp.Id,
 	}); err != nil {
 		return nil, err
 	}
@@ -181,9 +188,11 @@ func (k msgServer) Deposit(goCtx context.Context, req *types.MsgDeposit) (*types
 	k.SetGVG(ctx, gvg)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroup{
-		Id:           req.GlobalVirtualGroupId,
-		StoreSize:    gvg.StoredSize,
-		TotalDeposit: gvg.TotalDeposit,
+		Id:             gvg.Id,
+		PrimarySpId:    gvg.PrimarySpId,
+		StoreSize:      gvg.StoredSize,
+		TotalDeposit:   gvg.TotalDeposit,
+		SecondarySpIds: gvg.SecondarySpIds,
 	}); err != nil {
 		return nil, err
 	}
@@ -334,7 +343,7 @@ func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.M
 	}
 
 	if req.GlobalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
-		family, found := k.GetGVGFamily(ctx, sp.Id, req.GlobalVirtualGroupFamilyId)
+		family, found := k.GetGVGFamily(ctx, req.GlobalVirtualGroupFamilyId)
 		if !found {
 			return nil, types.ErrGVGFamilyNotExist
 		}

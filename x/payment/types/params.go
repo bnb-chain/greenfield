@@ -109,6 +109,10 @@ func (p Params) Validate() error {
 		return err
 	}
 
+	if p.VersionedParams.ReserveTime <= p.ForcedSettleTime {
+		return fmt.Errorf("reserve time must be greater than force settle time")
+	}
+
 	return nil
 }
 

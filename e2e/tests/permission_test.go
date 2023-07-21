@@ -23,7 +23,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket
@@ -45,7 +45,7 @@ func (s *StorageTestSuite) TestDeleteBucketPermission() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -101,7 +101,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket
@@ -123,7 +123,7 @@ func (s *StorageTestSuite) TestDeletePolicy() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -204,7 +204,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	var err error
 	user := s.GenAndChargeAccounts(3, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket
@@ -226,7 +226,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -383,7 +383,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket
@@ -405,7 +405,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersExpiration() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -504,7 +504,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket
@@ -526,7 +526,7 @@ func (s *StorageTestSuite) TestCreateObjectByOthersLimitSize() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -631,7 +631,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket
@@ -653,7 +653,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PrimarySpId, sp.Info.Id)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -724,7 +724,7 @@ func (s *StorageTestSuite) TestVisibilityPermission() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	// CreateBucket bucket0:public bucket1:private bucket2:default
@@ -871,7 +871,7 @@ func (s *StorageTestSuite) TestEmptyPermission() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	ctx := context.Background()
@@ -1209,7 +1209,7 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 
 	user := s.GenAndChargeAccounts(4, 1000000)
 	owner := user[0]
-	_ = s.StorageProviders[0]
+	_ = s.BaseSuite.PickStorageProvider()
 
 	// Create Group
 	testGroupName := "testGroup"
@@ -1274,13 +1274,13 @@ func (s *StorageTestSuite) TestExceedEachBlockLimitGC() {
 	ctx := context.Background()
 	owner := s.GenAndChargeAccounts(1, 10000)[0]
 	user := s.GenAndChargeAccounts(1, 10000)[0]
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 
 	s.Client.SetKeyManager(owner)
 
-	nonce, _ := s.Client.GetNonce()
+	nonce, _ := s.Client.GetNonce(ctx)
 	bucketNames := make([]string, 0)
 
 	// Create 250 Buckets

@@ -19,6 +19,7 @@ func (s *TestSuite) TestSubmit() {
 	existSp := &sptypes.StorageProvider{Status: sptypes.STATUS_IN_SERVICE, Id: 100, OperatorAddress: existSpAddr.String()}
 	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(existSp.Id)).
 		Return(existSp, true).AnyTimes()
+	s.storageKeeper.EXPECT().MustGetPrimarySPForBucket(gomock.Any(), gomock.Any()).Return(existSp).AnyTimes()
 
 	existBucketName, existObjectName := "existbucket", "existobject"
 	existObject := &storagetypes.ObjectInfo{
@@ -33,8 +34,8 @@ func (s *TestSuite) TestSubmit() {
 		Return(nil, false).AnyTimes()
 
 	existBucket := &storagetypes.BucketInfo{
-		BucketName:  existBucketName,
-		PrimarySpId: existSp.Id}
+		BucketName: existBucketName,
+	}
 	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucketName)).
 		Return(existBucket, true).AnyTimes()
 	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Any()).

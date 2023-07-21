@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -15,10 +16,15 @@ import (
 	"github.com/bits-and-blooms/bitset"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	v1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/bnb-chain/greenfield/e2e/core"
+	"github.com/bnb-chain/greenfield/sdk/types"
 	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
 	challengetypes "github.com/bnb-chain/greenfield/x/challenge/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -39,11 +45,14 @@ func TestChallengeTestSuite(t *testing.T) {
 	suite.Run(t, new(ChallengeTestSuite))
 }
 
-func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
+func (s *ChallengeTestSuite) createObject() (string, string, *core.StorageProvider) {
 	var err error
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
+
+	s.T().Log(sp.Info.String())
+	s.T().Log(gvg.String())
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := "ch" + storagetestutil.GenRandomBucketName()
@@ -54,7 +63,6 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(user, msgCreateBucket)
-
 	// HeadBucket
 	ctx := context.Background()
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
@@ -109,11 +117,11 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
 	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
 	// every secondary sp signs the checksums
-	for i := 1; i < len(s.StorageProviders); i++ {
-		sig, err := core.BlsSignAndVerify(s.StorageProviders[i], blsSignHash)
+	for _, gvgID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[gvgID], blsSignHash)
 		s.Require().NoError(err)
 		secondarySigs = append(secondarySigs, sig)
-		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[i].BlsKey.PubKey().Bytes())
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[gvgID].BlsKey.PubKey().Bytes())
 		s.Require().NoError(err)
 		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
 	}
@@ -128,22 +136,23 @@ func (s *ChallengeTestSuite) createObject() (string, string, sdk.AccAddress) {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_SEALED)
 
-	return bucketName, objectName, sp.OperatorKey.GetAddr()
+	return bucketName, objectName, sp
 }
 
 func (s *ChallengeTestSuite) TestSubmit() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	bucketName, objectName, primarySp := s.createObject()
-	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
+	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp.OperatorKey.GetAddr(), bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes) // secondary sps are faked with primary sp, redundancy check is meaningless here
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
 	s.Require().NotEqual(event.SegmentIndex, uint32(100))
-	s.Require().Equal(event.SpOperatorAddress, primarySp.String())
+	s.Require().Equal(event.SpOperatorAddress, primarySp.OperatorKey.GetAddr().String())
 
 	bucketName, objectName, _ = s.createObject()
-	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), s.StorageProviders[0].OperatorKey.GetAddr(), bucketName, objectName, false, 0)
+
+	msgSubmit = challengetypes.NewMsgSubmit(user.GetAddr(), primarySp.OperatorKey.GetAddr(), bucketName, objectName, false, 0)
 	txRes = s.SendTxBlock(user, msgSubmit)
 	event = filterChallengeEventFromTx(txRes)
 	s.Require().GreaterOrEqual(event.ChallengeId, uint64(0))
@@ -173,7 +182,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	bucketName, objectName, primarySp := s.createObject()
-	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
+	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp.OperatorKey.GetAddr(), bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)
 
@@ -183,7 +192,7 @@ func (s *ChallengeTestSuite) TestNormalAttest() {
 
 	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+	msgAttest := challengetypes.NewMsgAttest(s.Challenger.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.OperatorKey.GetAddr().String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes(s.Config.ChainId)
 
@@ -310,7 +319,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	bucketName, objectName, primarySp := s.createObject()
-	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp, bucketName, objectName, true, 1000)
+	msgSubmit := challengetypes.NewMsgSubmit(user.GetAddr(), primarySp.OperatorKey.GetAddr(), bucketName, objectName, true, 1000)
 	txRes := s.SendTxBlock(user, msgSubmit)
 	event := filterChallengeEventFromTx(txRes)
 
@@ -334,7 +343,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ChallengeExpired() {
 	height := statusRes.SyncInfo.LatestBlockHeight
 	valBitset := s.calculateValidatorBitSet(height, s.ValidatorBLS.PubKey().String())
 
-	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.String(),
+	msgAttest := challengetypes.NewMsgAttest(user.GetAddr(), event.ChallengeId, event.ObjectId, primarySp.OperatorKey.GetAddr().String(),
 		challengetypes.CHALLENGE_SUCCEED, user.GetAddr().String(), valBitset.Bytes(), nil)
 	toSign := msgAttest.GetBlsSignBytes(s.Config.ChainId)
 
@@ -431,5 +440,98 @@ func filterChallengeEventFromTx(txRes *sdk.TxResponse) challengetypes.EventStart
 		SpOperatorAddress: spOpAddress,
 		RedundancyIndex:   int32(redundancyIndex),
 		ExpiredHeight:     uint64(expiredHeight),
+	}
+}
+
+func (s *ChallengeTestSuite) TestUpdateChallengerParams() {
+	// 1. create proposal
+	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
+	queryParamsResp, err := s.Client.ChallengeQueryClient.Params(context.Background(), &challengetypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+
+	updatedParams := queryParamsResp.Params
+	updatedParams.HeartbeatInterval = 1800
+	msgUpdateParams := &challengetypes.MsgUpdateParams{
+		Authority: govAddr,
+		Params:    updatedParams,
+	}
+
+	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgUpdateParams}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
+		s.Validator.GetAddr().String(), "", "update Challenger params", "Test update Challenger params")
+	s.Require().NoError(err)
+	txBroadCastResp, err := s.SendTxBlockWithoutCheck(proposal, s.Validator)
+	s.Require().NoError(err)
+	s.T().Log("create proposal tx hash: ", txBroadCastResp.TxResponse.TxHash)
+
+	// get proposal id
+	proposalID := 0
+	txResp, err := s.WaitForTx(txBroadCastResp.TxResponse.TxHash)
+	s.Require().NoError(err)
+	if txResp.Code == 0 && txResp.Height > 0 {
+		for _, event := range txResp.Events {
+			if event.Type == "submit_proposal" {
+				proposalID, err = strconv.Atoi(event.GetAttributes()[0].Value)
+				s.Require().NoError(err)
+			}
+		}
+	}
+
+	// 2. vote
+	if proposalID == 0 {
+		s.T().Errorf("proposalID is 0")
+		return
+	}
+	s.T().Log("proposalID: ", proposalID)
+	mode := tx.BroadcastMode_BROADCAST_MODE_SYNC
+	txOpt := &types.TxOption{
+		Mode:      &mode,
+		Memo:      "",
+		FeeAmount: sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
+	}
+	voteBroadCastResp, err := s.SendTxBlockWithoutCheckWithTxOpt(v1.NewMsgVote(s.Validator.GetAddr(), uint64(proposalID), v1.OptionYes, ""),
+		s.Validator, txOpt)
+	s.Require().NoError(err)
+	voteResp, err := s.WaitForTx(voteBroadCastResp.TxResponse.TxHash)
+	s.Require().NoError(err)
+	s.T().Log("vote tx hash: ", voteResp.TxHash)
+	if voteResp.Code > 0 {
+		s.T().Errorf("voteTxResp.Code > 0")
+		return
+	}
+
+	// 3. query proposal until it is end voting period
+CheckProposalStatus:
+	for {
+		queryProposalResp, err := s.Client.Proposal(context.Background(), &v1.QueryProposalRequest{ProposalId: uint64(proposalID)})
+		s.Require().NoError(err)
+		if queryProposalResp.Proposal.Status != v1.StatusVotingPeriod {
+			switch queryProposalResp.Proposal.Status {
+			case v1.StatusDepositPeriod:
+				s.T().Errorf("proposal deposit period")
+				return
+			case v1.StatusRejected:
+				s.T().Errorf("proposal rejected")
+				return
+			case v1.StatusPassed:
+				s.T().Logf("proposal passed")
+				break CheckProposalStatus
+			case v1.StatusFailed:
+				s.T().Errorf("proposal failed, reason %s", queryProposalResp.Proposal.FailedReason)
+				return
+			}
+		}
+		time.Sleep(1 * time.Second)
+	}
+
+	// 4. check params updated
+	err = s.WaitForNextBlock()
+	s.Require().NoError(err)
+
+	updatedQueryParamsResp, err := s.Client.ChallengeQueryClient.Params(context.Background(), &challengetypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	if reflect.DeepEqual(updatedQueryParamsResp.Params, updatedParams) {
+		s.T().Logf("update params success")
+	} else {
+		s.T().Errorf("update params failed")
 	}
 }

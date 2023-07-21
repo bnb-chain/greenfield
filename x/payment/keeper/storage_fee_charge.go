@@ -52,47 +52,106 @@ func (k Keeper) ApplyStreamRecordChanges(ctx sdk.Context, streamRecordChanges []
 func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFlows) (err error) {
 	userFlowsList = k.MergeUserFlows(userFlowsList)
 	currentTime := ctx.BlockTime().Unix()
-	var streamRecordChanges []types.StreamRecordChange
+
 	for _, userFlows := range userFlowsList {
 		from := userFlows.From
 		streamRecord, found := k.GetStreamRecord(ctx, from)
 		if !found {
 			streamRecord = types.NewStreamRecord(from, currentTime)
 		}
-		// calculate rate changes in flowChanges
-		totalRate := sdk.ZeroInt()
-		for _, flowChange := range userFlows.Flows {
-			streamRecordChanges = append(streamRecordChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithRateChange(flowChange.Rate))
-			totalRate = totalRate.Add(flowChange.Rate)
-		}
-		streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
-		// storage fee preview
-		if ctx.IsCheckTx() {
-			reserveTime := k.GetParams(ctx).VersionedParams.ReserveTime
-			changeRate := totalRate.Neg()
-			event := &types.EventFeePreview{
-				Account: from.String(),
-				Amount:  changeRate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Abs(),
+		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
+			err = k.applyActiveUerFlows(ctx, userFlows, from, streamRecord)
+			if err != nil {
+				return err
 			}
-			if changeRate.IsPositive() {
-				event.FeePreviewType = types.FEE_PREVIEW_TYPE_UNLOCKED_FEE
-			} else {
-				event.FeePreviewType = types.FEE_PREVIEW_TYPE_PRELOCKED_FEE
+		} else { // frozen status, should be called in end block for stop serving
+			err = k.applyFrozenUserFlows(ctx, userFlows, from, streamRecord)
+			if err != nil {
+				return err
 			}
-			_ = ctx.EventManager().EmitTypedEvents(event)
 		}
-		err = k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange)
-		if err != nil {
-			return fmt.Errorf("apply stream record changes for user failed: %w", err)
-		}
-
-		// update flows
-		deltaFlowCount := k.MergeActiveOutFlows(ctx, from, userFlows.Flows) // deltaFlowCount can be negative
-		streamRecord.OutFlowCount = uint64(int64(streamRecord.OutFlowCount) + int64(deltaFlowCount))
-
-		k.SetStreamRecord(ctx, streamRecord)
 	}
-	err = k.ApplyStreamRecordChanges(ctx, streamRecordChanges)
+	return nil
+}
+
+func (k Keeper) applyActiveUerFlows(ctx sdk.Context, userFlows types.UserFlows, from sdk.AccAddress, streamRecord *types.StreamRecord) error {
+	var rateChanges []types.StreamRecordChange
+	totalRate := sdk.ZeroInt()
+	for _, flowChange := range userFlows.Flows {
+		rateChanges = append(rateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithRateChange(flowChange.Rate))
+		totalRate = totalRate.Add(flowChange.Rate)
+	}
+	streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).WithRateChange(totalRate.Neg())
+	// storage fee preview
+	if ctx.IsCheckTx() {
+		reserveTime := k.GetParams(ctx).VersionedParams.ReserveTime
+		changeRate := totalRate.Neg()
+		event := &types.EventFeePreview{
+			Account: from.String(),
+			Amount:  changeRate.Mul(sdkmath.NewIntFromUint64(reserveTime)).Abs(),
+		}
+		if changeRate.IsPositive() {
+			event.FeePreviewType = types.FEE_PREVIEW_TYPE_UNLOCKED_FEE
+		} else {
+			event.FeePreviewType = types.FEE_PREVIEW_TYPE_PRELOCKED_FEE
+		}
+		_ = ctx.EventManager().EmitTypedEvents(event)
+	}
+	err := k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes for user failed: %w", err)
+	}
+
+	// update flows
+	deltaFlowCount := k.MergeActiveOutFlows(ctx, from, userFlows.Flows) // deltaFlowCount can be negative
+	streamRecord.OutFlowCount = uint64(int64(streamRecord.OutFlowCount) + int64(deltaFlowCount))
+
+	k.SetStreamRecord(ctx, streamRecord)
+	err = k.ApplyStreamRecordChanges(ctx, rateChanges)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes failed: %w", err)
+	}
+	return nil
+}
+
+func (k Keeper) applyFrozenUserFlows(ctx sdk.Context, userFlows types.UserFlows, from sdk.AccAddress, streamRecord *types.StreamRecord) error {
+	forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool)
+	if !forced {
+		return fmt.Errorf("stream record %s is frozen", streamRecord.Account)
+	}
+
+	// the stream record could be totally frozen, or in the process of resuming
+	var activeOutFlows, frozenOutFlows []types.OutFlow
+	var activeRateChanges []types.StreamRecordChange
+	//var frozenRateChanges []types.StreamRecordChange
+	totalActiveRate, totalFrozenRate := sdk.ZeroInt(), sdk.ZeroInt()
+	for _, flowChange := range userFlows.Flows {
+		outFlow := k.GetOutFlow(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), types.OUT_FLOW_STATUS_FROZEN, sdk.MustAccAddressFromHex(flowChange.ToAddress))
+		if outFlow != nil {
+			frozenOutFlows = append(frozenOutFlows, flowChange)
+			//frozenRateChanges = append(frozenRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithFrozenRateChange(flowChange.Rate))
+			totalFrozenRate = totalFrozenRate.Add(flowChange.Rate)
+		} else {
+			activeOutFlows = append(activeOutFlows, flowChange)
+			activeRateChanges = append(activeRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithRateChange(flowChange.Rate))
+			totalActiveRate = totalActiveRate.Add(flowChange.Rate)
+		}
+	}
+	streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).
+		WithRateChange(totalActiveRate.Neg()).WithFrozenRateChange(totalFrozenRate.Neg())
+	err := k.UpdateFrozenStreamRecord(ctx, streamRecord, streamRecordChange)
+	if err != nil {
+		return fmt.Errorf("apply stream record changes for user failed: %w", err)
+	}
+
+	// update flows
+	deltaActiveFlowCount := k.MergeActiveOutFlows(ctx, from, activeOutFlows) // can be negative
+	deltaFrozenFlowCount := k.MergeFrozenOutFlows(ctx, from, frozenOutFlows) //  can be negative
+	streamRecord.OutFlowCount = uint64(int64(streamRecord.OutFlowCount) + int64(deltaActiveFlowCount) + int64(deltaFrozenFlowCount))
+
+	k.SetStreamRecord(ctx, streamRecord)
+	//only apply activeRateChanges, for frozen rate changes, the out flow to gvg & gvg family had been deducted when settling
+	err = k.ApplyStreamRecordChanges(ctx, activeRateChanges)
 	if err != nil {
 		return fmt.Errorf("apply stream record changes failed: %w", err)
 	}

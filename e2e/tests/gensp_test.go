@@ -22,7 +22,7 @@ func (s *GenStorageProviderTestSuite) SetupSuite() {
 func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 	ctx := context.Background()
 
-	sp := s.StorageProviders[0]
+	sp := s.BaseSuite.PickStorageProvider()
 
 	querySPReq := sptypes.QueryStorageProviderByOperatorAddressRequest{
 		OperatorAddress: sp.OperatorKey.GetAddr().String(),
@@ -38,12 +38,12 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 		GcAddress:       sp.GcKey.GetAddr().String(),
 		BlsKey:          sp.BlsKey.PubKey().Bytes(),
 		Description: sptypes.Description{
-			Moniker:  "sp0",
-			Identity: "",
-			Details:  "detail_sp0",
-			Website:  "http://website",
+			Moniker:  sp.Info.Description.Moniker,
+			Identity: sp.Info.Description.Identity,
+			Details:  sp.Info.Description.Details,
+			Website:  sp.Info.Description.Website,
 		},
-		Endpoint:     "http://127.0.0.1:9033",
+		Endpoint:     sp.Info.Endpoint,
 		TotalDeposit: querySPResp.StorageProvider.TotalDeposit,
 	}
 

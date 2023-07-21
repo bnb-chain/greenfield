@@ -13,5 +13,6 @@ func NewStreamRecord(account sdk.AccAddress, crudTimestamp int64) *StreamRecord 
 		BufferBalance: sdkmath.ZeroInt(),
 		NetflowRate:   sdkmath.ZeroInt(),
 		LockBalance:   sdkmath.ZeroInt(),
+		Status:        STREAM_ACCOUNT_STATUS_ACTIVE,
 	}
 }

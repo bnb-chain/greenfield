@@ -303,124 +303,15 @@ func (m *QueryGlobalVirtualGroupByFamilyIDResponse) GetGlobalVirtualGroups() []*
 	return nil
 }
 
-type QueryGlobalVirtualGroupFamiliesRequest struct {
-	StorageProviderId uint32             `protobuf:"varint,1,opt,name=storage_provider_id,json=storageProviderId,proto3" json:"storage_provider_id,omitempty"`
-	Pagination        *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryGlobalVirtualGroupFamiliesRequest) Reset() {
-	*m = QueryGlobalVirtualGroupFamiliesRequest{}
-}
-func (m *QueryGlobalVirtualGroupFamiliesRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGlobalVirtualGroupFamiliesRequest) ProtoMessage()    {}
-func (*QueryGlobalVirtualGroupFamiliesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_83cd53fc415e00e7, []int{6}
-}
-func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest.Merge(m, src)
-}
-func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest proto.InternalMessageInfo
-
-func (m *QueryGlobalVirtualGroupFamiliesRequest) GetStorageProviderId() uint32 {
-	if m != nil {
-		return m.StorageProviderId
-	}
-	return 0
-}
-
-func (m *QueryGlobalVirtualGroupFamiliesRequest) GetPagination() *query.PageRequest {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
-type QueryGlobalVirtualGroupFamiliesResponse struct {
-	GlobalVirtualGroupFamilies []*GlobalVirtualGroupFamily `protobuf:"bytes,1,rep,name=global_virtual_group_families,json=globalVirtualGroupFamilies,proto3" json:"global_virtual_group_families,omitempty"`
-	Pagination                 *query.PageResponse         `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
-}
-
-func (m *QueryGlobalVirtualGroupFamiliesResponse) Reset() {
-	*m = QueryGlobalVirtualGroupFamiliesResponse{}
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGlobalVirtualGroupFamiliesResponse) ProtoMessage()    {}
-func (*QueryGlobalVirtualGroupFamiliesResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_83cd53fc415e00e7, []int{7}
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse.Merge(m, src)
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse proto.InternalMessageInfo
-
-func (m *QueryGlobalVirtualGroupFamiliesResponse) GetGlobalVirtualGroupFamilies() []*GlobalVirtualGroupFamily {
-	if m != nil {
-		return m.GlobalVirtualGroupFamilies
-	}
-	return nil
-}
-
-func (m *QueryGlobalVirtualGroupFamiliesResponse) GetPagination() *query.PageResponse {
-	if m != nil {
-		return m.Pagination
-	}
-	return nil
-}
-
 type QueryGlobalVirtualGroupFamilyRequest struct {
-	StorageProviderId uint32 `protobuf:"varint,1,opt,name=storage_provider_id,json=storageProviderId,proto3" json:"storage_provider_id,omitempty"`
-	FamilyId          uint32 `protobuf:"varint,2,opt,name=family_id,json=familyId,proto3" json:"family_id,omitempty"`
+	FamilyId uint32 `protobuf:"varint,1,opt,name=family_id,json=familyId,proto3" json:"family_id,omitempty"`
 }
 
 func (m *QueryGlobalVirtualGroupFamilyRequest) Reset()         { *m = QueryGlobalVirtualGroupFamilyRequest{} }
 func (m *QueryGlobalVirtualGroupFamilyRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryGlobalVirtualGroupFamilyRequest) ProtoMessage()    {}
 func (*QueryGlobalVirtualGroupFamilyRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_83cd53fc415e00e7, []int{8}
+	return fileDescriptor_83cd53fc415e00e7, []int{6}
 }
 func (m *QueryGlobalVirtualGroupFamilyRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -449,13 +340,6 @@ func (m *QueryGlobalVirtualGroupFamilyRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_QueryGlobalVirtualGroupFamilyRequest proto.InternalMessageInfo
 
-func (m *QueryGlobalVirtualGroupFamilyRequest) GetStorageProviderId() uint32 {
-	if m != nil {
-		return m.StorageProviderId
-	}
-	return 0
-}
-
 func (m *QueryGlobalVirtualGroupFamilyRequest) GetFamilyId() uint32 {
 	if m != nil {
 		return m.FamilyId
@@ -471,7 +355,7 @@ func (m *QueryGlobalVirtualGroupFamilyResponse) Reset()         { *m = QueryGlob
 func (m *QueryGlobalVirtualGroupFamilyResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryGlobalVirtualGroupFamilyResponse) ProtoMessage()    {}
 func (*QueryGlobalVirtualGroupFamilyResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_83cd53fc415e00e7, []int{9}
+	return fileDescriptor_83cd53fc415e00e7, []int{7}
 }
 func (m *QueryGlobalVirtualGroupFamilyResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -507,6 +391,203 @@ func (m *QueryGlobalVirtualGroupFamilyResponse) GetGlobalVirtualGroupFamily() *G
 	return nil
 }
 
+// this line is used by starport scaffolding # 3
+type QueryGlobalVirtualGroupFamiliesRequest struct {
+	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryGlobalVirtualGroupFamiliesRequest) Reset() {
+	*m = QueryGlobalVirtualGroupFamiliesRequest{}
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryGlobalVirtualGroupFamiliesRequest) ProtoMessage()    {}
+func (*QueryGlobalVirtualGroupFamiliesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{8}
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest.Merge(m, src)
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGlobalVirtualGroupFamiliesRequest proto.InternalMessageInfo
+
+func (m *QueryGlobalVirtualGroupFamiliesRequest) GetPagination() *query.PageRequest {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+type QueryGlobalVirtualGroupFamiliesResponse struct {
+	GvgFamilies []*GlobalVirtualGroupFamily `protobuf:"bytes,1,rep,name=gvg_families,json=gvgFamilies,proto3" json:"gvg_families,omitempty"`
+	Pagination  *query.PageResponse         `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (m *QueryGlobalVirtualGroupFamiliesResponse) Reset() {
+	*m = QueryGlobalVirtualGroupFamiliesResponse{}
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryGlobalVirtualGroupFamiliesResponse) ProtoMessage()    {}
+func (*QueryGlobalVirtualGroupFamiliesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{9}
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse.Merge(m, src)
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryGlobalVirtualGroupFamiliesResponse proto.InternalMessageInfo
+
+func (m *QueryGlobalVirtualGroupFamiliesResponse) GetGvgFamilies() []*GlobalVirtualGroupFamily {
+	if m != nil {
+		return m.GvgFamilies
+	}
+	return nil
+}
+
+func (m *QueryGlobalVirtualGroupFamiliesResponse) GetPagination() *query.PageResponse {
+	if m != nil {
+		return m.Pagination
+	}
+	return nil
+}
+
+type AvailableGlobalVirtualGroupFamiliesRequest struct {
+	GlobalVirtualGroupFamilyIds []uint32 `protobuf:"varint,1,rep,packed,name=global_virtual_group_family_ids,json=globalVirtualGroupFamilyIds,proto3" json:"global_virtual_group_family_ids,omitempty"`
+}
+
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) Reset() {
+	*m = AvailableGlobalVirtualGroupFamiliesRequest{}
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) String() string {
+	return proto.CompactTextString(m)
+}
+func (*AvailableGlobalVirtualGroupFamiliesRequest) ProtoMessage() {}
+func (*AvailableGlobalVirtualGroupFamiliesRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{10}
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesRequest.Merge(m, src)
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesRequest proto.InternalMessageInfo
+
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) GetGlobalVirtualGroupFamilyIds() []uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyIds
+	}
+	return nil
+}
+
+type AvailableGlobalVirtualGroupFamiliesResponse struct {
+	GlobalVirtualGroupFamilyIds []uint32 `protobuf:"varint,1,rep,packed,name=global_virtual_group_family_ids,json=globalVirtualGroupFamilyIds,proto3" json:"global_virtual_group_family_ids,omitempty"`
+}
+
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) Reset() {
+	*m = AvailableGlobalVirtualGroupFamiliesResponse{}
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*AvailableGlobalVirtualGroupFamiliesResponse) ProtoMessage() {}
+func (*AvailableGlobalVirtualGroupFamiliesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_83cd53fc415e00e7, []int{11}
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesResponse.Merge(m, src)
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_AvailableGlobalVirtualGroupFamiliesResponse proto.InternalMessageInfo
+
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) GetGlobalVirtualGroupFamilyIds() []uint32 {
+	if m != nil {
+		return m.GlobalVirtualGroupFamilyIds
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*QueryParamsRequest)(nil), "greenfield.virtualgroup.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "greenfield.virtualgroup.QueryParamsResponse")
@@ -514,10 +595,12 @@ func init() {
 	proto.RegisterType((*QueryGlobalVirtualGroupResponse)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupResponse")
 	proto.RegisterType((*QueryGlobalVirtualGroupByFamilyIDRequest)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupByFamilyIDRequest")
 	proto.RegisterType((*QueryGlobalVirtualGroupByFamilyIDResponse)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupByFamilyIDResponse")
-	proto.RegisterType((*QueryGlobalVirtualGroupFamiliesRequest)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupFamiliesRequest")
-	proto.RegisterType((*QueryGlobalVirtualGroupFamiliesResponse)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupFamiliesResponse")
 	proto.RegisterType((*QueryGlobalVirtualGroupFamilyRequest)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupFamilyRequest")
 	proto.RegisterType((*QueryGlobalVirtualGroupFamilyResponse)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupFamilyResponse")
+	proto.RegisterType((*QueryGlobalVirtualGroupFamiliesRequest)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupFamiliesRequest")
+	proto.RegisterType((*QueryGlobalVirtualGroupFamiliesResponse)(nil), "greenfield.virtualgroup.QueryGlobalVirtualGroupFamiliesResponse")
+	proto.RegisterType((*AvailableGlobalVirtualGroupFamiliesRequest)(nil), "greenfield.virtualgroup.AvailableGlobalVirtualGroupFamiliesRequest")
+	proto.RegisterType((*AvailableGlobalVirtualGroupFamiliesResponse)(nil), "greenfield.virtualgroup.AvailableGlobalVirtualGroupFamiliesResponse")
 }
 
 func init() {
@@ -525,53 +608,57 @@ func init() {
 }
 
 var fileDescriptor_83cd53fc415e00e7 = []byte{
-	// 726 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xa4, 0x56, 0x4f, 0x4f, 0xd4, 0x4e,
-	0x18, 0xde, 0xe1, 0xf7, 0x13, 0xf5, 0x25, 0x1e, 0x1c, 0xd6, 0x40, 0x0a, 0x76, 0xb5, 0x22, 0xe0,
-	0x1f, 0xda, 0x80, 0x80, 0xc4, 0x00, 0xea, 0xc6, 0x40, 0xb8, 0x18, 0xdc, 0x18, 0x4d, 0x4c, 0xcc,
-	0x66, 0xca, 0x0e, 0x65, 0x92, 0xdd, 0x4e, 0x69, 0xbb, 0xc4, 0xde, 0x8c, 0x67, 0x0e, 0x26, 0x9e,
-	0xbc, 0x18, 0x3f, 0x89, 0x67, 0x8e, 0x24, 0x1e, 0xf4, 0xa4, 0x06, 0x3c, 0xe8, 0xa7, 0xd0, 0xec,
-	0x74, 0x36, 0x0b, 0xb4, 0xb3, 0x4b, 0xeb, 0xad, 0xe9, 0xbc, 0x7f, 0x9e, 0xe7, 0x79, 0xe7, 0x7d,
-	0x32, 0x70, 0xcd, 0xf1, 0x29, 0x75, 0x37, 0x19, 0xad, 0xd7, 0xac, 0x1d, 0xe6, 0x87, 0x4d, 0x52,
-	0x77, 0x7c, 0xde, 0xf4, 0xac, 0xed, 0x26, 0xf5, 0x23, 0xd3, 0xf3, 0x79, 0xc8, 0xf1, 0x50, 0x27,
-	0xc8, 0x3c, 0x1a, 0xa4, 0xdd, 0xdc, 0xe0, 0x41, 0x83, 0x07, 0x96, 0x4d, 0x02, 0x1a, 0x67, 0x58,
-	0x3b, 0xd3, 0x36, 0x0d, 0xc9, 0xb4, 0xe5, 0x11, 0x87, 0xb9, 0x24, 0x64, 0xdc, 0x8d, 0x8b, 0x68,
-	0x45, 0x87, 0x3b, 0x5c, 0x7c, 0x5a, 0xad, 0x2f, 0xf9, 0x77, 0xd4, 0xe1, 0xdc, 0xa9, 0x53, 0x8b,
-	0x78, 0xcc, 0x22, 0xae, 0xcb, 0x43, 0x91, 0x12, 0xc8, 0xd3, 0x31, 0x15, 0x3a, 0x8f, 0xf8, 0xa4,
-	0xd1, 0x8e, 0x52, 0x72, 0x08, 0x23, 0x8f, 0xca, 0x20, 0xa3, 0x08, 0xf8, 0x49, 0x0b, 0xe0, 0xba,
-	0xc8, 0xac, 0xd0, 0xed, 0x26, 0x0d, 0x42, 0xe3, 0x29, 0x0c, 0x1e, 0xfb, 0x1b, 0x78, 0xdc, 0x0d,
-	0x28, 0x5e, 0x82, 0xfe, 0xb8, 0xc3, 0x30, 0xba, 0x82, 0x26, 0x07, 0x66, 0x4a, 0xa6, 0x42, 0x01,
-	0x33, 0x4e, 0x2c, 0xff, 0xbf, 0xf7, 0xad, 0x54, 0xa8, 0xc8, 0x24, 0xe3, 0x39, 0xe8, 0xa2, 0xea,
-	0x6a, 0x9d, 0xdb, 0xa4, 0xfe, 0x2c, 0x8e, 0x5f, 0x6d, 0xc5, 0xcb, 0xbe, 0x78, 0x0e, 0x86, 0x1c,
-	0x71, 0x58, 0x95, 0xd5, 0xaa, 0xa2, 0x5c, 0x95, 0xd5, 0x44, 0xc7, 0x0b, 0x95, 0xa2, 0x93, 0xc8,
-	0x5d, 0xab, 0x19, 0xaf, 0x11, 0x94, 0x94, 0x95, 0x25, 0xf6, 0x97, 0x50, 0x4c, 0x2b, 0x2d, 0x99,
-	0xdc, 0x52, 0x32, 0x49, 0x29, 0x89, 0x93, 0x20, 0x8c, 0x0f, 0x08, 0x26, 0x15, 0x10, 0xca, 0xd1,
-	0x0a, 0x69, 0xb0, 0x7a, 0xb4, 0xf6, 0xa8, 0x4d, 0xd3, 0x84, 0xc1, 0x20, 0xe4, 0x3e, 0x71, 0x68,
-	0xd5, 0xf3, 0xf9, 0x0e, 0xab, 0x51, 0xbf, 0x43, 0xf1, 0xa2, 0x3c, 0x5a, 0x97, 0x27, 0x6b, 0x35,
-	0x5c, 0x06, 0x3d, 0x55, 0x96, 0x4d, 0x51, 0xb7, 0x95, 0xda, 0x27, 0x52, 0xb5, 0x24, 0x30, 0xd9,
-	0xba, 0x66, 0xec, 0x22, 0xb8, 0x71, 0x0a, 0x80, 0x52, 0xad, 0x2a, 0x5c, 0x4a, 0xeb, 0xd8, 0x1a,
-	0xfc, 0x7f, 0x59, 0xe5, 0x1a, 0x4c, 0xa2, 0x0a, 0x8c, 0x8f, 0x08, 0xc6, 0x15, 0x70, 0x04, 0x18,
-	0x46, 0x83, 0xbc, 0x6a, 0xad, 0x00, 0x74, 0xb6, 0x4c, 0x28, 0x33, 0x30, 0x33, 0x6e, 0xc6, 0x2b,
-	0x69, 0xb6, 0x56, 0xd2, 0x8c, 0x97, 0x58, 0xae, 0xa4, 0xb9, 0x4e, 0x1c, 0x2a, 0x7b, 0x55, 0x8e,
-	0x64, 0x1a, 0xbf, 0x10, 0x4c, 0xf4, 0x84, 0x28, 0xf5, 0x0a, 0xe1, 0xb2, 0x7a, 0x42, 0x8c, 0xb6,
-	0x75, 0x9b, 0xce, 0xa0, 0x5b, 0x3c, 0x13, 0xe5, 0x4c, 0x19, 0x0d, 0xf0, 0x6a, 0x0a, 0xd3, 0x89,
-	0x9e, 0x4c, 0x63, 0xc8, 0xc7, 0xa8, 0x06, 0x30, 0xd6, 0x8d, 0x69, 0x94, 0x77, 0x14, 0x23, 0x70,
-	0xfe, 0xe4, 0x1d, 0x3d, 0xb7, 0xd9, 0xbe, 0x91, 0xef, 0x11, 0x5c, 0xef, 0xd1, 0x55, 0xaa, 0xeb,
-	0xc1, 0x48, 0x97, 0xfb, 0x2f, 0x57, 0x38, 0x87, 0xb6, 0xc3, 0xaa, 0x7d, 0x99, 0xf9, 0x73, 0x16,
-	0xce, 0x08, 0x6c, 0x78, 0x17, 0x41, 0x7f, 0xec, 0x66, 0x58, 0x7d, 0xeb, 0x93, 0x16, 0xaa, 0xdd,
-	0x3e, 0x5d, 0x70, 0xcc, 0xd0, 0x98, 0x78, 0xf3, 0xf9, 0xe7, 0xbb, 0xbe, 0xab, 0xb8, 0x64, 0x75,
-	0xb7, 0x76, 0xfc, 0x09, 0x01, 0x4e, 0xf2, 0xc1, 0x77, 0xbb, 0x77, 0x53, 0x3a, 0xae, 0xb6, 0x90,
-	0x3d, 0x51, 0x42, 0x9e, 0x13, 0x90, 0x2d, 0x3c, 0xa5, 0x84, 0x9c, 0x36, 0x33, 0xfc, 0x1b, 0xc1,
-	0x68, 0x37, 0x0b, 0xc2, 0x0f, 0xb3, 0x22, 0x4a, 0xf8, 0xab, 0x56, 0xfe, 0x97, 0x12, 0x92, 0x5e,
-	0x59, 0xd0, 0x5b, 0xc4, 0xf7, 0x32, 0xd1, 0xab, 0xda, 0x51, 0xc7, 0x95, 0xf1, 0x77, 0x04, 0x9a,
-	0xda, 0x3c, 0xf0, 0xfd, 0xac, 0x30, 0x4f, 0x38, 0xa3, 0xf6, 0x20, 0x7f, 0x01, 0xc9, 0x72, 0x59,
-	0xb0, 0x5c, 0xc0, 0xf3, 0xd9, 0x58, 0xb6, 0x6d, 0x0d, 0x7f, 0x41, 0x30, 0xac, 0x5a, 0x2f, 0xbc,
-	0x94, 0x0b, 0x5e, 0xdb, 0x6c, 0xb4, 0xe5, 0xbc, 0xe9, 0x92, 0xdb, 0xa2, 0xe0, 0x36, 0x8f, 0x67,
-	0x73, 0x70, 0x8b, 0xca, 0x8f, 0xf7, 0x0e, 0x74, 0xb4, 0x7f, 0xa0, 0xa3, 0x1f, 0x07, 0x3a, 0x7a,
-	0x7b, 0xa8, 0x17, 0xf6, 0x0f, 0xf5, 0xc2, 0xd7, 0x43, 0xbd, 0xf0, 0x62, 0xd6, 0x61, 0xe1, 0x56,
-	0xd3, 0x36, 0x37, 0x78, 0xc3, 0xb2, 0x5d, 0x7b, 0x6a, 0x63, 0x8b, 0x30, 0xf7, 0x68, 0x8f, 0x57,
-	0x29, 0xcf, 0x2d, 0xbb, 0x5f, 0xbc, 0xb7, 0xee, 0xfc, 0x0d, 0x00, 0x00, 0xff, 0xff, 0x02, 0x72,
-	0x7e, 0x9e, 0x5a, 0x0a, 0x00, 0x00,
+	// 800 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0x4f, 0x4f, 0xdb, 0x48,
+	0x18, 0xc6, 0x33, 0xec, 0x2e, 0x5a, 0x5e, 0x96, 0xc3, 0x0e, 0x59, 0x81, 0x0c, 0x72, 0x76, 0x0d,
+	0x0b, 0x14, 0x8a, 0x2d, 0x28, 0x50, 0x54, 0x01, 0x85, 0x80, 0xa0, 0x5c, 0x2a, 0x1a, 0xa1, 0x56,
+	0xaa, 0x54, 0x45, 0x63, 0x32, 0x0c, 0x96, 0x1c, 0x8f, 0xb1, 0x9d, 0xa8, 0xb9, 0x55, 0x3d, 0x73,
+	0xa8, 0xd4, 0x53, 0x2f, 0xfd, 0x28, 0x3d, 0x73, 0x44, 0xea, 0xa1, 0x3d, 0xb5, 0x15, 0xf4, 0xd2,
+	0xaf, 0x50, 0xf5, 0x50, 0x65, 0x3c, 0x56, 0x88, 0x92, 0xc9, 0x3f, 0x7a, 0x8b, 0x3c, 0xf3, 0x3e,
+	0xef, 0xf3, 0x7b, 0xc7, 0xf3, 0xc4, 0x30, 0xc1, 0x02, 0x4a, 0xbd, 0x63, 0x87, 0xba, 0x05, 0xab,
+	0xec, 0x04, 0x51, 0x89, 0xb8, 0x2c, 0xe0, 0x25, 0xdf, 0x3a, 0x2d, 0xd1, 0xa0, 0x62, 0xfa, 0x01,
+	0x8f, 0x38, 0x1e, 0xa9, 0x6d, 0x32, 0xaf, 0x6f, 0xd2, 0x66, 0x8f, 0x78, 0x58, 0xe4, 0xa1, 0x65,
+	0x93, 0x90, 0xc6, 0x15, 0x56, 0x79, 0xc1, 0xa6, 0x11, 0x59, 0xb0, 0x7c, 0xc2, 0x1c, 0x8f, 0x44,
+	0x0e, 0xf7, 0x62, 0x11, 0x2d, 0xcd, 0x38, 0xe3, 0xe2, 0xa7, 0x55, 0xfd, 0x25, 0x9f, 0x8e, 0x33,
+	0xce, 0x99, 0x4b, 0x2d, 0xe2, 0x3b, 0x16, 0xf1, 0x3c, 0x1e, 0x89, 0x92, 0x50, 0xae, 0x4e, 0xaa,
+	0xdc, 0xf9, 0x24, 0x20, 0xc5, 0x64, 0x97, 0x92, 0x21, 0xaa, 0xf8, 0x54, 0x6e, 0x32, 0xd2, 0x80,
+	0x1f, 0x55, 0x0d, 0x1e, 0x88, 0xca, 0x1c, 0x3d, 0x2d, 0xd1, 0x30, 0x32, 0x0e, 0x61, 0xb8, 0xee,
+	0x69, 0xe8, 0x73, 0x2f, 0xa4, 0x78, 0x1d, 0xfa, 0xe3, 0x0e, 0xa3, 0xe8, 0x5f, 0x34, 0x33, 0xb8,
+	0x98, 0x31, 0x15, 0x13, 0x30, 0xe3, 0xc2, 0xec, 0xef, 0xe7, 0x9f, 0x32, 0xa9, 0x9c, 0x2c, 0x32,
+	0x9e, 0x80, 0x2e, 0x54, 0xf7, 0x5c, 0x6e, 0x13, 0xf7, 0x71, 0xbc, 0x7f, 0xaf, 0xba, 0x5f, 0xf6,
+	0xc5, 0xcb, 0x30, 0xc2, 0xc4, 0x62, 0x5e, 0xaa, 0xe5, 0x85, 0x5c, 0xde, 0x29, 0x88, 0x8e, 0x43,
+	0xb9, 0x34, 0x6b, 0xa8, 0xdd, 0x2f, 0x18, 0x2f, 0x10, 0x64, 0x94, 0xca, 0xd2, 0xfb, 0x33, 0x48,
+	0x37, 0x93, 0x96, 0x24, 0x73, 0x4a, 0x92, 0x26, 0x92, 0xb8, 0xd1, 0x84, 0xf1, 0x16, 0xc1, 0x8c,
+	0xc2, 0x42, 0xb6, 0xb2, 0x4b, 0x8a, 0x8e, 0x5b, 0xd9, 0xdf, 0x49, 0x30, 0x4d, 0x18, 0x0e, 0x23,
+	0x1e, 0x10, 0x46, 0xf3, 0x7e, 0xc0, 0xcb, 0x4e, 0x81, 0x06, 0x35, 0xc4, 0xbf, 0xe5, 0xd2, 0x81,
+	0x5c, 0xd9, 0x2f, 0xe0, 0x2c, 0xe8, 0x4d, 0xc7, 0x72, 0x2c, 0x74, 0xab, 0xa5, 0x7d, 0xa2, 0x54,
+	0x6b, 0x34, 0x26, 0x5b, 0x17, 0x8c, 0x33, 0x04, 0xb7, 0x3a, 0x30, 0x28, 0xa7, 0x95, 0x87, 0x7f,
+	0x9a, 0x75, 0xac, 0x1e, 0xfc, 0x6f, 0xdd, 0x8e, 0x6b, 0xb8, 0xd1, 0x55, 0x68, 0x6c, 0xc3, 0xa4,
+	0xc2, 0x4d, 0xec, 0x25, 0x19, 0xd5, 0x18, 0x0c, 0xd4, 0x28, 0xe3, 0x01, 0xfd, 0x79, 0x9c, 0x30,
+	0xbd, 0x41, 0xf0, 0x7f, 0x1b, 0x15, 0xc9, 0xe3, 0xc3, 0x58, 0x8b, 0x09, 0xca, 0x97, 0x60, 0xa1,
+	0x0b, 0x2a, 0xa9, 0x3f, 0xaa, 0x9a, 0xb8, 0xe1, 0xc3, 0x54, 0x2b, 0x6b, 0x0e, 0x4d, 0x2e, 0x1b,
+	0xde, 0x05, 0xa8, 0xa5, 0x82, 0xb4, 0x32, 0x65, 0xc6, 0x11, 0x62, 0x56, 0x23, 0xc4, 0x8c, 0x43,
+	0x47, 0x46, 0x88, 0x79, 0x40, 0x18, 0x95, 0xb5, 0xb9, 0x6b, 0x95, 0xc6, 0x39, 0x82, 0xe9, 0xb6,
+	0x2d, 0xe5, 0x3c, 0x0e, 0xe1, 0x2f, 0x56, 0x66, 0x31, 0xbe, 0x43, 0x93, 0x63, 0xed, 0x61, 0x00,
+	0x83, 0xac, 0xcc, 0x12, 0x75, 0xbc, 0x57, 0x47, 0xd2, 0x27, 0x48, 0xa6, 0xdb, 0x92, 0xc4, 0x96,
+	0xea, 0x50, 0x02, 0x98, 0xdd, 0x2a, 0x13, 0xc7, 0x25, 0xb6, 0x4b, 0xdb, 0x0f, 0x70, 0x07, 0x32,
+	0xad, 0xaf, 0x47, 0xcc, 0x37, 0x94, 0x1b, 0x53, 0xdf, 0x8f, 0xd0, 0x08, 0x61, 0xae, 0xa3, 0x9e,
+	0x72, 0x82, 0xbf, 0xa4, 0xe9, 0xe2, 0x8f, 0x01, 0xf8, 0x43, 0x9c, 0x19, 0x3e, 0x43, 0xd0, 0x1f,
+	0xa7, 0x26, 0x56, 0xdf, 0xae, 0xc6, 0xa8, 0xd6, 0x6e, 0x77, 0xb6, 0x39, 0x76, 0x6d, 0x4c, 0xbf,
+	0x7c, 0xff, 0xf5, 0x75, 0xdf, 0x7f, 0x38, 0x63, 0xb5, 0xfe, 0x0b, 0xc1, 0xef, 0x10, 0xe0, 0xc6,
+	0x29, 0xe0, 0xbb, 0xad, 0xbb, 0x29, 0x93, 0x5d, 0x5b, 0xed, 0xbe, 0x50, 0x5a, 0x5e, 0x16, 0x96,
+	0x2d, 0x3c, 0xaf, 0xb4, 0xdc, 0xec, 0x1c, 0xf0, 0x37, 0x04, 0xe3, 0xad, 0xa2, 0x0e, 0x6f, 0x75,
+	0xeb, 0xa8, 0x21, 0xc7, 0xb5, 0xec, 0x4d, 0x24, 0x24, 0x5e, 0x56, 0xe0, 0xad, 0xe1, 0x7b, 0x5d,
+	0xe1, 0xe5, 0xed, 0x4a, 0xed, 0x4d, 0xc3, 0x1f, 0x10, 0x8c, 0xaa, 0x6e, 0x28, 0x5e, 0xef, 0xd6,
+	0x64, 0x5d, 0x00, 0x6b, 0x1b, 0xbd, 0x96, 0x4b, 0xbe, 0x35, 0xc1, 0xb7, 0x82, 0x97, 0xba, 0xe3,
+	0x8b, 0xe1, 0xf0, 0x67, 0x04, 0x9a, 0xfa, 0x32, 0xe2, 0xfb, 0x3d, 0x99, 0xab, 0x45, 0x87, 0xb6,
+	0xd9, 0xbb, 0x80, 0xe4, 0xdb, 0x10, 0x7c, 0xab, 0x78, 0xa5, 0x07, 0xbe, 0x2a, 0xc2, 0x77, 0x04,
+	0x13, 0x1d, 0xe4, 0x0e, 0xde, 0x56, 0x3a, 0xed, 0x3c, 0x29, 0xb5, 0x9d, 0x9b, 0x89, 0x48, 0xe4,
+	0x07, 0x02, 0x39, 0x8b, 0x37, 0x95, 0xc8, 0x24, 0x51, 0xcb, 0xb7, 0x84, 0xcf, 0x3e, 0x3c, 0xbf,
+	0xd4, 0xd1, 0xc5, 0xa5, 0x8e, 0xbe, 0x5c, 0xea, 0xe8, 0xd5, 0x95, 0x9e, 0xba, 0xb8, 0xd2, 0x53,
+	0x1f, 0xaf, 0xf4, 0xd4, 0xd3, 0x25, 0xe6, 0x44, 0x27, 0x25, 0xdb, 0x3c, 0xe2, 0x45, 0xcb, 0xf6,
+	0xec, 0xf9, 0xa3, 0x13, 0xe2, 0x78, 0xd7, 0xfb, 0x3d, 0x6f, 0xf2, 0x4d, 0x6b, 0xf7, 0x8b, 0x8f,
+	0xda, 0x3b, 0x3f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xba, 0xb0, 0xee, 0x41, 0xbf, 0x0b, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -592,10 +679,12 @@ type QueryClient interface {
 	GlobalVirtualGroup(ctx context.Context, in *QueryGlobalVirtualGroupRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupResponse, error)
 	// Queries a list of global virtual groups by family id.
 	GlobalVirtualGroupByFamilyID(ctx context.Context, in *QueryGlobalVirtualGroupByFamilyIDRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupByFamilyIDResponse, error)
-	// Queries a list of global virtual group families by storage provider id.
-	GlobalVirtualGroupFamilies(ctx context.Context, in *QueryGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamiliesResponse, error)
 	// Queries a global virtual group family by its id.
 	GlobalVirtualGroupFamily(ctx context.Context, in *QueryGlobalVirtualGroupFamilyRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamilyResponse, error)
+	// Queries a list of GlobalVirtualGroupFamilies items.
+	GlobalVirtualGroupFamilies(ctx context.Context, in *QueryGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamiliesResponse, error)
+	// AvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+	AvailableGlobalVirtualGroupFamilies(ctx context.Context, in *AvailableGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*AvailableGlobalVirtualGroupFamiliesResponse, error)
 }
 
 type queryClient struct {
@@ -633,6 +722,15 @@ func (c *queryClient) GlobalVirtualGroupByFamilyID(ctx context.Context, in *Quer
 	return out, nil
 }
 
+func (c *queryClient) GlobalVirtualGroupFamily(ctx context.Context, in *QueryGlobalVirtualGroupFamilyRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamilyResponse, error) {
+	out := new(QueryGlobalVirtualGroupFamilyResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Query/GlobalVirtualGroupFamily", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) GlobalVirtualGroupFamilies(ctx context.Context, in *QueryGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamiliesResponse, error) {
 	out := new(QueryGlobalVirtualGroupFamiliesResponse)
 	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Query/GlobalVirtualGroupFamilies", in, out, opts...)
@@ -642,9 +740,9 @@ func (c *queryClient) GlobalVirtualGroupFamilies(ctx context.Context, in *QueryG
 	return out, nil
 }
 
-func (c *queryClient) GlobalVirtualGroupFamily(ctx context.Context, in *QueryGlobalVirtualGroupFamilyRequest, opts ...grpc.CallOption) (*QueryGlobalVirtualGroupFamilyResponse, error) {
-	out := new(QueryGlobalVirtualGroupFamilyResponse)
-	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Query/GlobalVirtualGroupFamily", in, out, opts...)
+func (c *queryClient) AvailableGlobalVirtualGroupFamilies(ctx context.Context, in *AvailableGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*AvailableGlobalVirtualGroupFamiliesResponse, error) {
+	out := new(AvailableGlobalVirtualGroupFamiliesResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.virtualgroup.Query/AvailableGlobalVirtualGroupFamilies", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -659,10 +757,12 @@ type QueryServer interface {
 	GlobalVirtualGroup(context.Context, *QueryGlobalVirtualGroupRequest) (*QueryGlobalVirtualGroupResponse, error)
 	// Queries a list of global virtual groups by family id.
 	GlobalVirtualGroupByFamilyID(context.Context, *QueryGlobalVirtualGroupByFamilyIDRequest) (*QueryGlobalVirtualGroupByFamilyIDResponse, error)
-	// Queries a list of global virtual group families by storage provider id.
-	GlobalVirtualGroupFamilies(context.Context, *QueryGlobalVirtualGroupFamiliesRequest) (*QueryGlobalVirtualGroupFamiliesResponse, error)
 	// Queries a global virtual group family by its id.
 	GlobalVirtualGroupFamily(context.Context, *QueryGlobalVirtualGroupFamilyRequest) (*QueryGlobalVirtualGroupFamilyResponse, error)
+	// Queries a list of GlobalVirtualGroupFamilies items.
+	GlobalVirtualGroupFamilies(context.Context, *QueryGlobalVirtualGroupFamiliesRequest) (*QueryGlobalVirtualGroupFamiliesResponse, error)
+	// AvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+	AvailableGlobalVirtualGroupFamilies(context.Context, *AvailableGlobalVirtualGroupFamiliesRequest) (*AvailableGlobalVirtualGroupFamiliesResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -678,11 +778,14 @@ func (*UnimplementedQueryServer) GlobalVirtualGroup(ctx context.Context, req *Qu
 func (*UnimplementedQueryServer) GlobalVirtualGroupByFamilyID(ctx context.Context, req *QueryGlobalVirtualGroupByFamilyIDRequest) (*QueryGlobalVirtualGroupByFamilyIDResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GlobalVirtualGroupByFamilyID not implemented")
 }
+func (*UnimplementedQueryServer) GlobalVirtualGroupFamily(ctx context.Context, req *QueryGlobalVirtualGroupFamilyRequest) (*QueryGlobalVirtualGroupFamilyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GlobalVirtualGroupFamily not implemented")
+}
 func (*UnimplementedQueryServer) GlobalVirtualGroupFamilies(ctx context.Context, req *QueryGlobalVirtualGroupFamiliesRequest) (*QueryGlobalVirtualGroupFamiliesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GlobalVirtualGroupFamilies not implemented")
 }
-func (*UnimplementedQueryServer) GlobalVirtualGroupFamily(ctx context.Context, req *QueryGlobalVirtualGroupFamilyRequest) (*QueryGlobalVirtualGroupFamilyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GlobalVirtualGroupFamily not implemented")
+func (*UnimplementedQueryServer) AvailableGlobalVirtualGroupFamilies(ctx context.Context, req *AvailableGlobalVirtualGroupFamiliesRequest) (*AvailableGlobalVirtualGroupFamiliesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AvailableGlobalVirtualGroupFamilies not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -743,6 +846,24 @@ func _Query_GlobalVirtualGroupByFamilyID_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_GlobalVirtualGroupFamily_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryGlobalVirtualGroupFamilyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).GlobalVirtualGroupFamily(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/greenfield.virtualgroup.Query/GlobalVirtualGroupFamily",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).GlobalVirtualGroupFamily(ctx, req.(*QueryGlobalVirtualGroupFamilyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_GlobalVirtualGroupFamilies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(QueryGlobalVirtualGroupFamiliesRequest)
 	if err := dec(in); err != nil {
@@ -761,20 +882,20 @@ func _Query_GlobalVirtualGroupFamilies_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_GlobalVirtualGroupFamily_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGlobalVirtualGroupFamilyRequest)
+func _Query_AvailableGlobalVirtualGroupFamilies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AvailableGlobalVirtualGroupFamiliesRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).GlobalVirtualGroupFamily(ctx, in)
+		return srv.(QueryServer).AvailableGlobalVirtualGroupFamilies(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/greenfield.virtualgroup.Query/GlobalVirtualGroupFamily",
+		FullMethod: "/greenfield.virtualgroup.Query/AvailableGlobalVirtualGroupFamilies",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).GlobalVirtualGroupFamily(ctx, req.(*QueryGlobalVirtualGroupFamilyRequest))
+		return srv.(QueryServer).AvailableGlobalVirtualGroupFamilies(ctx, req.(*AvailableGlobalVirtualGroupFamiliesRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -796,12 +917,16 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_GlobalVirtualGroupByFamilyID_Handler,
 		},
 		{
+			MethodName: "GlobalVirtualGroupFamily",
+			Handler:    _Query_GlobalVirtualGroupFamily_Handler,
+		},
+		{
 			MethodName: "GlobalVirtualGroupFamilies",
 			Handler:    _Query_GlobalVirtualGroupFamilies_Handler,
 		},
 		{
-			MethodName: "GlobalVirtualGroupFamily",
-			Handler:    _Query_GlobalVirtualGroupFamily_Handler,
+			MethodName: "AvailableGlobalVirtualGroupFamilies",
+			Handler:    _Query_AvailableGlobalVirtualGroupFamilies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -997,6 +1122,69 @@ func (m *QueryGlobalVirtualGroupByFamilyIDResponse) MarshalToSizedBuffer(dAtA []
 	return len(dAtA) - i, nil
 }
 
+func (m *QueryGlobalVirtualGroupFamilyRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGlobalVirtualGroupFamilyRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGlobalVirtualGroupFamilyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.FamilyId != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.FamilyId))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryGlobalVirtualGroupFamilyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryGlobalVirtualGroupFamilyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryGlobalVirtualGroupFamilyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.GlobalVirtualGroupFamily != nil {
+		{
+			size, err := m.GlobalVirtualGroupFamily.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func (m *QueryGlobalVirtualGroupFamiliesRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
@@ -1027,12 +1215,7 @@ func (m *QueryGlobalVirtualGroupFamiliesRequest) MarshalToSizedBuffer(dAtA []byt
 			i = encodeVarintQuery(dAtA, i, uint64(size))
 		}
 		i--
-		dAtA[i] = 0x12
-	}
-	if m.StorageProviderId != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.StorageProviderId))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1069,10 +1252,10 @@ func (m *QueryGlobalVirtualGroupFamiliesResponse) MarshalToSizedBuffer(dAtA []by
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.GlobalVirtualGroupFamilies) > 0 {
-		for iNdEx := len(m.GlobalVirtualGroupFamilies) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.GvgFamilies) > 0 {
+		for iNdEx := len(m.GvgFamilies) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.GlobalVirtualGroupFamilies[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.GvgFamilies[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -1086,7 +1269,7 @@ func (m *QueryGlobalVirtualGroupFamiliesResponse) MarshalToSizedBuffer(dAtA []by
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGlobalVirtualGroupFamilyRequest) Marshal() (dAtA []byte, err error) {
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1096,30 +1279,38 @@ func (m *QueryGlobalVirtualGroupFamilyRequest) Marshal() (dAtA []byte, err error
 	return dAtA[:n], nil
 }
 
-func (m *QueryGlobalVirtualGroupFamilyRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGlobalVirtualGroupFamilyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.FamilyId != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.FamilyId))
+	if len(m.GlobalVirtualGroupFamilyIds) > 0 {
+		dAtA7 := make([]byte, len(m.GlobalVirtualGroupFamilyIds)*10)
+		var j6 int
+		for _, num := range m.GlobalVirtualGroupFamilyIds {
+			for num >= 1<<7 {
+				dAtA7[j6] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j6++
+			}
+			dAtA7[j6] = uint8(num)
+			j6++
+		}
+		i -= j6
+		copy(dAtA[i:], dAtA7[:j6])
+		i = encodeVarintQuery(dAtA, i, uint64(j6))
 		i--
-		dAtA[i] = 0x10
-	}
-	if m.StorageProviderId != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.StorageProviderId))
-		i--
-		dAtA[i] = 0x8
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGlobalVirtualGroupFamilyResponse) Marshal() (dAtA []byte, err error) {
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1129,25 +1320,31 @@ func (m *QueryGlobalVirtualGroupFamilyResponse) Marshal() (dAtA []byte, err erro
 	return dAtA[:n], nil
 }
 
-func (m *QueryGlobalVirtualGroupFamilyResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGlobalVirtualGroupFamilyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.GlobalVirtualGroupFamily != nil {
-		{
-			size, err := m.GlobalVirtualGroupFamily.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
+	if len(m.GlobalVirtualGroupFamilyIds) > 0 {
+		dAtA9 := make([]byte, len(m.GlobalVirtualGroupFamilyIds)*10)
+		var j8 int
+		for _, num := range m.GlobalVirtualGroupFamilyIds {
+			for num >= 1<<7 {
+				dAtA9[j8] = uint8(uint64(num)&0x7f | 0x80)
+				num >>= 7
+				j8++
 			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
+			dAtA9[j8] = uint8(num)
+			j8++
 		}
+		i -= j8
+		copy(dAtA[i:], dAtA9[:j8])
+		i = encodeVarintQuery(dAtA, i, uint64(j8))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -1240,50 +1437,12 @@ func (m *QueryGlobalVirtualGroupByFamilyIDResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryGlobalVirtualGroupFamiliesRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.StorageProviderId != 0 {
-		n += 1 + sovQuery(uint64(m.StorageProviderId))
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryGlobalVirtualGroupFamiliesResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.GlobalVirtualGroupFamilies) > 0 {
-		for _, e := range m.GlobalVirtualGroupFamilies {
-			l = e.Size()
-			n += 1 + l + sovQuery(uint64(l))
-		}
-	}
-	if m.Pagination != nil {
-		l = m.Pagination.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
 func (m *QueryGlobalVirtualGroupFamilyRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.StorageProviderId != 0 {
-		n += 1 + sovQuery(uint64(m.StorageProviderId))
-	}
 	if m.FamilyId != 0 {
 		n += 1 + sovQuery(uint64(m.FamilyId))
 	}
@@ -1299,6 +1458,70 @@ func (m *QueryGlobalVirtualGroupFamilyResponse) Size() (n int) {
 	if m.GlobalVirtualGroupFamily != nil {
 		l = m.GlobalVirtualGroupFamily.Size()
 		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGlobalVirtualGroupFamiliesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryGlobalVirtualGroupFamiliesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.GvgFamilies) > 0 {
+		for _, e := range m.GvgFamilies {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	if m.Pagination != nil {
+		l = m.Pagination.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.GlobalVirtualGroupFamilyIds) > 0 {
+		l = 0
+		for _, e := range m.GlobalVirtualGroupFamilyIds {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
+	}
+	return n
+}
+
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.GlobalVirtualGroupFamilyIds) > 0 {
+		l = 0
+		for _, e := range m.GlobalVirtualGroupFamilyIds {
+			l += sovQuery(uint64(e))
+		}
+		n += 1 + sovQuery(uint64(l)) + l
 	}
 	return n
 }
@@ -1769,231 +1992,6 @@ func (m *QueryGlobalVirtualGroupByFamilyIDResponse) Unmarshal(dAtA []byte) error
 	}
 	return nil
 }
-func (m *QueryGlobalVirtualGroupFamiliesRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StorageProviderId", wireType)
-			}
-			m.StorageProviderId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.StorageProviderId |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageRequest{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryGlobalVirtualGroupFamiliesResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilies", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.GlobalVirtualGroupFamilies = append(m.GlobalVirtualGroupFamilies, &GlobalVirtualGroupFamily{})
-			if err := m.GlobalVirtualGroupFamilies[len(m.GlobalVirtualGroupFamilies)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Pagination == nil {
-				m.Pagination = &query.PageResponse{}
-			}
-			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *QueryGlobalVirtualGroupFamilyRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2024,25 +2022,6 @@ func (m *QueryGlobalVirtualGroupFamilyRequest) Unmarshal(dAtA []byte) error {
 		}
 		switch fieldNum {
 		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StorageProviderId", wireType)
-			}
-			m.StorageProviderId = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.StorageProviderId |= uint32(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field FamilyId", wireType)
 			}
@@ -2147,6 +2126,464 @@ func (m *QueryGlobalVirtualGroupFamilyResponse) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGlobalVirtualGroupFamiliesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageRequest{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryGlobalVirtualGroupFamiliesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryGlobalVirtualGroupFamiliesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field GvgFamilies", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.GvgFamilies = append(m.GvgFamilies, &GlobalVirtualGroupFamily{})
+			if err := m.GvgFamilies[len(m.GvgFamilies)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pagination == nil {
+				m.Pagination = &query.PageResponse{}
+			}
+			if err := m.Pagination.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AvailableGlobalVirtualGroupFamiliesRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AvailableGlobalVirtualGroupFamiliesRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AvailableGlobalVirtualGroupFamiliesRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.GlobalVirtualGroupFamilyIds = append(m.GlobalVirtualGroupFamilyIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.GlobalVirtualGroupFamilyIds) == 0 {
+					m.GlobalVirtualGroupFamilyIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.GlobalVirtualGroupFamilyIds = append(m.GlobalVirtualGroupFamilyIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyIds", wireType)
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *AvailableGlobalVirtualGroupFamiliesResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: AvailableGlobalVirtualGroupFamiliesResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: AvailableGlobalVirtualGroupFamiliesResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType == 0 {
+				var v uint32
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					v |= uint32(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				m.GlobalVirtualGroupFamilyIds = append(m.GlobalVirtualGroupFamilyIds, v)
+			} else if wireType == 2 {
+				var packedLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return ErrIntOverflowQuery
+					}
+					if iNdEx >= l {
+						return io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					packedLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if packedLen < 0 {
+					return ErrInvalidLengthQuery
+				}
+				postIndex := iNdEx + packedLen
+				if postIndex < 0 {
+					return ErrInvalidLengthQuery
+				}
+				if postIndex > l {
+					return io.ErrUnexpectedEOF
+				}
+				var elementCount int
+				var count int
+				for _, integer := range dAtA[iNdEx:postIndex] {
+					if integer < 128 {
+						count++
+					}
+				}
+				elementCount = count
+				if elementCount != 0 && len(m.GlobalVirtualGroupFamilyIds) == 0 {
+					m.GlobalVirtualGroupFamilyIds = make([]uint32, 0, elementCount)
+				}
+				for iNdEx < postIndex {
+					var v uint32
+					for shift := uint(0); ; shift += 7 {
+						if shift >= 64 {
+							return ErrIntOverflowQuery
+						}
+						if iNdEx >= l {
+							return io.ErrUnexpectedEOF
+						}
+						b := dAtA[iNdEx]
+						iNdEx++
+						v |= uint32(b&0x7F) << shift
+						if b < 0x80 {
+							break
+						}
+					}
+					m.GlobalVirtualGroupFamilyIds = append(m.GlobalVirtualGroupFamilyIds, v)
+				}
+			} else {
+				return fmt.Errorf("proto: wrong wireType = %d for field GlobalVirtualGroupFamilyIds", wireType)
+			}
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

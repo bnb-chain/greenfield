@@ -3,9 +3,10 @@ package client
 import (
 	_ "encoding/json"
 	"net/http"
-	"strings"
 
+	"github.com/cometbft/cometbft/rpc/client"
 	rpchttp "github.com/cometbft/cometbft/rpc/client/http"
+	bftws "github.com/cometbft/cometbft/rpc/client/http/v2"
 	sdkclient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/grpc/tmservice"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -35,7 +36,6 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	bfthttp "github.com/cometbft/cometbft/rpc/client/http"
 )
 
 // AuthQueryClient is a type to define the auth types Query Client
@@ -140,8 +140,10 @@ type GreenfieldClient struct {
 	TxClient
 	// TmService holds the tendermint service client
 	TmClient
-	// tendermintClient directly interact with tendermint Node
-	tendermintClient *bfthttp.HTTP
+	// tendermintClient directly interact with tendermint Node via rpc
+	tendermintClient client.Client
+	// useWebSocket
+	useWebSocket bool
 	// keyManager is the manager used for generating and managing keys.
 	keyManager keys.KeyManager
 	// chainId is the id of the chain.
@@ -186,16 +188,24 @@ func newGreenfieldClient(rpcAddr, chainId string, rpcClient *rpchttp.HTTP, opts 
 		setClientsConn(client, client.grpcConn)
 		return client, nil
 	}
-	if len(strings.TrimSpace(rpcAddr)) == 0 {
-		return nil, types.RpcAddressNotProvidedError
+	if client.useWebSocket {
+		wsClient, err := bftws.New(rpcAddr, "/websocket")
+		if err != nil {
+			return nil, err
+		}
+		err = wsClient.Start()
+		if err != nil {
+			return nil, err
+		}
+		// override the tendermintClient with wsClient and use it in the cosmos context
+		client.tendermintClient = wsClient
 	}
-
 	txConfig := authtx.NewTxConfig(cdc, []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
 	clientCtx := sdkclient.Context{}.
 		WithCodec(cdc).
 		WithInterfaceRegistry(cdc.InterfaceRegistry()).
 		WithTxConfig(txConfig).
-		WithClient(rpcClient)
+		WithClient(client.tendermintClient)
 
 	setClientsConn(client, clientCtx)
 	return client, nil

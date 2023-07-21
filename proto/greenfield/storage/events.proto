@@ -52,8 +52,8 @@ message EventDeleteBucket {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // primary_sp_id is the unique id of primary sp.
-  uint32 primary_sp_id = 5;
+  // global_virtual_group_family_id defines the unique id of gvg family
+  uint32 global_virtual_group_family_id = 5;
 }
 
 // EventUpdateBucketInfo is emitted on MsgUpdateBucketInfo
@@ -68,16 +68,14 @@ message EventUpdateBucketInfo {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
-  // charged_read_quota_before define the read quota before updated
-  uint64 charged_read_quota_before = 4;
   // charged_read_quota_after define the read quota after updated
-  uint64 charged_read_quota_after = 5;
-  // payment_address_before define the payment address before updated
-  string payment_address_before = 6;
-  // payment_address_after define the payment address after updated
-  string payment_address_after = 7;
+  uint64 charged_read_quota = 4;
+  // payment_address define the payment address after updated
+  string payment_address = 5;
   // visibility defines the highest permission of object.
-  VisibilityType visibility = 8;
+  VisibilityType visibility = 6;
+  // global_virtual_group_family_id defines the gvg family id after migrated.
+  uint32 global_virtual_group_family_id = 7;
 }
 
 // EventDiscontinueBucket is emitted on MsgDiscontinueBucket
@@ -510,6 +508,6 @@ message EventCompleteMigrationBucket {
   ];
   // The family id that the bucket to be migrated to
   uint32 global_virtual_group_family_id = 4;
-  // The src and dst gvg mapping
-  repeated GVGMapping gvg_mappings = 5;
+  // The src_primary_sp_id defines the primary sp id of the bucket before migrate.
+  uint32 src_primary_sp_id = 5;
 }

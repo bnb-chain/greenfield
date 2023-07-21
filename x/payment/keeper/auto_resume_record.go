@@ -66,7 +66,7 @@ func (k Keeper) ExistsAutoResumeRecord(
 	exists := false
 	for ; iterator.Valid(); iterator.Next() {
 		record := types.ParseAutoResumeRecordKey(iterator.Key())
-		if record.Timestamp > timestamp {
+		if timestamp > 0 && record.Timestamp > timestamp {
 			break
 		}
 		if sdk.MustAccAddressFromHex(record.Addr).Equals(addr) {

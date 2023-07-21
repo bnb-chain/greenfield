@@ -31,6 +31,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	deleted, err := keeper.DeleteDiscontinueObjectsUntil(ctx, blockTime, deletionMax)
 	if err != nil {
 		ctx.Logger().Error("should not happen, fail to delete objects, err " + err.Error())
+		panic("should not happen")
 	}
 
 	if deleted >= deletionMax {
@@ -41,6 +42,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 	_, err = keeper.DeleteDiscontinueBucketsUntil(ctx, blockTime, deletionMax-deleted)
 	if err != nil {
 		ctx.Logger().Error("should not happen, fail to delete buckets, err " + err.Error())
+		panic("should not happen")
 	}
 	keeper.PersistDeleteInfo(ctx)
 

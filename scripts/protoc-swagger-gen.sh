@@ -1,4 +1,11 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
+
+which swagger-combine || npm install -g swagger-combine
+which protoc-gen-swagger || go install github.com/grpc-ecosystem/grpc-gateway/protoc-gen-swagger
+
+swagger-combine -v
+buf --version
 
 set -eo pipefail
 
