@@ -718,7 +718,8 @@ func (s *PaymentTestSuite) SetSPPrice(sp *core.StorageProvider, readPrice, store
 		Timestamp: time.Now().Unix(),
 	})
 	s.Require().NoError(err)
-	s.T().Logf("queryGetSpStoragePriceByTimeResp read price: %s, store price: %v", readPrice, storePrice)
+	s.T().Logf("queryGetSpStoragePriceByTimeResp read price: %s, store price: %v",
+		queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice, queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice)
 
 }
 

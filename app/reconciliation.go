@@ -126,7 +126,7 @@ func (app *App) reconPaymentChanges(ctx sdk.Context, paymentIavl *iavl.Store) bo
 					ctx.Logger().Error("fail to unmarshal stream record", "err", err.Error())
 				} else {
 					flowCurrent = flowCurrent.Add(sr.NetflowRate)
-
+					//TODO: impact performance, remove it later
 					j, _ := json.Marshal(sr)
 					ctx.Logger().Debug("stream_record_current", "stream record", j, "addr", parseAddressFromStreamRecordKey(kBz))
 				}
@@ -144,6 +144,7 @@ func (app *App) reconPaymentChanges(ctx sdk.Context, paymentIavl *iavl.Store) bo
 					ctx.Logger().Error("fail to unmarshal stream record", "err", err.Error())
 				} else {
 					flowPre = flowPre.Add(sr.NetflowRate)
+					//TODO: impact performance, remove it later
 					j, _ := json.Marshal(sr)
 					ctx.Logger().Debug("stream_record_previous", "stream record", j, "addr", parseAddressFromStreamRecordKey(kBz))
 				}

@@ -926,8 +926,6 @@ func (s *PaymentTestSuite) TestWithdraw() {
 	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.Sub(paymentAccountStreamRecordAfter.StaticBalance).Int64(), amount.Add(staticBalanceChange).Int64())
 }
 
-func (s *PaymentTestSuite) TestWithdraw_WithoutEnoughBalance() {}
-
 func (s *PaymentTestSuite) TestStorageBill_DeleteBucket_WithReadQuota() {
 	var err error
 	ctx := context.Background()

@@ -101,20 +101,20 @@ func (k Keeper) QueryIsPriceChanged(c context.Context, req *types.QueryIsPriceCh
 
 	primarySp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-	changed, currentRead, currentPrimary, currentSecondary, currentTaxRate, newRead, newPrimary, newSecondary, newTaxRate, err := k.IsPriceChanged(ctx, primarySp.Id, internalBucketInfo.PriceTime)
+	changed, currentPrice, currentTaxRate, newPrice, newTaxRate, err := k.IsPriceChanged(ctx, primarySp.Id, internalBucketInfo.PriceTime)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	return &types.QueryIsPriceChangedResponse{
 		Changed:                    changed,
-		CurrentReadPrice:           currentRead,
-		CurrentPrimaryStorePrice:   currentPrimary,
-		CurrentSecondaryStorePrice: currentSecondary,
+		CurrentReadPrice:           currentPrice.ReadPrice,
+		CurrentPrimaryStorePrice:   currentPrice.PrimaryStorePrice,
+		CurrentSecondaryStorePrice: currentPrice.ReadPrice,
 		CurrentValidatorTaxRate:    currentTaxRate,
-		NewReadPrice:               newRead,
-		NewPrimaryStorePrice:       newPrimary,
-		NewSecondaryStorePrice:     newSecondary,
+		NewReadPrice:               newPrice.ReadPrice,
+		NewPrimaryStorePrice:       newPrice.PrimaryStorePrice,
+		NewSecondaryStorePrice:     newPrice.SecondaryStorePrice,
 		NewValidatorTaxRate:        newTaxRate,
 	}, nil
 }
