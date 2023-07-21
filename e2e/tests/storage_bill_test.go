@@ -597,25 +597,26 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 
-	s.SetSPPrice(primarySP, "12.3", "5000000000000000")
-	defer s.SetSPPrice(primarySP, "12.3", "5")
+	s.SetSPPrice(primarySP, "12.3", "100")
 
 	queryBalanceRequest.Address = dstPrimarySP.FundingKey.GetAddr().String()
 	fundBalanceBefore, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 	streamRecordsBefore = s.getStreamRecords(streamAddresses0)
-
 	// send msgMigrationBucket
 	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user0, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
 
 	s.SendTxBlock(user0, msgMigrationBucket)
 	s.Require().NoError(err)
+	s.reduceBNBBalance(user0, s.Validator, sdkmath.NewIntWithDecimal(1, 1))
 
 	s.SendTxBlockWithExpectErrorString(msgCompleteMigrationBucket, primarySP.OperatorKey, "apply stream record changes for user failed")
 
 	s.SetSPPrice(primarySP, "12.3", "13")
 	readPrice, primaryPrice, secondaryPrice := s.getPrices(primarySP, time.Now().Unix())
 	s.T().Logf("readPrice: %v, primaryPrice: %v,secondaryPrice: %v", readPrice, primaryPrice, secondaryPrice)
+
+	s.transferBNB(s.Validator, user0, sdkmath.NewIntWithDecimal(10000, 18))
 
 	s.SendTxBlock(primarySP.OperatorKey, msgCompleteMigrationBucket)
 	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
@@ -776,5 +777,37 @@ func (s *PaymentTestSuite) updateBucket(user keys.KeyManager, bucketName string,
 	}
 	headObjectResponse, err := s.Client.HeadBucket(context.Background(), &queryHeadObjectRequest)
 	return headObjectResponse.BucketInfo, err
+
+}
+
+func (s *PaymentTestSuite) reduceBNBBalance(user, to keys.KeyManager, leftBalance sdkmath.Int) {
+	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: user.GetAddr().String()}
+	queryBalanceResponse, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
+	s.Require().NoError(err)
+
+	msgSend := banktypes.NewMsgSend(user.GetAddr(), to.GetAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, queryBalanceResponse.Balance.Amount.SubRaw(5*types.DecimalGwei)),
+	))
+
+	simulateResponse := s.SimulateTx(msgSend, user)
+	gasLimit := simulateResponse.GasInfo.GetGasUsed()
+	gasPrice, err := sdk.ParseCoinNormalized(simulateResponse.GasInfo.GetMinGasPrice())
+	s.Require().NoError(err)
+	sendBNBAmount := queryBalanceResponse.Balance.Amount.Sub(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit)))).Sub(leftBalance)
+	msgSend.Amount = sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, sendBNBAmount),
+	)
+	s.SendTxBlock(user, msgSend)
+	queryBalanceResponse, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
+	s.Require().NoError(err)
+	s.T().Logf("balance: %v", queryBalanceResponse.Balance.Amount)
+}
+
+func (s *PaymentTestSuite) transferBNB(user, to keys.KeyManager, amount sdkmath.Int) {
+
+	msgSend := banktypes.NewMsgSend(user.GetAddr(), to.GetAddr(), sdk.NewCoins(
+		sdk.NewCoin(s.Config.Denom, amount),
+	))
+	s.SendTxBlock(user, msgSend)
 
 }

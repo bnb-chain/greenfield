@@ -155,7 +155,7 @@ func (s *BaseSuite) SendTxBlock(from keys.KeyManager, msg ...sdk.Msg) *sdk.TxRes
 	})
 	s.Require().NoError(err)
 
-	s.T().Logf("block_height: %d, tx_hash: 0x%s", getTxRes.TxResponse.Height, response.TxResponse.TxHash)
+	s.T().Logf("block_height: %d, tx_hash: 0x%s, GasUsed: %v", getTxRes.TxResponse.Height, response.TxResponse.TxHash, response.TxResponse.GasUsed)
 	return getTxRes.TxResponse
 }
 
@@ -356,10 +356,6 @@ func (sp *StorageProvider) GetFirstGlobalVirtualGroup() (*virtualgroupmoduletype
 			return gvg, true
 		}
 	}
-	return nil, false
-}
-func (sp *StorageProvider) UpdateSPPrice() (*virtualgroupmoduletypes.GlobalVirtualGroup, bool) {
-
 	return nil, false
 }
 
