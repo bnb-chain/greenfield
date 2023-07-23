@@ -32,6 +32,7 @@ exclude:
   paths:
     - \.pb\.go$    # excludes all protobuf generated files
     - \.pb\.gw\.go$    # excludes all protobuf generated files
+    - .*_mocks.go$    # excludes all protobuf generated files
     - testutil/.*
     - e2e/.* 
     - internal/sequence/.*
