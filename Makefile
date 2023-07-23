@@ -54,6 +54,9 @@ test:
 e2e_start_localchain:
 	bash ./deployment/localup/localup.sh all 1 7
 
+e2e_stop_localchain:
+	bash ./deployment/localup/localup.sh stop
+
 e2e_test:
 	go test -p 1 -failfast -v ./e2e/... -coverpkg=./... -covermode=atomic -coverprofile=./coverage.out -timeout 99999s
 

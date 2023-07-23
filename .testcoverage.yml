@@ -10,15 +10,15 @@ local-prefix: "github.com/bnb-chain/greenfield"
 threshold:
   # (optional; default 0) 
   # The minimum coverage that each file should have
-  file: 70
+  file: 80
 
   # (optional; default 0) 
   # The minimum coverage that each package should have
-  package: 60
+  package: 80
 
   # (optional; default 0) 
   # The minimum total coverage project should have
-  total: 60
+  total: 80
 
 # Holds regexp rules which will override thresholds for matched files or packages
 override:
@@ -31,6 +31,10 @@ exclude:
   # Exclude files or packages matching their paths
   paths:
     - \.pb\.go$    # excludes all protobuf generated files
+    - \.pb\.gw\.go$    # excludes all protobuf generated files
+    - testutil/.*
+    - e2e/.* 
+    - internal/sequence/.*
  
 # NOTES:
 # - symbol `/` in all path regexps will be replaced by
