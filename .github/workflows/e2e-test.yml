@@ -59,12 +59,14 @@ jobs:
         make e2e_stop_localchain
     - name: make coverage report
       id: coverage-report
-      if: always()
+      if: github.event_name == 'pull_request'
+      continue-on-error: true
       run: |
         e2e_coverage=$(make check-coverage)
         echo "e2e-coverage=$e2e_coverage)" >> $GITHUB_OUTPUT
         
     - uses: mshick/add-pr-comment@v2
+      if: github.event_name == 'pull_request'
       with:
         message: |
           ## E2E Test Coverage Report
