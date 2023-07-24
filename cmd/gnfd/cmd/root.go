@@ -357,6 +357,7 @@ func (a appCreator) newApp(
 		&app.AppConfig{Config: *serverConfig, CrossChain: appConfig.CrossChain},
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
+		baseapp.SetEventing(cast.ToString(appOpts.Get(server.FlagEventing))),
 		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(server.FlagMinGasPrices))),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(server.FlagMinRetainBlocks))),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(server.FlagHaltHeight))),
