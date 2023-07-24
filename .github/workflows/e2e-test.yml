@@ -71,6 +71,8 @@ jobs:
         
     - uses: mshick/add-pr-comment@v2
       if: github.event_name == 'pull_request'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         message: |
           ## E2E Test Coverage Report
