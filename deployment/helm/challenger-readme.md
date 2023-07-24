@@ -8,6 +8,9 @@ Helm Chart Deployment for Greenfield Challenger
 2. `helm repo update`
 3. `helm install greenfield-challenger bnb-chain/gnfd-challenger`
 
+## Setting up configuration files
+You will have to set up the configuration files with reference to [this repo](https://github.com/bnb-chain/bsc-relayer-chllenger).
+
 ## Common Operations
 
 ### Check Pod Status
