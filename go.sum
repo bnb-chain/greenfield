@@ -358,8 +358,8 @@ github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5/go.mod h1:VvhXpOYNQvB+
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/flynn/noise v1.0.0/go.mod h1:xbMo+0i6+IGbYdJhF31t2eR1BIU0CYc12+BNAKwUTag=
 github.com/fogleman/gg v1.2.1-0.20190220221249-0403632d5b90/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
-github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20230724055807-1c0bc00b9e17 h1:LduOXsWJXVUusgMz87PTMPhk/EQJp3YBac5YZ1rAD14=
-github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20230724055807-1c0bc00b9e17/go.mod h1:EghjYxFg4NRNMfTJ6g9rVhjImhXQm+tuboknHqeGmJA=
+github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20230724080150-0f3016c6ef98 h1:V/TNAjBPLmI1V5Mh9tIBxT7bZsrZuS+OTMVlBSyAE3w=
+github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20230724080150-0f3016c6ef98/go.mod h1:EghjYxFg4NRNMfTJ6g9rVhjImhXQm+tuboknHqeGmJA=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/francoispqt/gojay v1.2.13/go.mod h1:ehT5mTG4ua4581f1++1WLG0vPdaA9HaiDsoyrBGkyDY=
