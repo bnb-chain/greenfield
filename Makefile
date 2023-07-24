@@ -61,7 +61,7 @@ e2e_test:
 	go test -p 1 -failfast -v ./e2e/... -coverpkg=./... -covermode=atomic -coverprofile=./coverage.out -timeout 99999s
 
 install-go-test-coverage:
-	go install github.com/vladopajic/go-test-coverage/v2@latest
+	@go install github.com/vladopajic/go-test-coverage/v2@latest
 
 check-coverage: install-go-test-coverage
 	go-test-coverage --config=./.testcoverage.yml
