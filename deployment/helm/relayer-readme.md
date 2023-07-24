@@ -8,6 +8,9 @@ Helm Chart Deployment for Greenfield Relayer
 2. `helm repo update`
 3. `helm install greenfield-relayer bnb-chain/gnfd-relayer`
 
+## Setting up configuration files
+You will have to set up the configuration files with reference to [this repo](https://github.com/bnb-chain/greenfield-relayer#deployment).
+
 ## Common Operations
 
 ### Check Pod Status
