@@ -450,7 +450,7 @@ func (s *ChallengeTestSuite) TestFailedAttest_ExceedMaxSlashAmount() {
 		}
 	}
 
-	s.SendTxBlockWithExpectErrorString(msgAttest, s.Challenger, challengetypes.ErrExceedMaxSlashAmount.Error())
+	s.SendTxBlock(s.Challenger, msgAttest) // no error
 }
 
 func (s *ChallengeTestSuite) TestEndBlock() {

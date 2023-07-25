@@ -101,7 +101,9 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 		if !slashedAmount.IsZero() { // if it is the first time to slash, do not check the amount
 			maxSlashAmount := k.GetParams(ctx).SpSlashMaxAmount
 			if (slashedAmount.Add(toSlashAmount)).GT(maxSlashAmount) {
-				return nil, types.ErrExceedMaxSlashAmount
+				ctx.Logger().Info("slash amount exceed the max allow amount",
+					"toSlashAmount", toSlashAmount, "slashedAmount", slashedAmount)
+				toSlashAmount = sdk.ZeroInt()
 			}
 		}
 
@@ -223,9 +225,11 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 			Amount: submitterReward,
 		}})
 
-	err := k.SpKeeper.Slash(ctx, spID, rewards)
-	if err != nil {
-		return err
+	if challengerReward.IsPositive() || eachValidatorReward.IsPositive() || submitterReward.IsPositive() {
+		err := k.SpKeeper.Slash(ctx, spID, rewards)
+		if err != nil {
+			return err
+		}
 	}
 
 	event := types.EventAttestChallenge{
