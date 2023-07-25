@@ -55,11 +55,6 @@ func GetGVGFamilyKey(familyID uint32) []byte {
 	return append(GVGFamilyKey, uint32Seq.EncodeSequence(familyID)...)
 }
 
-func GetGVGFamilyPrefixKey(spID uint32) []byte {
-	var uint32Seq sequence.Sequence[uint32]
-	return append(GVGFamilyKey, uint32Seq.EncodeSequence(spID)...)
-}
-
 func GetGVGStatisticsWithinSPKey(spID uint32) []byte {
 	var uint32Seq sequence.Sequence[uint32]
 	return append(GVGStatisticsWithinSPKey, uint32Seq.EncodeSequence(spID)...)

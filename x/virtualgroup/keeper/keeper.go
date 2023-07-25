@@ -157,7 +157,7 @@ func (k Keeper) DeleteGVG(ctx sdk.Context, primarySp *sptypes.StorageProvider, g
 		return err
 	}
 
-	if k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) {
+	if len(gvgFamily.GlobalVirtualGroupIds) == 0 && k.paymentKeeper.IsEmptyNetFlow(ctx, sdk.MustAccAddressFromHex(gvgFamily.VirtualPaymentAddress)) {
 		store.Delete(types.GetGVGFamilyKey(gvg.FamilyId))
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGlobalVirtualGroupFamily{
 			Id:          gvgFamily.Id,
