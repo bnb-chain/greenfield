@@ -69,4 +69,14 @@ message Params {
 
   // The number of kept attested challenge ids, which can be queried by clients.
   uint64 attestation_kept_count = 12 [(gogoproto.moretags) = "yaml:\"attestation_kept_count\""];
+
+  // The max slash amount for a sp in a counting window.
+  string sp_slash_max_amount = 13 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable) = false
+  ];
+
+  // The number of blocks to count how much a sp had been slashed.
+  uint64 sp_slash_counting_window = 14 [(gogoproto.moretags) = "yaml:\"sp_slash_counting_window\""];
 }

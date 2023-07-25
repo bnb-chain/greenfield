@@ -45,4 +45,7 @@ var (
 
 	// AttestedChallengesCursorKey is the key to retrieve the latest attested challenges.
 	AttestedChallengesCursorKey = []byte{0x17}
+
+	// SlashAmountKeyPrefix is the prefix to count the amount of Slash for a sp.
+	SlashAmountKeyPrefix = []byte{0x18}
 )

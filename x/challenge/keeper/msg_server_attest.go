@@ -93,9 +93,22 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 			return nil, types.ErrDuplicatedSlash
 		}
 
-		// do slash & reward
+		// check slash amount
 		objectSize := objectInfo.PayloadSize
-		err = k.doSlashAndRewards(ctx, msg.ChallengeId, msg.VoteResult, objectSize, sp.Id, submitter, challenger, validators)
+		toSlashAmount := k.calculateSlashAmount(ctx, objectSize)
+
+		slashedAmount := k.GetSpSlashAmount(ctx, sp.Id)
+		if !slashedAmount.IsZero() { // if it is the first time to slash, do not check the amount
+			maxSlashAmount := k.GetParams(ctx).SpSlashMaxAmount
+			if (slashedAmount.Add(toSlashAmount)).GT(maxSlashAmount) {
+				ctx.Logger().Info("slash amount exceed the max allow amount",
+					"toSlashAmount", toSlashAmount, "slashedAmount", slashedAmount)
+				toSlashAmount = sdk.ZeroInt()
+			}
+		}
+
+		// do slash & reward
+		err = k.doSlashAndRewards(ctx, msg.ChallengeId, msg.VoteResult, toSlashAmount, sp.Id, submitter, challenger, validators)
 		if err != nil {
 			return nil, err
 		}
@@ -106,6 +119,7 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 			Height:   uint64(ctx.BlockHeight()),
 		}
 		k.SaveSlash(ctx, slash)
+		k.SetSpSlashAmount(ctx, sp.Id, slashedAmount.Add(toSlashAmount))
 	} else {
 		// check whether it is a heartbeat attest
 		heartbeatInterval := k.GetParams(ctx).HeartbeatInterval
@@ -178,10 +192,9 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 }
 
 // doSlashAndRewards will execute the slash, transfer the rewards and emit events.
-func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, objectSize uint64,
+func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, slashAmount sdkmath.Int,
 	spID uint32, submitter, challenger sdk.AccAddress, validators []string) error {
 
-	slashAmount := k.calculateSlashAmount(ctx, objectSize)
 	challengerReward, eachValidatorReward, submitterReward := k.calculateSlashRewards(ctx, slashAmount,
 		challenger, int64(len(validators)))
 
@@ -212,9 +225,11 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 			Amount: submitterReward,
 		}})
 
-	err := k.SpKeeper.Slash(ctx, spID, rewards)
-	if err != nil {
-		return err
+	if challengerReward.IsPositive() || eachValidatorReward.IsPositive() || submitterReward.IsPositive() {
+		err := k.SpKeeper.Slash(ctx, spID, rewards)
+		if err != nil {
+			return err
+		}
 	}
 
 	event := types.EventAttestChallenge{
