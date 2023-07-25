@@ -33,10 +33,10 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
-	user0 := s.GenAndChargeAccounts(1, 1000000)[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	streamAddresses := []string{
-		user0.GetAddr().String(),
+		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
@@ -46,11 +46,11 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(sp, user0, 0)
+	bucketName := s.createBucket(sp, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user0, bucketName, false)
+	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
@@ -78,7 +78,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	distBucketName := bucketName
 	distObjectName := storagetestutils.GenRandomObjectName()
 
-	objectIfo, err := s.copyObject(user0, sp, bucketName, objectName, distBucketName, distObjectName)
+	objectIfo, err := s.copyObject(user, sp, bucketName, objectName, distBucketName, distObjectName)
 	s.Require().NoError(err)
 	s.sealObject(sp, gvg, distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
 	// assertions
@@ -104,10 +104,10 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
-	user0 := s.GenAndChargeAccounts(1, 1000000)[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	streamAddresses := []string{
-		user0.GetAddr().String(),
+		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
@@ -117,11 +117,11 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(sp, user0, 0)
+	bucketName := s.createBucket(sp, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user0, bucketName, false)
+	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
@@ -160,9 +160,9 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	}
 	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 
-	distBucketName := s.createBucket(sp, user0, 0)
+	distBucketName := s.createBucket(sp, user, 0)
 	distObjectName := storagetestutils.GenRandomObjectName()
-	objectIfo, err := s.copyObject(user0, sp, bucketName, objectName, distBucketName, distObjectName)
+	objectIfo, err := s.copyObject(user, sp, bucketName, objectName, distBucketName, distObjectName)
 	s.Require().NoError(err)
 	s.sealObject(sp, gvg, distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
 	// assertions
@@ -182,6 +182,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
+	user := s.GenAndChargeAccounts(1, 10)[0]
 	// recover price
 	defer s.SetSPPrice(sp, "12.34", "0")
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
@@ -191,7 +192,6 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
-	user := s.GenAndChargeAccounts(1, 10)[0]
 
 	streamAddresses := []string{
 		user.GetAddr().String(),
@@ -320,7 +320,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 	chargedReadQuota := readQuota * 1024 * 1024
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
 		user.GetAddr(), bucketName, &chargedReadQuota, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
-
+	s.reduceBNBBalance(user, s.Validator, sdkmath.NewIntWithDecimal(1, 16))
 	s.SendTxBlockWithExpectErrorString(msgUpdateBucketInfo, user, "apply user flows list failed")
 
 }
@@ -495,10 +495,10 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
-	user0 := s.GenAndChargeAccounts(1, 10)[0]
+	user := s.GenAndChargeAccounts(1, 10)[0]
 
 	streamAddresses := []string{
-		user0.GetAddr().String(),
+		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
@@ -509,7 +509,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(primarySP, user0, 0)
+	bucketName := s.createBucket(primarySP, user, 0)
 	bucketInfo, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	})
@@ -517,7 +517,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user0, bucketName, false)
+	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
@@ -561,7 +561,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().NoError(err)
 	family = queryFamilyResponse.GlobalVirtualGroupFamily
 	streamAddresses = []string{
-		user0.GetAddr().String(),
+		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
 		dstGVG.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
@@ -574,8 +574,8 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().NoError(err)
 
 	// MigrationBucket
-	msgMigrationBucket, msgCompleteMigrationBucket := s.NewMigrateBucket(primarySP, dstPrimarySP, user0, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
-	s.SendTxBlock(user0, msgMigrationBucket)
+	msgMigrationBucket, msgCompleteMigrationBucket := s.NewMigrateBucket(primarySP, dstPrimarySP, user, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
+	s.SendTxBlock(user, msgMigrationBucket)
 	s.Require().NoError(err)
 
 	// complete MigrationBucket
@@ -604,11 +604,11 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	s.Require().NoError(err)
 	streamRecordsBefore = s.getStreamRecords(streamAddresses0)
 	// send msgMigrationBucket
-	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user0, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
+	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
 
-	s.SendTxBlock(user0, msgMigrationBucket)
+	s.SendTxBlock(user, msgMigrationBucket)
 	s.Require().NoError(err)
-	s.reduceBNBBalance(user0, s.Validator, sdkmath.NewIntWithDecimal(1, 1))
+	s.reduceBNBBalance(user, s.Validator, sdkmath.NewIntWithDecimal(1, 1))
 
 	s.SendTxBlockWithExpectErrorString(msgCompleteMigrationBucket, primarySP.OperatorKey, "apply stream record changes for user failed")
 
@@ -616,7 +616,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
 	readPrice, primaryPrice, secondaryPrice := s.getPrices(primarySP, time.Now().Unix())
 	s.T().Logf("readPrice: %v, primaryPrice: %v,secondaryPrice: %v", readPrice, primaryPrice, secondaryPrice)
 
-	s.transferBNB(s.Validator, user0, sdkmath.NewIntWithDecimal(10000, 18))
+	s.transferBNB(s.Validator, user, sdkmath.NewIntWithDecimal(10000, 18))
 
 	s.SendTxBlock(primarySP.OperatorKey, msgCompleteMigrationBucket)
 	streamRecordsAfter = s.getStreamRecords(streamAddresses0)

@@ -226,18 +226,20 @@ func (s *TestSuite) TestGetBucketReadStoreBill() {
 		ChargedReadQuota:           100,
 	}
 
+	lvg1 := &types.LocalVirtualGroup{
+		Id:                   1,
+		TotalChargeSize:      100,
+		GlobalVirtualGroupId: 1,
+	}
+	lvg2 := &types.LocalVirtualGroup{
+		Id:                   2,
+		TotalChargeSize:      200,
+		GlobalVirtualGroupId: 2,
+	}
 	internalBucketInfo := &types.InternalBucketInfo{
 		TotalChargeSize: 300,
 		LocalVirtualGroups: []*types.LocalVirtualGroup{
-			{
-				Id:                   1,
-				TotalChargeSize:      100,
-				GlobalVirtualGroupId: 1,
-			}, {
-				Id:                   2,
-				TotalChargeSize:      200,
-				GlobalVirtualGroupId: 2,
-			},
+			lvg1, lvg2,
 		},
 	}
 
@@ -261,23 +263,47 @@ func (s *TestSuite) TestGetBucketReadStoreBill() {
 	flows, err := s.storageKeeper.GetBucketReadStoreBill(s.ctx, bucketInfo, internalBucketInfo)
 	s.Require().NoError(err)
 
-	gvg1StoreSize := internalBucketInfo.LocalVirtualGroups[0].TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
-	gvg1StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg1StoreSize)).TruncateInt()
-	s.Require().Equal(flows.Flows[0].ToAddress, gvg1.VirtualPaymentAddress)
-	s.Require().Equal(flows.Flows[0].Rate, gvg1StoreRate)
-
-	gvg2StoreSize := internalBucketInfo.LocalVirtualGroups[1].TotalChargeSize * uint64(len(gvg2.SecondarySpIds))
-	gvg2StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg2StoreSize)).TruncateInt()
-	s.Require().Equal(flows.Flows[1].ToAddress, gvg2.VirtualPaymentAddress)
-	s.Require().Equal(flows.Flows[1].Rate, gvg2StoreRate)
-
+	// read rate to gvg family
+	s.Require().Equal(flows.Flows[0].ToAddress, gvgFamily.VirtualPaymentAddress)
 	readRate := price.ReadPrice.MulInt64(int64(bucketInfo.ChargedReadQuota)).TruncateInt()
-	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(internalBucketInfo.TotalChargeSize)).TruncateInt()
-	s.Require().Equal(flows.Flows[2].ToAddress, gvgFamily.VirtualPaymentAddress)
-	s.Require().Equal(flows.Flows[2].Rate, readRate.Add(primaryStoreRate))
+	s.Require().Equal(flows.Flows[0].Rate, readRate)
 
-	totalRate := readRate.Add(primaryStoreRate).Add(gvg1StoreRate).Add(gvg2StoreRate)
-	taxPoolRate := params.VersionedParams.ValidatorTaxRate.MulInt(totalRate).TruncateInt()
-	s.Require().Equal(flows.Flows[3].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
-	s.Require().Equal(flows.Flows[3].Rate, taxPoolRate)
+	// read rate to validator tax pool
+	s.Require().Equal(flows.Flows[1].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
+	taxPoolRate := params.VersionedParams.ValidatorTaxRate.MulInt(readRate).TruncateInt()
+	s.Require().Equal(flows.Flows[1].Rate, taxPoolRate)
+
+	// first gvg
+	// store rate to gvg family
+	s.Require().Equal(flows.Flows[2].ToAddress, gvgFamily.VirtualPaymentAddress)
+	primaryStoreRate := price.PrimaryStorePrice.MulInt64(int64(lvg1.TotalChargeSize)).TruncateInt()
+	s.Require().Equal(flows.Flows[2].Rate, primaryStoreRate)
+
+	// store rate to gvg
+	gvg1StoreSize := lvg1.TotalChargeSize * uint64(len(gvg1.SecondarySpIds))
+	gvg1StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg1StoreSize)).TruncateInt()
+	s.Require().Equal(flows.Flows[3].ToAddress, gvg1.VirtualPaymentAddress)
+	s.Require().Equal(flows.Flows[3].Rate, gvg1StoreRate)
+
+	// store rate to validator tax pool
+	s.Require().Equal(flows.Flows[4].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
+	taxPoolRate = params.VersionedParams.ValidatorTaxRate.MulInt(primaryStoreRate.Add(gvg1StoreRate)).TruncateInt()
+	s.Require().Equal(flows.Flows[4].Rate, taxPoolRate)
+
+	// secondary gvg
+	// store rate to gvg family
+	s.Require().Equal(flows.Flows[5].ToAddress, gvgFamily.VirtualPaymentAddress)
+	primaryStoreRate = price.PrimaryStorePrice.MulInt64(int64(lvg2.TotalChargeSize)).TruncateInt()
+	s.Require().Equal(flows.Flows[5].Rate, primaryStoreRate)
+
+	// store rate to gvg
+	gvg2StoreSize := lvg2.TotalChargeSize * uint64(len(gvg2.SecondarySpIds))
+	gvg2StoreRate := price.SecondaryStorePrice.MulInt64(int64(gvg2StoreSize)).TruncateInt()
+	s.Require().Equal(flows.Flows[6].ToAddress, gvg2.VirtualPaymentAddress)
+	s.Require().Equal(flows.Flows[6].Rate, gvg2StoreRate)
+
+	// store rate to validator tax pool
+	s.Require().Equal(flows.Flows[7].ToAddress, paymenttypes.ValidatorTaxPoolAddress.String())
+	taxPoolRate = params.VersionedParams.ValidatorTaxRate.MulInt(primaryStoreRate.Add(gvg2StoreRate)).TruncateInt()
+	s.Require().Equal(flows.Flows[7].Rate, taxPoolRate)
 }

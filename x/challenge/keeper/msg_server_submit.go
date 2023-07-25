@@ -104,5 +104,5 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, err
 	}
 
-	return &types.MsgSubmitResponse{}, nil
+	return &types.MsgSubmitResponse{ChallengeId: challengeId}, nil
 }

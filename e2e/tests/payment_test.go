@@ -2085,12 +2085,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter = s.calculateReadRatesCurrentTimestamp(sp, bucketName)
-	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore = s.calculateStorageRatesCurrentTimestamp(sp, bucketName, objectName, payloadSize)
-
-	gvgFamilyRateStore = gvgFamilyRateStore.MulRaw(2)
-	gvgRateStore = gvgRateStore.MulRaw(2)
-	taxRateStore = taxRateStore.MulRaw(2)
-	userTotalRateStore = userTotalRateStore.MulRaw(2)
+	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore = s.calculateStorageRatesCurrentTimestamp(sp, bucketName, objectName, payloadSize*2)
 
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())

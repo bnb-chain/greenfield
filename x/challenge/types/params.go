@@ -73,6 +73,16 @@ var (
 	DefaultAttestationKeptCount uint64 = 300
 )
 
+var (
+	KeySpSlashMaxAmount     = []byte("SpSlashMaxAmount")
+	DefaultSpSlashMaxAmount = math.NewIntFromBigInt(big.NewInt(5e18)) // 5 bnb
+)
+
+var (
+	KeySpSlashCountingWindow     = []byte("SpSlashMaxAmount")
+	DefaultSpSlashCountingWindow = uint64(43200) // about one day
+)
+
 // ParamKeyTable the param key table for launch module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
@@ -92,6 +102,8 @@ func NewParams(
 	heartbeatInterval uint64,
 	attestationInturnInterval uint64,
 	attestationKeptCount uint64,
+	spSlashMaxAmount math.Int,
+	spSlashCountingWindow uint64,
 ) Params {
 	return Params{
 		ChallengeCountPerBlock:    challengeCountPerBlock,
@@ -106,6 +118,8 @@ func NewParams(
 		HeartbeatInterval:         heartbeatInterval,
 		AttestationInturnInterval: attestationInturnInterval,
 		AttestationKeptCount:      attestationKeptCount,
+		SpSlashMaxAmount:          spSlashMaxAmount,
+		SpSlashCountingWindow:     spSlashCountingWindow,
 	}
 }
 
@@ -124,6 +138,8 @@ func DefaultParams() Params {
 		DefaultHeartbeatInterval,
 		DefaultAttestationInturnInterval,
 		DefaultAttestationKeptCount,
+		DefaultSpSlashMaxAmount,
+		DefaultSpSlashCountingWindow,
 	)
 }
 
@@ -142,6 +158,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyHeartbeatInterval, &p.HeartbeatInterval, validateHeartbeatInterval),
 		paramtypes.NewParamSetPair(KeyAttestationInturnInterval, &p.AttestationInturnInterval, validateAttestationInturnInterval),
 		paramtypes.NewParamSetPair(KeyAttestationKeptCount, &p.AttestationKeptCount, validateAttestationKeptCount),
+		paramtypes.NewParamSetPair(KeySpSlashMaxAmount, &p.SpSlashMaxAmount, validateSpSlashMaxAmount),
+		paramtypes.NewParamSetPair(KeySpSlashCountingWindow, &p.SpSlashCountingWindow, validateSpSlashCountingWindow),
 	}
 }
 
@@ -200,6 +218,14 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateAttestationKeptCount(p.AttestationKeptCount); err != nil {
+		return err
+	}
+
+	if err := validateSpSlashMaxAmount(p.SpSlashMaxAmount); err != nil {
+		return err
+	}
+
+	if err := validateSpSlashCountingWindow(p.SpSlashCountingWindow); err != nil {
 		return err
 	}
 
@@ -364,6 +390,34 @@ func validateAttestationKeptCount(v interface{}) error {
 	}
 	if count == 0 {
 		return errors.New("attestation kept count cannot be zero")
+	}
+
+	return nil
+}
+
+// validateSpSlashMaxAmount validates the SpSlashMaxAmount param
+func validateSpSlashMaxAmount(v interface{}) error {
+	spSlashMaxAmount, ok := v.(math.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if spSlashMaxAmount.LT(sdk.ZeroInt()) {
+		return errors.New("storage provider slash amount cannot be lower than zero")
+	}
+
+	return nil
+}
+
+// validateSpSlashCountingWindow validates the SpSlashCountingWindow param
+func validateSpSlashCountingWindow(v interface{}) error {
+	spSlashCountingWindow, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if spSlashCountingWindow == 0 {
+		return errors.New("storage provider slash counting window cannot be zero")
 	}
 
 	return nil

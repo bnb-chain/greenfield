@@ -1429,3 +1429,77 @@ func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
 	s.Require().Error(err)
 
 }
+
+func (s *StorageTestSuite) TestPutPolicy_ObjectWithSlash() {
+	var err error
+	user := s.GenAndChargeAccounts(2, 1000000)
+
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	// CreateBucket
+	bucketName := storageutil.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user[0], msgCreateBucket)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user[0].GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user[0].GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// CreateObject
+	objectName := "test/" + storageutil.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	line := `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+	1234567890,1234567890,1234567890,123`
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user[0].GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PUBLIC_READ, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.T().Logf("Message: %s", msgCreateObject.String())
+
+	time.Sleep(3 * time.Second)
+	s.SendTxBlock(user[0], msgCreateObject)
+
+	time.Sleep(3 * time.Second)
+	// Put object policy
+	statement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_GET_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
+	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
+		principal, []*types.Statement{statement}, nil)
+	s.SendTxBlock(user[0], msgPutPolicy)
+
+}

@@ -65,8 +65,7 @@ message QueryGlobalVirtualGroupResponse {
 }
 
 message QueryGlobalVirtualGroupByFamilyIDRequest {
-  uint32 storage_provider_id = 1;
-  uint32 global_virtual_group_family_id = 2;
+  uint32 global_virtual_group_family_id = 1;
 }
 
 message QueryGlobalVirtualGroupByFamilyIDResponse {

@@ -192,16 +192,21 @@ func (r *GRN) ParseFromString(res string, wildcards bool) error {
 
 func (r *GRN) parseBucketAndObjectName(name string) (string, string, error) {
 	nameArr := strings.Split(name, "/")
-	if len(nameArr) != 2 {
+	if len(nameArr) < 2 {
 		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("expect bucketName/object, actual %s", r.name)
 	}
-	err := s3util.CheckValidBucketName(nameArr[0])
+	bucketName := nameArr[0]
+	objectName, found := strings.CutPrefix(name, bucketName+"/")
+	if !found {
+		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("object name not found, grn: %s", name)
+	}
+	err := s3util.CheckValidBucketName(bucketName)
 	if err != nil {
 		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("invalid bucketName, err: %s", err)
 	}
-	err = s3util.CheckValidObjectName(nameArr[1])
+	err = s3util.CheckValidObjectName(objectName)
 	if err != nil {
 		return "", "", gnfderrors.ErrInvalidGRN.Wrapf("invalid objectName, err: %s", err)
 	}
-	return nameArr[0], nameArr[1], nil
+	return bucketName, objectName, nil
 }
