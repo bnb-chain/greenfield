@@ -17,14 +17,18 @@ func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 	// delete expired challenges at this height
 	keeper.RemoveChallengeUntil(ctx, blockHeight)
 
+	params := keeper.GetParams(ctx)
 	// delete too old slashes at this height
-	coolingOffPeriod := keeper.GetParams(ctx).SlashCoolingOffPeriod
-	if blockHeight <= coolingOffPeriod {
-		return
+	coolingOffPeriod := params.SlashCoolingOffPeriod
+	if blockHeight > coolingOffPeriod {
+		height := blockHeight - coolingOffPeriod
+		keeper.RemoveSlashUntil(ctx, height)
 	}
 
-	height := blockHeight - coolingOffPeriod
-	keeper.RemoveSlashUntil(ctx, height)
+	// delete storage provider slash amount records
+	if blockHeight > 0 && blockHeight%params.SpSlashCountingWindow == 0 {
+		keeper.ClearSpSlashAmount(ctx)
+	}
 }
 
 func EndBlocker(ctx sdk.Context, keeper k.Keeper) {

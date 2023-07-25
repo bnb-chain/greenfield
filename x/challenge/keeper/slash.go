@@ -49,3 +49,42 @@ func getSlashKeyBytes(spId uint32, objectId sdkmath.Uint) []byte {
 	allBytes := append(idBytes, objectId.Bytes()...)
 	return sdk.Keccak256(allBytes)
 }
+
+func (k Keeper) SetSpSlashAmount(ctx sdk.Context, spId uint32, amount sdkmath.Int) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SlashAmountKeyPrefix)
+	idBz := make([]byte, 4)
+	binary.BigEndian.PutUint32(idBz, spId)
+	amountBz, err := amount.Marshal()
+	if err != nil {
+		panic("cannot marshal amount")
+	}
+	store.Set(idBz, amountBz)
+}
+
+func (k Keeper) GetSpSlashAmount(ctx sdk.Context, spId uint32) sdkmath.Int {
+	amount := sdkmath.ZeroInt()
+
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SlashAmountKeyPrefix)
+	idBz := make([]byte, 4)
+	binary.BigEndian.PutUint32(idBz, spId)
+	amountBz := store.Get(idBz)
+	if amountBz == nil {
+		return amount
+	}
+	err := amount.Unmarshal(amountBz)
+	if err != nil {
+		panic("cannot unmarshal amount")
+	}
+	return amount
+}
+
+func (k Keeper) ClearSpSlashAmount(ctx sdk.Context) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SlashAmountKeyPrefix)
+
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
+}

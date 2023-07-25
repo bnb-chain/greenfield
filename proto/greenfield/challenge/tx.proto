@@ -48,7 +48,10 @@ message MsgSubmit {
 }
 
 // MsgSubmitResponse defines the response of MsgSubmit.
-message MsgSubmitResponse {}
+message MsgSubmitResponse {
+  // The id of the challenge.
+  uint64 challenge_id = 1;
+}
 
 // MsgSubmit defines the message for attesting challenges.
 message MsgAttest {
