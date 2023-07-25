@@ -52,11 +52,11 @@ func (s *VirtualGroupTestSuite) queryGlobalVirtualGroup(gvgID uint32) *virtualgr
 	return resp.GlobalVirtualGroup
 }
 
-func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupByFamily(spID, familyID uint32) []*virtualgroupmoduletypes.GlobalVirtualGroup {
+func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupByFamily(familyID uint32) []*virtualgroupmoduletypes.GlobalVirtualGroup {
+	s.T().Logf("familyID: %d", familyID)
 	resp, err := s.Client.GlobalVirtualGroupByFamilyID(
 		context.Background(),
 		&virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{
-			StorageProviderId:          spID,
 			GlobalVirtualGroupFamilyId: familyID,
 		})
 	s.Require().NoError(err)
@@ -82,7 +82,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 		gvg = g
 	}
 
-	srcGVGs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, gvg.FamilyId)
+	srcGVGs := s.queryGlobalVirtualGroupByFamily(gvg.FamilyId)
 
 	var secondarySPIDs []uint32
 	for _, ssp := range s.StorageProviders {
@@ -92,7 +92,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	}
 	s.BaseSuite.CreateGlobalVirtualGroup(primarySP, gvg.FamilyId, secondarySPIDs, 1)
 
-	gvgs = s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, gvg.FamilyId)
+	gvgs = s.queryGlobalVirtualGroupByFamily(gvg.FamilyId)
 	s.Require().Equal(len(gvgs), len(srcGVGs)+1)
 
 	oldGVGIDs := make(map[uint32]bool)
@@ -146,7 +146,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	}
 	s.SendTxBlock(primarySP.OperatorKey, &msgDeleteGVG)
 
-	newGVGs := s.queryGlobalVirtualGroupByFamily(primarySP.Info.Id, newGVG.FamilyId)
+	newGVGs := s.queryGlobalVirtualGroupByFamily(newGVG.FamilyId)
 
 	for _, gvg := range newGVGs {
 		if gvg.Id == newGVG.Id {

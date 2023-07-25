@@ -130,12 +130,12 @@ func (s *BaseSuite) RefreshGVGFamilies() {
 		}
 
 		gvgsResp, err3 := s.Client.GlobalVirtualGroupByFamilyID(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{
-			StorageProviderId:          sp.Info.Id,
 			GlobalVirtualGroupFamilyId: gvgFamily.Id,
 		})
 		s.Require().NoError(err3)
 		sp.GlobalVirtualGroupFamilies[gvgFamily.Id] = gvgsResp.GlobalVirtualGroups
 		s.StorageProviders[gvgFamily.PrimarySpId] = sp
+		s.T().Logf("resp: %s", gvgsResp.String())
 	}
 }
 

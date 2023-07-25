@@ -47,10 +47,6 @@ func (k Keeper) GlobalVirtualGroupByFamilyID(goCtx context.Context, req *types.Q
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-
 	gvgFamily, found := k.GetGVGFamily(ctx, req.GlobalVirtualGroupFamilyId)
 	if !found {
 		return nil, types.ErrGVGFamilyNotExist
