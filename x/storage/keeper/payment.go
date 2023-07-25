@@ -402,7 +402,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	}
 
 	preOutFlows := k.calculateLVGStoreBill(ctx, price, versionedParams, gvgFamily, gvg, lvg)
-	newOutFlows := make([]types.OutFlow, 0)
+	var newOutFlows []types.OutFlow
 	if !delete { // seal object
 		internalBucketInfo.TotalChargeSize = internalBucketInfo.TotalChargeSize + chargeSize
 		lvg.TotalChargeSize = lvg.TotalChargeSize + chargeSize
