@@ -5221,11 +5221,6 @@ paths:
                       type: string
                       format: byte
       parameters:
-        - name: storage_provider_id
-          in: query
-          required: false
-          type: integer
-          format: int64
         - name: global_virtual_group_family_id
           in: query
           required: false
