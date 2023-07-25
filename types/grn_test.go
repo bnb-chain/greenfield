@@ -91,3 +91,14 @@ func TestGRNBasicNew(t *testing.T) {
 	groupGRNString := "grn:g:" + ownerAcc.String() + ":testgroup"
 	require.Equal(t, groupGRNString, types3.NewGroupGRN(ownerAcc, "testgroup").String())
 }
+
+func TestGRNWithSlash(t *testing.T) {
+	var grn types3.GRN
+
+	err := grn.ParseFromString("grn:o::"+"testbucket"+"/"+"test/object", false)
+	require.NoError(t, err)
+	require.Equal(t, grn.ResourceType(), resource.RESOURCE_TYPE_OBJECT)
+	bucketName, objectName := grn.MustGetBucketAndObjectName()
+	require.Equal(t, bucketName, "testbucket")
+	require.Equal(t, objectName, "test/object")
+}
