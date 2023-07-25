@@ -9,6 +9,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	vgtypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) ChargeBucketReadFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
@@ -390,51 +391,30 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		}
 	}
 
-	// primary sp
-	primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
-	if primaryRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: gvgFamily.VirtualPaymentAddress,
-			Rate:      primaryRate,
-		})
-	}
-
-	//secondary sp
 	gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
 	if !found {
 		return fmt.Errorf("get GVG failed: %d, %s", lvg.GlobalVirtualGroupId, lvg.String())
-	}
-
-	secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(chargeSize)).TruncateInt()
-	secondaryRate = secondaryRate.MulRaw(int64(len(gvg.SecondarySpIds)))
-	if secondaryRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: gvg.VirtualPaymentAddress,
-			Rate:      secondaryRate,
-		})
 	}
 
 	versionedParams, err := k.paymentKeeper.GetVersionedParamsWithTs(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("failed to get validator tax rate: %w, time: %d", err, internalBucketInfo.PriceTime)
 	}
-	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryRate.Add(secondaryRate)).TruncateInt()
-	if validatorTaxRate.IsPositive() {
-		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-			ToAddress: types.ValidatorTaxPoolAddress.String(),
-			Rate:      validatorTaxRate,
-		})
-	}
 
-	if !delete {
+	preOutFlows := k.calculateLVGStoreBill(ctx, price, versionedParams, gvgFamily, gvg, lvg)
+	newOutFlows := make([]types.OutFlow, 0)
+	if !delete { // seal object
 		internalBucketInfo.TotalChargeSize = internalBucketInfo.TotalChargeSize + chargeSize
 		lvg.TotalChargeSize = lvg.TotalChargeSize + chargeSize
-	} else {
+		newOutFlows = k.calculateLVGStoreBill(ctx, price, versionedParams, gvgFamily, gvg, lvg)
+	} else { // delete object
 		internalBucketInfo.TotalChargeSize = internalBucketInfo.TotalChargeSize - chargeSize
 		lvg.TotalChargeSize = lvg.TotalChargeSize - chargeSize
-
-		userFlows.Flows = getNegFlows(userFlows.Flows)
+		newOutFlows = k.calculateLVGStoreBill(ctx, price, versionedParams, gvgFamily, gvg, lvg)
 	}
+
+	userFlows.Flows = append(userFlows.Flows, getNegFlows(preOutFlows)...)
+	userFlows.Flows = append(userFlows.Flows, newOutFlows...)
 	err = k.paymentKeeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	if err != nil {
 		ctx.Logger().Error("charge object store fee failed", "err", err.Error())
@@ -444,18 +424,55 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	return nil
 }
 
+func (k Keeper) calculateLVGStoreBill(ctx sdk.Context, price types.StoragePrice, params types.VersionedParams,
+	gvgFamily *vgtypes.GlobalVirtualGroupFamily, gvg *vgtypes.GlobalVirtualGroup, lvg *storagetypes.LocalVirtualGroup) []types.OutFlow {
+	outFlows := make([]types.OutFlow, 0)
+
+	// primary sp
+	primaryStoreFlowRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvg.TotalChargeSize)).TruncateInt()
+	if primaryStoreFlowRate.IsPositive() {
+		outFlows = append(outFlows, types.OutFlow{
+			ToAddress: gvgFamily.VirtualPaymentAddress,
+			Rate:      primaryStoreFlowRate,
+		})
+	}
+
+	//secondary sp
+	secondaryStoreFlowRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvg.TotalChargeSize)).TruncateInt()
+	secondaryStoreFlowRate = secondaryStoreFlowRate.MulRaw(int64(len(gvg.SecondarySpIds)))
+	if secondaryStoreFlowRate.IsPositive() {
+		outFlows = append(outFlows, types.OutFlow{
+			ToAddress: gvg.VirtualPaymentAddress,
+			Rate:      secondaryStoreFlowRate,
+		})
+	}
+
+	validatorTaxStoreFlowRate := params.ValidatorTaxRate.MulInt(primaryStoreFlowRate.Add(secondaryStoreFlowRate)).TruncateInt()
+	if validatorTaxStoreFlowRate.IsPositive() {
+		outFlows = append(outFlows, types.OutFlow{
+			ToAddress: types.ValidatorTaxPoolAddress.String(),
+			Rate:      validatorTaxStoreFlowRate,
+		})
+	}
+
+	return outFlows
+}
+
 func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) (userFlows types.UserFlows, err error) {
 	userFlows.From = sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
 
+	if internalBucketInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
+		return userFlows, nil
+	}
+
+	// calculate read fee & store fee separately, for precision
+	// calculate read fee
 	gvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
 	if !found {
 		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
-	if internalBucketInfo.TotalChargeSize == 0 && bucketInfo.ChargedReadQuota == 0 {
-		return userFlows, nil
-	}
 	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
 		PrimarySp: gvgFamily.PrimarySpId,
 		PriceTime: internalBucketInfo.PriceTime,
@@ -464,40 +481,11 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
 
-	// primary sp total rate
-	primaryTotalFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
-
-	// secondary sp total rate
-	secondaryTotalFlowRate := sdk.ZeroInt()
-
-	for _, lvg := range internalBucketInfo.LocalVirtualGroups {
-		// primary sp
-		primaryRate := price.PrimaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvg.TotalChargeSize)).TruncateInt()
-		if primaryRate.IsPositive() {
-			primaryTotalFlowRate = primaryTotalFlowRate.Add(primaryRate)
-		}
-
-		//secondary sp
-		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
-		if !found {
-			return userFlows, fmt.Errorf("get GVG failed: %d, %s", lvg.GlobalVirtualGroupId, lvg.String())
-		}
-
-		secondaryRate := price.SecondaryStorePrice.MulInt(sdkmath.NewIntFromUint64(lvg.TotalChargeSize)).TruncateInt()
-		secondaryRate = secondaryRate.MulRaw(int64(len(gvg.SecondarySpIds)))
-		if secondaryRate.IsPositive() {
-			userFlows.Flows = append(userFlows.Flows, types.OutFlow{
-				ToAddress: gvg.VirtualPaymentAddress,
-				Rate:      secondaryRate,
-			})
-			secondaryTotalFlowRate = secondaryTotalFlowRate.Add(secondaryRate)
-		}
-	}
-
-	if primaryTotalFlowRate.IsPositive() {
+	primaryReadFlowRate := price.ReadPrice.MulInt(sdkmath.NewIntFromUint64(bucketInfo.ChargedReadQuota)).TruncateInt()
+	if primaryReadFlowRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: gvgFamily.VirtualPaymentAddress,
-			Rate:      primaryTotalFlowRate,
+			Rate:      primaryReadFlowRate,
 		})
 	}
 
@@ -505,12 +493,24 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 	if err != nil {
 		return userFlows, fmt.Errorf("failed to get validator tax rate: %w, time: %d", err, internalBucketInfo.PriceTime)
 	}
-	validatorTaxRate := versionedParams.ValidatorTaxRate.MulInt(primaryTotalFlowRate.Add(secondaryTotalFlowRate)).TruncateInt()
-	if validatorTaxRate.IsPositive() {
+	validatorTaxReadFlowRate := versionedParams.ValidatorTaxRate.MulInt(primaryReadFlowRate).TruncateInt()
+	if validatorTaxReadFlowRate.IsPositive() {
 		userFlows.Flows = append(userFlows.Flows, types.OutFlow{
 			ToAddress: types.ValidatorTaxPoolAddress.String(),
-			Rate:      validatorTaxRate,
+			Rate:      validatorTaxReadFlowRate,
 		})
+	}
+
+	// calculate store fee
+	// be noted, here we split the fee calculation for each lvg, to make sure each lvg's calculation is precise
+	for _, lvg := range internalBucketInfo.LocalVirtualGroups {
+		//secondary sp
+		gvg, found := k.virtualGroupKeeper.GetGVG(ctx, lvg.GlobalVirtualGroupId)
+		if !found {
+			return userFlows, fmt.Errorf("get GVG failed: %d, %s", lvg.GlobalVirtualGroupId, lvg.String())
+		}
+		outFlows := k.calculateLVGStoreBill(ctx, price, versionedParams, gvgFamily, gvg, lvg)
+		userFlows.Flows = append(userFlows.Flows, outFlows...)
 	}
 
 	return userFlows, nil
