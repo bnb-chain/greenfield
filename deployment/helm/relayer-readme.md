@@ -7,8 +7,8 @@ These are the steps to deploy the greenfield relayer application using Helm Char
 ```console
 helm repo add bnb-chain https://chart.bnbchain.world/
 helm repo update
-helm show values bnb-chain/gnfd-relayer-testnet-values > testnet-values.yaml
-helm install greenfield-relayer bnb-chain/gnfd-relayer -f testnet.values.yaml -n NAMESPACE --dry-run
+helm show values bnb-chain/gnfd-relayer-testnet-values > testnet-relayer-values.yaml
+helm install greenfield-relayer bnb-chain/gnfd-relayer -f testnet-relayer-values.yaml -n NAMESPACE --dry-run
 ```
 
 ## Common Operations
