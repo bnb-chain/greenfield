@@ -26,6 +26,8 @@ type Config struct {
 	SPMnemonics          []SPMnemonics `yaml:"SPMnemonics"`
 	SPBLSMnemonic        []string      `yaml:"SPBLSMnemonic"`
 	Denom                string        `yaml:"Denom"`
+	ValidatorHomeDir     string        `yaml:"ValidatorHomeDir"`
+	ValidatorTmRPCAddr   string        `yaml:"ValidatorTmRPCAddr"`
 }
 
 func InitConfig() *Config {
@@ -43,6 +45,8 @@ func InitE2eConfig() *Config {
 		ValidatorBlsMnemonic: ParseValidatorBlsMnemonic(0),
 		RelayerMnemonic:      ParseRelayerMnemonic(0),
 		ChallengerMnemonic:   ParseChallengerMnemonic(0),
+		ValidatorHomeDir:     ParseValidatorHomeDir(0),
+		ValidatorTmRPCAddr:   ParseValidatorTmRPCAddrDir(0),
 	}
 	for i := 0; i < 7; i++ {
 		config.SPMnemonics = append(config.SPMnemonics, ParseSPMnemonics(i))
@@ -104,4 +108,14 @@ func ParseMnemonicFromFile(fileName string) string {
 		}
 	}
 	return line
+}
+
+// ParseValidatorHomeDir returns the home dir of the validator
+func ParseValidatorHomeDir(i int) string {
+	return fmt.Sprintf("../../deployment/localup/.local/validator%d", i)
+}
+
+// ParseValidatorTmRPCAddrDir returns the home dir of the validator
+func ParseValidatorTmRPCAddrDir(i int) string {
+	return fmt.Sprintf("tcp://0.0.0.0:%d", 26750+i)
 }
