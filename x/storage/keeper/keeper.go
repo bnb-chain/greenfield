@@ -170,6 +170,16 @@ func (k Keeper) CreateBucket(
 	return bucketInfo.Id, nil
 }
 
+// StoreBucketInfo will store the bucket info
+// It's designed to be used by the test cases to create a bucket.
+func (k Keeper) StoreBucketInfo(ctx sdk.Context, bucketInfo *types.BucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
+	bz := k.cdc.MustMarshal(bucketInfo)
+	store.Set(bucketKey, k.bucketSeq.EncodeSequence(bucketInfo.Id))
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+}
+
 func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error {
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
@@ -617,6 +627,29 @@ func (k Keeper) CreateObject(
 		return objectInfo.Id, err
 	}
 	return objectInfo.Id, nil
+}
+
+// StoreObjectInfo stores object related keys to KVStore,
+// it's designed to be used in tests
+func (k Keeper) StoreObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
+
+	obz := k.cdc.MustMarshal(objectInfo)
+	store.Set(objectKey, k.objectSeq.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+}
+
+// DeleteObjectInfo deletes object related keys from KVStore,
+// it's designed to be used in tests
+func (k Keeper) DeleteObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
+
+	store.Delete(objectKey)
+	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 }
 
 func (k Keeper) SetObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {

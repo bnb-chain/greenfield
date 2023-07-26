@@ -133,7 +133,8 @@ func (km *keyManager) Bytes() []byte {
 }
 
 func (km *keyManager) Sign(msg []byte) ([]byte, error) {
-	return km.privKey.Sign(msg)
+	res, err := km.privKey.Sign(msg)
+	return res, err
 }
 
 func (km *keyManager) PubKey() ctypes.PubKey {
