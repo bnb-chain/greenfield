@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.3-alpha.7
+This release includes 2 features and 3 bugfixes.
+
+Features:
+* [#366](https://github.com/bnb-chain/greenfield/pull/366) feat: add strategy for event emit
+* [#368](https://github.com/bnb-chain/greenfield/pull/368) feat: limit sp slash amount and add query api
+
+Bugfixes:
+* [#369](https://github.com/bnb-chain/greenfield/pull/369) fix: parse failed when object name contains /
+* [#370](https://github.com/bnb-chain/greenfield/pull/370) fix: fix the precision issue of storage bill
+* [#371](https://github.com/bnb-chain/greenfield/pull/371) fix: add src dst sp check when migrate bucket
+
+Chores:
+* [#365](https://github.com/bnb-chain/greenfield/pull/365) ci: add e2e test coverage report
+
 ## 0.2.3-alpha.6
 This release includes 6 features and 5 bugfixes.
 
