@@ -44,9 +44,7 @@ The following tables lists the configurable parameters of the chart and their de
 
 You **must** change the values according to the your aws environment parametes in ``greenfield-challenger/testnet-values.yaml`` file.
 
-1. In `greenfield-config`, change: `aws_region`, `aws_secret_name`, `aws_bls_secret_name`, `private_key` and `bls_private_key`.
+1. In `greenfield-config`, change: `private_key` and `bls_private_key`.
 
-2. In `db_config`, change: `aws_region`, `aws_secret_name`, `password`, `username`, `url`.
-
-3. In `containers`, change values of `AWS_REGION` and `AWS_SECRET_KEY`
+2. In `db_config`, change: `password`, `username`, `url`.
 
