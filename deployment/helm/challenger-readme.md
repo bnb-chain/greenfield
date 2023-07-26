@@ -1,33 +1,52 @@
 Helm Chart Deployment for Greenfield Challenger
 
-## Dependence
-1. VMServiceScrape
-
 ## Deployment
-1. `helm repo add bnb-chain https://chart.bnbchain.world/`
-2. `helm repo update`
-3. `helm install greenfield-challenger bnb-chain/gnfd-challenger`
 
-## Setting up configuration files
-You will have to set up the configuration files with reference to [this repo](https://github.com/bnb-chain/bsc-relayer-chllenger).
+These are the steps to deploy the greenfield challenger application using Helm Chart V3.
+
+We run these commands first to get the chart and test the installation.
+
+```console
+helm repo add bnb-chain https://chart.bnbchain.world/
+helm repo update
+helm show values bnb-chain/gnfd-challenger-testnet-values > testnet-challenger-values.yaml
+helm install greenfield-challenger bnb-chain/gnfd-challenger -f testnet-challenger-values.yaml -n NAMESPACE --debug --dry-run
+```
+
+If dry-run runs successfully, we install the chart:
+
+`helm install greenfield-challenger bnb-chain/gnfd-challenger -f testnet-challenger-values.yaml -n NAMESPACE`
 
 ## Common Operations
 
-### Check Pod Status
+Get the pods lists by running this commands:
 
+```console
+kubectl get pods -n NAMESPACE
 ```
-$ kubectl get pod
-```
+See the history of versions of ``greenfield-challenger`` application with command.
 
-You should see a `1/1` pod running for the challenger. This means there is 1 container running for the challenger.
-
-To see more details about a pod, you can describe it:
-
-```
-$ kubectl describe pod <POD_NAME> 
+```console
+helm history greenfield-challenger -n NAMESPACE
 ```
 
-### Check the Pod Logs 
+## How to uninstall
 
+Remove application with command.
+
+```console
+helm uninstall greenfield-challenger -n NAMESPACE
 ```
-$ kubectl logs <POD_NAME>
+
+## Parameters
+
+The following tables lists the configurable parameters of the chart and their default values.
+
+You **must** change the values according to the your aws environment parametes in ``greenfield-challenger/testnet-values.yaml`` file.
+
+1. In `greenfield-config`, change: `aws_region`, `aws_secret_name`, `aws_bls_secret_name`, `private_key` and `bls_private_key`.
+
+2. In `db_config`, change: `aws_region`, `aws_secret_name`, `password`, `username`, `url`.
+
+3. In `containers`, change values of `AWS_REGION` and `AWS_SECRET_KEY`
+

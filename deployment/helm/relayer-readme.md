@@ -4,12 +4,18 @@ Helm Chart Deployment for Greenfield Relayer
 
 These are the steps to deploy the greenfield relayer application using Helm Chart V3.
 
+We run these commands first to get the chart and test the installation.
+
 ```console
 helm repo add bnb-chain https://chart.bnbchain.world/
 helm repo update
 helm show values bnb-chain/gnfd-relayer-testnet-values > testnet-relayer-values.yaml
-helm install greenfield-relayer bnb-chain/gnfd-relayer -f testnet-relayer-values.yaml -n NAMESPACE --dry-run
+helm install greenfield-relayer bnb-chain/gnfd-relayer -f testnet-relayer-values.yaml -n NAMESPACE --debug --dry-run
 ```
+
+If dry-run runs successfully, we install the chart:
+
+`helm install greenfield-relayer bnb-chain/gnfd-relayer -f testnet-relayer-values.yaml -n NAMESPACE`
 
 ## Common Operations
 
