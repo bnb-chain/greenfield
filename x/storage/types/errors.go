@@ -2,8 +2,6 @@ package types
 
 import (
 	"cosmossdk.io/errors"
-
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 // x/storage module sentinel errors
@@ -49,5 +47,5 @@ var (
 	ErrInvalidResource           = errors.Register(ModuleName, 3201, "invalid resource type")
 	ErrMigrationBucketFailed     = errors.Register(ModuleName, 3202, "migrate bucket failed.")
 	ErrVirtualGroupOperateFailed = errors.Register(ModuleName, 3203, "operate virtual group failed.")
-	ErrInvalidBlsPubKey          = errors.Register(types.ModuleName, 1122, "invalid bls public key")
+	ErrInvalidBlsPubKey          = errors.Register(ModuleName, 3204, "invalid bls public key")
 )
