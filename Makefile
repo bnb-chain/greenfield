@@ -1,5 +1,5 @@
 .PHONY: build build-linux build-macos build-windows
-.PHONY: tools proto-gen proto-format test e2e_test ci lint
+.PHONY: tools proto-gen proto-format test e2e_init_localchain e2e_test ci lint
 .PHONY: install-go-test-coverage check-coverage
 
 VERSION=$(shell git describe --tags --always)
@@ -51,13 +51,11 @@ docker-image:
 test:
 	go test -failfast $$(go list ./... | grep -v e2e | grep -v sdk)
 
-e2e_start_localchain:
-	bash ./deployment/localup/localup.sh all 1 7
+e2e_init_localchain: build
+	bash ./deployment/localup/localup.sh init 1 7
+	bash ./deployment/localup/localup.sh generate 1 7
 
-e2e_stop_localchain:
-	bash ./deployment/localup/localup.sh stop
-
-e2e_test:
+e2e_test: e2e_init_localchain
 	go test -p 1 -failfast -v ./e2e/... -coverpkg=./... -covermode=atomic -coverprofile=./coverage.out -timeout 99999s
 
 install-go-test-coverage:
@@ -73,5 +71,5 @@ lint:
 proto-gen-check: proto-gen
 	git diff --exit-code
 
-ci: proto-format-check build test e2e_start_localchain e2e_test lint proto-gen-check
+ci: proto-format-check build test e2e_init_localchain e2e_test lint proto-gen-check
 	echo "ci passed"
