@@ -548,7 +548,7 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 			msg: MsgDiscontinueObject{
 				Operator:   sample.AccAddress(),
 				BucketName: testBucketName,
-				ObjectIds:  invalidObjectIds[:],
+				ObjectIds:  []Uint{math.NewUint(1)},
 				Reason:     strings.Repeat("s", MaxDiscontinueReasonLen+1),
 			},
 			err: ErrInvalidReason,
