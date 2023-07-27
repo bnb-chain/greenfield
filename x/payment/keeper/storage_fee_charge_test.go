@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"errors"
 	"sort"
 	"testing"
 	"time"
@@ -49,42 +50,6 @@ func TestApplyFlowChanges(t *testing.T) {
 	t.Logf("sp stream record: %+v", spStreamRecord)
 }
 
-func TestSettleStreamRecord(t *testing.T) {
-	keeper, ctx, _ := makePaymentKeeper(t)
-	ctx = ctx.WithBlockTime(time.Unix(100, 0))
-	user := sample.RandAccAddress()
-	rate := sdkmath.NewInt(-100)
-	staticBalance := sdkmath.NewInt(1e10)
-	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithRateChange(rate).WithStaticBalanceChange(staticBalance)
-	sr := &types.StreamRecord{Account: user.String(),
-		OutFlowCount:      1,
-		StaticBalance:     sdkmath.ZeroInt(),
-		BufferBalance:     sdkmath.ZeroInt(),
-		LockBalance:       sdkmath.ZeroInt(),
-		NetflowRate:       sdkmath.ZeroInt(),
-		FrozenNetflowRate: sdkmath.ZeroInt(),
-	}
-	keeper.SetStreamRecord(ctx, sr)
-	_, err := keeper.UpdateStreamRecordByAddr(ctx, change)
-	require.NoError(t, err)
-	// check
-	streamRecord, found := keeper.GetStreamRecord(ctx, user)
-	require.True(t, found)
-	t.Logf("stream record: %+v", streamRecord)
-	// 345 seconds pass
-	var seconds int64 = 345
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(seconds) * time.Second))
-	change = types.NewDefaultStreamRecordChangeWithAddr(user)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
-	require.NoError(t, err)
-	userStreamRecord2, _ := keeper.GetStreamRecord(ctx, user)
-	t.Logf("stream record after %d seconds: %+v", seconds, userStreamRecord2)
-	require.Equal(t, userStreamRecord2.StaticBalance, streamRecord.StaticBalance.Add(rate.Mul(sdkmath.NewInt(seconds))))
-	require.Equal(t, userStreamRecord2.BufferBalance, streamRecord.BufferBalance)
-	require.Equal(t, userStreamRecord2.NetflowRate, streamRecord.NetflowRate)
-	require.Equal(t, userStreamRecord2.CrudTimestamp, streamRecord.CrudTimestamp+seconds)
-}
-
 func TestMergeStreamRecordChanges(t *testing.T) {
 	users := []sdk.AccAddress{
 		sample.RandAccAddress(),
@@ -116,96 +81,180 @@ func TestMergeStreamRecordChanges(t *testing.T) {
 	})
 }
 
-func TestAutoForceSettle(t *testing.T) {
-	keeper, ctx, depKeepers := makePaymentKeeper(t)
-	t.Logf("depKeepers: %+v", depKeepers)
-	params := keeper.GetParams(ctx)
-	var startTime int64 = 100
-	ctx = ctx.WithBlockTime(time.Unix(startTime, 0))
-	user := sample.RandAccAddress()
-	rate := sdkmath.NewInt(100)
-	sp := sample.RandAccAddress()
-	userInitBalance := sdkmath.NewInt(int64(100*params.VersionedParams.ReserveTime) + 1) // just enough for reserve
-	// init balance
-	streamRecordChanges := []types.StreamRecordChange{
-		*types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userInitBalance),
+func TestApplyUserFlows_ActiveStreamRecord(t *testing.T) {
+	keeper, ctx, deepKeepers := makePaymentKeeper(t)
+	ctx = ctx.WithIsCheckTx(true)
+
+	from := sample.RandAccAddress()
+	userFlows := types.UserFlows{
+		From: from,
 	}
-	err := keeper.ApplyStreamRecordChanges(ctx, streamRecordChanges)
-	require.NoError(t, err)
-	userStreamRecord, found := keeper.GetStreamRecord(ctx, user)
-	t.Logf("user stream record: %+v", userStreamRecord)
-	require.True(t, found)
-	flowChanges := []types.OutFlow{
-		{ToAddress: sp.String(), Rate: rate},
+
+	toAddr1 := sample.RandAccAddress()
+	outFlow1 := types.OutFlow{
+		ToAddress: toAddr1.String(),
+		Rate:      sdkmath.NewInt(100),
 	}
-	userFlows := types.UserFlows{Flows: flowChanges, From: user}
+	userFlows.Flows = append(userFlows.Flows, outFlow1)
+
+	toAddr2 := sample.RandAccAddress()
+	outFlow2 := types.OutFlow{
+		ToAddress: toAddr2.String(),
+		Rate:      sdkmath.NewInt(200),
+	}
+	userFlows.Flows = append(userFlows.Flows, outFlow2)
+
+	// no bank account
+	deepKeepers.AccountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).
+		Return(false).Times(1)
+	err := keeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
+	require.ErrorContains(t, err, "balance not enough")
+
+	// has bank account, but balance is not enough
+	deepKeepers.AccountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).
+		Return(true).AnyTimes()
+	deepKeepers.BankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(errors.New("transfer error")).Times(1)
+	err = keeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
+	require.ErrorContains(t, err, "balance not enough")
+
+	// has bank account, and balance is enough
+	deepKeepers.BankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
+		Return(nil).AnyTimes()
 	err = keeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	require.NoError(t, err)
-	userStreamRecord, found = keeper.GetStreamRecord(ctx, user)
-	t.Logf("user stream record: %+v", userStreamRecord)
-	require.True(t, found)
-	outFlows := keeper.GetOutFlows(ctx, user)
-	require.Equal(t, 1, len(outFlows))
-	require.Equal(t, outFlows[0].ToAddress, sp.String())
-	spStreamRecord, found := keeper.GetStreamRecord(ctx, sp)
-	t.Logf("sp stream record: %+v", spStreamRecord)
-	require.True(t, found)
-	require.Equal(t, spStreamRecord.NetflowRate, rate)
-	require.Equal(t, spStreamRecord.StaticBalance, sdkmath.ZeroInt())
-	require.Equal(t, spStreamRecord.BufferBalance, sdkmath.ZeroInt())
-	// check auto settle queue
-	autoSettleQueue := keeper.GetAllAutoSettleRecord(ctx)
-	t.Logf("auto settle queue: %+v", autoSettleQueue)
-	require.Equal(t, len(autoSettleQueue), 1)
-	require.Equal(t, autoSettleQueue[0].Addr, user.String())
-	require.Equal(t, autoSettleQueue[0].Timestamp, startTime+int64(params.VersionedParams.ReserveTime)-int64(params.ForcedSettleTime))
-	// 1 day pass
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(86400) * time.Second))
-	// update and deposit to user for extra 100s
-	depKeepers.AccountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).Return(false).AnyTimes()
-	userAddBalance := rate.MulRaw(100)
-	change := types.NewDefaultStreamRecordChangeWithAddr(user).WithStaticBalanceChange(userAddBalance)
-	ret, err := keeper.UpdateStreamRecordByAddr(ctx, change)
-	require.NoError(t, err)
-	userStreamRecord = ret
-	t.Logf("user stream record: %+v", userStreamRecord)
-	require.True(t, found)
-	require.True(t, userStreamRecord.StaticBalance.IsNegative())
-	change = types.NewDefaultStreamRecordChangeWithAddr(sp)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
-	require.NoError(t, err)
-	spStreamRecord, _ = keeper.GetStreamRecord(ctx, sp)
-	t.Logf("sp stream record: %+v", spStreamRecord)
-	autoSettleQueue2 := keeper.GetAllAutoSettleRecord(ctx)
-	t.Logf("auto settle queue: %+v", autoSettleQueue2)
-	require.Equal(t, autoSettleQueue[0].Timestamp+100, autoSettleQueue2[0].Timestamp)
-	// reserve time - forced settle time - 1 day + 101s pass
-	ctx = ctx.WithBlockTime(ctx.BlockTime().Add(time.Duration(params.VersionedParams.ReserveTime-params.ForcedSettleTime-86400+101) * time.Second))
-	usrBeforeForceSettle, _ := keeper.GetStreamRecord(ctx, user)
-	t.Logf("usrBeforeForceSettle: %s", usrBeforeForceSettle)
+
+	fromRecord, _ := keeper.GetStreamRecord(ctx, from)
+	require.True(t, fromRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
+	require.True(t, fromRecord.NetflowRate.Int64() == -300)
+	require.True(t, fromRecord.StaticBalance.Int64() == 0)
+	require.True(t, fromRecord.FrozenNetflowRate.Int64() == 0)
+	require.True(t, fromRecord.LockBalance.Int64() == 0)
+	require.True(t, fromRecord.BufferBalance.Int64() > 0)
+
+	to1Record, _ := keeper.GetStreamRecord(ctx, toAddr1)
+	require.True(t, to1Record.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
+	require.True(t, to1Record.NetflowRate.Int64() == 100)
+	require.True(t, to1Record.StaticBalance.Int64() == 0)
+	require.True(t, to1Record.FrozenNetflowRate.Int64() == 0)
+	require.True(t, to1Record.LockBalance.Int64() == 0)
+	require.True(t, to1Record.BufferBalance.Int64() == 0)
+
+	to2Record, _ := keeper.GetStreamRecord(ctx, toAddr2)
+	require.True(t, to2Record.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
+	require.True(t, to2Record.NetflowRate.Int64() == 200)
+	require.True(t, to2Record.StaticBalance.Int64() == 0)
+	require.True(t, to2Record.FrozenNetflowRate.Int64() == 0)
+	require.True(t, to2Record.LockBalance.Int64() == 0)
+	require.True(t, to2Record.BufferBalance.Int64() == 0)
+}
+
+func TestApplyUserFlows_Frozen(t *testing.T) {
+	keeper, ctx, _ := makePaymentKeeper(t)
+
+	from := sample.RandAccAddress()
+	toAddr1 := sample.RandAccAddress()
+	toAddr2 := sample.RandAccAddress()
+
+	// the account is frozen, and during auto settle or auto resume
+	fromStreamRecord := types.NewStreamRecord(from, ctx.BlockTime().Unix())
+	fromStreamRecord.Status = types.STREAM_ACCOUNT_STATUS_FROZEN
+	fromStreamRecord.NetflowRate = sdkmath.NewInt(-100)
+	fromStreamRecord.FrozenNetflowRate = sdkmath.NewInt(-200)
+	fromStreamRecord.StaticBalance = sdkmath.ZeroInt()
+	fromStreamRecord.OutFlowCount = 4
+	keeper.SetStreamRecord(ctx, fromStreamRecord)
+
+	keeper.SetOutFlow(ctx, from, &types.OutFlow{
+		ToAddress: toAddr1.String(),
+		Rate:      sdkmath.NewInt(40),
+		Status:    types.OUT_FLOW_STATUS_ACTIVE,
+	})
+	keeper.SetOutFlow(ctx, from, &types.OutFlow{
+		ToAddress: sample.RandAccAddress().String(),
+		Rate:      sdkmath.NewInt(60),
+		Status:    types.OUT_FLOW_STATUS_ACTIVE,
+	})
+	keeper.SetOutFlow(ctx, from, &types.OutFlow{
+		ToAddress: toAddr2.String(),
+		Rate:      sdkmath.NewInt(120),
+		Status:    types.OUT_FLOW_STATUS_FROZEN,
+	})
+	keeper.SetOutFlow(ctx, from, &types.OutFlow{
+		ToAddress: sample.RandAccAddress().String(),
+		Rate:      sdkmath.NewInt(80),
+		Status:    types.OUT_FLOW_STATUS_FROZEN,
+	})
+
+	to1StreamRecord := types.NewStreamRecord(toAddr1, ctx.BlockTime().Unix())
+	to1StreamRecord.NetflowRate = sdkmath.NewInt(300)
+	to1StreamRecord.StaticBalance = sdkmath.NewInt(300)
+	keeper.SetStreamRecord(ctx, to1StreamRecord)
+
+	to2StreamRecord := types.NewStreamRecord(toAddr2, ctx.BlockTime().Unix())
+	to2StreamRecord.NetflowRate = sdkmath.NewInt(400)
+	to2StreamRecord.StaticBalance = sdkmath.NewInt(400)
+	keeper.SetStreamRecord(ctx, to2StreamRecord)
+
+	userFlows := types.UserFlows{
+		From: from,
+	}
+
+	outFlow1 := types.OutFlow{
+		ToAddress: toAddr1.String(),
+		Rate:      sdkmath.NewInt(-40),
+	}
+	userFlows.Flows = append(userFlows.Flows, outFlow1)
+
+	outFlow2 := types.OutFlow{
+		ToAddress: toAddr2.String(),
+		Rate:      sdkmath.NewInt(-60),
+	}
+	userFlows.Flows = append(userFlows.Flows, outFlow2)
+
+	// update frozen stream record needs force flag
+	err := keeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
+	require.ErrorContains(t, err, "frozen")
 
 	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true)
-	time.Sleep(1 * time.Second)
-	keeper.AutoSettle(ctx)
-
-	usrAfterForceSettle, found := keeper.GetStreamRecord(ctx, user)
-	require.True(t, found)
-	t.Logf("usrAfterForceSettle: %s", usrAfterForceSettle)
-	// user has been force settled
-	require.Equal(t, usrAfterForceSettle.StaticBalance, sdkmath.ZeroInt())
-	require.Equal(t, usrAfterForceSettle.BufferBalance, sdkmath.ZeroInt())
-	require.Equal(t, usrAfterForceSettle.NetflowRate, sdkmath.ZeroInt())
-	require.Equal(t, usrAfterForceSettle.Status, types.STREAM_ACCOUNT_STATUS_FROZEN)
-	change = types.NewDefaultStreamRecordChangeWithAddr(sp)
-	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
+	err = keeper.ApplyUserFlowsList(ctx, []types.UserFlows{userFlows})
 	require.NoError(t, err)
-	spStreamRecord, _ = keeper.GetStreamRecord(ctx, sp)
-	t.Logf("sp stream record: %+v", spStreamRecord)
-	autoSettleQueue3 := keeper.GetAllAutoSettleRecord(ctx)
-	t.Logf("auto settle queue: %+v", autoSettleQueue3)
-	require.Equal(t, len(autoSettleQueue3), 0)
-	govStreamRecord, found := keeper.GetStreamRecord(ctx, types.GovernanceAddress)
-	require.True(t, found)
-	t.Logf("gov stream record: %+v", govStreamRecord)
-	require.Equal(t, govStreamRecord.StaticBalance.Add(spStreamRecord.StaticBalance), userInitBalance.Add(userAddBalance))
+
+	fromRecord, _ := keeper.GetStreamRecord(ctx, from)
+	require.True(t, fromRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN)
+	require.True(t, fromRecord.StaticBalance.Int64() == 0)
+	require.True(t, fromRecord.NetflowRate.Int64() == -60)
+	require.True(t, fromRecord.FrozenNetflowRate.Int64() == -140)
+	require.True(t, fromRecord.LockBalance.Int64() == 0)
+	require.True(t, fromRecord.BufferBalance.Int64() == 0)
+
+	outFlows := keeper.GetOutFlows(ctx, from)
+	require.True(t, len(outFlows) == 3)
+	// the out flow to toAddr1 should be deleted
+	// the out flow to toAddr2 should be still there
+	to1Found := false
+	for _, outFlow := range outFlows {
+		if outFlow.ToAddress == toAddr1.String() {
+			to1Found = true
+		}
+		if outFlow.ToAddress == toAddr2.String() {
+			require.True(t, outFlow.Rate.Int64() == 60)
+			require.True(t, outFlow.Status == types.OUT_FLOW_STATUS_FROZEN)
+		}
+	}
+	require.True(t, !to1Found)
+
+	to1Record, _ := keeper.GetStreamRecord(ctx, toAddr1)
+	require.True(t, to1Record.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
+	require.True(t, to1Record.NetflowRate.Int64() == 260)
+	require.True(t, to1Record.FrozenNetflowRate.Int64() == 0)
+	require.True(t, to1Record.LockBalance.Int64() == 0)
+	require.True(t, to1Record.BufferBalance.Int64() == 0)
+
+	to2Record, _ := keeper.GetStreamRecord(ctx, toAddr2)
+	require.True(t, to2Record.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE)
+	require.True(t, to2Record.NetflowRate.Int64() == 400) // the outflow is frozen, which means the flow had been deduced
+	require.True(t, to2Record.FrozenNetflowRate.Int64() == 0)
+	require.True(t, to2Record.LockBalance.Int64() == 0)
+	require.True(t, to2Record.BufferBalance.Int64() == 0)
 }
