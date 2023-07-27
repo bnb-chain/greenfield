@@ -3009,6 +3009,8 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 		s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
 		time.Sleep(200 * time.Millisecond)
 	}
+	userStreamRecord := s.getStreamRecord(user.GetAddr().String())
+	s.Require().True(userStreamRecord.LockBalance.IsPositive())
 
 	// update new price
 	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
@@ -3106,6 +3108,9 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().True(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64() <= int64(0)) // there are other auto settling
+
+	s.Require().True(streamRecordsAfter.User.LockBalance.IsZero())
+	s.Require().True(streamRecordsAfter.User.StaticBalance.Int64() == userStreamRecord.LockBalance.Int64())
 
 	// revert price
 	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{

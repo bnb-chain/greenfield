@@ -752,3 +752,40 @@ func TestAutoSettle_SettleInMultipleBlocks_AutoResumeExists(t *testing.T) {
 	require.Equal(t, gvg3StreamRecord.NetflowRate, sdk.NewInt(150))
 	require.Equal(t, gvg3StreamRecord.FrozenNetflowRate, sdkmath.ZeroInt())
 }
+
+func TestUpdateStreamRecord_FrozenAccountLockBalance(t *testing.T) {
+	keeper, ctx, _ := makePaymentKeeper(t)
+	ctx = ctx.WithBlockTime(time.Now())
+
+	user := sample.RandAccAddress()
+	streamRecord := &types.StreamRecord{
+		StaticBalance:     sdkmath.ZeroInt(),
+		BufferBalance:     sdkmath.ZeroInt(),
+		LockBalance:       sdkmath.NewInt(1000),
+		Account:           user.String(),
+		Status:            types.STREAM_ACCOUNT_STATUS_FROZEN,
+		NetflowRate:       sdkmath.NewInt(0),
+		FrozenNetflowRate: sdkmath.NewInt(100).Neg(),
+		OutFlowCount:      1,
+	}
+	keeper.SetStreamRecord(ctx, streamRecord)
+
+	// update fail when no force flag
+	change := types.NewDefaultStreamRecordChangeWithAddr(user).
+		WithLockBalanceChange(streamRecord.LockBalance.Neg())
+	_, err := keeper.UpdateStreamRecordByAddr(ctx, change)
+	require.ErrorContains(t, err, "is frozen")
+
+	// update success when there is force flag
+	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true)
+	change = types.NewDefaultStreamRecordChangeWithAddr(user).
+		WithLockBalanceChange(streamRecord.LockBalance.Neg())
+	_, err = keeper.UpdateStreamRecordByAddr(ctx, change)
+	require.NoError(t, err)
+
+	streamRecord, _ = keeper.GetStreamRecord(ctx, user)
+	require.True(t, streamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN)
+	require.True(t, streamRecord.LockBalance.IsZero())
+	require.True(t, streamRecord.StaticBalance.Int64() == 1000)
+
+}
