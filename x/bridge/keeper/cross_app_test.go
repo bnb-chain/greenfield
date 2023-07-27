@@ -8,7 +8,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/x/bridge/keeper"
@@ -182,4 +184,16 @@ func (s *TestSuite) TestTransferInSyn() {
 
 	result := transferInApp.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
 	s.Require().Nil(err, result.Err, "error should be nil")
+}
+
+func (s *TestSuite) TestTransferInRefund() {
+	transferInRefundPackage := types.TransferInRefundPackage{
+		RefundAmount:  big.NewInt(1),
+		RefundAddress: sdk.AccAddress{123, 123, 123},
+		RefundReason:  123,
+	}
+
+	packageBytes, err := transferInRefundPackage.Serialize()
+	assert.Equal(s.T(), packageBytes, hexutil.MustDecode("0x000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000007b7b7b000000000000000000000000000000000000000000000000000000000000007b"))
+	s.Require().Nil(err, "encode refund package error")
 }
