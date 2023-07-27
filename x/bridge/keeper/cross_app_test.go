@@ -183,3 +183,26 @@ func (s *TestSuite) TestTransferInSyn() {
 	result := transferInApp.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
 	s.Require().Nil(err, result.Err, "error should be nil")
 }
+
+func (s *TestSuite) TestTransferInRefund() {
+	addr1, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "generate key failed")
+
+	transferInRefundPackage := types.TransferInRefundPackage{
+		RefundAmount:  big.NewInt(1),
+		RefundAddress: addr1,
+		RefundReason:  123,
+	}
+
+	packageBytes, err := transferInRefundPackage.Serialize()
+	s.Require().Nil(err, "encode refund package error")
+
+	transferInApp := keeper.NewTransferInApp(*s.bridgeKeeper)
+
+	s.crossChainKeeper.EXPECT().CreateRawIBCPackageWithFee(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(uint64(0), nil).AnyTimes()
+	s.stakingKeeper.EXPECT().BondDenom(gomock.Any()).Return("BNB").AnyTimes()
+	s.bankKeeper.EXPECT().SendCoinsFromModuleToAccount(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil).AnyTimes()
+
+	result := transferInApp.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{Sequence: 1}, packageBytes)
+	s.Require().Nil(err, result.Err, "error should be nil")
+}
