@@ -574,7 +574,7 @@ var (
 )
 
 func (p DeleteBucketAckPackage) MustSerialize() []byte {
-	encodedBytes, err := generalCreateAckPackageArgs.Pack(&DeleteBucketAckPackage{
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeleteBucketAckPackage{
 		p.Status,
 		SafeBigInt(p.Id),
 		p.ExtraData,

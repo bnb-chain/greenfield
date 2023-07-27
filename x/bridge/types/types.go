@@ -197,7 +197,7 @@ type TransferInRefundPackageStruct struct {
 var (
 	transferInRefundPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{Name: "RefundAmount", Type: "uint256"},
-		{Name: "RefundAddr", Type: "address"},
+		{Name: "RefundAddress", Type: "address"},
 		{Name: "RefundReason", Type: "uint32"},
 	})
 
