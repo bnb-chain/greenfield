@@ -34,9 +34,15 @@ exclude:
     - \.pb\.gw\.go$    # excludes all protobuf generated files
     - .*_mocks.go$    # excludes all protobuf generated files
     - testutil/.*
-    - e2e/.* 
+    - e2e/.*
+    - types/.*
+    - sdk/.*
     - internal/sequence/.*
- 
+    - x/types/.*
+    - .*/simulation/.*
+    - .*/module.go
+    - .*/module_simulation.go
+
 # NOTES:
 # - symbol `/` in all path regexps will be replaced by
 #   current OS file path separator to properly work on Windows
