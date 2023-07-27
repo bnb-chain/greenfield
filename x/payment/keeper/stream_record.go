@@ -114,6 +114,10 @@ func (k Keeper) GetAllStreamRecord(ctx sdk.Context) (list []types.StreamRecord) 
 // it only handles the lock balance change and ignore the other changes(since the streams are already changed and the
 // accumulated OutFlows are changed outside this function)
 func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
+	forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool)
+	if !forced {
+		return fmt.Errorf("stream record %s is frozen", streamRecord.Account)
+	}
 	// update lock balance
 	if !change.LockBalanceChange.IsZero() {
 		streamRecord.LockBalance = streamRecord.LockBalance.Add(change.LockBalanceChange)
@@ -132,6 +136,10 @@ func (k Keeper) UpdateFrozenStreamRecord(ctx sdk.Context, streamRecord *types.St
 }
 
 func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
+	if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_FROZEN {
+		return k.UpdateFrozenStreamRecord(ctx, streamRecord, change)
+	}
+
 	forced, _ := ctx.Value(types.ForceUpdateStreamRecordKey).(bool) // force update in end block
 	isPay := change.StaticBalanceChange.IsNegative() || change.RateChange.IsNegative()
 	currentTimestamp := ctx.BlockTime().Unix()
@@ -217,13 +225,11 @@ func (k Keeper) UpdateStreamRecordByAddr(ctx sdk.Context, change *types.StreamRe
 
 func (k Keeper) ForceSettle(ctx sdk.Context, streamRecord *types.StreamRecord) error {
 	totalBalance := streamRecord.StaticBalance.Add(streamRecord.BufferBalance)
-	if totalBalance.IsPositive() {
-		change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress).WithStaticBalanceChange(totalBalance)
-		_, err := k.UpdateStreamRecordByAddr(ctx, change)
-		if err != nil {
-			telemetry.IncrCounter(1, types.GovernanceAddressLackBalanceLabel)
-			return fmt.Errorf("update governance stream record failed: %w", err)
-		}
+	change := types.NewDefaultStreamRecordChangeWithAddr(types.GovernanceAddress).WithStaticBalanceChange(totalBalance)
+	_, err := k.UpdateStreamRecordByAddr(ctx, change)
+	if err != nil {
+		telemetry.IncrCounter(1, types.GovernanceAddressLackBalanceLabel)
+		return fmt.Errorf("update governance stream record failed: %w", err)
 	}
 	// force settle
 	streamRecord.StaticBalance = sdkmath.ZeroInt()

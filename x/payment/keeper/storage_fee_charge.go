@@ -139,7 +139,7 @@ func (k Keeper) applyFrozenUserFlows(ctx sdk.Context, userFlows types.UserFlows,
 	}
 	streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).
 		WithRateChange(totalActiveRate.Neg()).WithFrozenRateChange(totalFrozenRate.Neg())
-	err := k.UpdateFrozenStreamRecord(ctx, streamRecord, streamRecordChange)
+	err := k.UpdateStreamRecord(ctx, streamRecord, streamRecordChange)
 	if err != nil {
 		return fmt.Errorf("apply stream record changes for user failed: %w", err)
 	}
