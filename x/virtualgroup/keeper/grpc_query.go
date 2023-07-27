@@ -4,12 +4,13 @@ import (
 	"context"
 	"math"
 
-	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (k Keeper) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
@@ -27,10 +28,6 @@ func (k Keeper) GlobalVirtualGroup(goCtx context.Context, req *types.QueryGlobal
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
 
 	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
 	if !found {
@@ -69,10 +66,6 @@ func (k Keeper) GlobalVirtualGroupFamily(goCtx context.Context, req *types.Query
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
 
 	gvgFamily, found := k.GetGVGFamily(ctx, req.FamilyId)
 	if !found {
