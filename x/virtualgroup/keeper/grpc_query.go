@@ -29,10 +29,6 @@ func (k Keeper) GlobalVirtualGroup(goCtx context.Context, req *types.QueryGlobal
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-
 	gvg, found := k.GetGVG(ctx, req.GlobalVirtualGroupId)
 	if !found {
 		return nil, types.ErrGVGNotExist
@@ -70,10 +66,6 @@ func (k Keeper) GlobalVirtualGroupFamily(goCtx context.Context, req *types.Query
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	if req == nil {
-		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
 
 	gvgFamily, found := k.GetGVGFamily(ctx, req.FamilyId)
 	if !found {

@@ -525,6 +525,18 @@ var (
 	}
 )
 
+func (p DeleteBucketSynPackage) MustSerialize() []byte {
+	encodedBytes, err := generalDeleteSynPackageArgs.Pack(&GeneralDeleteSynPackageStruct{
+		Operator:  common.BytesToAddress(p.Operator),
+		Id:        SafeBigInt(p.Id),
+		ExtraData: p.ExtraData,
+	})
+	if err != nil {
+		panic("encode delete bucket sync package error")
+	}
+	return encodedBytes
+}
+
 func (p DeleteBucketSynPackage) ValidateBasic() error {
 	if p.Operator.Empty() {
 		return sdkerrors.ErrInvalidAddress
@@ -574,7 +586,7 @@ var (
 )
 
 func (p DeleteBucketAckPackage) MustSerialize() []byte {
-	encodedBytes, err := generalCreateAckPackageArgs.Pack(&DeleteBucketAckPackage{
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeleteBucketAckPackage{
 		p.Status,
 		SafeBigInt(p.Id),
 		p.ExtraData,

@@ -523,7 +523,7 @@ func (msg *MsgSealObject) ValidateBasic() error {
 	}
 
 	if len(msg.GetSecondarySpBlsAggSignatures()) != sdk.BLSSignatureLength {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest,
+		return errors.Wrap(gnfderrors.ErrInvalidBlsSignature,
 			fmt.Sprintf("length of signature should be %d", sdk.BLSSignatureLength),
 		)
 	}

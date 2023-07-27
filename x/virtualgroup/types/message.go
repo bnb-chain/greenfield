@@ -64,7 +64,7 @@ func (msg *MsgCreateGlobalVirtualGroup) GetSigners() []sdk.AccAddress {
 func (msg *MsgCreateGlobalVirtualGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return err
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
 	}
 
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
@@ -107,7 +107,7 @@ func (msg *MsgDeleteGlobalVirtualGroup) GetSigners() []sdk.AccAddress {
 func (msg *MsgDeleteGlobalVirtualGroup) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return err
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
 	}
 
 	return nil
@@ -147,7 +147,7 @@ func (msg *MsgDeposit) GetSigners() []sdk.AccAddress {
 func (msg *MsgDeposit) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return err
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
 	}
 
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
@@ -188,7 +188,7 @@ func (msg *MsgWithdraw) GetSigners() []sdk.AccAddress {
 func (msg *MsgWithdraw) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return err
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
 	}
 
 	if !msg.Withdraw.IsValid() || !msg.Withdraw.Amount.IsPositive() {
@@ -235,7 +235,7 @@ func (msg *MsgSwapOut) GetSigners() []sdk.AccAddress {
 func (msg *MsgSwapOut) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return err
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
 	}
 
 	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
@@ -249,7 +249,11 @@ func (msg *MsgSwapOut) ValidateBasic() error {
 	}
 
 	if msg.SuccessorSpId == 0 {
-		return gnfderrors.ErrInvalidMessage.Wrap("The successor sp id is not specify.")
+		return gnfderrors.ErrInvalidMessage.Wrap("The successor sp id is not specified.")
+	}
+
+	if msg.SuccessorSpApproval == nil {
+		return gnfderrors.ErrInvalidMessage.Wrap("The successor sp approval is not specified.")
 	}
 
 	return nil
@@ -310,7 +314,7 @@ func (msg *MsgSettle) GetSigners() []sdk.AccAddress {
 func (msg *MsgSettle) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return err
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
 	}
 
 	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {

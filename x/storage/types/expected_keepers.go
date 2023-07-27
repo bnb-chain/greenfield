@@ -4,6 +4,8 @@ import (
 	"math/big"
 
 	"cosmossdk.io/math"
+	sdkmath "cosmossdk.io/math"
+	"github.com/cometbft/cometbft/libs/log"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -89,4 +91,26 @@ type VirtualGroupKeeper interface {
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
 	GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, familyID uint32) (*types.GlobalVirtualGroupFamily, error)
 	GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, expectedStoreSize uint64) (*types.GlobalVirtualGroup, error)
+}
+
+// StorageKeeper used by the cross-chain applications
+type StorageKeeper interface {
+	Logger(ctx sdk.Context) log.Logger
+	GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*BucketInfo, bool)
+	SetBucketInfo(ctx sdk.Context, bucketInfo *BucketInfo)
+	CreateBucket(
+		ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
+		primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error)
+	DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error
+	GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*GroupInfo, bool)
+	DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error
+	CreateGroup(
+		ctx sdk.Context, owner sdk.AccAddress,
+		groupName string, opts CreateGroupOptions) (sdkmath.Uint, error)
+	SetGroupInfo(ctx sdk.Context, groupInfo *GroupInfo)
+	UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *GroupInfo, opts UpdateGroupMemberOptions) error
+	GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*ObjectInfo, bool)
+	SetObjectInfo(ctx sdk.Context, objectInfo *ObjectInfo)
+	DeleteObject(
+		ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error
 }

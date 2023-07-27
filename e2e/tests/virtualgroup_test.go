@@ -65,6 +65,16 @@ func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupByFamily(familyID uint32)
 	return resp.GlobalVirtualGroups
 }
 
+func (s *VirtualGroupTestSuite) queryAvailableGlobalVirtualGroupFamilies(familyIds []uint32) []uint32 {
+	resp, err := s.Client.AvailableGlobalVirtualGroupFamilies(
+		context.Background(),
+		&virtualgroupmoduletypes.AvailableGlobalVirtualGroupFamiliesRequest{
+			GlobalVirtualGroupFamilyIds: familyIds,
+		})
+	s.Require().NoError(err)
+	return resp.GlobalVirtualGroupFamilyIds
+}
+
 func (s *VirtualGroupTestSuite) TestBasic() {
 	primarySP := s.BaseSuite.PickStorageProvider()
 
@@ -81,6 +91,9 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	for _, g := range gvgs {
 		gvg = g
 	}
+
+	availableGvgFamilyIds := s.queryAvailableGlobalVirtualGroupFamilies([]uint32{gvg.FamilyId})
+	s.Require().Equal(availableGvgFamilyIds[0], gvg.FamilyId)
 
 	srcGVGs := s.queryGlobalVirtualGroupByFamily(gvg.FamilyId)
 
