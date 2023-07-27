@@ -3,12 +3,7 @@ package challenge_test
 import (
 	"testing"
 
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-
 	"cosmossdk.io/math"
-	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -23,6 +18,9 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge"
 	"github.com/bnb-chain/greenfield/x/challenge/keeper"
 	"github.com/bnb-chain/greenfield/x/challenge/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type TestSuite struct {
