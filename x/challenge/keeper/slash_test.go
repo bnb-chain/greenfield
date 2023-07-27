@@ -22,7 +22,7 @@ func createSlash(keeper *keeper.Keeper, ctx sdk.Context, n int) []types.Slash {
 	return items
 }
 
-func TestRecentSlashRemove(t *testing.T) {
+func TestRemoveRecentSlash(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
 	items := createSlash(keeper, ctx, 10)
 	for _, item := range items {
@@ -30,4 +30,13 @@ func TestRecentSlashRemove(t *testing.T) {
 		found := keeper.ExistsSlash(ctx, item.SpId, item.ObjectId)
 		require.False(t, found)
 	}
+}
+
+func TestRemoveSpSlashAmount(t *testing.T) {
+	keeper, ctx := makeKeeper(t)
+	keeper.SetSpSlashAmount(ctx, 1, sdk.NewInt(100))
+	keeper.SetSpSlashAmount(ctx, 2, sdk.NewInt(200))
+	keeper.ClearSpSlashAmount(ctx)
+	require.True(t, keeper.GetSpSlashAmount(ctx, 1).Int64() == 0)
+	require.True(t, keeper.GetSpSlashAmount(ctx, 2).Int64() == 0)
 }
