@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/golang/mock/gomock"
 
@@ -115,7 +116,7 @@ func (s *TestSuite) TestCreateObject() {
 		SealAddress:     "",
 		ApprovalAddress: spAddress.String(),
 		GcAddress:       "",
-		TotalDeposit:    sdk.Int{},
+		TotalDeposit:    math.Int{},
 		Status:          0,
 		Endpoint:        "",
 		Description:     types3.Description{},
@@ -193,14 +194,14 @@ func (s *TestSuite) TestCreateObject() {
 	s.paymentKeeper.EXPECT().UpdateStreamRecordByAddr(gomock.Any(), gomock.Any()).Return(&types4.StreamRecord{
 		Account:           "",
 		CrudTimestamp:     0,
-		NetflowRate:       sdk.Int{},
+		NetflowRate:       math.Int{},
 		StaticBalance:     sdk.NewInt(100),
-		BufferBalance:     sdk.Int{},
-		LockBalance:       sdk.Int{},
+		BufferBalance:     math.Int{},
+		LockBalance:       math.Int{},
 		Status:            0,
 		SettleTimestamp:   0,
 		OutFlowCount:      0,
-		FrozenNetflowRate: sdk.Int{},
+		FrozenNetflowRate: math.Int{},
 	}, nil).AnyTimes()
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
 		objectName, 100, keeper.CreateObjectOptions{

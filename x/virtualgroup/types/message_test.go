@@ -44,14 +44,14 @@ func TestMsgDeposit_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "valid case",
-			msg: MsgDeposit{
-				StorageProvider:      sample.AccAddress(),
-				GlobalVirtualGroupId: 1,
-				Deposit: types.Coin{
+			msg: *NewMsgDeposit(
+				sample.RandAccAddress(),
+				1,
+				types.Coin{
 					Denom:  "denom",
 					Amount: types.NewInt(1),
 				},
-			},
+			),
 		},
 	}
 	for _, tt := range tests {
@@ -98,14 +98,14 @@ func TestMsgWithdraw_ValidateBasic(t *testing.T) {
 		},
 		{
 			name: "valid case",
-			msg: MsgWithdraw{
-				StorageProvider:      sample.AccAddress(),
-				GlobalVirtualGroupId: 1,
-				Withdraw: types.Coin{
+			msg: *NewMsgWithdraw(
+				sample.RandAccAddress(),
+				1,
+				types.Coin{
 					Denom:  "denom",
 					Amount: types.NewInt(1),
 				},
-			},
+			),
 		},
 	}
 	for _, tt := range tests {
@@ -245,15 +245,15 @@ func TestMsgCreateGlobalVirtualGroup_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name: "valid case",
-			msg: MsgCreateGlobalVirtualGroup{
-				StorageProvider: sample.AccAddress(),
-				FamilyId:        1,
-				SecondarySpIds:  []uint32{2, 3, 4},
-				Deposit: types.Coin{
+			msg: *NewMsgCreateGlobalVirtualGroup(
+				sample.RandAccAddress(),
+				1,
+				[]uint32{2, 3, 4},
+				types.Coin{
 					Denom:  "denom",
 					Amount: types.NewInt(1),
 				},
-			},
+			),
 		},
 		{
 			name: "invalid address",
@@ -302,10 +302,10 @@ func TestMsgDeleteGlobalVirtualGroup_ValidateBasic(t *testing.T) {
 	}{
 		{
 			name: "valid case",
-			msg: MsgDeleteGlobalVirtualGroup{
-				StorageProvider:      sample.AccAddress(),
-				GlobalVirtualGroupId: 1,
-			},
+			msg: *NewMsgDeleteGlobalVirtualGroup(
+				sample.RandAccAddress(),
+				1,
+			),
 		},
 		{
 			name: "invalid address",

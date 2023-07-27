@@ -17,18 +17,20 @@ func TestMsgCancelSwapOut_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "valid address",
+			msg: *NewMsgCancelSwapOut(
+				sample.RandAccAddress(),
+				1,
+				[]uint32{},
+			),
+		},
+		{
 			name: "invalid address",
 			msg: MsgCancelSwapOut{
 				StorageProvider:            "invalid_address",
 				GlobalVirtualGroupFamilyId: 1,
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
-			msg: MsgCancelSwapOut{
-				StorageProvider:            sample.AccAddress(),
-				GlobalVirtualGroupFamilyId: 1,
-			},
 		},
 		{
 			name: "invalid gvg groups",
