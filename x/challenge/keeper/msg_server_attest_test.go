@@ -59,8 +59,8 @@ func (s *TestSuite) TestAttest_Invalid() {
 			name: "unknown challenge",
 			msg: types.MsgAttest{
 				ChallengeId:       1,
-				Submitter:         sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Submitter:         sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 			},
 			err: types.ErrInvalidChallengeId,
 		},
@@ -68,8 +68,8 @@ func (s *TestSuite) TestAttest_Invalid() {
 			name: "not valid submitter",
 			msg: types.MsgAttest{
 				ChallengeId:       100,
-				Submitter:         sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Submitter:         sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 			},
 			err: types.ErrNotChallenger,
 		},
@@ -78,7 +78,7 @@ func (s *TestSuite) TestAttest_Invalid() {
 			msg: types.MsgAttest{
 				ChallengeId:       100,
 				Submitter:         validSubmitter.String(),
-				SpOperatorAddress: sample.AccAddress(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				ObjectId:          math.NewUint(10),
 				VoteValidatorSet:  []uint64{},
 				VoteAggSignature:  []byte{},
@@ -90,7 +90,7 @@ func (s *TestSuite) TestAttest_Invalid() {
 			msg: types.MsgAttest{
 				ChallengeId:       100,
 				Submitter:         validSubmitter.String(),
-				SpOperatorAddress: sample.AccAddress(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				ObjectId:          math.NewUint(10),
 				VoteValidatorSet:  []uint64{1},
 				VoteAggSignature:  []byte{},

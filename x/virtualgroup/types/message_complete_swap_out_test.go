@@ -35,7 +35,7 @@ func TestMsgCompleteSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg groups",
 			msg: MsgCompleteSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
 				GlobalVirtualGroupIds:      []uint32{1, 2, 3},
 			},
@@ -44,7 +44,7 @@ func TestMsgCompleteSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg groups",
 			msg: MsgCompleteSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 				GlobalVirtualGroupIds:      []uint32{},
 			},

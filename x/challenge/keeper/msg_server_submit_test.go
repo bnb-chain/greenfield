@@ -85,8 +85,8 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "incorrect sp status",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				BucketName:        jailedBucketName,
 				ObjectName:        jailedObjectName,
 			},
@@ -95,8 +95,8 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "not store on the sp",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				BucketName:        existBucketName,
 				ObjectName:        existObjectName,
 			},
@@ -105,7 +105,7 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "unknown bucket",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: existSpAddr.String(),
 				BucketName:        "unknownbucket",
 				ObjectName:        "nonexistobject",
@@ -115,7 +115,7 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "unknown object",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: existSpAddr.String(),
 				BucketName:        existBucketName,
 				ObjectName:        "nonexistobject",
@@ -125,7 +125,7 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "invalid segment index",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: existSpAddr.String(),
 				BucketName:        existBucketName,
 				ObjectName:        existObjectName,
@@ -136,7 +136,7 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "success with specific index",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: existSpAddr.String(),
 				BucketName:        existBucketName,
 				ObjectName:        existObjectName,
@@ -145,7 +145,7 @@ func (s *TestSuite) TestSubmit() {
 		}, {
 			name: "success with random index",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: existSpAddr.String(),
 				BucketName:        existBucketName,
 				ObjectName:        existObjectName,
@@ -154,7 +154,7 @@ func (s *TestSuite) TestSubmit() {
 		}, {
 			name: "success with secondary sp",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: secondarySpAddr.String(),
 				BucketName:        existBucketName,
 				ObjectName:        existObjectName,
@@ -192,7 +192,7 @@ func (s *TestSuite) TestSubmit() {
 		{
 			name: "failed due to recent slash",
 			msg: types.MsgSubmit{
-				Challenger:        sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
 				SpOperatorAddress: existSpAddr.String(),
 				BucketName:        existBucketName,
 				ObjectName:        existObjectName,

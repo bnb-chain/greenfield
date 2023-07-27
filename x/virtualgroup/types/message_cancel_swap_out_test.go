@@ -35,7 +35,7 @@ func TestMsgCancelSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg groups",
 			msg: MsgCancelSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
 				GlobalVirtualGroupIds:      []uint32{1, 2},
 			},
@@ -44,7 +44,7 @@ func TestMsgCancelSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg groups",
 			msg: MsgCancelSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 				GlobalVirtualGroupIds:      []uint32{},
 			},

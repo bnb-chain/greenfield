@@ -52,7 +52,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 					Identity: "",
 				},
 				SpAddress:       operatorAddr.String(),
-				FundingAddress:  sample.AccAddress(),
+				FundingAddress:  sample.RandAccAddressHex(),
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),

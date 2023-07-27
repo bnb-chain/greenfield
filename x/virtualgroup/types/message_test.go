@@ -33,7 +33,7 @@ func TestMsgDeposit_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid deposit amount",
 			msg: MsgDeposit{
-				StorageProvider:      sample.AccAddress(),
+				StorageProvider:      sample.RandAccAddressHex(),
 				GlobalVirtualGroupId: 1,
 				Deposit: types.Coin{
 					Denom:  "denom",
@@ -87,7 +87,7 @@ func TestMsgWithdraw_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid deposit amount",
 			msg: MsgWithdraw{
-				StorageProvider:      sample.AccAddress(),
+				StorageProvider:      sample.RandAccAddressHex(),
 				GlobalVirtualGroupId: 1,
 				Withdraw: types.Coin{
 					Denom:  "denom",
@@ -129,7 +129,7 @@ func TestMsgSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "valid case",
 			msg: MsgSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 				GlobalVirtualGroupIds:      []uint32{1, 2, 3},
 				SuccessorSpId:              100,
@@ -143,7 +143,7 @@ func TestMsgSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "valid case",
 			msg: MsgSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
 				GlobalVirtualGroupIds:      []uint32{},
 				SuccessorSpId:              100,
@@ -172,7 +172,7 @@ func TestMsgSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid virtual group family",
 			msg: MsgSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
 				GlobalVirtualGroupIds:      []uint32{1},
 				SuccessorSpId:              100,
@@ -187,7 +187,7 @@ func TestMsgSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid virtual group family",
 			msg: MsgSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 				GlobalVirtualGroupIds:      []uint32{},
 				SuccessorSpId:              100,
@@ -202,7 +202,7 @@ func TestMsgSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid successor sp id",
 			msg: MsgSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
 				GlobalVirtualGroupIds:      []uint32{},
 				SuccessorSpId:              0,
@@ -217,7 +217,7 @@ func TestMsgSwapOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid successor sp approval",
 			msg: MsgSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
 				GlobalVirtualGroupIds:      []uint32{},
 				SuccessorSpId:              1,
@@ -353,7 +353,7 @@ func TestMsgSettle_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg ids",
 			msg: MsgSettle{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 			},
 			err: ErrInvalidGVGCount,
@@ -361,7 +361,7 @@ func TestMsgSettle_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg ids",
 			msg: MsgSettle{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 				GlobalVirtualGroupIds:      []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			},

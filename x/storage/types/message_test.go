@@ -32,54 +32,54 @@ func TestMsgCreateBucket_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgCreateBucket{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        testBucketName,
 				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
-				PaymentAddress:    sample.AccAddress(),
-				PrimarySpAddress:  sample.AccAddress(),
+				PaymentAddress:    sample.RandAccAddressHex(),
+				PrimarySpAddress:  sample.RandAccAddressHex(),
 				PrimarySpApproval: &common.Approval{},
 			},
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        "TestBucket",
 				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
-				PaymentAddress:    sample.AccAddress(),
-				PrimarySpAddress:  sample.AccAddress(),
+				PaymentAddress:    sample.RandAccAddressHex(),
+				PrimarySpAddress:  sample.RandAccAddressHex(),
 				PrimarySpApproval: &common.Approval{},
 			},
 			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        "Test-Bucket",
 				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
-				PaymentAddress:    sample.AccAddress(),
-				PrimarySpAddress:  sample.AccAddress(),
+				PaymentAddress:    sample.RandAccAddressHex(),
+				PrimarySpAddress:  sample.RandAccAddressHex(),
 				PrimarySpApproval: &common.Approval{},
 			},
 			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        "ss",
 				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
-				PaymentAddress:    sample.AccAddress(),
-				PrimarySpAddress:  sample.AccAddress(),
+				PaymentAddress:    sample.RandAccAddressHex(),
+				PrimarySpAddress:  sample.RandAccAddressHex(),
 				PrimarySpApproval: &common.Approval{},
 			},
 			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid bucket name",
 			msg: MsgCreateBucket{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        string(testInvalidBucketNameWithLongLength[:]),
 				Visibility:        VISIBILITY_TYPE_PUBLIC_READ,
-				PaymentAddress:    sample.AccAddress(),
-				PrimarySpAddress:  sample.AccAddress(),
+				PaymentAddress:    sample.RandAccAddressHex(),
+				PrimarySpAddress:  sample.RandAccAddressHex(),
 				PrimarySpApproval: &common.Approval{},
 			},
 			err: gnfderrors.ErrInvalidBucketName,
@@ -106,13 +106,13 @@ func TestMsgDeleteBucket_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgDeleteBucket{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 			},
 		}, {
 			name: "invalid bucket name",
 			msg: MsgDeleteBucket{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: "testBucket",
 			},
 			err: gnfderrors.ErrInvalidBucketName,
@@ -139,9 +139,9 @@ func TestMsgUpdateBucketInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "basic",
 			msg: MsgUpdateBucketInfo{
-				Operator:         sample.AccAddress(),
+				Operator:         sample.RandAccAddressHex(),
 				BucketName:       testBucketName,
-				PaymentAddress:   sample.AccAddress(),
+				PaymentAddress:   sample.RandAccAddressHex(),
 				ChargedReadQuota: &common.UInt64Value{Value: 10000},
 			},
 		},
@@ -167,9 +167,9 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgCreateGroup{
-				Creator:   sample.AccAddress(),
+				Creator:   sample.RandAccAddressHex(),
 				GroupName: testGroupName,
-				Members:   []string{sample.AccAddress(), sample.AccAddress()},
+				Members:   []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
 			},
 		},
 	}
@@ -194,7 +194,7 @@ func TestMsgDeleteGroup_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgDeleteGroup{
-				Operator:  sample.AccAddress(),
+				Operator:  sample.RandAccAddressHex(),
 				GroupName: testGroupName,
 			},
 		},
@@ -220,8 +220,8 @@ func TestMsgLeaveGroup_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgLeaveGroup{
-				Member:     sample.AccAddress(),
-				GroupOwner: sample.AccAddress(),
+				Member:     sample.RandAccAddressHex(),
+				GroupOwner: sample.RandAccAddressHex(),
 				GroupName:  testGroupName,
 			},
 		},
@@ -247,11 +247,11 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgUpdateGroupMember{
-				Operator:        sample.AccAddress(),
-				GroupOwner:      sample.AccAddress(),
+				Operator:        sample.RandAccAddressHex(),
+				GroupOwner:      sample.RandAccAddressHex(),
 				GroupName:       testGroupName,
-				MembersToAdd:    []string{sample.AccAddress(), sample.AccAddress()},
-				MembersToDelete: []string{sample.AccAddress(), sample.AccAddress()},
+				MembersToAdd:    []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
+				MembersToDelete: []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
 			},
 		},
 	}
@@ -277,8 +277,8 @@ func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgUpdateGroupExtra{
-				Operator:   sample.AccAddress(),
-				GroupOwner: sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
+				GroupOwner: sample.RandAccAddressHex(),
 				GroupName:  testGroupName,
 				Extra:      "testExtra",
 			},
@@ -286,8 +286,8 @@ func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
 		{
 			name: "extra field is too long",
 			msg: MsgUpdateGroupExtra{
-				Operator:   sample.AccAddress(),
-				GroupOwner: sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
+				GroupOwner: sample.RandAccAddressHex(),
 				GroupName:  testGroupName,
 				Extra:      strings.Repeat("abcdefg", 80),
 			},
@@ -315,9 +315,9 @@ func TestMsgPutPolicy_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgPutPolicy{
-				Operator:  sample.AccAddress(),
+				Operator:  sample.RandAccAddressHex(),
 				Resource:  types2.NewBucketGRN(testBucketName).String(),
-				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
+				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.RandAccAddressHex())),
 				Statements: []*types.Statement{{Effect: types.EFFECT_ALLOW,
 					Actions: []types.ActionType{types.ACTION_DELETE_BUCKET}}},
 			},
@@ -344,9 +344,9 @@ func TestMsgDeletePolicy_ValidateBasic(t *testing.T) {
 		{
 			name: "valid address",
 			msg: MsgDeletePolicy{
-				Operator:  sample.AccAddress(),
+				Operator:  sample.RandAccAddressHex(),
 				Resource:  types2.NewBucketGRN(testBucketName).String(),
-				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.AccAddress())),
+				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.RandAccAddressHex())),
 			},
 		},
 	}
@@ -371,7 +371,7 @@ func TestMsgMirrorBucket_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgMirrorBucket{
-				Operator: sample.AccAddress(),
+				Operator: sample.RandAccAddressHex(),
 				Id:       math.NewUint(1),
 			},
 		}, {
@@ -404,7 +404,7 @@ func TestMsgMirrorGroup_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgMirrorGroup{
-				Operator: sample.AccAddress(),
+				Operator: sample.RandAccAddressHex(),
 				Id:       math.NewUint(1),
 			},
 		},
