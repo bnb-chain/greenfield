@@ -9,7 +9,6 @@ import (
 	"github.com/bnb-chain/greenfield/types/common"
 	types4 "github.com/bnb-chain/greenfield/x/payment/types"
 	types3 "github.com/bnb-chain/greenfield/x/sp/types"
-	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
@@ -29,7 +28,7 @@ func (s *TestSuite) TestCreateObject() {
 
 	// case 1: bucket does not exist
 	_, err := s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:        0,
 			ContentType:       "",
 			SourceType:        0,
@@ -44,7 +43,7 @@ func (s *TestSuite) TestCreateObject() {
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_MIGRATING
 	s.storageKeeper.StoreBucketInfo(s.ctx, bucketInfo)
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:        0,
 			ContentType:       "",
 			SourceType:        0,
@@ -59,7 +58,7 @@ func (s *TestSuite) TestCreateObject() {
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_DISCONTINUED
 	s.storageKeeper.StoreBucketInfo(s.ctx, bucketInfo)
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:        0,
 			ContentType:       "",
 			SourceType:        0,
@@ -72,7 +71,7 @@ func (s *TestSuite) TestCreateObject() {
 
 	// case 4: invalid payload size
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, types.DefaultParams().MaxPayloadSize+1, keeper.CreateObjectOptions{
+		objectName, types.DefaultParams().MaxPayloadSize+1, types.CreateObjectOptions{
 			Visibility:        0,
 			ContentType:       "",
 			SourceType:        0,
@@ -89,7 +88,7 @@ func (s *TestSuite) TestCreateObject() {
 	s.virtualGroupKeeper.EXPECT().GetGVGFamily(gomock.Any(), gomock.Any()).Return(nil, false)
 	s.Require().Panics(func() {
 		_, _ = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-			objectName, 100, keeper.CreateObjectOptions{
+			objectName, 100, types.CreateObjectOptions{
 				Visibility:        0,
 				ContentType:       "",
 				SourceType:        0,
@@ -124,7 +123,7 @@ func (s *TestSuite) TestCreateObject() {
 	}).AnyTimes()
 	s.ctx = s.ctx.WithBlockHeight(100)
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:     0,
 			ContentType:    "",
 			SourceType:     0,
@@ -141,7 +140,7 @@ func (s *TestSuite) TestCreateObject() {
 
 	// case 6: invalid approval sig
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:     0,
 			ContentType:    "",
 			SourceType:     0,
@@ -162,7 +161,7 @@ func (s *TestSuite) TestCreateObject() {
 		ObjectName: objectName,
 	})
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:     0,
 			ContentType:    "",
 			SourceType:     0,
@@ -204,7 +203,7 @@ func (s *TestSuite) TestCreateObject() {
 		FrozenNetflowRate: math.Int{},
 	}, nil).AnyTimes()
 	_, err = s.storageKeeper.CreateObject(s.ctx, operatorAddress, bucketInfo.BucketName,
-		objectName, 100, keeper.CreateObjectOptions{
+		objectName, 100, types.CreateObjectOptions{
 			Visibility:     0,
 			ContentType:    "",
 			SourceType:     0,

@@ -12,10 +12,10 @@ import (
 var _ sdk.CrossChainApplication = &ObjectApp{}
 
 type ObjectApp struct {
-	storageKeeper Keeper
+	storageKeeper types.StorageKeeper
 }
 
-func NewObjectApp(keeper Keeper) *ObjectApp {
+func NewObjectApp(keeper types.StorageKeeper) *ObjectApp {
 	return &ObjectApp{
 		storageKeeper: keeper,
 	}
@@ -211,7 +211,7 @@ func (app *ObjectApp) handleDeleteObjectSynPackage(ctx sdk.Context, header *sdk.
 		deleteObjectPackage.Operator,
 		objectInfo.BucketName,
 		objectInfo.ObjectName,
-		DeleteObjectOptions{
+		types.DeleteObjectOptions{
 			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 		},
 	)

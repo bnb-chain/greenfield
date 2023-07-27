@@ -86,7 +86,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts *types.CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
@@ -180,7 +180,7 @@ func (k Keeper) StoreBucketInfo(ctx sdk.Context, bucketInfo *types.BucketInfo) {
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
 }
 
-func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error {
+func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts types.DeleteBucketOptions) error {
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
@@ -344,7 +344,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	return bucketDeleted, deleted, nil
 }
 
-func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts UpdateBucketOptions) error {
+func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts types.UpdateBucketOptions) error {
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
@@ -509,7 +509,7 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*type
 
 func (k Keeper) CreateObject(
 	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string,
-	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
+	payloadSize uint64, opts types.CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check payload size
@@ -775,7 +775,7 @@ func (k Keeper) SealObject(
 
 func (k Keeper) CancelCreateObject(
 	ctx sdk.Context, operator sdk.AccAddress,
-	bucketName, objectName string, opts CancelCreateObjectOptions) error {
+	bucketName, objectName string, opts types.CancelCreateObjectOptions) error {
 	store := ctx.KVStore(k.storeKey)
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
@@ -829,7 +829,7 @@ func (k Keeper) CancelCreateObject(
 }
 
 func (k Keeper) DeleteObject(
-	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error {
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts types.DeleteObjectOptions) error {
 
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
@@ -950,7 +950,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 
 func (k Keeper) CopyObject(
 	ctx sdk.Context, operator sdk.AccAddress, srcBucketName, srcObjectName, dstBucketName, dstObjectName string,
-	opts CopyObjectOptions) (sdkmath.Uint, error) {
+	opts types.CopyObjectOptions) (sdkmath.Uint, error) {
 
 	store := ctx.KVStore(k.storeKey)
 
@@ -1211,7 +1211,7 @@ func (k Keeper) UpdateObjectInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 func (k Keeper) CreateGroup(
 	ctx sdk.Context, owner sdk.AccAddress,
-	groupName string, opts CreateGroupOptions) (sdkmath.Uint, error) {
+	groupName string, opts types.CreateGroupOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	groupInfo := types.GroupInfo{
@@ -1288,11 +1288,7 @@ func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*types.
 	return &groupInfo, true
 }
 
-type DeleteGroupOptions struct {
-	SourceType types.SourceType
-}
-
-func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error {
+func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts types.DeleteGroupOptions) error {
 	store := ctx.KVStore(k.storeKey)
 
 	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
@@ -1329,7 +1325,7 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 
 func (k Keeper) LeaveGroup(
 	ctx sdk.Context, member sdk.AccAddress, owner sdk.AccAddress,
-	groupName string, opts LeaveGroupOptions) error {
+	groupName string, opts types.LeaveGroupOptions) error {
 
 	groupInfo, found := k.GetGroupInfo(ctx, owner, groupName)
 	if !found {
@@ -1355,7 +1351,7 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts UpdateGroupMemberOptions) error {
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.UpdateGroupMemberOptions) error {
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}

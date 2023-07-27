@@ -95,7 +95,7 @@ func validateGVGStakingPerBytes(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v.IsNil() || !v.IsPositive() || v.GT(sdk.OneDec()) {
-		return fmt.Errorf("invalid secondary sp store price size")
+		return fmt.Errorf("invalid secondary sp store price ratio")
 	}
 	return nil
 }

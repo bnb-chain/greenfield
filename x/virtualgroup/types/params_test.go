@@ -63,9 +63,9 @@ func TestGVGStakingPerBytes(t *testing.T) {
 			err:   "invalid parameter type",
 		},
 		{
-			name:  "invalid size",
+			name:  "invalid ratio",
 			ratio: sdk.NewDec(100),
-			err:   "invalid secondary sp store price size",
+			err:   "invalid secondary sp store price ratio",
 		},
 	}
 	for _, tt := range tests {

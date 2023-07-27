@@ -12,10 +12,10 @@ import (
 var _ sdk.CrossChainApplication = &GroupApp{}
 
 type GroupApp struct {
-	storageKeeper Keeper
+	storageKeeper types.StorageKeeper
 }
 
-func NewGroupApp(keeper Keeper) *GroupApp {
+func NewGroupApp(keeper types.StorageKeeper) *GroupApp {
 	return &GroupApp{
 		storageKeeper: keeper,
 	}
@@ -174,7 +174,7 @@ func (app *GroupApp) handleDeleteGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 	err = app.storageKeeper.DeleteGroup(ctx,
 		deleteGroupPackage.Operator,
 		groupInfo.GroupName,
-		DeleteGroupOptions{
+		types.DeleteGroupOptions{
 			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 		},
 	)
@@ -226,7 +226,7 @@ func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 	groupId, err := app.storageKeeper.CreateGroup(ctx,
 		createGroupPackage.Creator,
 		createGroupPackage.GroupName,
-		CreateGroupOptions{
+		types.CreateGroupOptions{
 			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 		},
 	)
@@ -336,7 +336,7 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 		}
 	}
 
-	options := UpdateGroupMemberOptions{
+	options := types.UpdateGroupMemberOptions{
 		SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 	}
 	if updateGroupPackage.OperationType == types.OperationAddGroupMember {
