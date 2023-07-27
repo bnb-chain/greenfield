@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 func TestMsgCancelSwapOut_ValidateBasic(t *testing.T) {
@@ -28,6 +29,24 @@ func TestMsgCancelSwapOut_ValidateBasic(t *testing.T) {
 				StorageProvider:            sample.AccAddress(),
 				GlobalVirtualGroupFamilyId: 1,
 			},
+		},
+		{
+			name: "invalid gvg groups",
+			msg: MsgCancelSwapOut{
+				StorageProvider:            sample.AccAddress(),
+				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupIds:      []uint32{1, 2},
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+		{
+			name: "invalid gvg groups",
+			msg: MsgCancelSwapOut{
+				StorageProvider:            sample.AccAddress(),
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupIds:      []uint32{},
+			},
+			err: gnfderrors.ErrInvalidMessage,
 		},
 	}
 	for _, tt := range tests {
