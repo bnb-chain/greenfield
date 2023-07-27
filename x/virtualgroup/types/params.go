@@ -95,7 +95,7 @@ func validateGVGStakingPerBytes(i interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 	if v.IsNil() || !v.IsPositive() || v.GT(sdk.OneDec()) {
-		return fmt.Errorf("invalid secondary sp store price ratio")
+		return fmt.Errorf("invalid secondary sp store price size")
 	}
 	return nil
 }
@@ -120,7 +120,7 @@ func validateMaxStoreSizePerFamily(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("max buckets per account must be positive: %d", v)
+		return fmt.Errorf("max store size of family must be positive: %d", v)
 	}
 
 	return nil
