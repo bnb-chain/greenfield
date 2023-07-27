@@ -195,9 +195,13 @@ func (s *TestSuite) TestAttest_Heartbeat() {
 
 func (s *TestSuite) TestAttest_Normal() {
 	// prepare challenge
-	challengeId := uint64(99)
+	challenge1Id := uint64(99)
 	s.challengeKeeper.SaveChallenge(s.ctx, types.Challenge{
-		Id: challengeId,
+		Id: challenge1Id,
+	})
+	challenge2Id := uint64(100)
+	s.challengeKeeper.SaveChallenge(s.ctx, types.Challenge{
+		Id: challenge2Id,
 	})
 
 	validSubmitter := sample.RandAccAddress()
@@ -220,14 +224,23 @@ func (s *TestSuite) TestAttest_Normal() {
 	s.storageKeeper.EXPECT().GetBucketInfo(gomock.Any(), gomock.Eq(existBucket.BucketName)).
 		Return(existBucket, true).AnyTimes()
 
-	existObject := &storagetypes.ObjectInfo{
+	existObject1 := &storagetypes.ObjectInfo{
 		Id:           math.NewUint(10),
-		ObjectName:   "existobject",
+		ObjectName:   "existobject1",
 		BucketName:   existBucket.BucketName,
 		ObjectStatus: storagetypes.OBJECT_STATUS_SEALED,
 		PayloadSize:  500}
 	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(10))).
-		Return(existObject, true).AnyTimes()
+		Return(existObject1, true).AnyTimes()
+
+	existObject2 := &storagetypes.ObjectInfo{
+		Id:           math.NewUint(100),
+		ObjectName:   "existobject2",
+		BucketName:   existBucket.BucketName,
+		ObjectStatus: storagetypes.OBJECT_STATUS_SEALED,
+		PayloadSize:  500}
+	s.storageKeeper.EXPECT().GetObjectInfoById(gomock.Any(), gomock.Eq(math.NewUint(100))).
+		Return(existObject2, true).AnyTimes()
 
 	spOperatorAcc := sample.RandAccAddress()
 	sp := &sptypes.StorageProvider{Id: 1, OperatorAddress: spOperatorAcc.String()}
@@ -238,30 +251,78 @@ func (s *TestSuite) TestAttest_Normal() {
 	s.spKeeper.EXPECT().GetStorageProviderByOperatorAddr(gomock.Any(), gomock.Any()).
 		Return(sp, true).AnyTimes()
 	s.storageKeeper.EXPECT().MustGetPrimarySPForBucket(gomock.Any(), gomock.Any()).Return(sp).AnyTimes()
-	attestMsg := &types.MsgAttest{
+
+	// success attestation
+	attestMsg1 := &types.MsgAttest{
 		Submitter:         validSubmitter.String(),
-		ChallengeId:       challengeId,
+		ChallengeId:       challenge1Id,
 		ObjectId:          math.NewUint(10),
 		SpOperatorAddress: spOperatorAcc.String(),
 		VoteResult:        types.CHALLENGE_SUCCEED,
 		ChallengerAddress: "",
 		VoteValidatorSet:  []uint64{1},
 	}
-	toSign := attestMsg.GetBlsSignBytes(s.ctx.ChainID())
-
-	voteAggSignature := blsKey.Sign(toSign[:])
-	attestMsg.VoteAggSignature = voteAggSignature.Marshal()
-
-	_, err := s.msgServer.Attest(s.ctx, attestMsg)
+	toSign1 := attestMsg1.GetBlsSignBytes(s.ctx.ChainID())
+	voteAggSignature1 := blsKey.Sign(toSign1[:])
+	attestMsg1.VoteAggSignature = voteAggSignature1.Marshal()
+	_, err := s.msgServer.Attest(s.ctx, attestMsg1)
 	require.NoError(s.T(), err)
 
 	attestedChallenges := s.challengeKeeper.GetAttestedChallenges(s.ctx)
-	found := false
+	attest1Found := false
 	for _, c := range attestedChallenges {
-		if c.Id == challengeId {
-			found = true
+		if c.Id == challenge1Id {
+			attest1Found = true
 		}
 	}
-	s.Require().True(found)
-	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, sp.Id, attestMsg.ObjectId))
+	s.Require().True(attest1Found)
+	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, sp.Id, attestMsg1.ObjectId))
+
+	// success attestation even exceed the max slash amount
+	params := s.challengeKeeper.GetParams(s.ctx)
+	params.SpSlashMaxAmount = math.NewInt(1)
+	_ = s.challengeKeeper.SetParams(s.ctx, params)
+
+	attestMsg2 := &types.MsgAttest{
+		Submitter:         validSubmitter.String(),
+		ChallengeId:       challenge2Id,
+		ObjectId:          math.NewUint(100),
+		SpOperatorAddress: spOperatorAcc.String(),
+		VoteResult:        types.CHALLENGE_SUCCEED,
+		ChallengerAddress: sample.RandAccAddress().String(),
+		VoteValidatorSet:  []uint64{1},
+	}
+	toSign2 := attestMsg2.GetBlsSignBytes(s.ctx.ChainID())
+	voteAggSignature2 := blsKey.Sign(toSign2[:])
+	attestMsg2.VoteAggSignature = voteAggSignature2.Marshal()
+	_, err = s.msgServer.Attest(s.ctx, attestMsg2)
+	require.NoError(s.T(), err)
+
+	attestedChallenges = s.challengeKeeper.GetAttestedChallenges(s.ctx)
+	attest2Found := false
+	for _, c := range attestedChallenges {
+		if c.Id == challenge1Id {
+			attest2Found = true
+		}
+	}
+	s.Require().True(attest1Found)
+	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, sp.Id, attestMsg1.ObjectId))
+	s.Require().True(attest2Found)
+	s.Require().True(s.challengeKeeper.ExistsSlash(s.ctx, sp.Id, attestMsg2.ObjectId))
+
+	// the sp and the object had been slashed
+	attestMsg3 := &types.MsgAttest{
+		Submitter:         validSubmitter.String(),
+		ChallengeId:       challenge2Id,
+		ObjectId:          math.NewUint(100),
+		SpOperatorAddress: spOperatorAcc.String(),
+		VoteResult:        types.CHALLENGE_SUCCEED,
+		ChallengerAddress: sample.RandAccAddress().String(),
+		VoteValidatorSet:  []uint64{1},
+	}
+	toSign3 := attestMsg3.GetBlsSignBytes(s.ctx.ChainID())
+	voteAggSignature3 := blsKey.Sign(toSign3[:])
+	attestMsg3.VoteAggSignature = voteAggSignature3.Marshal()
+	_, err = s.msgServer.Attest(s.ctx, attestMsg3)
+	require.Error(s.T(), err)
 }
