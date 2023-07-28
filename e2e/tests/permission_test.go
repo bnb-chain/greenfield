@@ -1356,8 +1356,8 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 	s.Require().Equal(headGroupMemberResponse.GroupMember.GroupId, headGroupResponse.GetGroupInfo().Id)
 
 	// list group
-	queryListGroupReq := storagetypes.QueryListGroupRequest{GroupOwner: owner.GetAddr().String()}
-	queryListGroupResp, err := s.Client.ListGroup(ctx, &queryListGroupReq)
+	queryListGroupReq := storagetypes.QueryListGroupsRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroups(ctx, &queryListGroupReq)
 	s.Require().NoError(err)
 	s.T().Log(queryListGroupResp.String())
 

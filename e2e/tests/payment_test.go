@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/types/query"
+
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
@@ -55,6 +57,27 @@ func (s *PaymentTestSuite) SetupTest() {
 	s.RefreshGVGFamilies()
 }
 
+func (s *PaymentTestSuite) TestQueryPaymentAccounts() {
+	_, err := s.Client.PaymentAccounts(context.Background(), &paymenttypes.QueryPaymentAccountsRequest{
+		Pagination: &query.PageRequest{
+			Offset: 10, // offset is not allowed
+		},
+	})
+	s.Require().Error(err)
+
+	_, err = s.Client.PaymentAccounts(context.Background(), &paymenttypes.QueryPaymentAccountsRequest{
+		Pagination: &query.PageRequest{
+			CountTotal: true, // count total = true is not allowed
+		},
+	})
+	s.Require().Error(err)
+
+	_, err = s.Client.PaymentAccounts(context.Background(), &paymenttypes.QueryPaymentAccountsRequest{
+		Pagination: &query.PageRequest{},
+	})
+	s.Require().NoError(err)
+}
+
 func (s *PaymentTestSuite) TestCreatePaymentAccount() {
 	user := s.GenAndChargeAccounts(1, 100)[0]
 	ctx := context.Background()
@@ -64,10 +87,10 @@ func (s *PaymentTestSuite) TestCreatePaymentAccount() {
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
 	// query user's payment accounts
-	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryGetPaymentAccountsByOwnerRequest{
+	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryPaymentAccountsByOwnerRequest{
 		Owner: user.GetAddr().String(),
 	}
-	paymentAccounts, err := s.Client.GetPaymentAccountsByOwner(ctx, &queryGetPaymentAccountsByOwnerRequest)
+	paymentAccounts, err := s.Client.PaymentAccountsByOwner(ctx, &queryGetPaymentAccountsByOwnerRequest)
 	s.Require().NoError(err)
 	s.T().Log(paymentAccounts)
 	s.Require().Equal(1, len(paymentAccounts.PaymentAccounts))
@@ -299,8 +322,8 @@ func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
 		Creator: userAddr,
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
-	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
-	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
@@ -384,8 +407,8 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInOneBlock() {
 		Creator: userAddr,
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
-	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
-	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
@@ -501,8 +524,8 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInBlocks() {
 		Creator: userAddr,
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
-	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
-	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
@@ -636,8 +659,8 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 		Creator: userAddr,
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
-	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
-	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
@@ -775,8 +798,8 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 		Creator: userAddr,
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
-	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
-	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
@@ -872,8 +895,8 @@ func (s *PaymentTestSuite) TestWithdraw() {
 		Creator: userAddr,
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
-	paymentAccountsReq := &paymenttypes.QueryGetPaymentAccountsByOwnerRequest{Owner: userAddr}
-	paymentAccounts, err := s.Client.PaymentQueryClient.GetPaymentAccountsByOwner(ctx, paymentAccountsReq)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
 	paymentAddr := paymentAccounts.PaymentAccounts[0]

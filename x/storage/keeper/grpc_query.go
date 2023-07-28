@@ -161,6 +161,9 @@ func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRe
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := query.CheckOffsetQueryNotAllowed(ctx, req.Pagination); err != nil {
+		return nil, err
+	}
 
 	var bucketInfos []*types.BucketInfo
 	store := ctx.KVStore(k.storeKey)
@@ -182,6 +185,9 @@ func (k Keeper) ListBuckets(goCtx context.Context, req *types.QueryListBucketsRe
 func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRequest) (*types.QueryListObjectsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	if req.BucketName == "" {
+		return nil, status.Error(codes.InvalidArgument, "bucket name should not be empty")
 	}
 	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
 		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
@@ -486,7 +492,7 @@ func (k Keeper) HeadGroup(goCtx context.Context, req *types.QueryHeadGroupReques
 	return &types.QueryHeadGroupResponse{GroupInfo: groupInfo}, nil
 }
 
-func (k Keeper) ListGroup(goCtx context.Context, req *types.QueryListGroupRequest) (*types.QueryListGroupResponse, error) {
+func (k Keeper) ListGroups(goCtx context.Context, req *types.QueryListGroupsRequest) (*types.QueryListGroupsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -517,7 +523,7 @@ func (k Keeper) ListGroup(goCtx context.Context, req *types.QueryListGroupReques
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryListGroupResponse{GroupInfos: groupInfos, Pagination: pageRes}, nil
+	return &types.QueryListGroupsResponse{GroupInfos: groupInfos, Pagination: pageRes}, nil
 }
 
 func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroupMemberRequest) (*types.QueryHeadGroupMemberResponse, error) {

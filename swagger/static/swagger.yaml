@@ -329,17 +329,17 @@ paths:
                       format: byte
       tags:
         - Query
-  /greenfield/payment/auto_settle_record:
+  /greenfield/payment/auto_settle_records:
     get:
-      summary: Queries a list of AutoSettleRecord items.
-      operationId: AutoSettleRecordAll
+      summary: Queries all auto settle records.
+      operationId: AutoSettleRecords
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              auto_settle_record:
+              auto_settle_records:
                 type: array
                 items:
                   type: object
@@ -473,7 +473,7 @@ paths:
         - Query
   /greenfield/payment/dynamic_balance/{account}:
     get:
-      summary: Queries a list of DynamicBalance items.
+      summary: Queries dynamic balance of a payment account.
       operationId: DynamicBalance
       responses:
         '200':
@@ -596,52 +596,9 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/payment/get_payment_accounts_by_owner/{owner}:
-    get:
-      summary: Queries a list of GetPaymentAccountsByOwner items.
-      operationId: GetPaymentAccountsByOwner
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              paymentAccounts:
-                type: array
-                items:
-                  type: string
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: owner
-          in: path
-          required: true
-          type: string
-      tags:
-        - Query
   /greenfield/payment/out_flows/{account}:
     get:
-      summary: Queries a StreamRecord by index.
+      summary: Queries our flows by account.
       operationId: OutFlows
       responses:
         '200':
@@ -794,7 +751,7 @@ paths:
         - Query
   /greenfield/payment/params/{timestamp}:
     get:
-      summary: ParamsByTimestamp queries the parameters of the module.
+      summary: ParamsByTimestamp queries the parameter of the module by timestamp.
       operationId: ParamsByTimestamp
       responses:
         '200':
@@ -886,143 +843,9 @@ paths:
           format: int64
       tags:
         - Query
-  /greenfield/payment/payment_account:
-    get:
-      summary: Queries a list of PaymentAccount items.
-      operationId: PaymentAccountAll
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              payment_account:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    addr:
-                      type: string
-                      title: the address of the payment account
-                    owner:
-                      type: string
-                      title: the owner address of the payment account
-                    refundable:
-                      type: boolean
-                      title: whether the payment account is refundable
-                  title: PaymentAccount defines a payment account
-              pagination:
-                type: object
-                properties:
-                  next_key:
-                    type: string
-                    format: byte
-                    description: |-
-                      next_key is the key to be passed to PageRequest.key to
-                      query the next page most efficiently. It will be empty if
-                      there are no more results.
-                  total:
-                    type: string
-                    format: uint64
-                    title: >-
-                      total is total number of results available if
-                      PageRequest.count_total
-
-                      was set, its value is undefined otherwise
-                description: >-
-                  PageResponse is to be embedded in gRPC response messages where
-                  the
-
-                  corresponding request message has used PageRequest.
-
-                   message SomeResponse {
-                           repeated Bar results = 1;
-                           PageResponse page = 2;
-                   }
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: pagination.key
-          description: |-
-            key is a value returned in PageResponse.next_key to begin
-            querying the next page most efficiently. Only one of offset or key
-            should be set.
-          in: query
-          required: false
-          type: string
-          format: byte
-        - name: pagination.offset
-          description: >-
-            offset is a numeric offset that can be used when key is unavailable.
-
-            It is less efficient than using key. Only one of offset or key
-            should
-
-            be set.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.limit
-          description: >-
-            limit is the total number of results to be returned in the result
-            page.
-
-            If left empty it will default to a value to be set by each app.
-          in: query
-          required: false
-          type: string
-          format: uint64
-        - name: pagination.count_total
-          description: >-
-            count_total is set to true  to indicate that the result set should
-            include
-
-            a count of the total number of items available for pagination in
-            UIs.
-
-            count_total is only respected when offset is used. It is ignored
-            when key
-
-            is set.
-          in: query
-          required: false
-          type: boolean
-        - name: pagination.reverse
-          description: >-
-            reverse is set to true if results are to be returned in the
-            descending order.
-
-
-            Since: cosmos-sdk 0.43
-          in: query
-          required: false
-          type: boolean
-      tags:
-        - Query
   /greenfield/payment/payment_account/{addr}:
     get:
-      summary: Queries a PaymentAccount by index.
+      summary: Queries a payment account by payment account address.
       operationId: PaymentAccount
       responses:
         '200':
@@ -1072,10 +895,10 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/payment/payment_account_count:
+  /greenfield/payment/payment_account_count/{owner}:
     get:
-      summary: Queries a list of PaymentAccountCount items.
-      operationId: PaymentAccountCountAll
+      summary: Queries the count of payment account by owner.
+      operationId: PaymentAccountCount
       responses:
         '200':
           description: A successful response.
@@ -1083,6 +906,58 @@ paths:
             type: object
             properties:
               payment_account_count:
+                type: object
+                properties:
+                  owner:
+                    type: string
+                    title: owner is the account address
+                  count:
+                    type: string
+                    format: uint64
+                    title: count is the number of payment accounts for the account
+                title: >-
+                  PaymentAccountCount defines the state struct which stores the
+                  number of payment accounts for an account
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: owner
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/payment/payment_account_counts:
+    get:
+      summary: Queries all counts of payment account for all owners.
+      operationId: PaymentAccountCounts
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              payment_account_counts:
                 type: array
                 items:
                   type: object
@@ -1206,29 +1081,154 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/payment/payment_account_count/{owner}:
+  /greenfield/payment/payment_accounts:
     get:
-      summary: Queries a PaymentAccountCount by index.
-      operationId: PaymentAccountCount
+      summary: Queries all payment accounts.
+      operationId: PaymentAccounts
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              payment_account_count:
+              payment_accounts:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    addr:
+                      type: string
+                      title: the address of the payment account
+                    owner:
+                      type: string
+                      title: the owner address of the payment account
+                    refundable:
+                      type: boolean
+                      title: whether the payment account is refundable
+                  title: PaymentAccount defines a payment account
+              pagination:
                 type: object
                 properties:
-                  owner:
+                  next_key:
                     type: string
-                    title: owner is the account address
-                  count:
+                    format: byte
+                    description: |-
+                      next_key is the key to be passed to PageRequest.key to
+                      query the next page most efficiently. It will be empty if
+                      there are no more results.
+                  total:
                     type: string
                     format: uint64
-                    title: count is the number of payment accounts for the account
-                title: >-
-                  PaymentAccountCount defines the state struct which stores the
-                  number of payment accounts for an account
+                    title: >-
+                      total is total number of results available if
+                      PageRequest.count_total
+
+                      was set, its value is undefined otherwise
+                description: >-
+                  PageResponse is to be embedded in gRPC response messages where
+                  the
+
+                  corresponding request message has used PageRequest.
+
+                   message SomeResponse {
+                           repeated Bar results = 1;
+                           PageResponse page = 2;
+                   }
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: pagination.key
+          description: |-
+            key is a value returned in PageResponse.next_key to begin
+            querying the next page most efficiently. Only one of offset or key
+            should be set.
+          in: query
+          required: false
+          type: string
+          format: byte
+        - name: pagination.offset
+          description: >-
+            offset is a numeric offset that can be used when key is unavailable.
+
+            It is less efficient than using key. Only one of offset or key
+            should
+
+            be set.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.limit
+          description: >-
+            limit is the total number of results to be returned in the result
+            page.
+
+            If left empty it will default to a value to be set by each app.
+          in: query
+          required: false
+          type: string
+          format: uint64
+        - name: pagination.count_total
+          description: >-
+            count_total is set to true  to indicate that the result set should
+            include
+
+            a count of the total number of items available for pagination in
+            UIs.
+
+            count_total is only respected when offset is used. It is ignored
+            when key
+
+            is set.
+          in: query
+          required: false
+          type: boolean
+        - name: pagination.reverse
+          description: >-
+            reverse is set to true if results are to be returned in the
+            descending order.
+
+
+            Since: cosmos-sdk 0.43
+          in: query
+          required: false
+          type: boolean
+      tags:
+        - Query
+  /greenfield/payment/payment_accounts_by_owner/{owner}:
+    get:
+      summary: Queries all payment accounts by a owner.
+      operationId: PaymentAccountsByOwner
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              paymentAccounts:
+                type: array
+                items:
+                  type: string
         default:
           description: An unexpected error response.
           schema:
@@ -1258,10 +1258,10 @@ paths:
           type: string
       tags:
         - Query
-  /greenfield/payment/stream_record:
+  /greenfield/payment/stream_record/{account}:
     get:
-      summary: Queries a list of StreamRecord items.
-      operationId: StreamRecordAll
+      summary: Queries a stream record by account.
+      operationId: StreamRecord
       responses:
         '200':
           description: A successful response.
@@ -1269,6 +1269,110 @@ paths:
             type: object
             properties:
               stream_record:
+                type: object
+                properties:
+                  account:
+                    type: string
+                    title: account address
+                  crud_timestamp:
+                    type: string
+                    format: int64
+                    title: latest update timestamp of the stream record
+                  netflow_rate:
+                    type: string
+                    description: >-
+                      The per-second rate that an account's balance is changing.
+
+                      It is the sum of the account's inbound and outbound flow
+                      rates.
+                  static_balance:
+                    type: string
+                    description: >-
+                      The balance of the stream account at the latest CRUD
+                      timestamp.
+                  buffer_balance:
+                    type: string
+                    title: >-
+                      reserved balance of the stream account
+
+                      If the netflow rate is negative, the reserved balance is
+                      `netflow_rate * reserve_time`
+                  lock_balance:
+                    type: string
+                    title: >-
+                      the locked balance of the stream account after it puts a
+                      new object and before the object is sealed
+                  status:
+                    title: the status of the stream account
+                    type: string
+                    enum:
+                      - STREAM_ACCOUNT_STATUS_ACTIVE
+                      - STREAM_ACCOUNT_STATUS_FROZEN
+                    default: STREAM_ACCOUNT_STATUS_ACTIVE
+                    description: >-
+                      - STREAM_ACCOUNT_STATUS_ACTIVE:
+                      STREAM_ACCOUNT_STATUS_ACTIVE defines the active status of
+                      a stream account.
+                       - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+                      A frozen stream account cannot be used as payment address
+                      for buckets.
+
+                      It can be unfrozen by depositing more BNB to the stream
+                      account.
+                  settle_timestamp:
+                    type: string
+                    format: int64
+                    title: the unix timestamp when the stream account will be settled
+                  out_flow_count:
+                    type: string
+                    format: uint64
+                    title: the count of its out flows
+                  frozen_netflow_rate:
+                    type: string
+                    title: >-
+                      the frozen netflow rate, which is used when resuming
+                      stream account
+                title: Stream Payment Record of a stream account
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: account
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/payment/stream_records:
+    get:
+      summary: Queries all stream records.
+      operationId: StreamRecords
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              stream_records:
                 type: array
                 items:
                   type: object
@@ -1445,110 +1549,6 @@ paths:
           in: query
           required: false
           type: boolean
-      tags:
-        - Query
-  /greenfield/payment/stream_record/{account}:
-    get:
-      summary: Queries a StreamRecord by index.
-      operationId: StreamRecord
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              stream_record:
-                type: object
-                properties:
-                  account:
-                    type: string
-                    title: account address
-                  crud_timestamp:
-                    type: string
-                    format: int64
-                    title: latest update timestamp of the stream record
-                  netflow_rate:
-                    type: string
-                    description: >-
-                      The per-second rate that an account's balance is changing.
-
-                      It is the sum of the account's inbound and outbound flow
-                      rates.
-                  static_balance:
-                    type: string
-                    description: >-
-                      The balance of the stream account at the latest CRUD
-                      timestamp.
-                  buffer_balance:
-                    type: string
-                    title: >-
-                      reserved balance of the stream account
-
-                      If the netflow rate is negative, the reserved balance is
-                      `netflow_rate * reserve_time`
-                  lock_balance:
-                    type: string
-                    title: >-
-                      the locked balance of the stream account after it puts a
-                      new object and before the object is sealed
-                  status:
-                    title: the status of the stream account
-                    type: string
-                    enum:
-                      - STREAM_ACCOUNT_STATUS_ACTIVE
-                      - STREAM_ACCOUNT_STATUS_FROZEN
-                    default: STREAM_ACCOUNT_STATUS_ACTIVE
-                    description: >-
-                      - STREAM_ACCOUNT_STATUS_ACTIVE:
-                      STREAM_ACCOUNT_STATUS_ACTIVE defines the active status of
-                      a stream account.
-                       - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
-                      A frozen stream account cannot be used as payment address
-                      for buckets.
-
-                      It can be unfrozen by depositing more BNB to the stream
-                      account.
-                  settle_timestamp:
-                    type: string
-                    format: int64
-                    title: the unix timestamp when the stream account will be settled
-                  out_flow_count:
-                    type: string
-                    format: uint64
-                    title: the count of its out flows
-                  frozen_netflow_rate:
-                    type: string
-                    title: >-
-                      the frozen netflow rate, which is used when resuming
-                      stream account
-                title: Stream Payment Record of a stream account
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
-      parameters:
-        - name: account
-          in: path
-          required: true
-          type: string
       tags:
         - Query
   /greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}:
@@ -3609,10 +3609,10 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/storage/list_group/{group_owner}:
+  /greenfield/storage/list_groups/{group_owner}:
     get:
       summary: Queries a list of ListGroup items.
-      operationId: ListGroup
+      operationId: ListGroups
       responses:
         '200':
           description: A successful response.
@@ -5843,10 +5843,6 @@ paths:
                           if (any.is(Foo.class)) {
                             foo = any.unpack(Foo.class);
                           }
-                          // or ...
-                          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                            foo = any.unpack(Foo.getDefaultInstance());
-                          }
 
                       Example 3: Pack and unpack a message in Python.
 
@@ -5884,6 +5880,7 @@ paths:
                       yield type
 
                       name "y.z".
+
 
 
                       JSON
@@ -6047,10 +6044,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -6088,6 +6081,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -6255,10 +6249,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -6296,6 +6286,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -6475,10 +6466,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -6516,6 +6503,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -6723,10 +6711,6 @@ paths:
                       if (any.is(Foo.class)) {
                         foo = any.unpack(Foo.class);
                       }
-                      // or ...
-                      if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                        foo = any.unpack(Foo.getDefaultInstance());
-                      }
 
                   Example 3: Pack and unpack a message in Python.
 
@@ -6764,6 +6748,7 @@ paths:
                   type
 
                   name "y.z".
+
 
 
                   JSON
@@ -6917,10 +6902,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -6958,6 +6939,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -7136,10 +7118,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -7177,6 +7155,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -7352,10 +7331,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -7393,6 +7368,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -7552,10 +7528,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -7593,6 +7565,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -7743,10 +7716,6 @@ paths:
                       if (any.is(Foo.class)) {
                         foo = any.unpack(Foo.class);
                       }
-                      // or ...
-                      if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                        foo = any.unpack(Foo.getDefaultInstance());
-                      }
 
                   Example 3: Pack and unpack a message in Python.
 
@@ -7784,6 +7753,7 @@ paths:
                   type
 
                   name "y.z".
+
 
 
                   JSON
@@ -7937,10 +7907,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -7978,6 +7944,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -8170,10 +8137,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -8211,6 +8174,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -8367,10 +8331,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -8408,6 +8368,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -8602,10 +8563,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -8643,6 +8600,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -8876,10 +8834,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -8917,6 +8871,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -9103,10 +9058,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -9144,6 +9095,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -9366,10 +9318,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -9407,6 +9355,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -9593,10 +9542,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -9634,6 +9579,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -11315,10 +11261,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -11356,6 +11298,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -12648,10 +12591,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -12689,6 +12628,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -13962,10 +13902,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -14003,6 +13939,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -14246,10 +14183,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -14287,6 +14220,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -14457,10 +14391,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -14498,6 +14428,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -14659,10 +14590,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -14700,6 +14627,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -14884,10 +14812,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -14925,6 +14849,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -15143,10 +15068,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -15184,6 +15105,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -15368,10 +15290,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -15409,6 +15327,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -16571,10 +16490,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -16612,6 +16527,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -16790,10 +16706,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -16831,6 +16743,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -17038,10 +16951,6 @@ paths:
                       if (any.is(Foo.class)) {
                         foo = any.unpack(Foo.class);
                       }
-                      // or ...
-                      if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                        foo = any.unpack(Foo.getDefaultInstance());
-                      }
 
                   Example 3: Pack and unpack a message in Python.
 
@@ -17079,6 +16988,7 @@ paths:
                   type
 
                   name "y.z".
+
 
 
                   JSON
@@ -17232,10 +17142,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -17273,6 +17179,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -17545,10 +17452,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -17586,6 +17489,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -17877,10 +17781,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -17918,6 +17818,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -18259,10 +18160,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -18300,6 +18197,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -18913,10 +18811,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -18954,6 +18848,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -19126,10 +19021,6 @@ paths:
                               if (any.is(Foo.class)) {
                                 foo = any.unpack(Foo.class);
                               }
-                              // or ...
-                              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                                foo = any.unpack(Foo.getDefaultInstance());
-                              }
 
                           Example 3: Pack and unpack a message in Python.
 
@@ -19167,6 +19058,7 @@ paths:
                           yield type
 
                           name "y.z".
+
 
 
                           JSON
@@ -19448,10 +19340,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -19489,6 +19377,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -19742,10 +19631,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -19783,6 +19668,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -20041,10 +19927,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -20082,6 +19964,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -20315,10 +20198,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -20356,6 +20235,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -20624,10 +20504,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -20665,6 +20541,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -20865,10 +20742,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -20906,6 +20779,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -21149,10 +21023,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -21190,6 +21060,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -21467,10 +21338,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -21508,6 +21375,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -22355,10 +22223,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -22396,6 +22260,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -22789,10 +22654,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -22830,6 +22691,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -23163,10 +23025,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -23204,6 +23062,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -23434,10 +23293,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -23475,6 +23330,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -23816,10 +23672,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -23857,6 +23709,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -24080,10 +23933,6 @@ paths:
                           if (any.is(Foo.class)) {
                             foo = any.unpack(Foo.class);
                           }
-                          // or ...
-                          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                            foo = any.unpack(Foo.getDefaultInstance());
-                          }
 
                       Example 3: Pack and unpack a message in Python.
 
@@ -24121,6 +23970,7 @@ paths:
                       yield type
 
                       name "y.z".
+
 
 
                       JSON
@@ -24439,10 +24289,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -24480,6 +24326,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -24734,10 +24581,6 @@ paths:
                                 if (any.is(Foo.class)) {
                                   foo = any.unpack(Foo.class);
                                 }
-                                // or ...
-                                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                                  foo = any.unpack(Foo.getDefaultInstance());
-                                }
 
                             Example 3: Pack and unpack a message in Python.
 
@@ -24775,6 +24618,7 @@ paths:
                             will yield type
 
                             name "y.z".
+
 
 
                             JSON
@@ -25099,10 +24943,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -25140,6 +24980,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -25351,10 +25192,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -25392,6 +25229,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -25566,10 +25404,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -25607,6 +25441,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -25773,10 +25608,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -25814,6 +25645,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -26155,10 +25987,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -26196,6 +26024,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -26417,10 +26246,6 @@ paths:
                           if (any.is(Foo.class)) {
                             foo = any.unpack(Foo.class);
                           }
-                          // or ...
-                          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                            foo = any.unpack(Foo.getDefaultInstance());
-                          }
 
                       Example 3: Pack and unpack a message in Python.
 
@@ -26458,6 +26283,7 @@ paths:
                       yield type
 
                       name "y.z".
+
 
 
                       JSON
@@ -26776,10 +26602,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -26817,6 +26639,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -27065,10 +26888,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -27106,6 +26925,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -27384,10 +27204,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -27425,6 +27241,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -27665,10 +27482,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -27706,6 +27519,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -27976,10 +27790,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -28017,6 +27827,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -28244,10 +28055,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -28285,6 +28092,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -28477,10 +28285,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -28518,6 +28322,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -28711,10 +28516,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -28752,6 +28553,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -28935,10 +28737,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -28976,6 +28774,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -29220,10 +29019,6 @@ paths:
                             if (any.is(Foo.class)) {
                               foo = any.unpack(Foo.class);
                             }
-                            // or ...
-                            if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                              foo = any.unpack(Foo.getDefaultInstance());
-                            }
 
                         Example 3: Pack and unpack a message in Python.
 
@@ -29261,6 +29056,7 @@ paths:
                         yield type
 
                         name "y.z".
+
 
 
                         JSON
@@ -29425,10 +29221,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -29466,6 +29258,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -29636,10 +29429,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -29677,6 +29466,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -30009,10 +29799,6 @@ paths:
                           if (any.is(Foo.class)) {
                             foo = any.unpack(Foo.class);
                           }
-                          // or ...
-                          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                            foo = any.unpack(Foo.getDefaultInstance());
-                          }
 
                       Example 3: Pack and unpack a message in Python.
 
@@ -30050,6 +29836,7 @@ paths:
                       yield type
 
                       name "y.z".
+
 
 
                       JSON
@@ -30265,10 +30052,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -30306,6 +30089,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -30507,10 +30291,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -30548,6 +30328,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -30775,10 +30556,6 @@ paths:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -30816,6 +30593,7 @@ paths:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -31220,10 +30998,6 @@ definitions:
           if (any.is(Foo.class)) {
             foo = any.unpack(Foo.class);
           }
-          // or ...
-          if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-            foo = any.unpack(Foo.getDefaultInstance());
-          }
 
       Example 3: Pack and unpack a message in Python.
 
@@ -31257,6 +31031,7 @@ definitions:
       in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
       name "y.z".
+
 
 
       JSON
@@ -31427,10 +31202,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -31464,6 +31235,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -31941,10 +31713,10 @@ definitions:
     title: >-
       PaymentAccountCount defines the state struct which stores the number of
       payment accounts for an account
-  greenfield.payment.QueryAllAutoSettleRecordResponse:
+  greenfield.payment.QueryAutoSettleRecordsResponse:
     type: object
     properties:
-      auto_settle_record:
+      auto_settle_records:
         type: array
         items:
           type: object
@@ -31966,184 +31738,6 @@ definitions:
 
             and settle the stream account if the timestamp is less than the
             current time.
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  greenfield.payment.QueryAllPaymentAccountCountResponse:
-    type: object
-    properties:
-      payment_account_count:
-        type: array
-        items:
-          type: object
-          properties:
-            owner:
-              type: string
-              title: owner is the account address
-            count:
-              type: string
-              format: uint64
-              title: count is the number of payment accounts for the account
-          title: >-
-            PaymentAccountCount defines the state struct which stores the number
-            of payment accounts for an account
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  greenfield.payment.QueryAllPaymentAccountResponse:
-    type: object
-    properties:
-      payment_account:
-        type: array
-        items:
-          type: object
-          properties:
-            addr:
-              type: string
-              title: the address of the payment account
-            owner:
-              type: string
-              title: the owner address of the payment account
-            refundable:
-              type: boolean
-              title: whether the payment account is refundable
-          title: PaymentAccount defines a payment account
-      pagination:
-        type: object
-        properties:
-          next_key:
-            type: string
-            format: byte
-            description: |-
-              next_key is the key to be passed to PageRequest.key to
-              query the next page most efficiently. It will be empty if
-              there are no more results.
-          total:
-            type: string
-            format: uint64
-            title: >-
-              total is total number of results available if
-              PageRequest.count_total
-
-              was set, its value is undefined otherwise
-        description: |-
-          PageResponse is to be embedded in gRPC response messages where the
-          corresponding request message has used PageRequest.
-
-           message SomeResponse {
-                   repeated Bar results = 1;
-                   PageResponse page = 2;
-           }
-  greenfield.payment.QueryAllStreamRecordResponse:
-    type: object
-    properties:
-      stream_record:
-        type: array
-        items:
-          type: object
-          properties:
-            account:
-              type: string
-              title: account address
-            crud_timestamp:
-              type: string
-              format: int64
-              title: latest update timestamp of the stream record
-            netflow_rate:
-              type: string
-              description: |-
-                The per-second rate that an account's balance is changing.
-                It is the sum of the account's inbound and outbound flow rates.
-            static_balance:
-              type: string
-              description: The balance of the stream account at the latest CRUD timestamp.
-            buffer_balance:
-              type: string
-              title: >-
-                reserved balance of the stream account
-
-                If the netflow rate is negative, the reserved balance is
-                `netflow_rate * reserve_time`
-            lock_balance:
-              type: string
-              title: >-
-                the locked balance of the stream account after it puts a new
-                object and before the object is sealed
-            status:
-              title: the status of the stream account
-              type: string
-              enum:
-                - STREAM_ACCOUNT_STATUS_ACTIVE
-                - STREAM_ACCOUNT_STATUS_FROZEN
-              default: STREAM_ACCOUNT_STATUS_ACTIVE
-              description: >-
-                - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE
-                defines the active status of a stream account.
-                 - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
-                A frozen stream account cannot be used as payment address for
-                buckets.
-
-                It can be unfrozen by depositing more BNB to the stream account.
-            settle_timestamp:
-              type: string
-              format: int64
-              title: the unix timestamp when the stream account will be settled
-            out_flow_count:
-              type: string
-              format: uint64
-              title: the count of its out flows
-            frozen_netflow_rate:
-              type: string
-              title: >-
-                the frozen netflow rate, which is used when resuming stream
-                account
-          title: Stream Payment Record of a stream account
       pagination:
         type: object
         properties:
@@ -32253,22 +31847,6 @@ definitions:
       change_rate:
         type: string
         title: change_rate is the netflow rate of the given account
-  greenfield.payment.QueryGetPaymentAccountCountResponse:
-    type: object
-    properties:
-      payment_account_count:
-        type: object
-        properties:
-          owner:
-            type: string
-            title: owner is the account address
-          count:
-            type: string
-            format: uint64
-            title: count is the number of payment accounts for the account
-        title: >-
-          PaymentAccountCount defines the state struct which stores the number
-          of payment accounts for an account
   greenfield.payment.QueryGetPaymentAccountResponse:
     type: object
     properties:
@@ -32285,13 +31863,6 @@ definitions:
             type: boolean
             title: whether the payment account is refundable
         title: PaymentAccount defines a payment account
-  greenfield.payment.QueryGetPaymentAccountsByOwnerResponse:
-    type: object
-    properties:
-      paymentAccounts:
-        type: array
-        items:
-          type: string
   greenfield.payment.QueryGetStreamRecordResponse:
     type: object
     properties:
@@ -32490,6 +32061,207 @@ definitions:
             type: string
             title: The denom of fee charged in payment module
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.payment.QueryPaymentAccountCountResponse:
+    type: object
+    properties:
+      payment_account_count:
+        type: object
+        properties:
+          owner:
+            type: string
+            title: owner is the account address
+          count:
+            type: string
+            format: uint64
+            title: count is the number of payment accounts for the account
+        title: >-
+          PaymentAccountCount defines the state struct which stores the number
+          of payment accounts for an account
+  greenfield.payment.QueryPaymentAccountCountsResponse:
+    type: object
+    properties:
+      payment_account_counts:
+        type: array
+        items:
+          type: object
+          properties:
+            owner:
+              type: string
+              title: owner is the account address
+            count:
+              type: string
+              format: uint64
+              title: count is the number of payment accounts for the account
+          title: >-
+            PaymentAccountCount defines the state struct which stores the number
+            of payment accounts for an account
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  greenfield.payment.QueryPaymentAccountsByOwnerResponse:
+    type: object
+    properties:
+      paymentAccounts:
+        type: array
+        items:
+          type: string
+  greenfield.payment.QueryPaymentAccountsResponse:
+    type: object
+    properties:
+      payment_accounts:
+        type: array
+        items:
+          type: object
+          properties:
+            addr:
+              type: string
+              title: the address of the payment account
+            owner:
+              type: string
+              title: the owner address of the payment account
+            refundable:
+              type: boolean
+              title: whether the payment account is refundable
+          title: PaymentAccount defines a payment account
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
+  greenfield.payment.QueryStreamRecordsResponse:
+    type: object
+    properties:
+      stream_records:
+        type: array
+        items:
+          type: object
+          properties:
+            account:
+              type: string
+              title: account address
+            crud_timestamp:
+              type: string
+              format: int64
+              title: latest update timestamp of the stream record
+            netflow_rate:
+              type: string
+              description: |-
+                The per-second rate that an account's balance is changing.
+                It is the sum of the account's inbound and outbound flow rates.
+            static_balance:
+              type: string
+              description: The balance of the stream account at the latest CRUD timestamp.
+            buffer_balance:
+              type: string
+              title: >-
+                reserved balance of the stream account
+
+                If the netflow rate is negative, the reserved balance is
+                `netflow_rate * reserve_time`
+            lock_balance:
+              type: string
+              title: >-
+                the locked balance of the stream account after it puts a new
+                object and before the object is sealed
+            status:
+              title: the status of the stream account
+              type: string
+              enum:
+                - STREAM_ACCOUNT_STATUS_ACTIVE
+                - STREAM_ACCOUNT_STATUS_FROZEN
+              default: STREAM_ACCOUNT_STATUS_ACTIVE
+              description: >-
+                - STREAM_ACCOUNT_STATUS_ACTIVE: STREAM_ACCOUNT_STATUS_ACTIVE
+                defines the active status of a stream account.
+                 - STREAM_ACCOUNT_STATUS_FROZEN: STREAM_ACCOUNT_STATUS_FROZEN defines the frozen status of a stream account.
+                A frozen stream account cannot be used as payment address for
+                buckets.
+
+                It can be unfrozen by depositing more BNB to the stream account.
+            settle_timestamp:
+              type: string
+              format: int64
+              title: the unix timestamp when the stream account will be settled
+            out_flow_count:
+              type: string
+              format: uint64
+              title: the count of its out flows
+            frozen_netflow_rate:
+              type: string
+              title: >-
+                the frozen netflow rate, which is used when resuming stream
+                account
+          title: Stream Payment Record of a stream account
+      pagination:
+        type: object
+        properties:
+          next_key:
+            type: string
+            format: byte
+            description: |-
+              next_key is the key to be passed to PageRequest.key to
+              query the next page most efficiently. It will be empty if
+              there are no more results.
+          total:
+            type: string
+            format: uint64
+            title: >-
+              total is total number of results available if
+              PageRequest.count_total
+
+              was set, its value is undefined otherwise
+        description: |-
+          PageResponse is to be embedded in gRPC response messages where the
+          corresponding request message has used PageRequest.
+
+           message SomeResponse {
+                   repeated Bar results = 1;
+                   PageResponse page = 2;
+           }
   greenfield.payment.StreamAccountStatus:
     type: string
     enum:
@@ -34367,7 +34139,7 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
-  greenfield.storage.QueryListGroupResponse:
+  greenfield.storage.QueryListGroupsResponse:
     type: object
     properties:
       pagination:
@@ -35757,10 +35529,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -35794,6 +35562,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -35976,10 +35745,6 @@ definitions:
                   if (any.is(Foo.class)) {
                     foo = any.unpack(Foo.class);
                   }
-                  // or ...
-                  if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                    foo = any.unpack(Foo.getDefaultInstance());
-                  }
 
               Example 3: Pack and unpack a message in Python.
 
@@ -36014,6 +35779,7 @@ definitions:
               in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
               name "y.z".
+
 
 
               JSON
@@ -36155,10 +35921,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -36192,6 +35954,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -36330,10 +36093,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -36367,6 +36126,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -36523,10 +36283,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -36560,6 +36316,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -36698,10 +36455,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -36735,6 +36488,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -36894,10 +36648,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -36931,6 +36681,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -37078,10 +36829,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -37115,6 +36862,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -37268,10 +37016,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -37308,6 +37052,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -37485,10 +37230,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -37525,6 +37266,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -37698,10 +37440,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -37738,6 +37476,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -41436,10 +41175,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -41476,6 +41211,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -41735,10 +41471,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -41775,6 +41507,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -42091,10 +41824,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -42128,6 +41857,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -45114,10 +44844,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -45151,6 +44877,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -45306,10 +45033,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -45343,6 +45066,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -46168,10 +45892,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -46205,6 +45925,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -46692,10 +46413,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -46732,6 +46449,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -46974,10 +46692,6 @@ definitions:
                       if (any.is(Foo.class)) {
                         foo = any.unpack(Foo.class);
                       }
-                      // or ...
-                      if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                        foo = any.unpack(Foo.getDefaultInstance());
-                      }
 
                   Example 3: Pack and unpack a message in Python.
 
@@ -47015,6 +46729,7 @@ definitions:
                   type
 
                   name "y.z".
+
 
 
                   JSON
@@ -48109,10 +47824,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -48149,6 +47860,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -48710,10 +48422,6 @@ definitions:
                   if (any.is(Foo.class)) {
                     foo = any.unpack(Foo.class);
                   }
-                  // or ...
-                  if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                    foo = any.unpack(Foo.getDefaultInstance());
-                  }
 
               Example 3: Pack and unpack a message in Python.
 
@@ -48748,6 +48456,7 @@ definitions:
               in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
               name "y.z".
+
 
 
               JSON
@@ -49048,10 +48757,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -49088,6 +48793,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -49492,10 +49198,6 @@ definitions:
                         if (any.is(Foo.class)) {
                           foo = any.unpack(Foo.class);
                         }
-                        // or ...
-                        if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                          foo = any.unpack(Foo.getDefaultInstance());
-                        }
 
                     Example 3: Pack and unpack a message in Python.
 
@@ -49533,6 +49235,7 @@ definitions:
                     type
 
                     name "y.z".
+
 
 
                     JSON
@@ -50177,10 +49880,6 @@ definitions:
                   if (any.is(Foo.class)) {
                     foo = any.unpack(Foo.class);
                   }
-                  // or ...
-                  if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                    foo = any.unpack(Foo.getDefaultInstance());
-                  }
 
               Example 3: Pack and unpack a message in Python.
 
@@ -50215,6 +49914,7 @@ definitions:
               in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
               name "y.z".
+
 
 
               JSON
@@ -50595,10 +50295,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -50635,6 +50331,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -51291,10 +50988,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -51328,6 +51021,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -51724,10 +51418,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -51761,6 +51451,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -51996,10 +51687,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -52033,6 +51720,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -52535,10 +52223,6 @@ definitions:
                   if (any.is(Foo.class)) {
                     foo = any.unpack(Foo.class);
                   }
-                  // or ...
-                  if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                    foo = any.unpack(Foo.getDefaultInstance());
-                  }
 
               Example 3: Pack and unpack a message in Python.
 
@@ -52573,6 +52257,7 @@ definitions:
               in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
               name "y.z".
+
 
 
               JSON
@@ -53487,10 +53172,6 @@ definitions:
                   if (any.is(Foo.class)) {
                     foo = any.unpack(Foo.class);
                   }
-                  // or ...
-                  if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                    foo = any.unpack(Foo.getDefaultInstance());
-                  }
 
               Example 3: Pack and unpack a message in Python.
 
@@ -53525,6 +53206,7 @@ definitions:
               in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
               name "y.z".
+
 
 
               JSON
@@ -53811,10 +53493,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -53851,6 +53529,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -54270,10 +53949,6 @@ definitions:
               if (any.is(Foo.class)) {
                 foo = any.unpack(Foo.class);
               }
-              // or ...
-              if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                foo = any.unpack(Foo.getDefaultInstance());
-              }
 
           Example 3: Pack and unpack a message in Python.
 
@@ -54307,6 +53982,7 @@ definitions:
           in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
           name "y.z".
+
 
 
           JSON
@@ -54555,10 +54231,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -54595,6 +54267,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -54772,10 +54445,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -54812,6 +54481,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -54983,10 +54653,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -55023,6 +54689,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -55167,10 +54834,6 @@ definitions:
                     if (any.is(Foo.class)) {
                       foo = any.unpack(Foo.class);
                     }
-                    // or ...
-                    if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                      foo = any.unpack(Foo.getDefaultInstance());
-                    }
 
                 Example 3: Pack and unpack a message in Python.
 
@@ -55207,6 +54870,7 @@ definitions:
                 in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
                 name "y.z".
+
 
 
                 JSON
@@ -55371,10 +55035,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -55408,6 +55068,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -55572,10 +55233,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -55609,6 +55266,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON
@@ -55748,10 +55406,6 @@ definitions:
                 if (any.is(Foo.class)) {
                   foo = any.unpack(Foo.class);
                 }
-                // or ...
-                if (any.isSameTypeAs(Foo.getDefaultInstance())) {
-                  foo = any.unpack(Foo.getDefaultInstance());
-                }
 
             Example 3: Pack and unpack a message in Python.
 
@@ -55785,6 +55439,7 @@ definitions:
             in the type URL, for example "foo.bar.com/x/y.z" will yield type
 
             name "y.z".
+
 
 
             JSON

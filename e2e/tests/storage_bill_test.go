@@ -2107,10 +2107,10 @@ func (s *PaymentTestSuite) CreatePaymentAccount(user keys.KeyManager, amount, de
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
 	// query user's payment accounts
-	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryGetPaymentAccountsByOwnerRequest{
+	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryPaymentAccountsByOwnerRequest{
 		Owner: user.GetAddr().String(),
 	}
-	paymentAccounts, err := s.Client.GetPaymentAccountsByOwner(ctx, &queryGetPaymentAccountsByOwnerRequest)
+	paymentAccounts, err := s.Client.PaymentAccountsByOwner(ctx, &queryGetPaymentAccountsByOwnerRequest)
 	s.Require().NoError(err)
 	s.T().Log(paymentAccounts)
 	paymentAccountAddr := paymentAccounts.PaymentAccounts[len(paymentAccounts.PaymentAccounts)-1]

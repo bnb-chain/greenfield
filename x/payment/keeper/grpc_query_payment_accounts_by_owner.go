@@ -10,7 +10,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
-func (k Keeper) GetPaymentAccountsByOwner(goCtx context.Context, req *types.QueryGetPaymentAccountsByOwnerRequest) (*types.QueryGetPaymentAccountsByOwnerResponse, error) {
+func (k Keeper) PaymentAccountsByOwner(goCtx context.Context, req *types.QueryPaymentAccountsByOwnerRequest) (*types.QueryPaymentAccountsByOwnerResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -33,7 +33,7 @@ func (k Keeper) GetPaymentAccountsByOwner(goCtx context.Context, req *types.Quer
 		paymentAccounts = append(paymentAccounts, paymentAccount.String())
 	}
 
-	return &types.QueryGetPaymentAccountsByOwnerResponse{
+	return &types.QueryPaymentAccountsByOwnerResponse{
 		PaymentAccounts: paymentAccounts,
 	}, nil
 }

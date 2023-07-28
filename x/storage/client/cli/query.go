@@ -264,11 +264,11 @@ func CmdListGroup() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryListGroupRequest{
+			params := &types.QueryListGroupsRequest{
 				GroupOwner: reqGroupOwner,
 			}
 
-			res, err := queryClient.ListGroup(cmd.Context(), params)
+			res, err := queryClient.ListGroups(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
