@@ -17,10 +17,10 @@ import (
 	"github.com/bnb-chain/greenfield/app"
 	"github.com/bnb-chain/greenfield/app/params"
 	"github.com/bnb-chain/greenfield/sdk/client/test"
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/bridge/client/cli"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/testutil"
-	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
 type CLITestSuite struct {

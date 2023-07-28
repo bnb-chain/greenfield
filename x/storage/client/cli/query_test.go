@@ -6,10 +6,10 @@ import (
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/storage/client/cli"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
 func (s *CLITestSuite) TestQueryCmd() {
