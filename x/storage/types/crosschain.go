@@ -381,6 +381,24 @@ var (
 	}
 )
 
+func (p CreateBucketSynPackage) MustSerialize() []byte {
+	encodedBytes, err := createBucketSynPackageStructArgs.Pack(&CreateBucketSynPackageStruct{
+		Creator:                        common.BytesToAddress(p.Creator),
+		BucketName:                     p.BucketName,
+		Visibility:                     p.Visibility,
+		PaymentAddress:                 common.BytesToAddress(p.PaymentAddress),
+		PrimarySpAddress:               common.BytesToAddress(p.PrimarySpAddress),
+		PrimarySpApprovalExpiredHeight: p.PrimarySpApprovalExpiredHeight,
+		PrimarySpApprovalSignature:     p.PrimarySpApprovalSignature,
+		ChargedReadQuota:               p.ChargedReadQuota,
+		ExtraData:                      p.ExtraData,
+	})
+	if err != nil {
+		panic("encode create bucket syn package error")
+	}
+	return encodedBytes
+}
+
 func (p CreateBucketSynPackage) ValidateBasic() error {
 	msg := MsgCreateBucket{
 		Creator:          p.Creator.String(),
