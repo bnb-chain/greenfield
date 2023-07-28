@@ -48,7 +48,7 @@ docker-image:
 	go mod vendor # temporary, should be removed after open source
 	docker build . -t ${IMAGE_NAME}
 
-test:
+unit_test:
 	go test -failfast $$(go list ./... | grep -v e2e | grep -v sdk)
 
 e2e_init_localchain: build
@@ -56,12 +56,15 @@ e2e_init_localchain: build
 	bash ./deployment/localup/localup.sh generate 1 7
 
 e2e_test: e2e_init_localchain
-	go test -p 1 -failfast -v ./e2e/... -coverpkg=./... -covermode=atomic -coverprofile=./coverage.out -timeout 99999s
+	go test -p 1 -failfast -v ./e2e/... -timeout 99999s
+
+test: e2e_init_localchain
+	go test -p 1 -failfast -v $$(go list ./... | grep -v sdk) -coverpkg=./... -covermode=atomic -coverprofile=./coverage.out -timeout 99999s
 
 install-go-test-coverage:
 	@go install github.com/vladopajic/go-test-coverage/v2@latest
 
-check-e2e-coverage: install-go-test-coverage
+check-coverage: install-go-test-coverage
 	@go-test-coverage --config=./.testcoverage.yml || true
 
 lint:

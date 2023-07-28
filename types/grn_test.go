@@ -17,7 +17,7 @@ func TestGRNBasic(t *testing.T) {
 	var grn types3.GRN
 	testBucketName := storageutils.GenRandomBucketName()
 	testObjectName := storageutils.GenRandomObjectName()
-	testAcc := sample.AccAddress()
+	testAcc := sample.RandAccAddressHex()
 	testGroupName := storageutils.GenRandomGroupName()
 
 	err := grn.ParseFromString("grn:b::"+testBucketName, false)

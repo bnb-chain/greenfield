@@ -8,9 +8,12 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
+	sdkClient "github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
@@ -23,6 +26,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	gnfdtypes "github.com/bnb-chain/greenfield/sdk/types"
 	types2 "github.com/bnb-chain/greenfield/sdk/types"
+	"github.com/bnb-chain/greenfield/x/bridge/client/cli"
 	bridgetypes "github.com/bnb-chain/greenfield/x/bridge/types"
 )
 
@@ -35,6 +39,44 @@ func (s *BridgeTestSuite) SetupSuite() {
 }
 
 func (s *BridgeTestSuite) SetupTest() {}
+
+func (s *BridgeTestSuite) TestCliQuery() {
+	ctx := context.Background()
+	cliCtx := &sdkClient.Context{Client: s.TmClient.TmClient, Codec: s.Client.GetCodec()}
+	ctx = context.WithValue(ctx, sdkClient.ClientContextKey, cliCtx)
+	queryCmd := cli.GetQueryCmd()
+
+	// query params
+	queryCmd.SetArgs([]string{"params"})
+	s.Require().NoError(queryCmd.ExecuteContext(ctx))
+}
+
+func (s *BridgeTestSuite) TestCliTx() {
+	ctx := context.Background()
+	txCfg := authtx.NewTxConfig(s.Client.GetCodec(), []signing.SignMode{signing.SignMode_SIGN_MODE_EIP_712})
+	cliCtx := &sdkClient.Context{
+		FromAddress:       s.Validator.GetAddr(),
+		Client:            s.TmClient.TmClient,
+		InterfaceRegistry: s.Client.GetCodec().InterfaceRegistry(),
+		Codec:             s.Client.GetCodec(),
+		From:              s.Validator.String(),
+		AccountRetriever:  authtypes.AccountRetriever{},
+		ChainID:           s.Config.ChainId,
+		TxConfig:          txCfg,
+		SkipConfirm:       true,
+		Simulate:          true,
+	}
+	ctx = context.WithValue(ctx, sdkClient.ClientContextKey, cliCtx)
+	txCmd := cli.GetTxCmd()
+
+	// wrong to address
+	txCmd.SetArgs([]string{"transfer-out", "test", "1000000000000000000BNB"})
+	s.Require().Contains(txCmd.ExecuteContext(ctx).Error(), "invalid address hex length")
+
+	// tx transfer-out
+	txCmd.SetArgs([]string{"transfer-out", sdk.AccAddress("test").String(), "1000000000000000000BNB"})
+	s.Require().NoError(txCmd.ExecuteContext(ctx))
+}
 
 func (s *BridgeTestSuite) TestTransferOut() {
 	users := s.GenAndChargeAccounts(2, 1000000)

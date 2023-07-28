@@ -2,11 +2,9 @@ package keeper
 
 import (
 	"encoding/hex"
-	"math/big"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	crosschaintypes "github.com/cosmos/cosmos-sdk/x/crosschain/types"
 
 	"github.com/bnb-chain/greenfield/x/bridge/types"
@@ -38,17 +36,6 @@ func NewTransferOutApp(keeper Keeper) *TransferOutApp {
 	}
 }
 
-func (app *TransferOutApp) CheckPackage(refundPackage *types.TransferOutRefundPackage) error {
-	if refundPackage.RefundAddr.Empty() {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "refund address is empty")
-	}
-
-	if refundPackage.RefundAmount.Cmp(big.NewInt(0)) < 0 {
-		return errors.Wrapf(types.ErrInvalidAmount, "amount to refund should not be negative")
-	}
-	return nil
-}
-
 func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	if len(payload) == 0 {
 		return sdk.ExecuteResult{}
@@ -58,22 +45,14 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossC
 
 	refundPackage, err := types.DeserializeTransferOutRefundPackage(payload)
 	if err != nil {
-		app.bridgeKeeper.Logger(ctx).Error("unmarshal transfer out refund claim error", "err", err.Error(), "claim", hex.EncodeToString(payload))
-		return sdk.ExecuteResult{
-			Err: err,
-		}
-	}
-
-	err = app.CheckPackage(refundPackage)
-	if err != nil {
-		app.bridgeKeeper.Logger(ctx).Error("check transfer out refund package error", "err", err.Error(), "claim", hex.EncodeToString(payload))
+		app.bridgeKeeper.Logger(ctx).Error("decode transfer out refund claim error", "err", err.Error(), "claim", hex.EncodeToString(payload))
 		return sdk.ExecuteResult{
 			Err: err,
 		}
 	}
 
 	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx) // only support native token so far
-	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, refundPackage.RefundAddr,
+	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, refundPackage.RefundAddress,
 		sdk.Coins{
 			sdk.Coin{
 				Denom:  denom,
@@ -89,7 +68,7 @@ func (app *TransferOutApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossC
 	}
 
 	err = ctx.EventManager().EmitTypedEvent(&types.EventCrossTransferOutRefund{
-		RefundAddress: refundPackage.RefundAddr.String(),
+		RefundAddress: refundPackage.RefundAddress.String(),
 		Amount: &sdk.Coin{
 			Denom:  denom,
 			Amount: sdk.NewIntFromBigInt(refundPackage.RefundAmount),
@@ -113,12 +92,6 @@ func (app *TransferOutApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 	if err != nil {
 		return sdk.ExecuteResult{
 			Err: err,
-		}
-	}
-
-	if transferOutPackage.Amount.Cmp(big.NewInt(0)) < 0 {
-		return sdk.ExecuteResult{
-			Err: errors.Wrapf(types.ErrInvalidAmount, "amount to refund should not be negative"),
 		}
 	}
 
@@ -173,22 +146,6 @@ func NewTransferInApp(bridgeKeeper Keeper) *TransferInApp {
 	}
 }
 
-func (app *TransferInApp) CheckTransferInSynPackage(transferInPackage *types.TransferInSynPackage) error {
-	if transferInPackage.Amount.Cmp(big.NewInt(0)) < 0 {
-		return errors.Wrapf(types.ErrInvalidAmount, "amount should not be negative")
-	}
-
-	if transferInPackage.ReceiverAddress.Empty() {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "receiver address should not be empty")
-	}
-
-	if transferInPackage.RefundAddress.Empty() {
-		return errors.Wrapf(types.ErrInvalidAddress, "refund address should not be empty")
-	}
-
-	return nil
-}
-
 func (app *TransferInApp) ExecuteAckPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	app.bridgeKeeper.Logger(ctx).Error("received transfer in ack package", "payload", hex.EncodeToString(payload))
 	return sdk.ExecuteResult{}
@@ -202,14 +159,8 @@ func (app *TransferInApp) ExecuteFailAckPackage(ctx sdk.Context, header *sdk.Cro
 func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
 	transferInPackage, err := types.DeserializeTransferInSynPackage(payload)
 	if err != nil {
-		app.bridgeKeeper.Logger(ctx).Error("unmarshal transfer in claim error", "err", err.Error(), "claim", string(payload))
-		panic("unmarshal transfer in claim error")
-	}
-
-	err = app.CheckTransferInSynPackage(transferInPackage)
-	if err != nil {
-		app.bridgeKeeper.Logger(ctx).Error("check transfer in package error", "err", err.Error(), "claim", string(payload))
-		panic(err)
+		app.bridgeKeeper.Logger(ctx).Error("decode transfer in claim error", "err", err.Error(), "claim", string(payload))
+		panic("decode transfer in claim error")
 	}
 
 	denom := app.bridgeKeeper.stakingKeeper.BondDenom(ctx)
@@ -218,14 +169,14 @@ func (app *TransferInApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 	err = app.bridgeKeeper.bankKeeper.SendCoinsFromModuleToAccount(ctx, crosschaintypes.ModuleName, transferInPackage.ReceiverAddress, sdk.Coins{amount})
 	if err != nil {
 		app.bridgeKeeper.Logger(ctx).Error("send coins error", "err", err.Error())
-		refundPackage, err := app.bridgeKeeper.GetRefundTransferInPayload(transferInPackage, uint32(types.REFUND_REASON_INSUFFICIENT_BALANCE))
-		if err != nil {
-			app.bridgeKeeper.Logger(ctx).Error("get refund transfer in payload error", "err", err.Error())
-			panic(err)
+		refundPackage, refundErr := app.bridgeKeeper.GetRefundTransferInPayload(transferInPackage, uint32(types.REFUND_REASON_INSUFFICIENT_BALANCE))
+		if refundErr != nil {
+			app.bridgeKeeper.Logger(ctx).Error("get refund transfer in payload error", "err", refundErr.Error())
+			panic(refundErr)
 		}
 		return sdk.ExecuteResult{
 			Payload: refundPackage,
-			Err:     errors.Wrapf(types.ErrInvalidLength, "balance of cross chain module is insufficient"),
+			Err:     errors.Wrapf(types.ErrInvalidPackage, "send coins error: %s", err.Error()),
 		}
 	}
 

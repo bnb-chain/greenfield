@@ -16,7 +16,7 @@ import (
 
 // avoid unused import issue
 var (
-	_ = sample.AccAddress
+	_ = sample.RandAccAddressHex
 	_ = challengesimulation.FindAccount
 	_ = simulation.MsgEntryKind
 	_ = baseapp.Paramspace

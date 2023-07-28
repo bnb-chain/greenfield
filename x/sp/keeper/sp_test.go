@@ -17,7 +17,7 @@ func (s *KeeperTestSuite) TestSetGetStorageProvider() {
 	keeper := s.spKeeper
 	ctx := s.ctx
 	sp := &types.StorageProvider{Id: 100}
-	spAccStr := sample.AccAddress()
+	spAccStr := sample.RandAccAddressHex()
 	spAcc := sdk.MustAccAddressFromHex(spAccStr)
 	sp.OperatorAddress = spAcc.String()
 
@@ -34,16 +34,16 @@ func (s *KeeperTestSuite) TestSetGetStorageProvider() {
 func (s *KeeperTestSuite) TestStorageProviderBasics() {
 	k := s.spKeeper
 	ctx := s.ctx
-	spAccStr := sample.AccAddress()
+	spAccStr := sample.RandAccAddressHex()
 	spAcc := sdk.MustAccAddressFromHex(spAccStr)
 
-	fundingAccStr := sample.AccAddress()
+	fundingAccStr := sample.RandAccAddressHex()
 	fundingAcc := sdk.MustAccAddressFromHex(fundingAccStr)
 
-	sealAccStr := sample.AccAddress()
+	sealAccStr := sample.RandAccAddressHex()
 	sealAcc := sdk.MustAccAddressFromHex(sealAccStr)
 
-	approvalAccStr := sample.AccAddress()
+	approvalAccStr := sample.RandAccAddressHex()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
 	blsPubKey := sample.RandBlsPubKey()
@@ -98,16 +98,16 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 
 	k := s.spKeeper
 	ctx := s.ctx
-	spAccStr := sample.AccAddress()
+	spAccStr := sample.RandAccAddressHex()
 	spAcc := sdk.MustAccAddressFromHex(spAccStr)
 
-	fundingAccStr := sample.AccAddress()
+	fundingAccStr := sample.RandAccAddressHex()
 	fundingAcc := sdk.MustAccAddressFromHex(fundingAccStr)
 
-	sealAccStr := sample.AccAddress()
+	sealAccStr := sample.RandAccAddressHex()
 	sealAcc := sdk.MustAccAddressFromHex(sealAccStr)
 
-	approvalAccStr := sample.AccAddress()
+	approvalAccStr := sample.RandAccAddressHex()
 	approvalAcc := sdk.MustAccAddressFromHex(approvalAccStr)
 
 	blsPubKey := sample.RandBlsPubKey()
@@ -130,7 +130,7 @@ func (s *KeeperTestSuite) TestSlashBasic() {
 	require.EqualValues(s.T(), found, true)
 
 	rewardInfo := types.RewardInfo{
-		Address: sample.AccAddress(),
+		Address: sample.RandAccAddressHex(),
 		Amount:  sdk.NewCoin(types2.Denom, math.NewIntWithDecimal(10, types2.DecimalBNB)),
 	}
 

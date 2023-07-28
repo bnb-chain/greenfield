@@ -26,7 +26,7 @@ func TestMsgMigrateBucket_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid address",
 			msg: MsgMigrateBucket{
-				Operator:             sample.AccAddress(),
+				Operator:             sample.RandAccAddressHex(),
 				BucketName:           "bucketname",
 				DstPrimarySpId:       1,
 				DstPrimarySpApproval: &common.Approval{ExpiredHeight: 10, Sig: []byte("XXXTentacion")},

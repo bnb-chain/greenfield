@@ -5,20 +5,28 @@ import (
 	"encoding/hex"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 )
 
-// AccAddress returns a sample account address
-func AccAddress() string {
-	pk := ed25519.GenPrivKey().PubKey()
-	addr := pk.Address()
-	return sdk.AccAddress(addr).String()
+func RandAccAddress() sdk.AccAddress {
+	pk, err := ethsecp256k1.GenPrivKey()
+	if err != nil {
+		panic(err)
+	}
+	return sdk.AccAddress(pk.PubKey().Address())
 }
 
-func RandSignBytes() (addr sdk.AccAddress, signBytes []byte, sig []byte) {
+func RandAccAddressHex() string {
+	pk, err := ethsecp256k1.GenPrivKey()
+	if err != nil {
+		panic(err)
+	}
+	return sdk.AccAddress(pk.PubKey().Address()).String()
+}
+
+func RandSignBytes() (addr sdk.AccAddress, signBytes, sig []byte) {
 	signBytes = RandStr(256)
 	privKey, _ := ethsecp256k1.GenPrivKey()
 
@@ -26,12 +34,6 @@ func RandSignBytes() (addr sdk.AccAddress, signBytes []byte, sig []byte) {
 	pk := privKey.PubKey()
 	addr = sdk.AccAddress(pk.Address())
 	return addr, signBytes, sig
-}
-
-func RandAccAddress() sdk.AccAddress {
-	pk := ed25519.GenPrivKey().PubKey()
-	addr := pk.Address()
-	return sdk.AccAddress(addr)
 }
 
 func Checksum() []byte {

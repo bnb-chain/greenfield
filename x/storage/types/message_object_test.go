@@ -23,7 +23,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgCreateObject{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        testBucketName,
 				ObjectName:        testObjectName,
 				PayloadSize:       1024,
@@ -35,7 +35,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        testBucketName,
 				ObjectName:        "",
 				PayloadSize:       1024,
@@ -48,7 +48,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        testBucketName,
 				ObjectName:        "../object",
 				PayloadSize:       1024,
@@ -61,7 +61,7 @@ func TestMsgCreateObject_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid object name",
 			msg: MsgCreateObject{
-				Creator:           sample.AccAddress(),
+				Creator:           sample.RandAccAddressHex(),
 				BucketName:        testBucketName,
 				ObjectName:        "//object",
 				PayloadSize:       1024,
@@ -94,7 +94,7 @@ func TestMsgCancelCreateObject_ValidateBasic(t *testing.T) {
 		{
 			name: "basic",
 			msg: MsgCancelCreateObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: testObjectName,
 			},
@@ -121,7 +121,7 @@ func TestMsgDeleteObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgDeleteObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: testObjectName,
 			},
@@ -148,7 +148,7 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		{
 			name: "valid address",
 			msg: MsgCopyObject{
-				Operator:      sample.AccAddress(),
+				Operator:      sample.RandAccAddressHex(),
 				SrcBucketName: testBucketName,
 				SrcObjectName: testObjectName,
 				DstBucketName: "dst" + testBucketName,
@@ -177,7 +177,7 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		{
 			name: "empty approval",
 			msg: MsgCopyObject{
-				Operator:             sample.AccAddress(),
+				Operator:             sample.RandAccAddressHex(),
 				SrcBucketName:        testBucketName,
 				SrcObjectName:        testObjectName,
 				DstBucketName:        "dst" + testBucketName,
@@ -189,7 +189,7 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid src bucket name",
 			msg: MsgCopyObject{
-				Operator:      sample.AccAddress(),
+				Operator:      sample.RandAccAddressHex(),
 				SrcBucketName: "1.1.1.1",
 				SrcObjectName: testObjectName,
 				DstBucketName: "dst" + testBucketName,
@@ -204,7 +204,7 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid src object name",
 			msg: MsgCopyObject{
-				Operator:      sample.AccAddress(),
+				Operator:      sample.RandAccAddressHex(),
 				SrcBucketName: testBucketName,
 				SrcObjectName: "",
 				DstBucketName: "dst" + testBucketName,
@@ -219,7 +219,7 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid dest bucket name",
 			msg: MsgCopyObject{
-				Operator:      sample.AccAddress(),
+				Operator:      sample.RandAccAddressHex(),
 				SrcBucketName: testBucketName,
 				SrcObjectName: testObjectName,
 				DstBucketName: "1.1.1.1",
@@ -234,7 +234,7 @@ func TestMsgCopyObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid dest object name",
 			msg: MsgCopyObject{
-				Operator:      sample.AccAddress(),
+				Operator:      sample.RandAccAddressHex(),
 				SrcBucketName: testBucketName,
 				SrcObjectName: testObjectName,
 				DstBucketName: "dst" + testBucketName,
@@ -272,7 +272,7 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgSealObject{
-				Operator:                    sample.AccAddress(),
+				Operator:                    sample.RandAccAddressHex(),
 				BucketName:                  testBucketName,
 				ObjectName:                  testObjectName,
 				SecondarySpBlsAggSignatures: aggSig,
@@ -291,7 +291,7 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid bucket name",
 			msg: MsgSealObject{
-				Operator:                    sample.AccAddress(),
+				Operator:                    sample.RandAccAddressHex(),
 				BucketName:                  "1.1.1.1",
 				ObjectName:                  testObjectName,
 				SecondarySpBlsAggSignatures: aggSig,
@@ -301,7 +301,7 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid object name",
 			msg: MsgSealObject{
-				Operator:                    sample.AccAddress(),
+				Operator:                    sample.RandAccAddressHex(),
 				BucketName:                  testBucketName,
 				ObjectName:                  "",
 				SecondarySpBlsAggSignatures: aggSig,
@@ -311,7 +311,7 @@ func TestMsgSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid signature",
 			msg: MsgSealObject{
-				Operator:                    sample.AccAddress(),
+				Operator:                    sample.RandAccAddressHex(),
 				BucketName:                  testBucketName,
 				ObjectName:                  testObjectName,
 				SecondarySpBlsAggSignatures: []byte("invalid signature"),
@@ -340,7 +340,7 @@ func TestMsgRejectSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgRejectSealObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: testObjectName,
 			},
@@ -357,7 +357,7 @@ func TestMsgRejectSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid bucket name",
 			msg: MsgRejectSealObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: "1.1.1.1",
 				ObjectName: testObjectName,
 			},
@@ -366,7 +366,7 @@ func TestMsgRejectSealObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid object name",
 			msg: MsgRejectSealObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: "",
 			},
@@ -394,7 +394,7 @@ func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgUpdateObjectInfo{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: testObjectName,
 				Visibility: VISIBILITY_TYPE_INHERIT,
@@ -413,7 +413,7 @@ func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid bucket name",
 			msg: MsgUpdateObjectInfo{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: "1.1.1.1",
 				ObjectName: testObjectName,
 				Visibility: VISIBILITY_TYPE_INHERIT,
@@ -423,7 +423,7 @@ func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid bucket name",
 			msg: MsgUpdateObjectInfo{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: "",
 				Visibility: VISIBILITY_TYPE_INHERIT,
@@ -433,7 +433,7 @@ func TestMsgUpdateObjectInfo_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid visibility",
 			msg: MsgUpdateObjectInfo{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectName: testObjectName,
 				Visibility: VISIBILITY_TYPE_UNSPECIFIED,
@@ -462,7 +462,7 @@ func TestMsgMirrorObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgMirrorObject{
-				Operator: sample.AccAddress(),
+				Operator: sample.RandAccAddressHex(),
 				Id:       math.NewUint(1),
 			},
 		},
@@ -497,7 +497,7 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgDiscontinueObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectIds:  []Uint{math.NewUint(1)},
 				Reason:     "valid reason",
@@ -516,7 +516,7 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid bucket name",
 			msg: MsgDiscontinueObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: "1.11.1.1",
 				ObjectIds:  []Uint{math.NewUint(1)},
 				Reason:     "valid reason",
@@ -526,7 +526,7 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid object ids",
 			msg: MsgDiscontinueObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectIds:  nil,
 				Reason:     "valid reason",
@@ -536,7 +536,7 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid object ids",
 			msg: MsgDiscontinueObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectIds:  invalidObjectIds[:],
 				Reason:     "valid reason",
@@ -546,7 +546,7 @@ func TestMsgDiscontinueObject_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid reason",
 			msg: MsgDiscontinueObject{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 				ObjectIds:  []Uint{math.NewUint(1)},
 				Reason:     strings.Repeat("s", MaxDiscontinueReasonLen+1),

@@ -25,16 +25,16 @@ func TestMsgAttest_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid vote result",
 			msg: MsgAttest{
-				Submitter:         sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Submitter:         sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				VoteResult:        100,
 			},
 			err: ErrInvalidVoteResult,
 		}, {
 			name: "invalid vote result",
 			msg: MsgAttest{
-				Submitter:         sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Submitter:         sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				VoteResult:        CHALLENGE_SUCCEED,
 				VoteValidatorSet:  make([]uint64, 0),
 			},
@@ -42,8 +42,8 @@ func TestMsgAttest_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid vote aggregated signature",
 			msg: MsgAttest{
-				Submitter:         sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Submitter:         sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				VoteResult:        CHALLENGE_SUCCEED,
 				VoteValidatorSet:  []uint64{1},
 				VoteAggSignature:  []byte{1, 2, 3},
@@ -52,8 +52,8 @@ func TestMsgAttest_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid message",
 			msg: MsgAttest{
-				Submitter:         sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Submitter:         sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				VoteResult:        CHALLENGE_SUCCEED,
 				VoteValidatorSet:  []uint64{1},
 				VoteAggSignature:  sig[:],
