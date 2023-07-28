@@ -33,7 +33,6 @@ exclude:
     - \.pb\.go$    # excludes all protobuf generated files
     - \.pb\.gw\.go$    # excludes all protobuf generated files
     - .*_mocks.go$    # excludes all protobuf generated files
-    - cli/.*
     - types/.*
     - simulation/.*
     - testutil/.*
