@@ -20,10 +20,9 @@ func CmdGlobalVirtualGroupFamilies() *cobra.Command {
 		Short: "query all global virtual groups families of the storage provider.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			limit, err := strconv.ParseInt(args[1], 10, 32)
+			limit, err := strconv.ParseInt(args[0], 10, 32)
 			if err != nil || limit <= 0 {
-				return fmt.Errorf("invalid GVG id %s", args[1])
+				return fmt.Errorf("invalid limit %s", args[0])
 			}
 
 			clientCtx, err := client.GetClientQueryContext(cmd)
