@@ -78,7 +78,7 @@ func (app *GroupApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCha
 		operationType = types.OperationDeleteGroup
 		result = app.handleDeleteGroupFailAckPackage(ctx, appCtx, p)
 	case *types.UpdateGroupMemberSynPackage:
-		operationType = types.OperationDeleteGroup
+		operationType = types.OperationUpdateGroupMember
 		result = app.handleUpdateGroupMemberFailAckPackage(ctx, appCtx, p)
 	default:
 		panic("unknown cross chain ack package type")
