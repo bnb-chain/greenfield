@@ -18,28 +18,6 @@ func (k Keeper) SetAutoSettleRecord(ctx sdk.Context, autoSettleRecord *types.Aut
 	), b)
 }
 
-// GetAutoSettleRecord returns a autoSettleRecord from its index
-func (k Keeper) GetAutoSettleRecord(
-	ctx sdk.Context,
-	timestamp int64,
-	addr sdk.AccAddress,
-) (*types.AutoSettleRecord, bool) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.AutoSettleRecordKeyPrefix)
-
-	b := store.Get(types.AutoSettleRecordKey(
-		timestamp,
-		addr,
-	))
-	if b == nil {
-		return nil, false
-	}
-
-	return &types.AutoSettleRecord{
-		Timestamp: timestamp,
-		Addr:      addr.String(),
-	}, true
-}
-
 // RemoveAutoSettleRecord removes a autoSettleRecord from the store
 func (k Keeper) RemoveAutoSettleRecord(
 	ctx sdk.Context,
