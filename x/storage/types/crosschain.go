@@ -661,6 +661,18 @@ func (p CreateGroupSynPackage) ValidateBasic() error {
 	return msg.ValidateBasic()
 }
 
+func (p CreateGroupSynPackage) MustSerialize() []byte {
+	encodedBytes, err := createGroupSynPackageArgs.Pack(&CreateGroupSynPackageStruct{
+		Creator:   common.BytesToAddress(p.Creator),
+		GroupName: p.GroupName,
+		ExtraData: p.ExtraData,
+	})
+	if err != nil {
+		panic("encode create group syn package error")
+	}
+	return encodedBytes
+}
+
 func DeserializeCreateGroupSynPackage(serializedPackage []byte) (interface{}, error) {
 	unpacked, err := createGroupSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
@@ -901,6 +913,26 @@ func (p UpdateGroupMemberSynPackage) GetMembers() []string {
 	return members
 }
 
+func (p UpdateGroupMemberSynPackage) MustSerialize() []byte {
+	totalMember := len(p.Members)
+	members := make([]common.Address, totalMember)
+	for i, member := range p.Members {
+		members[i] = common.BytesToAddress(member)
+	}
+
+	encodedBytes, err := updateGroupMemberSynPackageArgs.Pack(&UpdateGroupMemberSynPackageStruct{
+		common.BytesToAddress(p.Operator),
+		SafeBigInt(p.GroupId),
+		p.OperationType,
+		members,
+		p.ExtraData,
+	})
+	if err != nil {
+		panic("encode update group member syn package error")
+	}
+	return encodedBytes
+}
+
 func (p UpdateGroupMemberSynPackage) ValidateBasic() error {
 	if p.OperationType != OperationAddGroupMember && p.OperationType != OperationDeleteGroupMember {
 		return ErrInvalidOperationType
@@ -1025,7 +1057,7 @@ func (p UpdateGroupMemberAckPackage) MustSerialize() []byte {
 		p.ExtraData,
 	})
 	if err != nil {
-		panic("encode delete group ack package error")
+		panic("encode update group member ack package error")
 	}
 	return encodedBytes
 }
