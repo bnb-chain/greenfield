@@ -117,11 +117,21 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 	}); err != nil {
 		return nil, err
 	}
+
 	if req.FamilyId == types.NoSpecifiedFamilyId {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGlobalVirtualGroupFamily{
 			Id:                    gvgFamily.Id,
 			PrimarySpId:           gvgFamily.PrimarySpId,
 			VirtualPaymentAddress: gvgFamily.VirtualPaymentAddress,
+			GlobalVirtualGroupIds: gvgFamily.GetGlobalVirtualGroupIds(),
+		}); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGlobalVirtualGroupFamily{
+			Id:                    gvgFamily.Id,
+			PrimarySpId:           gvgFamily.PrimarySpId,
+			GlobalVirtualGroupIds: gvgFamily.GetGlobalVirtualGroupIds(),
 		}); err != nil {
 			return nil, err
 		}
