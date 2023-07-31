@@ -15,7 +15,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
-
 	"github.com/bnb-chain/greenfield/x/storage/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -87,6 +86,18 @@ func TestVersionedParamsQuery(t *testing.T) {
 	require.Equal(t, &types.QueryParamsByTimestampResponse{Params: paramsT2}, responseT3)
 	p = responseT2.GetParams()
 	require.EqualValues(t, p.GetMaxSegmentSize(), 2)
+}
+
+func TestHeadBucket(t *testing.T) {
+	// invalid argument
+	k, ctx := makeKeeper(t)
+	_, err := k.HeadBucket(ctx, nil)
+	require.ErrorContains(t, err, "invalid request")
+
+	_, err = k.HeadBucket(ctx, &types.QueryHeadBucketRequest{
+		BucketName: "bucket",
+	})
+	require.ErrorIs(t, err, types.ErrNoSuchBucket)
 }
 
 func TestHeadGroupNFT(t *testing.T) {
