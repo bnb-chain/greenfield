@@ -37,6 +37,7 @@ exclude:
     - simulation/.*
     - testutil/.*
     - e2e/.*
+    - .*/cli/.*
     - sdk/.*
     - version/.*
     - cmd/gnfd/.*
