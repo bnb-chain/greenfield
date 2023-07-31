@@ -1205,7 +1205,7 @@ func (s *StorageTestSuite) TestDeleteGroupPolicy() {
 	s.SendTxBlock(owner, msgDeletePolicy)
 
 	// verify permission
-	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	_, err = s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
 	s.Require().Error(err)
 	s.Require().ErrorContains(err, "No such Policy")
 }
