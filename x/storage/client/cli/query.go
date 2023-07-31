@@ -12,7 +12,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group storage queries under a subcommand
 	storageQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -109,7 +109,7 @@ func CmdHeadObject() *cobra.Command {
 func CmdListBuckets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-buckets",
-		Short: "Query list buckets of the user",
+		Short: "Query all list buckets",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)

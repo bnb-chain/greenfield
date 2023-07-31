@@ -13,7 +13,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group sp queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -67,7 +67,7 @@ func CmdStorageProviders() *cobra.Command {
 func CmdStorageProvider() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "storage-provider [sp-id]",
-		Short: "Query storage provider with specify operator address",
+		Short: "Query storage provider with specify sp id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqSpID := args[0]
@@ -103,8 +103,8 @@ func CmdStorageProvider() *cobra.Command {
 func CmdStorageProviderByOperatorAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "storage-provider-by-operator-address [operator address]",
-		Short: "Query StorageProviderByOperatorAddress",
-		Args:  cobra.ExactArgs(0),
+		Short: "Query storage provider with specify operator address",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqSpAddr := args[0]
 

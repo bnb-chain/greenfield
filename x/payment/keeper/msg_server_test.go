@@ -88,7 +88,7 @@ func (s *TestSuite) TestUpdateParams() {
 		{
 			name: "invalid authority",
 			msg: types.MsgUpdateParams{
-				Authority: sample.AccAddress(),
+				Authority: sample.RandAccAddressHex(),
 			},
 			err: true,
 		}, {
