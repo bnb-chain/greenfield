@@ -8,6 +8,7 @@ Bugfixes:
 * [#379](https://github.com/bnb-chain/greenfield/pull/379) fix: error member name in transferInRefundPackageType
 * [#383](https://github.com/bnb-chain/greenfield/pull/383) fix: lock balance not updated for frozen payment account
 * [#385](https://github.com/bnb-chain/greenfield/pull/385) fix: returned operation type in group cross chain app 
+* [#395](https://github.com/bnb-chain/greenfield/pull/395) fix: register gov cross-chain app
 
 Chores:
 * [#376](https://github.com/bnb-chain/greenfield/pull/376) chore: add unit tests for the storage module
