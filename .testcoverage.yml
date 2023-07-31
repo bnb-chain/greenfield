@@ -44,7 +44,6 @@ exclude:
     - internal/sequence/.*
     - x/gensp/.*
     - .*/module.go
-    - .*/genesis.go
     - .*/module_simulation.go
 
 # NOTES:
