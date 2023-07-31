@@ -1107,6 +1107,109 @@ func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
 	s.Require().ErrorContains(err, "No such Policy")
 }
 
+func (s *StorageTestSuite) TestDeleteObjectPolicy() {
+	var err error
+	ctx := context.Background()
+	user1 := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	_, owner, bucketName, _, objectName, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+
+	principal := types.NewPrincipalWithAccount(user1.GetAddr())
+
+	// Put bucket policy
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
+
+	// Put Object policy
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
+		principal, []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(owner, msgPutObjectPolicy)
+
+	// Query the policy which is enforced on bucket and object
+	grn1 := types2.NewObjectGRN(bucketName, objectName)
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: grn1.String(),
+		PrincipalAddress: user1.GetAddr().String()})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+
+	// Delete object policy
+	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(owner.GetAddr(), grn1.String(), types.NewPrincipalWithAccount(user1.GetAddr()))
+	s.SendTxBlock(owner, msgDeletePolicy)
+
+	// verify permission
+	verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user1.GetAddr().String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+		ActionType: types.ACTION_DELETE_OBJECT,
+	}
+	verifyPermResp, err := s.Client.VerifyPermission(ctx, &verifyPermReq)
+	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_DENY)
+}
+
+func (s *StorageTestSuite) TestDeleteGroupPolicy() {
+	var err error
+	ctx := context.Background()
+
+	user := s.GenAndChargeAccounts(4, 1000000)
+	owner := user[0]
+	_ = s.BaseSuite.PickStorageProvider()
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
+		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
+		"")
+	s.SendTxBlock(owner, msgCreateGroup)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Put policy
+	groupStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_GROUP_MEMBER},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), testGroupName).String(),
+		types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{groupStatement}, nil)
+	s.SendTxBlock(owner, msgPutGroupPolicy)
+
+	// Query for policy
+	grn := types2.NewGroupGRN(owner.GetAddr(), testGroupName)
+	queryPolicyForAccountReq := storagetypes.QueryPolicyForAccountRequest{Resource: grn.String(),
+		PrincipalAddress: user[1].GetAddr().String()}
+
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceType, resource.RESOURCE_TYPE_GROUP)
+	s.T().Logf("policy is %s", queryPolicyForAccountResp.Policy.String())
+
+	// Delete policy
+	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(owner.GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
+	s.SendTxBlock(owner, msgDeletePolicy)
+
+	// verify permission
+	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+}
+
 // When resources are deleted, policies which associated with group and resources(Bucket and Object)
 // will also be garbage collected.
 func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
