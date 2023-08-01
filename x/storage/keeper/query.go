@@ -252,7 +252,7 @@ func (k Keeper) HeadGroupNFT(goCtx context.Context, req *types.QueryNFTRequest) 
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	groupInfo, found := k.GetGroupInfoById(ctx, id)
 	if !found {
-		return nil, types.ErrNoSuchObject
+		return nil, types.ErrNoSuchGroup
 	}
 	return &types.QueryGroupNFTResponse{
 		MetaData: groupInfo.ToNFTMetadata(),
@@ -443,6 +443,10 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 
 func (k Keeper) QueryPolicyById(goCtx context.Context, req *types.QueryPolicyByIdRequest) (*types.
 	QueryPolicyByIdResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	policyId, err := math.ParseUint(req.PolicyId)
 	if err != nil {
