@@ -298,6 +298,14 @@ func TestListObjects(t *testing.T) {
 
 	_, err = k.ListObjects(ctx, &types.QueryListObjectsRequest{
 		Pagination: &query.PageRequest{
+			Limit: types.MaxPaginationLimit,
+		},
+	})
+	require.ErrorContains(t, err, "bucket name should not be empty")
+
+	_, err = k.ListObjects(ctx, &types.QueryListObjectsRequest{
+		BucketName: "abc",
+		Pagination: &query.PageRequest{
 			Limit: types.MaxPaginationLimit + 1,
 		},
 	})
