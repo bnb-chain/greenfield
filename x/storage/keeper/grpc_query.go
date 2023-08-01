@@ -375,7 +375,7 @@ func validateAndGetId(req *types.QueryNFTRequest) (math.Uint, error) {
 }
 
 func (k Keeper) QueryPolicyForAccount(goCtx context.Context, req *types.QueryPolicyForAccountRequest) (*types.
-QueryPolicyForAccountResponse,
+	QueryPolicyForAccountResponse,
 	error,
 ) {
 	if req == nil {
@@ -403,7 +403,7 @@ QueryPolicyForAccountResponse,
 }
 
 func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolicyForGroupRequest) (*types.
-QueryPolicyForGroupResponse, error,
+	QueryPolicyForGroupResponse, error,
 ) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -547,7 +547,7 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 }
 
 func (k Keeper) QueryPolicyById(goCtx context.Context, req *types.QueryPolicyByIdRequest) (*types.
-QueryPolicyByIdResponse, error,
+	QueryPolicyByIdResponse, error,
 ) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
