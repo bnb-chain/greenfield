@@ -41,15 +41,11 @@ type SpKeeper interface {
 }
 
 type PaymentKeeper interface {
-	GetParams(ctx sdk.Context) paymenttypes.Params
 	GetVersionedParamsWithTs(ctx sdk.Context, time int64) (paymenttypes.VersionedParams, error)
 	IsPaymentAccountOwner(ctx sdk.Context, addr, owner sdk.AccAddress) bool
 	GetStoragePrice(ctx sdk.Context, params paymenttypes.StoragePriceParams) (price paymenttypes.StoragePrice, err error)
 	ApplyUserFlowsList(ctx sdk.Context, userFlows []paymenttypes.UserFlows) (err error)
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
-	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (val *paymenttypes.StreamRecord, found bool)
-	UpdateStreamRecord(ctx sdk.Context, streamRecord *paymenttypes.StreamRecord, change *paymenttypes.StreamRecordChange) error
-	Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount math.Int) error
 }
 
 type PermissionKeeper interface {

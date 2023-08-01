@@ -112,8 +112,6 @@ func (s *TestSuite) TestGetObjectLockFee() {
 	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
 		Return(price, nil).AnyTimes()
 	params := paymenttypes.DefaultParams()
-	s.paymentKeeper.EXPECT().GetParams(gomock.Any()).
-		Return(params).AnyTimes()
 	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).
 		Return(params.VersionedParams, nil).AnyTimes()
 
