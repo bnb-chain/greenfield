@@ -44,7 +44,7 @@ func (k Keeper) PaymentAccounts(c context.Context, req *types.QueryPaymentAccoun
 	return &types.QueryPaymentAccountsResponse{PaymentAccounts: paymentAccounts, Pagination: pageRes}, nil
 }
 
-func (k Keeper) PaymentAccount(c context.Context, req *types.QueryGetPaymentAccountRequest) (*types.QueryGetPaymentAccountResponse, error) {
+func (k Keeper) PaymentAccount(c context.Context, req *types.QueryPaymentAccountRequest) (*types.QueryPaymentAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -62,5 +62,5 @@ func (k Keeper) PaymentAccount(c context.Context, req *types.QueryGetPaymentAcco
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetPaymentAccountResponse{PaymentAccount: *val}, nil
+	return &types.QueryPaymentAccountResponse{PaymentAccount: *val}, nil
 }

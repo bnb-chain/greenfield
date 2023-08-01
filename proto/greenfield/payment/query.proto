@@ -55,7 +55,7 @@ service Query {
   }
 
   // Queries a payment account by payment account address.
-  rpc PaymentAccount(QueryGetPaymentAccountRequest) returns (QueryGetPaymentAccountResponse) {
+  rpc PaymentAccount(QueryPaymentAccountRequest) returns (QueryPaymentAccountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account/{addr}";
   }
 
@@ -143,11 +143,11 @@ message QueryPaymentAccountCountsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetPaymentAccountRequest {
+message QueryPaymentAccountRequest {
   string addr = 1;
 }
 
-message QueryGetPaymentAccountResponse {
+message QueryPaymentAccountResponse {
   PaymentAccount payment_account = 1 [(gogoproto.nullable) = false];
 }
 

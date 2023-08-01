@@ -96,7 +96,7 @@ func (s *PaymentTestSuite) TestCreatePaymentAccount() {
 	s.Require().Equal(1, len(paymentAccounts.PaymentAccounts))
 	paymentAccountAddr := paymentAccounts.PaymentAccounts[0]
 	// query this payment account
-	queryGetPaymentAccountRequest := paymenttypes.QueryGetPaymentAccountRequest{
+	queryGetPaymentAccountRequest := paymenttypes.QueryPaymentAccountRequest{
 		Addr: paymentAccountAddr,
 	}
 	paymentAccount, err := s.Client.PaymentAccount(ctx, &queryGetPaymentAccountRequest)

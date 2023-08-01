@@ -105,7 +105,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryGetPaymentAccountResponse{},
+			false, "", &types.QueryPaymentAccountResponse{},
 		},
 		{
 			"query show-payment-account-count",

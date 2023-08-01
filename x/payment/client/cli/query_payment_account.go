@@ -55,7 +55,7 @@ func CmdShowPaymentAccount() *cobra.Command {
 
 			argAddr := args[0]
 
-			params := &types.QueryGetPaymentAccountRequest{
+			params := &types.QueryPaymentAccountRequest{
 				Addr: argAddr,
 			}
 

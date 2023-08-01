@@ -140,13 +140,13 @@ func TestPaymentAccountQuery(t *testing.T) {
 	}
 	keeper.SetPaymentAccount(ctx, &record2)
 
-	response, err := keeper.PaymentAccount(ctx, &types.QueryGetPaymentAccountRequest{
+	response, err := keeper.PaymentAccount(ctx, &types.QueryPaymentAccountRequest{
 		Addr: addr1,
 	})
 	require.NoError(t, err)
 	require.Equal(t, owner1.String(), response.PaymentAccount.Owner)
 
-	response, err = keeper.PaymentAccount(ctx, &types.QueryGetPaymentAccountRequest{
+	response, err = keeper.PaymentAccount(ctx, &types.QueryPaymentAccountRequest{
 		Addr: addr2,
 	})
 	require.NoError(t, err)

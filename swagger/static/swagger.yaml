@@ -32075,22 +32075,6 @@ definitions:
       change_rate:
         type: string
         title: change_rate is the netflow rate of the given account
-  greenfield.payment.QueryGetPaymentAccountResponse:
-    type: object
-    properties:
-      payment_account:
-        type: object
-        properties:
-          addr:
-            type: string
-            title: the address of the payment account
-          owner:
-            type: string
-            title: the owner address of the payment account
-          refundable:
-            type: boolean
-            title: whether the payment account is refundable
-        title: PaymentAccount defines a payment account
   greenfield.payment.QueryGetStreamRecordResponse:
     type: object
     properties:
@@ -32349,6 +32333,22 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  greenfield.payment.QueryPaymentAccountResponse:
+    type: object
+    properties:
+      payment_account:
+        type: object
+        properties:
+          addr:
+            type: string
+            title: the address of the payment account
+          owner:
+            type: string
+            title: the owner address of the payment account
+          refundable:
+            type: boolean
+            title: whether the payment account is refundable
+        title: PaymentAccount defines a payment account
   greenfield.payment.QueryPaymentAccountsByOwnerResponse:
     type: object
     properties:
