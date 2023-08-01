@@ -367,8 +367,8 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 	s.Require().Equal(headGroupNftResponse.MetaData.GroupName, groupName)
 
 	// 3. ListGroup
-	queryListGroupReq := storagetypes.QueryListGroupRequest{GroupOwner: owner.GetAddr().String()}
-	queryListGroupResp, err := s.Client.ListGroup(ctx, &queryListGroupReq)
+	queryListGroupReq := storagetypes.QueryListGroupsRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroups(ctx, &queryListGroupReq)
 	s.Require().NoError(err)
 	s.Require().GreaterOrEqual(len(queryListGroupResp.GroupInfos), 1)
 

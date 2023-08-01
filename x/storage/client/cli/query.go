@@ -30,7 +30,7 @@ func GetQueryCmd() *cobra.Command {
 		CmdListObjects(),
 		CmdVerifyPermission(),
 		CmdHeadGroup(),
-		CmdListGroup(),
+		CmdListGroups(),
 		CmdHeadGroupMember())
 
 	// this line is used by starport scaffolding # 1
@@ -249,10 +249,10 @@ func CmdHeadGroup() *cobra.Command {
 	return cmd
 }
 
-func CmdListGroup() *cobra.Command {
+func CmdListGroups() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-group [group-owner]",
-		Short: "Query list group of owner",
+		Use:   "list-groups [group-owner]",
+		Short: "Query list groups of owner",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqGroupOwner := args[0]

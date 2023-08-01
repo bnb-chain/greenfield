@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -23,6 +24,7 @@ func GetQueryCmd() *cobra.Command {
 
 	cmd.AddCommand(CmdQueryParams())
 	cmd.AddCommand(CmdLatestAttestedChallenges())
+	cmd.AddCommand(CmdAttestedChallenge())
 	cmd.AddCommand(CmdInturnChallenger())
 
 	// this line is used by starport scaffolding # 1
@@ -54,6 +56,42 @@ func CmdQueryParams() *cobra.Command {
 	return cmd
 }
 
+func CmdAttestedChallenge() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "attested-challenge",
+		Short: "Query result for an attested challenge",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argChallengeId, err := strconv.ParseUint(args[0], 10, 64)
+			if err != nil {
+				return fmt.Errorf("challenge-id %s not a valid uint, please input a valid challenge-id", args[0])
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			queryClient := types.NewQueryClient(clientCtx)
+
+			req := &types.QueryAttestedChallengeRequest{
+				ChallengeId: argChallengeId,
+			}
+
+			res, err := queryClient.AttestedChallenge(cmd.Context(), req)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 func CmdLatestAttestedChallenges() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "latest-attested-challenges",
@@ -68,9 +106,9 @@ func CmdLatestAttestedChallenges() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryLatestAttestedChallengesRequest{}
+			req := &types.QueryLatestAttestedChallengesRequest{}
 
-			res, err := queryClient.LatestAttestedChallenges(cmd.Context(), params)
+			res, err := queryClient.LatestAttestedChallenges(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

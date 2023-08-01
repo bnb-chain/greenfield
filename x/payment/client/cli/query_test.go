@@ -54,7 +54,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryGetPaymentAccountsByOwnerResponse{},
+			false, "", &types.QueryPaymentAccountsByOwnerResponse{},
 		},
 		{
 			"query list-auto-settle-record",
@@ -64,7 +64,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryAllAutoSettleRecordResponse{},
+			false, "", &types.QueryAutoSettleRecordsResponse{},
 		},
 		{
 			"query list-payment-account",
@@ -74,7 +74,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryAllPaymentAccountResponse{},
+			false, "", &types.QueryPaymentAccountsResponse{},
 		},
 		{
 			"query list-payment-account-count",
@@ -84,7 +84,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryAllPaymentAccountCountResponse{},
+			false, "", &types.QueryPaymentAccountCountsResponse{},
 		},
 		{
 			"query list-stream-record",
@@ -94,7 +94,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryAllStreamRecordResponse{},
+			false, "", &types.QueryStreamRecordsResponse{},
 		},
 		{
 			"query show-payment-account",
@@ -116,7 +116,7 @@ func (s *CLITestSuite) TestQueryCmd() {
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryGetPaymentAccountCountResponse{},
+			false, "", &types.QueryPaymentAccountCountResponse{},
 		},
 		{
 			"query show-stream-record",

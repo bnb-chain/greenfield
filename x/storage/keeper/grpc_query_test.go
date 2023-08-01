@@ -409,17 +409,17 @@ func TestHeadGroup(t *testing.T) {
 func TestListGroup(t *testing.T) {
 	// invalid argument
 	k, ctx := makeKeeper(t)
-	_, err := k.ListGroup(ctx, nil)
+	_, err := k.ListGroups(ctx, nil)
 	require.ErrorContains(t, err, "invalid request")
 
-	_, err = k.ListGroup(ctx, &types.QueryListGroupRequest{
+	_, err = k.ListGroups(ctx, &types.QueryListGroupsRequest{
 		Pagination: &query.PageRequest{
 			Limit: types.MaxPaginationLimit + 1,
 		},
 	})
 	require.ErrorContains(t, err, "exceed pagination limit")
 
-	_, err = k.ListGroup(ctx, &types.QueryListGroupRequest{
+	_, err = k.ListGroups(ctx, &types.QueryListGroupsRequest{
 		GroupOwner: "xxx",
 	})
 	require.ErrorContains(t, err, "invalid address hex length")
@@ -428,7 +428,7 @@ func TestListGroup(t *testing.T) {
 func TestHeadGroupMember(t *testing.T) {
 	// invalid argument
 	k, ctx := makeKeeper(t)
-	_, err := k.ListGroup(ctx, nil)
+	_, err := k.ListGroups(ctx, nil)
 	require.ErrorContains(t, err, "invalid request")
 
 	_, err = k.HeadGroupMember(ctx, &types.QueryHeadGroupMemberRequest{
