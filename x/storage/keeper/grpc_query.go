@@ -192,7 +192,11 @@ func (k Keeper) ListObjects(goCtx context.Context, req *types.QueryListObjectsRe
 	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
 		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
 	}
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := query.CheckOffsetQueryNotAllowed(ctx, req.Pagination); err != nil {
+		return nil, err
+	}
 
 	var objectInfos []*types.ObjectInfo
 	store := ctx.KVStore(k.storeKey)
@@ -220,6 +224,9 @@ func (k Keeper) ListObjectsByBucketId(goCtx context.Context, req *types.QueryLis
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := query.CheckOffsetQueryNotAllowed(ctx, req.Pagination); err != nil {
+		return nil, err
+	}
 
 	var objectInfos []*types.ObjectInfo
 	store := ctx.KVStore(k.storeKey)
@@ -496,12 +503,14 @@ func (k Keeper) ListGroups(goCtx context.Context, req *types.QueryListGroupsRequ
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
-
 	if req.Pagination != nil && req.Pagination.Limit > types.MaxPaginationLimit {
 		return nil, status.Errorf(codes.InvalidArgument, "exceed pagination limit %d", types.MaxPaginationLimit)
 	}
 
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if err := query.CheckOffsetQueryNotAllowed(ctx, req.Pagination); err != nil {
+		return nil, err
+	}
 
 	owner, err := sdk.AccAddressFromHexUnsafe(req.GroupOwner)
 	if err != nil {
