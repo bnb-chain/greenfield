@@ -2131,3 +2131,9 @@ func (k Keeper) SetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint, in
 func (k Keeper) fromSpMaintenanceAcct(sp *sptypes.StorageProvider, operatorAddr sdk.AccAddress) bool {
 	return sp.Status == sptypes.STATUS_IN_MAINTENANCE && operatorAddr.Equals(sdk.MustAccAddressFromHex(sp.MaintenanceAddress))
 }
+
+func (k Keeper) hasGroup(ctx sdk.Context, groupID sdkmath.Uint) bool {
+	store := ctx.KVStore(k.storeKey)
+
+	return store.Has(types.GetGroupByIDKey(groupID))
+}

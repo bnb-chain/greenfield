@@ -558,6 +558,20 @@ func (mr *MockPermissionKeeperMockRecorder) GetPolicyForGroup(ctx, resourceID, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPolicyForGroup", reflect.TypeOf((*MockPermissionKeeper)(nil).GetPolicyForGroup), ctx, resourceID, resourceType, groupID)
 }
 
+// MustGetPolicyByID mocks base method.
+func (m *MockPermissionKeeper) MustGetPolicyByID(ctx types3.Context, policyID math.Uint) *types0.Policy {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MustGetPolicyByID", ctx, policyID)
+	ret0, _ := ret[0].(*types0.Policy)
+	return ret0
+}
+
+// MustGetPolicyByID indicates an expected call of MustGetPolicyByID.
+func (mr *MockPermissionKeeperMockRecorder) MustGetPolicyByID(ctx, policyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustGetPolicyByID", reflect.TypeOf((*MockPermissionKeeper)(nil).MustGetPolicyByID), ctx, policyID)
+}
+
 // PutPolicy mocks base method.
 func (m *MockPermissionKeeper) PutPolicy(ctx types3.Context, policy *types0.Policy) (math.Uint, error) {
 	m.ctrl.T.Helper()
@@ -597,20 +611,6 @@ func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID mat
 func (mr *MockPermissionKeeperMockRecorder) UpdateGroupMember(ctx, groupID, member, memberID, expiration interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).UpdateGroupMember), ctx, groupID, member, memberID, expiration)
-}
-
-// VerifyPolicy mocks base method.
-func (m *MockPermissionKeeper) VerifyPolicy(ctx types3.Context, resourceID math.Uint, resourceType resource.ResourceType, operator types3.AccAddress, action types0.ActionType, opts *types0.VerifyOptions) types0.Effect {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyPolicy", ctx, resourceID, resourceType, operator, action, opts)
-	ret0, _ := ret[0].(types0.Effect)
-	return ret0
-}
-
-// VerifyPolicy indicates an expected call of VerifyPolicy.
-func (mr *MockPermissionKeeperMockRecorder) VerifyPolicy(ctx, resourceID, resourceType, operator, action, opts interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyPolicy", reflect.TypeOf((*MockPermissionKeeper)(nil).VerifyPolicy), ctx, resourceID, resourceType, operator, action, opts)
 }
 
 // MockCrossChainKeeper is a mock of CrossChainKeeper interface.

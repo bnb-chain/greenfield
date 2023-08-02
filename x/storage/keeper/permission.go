@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"strings"
 
 	"cosmossdk.io/math"
@@ -49,7 +50,7 @@ func (k Keeper) VerifyBucketPermission(ctx sdk.Context, bucketInfo *types.Bucket
 		return permtypes.EFFECT_ALLOW
 	}
 	// verify policy
-	effect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
+	effect := k.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, options)
 	if effect == permtypes.EFFECT_ALLOW {
 		return permtypes.EFFECT_ALLOW
 	}
@@ -94,12 +95,12 @@ func (k Keeper) VerifyObjectPermission(ctx sdk.Context, bucketInfo *types.Bucket
 	opts := &permtypes.VerifyOptions{
 		Resource: types2.NewObjectGRN(objectInfo.BucketName, objectInfo.ObjectName).String(),
 	}
-	bucketEffect := k.permKeeper.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, opts)
+	bucketEffect := k.VerifyPolicy(ctx, bucketInfo.Id, gnfdresource.RESOURCE_TYPE_BUCKET, operator, action, opts)
 	if bucketEffect == permtypes.EFFECT_DENY {
 		return permtypes.EFFECT_DENY
 	}
 
-	objectEffect := k.permKeeper.VerifyPolicy(ctx, objectInfo.Id, gnfdresource.RESOURCE_TYPE_OBJECT, operator, action,
+	objectEffect := k.VerifyPolicy(ctx, objectInfo.Id, gnfdresource.RESOURCE_TYPE_OBJECT, operator, action,
 		nil)
 	if objectEffect == permtypes.EFFECT_DENY {
 		return permtypes.EFFECT_DENY
@@ -119,12 +120,74 @@ func (k Keeper) VerifyGroupPermission(ctx sdk.Context, groupInfo *types.GroupInf
 	}
 
 	// verify policy
-	effect := k.permKeeper.VerifyPolicy(ctx, groupInfo.Id, gnfdresource.RESOURCE_TYPE_GROUP, operator, action, nil)
+	effect := k.VerifyPolicy(ctx, groupInfo.Id, gnfdresource.RESOURCE_TYPE_GROUP, operator, action, nil)
 	if effect == permtypes.EFFECT_ALLOW {
 		return permtypes.EFFECT_ALLOW
 	}
 
 	return permtypes.EFFECT_DENY
+}
+
+func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType gnfdresource.ResourceType,
+	operator sdk.AccAddress, action permtypes.ActionType, opts *permtypes.VerifyOptions) permtypes.Effect {
+	// verify policy which grant permission to account
+	policy, found := k.permKeeper.GetPolicyForAccount(ctx, resourceID, resourceType, operator)
+	if found {
+		effect, newPolicy := policy.Eval(action, ctx.BlockTime(), opts)
+		k.Logger(ctx).Info(fmt.Sprintf("CreateObject LimitSize update: %s, effect: %s, ctx.TxBytes : %d",
+			newPolicy.String(), effect, ctx.TxSize()))
+		if effect != permtypes.EFFECT_UNSPECIFIED {
+			if effect == permtypes.EFFECT_ALLOW && action == permtypes.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
+				_, err := k.permKeeper.PutPolicy(ctx, newPolicy)
+				if err != nil {
+					panic(fmt.Sprintf("Update policy error, %s", err))
+				}
+			}
+			return effect
+		}
+	}
+
+	// verify policy which grant permission to group
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(permtypes.GetPolicyForGroupKey(resourceID, resourceType))
+	if bz != nil {
+		policyGroup := permtypes.PolicyGroup{}
+		k.cdc.MustUnmarshal(bz, &policyGroup)
+		allowed := false
+		var (
+			allowedPolicy *permtypes.Policy
+		)
+		for _, item := range policyGroup.Items {
+			if !k.hasGroup(ctx, item.GroupId) {
+				continue
+			}
+			// check the group has the right permission of this resource
+			p := k.permKeeper.MustGetPolicyByID(ctx, item.PolicyId)
+			effect, newPolicy := p.Eval(action, ctx.BlockTime(), opts)
+			if effect != permtypes.EFFECT_UNSPECIFIED {
+				// check the operator is the member of this group
+				groupMember, memberFound := k.permKeeper.GetGroupMember(ctx, item.GroupId, operator)
+				if memberFound && groupMember.ExpirationTime.After(ctx.BlockTime().UTC()) {
+					if effect == permtypes.EFFECT_ALLOW {
+						allowed = true
+						allowedPolicy = newPolicy
+					} else if effect == permtypes.EFFECT_DENY {
+						return permtypes.EFFECT_DENY
+					}
+				}
+			}
+		}
+		if allowed {
+			if action == permtypes.ACTION_CREATE_OBJECT && allowedPolicy != nil && ctx.TxBytes() != nil {
+				_, err := k.permKeeper.PutPolicy(ctx, allowedPolicy)
+				if err != nil {
+					panic(fmt.Sprintf("Update policy error, %s", err))
+				}
+			}
+			return permtypes.EFFECT_ALLOW
+		}
+	}
+	return permtypes.EFFECT_UNSPECIFIED
 }
 
 func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes.Principal) (*permtypes.Policy, error) {
