@@ -558,6 +558,21 @@ func (mr *MockPermissionKeeperMockRecorder) GetPolicyForGroup(ctx, resourceID, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPolicyForGroup", reflect.TypeOf((*MockPermissionKeeper)(nil).GetPolicyForGroup), ctx, resourceID, resourceType, groupID)
 }
 
+// GetPolicyGroupForResource mocks base method.
+func (m *MockPermissionKeeper) GetPolicyGroupForResource(ctx types3.Context, resourceID math.Uint, resourceType resource.ResourceType) (*types0.PolicyGroup, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPolicyGroupForResource", ctx, resourceID, resourceType)
+	ret0, _ := ret[0].(*types0.PolicyGroup)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetPolicyGroupForResource indicates an expected call of GetPolicyGroupForResource.
+func (mr *MockPermissionKeeperMockRecorder) GetPolicyGroupForResource(ctx, resourceID, resourceType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPolicyGroupForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).GetPolicyGroupForResource), ctx, resourceID, resourceType)
+}
+
 // MustGetPolicyByID mocks base method.
 func (m *MockPermissionKeeper) MustGetPolicyByID(ctx types3.Context, policyID math.Uint) *types0.Policy {
 	m.ctrl.T.Helper()

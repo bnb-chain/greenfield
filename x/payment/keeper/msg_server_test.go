@@ -3,7 +3,6 @@ package keeper_test
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
