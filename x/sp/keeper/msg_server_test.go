@@ -30,6 +30,8 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 	s.Require().Nil(err, "error should be nil")
 	gcAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
 	s.Require().Nil(err, "error should be nil")
+	testAddr, _, err := testutil.GenerateCoinKey(hd.Secp256k1, s.cdc)
+	s.Require().Nil(err, "error should be nil")
 
 	blsPubKeyHex := sample.RandBlsPubKeyHex()
 
@@ -56,6 +58,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				TestAddress:     testAddr.String(),
 				BlsKey:          blsPubKeyHex,
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,
@@ -77,6 +80,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				TestAddress:     testAddr.String(),
 				BlsKey:          blsPubKeyHex,
 				Endpoint:        "sp.io",
 				Deposit: sdk.Coin{
@@ -99,6 +103,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				TestAddress:     testAddr.String(),
 				BlsKey:          "InValidBlsPubkey",
 				Endpoint:        "sp.io",
 				Deposit: sdk.Coin{
@@ -121,6 +126,7 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 				SealAddress:     sealAddr.String(),
 				ApprovalAddress: approvalAddr.String(),
 				GcAddress:       gcAddr.String(),
+				TestAddress:     testAddr.String(),
 				BlsKey:          blsPubKeyHex,
 				Deposit: sdk.Coin{
 					Denom:  types.Denom,

@@ -76,8 +76,6 @@ func (k Keeper) ForceMaintenanceRecords(ctx sdk.Context) {
 		for ; iterator.Valid(); iterator.Next() {
 			record := &types.MaintenanceRecord{}
 			k.cdc.MustUnmarshal(iterator.Value(), record)
-
-			fmt.Printf("records is %v\n", record)
 			// purge old records
 			if record.GetHeight()+params.GetNumOfHistoricalBlocksForMaintenanceRecords() < ctx.BlockHeight() {
 				prefixStore.Delete(iterator.Key())
