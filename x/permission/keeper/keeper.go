@@ -247,7 +247,7 @@ func (k Keeper) GetPolicyGroupForResource(ctx sdk.Context, resourceID math.Uint,
 
 	var policyGroup types.PolicyGroup
 	k.cdc.MustUnmarshal(bz, &policyGroup)
-	return &policyGroup, false
+	return &policyGroup, true
 }
 
 func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
