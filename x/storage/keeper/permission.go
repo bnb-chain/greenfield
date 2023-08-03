@@ -148,15 +148,10 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 	}
 
 	// verify policy which grant permission to group
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(permtypes.GetPolicyForGroupKey(resourceID, resourceType))
-	if bz != nil {
-		policyGroup := permtypes.PolicyGroup{}
-		k.cdc.MustUnmarshal(bz, &policyGroup)
+	policyGroup, found := k.permKeeper.GetPolicyGroupForResource(ctx, resourceID, resourceType)
+	if found {
 		allowed := false
-		var (
-			allowedPolicy *permtypes.Policy
-		)
+		var allowedPolicy *permtypes.Policy
 		for _, item := range policyGroup.Items {
 			if !k.hasGroup(ctx, item.GroupId) {
 				continue

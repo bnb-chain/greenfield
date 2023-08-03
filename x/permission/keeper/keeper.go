@@ -236,6 +236,20 @@ func (k Keeper) GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	return k.GetPolicyByID(ctx, k.policySeq.DecodeSequence(bz))
 }
 
+func (k Keeper) GetPolicyGroupForResource(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType) (*types.PolicyGroup, bool) {
+	store := ctx.KVStore(k.storeKey)
+	policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+
+	bz := store.Get(policyGroupKey)
+	if bz == nil {
+		return nil, false
+	}
+
+	var policyGroup types.PolicyGroup
+	k.cdc.MustUnmarshal(bz, &policyGroup)
+	return &policyGroup, false
+}
+
 func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	resourceType resource.ResourceType, groupID math.Uint) (policy *types.Policy,
 	isFound bool) {

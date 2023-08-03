@@ -59,6 +59,7 @@ type PermissionKeeper interface {
 	RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error
 	GetPolicyByID(ctx sdk.Context, policyID math.Uint) (*permtypes.Policy, bool)
 	GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) (policy *permtypes.Policy, isFound bool)
+	GetPolicyGroupForResource(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType) (*permtypes.PolicyGroup, bool)
 	GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
 		groupID math.Uint) (policy *permtypes.Policy, isFound bool)
 	GetGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*permtypes.GroupMember, bool)
