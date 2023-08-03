@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"math"
 	"reflect"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"

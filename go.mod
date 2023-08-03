@@ -176,9 +176,7 @@ replace (
 	github.com/cometbft/cometbft => github.com/bnb-chain/greenfield-cometbft v0.0.2-alpha.2
 	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-
-	//github.com/cosmos/cosmos-sdk => ../greenfield-cosmos-sdk
-	github.com/cosmos/cosmos-sdk => github.com/alexgao001/greenfield-cosmos-sdk v0.0.0-20230801144054-df4a0719245d
+	github.com/cosmos/cosmos-sdk => github.com/alexgao001/greenfield-cosmos-sdk v0.0.0-20230803111129-8cb132d0283f
 	github.com/cosmos/iavl => github.com/bnb-chain/greenfield-iavl v0.20.1-alpha.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )

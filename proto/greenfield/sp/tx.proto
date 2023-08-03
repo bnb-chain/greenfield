@@ -160,11 +160,10 @@ message MsgUpdateStorageProviderStatus {
   // sp_address defines the operator address
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // status defines the desired status be update to.
-  Status status = 2 ;
+  Status status = 2;
   // maintenancePeriod defines the time if status is set to STATUS_IN_MAINTENANCE
   int64 maintenance_duration = 3;
 }
 
 // MsgUpdateStorageProviderStatusResponse defines the MsgUpdateStorageProviderStatus response type.
 message MsgUpdateStorageProviderStatusResponse {}
-

@@ -31,5 +31,4 @@ message Params {
   int64 maintenance_duration_quota = 5 [(gogoproto.moretags) = "yaml:\"maintenance_duration_quota\""];
   // the number of blocks to be wait for sp to be in maintenance mode again if already requested
   int64 num_of_lockup_blocks_for_maintenance = 6 [(gogoproto.moretags) = "yaml:\"num_of_lockup_blocks_for_maintenance\""];
-
 }

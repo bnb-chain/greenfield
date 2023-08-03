@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
+
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
-	"encoding/hex"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
