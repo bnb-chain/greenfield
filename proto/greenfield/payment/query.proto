@@ -24,59 +24,59 @@ service Query {
     option (google.api.http).get = "/greenfield/payment/params";
   }
 
-  // ParamsByTimestamp queries the parameters of the module.
+  // ParamsByTimestamp queries the parameter of the module by timestamp.
   rpc ParamsByTimestamp(QueryParamsByTimestampRequest) returns (QueryParamsByTimestampResponse) {
     option (google.api.http).get = "/greenfield/payment/params/{timestamp}";
   }
 
-  // Queries a StreamRecord by index.
+  // Queries our flows by account.
   rpc OutFlows(QueryOutFlowsRequest) returns (QueryOutFlowsResponse) {
     option (google.api.http).get = "/greenfield/payment/out_flows/{account}";
   }
 
-  // Queries a StreamRecord by index.
+  // Queries a stream record by account.
   rpc StreamRecord(QueryGetStreamRecordRequest) returns (QueryGetStreamRecordResponse) {
     option (google.api.http).get = "/greenfield/payment/stream_record/{account}";
   }
 
-  // Queries a list of StreamRecord items.
-  rpc StreamRecordAll(QueryAllStreamRecordRequest) returns (QueryAllStreamRecordResponse) {
-    option (google.api.http).get = "/greenfield/payment/stream_record";
+  // Queries all stream records.
+  rpc StreamRecords(QueryStreamRecordsRequest) returns (QueryStreamRecordsResponse) {
+    option (google.api.http).get = "/greenfield/payment/stream_records";
   }
 
-  // Queries a PaymentAccountCount by index.
-  rpc PaymentAccountCount(QueryGetPaymentAccountCountRequest) returns (QueryGetPaymentAccountCountResponse) {
+  // Queries the count of payment account by owner.
+  rpc PaymentAccountCount(QueryPaymentAccountCountRequest) returns (QueryPaymentAccountCountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account_count/{owner}";
   }
 
-  // Queries a list of PaymentAccountCount items.
-  rpc PaymentAccountCountAll(QueryAllPaymentAccountCountRequest) returns (QueryAllPaymentAccountCountResponse) {
-    option (google.api.http).get = "/greenfield/payment/payment_account_count";
+  // Queries all counts of payment account for all owners.
+  rpc PaymentAccountCounts(QueryPaymentAccountCountsRequest) returns (QueryPaymentAccountCountsResponse) {
+    option (google.api.http).get = "/greenfield/payment/payment_account_counts";
   }
 
-  // Queries a PaymentAccount by index.
-  rpc PaymentAccount(QueryGetPaymentAccountRequest) returns (QueryGetPaymentAccountResponse) {
+  // Queries a payment account by payment account address.
+  rpc PaymentAccount(QueryPaymentAccountRequest) returns (QueryPaymentAccountResponse) {
     option (google.api.http).get = "/greenfield/payment/payment_account/{addr}";
   }
 
-  // Queries a list of PaymentAccount items.
-  rpc PaymentAccountAll(QueryAllPaymentAccountRequest) returns (QueryAllPaymentAccountResponse) {
-    option (google.api.http).get = "/greenfield/payment/payment_account";
+  // Queries all payment accounts.
+  rpc PaymentAccounts(QueryPaymentAccountsRequest) returns (QueryPaymentAccountsResponse) {
+    option (google.api.http).get = "/greenfield/payment/payment_accounts";
   }
 
-  // Queries a list of DynamicBalance items.
+  // Queries dynamic balance of a payment account.
   rpc DynamicBalance(QueryDynamicBalanceRequest) returns (QueryDynamicBalanceResponse) {
     option (google.api.http).get = "/greenfield/payment/dynamic_balance/{account}";
   }
 
-  // Queries a list of GetPaymentAccountsByOwner items.
-  rpc GetPaymentAccountsByOwner(QueryGetPaymentAccountsByOwnerRequest) returns (QueryGetPaymentAccountsByOwnerResponse) {
-    option (google.api.http).get = "/greenfield/payment/get_payment_accounts_by_owner/{owner}";
+  // Queries all payment accounts by a owner.
+  rpc PaymentAccountsByOwner(QueryPaymentAccountsByOwnerRequest) returns (QueryPaymentAccountsByOwnerResponse) {
+    option (google.api.http).get = "/greenfield/payment/payment_accounts_by_owner/{owner}";
   }
 
-  // Queries a list of AutoSettleRecord items.
-  rpc AutoSettleRecordAll(QueryAllAutoSettleRecordRequest) returns (QueryAllAutoSettleRecordResponse) {
-    option (google.api.http).get = "/greenfield/payment/auto_settle_record";
+  // Queries all auto settle records.
+  rpc AutoSettleRecords(QueryAutoSettleRecordsRequest) returns (QueryAutoSettleRecordsResponse) {
+    option (google.api.http).get = "/greenfield/payment/auto_settle_records";
   }
 }
 
@@ -117,46 +117,46 @@ message QueryGetStreamRecordResponse {
   StreamRecord stream_record = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryAllStreamRecordRequest {
+message QueryStreamRecordsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryAllStreamRecordResponse {
-  repeated StreamRecord stream_record = 1 [(gogoproto.nullable) = false];
+message QueryStreamRecordsResponse {
+  repeated StreamRecord stream_records = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetPaymentAccountCountRequest {
+message QueryPaymentAccountCountRequest {
   string owner = 1;
 }
 
-message QueryGetPaymentAccountCountResponse {
+message QueryPaymentAccountCountResponse {
   PaymentAccountCount payment_account_count = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryAllPaymentAccountCountRequest {
+message QueryPaymentAccountCountsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryAllPaymentAccountCountResponse {
-  repeated PaymentAccountCount payment_account_count = 1 [(gogoproto.nullable) = false];
+message QueryPaymentAccountCountsResponse {
+  repeated PaymentAccountCount payment_account_counts = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetPaymentAccountRequest {
+message QueryPaymentAccountRequest {
   string addr = 1;
 }
 
-message QueryGetPaymentAccountResponse {
+message QueryPaymentAccountResponse {
   PaymentAccount payment_account = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryAllPaymentAccountRequest {
+message QueryPaymentAccountsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryAllPaymentAccountResponse {
-  repeated PaymentAccount payment_account = 1 [(gogoproto.nullable) = false];
+message QueryPaymentAccountsResponse {
+  repeated PaymentAccount payment_accounts = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
@@ -201,19 +201,19 @@ message QueryDynamicBalanceResponse {
   ];
 }
 
-message QueryGetPaymentAccountsByOwnerRequest {
+message QueryPaymentAccountsByOwnerRequest {
   string owner = 1;
 }
 
-message QueryGetPaymentAccountsByOwnerResponse {
+message QueryPaymentAccountsByOwnerResponse {
   repeated string paymentAccounts = 1;
 }
 
-message QueryAllAutoSettleRecordRequest {
+message QueryAutoSettleRecordsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
 }
 
-message QueryAllAutoSettleRecordResponse {
-  repeated AutoSettleRecord auto_settle_record = 1 [(gogoproto.nullable) = false];
+message QueryAutoSettleRecordsResponse {
+  repeated AutoSettleRecord auto_settle_records = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

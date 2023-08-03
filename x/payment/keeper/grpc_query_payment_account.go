@@ -12,14 +12,17 @@ import (
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
-func (k Keeper) PaymentAccountAll(c context.Context, req *types.QueryAllPaymentAccountRequest) (*types.QueryAllPaymentAccountResponse, error) {
+func (k Keeper) PaymentAccounts(c context.Context, req *types.QueryPaymentAccountsRequest) (*types.QueryPaymentAccountsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var paymentAccounts []types.PaymentAccount
 	ctx := sdk.UnwrapSDKContext(c)
+	if err := query.CheckOffsetQueryNotAllowed(ctx, req.Pagination); err != nil {
+		return nil, err
+	}
 
+	var paymentAccounts []types.PaymentAccount
 	store := ctx.KVStore(k.storeKey)
 	paymentAccountStore := prefix.NewStore(store, types.PaymentAccountKeyPrefix)
 
@@ -38,10 +41,10 @@ func (k Keeper) PaymentAccountAll(c context.Context, req *types.QueryAllPaymentA
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllPaymentAccountResponse{PaymentAccount: paymentAccounts, Pagination: pageRes}, nil
+	return &types.QueryPaymentAccountsResponse{PaymentAccounts: paymentAccounts, Pagination: pageRes}, nil
 }
 
-func (k Keeper) PaymentAccount(c context.Context, req *types.QueryGetPaymentAccountRequest) (*types.QueryGetPaymentAccountResponse, error) {
+func (k Keeper) PaymentAccount(c context.Context, req *types.QueryPaymentAccountRequest) (*types.QueryPaymentAccountResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
@@ -59,5 +62,5 @@ func (k Keeper) PaymentAccount(c context.Context, req *types.QueryGetPaymentAcco
 		return nil, status.Error(codes.NotFound, "not found")
 	}
 
-	return &types.QueryGetPaymentAccountResponse{PaymentAccount: *val}, nil
+	return &types.QueryPaymentAccountResponse{PaymentAccount: *val}, nil
 }

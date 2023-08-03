@@ -94,8 +94,8 @@ service Query {
   }
 
   // Queries a list of ListGroup items.
-  rpc ListGroup(QueryListGroupRequest) returns (QueryListGroupResponse) {
-    option (google.api.http).get = "/greenfield/storage/list_group/{group_owner}";
+  rpc ListGroups(QueryListGroupsRequest) returns (QueryListGroupsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_groups/{group_owner}";
   }
 
   // Queries a list of HeadGroupMember items.
@@ -262,12 +262,12 @@ message QueryHeadGroupResponse {
   GroupInfo group_info = 1;
 }
 
-message QueryListGroupRequest {
+message QueryListGroupsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message QueryListGroupResponse {
+message QueryListGroupsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 1;
   repeated GroupInfo group_infos = 2;
 }

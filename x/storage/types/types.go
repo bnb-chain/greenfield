@@ -15,7 +15,7 @@ type (
 const (
 	TagKeyTraits       = "traits"
 	TagValueOmit       = "omit"
-	MaxPaginationLimit = 200 // the default limit is 100 if pagination parameters is not provided
+	MaxPaginationLimit = 200 // the default limit is 200 if pagination parameters is not provided
 )
 
 func (m *BucketInfo) ToNFTMetadata() *BucketMetaData {

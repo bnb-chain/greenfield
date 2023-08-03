@@ -267,11 +267,11 @@ func (s *PaymentTestSuite) TestStorageBill_Smoke() {
 	s.checkStreamRecordsBeforeAndAfter(streamRecordsBeforeCreateEmptyObject, streamRecordsAfterCreateEmptyObject, readPrice, readChargeRate, primaryStorePrice, secondaryStorePrice, chargeSize, uint64(emptyPayloadSize))
 
 	// test query auto settle records
-	queryAllAutoSettleRecordRequest := paymenttypes.QueryAllAutoSettleRecordRequest{}
-	queryAllAutoSettleRecordResponse, err := s.Client.AutoSettleRecordAll(ctx, &queryAllAutoSettleRecordRequest)
+	queryAllAutoSettleRecordRequest := paymenttypes.QueryAutoSettleRecordsRequest{}
+	queryAllAutoSettleRecordResponse, err := s.Client.AutoSettleRecords(ctx, &queryAllAutoSettleRecordRequest)
 	s.Require().NoError(err)
 	s.T().Logf("queryAllAutoSettleRecordResponse %s", core.YamlString(queryAllAutoSettleRecordResponse))
-	s.Require().True(len(queryAllAutoSettleRecordResponse.AutoSettleRecord) >= 1)
+	s.Require().True(len(queryAllAutoSettleRecordResponse.AutoSettleRecords) >= 1)
 
 	// simulate delete object, check fee preview
 	deleteObjectMsg := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
@@ -2107,10 +2107,10 @@ func (s *PaymentTestSuite) CreatePaymentAccount(user keys.KeyManager, amount, de
 	}
 	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
 	// query user's payment accounts
-	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryGetPaymentAccountsByOwnerRequest{
+	queryGetPaymentAccountsByOwnerRequest := paymenttypes.QueryPaymentAccountsByOwnerRequest{
 		Owner: user.GetAddr().String(),
 	}
-	paymentAccounts, err := s.Client.GetPaymentAccountsByOwner(ctx, &queryGetPaymentAccountsByOwnerRequest)
+	paymentAccounts, err := s.Client.PaymentAccountsByOwner(ctx, &queryGetPaymentAccountsByOwnerRequest)
 	s.Require().NoError(err)
 	s.T().Log(paymentAccounts)
 	paymentAccountAddr := paymentAccounts.PaymentAccounts[len(paymentAccounts.PaymentAccounts)-1]

@@ -93,15 +93,15 @@ func (s *CLITestSuite) TestQueryCmd() {
 			false, "", &types.QueryListBucketsResponse{},
 		},
 		{
-			"query list-group",
+			"query list-groups",
 			append(
 				[]string{
-					"list-group",
+					"list-groups",
 					sample.RandAccAddressHex(),
 				},
 				commonFlags...,
 			),
-			false, "", &types.QueryListGroupResponse{},
+			false, "", &types.QueryListGroupsResponse{},
 		},
 		{
 			"query list-objects",

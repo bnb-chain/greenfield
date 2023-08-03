@@ -24,11 +24,11 @@ func CmdListPaymentAccountCount() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllPaymentAccountCountRequest{
+			params := &types.QueryPaymentAccountCountsRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.PaymentAccountCountAll(context.Background(), params)
+			res, err := queryClient.PaymentAccountCounts(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -55,7 +55,7 @@ func CmdShowPaymentAccountCount() *cobra.Command {
 
 			argOwner := args[0]
 
-			params := &types.QueryGetPaymentAccountCountRequest{
+			params := &types.QueryPaymentAccountCountRequest{
 				Owner: argOwner,
 			}
 
