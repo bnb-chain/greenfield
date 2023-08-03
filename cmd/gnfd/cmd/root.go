@@ -369,6 +369,7 @@ func (a appCreator) newApp(
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(server.FlagIAVLCacheSize))),
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
 		baseapp.SetChainID(chainID),
+		baseapp.SetEnableUnsafeQuery(cast.ToBool(appOpts.Get(server.FlagEnableUnsafeQuery))),
 	)
 }
 

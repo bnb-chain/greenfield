@@ -65,9 +65,9 @@ func TestAutoSettleRecordQuery(t *testing.T) {
 	}
 	keeper.SetAutoSettleRecord(ctx, &record)
 
-	response, err := keeper.AutoSettleRecordAll(ctx, &types.QueryAllAutoSettleRecordRequest{})
+	response, err := keeper.AutoSettleRecords(ctx, &types.QueryAutoSettleRecordsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, record, response.AutoSettleRecord[0])
+	require.Equal(t, record, response.AutoSettleRecords[0])
 }
 
 func TestDynamicBalanceQuery(t *testing.T) {
@@ -113,9 +113,9 @@ func TestPaymentAccountAllQuery(t *testing.T) {
 	}
 	keeper.SetPaymentAccount(ctx, &record2)
 
-	response, err := keeper.PaymentAccountAll(ctx, &types.QueryAllPaymentAccountRequest{})
+	response, err := keeper.PaymentAccounts(ctx, &types.QueryPaymentAccountsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(response.PaymentAccount))
+	require.Equal(t, 2, len(response.PaymentAccounts))
 }
 
 func TestPaymentAccountQuery(t *testing.T) {
@@ -140,13 +140,13 @@ func TestPaymentAccountQuery(t *testing.T) {
 	}
 	keeper.SetPaymentAccount(ctx, &record2)
 
-	response, err := keeper.PaymentAccount(ctx, &types.QueryGetPaymentAccountRequest{
+	response, err := keeper.PaymentAccount(ctx, &types.QueryPaymentAccountRequest{
 		Addr: addr1,
 	})
 	require.NoError(t, err)
 	require.Equal(t, owner1.String(), response.PaymentAccount.Owner)
 
-	response, err = keeper.PaymentAccount(ctx, &types.QueryGetPaymentAccountRequest{
+	response, err = keeper.PaymentAccount(ctx, &types.QueryPaymentAccountRequest{
 		Addr: addr2,
 	})
 	require.NoError(t, err)
@@ -173,9 +173,9 @@ func TestPaymentAccountCountAllQuery(t *testing.T) {
 	}
 	keeper.SetPaymentAccountCount(ctx, &record2)
 
-	response, err := keeper.PaymentAccountCountAll(ctx, &types.QueryAllPaymentAccountCountRequest{})
+	response, err := keeper.PaymentAccountCounts(ctx, &types.QueryPaymentAccountCountsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(response.PaymentAccountCount))
+	require.Equal(t, 2, len(response.PaymentAccountCounts))
 }
 
 func TestPaymentAccountCountQuery(t *testing.T) {
@@ -198,13 +198,13 @@ func TestPaymentAccountCountQuery(t *testing.T) {
 	}
 	keeper.SetPaymentAccountCount(ctx, &record2)
 
-	response, err := keeper.PaymentAccountCount(ctx, &types.QueryGetPaymentAccountCountRequest{
+	response, err := keeper.PaymentAccountCount(ctx, &types.QueryPaymentAccountCountRequest{
 		Owner: owner1.String(),
 	})
 	require.NoError(t, err)
 	require.Equal(t, record1.Count, response.PaymentAccountCount.Count)
 
-	response, err = keeper.PaymentAccountCount(ctx, &types.QueryGetPaymentAccountCountRequest{
+	response, err = keeper.PaymentAccountCount(ctx, &types.QueryPaymentAccountCountRequest{
 		Owner: owner2.String(),
 	})
 	require.NoError(t, err)
@@ -224,7 +224,7 @@ func TestPaymentAccountsByOwnerQuery(t *testing.T) {
 	}
 	keeper.SetPaymentAccountCount(ctx, &record1)
 
-	response, err := keeper.GetPaymentAccountsByOwner(ctx, &types.QueryGetPaymentAccountsByOwnerRequest{
+	response, err := keeper.PaymentAccountsByOwner(ctx, &types.QueryPaymentAccountsByOwnerRequest{
 		Owner: owner1.String(),
 	})
 	require.NoError(t, err)
@@ -245,9 +245,9 @@ func TestStreamRecordAllQuery(t *testing.T) {
 	record2 := types.NewStreamRecord(owner2, ctx.BlockTime().Unix())
 	keeper.SetStreamRecord(ctx, record2)
 
-	response, err := keeper.StreamRecordAll(ctx, &types.QueryAllStreamRecordRequest{})
+	response, err := keeper.StreamRecords(ctx, &types.QueryStreamRecordsRequest{})
 	require.NoError(t, err)
-	require.Equal(t, 2, len(response.StreamRecord))
+	require.Equal(t, 2, len(response.StreamRecords))
 }
 
 func TestStreamRecordQuery(t *testing.T) {

@@ -12,14 +12,17 @@ import (
 	"github.com/bnb-chain/greenfield/x/payment/types"
 )
 
-func (k Keeper) StreamRecordAll(c context.Context, req *types.QueryAllStreamRecordRequest) (*types.QueryAllStreamRecordResponse, error) {
+func (k Keeper) StreamRecords(c context.Context, req *types.QueryStreamRecordsRequest) (*types.QueryStreamRecordsResponse, error) {
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
 	}
 
-	var streamRecords []types.StreamRecord
 	ctx := sdk.UnwrapSDKContext(c)
+	if err := query.CheckOffsetQueryNotAllowed(ctx, req.Pagination); err != nil {
+		return nil, err
+	}
 
+	var streamRecords []types.StreamRecord
 	store := ctx.KVStore(k.storeKey)
 	streamRecordStore := prefix.NewStore(store, types.StreamRecordKeyPrefix)
 
@@ -38,7 +41,7 @@ func (k Keeper) StreamRecordAll(c context.Context, req *types.QueryAllStreamReco
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	return &types.QueryAllStreamRecordResponse{StreamRecord: streamRecords, Pagination: pageRes}, nil
+	return &types.QueryStreamRecordsResponse{StreamRecords: streamRecords, Pagination: pageRes}, nil
 }
 
 func (k Keeper) StreamRecord(c context.Context, req *types.QueryGetStreamRecordRequest) (*types.QueryGetStreamRecordResponse, error) {

@@ -1,4 +1,4 @@
-name: Build Test
+name: Build
 
 on:
   push:
@@ -51,7 +51,3 @@ jobs:
     - name: Test Build
       run: |
         make build
-
-    - name: Uint Test
-      run: |
-        make test

@@ -24,11 +24,11 @@ func CmdListStreamRecord() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllStreamRecordRequest{
+			params := &types.QueryStreamRecordsRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.StreamRecordAll(context.Background(), params)
+			res, err := queryClient.StreamRecords(context.Background(), params)
 			if err != nil {
 				return err
 			}

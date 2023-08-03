@@ -24,11 +24,11 @@ func CmdListPaymentAccount() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllPaymentAccountRequest{
+			params := &types.QueryPaymentAccountsRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.PaymentAccountAll(context.Background(), params)
+			res, err := queryClient.PaymentAccounts(context.Background(), params)
 			if err != nil {
 				return err
 			}
@@ -55,7 +55,7 @@ func CmdShowPaymentAccount() *cobra.Command {
 
 			argAddr := args[0]
 
-			params := &types.QueryGetPaymentAccountRequest{
+			params := &types.QueryPaymentAccountRequest{
 				Addr: argAddr,
 			}
 
