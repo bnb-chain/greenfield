@@ -150,7 +150,7 @@ function generate_genesis() {
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"attestation_inturn_interval\": \"120\"/\"attestation_inturn_interval\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"discontinue_confirm_period\": \"604800\"/\"discontinue_confirm_period\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"discontinue_deletion_max\": \"10000\"/\"discontinue_deletion_max\": \"2\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"discontinue_deletion_max\": \"100\"/\"discontinue_deletion_max\": \"2\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"voting_period\": \"30s\"/\"voting_period\": \"5s\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         #sed -i -e "s/\"community_tax\": \"0.020000000000000000\"/\"community_tax\": \"0\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/log_level = \"info\"/\log_level= \"debug\"/g" ${workspace}/.local/validator${i}/config/config.toml
@@ -159,6 +159,9 @@ function generate_genesis() {
     # enable swagger API for validator0
     sed -i -e "/Enable defines if the API server should be enabled/{N;s/enable = false/enable = true/;}" ${workspace}/.local/validator0/config/app.toml
     sed -i -e 's/swagger = false/swagger = true/' ${workspace}/.local/validator0/config/app.toml
+
+    # enable telemetry for validator0
+    sed -i -e "/other sinks such as Prometheus/{N;s/enable = false/enable = true/;}" ${workspace}/.local/validator0/config/app.toml
 }
 
 function start() {

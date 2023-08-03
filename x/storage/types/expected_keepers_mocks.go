@@ -285,20 +285,6 @@ func (mr *MockPaymentKeeperMockRecorder) ApplyUserFlowsList(ctx, userFlows inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUserFlowsList", reflect.TypeOf((*MockPaymentKeeper)(nil).ApplyUserFlowsList), ctx, userFlows)
 }
 
-// GetParams mocks base method.
-func (m *MockPaymentKeeper) GetParams(ctx types3.Context) types.Params {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types.Params)
-	return ret0
-}
-
-// GetParams indicates an expected call of GetParams.
-func (mr *MockPaymentKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockPaymentKeeper)(nil).GetParams), ctx)
-}
-
 // GetStoragePrice mocks base method.
 func (m *MockPaymentKeeper) GetStoragePrice(ctx types3.Context, params types.StoragePriceParams) (types.StoragePrice, error) {
 	m.ctrl.T.Helper()
@@ -312,21 +298,6 @@ func (m *MockPaymentKeeper) GetStoragePrice(ctx types3.Context, params types.Sto
 func (mr *MockPaymentKeeperMockRecorder) GetStoragePrice(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStoragePrice", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStoragePrice), ctx, params)
-}
-
-// GetStreamRecord mocks base method.
-func (m *MockPaymentKeeper) GetStreamRecord(ctx types3.Context, account types3.AccAddress) (*types.StreamRecord, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
-	ret0, _ := ret[0].(*types.StreamRecord)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetStreamRecord indicates an expected call of GetStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
 }
 
 // GetVersionedParamsWithTs mocks base method.
@@ -358,20 +329,6 @@ func (mr *MockPaymentKeeperMockRecorder) IsPaymentAccountOwner(ctx, addr, owner 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsPaymentAccountOwner", reflect.TypeOf((*MockPaymentKeeper)(nil).IsPaymentAccountOwner), ctx, addr, owner)
 }
 
-// UpdateStreamRecord mocks base method.
-func (m *MockPaymentKeeper) UpdateStreamRecord(ctx types3.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStreamRecord", ctx, streamRecord, change)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateStreamRecord indicates an expected call of UpdateStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecord(ctx, streamRecord, change interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecord), ctx, streamRecord, change)
-}
-
 // UpdateStreamRecordByAddr mocks base method.
 func (m *MockPaymentKeeper) UpdateStreamRecordByAddr(ctx types3.Context, change *types.StreamRecordChange) (*types.StreamRecord, error) {
 	m.ctrl.T.Helper()
@@ -385,20 +342,6 @@ func (m *MockPaymentKeeper) UpdateStreamRecordByAddr(ctx types3.Context, change 
 func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecordByAddr(ctx, change interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecordByAddr", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecordByAddr), ctx, change)
-}
-
-// Withdraw mocks base method.
-func (m *MockPaymentKeeper) Withdraw(ctx types3.Context, fromAddr, toAddr types3.AccAddress, amount math.Int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Withdraw", ctx, fromAddr, toAddr, amount)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Withdraw indicates an expected call of Withdraw.
-func (mr *MockPaymentKeeperMockRecorder) Withdraw(ctx, fromAddr, toAddr, amount interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Withdraw", reflect.TypeOf((*MockPaymentKeeper)(nil).Withdraw), ctx, fromAddr, toAddr, amount)
 }
 
 // MockPermissionKeeper is a mock of PermissionKeeper interface.

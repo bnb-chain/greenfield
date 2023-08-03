@@ -1,7 +1,6 @@
 package ante_test
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -10,17 +9,11 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	dbm "github.com/cometbft/cometbft-db"
-	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
 	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
-	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/eth/ethsecp256k1"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	"github.com/cosmos/cosmos-sdk/testutil/mock"
-	simtestutil "github.com/cosmos/cosmos-sdk/testutil/sims"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	signingtypes "github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -43,6 +36,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/client/test"
 	"github.com/bnb-chain/greenfield/sdk/keys"
+	"github.com/bnb-chain/greenfield/testutil"
 	"github.com/bnb-chain/greenfield/testutil/sample"
 )
 
@@ -61,10 +55,12 @@ func TestAnteTestSuite(t *testing.T) {
 
 func (suite *AnteTestSuite) SetupTest() {
 	var encCfg params.EncodingConfig
-	suite.app, encCfg, _ = NewApp(baseapp.SetChainID("greenfield_9000-1"))
+	logger := log.NewNopLogger()
+	db := dbm.NewMemDB()
+	suite.app, encCfg, _ = testutil.NewTestApp(logger, db, nil, true, test.TEST_CHAIN_ID)
 
-	suite.ctx = suite.app.NewContext(false, tmproto.Header{Height: 2, ChainID: "greenfield_9000-1", Time: time.Now().UTC()})
-	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(sdk.DefaultBondDenom, sdk.OneInt()))) // set to 1 stake
+	suite.ctx = suite.app.NewUncachedContext(false, tmproto.Header{Height: 2, ChainID: test.TEST_CHAIN_ID, Time: time.Now().UTC()})
+	suite.ctx = suite.ctx.WithMinGasPrices(sdk.NewDecCoins(sdk.NewDecCoin(test.TEST_TOKEN_NAME, sdk.OneInt()))) // set to 1 stake
 
 	infCtx := suite.ctx.WithGasMeter(storetypes.NewInfiniteGasMeter())
 	err := suite.app.AccountKeeper.SetParams(infCtx, authtypes.DefaultParams())
@@ -84,13 +80,13 @@ func (suite *AnteTestSuite) SetupTest() {
 
 func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSend(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	recipient := core.GenRandomAddr()
-	msgSend := banktypes.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(1))))
+	msgSend := banktypes.NewMsgSend(from, recipient, sdk.NewCoins(sdk.NewCoin(test.TEST_TOKEN_NAME, sdkmath.NewInt(1))))
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgSend)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgDelegate(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
 	validator := core.GenRandomAddr()
-	msgSend := stakingtypes.NewMsgDelegate(from, validator, sdk.NewCoin(sdk.DefaultBondDenom, sdkmath.NewInt(20)))
+	msgSend := stakingtypes.NewMsgDelegate(from, validator, sdk.NewCoin(test.TEST_TOKEN_NAME, sdkmath.NewInt(20)))
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgSend)
 }
 
@@ -100,7 +96,7 @@ func (suite *AnteTestSuite) CreateTestEIP712MsgCreateValidator(from sdk.AccAddre
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		from,
 		privEd.PubKey(),
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
+		sdk.NewCoin(test.TEST_TOKEN_NAME, sdk.NewInt(20)),
 		stakingtypes.NewDescription("moniker", "identity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 		sdk.OneInt(),
@@ -124,7 +120,7 @@ func (suite *AnteTestSuite) CreateTestEIP712SubmitProposal(from sdk.AccAddress, 
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712GrantAllowance(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
-	spendLimit := sdk.NewCoins(sdk.NewInt64Coin(sdk.DefaultBondDenom, 10))
+	spendLimit := sdk.NewCoins(sdk.NewInt64Coin(test.TEST_TOKEN_NAME, 10))
 	threeHours := time.Now().Add(3 * time.Hour)
 	basic := &feegrant.BasicAllowance{
 		SpendLimit: spendLimit,
@@ -173,7 +169,7 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sd
 	msgCreate, err := stakingtypes.NewMsgCreateValidator(
 		from,
 		privEd.PubKey(),
-		sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20)),
+		sdk.NewCoin(test.TEST_TOKEN_NAME, sdk.NewInt(20)),
 		stakingtypes.NewDescription("moniker", "indentity", "website", "security_contract", "details"),
 		stakingtypes.NewCommissionRates(sdk.OneDec(), sdk.OneDec(), sdk.OneDec()),
 		sdk.OneInt(),
@@ -187,7 +183,7 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgSubmitProposalV1(from sd
 	suite.Require().NoError(err)
 	msgSubmitProposal, err := govtypesv1.NewMsgSubmitProposal(
 		[]sdk.Msg{msgCreate},
-		sdk.Coins{sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(20))},
+		sdk.Coins{sdk.NewCoin(test.TEST_TOKEN_NAME, sdk.NewInt(20))},
 		from.String(),
 		"test", "test", "test",
 	)
@@ -264,57 +260,4 @@ func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(
 	err = txBuilder.SetSignatures(sigsV2)
 	suite.Require().NoError(err)
 	return txBuilder
-}
-
-func NewApp(options ...func(baseApp *baseapp.BaseApp)) (*app.App, params.EncodingConfig, error) {
-	// create public key
-	privVal := mock.NewPV()
-	pubKey, _ := privVal.GetPubKey()
-
-	// create validator set with single validator
-	validator := tmtypes.NewValidator(pubKey, 1)
-	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
-
-	// generate genesis account
-	bz, _ := hex.DecodeString(test.TEST_PUBKEY)
-	faucetPubKey := &ethsecp256k1.PubKey{Key: bz}
-
-	acc := authtypes.NewBaseAccount(faucetPubKey.Address().Bytes(), faucetPubKey, 0, 0)
-	balance := banktypes.Balance{
-		Address: acc.GetAddress().String(),
-		Coins:   sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000))),
-	}
-
-	logger := log.NewNopLogger()
-	db := dbm.NewMemDB()
-	encCfg := app.MakeEncodingConfig()
-
-	nApp := app.New(
-		logger,
-		db,
-		nil,
-		true,
-		app.DefaultNodeHome,
-		0,
-		encCfg,
-		&app.AppConfig{CrossChain: app.NewDefaultAppConfig().CrossChain},
-		simtestutil.EmptyAppOptions{},
-		options...,
-	)
-
-	genesisState := app.NewDefaultGenesisState(encCfg.Marshaler)
-	genesisState, _ = simtestutil.GenesisStateWithValSet(nApp.AppCodec(), genesisState, valSet, []authtypes.GenesisAccount{acc}, balance)
-
-	stateBytes, _ := json.MarshalIndent(genesisState, "", "  ")
-
-	// Initialize the chain
-	nApp.InitChain(
-		abci.RequestInitChain{
-			ChainId:       "greenfield_9000-1",
-			Validators:    []abci.ValidatorUpdate{},
-			AppStateBytes: stateBytes,
-		},
-	)
-
-	return nApp, encCfg, nil
 }

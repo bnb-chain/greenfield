@@ -94,8 +94,8 @@ service Query {
   }
 
   // Queries a list of ListGroup items.
-  rpc ListGroup(QueryListGroupRequest) returns (QueryListGroupResponse) {
-    option (google.api.http).get = "/greenfield/storage/list_group/{group_owner}";
+  rpc ListGroups(QueryListGroupsRequest) returns (QueryListGroupsResponse) {
+    option (google.api.http).get = "/greenfield/storage/list_groups/{group_owner}";
   }
 
   // Queries a list of HeadGroupMember items.
@@ -126,6 +126,21 @@ service Query {
   // Queries whether read and storage prices changed for the bucket.
   rpc QueryIsPriceChanged(QueryIsPriceChangedRequest) returns (QueryIsPriceChangedResponse) {
     option (google.api.http).get = "/greenfield/storage/is_price_changed/{bucket_name}";
+  }
+
+  // Queries whether some members are in the group.
+  rpc QueryGroupMembersExist(QueryGroupMembersExistRequest) returns (QueryGroupMembersExistResponse) {
+    option (google.api.http).get = "/greenfield/storage/group_members_exist/{group_id}/{members}";
+  }
+
+  // Queries whether some groups are exist.
+  rpc QueryGroupsExist(QueryGroupsExistRequest) returns (QueryGroupsExistResponse) {
+    option (google.api.http).get = "/greenfield/storage/groups_exist/{group_owner}/{group_names}";
+  }
+
+  // Queries whether some groups are exist by id.
+  rpc QueryGroupsExistById(QueryGroupsExistByIdRequest) returns (QueryGroupsExistResponse) {
+    option (google.api.http).get = "/greenfield/storage/groups_exist_by_id/{group_ids}";
   }
 
   // this line is used by starport scaffolding # 2
@@ -247,12 +262,12 @@ message QueryHeadGroupResponse {
   GroupInfo group_info = 1;
 }
 
-message QueryListGroupRequest {
+message QueryListGroupsRequest {
   cosmos.base.query.v1beta1.PageRequest pagination = 1;
   string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message QueryListGroupResponse {
+message QueryListGroupsResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 1;
   repeated GroupInfo group_infos = 2;
 }
@@ -356,4 +371,27 @@ message QueryIsPriceChangedResponse {
     (gogoproto.nullable) = false
   ];
 }
+
+message QueryGroupMembersExistRequest {
+  string group_id = 1;
+  repeated string members = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message QueryGroupMembersExistResponse {
+  map<string, bool> exists = 1;
+}
+
+message QueryGroupsExistRequest {
+  string group_owner = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated string group_names = 2;
+}
+
+message QueryGroupsExistByIdRequest {
+  repeated string group_ids = 1;
+}
+
+message QueryGroupsExistResponse {
+  map<string, bool> exists = 1;
+}
+
 // this line is used by starport scaffolding # 3

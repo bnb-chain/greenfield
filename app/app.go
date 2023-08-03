@@ -729,6 +729,7 @@ func (app *App) initModules(ctx sdk.Context) {
 
 	app.initBridge()
 	app.initStorage()
+	app.initGov()
 }
 
 func (app *App) initCrossChain() {
@@ -742,6 +743,13 @@ func (app *App) initBridge() {
 
 func (app *App) initStorage() {
 	storagemodulekeeper.RegisterCrossApps(app.StorageKeeper)
+}
+
+func (app *App) initGov() {
+	err := app.GovKeeper.RegisterCrossChainSyncParamsApp()
+	if err != nil {
+		panic(err)
+	}
 }
 
 // Name returns the name of the App

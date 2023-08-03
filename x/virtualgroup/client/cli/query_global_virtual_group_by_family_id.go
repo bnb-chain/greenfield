@@ -19,7 +19,6 @@ func CmdGlobalVirtualGroupByFamilyID() *cobra.Command {
 		Short: "query virtual group by family id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
 			familyID, err := strconv.ParseInt(args[0], 10, 32)
 			if err != nil || familyID <= 0 {
 				return fmt.Errorf("invalid GVG id %s", args[1])

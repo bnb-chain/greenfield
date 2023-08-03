@@ -14,7 +14,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
-
+  
+  "github.com/bnb-chain/greenfield/testutil/sample"
 	"github.com/bnb-chain/greenfield/x/challenge"
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
 	"github.com/bnb-chain/greenfield/x/payment/types"
@@ -87,7 +88,7 @@ func (s *TestSuite) TestUpdateParams() {
 		{
 			name: "invalid authority",
 			msg: types.MsgUpdateParams{
-				Authority: s.paymentKeeper.GetAuthority(),
+				Authority: sample.RandAccAddressHex(),
 			},
 			err: true,
 		}, {

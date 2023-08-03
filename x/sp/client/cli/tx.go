@@ -212,7 +212,7 @@ func CmdEditStorageProvider() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if len(blsPubKey) != 2*sdk.BLSPubKeyLength {
+			if len(blsPubKey) > 0 && len(blsPubKey) != 2*sdk.BLSPubKeyLength {
 				return fmt.Errorf("invalid bls pubkey")
 			}
 

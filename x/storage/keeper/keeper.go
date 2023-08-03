@@ -458,7 +458,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 			"only primary sp is allowed to do discontinue bucket, expect sp id : %d", spInState.Id)
 	}
 
-	count := k.getDiscontinueBucketCount(ctx, operator)
+	count := k.GetDiscontinueBucketCount(ctx, operator)
 	max := k.DiscontinueBucketMax(ctx)
 	if count+1 > max {
 		return types.ErrNoMoreDiscontinue.Wrapf("no more buckets can be requested in this window")
@@ -473,7 +473,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	deleteAt := ctx.BlockTime().Unix() + k.DiscontinueConfirmPeriod(ctx)
 
 	k.appendDiscontinueBucketIds(ctx, deleteAt, []sdkmath.Uint{bucketInfo.Id})
-	k.setDiscontinueBucketCount(ctx, operator, count+1)
+	k.SetDiscontinueBucketCount(ctx, operator, count+1)
 
 	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
@@ -1148,7 +1148,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 	}
 
-	count := k.getDiscontinueObjectCount(ctx, operator)
+	count := k.GetDiscontinueObjectCount(ctx, operator)
 	max := k.DiscontinueObjectMax(ctx)
 	if count+uint64(len(objectIds)) > max {
 		return types.ErrNoMoreDiscontinue.Wrapf("only %d objects can be requested in this window", max-count)
@@ -1177,7 +1177,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 
 	deleteAt := ctx.BlockTime().Unix() + k.DiscontinueConfirmPeriod(ctx)
 	k.AppendDiscontinueObjectIds(ctx, deleteAt, objectIds)
-	k.setDiscontinueObjectCount(ctx, operator, count+uint64(len(objectIds)))
+	k.SetDiscontinueObjectCount(ctx, operator, count+uint64(len(objectIds)))
 
 	events := make([]proto.Message, 0)
 	for _, objectId := range objectIds {
@@ -1492,7 +1492,7 @@ func (k Keeper) isNonEmptyBucket(ctx sdk.Context, bucketName string) bool {
 	return iter.Valid()
 }
 
-func (k Keeper) getDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
+func (k Keeper) GetDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueObjectCountPrefix)
 	bz := store.Get(operator.Bytes())
 
@@ -1502,7 +1502,7 @@ func (k Keeper) getDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddre
 	return binary.BigEndian.Uint64(bz)
 }
 
-func (k Keeper) setDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
+func (k Keeper) SetDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueObjectCountPrefix)
 
 	countBytes := make([]byte, 8)
@@ -1573,7 +1573,7 @@ func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, 
 	return deleted, nil
 }
 
-func (k Keeper) getDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
+func (k Keeper) GetDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueBucketCountPrefix)
 	bz := store.Get(operator.Bytes())
 
@@ -1583,7 +1583,7 @@ func (k Keeper) getDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddre
 	return binary.BigEndian.Uint64(bz)
 }
 
-func (k Keeper) setDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
+func (k Keeper) SetDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueBucketCountPrefix)
 
 	countBytes := make([]byte, 8)
