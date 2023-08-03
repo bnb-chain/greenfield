@@ -2198,6 +2198,155 @@ paths:
           type: boolean
       tags:
         - Query
+  /greenfield/storage/group_members_exist/{group_id}/{members}:
+    get:
+      summary: Queries whether some members are in the group.
+      operationId: QueryGroupMembersExist
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              exists:
+                type: object
+                additionalProperties:
+                  type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          type: string
+        - name: members
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+          minItems: 1
+      tags:
+        - Query
+  /greenfield/storage/groups_exist/{group_owner}/{group_names}:
+    get:
+      summary: Queries whether some groups are exist.
+      operationId: QueryGroupsExist
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              exists:
+                type: object
+                additionalProperties:
+                  type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: group_owner
+          in: path
+          required: true
+          type: string
+        - name: group_names
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+          minItems: 1
+      tags:
+        - Query
+  /greenfield/storage/groups_exist_by_id/{group_ids}:
+    get:
+      summary: Queries whether some groups are exist by id.
+      operationId: QueryGroupsExistById
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              exists:
+                type: object
+                additionalProperties:
+                  type: boolean
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: group_ids
+          in: path
+          required: true
+          type: array
+          items:
+            type: string
+          collectionFormat: csv
+          minItems: 1
+      tags:
+        - Query
   /greenfield/storage/head_bucket/{bucket_name}:
     get:
       summary: Queries a bucket with specify name.
@@ -33742,6 +33891,13 @@ definitions:
                 value:
                   type: string
             title: attributes
+  greenfield.storage.QueryGroupMembersExistResponse:
+    type: object
+    properties:
+      exists:
+        type: object
+        additionalProperties:
+          type: boolean
   greenfield.storage.QueryGroupNFTResponse:
     type: object
     properties:
@@ -33770,6 +33926,13 @@ definitions:
                 value:
                   type: string
             title: attributes
+  greenfield.storage.QueryGroupsExistResponse:
+    type: object
+    properties:
+      exists:
+        type: object
+        additionalProperties:
+          type: boolean
   greenfield.storage.QueryHeadBucketExtraResponse:
     type: object
     properties:

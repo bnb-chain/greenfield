@@ -33,7 +33,7 @@ type TestSuite struct {
 	accountKeeper      *types.MockAccountKeeper
 	spKeeper           *types.MockSpKeeper
 	permissionKeeper   *types.MockPermissionKeeper
-	crosschainKeeper   *types.MockCrossChainKeeper
+	crossChainKeeper   *types.MockCrossChainKeeper
 	paymentKeeper      *types.MockPaymentKeeper
 	virtualGroupKeeper *types.MockVirtualGroupKeeper
 
@@ -60,7 +60,7 @@ func (s *TestSuite) SetupTest() {
 	accountKeeper := types.NewMockAccountKeeper(ctrl)
 	spKeeper := types.NewMockSpKeeper(ctrl)
 	permissionKeeper := types.NewMockPermissionKeeper(ctrl)
-	crosschainKeeper := types.NewMockCrossChainKeeper(ctrl)
+	crossChainKeeper := types.NewMockCrossChainKeeper(ctrl)
 	paymentKeeper := types.NewMockPaymentKeeper(ctrl)
 	virtualGroupKeeper := types.NewMockVirtualGroupKeeper(ctrl)
 
@@ -72,7 +72,7 @@ func (s *TestSuite) SetupTest() {
 		spKeeper,
 		paymentKeeper,
 		permissionKeeper,
-		crosschainKeeper,
+		crossChainKeeper,
 		virtualGroupKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
@@ -81,7 +81,7 @@ func (s *TestSuite) SetupTest() {
 	s.accountKeeper = accountKeeper
 	s.spKeeper = spKeeper
 	s.permissionKeeper = permissionKeeper
-	s.crosschainKeeper = crosschainKeeper
+	s.crossChainKeeper = crossChainKeeper
 	s.paymentKeeper = paymentKeeper
 	s.virtualGroupKeeper = virtualGroupKeeper
 
@@ -138,7 +138,8 @@ func (s *TestSuite) TestGetBucketReadBill() {
 		Status:          sptypes.STATUS_IN_SERVICE,
 		Id:              100,
 		OperatorAddress: sample.RandAccAddress().String(),
-		FundingAddress:  sample.RandAccAddress().String()}
+		FundingAddress:  sample.RandAccAddress().String(),
+	}
 	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
 		Return(primarySp, true).AnyTimes()
 
@@ -199,7 +200,8 @@ func (s *TestSuite) TestGetBucketReadStoreBill() {
 		Status:          sptypes.STATUS_IN_SERVICE,
 		Id:              100,
 		OperatorAddress: sample.RandAccAddress().String(),
-		FundingAddress:  sample.RandAccAddress().String()}
+		FundingAddress:  sample.RandAccAddress().String(),
+	}
 	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
 		Return(primarySp, true).AnyTimes()
 
