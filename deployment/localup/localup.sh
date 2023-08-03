@@ -40,6 +40,7 @@ function init() {
       ${bin} keys add sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --algo eth_bls > ${workspace}/.local/sp${i}/bls_info 2>&1
       ${bin} keys add sp${i}_approval --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/approval_info 2>&1
       ${bin} keys add sp${i}_gc --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/gc_info 2>&1
+      ${bin} keys add sp${i}_test --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/test_info 2>&1
     done
 
 }
@@ -198,11 +199,13 @@ function generate_sp_genesis {
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    sptest_addr=("$(${bin} keys show sp${i}_test -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     ${bin} add-genesis-account $spoperator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spgc_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+    ${bin} add-genesis-account $sptest_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
   done
 
   rm -rf ${workspace}/.local/gensptx
@@ -216,6 +219,7 @@ function generate_sp_genesis {
     bls_proof=("$(${bin} keys sign "${bls_pub_key}" --from sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    sptest_addr=("$(${bin} keys show sp${i}_test -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
     # create bond storage provider tx
     ${bin} spgentx sp${i} ${SP_MIN_DEPOSIT_AMOUNT}${STAKING_BOND_DENOM} \
@@ -228,6 +232,7 @@ function generate_sp_genesis {
       --bls-proof=${bls_proof} \
       --approval-address=${spapproval_addr} \
       --gc-address=${spgc_addr} \
+      --test-address=${sptest_addr} \
       --keyring-backend=test \
       --chain-id=${CHAIN_ID} \
       --moniker="sp${i}" \
@@ -261,12 +266,14 @@ function export_sps {
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    sptest_addr=("$(${bin} keys show sp${i}_test -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     bls_pub_key=("$(${bin} keys show sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --output json | jq -r .pubkey_hex)")
     spoperator_priv_key=("$(echo "y" | ${bin} keys export sp${i} --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_priv_key=("$(echo "y" | ${bin} keys export sp${i}_fund --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_priv_key=("$(echo "y" | ${bin} keys export sp${i}_seal --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_priv_key=("$(echo "y" | ${bin} keys export sp${i}_approval --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_priv_key=("$(echo "y" | ${bin} keys export sp${i}_gc --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    sptest_priv_key=("$(echo "y" | ${bin} keys export sp${i}_test --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     bls_priv_key=("$(echo "y" | ${bin} keys export sp${i}_bls --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     output="${output}\"sp${i}\":{"
     output="${output}\"OperatorAddress\": \"${spoperator_addr}\","
@@ -274,12 +281,14 @@ function export_sps {
     output="${output}\"SealAddress\": \"${spseal_addr}\","
     output="${output}\"ApprovalAddress\": \"${spapproval_addr}\","
     output="${output}\"GcAddress\": \"${spgc_addr}\","
+    output="${output}\"TestAddress\": \"${sptest_addr}\","
     output="${output}\"BlsPubKey\": \"${bls_pub_key}\","
     output="${output}\"OperatorPrivateKey\": \"${spoperator_priv_key}\","
     output="${output}\"FundingPrivateKey\": \"${spfund_priv_key}\","
     output="${output}\"SealPrivateKey\": \"${spseal_priv_key}\","
     output="${output}\"ApprovalPrivateKey\": \"${spapproval_priv_key}\","
     output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\","
+    output="${output}\"TestPrivateKey\": \"${sptest_priv_key}\","
     output="${output}\"BlsPrivateKey\": \"${bls_priv_key}\""
     output="${output}},"
   done

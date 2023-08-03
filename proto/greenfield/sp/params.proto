@@ -25,4 +25,11 @@ message Params {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
+  // previous blocks that be traced back to for maintenance_records
+  int64 num_of_historical_blocks_for_maintenance_records = 4 [(gogoproto.moretags) = "yaml:\"num_of_historical_blocks_for_maintenance_records\""];
+  // the max duration that a SP can be in_maintenance within num_of_historical_blocks_for_maintenance_records
+  int64 maintenance_duration_quota = 5 [(gogoproto.moretags) = "yaml:\"maintenance_duration_quota\""];
+  // the number of blocks to be wait for sp to be in maintenance mode again if already requested
+  int64 num_of_lockup_blocks_for_maintenance = 6 [(gogoproto.moretags) = "yaml:\"num_of_lockup_blocks_for_maintenance\""];
+
 }

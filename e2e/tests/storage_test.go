@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"math"
 	"reflect"
 	"strconv"
@@ -1783,4 +1784,168 @@ CheckProposalStatus:
 	} else {
 		s.T().Errorf("update params failed")
 	}
+}
+
+// when a sp turn into maintenance mode, it should be able to create bucket and object by its testing account.
+func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
+	var err error
+	ctx := context.Background()
+
+	sp := s.BaseSuite.PickStorageProvider()
+	spAddr := sp.OperatorKey.GetAddr()
+	spTestAddr := sp.TestKey.GetAddr()
+
+	req := sptypes.QueryStorageProviderByOperatorAddressRequest{
+		OperatorAddress: spAddr.String(),
+	}
+	spResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &req)
+	s.Require().NoError(err)
+	s.Require().Equal(sptypes.STATUS_IN_SERVICE, spResp.StorageProvider.Status)
+
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	msg := sptypes.NewMsgUpdateStorageProviderStatus(
+		spAddr,
+		sptypes.STATUS_IN_MAINTENANCE,
+		120,
+	)
+	txRes := s.SendTxBlock(sp.OperatorKey, msg)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	spResp, err = s.Client.StorageProviderByOperatorAddress(ctx, &req)
+	s.Require().NoError(err)
+	s.Require().Equal(sptypes.STATUS_IN_MAINTENANCE, spResp.StorageProvider.Status)
+
+	// create a bucket
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		spTestAddr, bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.TestKey, msgCreateBucket)
+
+	// HeadBucket
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, spTestAddr.String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// CreateObject
+	objectName := storageutils.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(spTestAddr, bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.TestKey, msgCreateObject)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, spTestAddr.String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
+
+	// SealObject
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
+	// every secondary sp signs the checksums
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.Require().Greater(len(queryListBucketResponse.BucketInfos), 0)
+
+	// ListObject
+	queryListObjectsRequest := storagetypes.QueryListObjectsRequest{
+		BucketName: bucketName,
+	}
+	queryListObjectsResponse, err := s.Client.ListObjects(ctx, &queryListObjectsRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
+	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
+
+	// UpdateObjectInfo
+	updateObjectInfo := storagetypes.NewMsgUpdateObjectInfo(
+		spTestAddr, bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
+	s.Require().NoError(err)
+	s.SendTxBlock(sp.TestKey, updateObjectInfo)
+	s.Require().NoError(err)
+
+	// verify modified objectinfo
+	// head object
+	queryHeadObjectAfterUpdateObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_INHERIT)
+
+	// verify HeadObjectById
+	queryHeadObjectAfterUpdateObjectResponse, err = s.Client.HeadObjectById(context.Background(), &storagetypes.QueryHeadObjectByIdRequest{ObjectId: queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Id.String()})
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_INHERIT)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.ObjectName, objectName)
+
+	// DeleteObject
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(spTestAddr, bucketName, objectName)
+	s.SendTxBlock(sp.TestKey, msgDeleteObject)
+
+	// DeleteBucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(spTestAddr, bucketName)
+	s.SendTxBlock(sp.TestKey, msgDeleteBucket)
+
+	// revert back
+	msg = sptypes.NewMsgUpdateStorageProviderStatus(
+		spAddr,
+		sptypes.STATUS_IN_SERVICE,
+		120,
+	)
+	txRes = s.SendTxBlock(sp.OperatorKey, msg)
+	s.Require().Equal(txRes.Code, uint32(0))
+	spResp, err = s.Client.StorageProviderByOperatorAddress(ctx, &req)
+	s.Require().NoError(err)
+	s.Require().Equal(sptypes.STATUS_IN_SERVICE, spResp.StorageProvider.Status)
 }

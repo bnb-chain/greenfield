@@ -93,6 +93,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 		SealAddress:     prevSP.SealAddress,
 		ApprovalAddress: prevSP.ApprovalAddress,
 		GcAddress:       prevSP.GcAddress,
+		TestAddress:     prevSP.TestAddress,
 		BlsKey:          newBlsPubKeyBz,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
@@ -103,7 +104,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	}
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(),
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), sp.TestKey.GetAddr(),
 		hex.EncodeToString(newBlsPubKeyBz),
 		hex.EncodeToString(newBlsProofBz),
 	)
@@ -124,7 +125,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(),
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), sp.TestKey.GetAddr(),
 		hex.EncodeToString(prevSP.BlsKey), hex.EncodeToString(blsProof))
 
 	txRes = s.SendTxBlock(sp.OperatorKey, msgEditSP)
@@ -329,4 +330,42 @@ CheckProposalStatus:
 	} else {
 		s.T().Errorf("update params failed")
 	}
+}
+
+func (s *StorageProviderTestSuite) TestUpdateStorageProviderStatus() {
+	ctx := context.Background()
+	sp := s.BaseSuite.PickStorageProvider()
+	operatorAddr := sp.OperatorKey.GetAddr()
+
+	// 1. query storage provider
+	req := sptypes.QueryStorageProviderByOperatorAddressRequest{
+		OperatorAddress: operatorAddr.String(),
+	}
+	spResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &req)
+	s.Require().NoError(err)
+	s.Require().Equal(sptypes.STATUS_IN_SERVICE, spResp.StorageProvider.Status)
+
+	msg := sptypes.NewMsgUpdateStorageProviderStatus(
+		operatorAddr,
+		sptypes.STATUS_IN_MAINTENANCE,
+		120,
+	)
+	txRes := s.SendTxBlock(sp.OperatorKey, msg)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	spResp, err = s.Client.StorageProviderByOperatorAddress(ctx, &req)
+	s.Require().NoError(err)
+	s.Require().Equal(sptypes.STATUS_IN_MAINTENANCE, spResp.StorageProvider.Status)
+
+	msg = sptypes.NewMsgUpdateStorageProviderStatus(
+		operatorAddr,
+		sptypes.STATUS_IN_SERVICE,
+		0,
+	)
+
+	txRes = s.SendTxBlock(sp.OperatorKey, msg)
+	s.Require().Equal(txRes.Code, uint32(0))
+	spResp, err = s.Client.StorageProviderByOperatorAddress(ctx, &req)
+	s.Require().NoError(err)
+	s.Require().Equal(sptypes.STATUS_IN_SERVICE, spResp.StorageProvider.Status)
 }

@@ -19,7 +19,7 @@ const (
 // NewStorageProvider constructs a new StorageProvider
 func NewStorageProvider(
 	spID uint32, operator sdk.AccAddress, fundingAddress sdk.AccAddress,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, testAddress sdk.AccAddress,
 	totalDeposit math.Int, endpoint string,
 	description Description,
 	blsKey string) (StorageProvider, error) {
@@ -36,6 +36,7 @@ func NewStorageProvider(
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
 		GcAddress:       gcAddress.String(),
+		TestAddress:     testAddress.String(),
 		TotalDeposit:    totalDeposit,
 		Endpoint:        endpoint,
 		Description:     description,
@@ -77,6 +78,14 @@ func (sp *StorageProvider) GetGcAccAddress() sdk.AccAddress {
 		return sdk.AccAddress{}
 	}
 	addr := sdk.MustAccAddressFromHex(sp.GcAddress)
+	return addr
+}
+
+func (sp *StorageProvider) GetTestAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr := sdk.MustAccAddressFromHex(sp.TestAddress)
 	return addr
 }
 

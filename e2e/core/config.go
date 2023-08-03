@@ -13,6 +13,7 @@ type SPMnemonics struct {
 	FundingMnemonic  string `yaml:"FundingMnemonic"`  // funding account mnemonic with enough balance
 	ApprovalMnemonic string `yaml:"ApprovalMnemonic"` // approval account mnemonic with enough balance
 	GcMnemonic       string `yaml:"GcMnemonic"`       // gc account mnemonic with enough balance
+	TestMnemonic     string `yaml:"TestMnemonic"`     // test account mnemonic with enough balance
 }
 
 type Config struct {
@@ -83,6 +84,7 @@ func ParseSPMnemonics(i int) SPMnemonics {
 		FundingMnemonic:  ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/fund_info", i)),
 		ApprovalMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/approval_info", i)),
 		GcMnemonic:       ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/gc_info", i)),
+		TestMnemonic:     ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/test_info", i)),
 	}
 }
 

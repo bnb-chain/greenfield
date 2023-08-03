@@ -207,6 +207,19 @@ func CmdEditStorageProvider() *cobra.Command {
 				}
 			}
 
+			// test address
+			testAddressStr, err := cmd.Flags().GetString(FlagTestAddress)
+			if err != nil {
+				return err
+			}
+			testAddress := sdk.AccAddress{}
+			if testAddressStr != "" {
+				testAddress, err = sdk.AccAddressFromHexUnsafe(testAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
 			// bls key
 			blsPubKey, err := cmd.Flags().GetString(FlagBlsPubKey)
 			if err != nil {
@@ -231,6 +244,7 @@ func CmdEditStorageProvider() *cobra.Command {
 				sealAddress,
 				approvalAddress,
 				gcAddress,
+				testAddress,
 				blsPubKey,
 				blsProof,
 			)
@@ -254,6 +268,7 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
 	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
+	cmd.Flags().String(FlagTestAddress, "", "The test address of storage provider")
 
 	return cmd
 }
@@ -418,6 +433,7 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
 	fsCreateStorageProvider.String(FlagGcAddress, "", "The gc address of storage provider")
+	fsCreateStorageProvider.String(FlagTestAddress, "", "The test address of storage provider")
 
 	fsCreateStorageProvider.String(FlagEndpoint, "", "The storage provider's endpoint")
 
@@ -448,6 +464,7 @@ type TxCreateStorageProviderConfig struct {
 	BlsProof        string
 	ApprovalAddress sdk.AccAddress
 	GcAddress       sdk.AccAddress
+	TestAddress     sdk.AccAddress
 
 	Endpoint string
 	Deposit  string
@@ -576,6 +593,17 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.GcAddress = addr
 
+	// gc address
+	testAddress, err := flagSet.GetString(FlagTestAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(testAddress)
+	if err != nil {
+		return c, err
+	}
+	c.TestAddress = addr
+
 	// Endpoint
 	endpoint, err := flagSet.GetString(FlagEndpoint)
 	if err != nil {
@@ -629,7 +657,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 
 	msg, err := types.NewMsgCreateStorageProvider(
 		config.Creator, config.SpAddress, config.FundingAddress,
-		config.SealAddress, config.ApprovalAddress, config.GcAddress, description,
+		config.SealAddress, config.ApprovalAddress, config.GcAddress, config.TestAddress, description,
 		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
 		config.BlsPubKey, config.BlsProof,
 	)

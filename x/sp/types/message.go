@@ -12,11 +12,12 @@ import (
 )
 
 const (
-	TypeMsgCreateStorageProvider = "create_storage_provider"
-	TypeMsgEditStorageProvider   = "edit_storage_provider"
-	TypeMsgDeposit               = "deposit"
-	TypeMsgUpdateSpStoragePrice  = "update_sp_storage_price"
-	TypeMsgUpdateParams          = "update_params"
+	TypeMsgCreateStorageProvider       = "create_storage_provider"
+	TypeMsgEditStorageProvider         = "edit_storage_provider"
+	TypeMsgDeposit                     = "deposit"
+	TypeMsgUpdateSpStoragePrice        = "update_sp_storage_price"
+	TypeMsgUpdateParams                = "update_params"
+	TypeMsgUpdateStorageProviderStatus = "update_storage_provider_status"
 )
 
 var (
@@ -26,6 +27,7 @@ var (
 	_ sdk.Msg = &MsgEditStorageProvider{}
 	_ sdk.Msg = &MsgUpdateSpStoragePrice{}
 	_ sdk.Msg = &MsgUpdateParams{}
+	_ sdk.Msg = &MsgUpdateStorageProviderStatus{}
 )
 
 // NewMsgCreateStorageProvider creates a new MsgCreateStorageProvider instance.
@@ -36,7 +38,7 @@ var (
 // blsProof is the signature signed via bls private key on bls public key bytes
 func NewMsgCreateStorageProvider(
 	creator sdk.AccAddress, spAddress sdk.AccAddress, fundingAddress sdk.AccAddress,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, testAddress sdk.AccAddress,
 	description Description, endpoint string, deposit sdk.Coin, readPrice sdk.Dec, freeReadQuota uint64, storePrice sdk.Dec, blsKey, blsProof string) (*MsgCreateStorageProvider, error) {
 	return &MsgCreateStorageProvider{
 		Creator:         creator.String(),
@@ -45,6 +47,7 @@ func NewMsgCreateStorageProvider(
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
 		GcAddress:       gcAddress.String(),
+		TestAddress:     testAddress.String(),
 		Description:     description,
 		Endpoint:        endpoint,
 		Deposit:         deposit,
@@ -137,7 +140,7 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 
 // NewMsgEditStorageProvider creates a new MsgEditStorageProvider instance
 func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, description *Description,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, blsKey, blsProof string) *MsgEditStorageProvider {
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, testAddress sdk.AccAddress, blsKey, blsProof string) *MsgEditStorageProvider {
 	return &MsgEditStorageProvider{
 		SpAddress:       spAddress.String(),
 		Endpoint:        endpoint,
@@ -145,6 +148,7 @@ func NewMsgEditStorageProvider(spAddress sdk.AccAddress, endpoint string, descri
 		SealAddress:     sealAddress.String(),
 		ApprovalAddress: approvalAddress.String(),
 		GcAddress:       gcAddress.String(),
+		TestAddress:     testAddress.String(),
 		BlsKey:          blsKey,
 		BlsProof:        blsProof,
 	}
@@ -208,6 +212,11 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 	if msg.GcAddress != "" {
 		if _, err := sdk.AccAddressFromHexUnsafe(msg.GcAddress); err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
+		}
+	}
+	if msg.TestAddress != "" {
+		if _, err := sdk.AccAddressFromHexUnsafe(msg.TestAddress); err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid test address (%s)", err)
 		}
 	}
 	if msg.BlsKey != "" {
@@ -337,5 +346,53 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 		return err
 	}
 
+	return nil
+}
+
+// NewMsgUpdateStorageProviderStatus creates a new MsgUpdateStorageProviderStatus instance
+func NewMsgUpdateStorageProviderStatus(spAddress sdk.AccAddress, status Status, maintenanceDuration int64) *MsgUpdateStorageProviderStatus {
+	return &MsgUpdateStorageProviderStatus{
+		SpAddress:           spAddress.String(),
+		Status:              status,
+		MaintenanceDuration: maintenanceDuration,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgUpdateStorageProviderStatus) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgUpdateStorageProviderStatus) Type() string {
+	return TypeMsgUpdateStorageProviderStatus
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgUpdateStorageProviderStatus) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgUpdateStorageProviderStatus) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgUpdateStorageProviderStatus) ValidateBasic() error {
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.SpAddress); err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+	if msg.Status != STATUS_IN_SERVICE && msg.Status != STATUS_IN_MAINTENANCE {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "not allowed to update to status %s", msg.Status)
+	}
+	if msg.Status == STATUS_IN_MAINTENANCE && msg.MaintenanceDuration <= 0 {
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "maintenanceDuration need to be set for %s", msg.Status)
+	}
 	return nil
 }

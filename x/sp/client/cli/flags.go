@@ -10,6 +10,7 @@ const (
 	FlagBlsProof        = "bls-proof"
 	FlagApprovalAddress = "approval-address"
 	FlagGcAddress       = "gc-address"
+	FlagTestAddress     = "test-address"
 	FlagCreator         = "creator"
 	FlagExpiration      = "expiration"
 	FlagEndpoint        = "endpoint"

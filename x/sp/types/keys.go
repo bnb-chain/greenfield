@@ -33,8 +33,10 @@ var (
 	SpStoragePriceKeyPrefix          = []byte{0x28}
 	SecondarySpStorePriceKeyPrefix   = []byte{0x29}
 	StorageProviderByBlsPubKeyKey    = []byte{0x30} // prefix for each key to a storage provider index, by bls pub key
+	StorageProviderByTestAddrKey     = []byte{0x32} // prefix for each key to a storage provider index, by gc address
+	StorageProviderSequenceKey       = []byte{0x31}
 
-	StorageProviderSequenceKey = []byte{0x31}
+	StorageProviderMaintenanceRecordPrefix = []byte{0x41}
 )
 
 // GetStorageProviderKey creates the key for the provider with address
@@ -71,6 +73,12 @@ func GetStorageProviderByApprovalAddrKey(spAddr sdk.AccAddress) []byte {
 // VALUE: storage provider operator address ([]byte)
 func GetStorageProviderByGcAddrKey(spAddr sdk.AccAddress) []byte {
 	return append(StorageProviderByGcAddrKey, spAddr.Bytes()...)
+}
+
+// GetStorageProviderByTestAddrKey creates the key for the storage provider with approval address
+// VALUE: storage provider operator address ([]byte)
+func GetStorageProviderByTestAddrKey(spAddr sdk.AccAddress) []byte {
+	return append(StorageProviderByTestAddrKey, spAddr.Bytes()...)
 }
 
 // GetStorageProviderByBlsKeyKey creates the key for the storage provider with bls pub key
@@ -131,4 +139,14 @@ func SecondarySpStorePriceKey(
 func ParseSecondarySpStorePriceKey(key []byte) (timestamp int64) {
 	timestamp = int64(binary.BigEndian.Uint64(key))
 	return
+}
+
+func GetStorageProviderMaintenanceRecordsPrefix(spAddr sdk.AccAddress) []byte {
+	return append(StorageProviderMaintenanceRecordPrefix, spAddr.Bytes()...)
+}
+
+func GetStorageProviderMaintenanceRecordKey(spAddr sdk.AccAddress, height int64) []byte {
+	bz := make([]byte, 8)
+	binary.BigEndian.PutUint64(bz, uint64(height))
+	return append(GetStorageProviderMaintenanceRecordsPrefix(spAddr), bz...)
 }

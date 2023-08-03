@@ -2,10 +2,9 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
-
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
+	"encoding/hex"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -46,6 +45,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
 	approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
 	gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
+	testAcc := sdk.MustAccAddressFromHex(msg.TestAddress)
 
 	signers := msg.GetSigners()
 	if ctx.BlockHeight() == 0 {
@@ -80,6 +80,11 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// check to see if the gc address has been registered before
 	if _, found := k.GetStorageProviderByGcAddr(ctx, gcAcc); found {
 		return nil, types.ErrStorageProviderGcAddrExists
+	}
+
+	// check to see if the test address has been registered before
+	if _, found := k.GetStorageProviderByTestAddr(ctx, testAcc); found {
+		return nil, types.ErrStorageProviderTestAddrExists
 	}
 
 	// check if the bls pubkey has been registered before
@@ -123,10 +128,15 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc,
+	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc, testAcc,
 		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.BlsKey)
 	if err != nil {
 		return nil, err
+	}
+
+	// external sp default to be in STATUS_IN_MAINTENANCE after the proposal passed
+	if ctx.BlockHeight() != 0 {
+		sp.Status = types.STATUS_IN_MAINTENANCE
 	}
 
 	k.SetStorageProvider(ctx, &sp)
@@ -135,6 +145,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	k.SetStorageProviderByFundingAddr(ctx, &sp)
 	k.SetStorageProviderBySealAddr(ctx, &sp)
 	k.SetStorageProviderByGcAddr(ctx, &sp)
+	k.SetStorageProviderByTestAddr(ctx, &sp)
 	k.SetStorageProviderByBlsKey(ctx, &sp)
 
 	// set initial sp storage price
@@ -214,7 +225,11 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		sp.GcAddress = gcAcc.String()
 		changed = true
 	}
-
+	if msg.TestAddress != "" {
+		testAcc := sdk.MustAccAddressFromHex(msg.TestAddress)
+		sp.TestAddress = testAcc.String()
+		changed = true
+	}
 	if msg.BlsKey != "" && len(msg.BlsProof) != 0 {
 		blsPk, err := hex.DecodeString(msg.BlsKey)
 		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
@@ -236,6 +251,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	k.SetStorageProviderBySealAddr(ctx, sp)
 	k.SetStorageProviderByApprovalAddr(ctx, sp)
 	k.SetStorageProviderByGcAddr(ctx, sp)
+	k.SetStorageProviderByTestAddr(ctx, sp)
 	k.SetStorageProviderByBlsKey(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
@@ -357,4 +373,58 @@ func (k msgServer) checkBlsProof(blsPk []byte, sig string) error {
 		return sdkerrors.ErrorInvalidSigner.Wrapf("check bls proof failed.")
 	}
 	return nil
+}
+
+// UpdateStorageProviderStatus only allow SP to update status between STATUS_MAINTENANCE and STATUS_IN_SERVICE for now.
+func (k msgServer) UpdateStorageProviderStatus(goCtx context.Context, msg *types.MsgUpdateStorageProviderStatus) (*types.MsgUpdateStorageProviderStatusResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
+
+	sp, found := k.GetStorageProviderByOperatorAddr(ctx, operatorAcc)
+	if !found {
+		return nil, types.ErrStorageProviderNotFound
+	}
+
+	curStatus := sp.Status
+	newStatus := msg.GetStatus()
+
+	if curStatus == newStatus {
+		return nil, types.ErrStorageProviderNotChanged
+	}
+
+	switch curStatus {
+	case types.STATUS_IN_SERVICE:
+		if newStatus != types.STATUS_IN_MAINTENANCE {
+			return nil, types.ErrStorageProviderStatusUpdateNotAllow
+		}
+		err := k.UpdateToInMaintenance(ctx, sp, msg.GetMaintenanceDuration())
+		if err != nil {
+			return nil, err
+		}
+	case types.STATUS_IN_MAINTENANCE:
+		if newStatus != types.STATUS_IN_SERVICE {
+			return nil, types.ErrStorageProviderStatusUpdateNotAllow
+		}
+		k.UpdateToInService(ctx, sp)
+	case types.STATUS_IN_JAILED, types.STATUS_GRACEFUL_EXITING:
+		return nil, types.ErrStorageProviderStatusUpdateNotAllow
+	}
+	k.SetStorageProvider(ctx, sp)
+	k.SetStorageProviderByFundingAddr(ctx, sp)
+	k.SetStorageProviderBySealAddr(ctx, sp)
+	k.SetStorageProviderByApprovalAddr(ctx, sp)
+	k.SetStorageProviderByGcAddr(ctx, sp)
+	k.SetStorageProviderByTestAddr(ctx, sp)
+	k.SetStorageProviderByBlsKey(ctx, sp)
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateStorageProviderStatus{
+		SpId:      sp.Id,
+		SpAddress: operatorAcc.String(),
+		PreStatus: curStatus.String(),
+		NewStatus: newStatus.String(),
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateStorageProviderStatusResponse{}, nil
 }
