@@ -146,6 +146,7 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 	}
 	var groupMember types.GroupMember
 	k.cdc.MustUnmarshal(bz, &groupMember)
+	groupMember.Id = groupMemberID
 	return &groupMember, true
 }
 
