@@ -355,6 +355,14 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 						return types.EFFECT_DENY
 					}
 				}
+
+				// post check if the operator has not been expired
+				groupMemberExtra, memberExtraFound := k.GetGroupMemberExtra(ctx, item.GroupId, operator)
+				if allowed && memberExtraFound {
+					if groupMemberExtra.ExpirationTime.Before(ctx.BlockTime()) {
+						return types.EFFECT_DENY
+					}
+				}
 			}
 		}
 		if allowed {
