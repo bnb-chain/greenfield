@@ -1364,7 +1364,7 @@ func (k Keeper) LeaveGroup(
 		return err
 	}
 
-	if ctx.IsUpgraded(upgradetypes.BEP1001) {
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
 		if err := k.permKeeper.RemoveGroupMemberExtra(ctx, groupInfo.Id, member); err != nil {
 			return err
 		}
@@ -1429,7 +1429,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 }
 
 func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.RenewGroupMemberOptions) error {
-	if !ctx.IsUpgraded(upgradetypes.BEP1001) {
+	if !ctx.IsUpgraded(upgradetypes.Nagqu) {
 		return types.ErrRenewGroupMemberNotAllow
 	}
 

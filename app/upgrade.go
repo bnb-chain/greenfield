@@ -44,7 +44,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 // registerBEP1001UpgradeHandler registers the upgrade handlers for BEP1001.
 func (app *App) registerBEP1001UpgradeHandler() {
 	// Register the upgrade handler
-	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.BEP1001,
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Nagqu,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("processing upgrade handler", "name", plan.Name, "info", plan.Info)
 			app.Logger().Info("register /greenfield.storage.MsgRenewGroupMember gas params", "name", plan.Name, "info", plan.Info)
@@ -53,9 +53,9 @@ func (app *App) registerBEP1001UpgradeHandler() {
 		})
 
 	// Register the upgrade initializer
-	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.BEP1001,
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Nagqu,
 		func() error {
-			app.Logger().Info("processing upgrade initializer", "name", upgradetypes.BEP1001)
+			app.Logger().Info("processing upgrade initializer", "name", upgradetypes.Nagqu)
 			// enable the expiration of the group member from cross-chain operation
 			app.Logger().Info("register UpdateGroupMemberV2SynPackageType")
 			storagetypes.RegisterUpdateGroupMemberV2SynPackageType()
