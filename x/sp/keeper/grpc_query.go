@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
@@ -129,19 +128,13 @@ func (k Keeper) StorageProviderMaintenanceRecordsByOperatorAddress(goCtx context
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid primary storage provider address")
 	}
-
 	records := make([]*types.MaintenanceRecord, 0)
 	store := ctx.KVStore(k.storeKey)
-	recordsPrefixStore := prefix.NewStore(store, types.GetStorageProviderMaintenanceRecordsPrefix(operatorAddr))
-	pageRes, err := query.Paginate(recordsPrefixStore, req.Pagination, func(key, value []byte) error {
-		record := &types.MaintenanceRecord{}
-		k.cdc.MustUnmarshal(value, record)
-		records = append(records, record)
-		return nil
-	})
-	if err != nil {
-		return nil, status.Error(codes.Internal, err.Error())
+	bz := store.Get(types.GetStorageProviderMaintenanceRecordsKey(operatorAddr))
+	if bz != nil {
+		stats := &types.SpMaintenanceStats{}
+		k.cdc.MustUnmarshal(bz, stats)
+		records = stats.Records
 	}
-
-	return &types.QueryStorageProviderMaintenanceRecordsResponse{Records: records, Pagination: pageRes}, nil
+	return &types.QueryStorageProviderMaintenanceRecordsResponse{Records: records}, nil
 }

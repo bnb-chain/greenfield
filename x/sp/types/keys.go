@@ -141,12 +141,6 @@ func ParseSecondarySpStorePriceKey(key []byte) (timestamp int64) {
 	return
 }
 
-func GetStorageProviderMaintenanceRecordsPrefix(spAddr sdk.AccAddress) []byte {
+func GetStorageProviderMaintenanceRecordsKey(spAddr sdk.AccAddress) []byte {
 	return append(StorageProviderMaintenanceRecordPrefix, spAddr.Bytes()...)
-}
-
-func GetStorageProviderMaintenanceRecordKey(spAddr sdk.AccAddress, height int64) []byte {
-	bz := make([]byte, 8)
-	binary.BigEndian.PutUint64(bz, uint64(height))
-	return append(GetStorageProviderMaintenanceRecordsPrefix(spAddr), bz...)
 }

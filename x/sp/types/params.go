@@ -17,11 +17,11 @@ const (
 	// Default deposit denom
 	DefaultDepositDenom = "BNB"
 	// DefaultNumOfHistoricalBlocksForMaintenanceRecords The oldest block from current will be kept of for SP maintenance records
-	DefaultNumOfHistoricalBlocksForMaintenanceRecords = 864000
+	DefaultNumOfHistoricalBlocksForMaintenanceRecords = 50 //todo set a reasonable number after test
 	// DefaultMaintenanceDurationQuota is the total allowed time for a SP to be in Maintenance mode within DefaultNumOfHistoricalBlocksForMaintenanceRecords
 	DefaultMaintenanceDurationQuota = 21600 // in second
 	// DefaultNumOfLockUpBlocksForMaintenance defines blocks difference which Sp update itself to Maintenance mode is allowed
-	DefaultNumOfLockUpBlocksForMaintenance = 10
+	DefaultNumOfLockUpBlocksForMaintenance = 10 //todo set a reasonable number after test
 )
 
 var (

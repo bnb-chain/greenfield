@@ -112,10 +112,8 @@ message QueryStorageProviderByOperatorAddressResponse {
 
 message QueryStorageProviderMaintenanceRecordsRequest {
   string operator_address = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 message QueryStorageProviderMaintenanceRecordsResponse {
   repeated MaintenanceRecord records = 1;
-  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

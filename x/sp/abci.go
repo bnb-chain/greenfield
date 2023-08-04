@@ -6,5 +6,5 @@ import (
 )
 
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	k.ForceMaintenanceRecords(ctx)
+	k.ForceUpdateMaintenanceRecords(ctx)
 }

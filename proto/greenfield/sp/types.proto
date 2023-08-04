@@ -102,6 +102,11 @@ message SecondarySpStorePrice {
   ];
 }
 
+
+message SpMaintenanceStats {
+  repeated MaintenanceRecord records = 1;
+}
+
 // MaintenanceRecord is to keep track of every time a sp request to be in Maintenance mode
 message MaintenanceRecord {
   // block height that request to be in Maintenance mode
