@@ -1094,7 +1094,7 @@ func (p UpdateGroupMemberV2SynPackage) ValidateBasic() error {
 		}
 	}
 
-	if len(p.Members) != len(p.MemberExpiration) {
+	if p.OperationType == OperationRenewGroupMember && len(p.Members) != len(p.MemberExpiration) {
 		return ErrInvalidGroupMemberExpiration
 	}
 
