@@ -248,6 +248,18 @@ function generate_sp_genesis {
   ${bin} collect-spgentxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator0
 }
 
+function export_validator {
+    size=$1
+
+    for ((i = 0; i < ${size}; i++)); do
+        bls_priv_key=("$(echo "y" | ${bin} keys export validator_bls${i} --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/validator${i})")
+        relayer_key=("$(echo "y" | ${bin} keys export relayer${i}  --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/relayer${i})")
+
+        echo "validator_bls${i} bls_priv_key: ${bls_priv_key}"
+        echo "relayer${i} relayer_key: ${relayer_key}"
+    done
+}
+
 function export_sps {
   size=$1
   sp_size=1
@@ -311,6 +323,10 @@ generate)
 
 export_sps)
     export_sps $SIZE $SP_SIZE
+    ;;
+
+export_validator)
+    export_validator $SIZE
     ;;
 start)
     echo "===== start ===="
