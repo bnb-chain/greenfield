@@ -2,10 +2,12 @@ package cli
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
 	"strings"
+	"time"
 
 	cmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
@@ -52,6 +54,7 @@ func GetTxCmd() *cobra.Command {
 		CmdDeleteGroup(),
 		CmdUpdateGroupMember(),
 		CmdUpdateGroupExtra(),
+		CmdRenewGroupMember(),
 		CmdLeaveGroup(),
 		CmdMirrorGroup(),
 	)
@@ -664,6 +667,62 @@ func CmdUpdateGroupMember() *cobra.Command {
 				argGroupName,
 				memberAddrsToAdd,
 				memberAddrsToDelete,
+			)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdRenewGroupMember() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "renew-group-member [group-name] [member] [member-expiration]",
+		Short: "renew the member of the group you own, split member-addresses and member-expiration(UNIX timestamp) by ,",
+		Args:  cobra.ExactArgs(3),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argGroupName := args[0]
+			argMember := args[1]
+			argMemberExpiration := args[2]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			memberExpirationStr := strings.Split(argMemberExpiration, ",")
+			members := strings.Split(argMember, ",")
+
+			if len(memberExpirationStr) != len(members) {
+				return errors.New("member and member-expiration should have the same length")
+			}
+
+			msgGroupMember := make([]*types.MsgGroupMember, 0, len(argMember))
+			for i := range members {
+				_, err := sdk.AccAddressFromHexUnsafe(members[i])
+				if err != nil {
+					return err
+				}
+				expiration, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
+				if err != nil {
+					return err
+				}
+				msgGroupMember = append(msgGroupMember, &types.MsgGroupMember{
+					Member:         members[i],
+					ExpirationTime: time.Unix(expiration, 0),
+				})
+			}
+
+			msg := types.NewMsgRenewGroupMember(
+				clientCtx.GetFromAddress(),
+				clientCtx.GetFromAddress(),
+				argGroupName,
+				msgGroupMember,
 			)
 			if err := msg.ValidateBasic(); err != nil {
 				return err

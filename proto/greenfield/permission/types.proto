@@ -72,3 +72,11 @@ message GroupMember {
   // member is the account address of the member
   string member = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
+
+message GroupMemberExtra {
+  // expiration_time defines the expiration time of the group member
+  google.protobuf.Timestamp expiration_time = 1 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+}

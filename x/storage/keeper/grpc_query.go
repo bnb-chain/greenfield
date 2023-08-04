@@ -558,7 +558,9 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	if !found {
 		return nil, types.ErrNoSuchGroupMember
 	}
-	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
+	groupMemberExtra, _ := k.permKeeper.GetGroupMemberExtra(ctx, groupInfo.Id, member)
+
+	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember, GroupMemberExtra: groupMemberExtra}, nil
 }
 
 func (k Keeper) QueryPolicyById(goCtx context.Context, req *types.QueryPolicyByIdRequest) (*types.

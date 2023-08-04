@@ -1,6 +1,8 @@
 package types
 
 import (
+	time "time"
+
 	"github.com/bnb-chain/greenfield/types/common"
 )
 
@@ -61,6 +63,12 @@ type UpdateGroupMemberOptions struct {
 	SourceType      SourceType
 	MembersToAdd    []string
 	MembersToDelete []string
+}
+
+type RenewGroupMemberOptions struct {
+	SourceType        SourceType
+	Members           []string
+	MembersExpiration []time.Time
 }
 
 type DeleteGroupOptions struct {

@@ -2,6 +2,7 @@ package types
 
 import (
 	"math/big"
+	time "time"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -873,6 +874,7 @@ func (p DeleteGroupAckPackage) MustSerialize() []byte {
 const (
 	OperationAddGroupMember    uint8 = 0
 	OperationDeleteGroupMember uint8 = 1
+	OperationRenewGroupMember  uint8 = 2
 )
 
 type UpdateGroupMemberSynPackage struct {
@@ -976,6 +978,153 @@ func DeserializeUpdateGroupMemberSynPackage(serializedPackage []byte) (interface
 		pkgStruct.OperationType,
 		members,
 		pkgStruct.ExtraData,
+	}
+	return &tp, nil
+}
+
+type UpdateGroupMemberV2SynPackage struct {
+	Operator         sdk.AccAddress
+	GroupId          *big.Int
+	OperationType    uint8
+	Members          []sdk.AccAddress
+	ExtraData        []byte
+	MemberExpiration []uint64
+}
+
+func RegisterUpdateGroupMemberV2SynPackageType() {
+	DeserializeFuncMap[GroupChannelId] = map[uint8][3]DeserializeFunc{
+		OperationMirrorGroup: {
+			DeserializeMirrorGroupSynPackage,
+			DeserializeMirrorGroupAckPackage,
+			DeserializeMirrorGroupSynPackage,
+		},
+		OperationCreateGroup: {
+			DeserializeCreateGroupSynPackage,
+			DeserializeCreateGroupAckPackage,
+			DeserializeCreateGroupSynPackage,
+		},
+		OperationDeleteGroup: {
+			DeserializeDeleteGroupSynPackage,
+			DeserializeDeleteGroupAckPackage,
+			DeserializeDeleteGroupSynPackage,
+		},
+		OperationUpdateGroupMember: {
+			DeserializeUpdateGroupMemberV2SynPackage,
+			DeserializeUpdateGroupMemberAckPackage,
+			DeserializeUpdateGroupMemberV2SynPackage,
+		},
+	}
+}
+
+type UpdateGroupMemberV2SynPackageStruct struct {
+	Operator         common.Address
+	GroupId          *big.Int
+	OperationType    uint8
+	Members          []common.Address
+	ExtraData        []byte
+	MemberExpiration []uint64
+}
+
+var (
+	updateGroupMemberV2SynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Operator", Type: "address"},
+		{Name: "GroupId", Type: "uint256"},
+		{Name: "OperationType", Type: "uint8"},
+		{Name: "Members", Type: "address[]"},
+		{Name: "ExtraData", Type: "bytes"},
+		{Name: "MemberExpiration", Type: "uint64[]"},
+	})
+
+	updateGroupMemberV2SynPackageArgs = abi.Arguments{
+		{Type: updateGroupMemberV2SynPackageType},
+	}
+)
+
+func (p UpdateGroupMemberV2SynPackage) GetMembers() []string {
+	members := make([]string, 0, len(p.Members))
+	for _, member := range p.Members {
+		members = append(members, member.String())
+	}
+	return members
+}
+
+func (p UpdateGroupMemberV2SynPackage) GetMemberExpiration() []time.Time {
+	memberExpiration := make([]time.Time, 0, len(p.MemberExpiration))
+	for _, expiration := range p.MemberExpiration {
+		memberExpiration = append(memberExpiration, time.Unix(int64(expiration), 0))
+	}
+	return memberExpiration
+}
+
+func (p UpdateGroupMemberV2SynPackage) MustSerialize() []byte {
+	totalMember := len(p.Members)
+	members := make([]common.Address, totalMember)
+	for i, member := range p.Members {
+		members[i] = common.BytesToAddress(member)
+	}
+
+	encodedBytes, err := updateGroupMemberSynPackageArgs.Pack(&UpdateGroupMemberSynPackageStruct{
+		common.BytesToAddress(p.Operator),
+		SafeBigInt(p.GroupId),
+		p.OperationType,
+		members,
+		p.ExtraData,
+	})
+	if err != nil {
+		panic("encode update group member syn package error")
+	}
+	return encodedBytes
+}
+
+func (p UpdateGroupMemberV2SynPackage) ValidateBasic() error {
+	if p.OperationType != OperationAddGroupMember && p.OperationType != OperationDeleteGroupMember && p.OperationType != OperationRenewGroupMember {
+		return ErrInvalidOperationType
+	}
+
+	if p.Operator.Empty() {
+		return sdkerrors.ErrInvalidAddress
+	}
+	if p.GroupId == nil || p.GroupId.Cmp(big.NewInt(0)) < 0 {
+		return ErrInvalidId
+	}
+
+	for _, member := range p.Members {
+		if member.Empty() {
+			return sdkerrors.ErrInvalidAddress
+		}
+	}
+
+	if len(p.Members) != len(p.MemberExpiration) {
+		return ErrInvalidGroupMemberExpiration
+	}
+
+	return nil
+}
+
+func DeserializeUpdateGroupMemberV2SynPackage(serializedPackage []byte) (interface{}, error) {
+	unpacked, err := updateGroupMemberV2SynPackageArgs.Unpack(serializedPackage)
+	if err != nil {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize update group member sun package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], UpdateGroupMemberV2SynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(UpdateGroupMemberV2SynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect update group member sun package failed")
+	}
+
+	totalMember := len(pkgStruct.Members)
+	members := make([]sdk.AccAddress, totalMember)
+	for i, member := range pkgStruct.Members {
+		members[i] = member.Bytes()
+	}
+	tp := UpdateGroupMemberV2SynPackage{
+		pkgStruct.Operator.Bytes(),
+		pkgStruct.GroupId,
+		pkgStruct.OperationType,
+		members,
+		pkgStruct.ExtraData,
+		pkgStruct.MemberExpiration,
 	}
 	return &tp, nil
 }

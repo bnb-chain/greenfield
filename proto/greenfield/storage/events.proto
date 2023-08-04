@@ -3,6 +3,7 @@ package greenfield.storage;
 
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
+import "google/protobuf/timestamp.proto";
 import "greenfield/storage/common.proto";
 import "greenfield/storage/types.proto";
 
@@ -338,6 +339,39 @@ message EventUpdateGroupMember {
   repeated string members_to_add = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // members_to_add defines all the members to be deleted from the group
   repeated string members_to_delete = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+}
+
+message EventRenewGroupMember {
+  // operator define the account address of operator who update the group member
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // owner define the account address of group owner
+  string owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // group_name define the name of the group
+  string group_name = 3;
+  // id define an u256 id for group
+  string group_id = 4 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+  // source_type define the source of the group. CrossChain or Greenfield origin
+  SourceType source_type = 5;
+  // members define the all the address of the members.
+  repeated string members = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // extra defines extra info for the group
+  string extra = 7;
+  // members_detail defines the all the members detail of the group.
+  repeated EventGroupMemberDetail members_detail = 8;
+}
+
+message EventGroupMemberDetail {
+  // member defines the account address of the group member
+  string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // expiration_time defines the expiration time of the group member
+  google.protobuf.Timestamp expiration_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
 }
 
 // EventUpdateGroupExtra is emitted on MsgUpdateGroupExtra

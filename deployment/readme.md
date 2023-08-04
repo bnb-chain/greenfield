@@ -86,6 +86,15 @@ bash ./deployment/localup/localup.sh stop
 
 3. Send Tx
 ```bash
+VALIDATOR=$(./build/bin/gnfd keys show validator0 -a --home ./deployment/localup/.local/validator0 --keyring-backend test)
+GROUP_NAME="admin2"
+
+./build/bin/gnfd tx storage create-group $GROUP_NAME --members "0xfABDd8b607201667fE54054CB4AD9068Afa2993e,0xC6D661d5Ee633eA3DfD4D86f368cdd839D682D18,0xba8dde27ddc0f39041a1d9a4efd24b5b5d81fe17" --from validator0 --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b sync
+
+./build/bin/gnfd q storage head-group-member $VALIDATOR $GROUP_NAME 0xfABDd8b607201667fE54054CB4AD9068Afa2993e --node http://localhost:26750
+
+./build/bin/gnfd tx storage renew-group-member $GROUP_NAME 0xfABDd8b607201667fE54054CB4AD9068Afa2993e 1691118864 --from validator0 --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b sync
+
 ./build/bin/gnfd tx bank send validator0 0x32Ff14Fa1547314b95991976DB432F9Aa648A423 500000000000000000000BNB --home ./deployment/localup/.local/validator0 --keyring-backend test --node http://localhost:26750 -b sync
 ```
 

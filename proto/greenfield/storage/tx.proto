@@ -42,6 +42,7 @@ service Msg {
   rpc UpdateGroupExtra(MsgUpdateGroupExtra) returns (MsgUpdateGroupExtraResponse);
   rpc LeaveGroup(MsgLeaveGroup) returns (MsgLeaveGroupResponse);
   rpc MirrorGroup(MsgMirrorGroup) returns (MsgMirrorGroupResponse);
+  rpc RenewGroupMember(MsgRenewGroupMember) returns (MsgRenewGroupMemberResponse);
 
   // basic operation of policy
   rpc PutPolicy(MsgPutPolicy) returns (MsgPutPolicyResponse);
@@ -321,6 +322,34 @@ message MsgUpdateGroupMember {
 }
 
 message MsgUpdateGroupMemberResponse {}
+
+message MsgRenewGroupMember {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator defines the account address of the operator who has the UpdateGroupMember permission of the group.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // group_owner defines the account address of the group owner
+  string group_owner = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+
+  // group_name defines the name of the group which to be updated
+  string group_name = 3;
+
+  // members defines a list of members which will be renew to the group
+  repeated MsgGroupMember members = 4;
+}
+
+message MsgRenewGroupMemberResponse {}
+
+message MsgGroupMember {
+  // member defines the account address of the group member
+  string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // expiration_time defines the expiration time of the group member
+  google.protobuf.Timestamp expiration_time = 2 [
+    (gogoproto.stdtime) = true,
+    (gogoproto.nullable) = false
+  ];
+}
 
 message MsgUpdateGroupExtra {
   option (cosmos.msg.v1.signer) = "operator";

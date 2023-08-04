@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -290,6 +291,37 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil
+}
+
+func (k msgServer) RenewGroupMember(goCtx context.Context, msg *types.MsgRenewGroupMember) (*types.MsgRenewGroupMemberResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+
+	members := make([]string, 0, len(msg.Members))
+	membersExpiration := make([]time.Time, 0, len(msg.Members))
+	for i := range msg.Members {
+		members = append(members, msg.Members[i].GetMember())
+		membersExpiration = append(membersExpiration, msg.Members[i].GetExpirationTime())
+	}
+
+	err := k.Keeper.RenewGroupMember(ctx, operator, groupInfo, storagetypes.RenewGroupMemberOptions{
+		SourceType:        types.SOURCE_TYPE_ORIGIN,
+		Members:           members,
+		MembersExpiration: membersExpiration,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRenewGroupMemberResponse{}, nil
 }
 
 func (k msgServer) UpdateGroupExtra(goCtx context.Context, msg *types.MsgUpdateGroupExtra) (*types.MsgUpdateGroupExtraResponse, error) {

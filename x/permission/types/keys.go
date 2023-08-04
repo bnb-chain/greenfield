@@ -30,12 +30,14 @@ var (
 	ObjectPolicyForAccountPrefix = []byte{0x12}
 	GroupPolicyForAccountPrefix  = []byte{0x13}
 	GroupMemberPrefix            = []byte{0x14}
+	GroupMemberExtraPrefix       = []byte{0x15}
 
 	BucketPolicyForGroupPrefix = []byte{0x21}
 	ObjectPolicyForGroupPrefix = []byte{0x22}
 
-	PolicyByIDPrefix      = []byte{0x31}
-	GroupMemberByIDPrefix = []byte{0x32}
+	PolicyByIDPrefix           = []byte{0x31}
+	GroupMemberByIDPrefix      = []byte{0x32}
+	GroupMemberExtraByIDPrefix = []byte{0x33}
 
 	PolicySequencePrefix      = []byte{0x41}
 	GroupMemberSequencePrefix = []byte{0x42}
@@ -91,4 +93,16 @@ func GetGroupMemberKey(groupID math.Uint, member sdk.AccAddress) []byte {
 
 func GetGroupMemberByIDKey(memberID math.Uint) []byte {
 	return append(GroupMemberByIDPrefix, memberID.Bytes()...)
+}
+
+func GroupMembersExtraPrefix(groupID math.Uint) []byte {
+	return append(GroupMemberExtraPrefix, groupID.Bytes()...)
+}
+
+func GetGroupMemberExtraKey(groupID math.Uint, member sdk.AccAddress) []byte {
+	return append(GroupMemberExtraPrefix, append(groupID.Bytes(), member.Bytes()...)...)
+}
+
+func GetGroupMemberExtraByIDKey(memberID math.Uint) []byte {
+	return append(GroupMemberExtraByIDPrefix, memberID.Bytes()...)
 }

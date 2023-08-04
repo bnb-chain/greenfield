@@ -44,6 +44,7 @@ const (
 	TypeMsgUpdateGroupMember = "update_group_member"
 	TypeMsgUpdateGroupExtra  = "update_group_extra"
 	TypeMsgMirrorGroup       = "mirror_group"
+	TypeMsgRenewGroupMember  = "renew_group_member"
 
 	MaxGroupExtraInfoLimit = 512
 
@@ -1421,6 +1422,72 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 
 	if err := m.Params.Validate(); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func NewMsgRenewGroupMember(
+	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, members []*MsgGroupMember) *MsgRenewGroupMember {
+
+	return &MsgRenewGroupMember{
+		Operator:   operator.String(),
+		GroupOwner: groupOwner.String(),
+		GroupName:  groupName,
+		Members:    members,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgRenewGroupMember) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgRenewGroupMember) Type() string {
+	return TypeMsgRenewGroupMember
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgRenewGroupMember) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgRenewGroupMember) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgRenewGroupMember) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner address (%s)", err)
+	}
+
+	err = s3util.CheckValidGroupName(msg.GroupName)
+	if err != nil {
+		return err
+	}
+
+	if len(msg.Members) > MaxGroupMemberLimitOnce {
+		return gnfderrors.ErrInvalidParameter.Wrapf("Once renew group member limit exceeded")
+	}
+	for _, member := range msg.Members {
+		_, err = sdk.AccAddressFromHexUnsafe(member.Member)
+		if err != nil {
+			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
+		}
 	}
 
 	return nil

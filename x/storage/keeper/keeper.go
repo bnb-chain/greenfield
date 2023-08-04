@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
@@ -1260,7 +1261,7 @@ func (k Keeper) CreateGroup(
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAddress)
+		_, err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAddress)
 		if err != nil {
 			return sdkmath.Uint{}, err
 		}
@@ -1363,6 +1364,12 @@ func (k Keeper) LeaveGroup(
 		return err
 	}
 
+	if ctx.IsUpgraded(upgradetypes.BEP1001) {
+		if err := k.permKeeper.RemoveGroupMemberExtra(ctx, groupInfo.Id, member); err != nil {
+			return err
+		}
+	}
+
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
 		Owner:     groupInfo.Owner,
 		GroupName: groupInfo.GroupName,
@@ -1391,7 +1398,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		if err != nil {
 			return err
 		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc)
+		_, err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc)
 		if err != nil {
 			return err
 		}
@@ -1418,6 +1425,64 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	}); err != nil {
 		return err
 	}
+	return nil
+}
+
+func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.RenewGroupMemberOptions) error {
+	if !ctx.IsUpgraded(upgradetypes.BEP1001) {
+		return types.ErrRenewGroupMemberNotAllow
+	}
+
+	if groupInfo.SourceType != opts.SourceType {
+		return types.ErrSourceTypeMismatch
+	}
+
+	// check permission
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
+	if effect != permtypes.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
+			operator.String(), groupInfo.GroupName, groupInfo.Owner)
+	}
+
+	eventMembersDetail := make([]*types.EventGroupMemberDetail, 0, len(opts.Members))
+	for i := range opts.Members {
+		member := opts.Members[i]
+		memberExpiration := opts.MembersExpiration[i]
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
+		if err != nil {
+			return err
+		}
+
+		groupMember, found := k.permKeeper.GetGroupMember(ctx, groupInfo.Id, memberAcc)
+		if !found {
+			err = k.permKeeper.AddGroupMemberWithExpiration(ctx, groupInfo.Id, memberAcc, memberExpiration)
+			if err != nil {
+				return err
+			}
+		} else {
+			k.permKeeper.UpdateGroupMemberExpiration(ctx, groupInfo.Id, memberAcc, groupMember.Id, memberExpiration)
+		}
+
+		eventMembersDetail = append(eventMembersDetail, &types.EventGroupMemberDetail{
+			Member:         member,
+			ExpirationTime: memberExpiration,
+		})
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventRenewGroupMember{
+		Operator:      operator.String(),
+		Owner:         groupInfo.Owner,
+		GroupName:     groupInfo.GroupName,
+		GroupId:       groupInfo.Id,
+		SourceType:    groupInfo.SourceType,
+		Members:       opts.Members,
+		Extra:         groupInfo.Extra,
+		MembersDetail: eventMembersDetail,
+	}); err != nil {
+		return err
+	}
+
 	return nil
 }
 

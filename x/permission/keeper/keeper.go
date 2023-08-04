@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -58,11 +59,11 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
+func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (math.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	if store.Has(memberKey) {
-		return storagetypes.ErrGroupMemberAlreadyExists
+		return math.ZeroUint(), storagetypes.ErrGroupMemberAlreadyExists
 	}
 	groupMember := types.GroupMember{
 		GroupId: groupID,
@@ -71,7 +72,35 @@ func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 	id := k.groupMemberSeq.NextVal(store)
 	store.Set(memberKey, id.Bytes())
 	store.Set(types.GetGroupMemberByIDKey(id), k.cdc.MustMarshal(&groupMember))
+	return id, nil
+}
+
+func (k Keeper) AddGroupMemberWithExpiration(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration time.Time) error {
+	id, err := k.AddGroupMember(ctx, groupID, member)
+	if err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	// We can simply override the whole value here, because the expiration time is the only field in the value.
+	// If there are more fields in the future, we should use a more sophisticated way to update the value.
+	memberExtra := types.GroupMemberExtra{
+		ExpirationTime: expiration,
+	}
+	store.Set(types.GetGroupMemberExtraKey(groupID, member), id.Bytes())
+	store.Set(types.GetGroupMemberExtraByIDKey(id), k.cdc.MustMarshal(&memberExtra))
 	return nil
+}
+
+func (k Keeper) UpdateGroupMemberExpiration(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration time.Time) {
+	store := ctx.KVStore(k.storeKey)
+	// We can simply override the whole value here, because the expiration time is the only field in the value.
+	// If there are more fields in the future, we should use a more sophisticated way to update the value.
+	memberExtra := types.GroupMemberExtra{
+		ExpirationTime: expiration,
+	}
+	store.Set(types.GetGroupMemberExtraKey(groupID, member), memberID.Bytes())
+	store.Set(types.GetGroupMemberExtraByIDKey(memberID), k.cdc.MustMarshal(&memberExtra))
 }
 
 func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
@@ -83,6 +112,18 @@ func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk
 	}
 	store.Delete(memberKey)
 	store.Delete(types.GetGroupMemberByIDKey(k.groupMemberSeq.DecodeSequence(bz)))
+	return nil
+}
+
+func (k Keeper) RemoveGroupMemberExtra(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
+	store := ctx.KVStore(k.storeKey)
+	memberKey := types.GetGroupMemberExtraKey(groupID, member)
+	bz := store.Get(memberKey)
+	if bz == nil {
+		return storagetypes.ErrNoSuchGroupMember
+	}
+	store.Delete(memberKey)
+	store.Delete(types.GetGroupMemberExtraByIDKey(k.groupMemberSeq.DecodeSequence(bz)))
 	return nil
 }
 
@@ -104,6 +145,28 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 		return nil, false
 	}
 	var groupMember types.GroupMember
+	k.cdc.MustUnmarshal(bz, &groupMember)
+	return &groupMember, true
+}
+
+func (k Keeper) GetGroupMemberExtra(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*types.GroupMemberExtra, bool) {
+	store := ctx.KVStore(k.storeKey)
+	memberKey := types.GetGroupMemberExtraKey(groupID, member)
+	bz := store.Get(memberKey)
+	if bz == nil {
+		return nil, false
+	}
+
+	return k.GetGroupMemberExtraByID(ctx, k.groupMemberSeq.DecodeSequence(bz))
+}
+
+func (k Keeper) GetGroupMemberExtraByID(ctx sdk.Context, groupMemberID math.Uint) (*types.GroupMemberExtra, bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetGroupMemberExtraByIDKey(groupMemberID))
+	if bz == nil {
+		return nil, false
+	}
+	var groupMember types.GroupMemberExtra
 	k.cdc.MustUnmarshal(bz, &groupMember)
 	return &groupMember, true
 }
