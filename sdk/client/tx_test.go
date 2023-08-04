@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -196,22 +194,4 @@ func TestSendTXViaWebsocketClient(t *testing.T) {
 		nonce++
 		assert.Equal(t, uint32(0), response.TxResponse.Code)
 	}
-}
-
-func TestSpTXViaWebsocketClient(t *testing.T) {
-	km, err := keys.NewPrivateKeyManager("9fd8cc7d9a6cdc12c299825a1ff8f27aebef2ec0e00c3fe4d1201daa7cbba3f2")
-	assert.NoError(t, err)
-	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
-	assert.NoError(t, err)
-	km.GetAddr()
-
-	msg := &sptypes.MsgUpdateStorageProviderStatus{
-		SpAddress:           km.GetAddr().String(),
-		Status:              sptypes.STATUS_IN_SERVICE,
-		MaintenanceDuration: 0,
-	}
-	response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{msg}, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, uint32(0), response.TxResponse.Code)
-	t.Log(response.TxResponse)
 }
