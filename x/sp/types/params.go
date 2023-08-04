@@ -21,7 +21,7 @@ const (
 	// DefaultMaintenanceDurationQuota is the total allowed time for a SP to be in Maintenance mode within DefaultNumOfHistoricalBlocksForMaintenanceRecords
 	DefaultMaintenanceDurationQuota = 21600 // in second
 	// DefaultNumOfLockUpBlocksForMaintenance defines blocks difference which Sp update itself to Maintenance mode is allowed
-	DefaultNumOfLockUpBlocksForMaintenance = 21600
+	DefaultNumOfLockUpBlocksForMaintenance = 10
 )
 
 var (

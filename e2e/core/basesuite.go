@@ -753,3 +753,11 @@ func (s *BaseSuite) PickStorageProviderByBucketName(bucketName string) *StorageP
 
 	return s.StorageProviders[family.GlobalVirtualGroupFamily.PrimarySpId]
 }
+
+func (s *BaseSuite) ExistsSPMaintenanceRecords(addr string) (bool, error) {
+	resp, err := s.Client.StorageProviderMaintenanceRecordsByOperatorAddress(context.Background(), &sptypes.QueryStorageProviderMaintenanceRecordsRequest{OperatorAddress: addr})
+	if err != nil {
+		return false, err
+	}
+	return len(resp.Records) > 0, nil
+}

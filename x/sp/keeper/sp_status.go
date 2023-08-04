@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	"cosmossdk.io/errors"
 	"github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
@@ -80,7 +78,6 @@ func (k Keeper) ForceMaintenanceRecords(ctx sdk.Context) {
 			if record.GetHeight()+params.GetNumOfHistoricalBlocksForMaintenanceRecords() < ctx.BlockHeight() {
 				prefixStore.Delete(iterator.Key())
 			} else if record.GetActualDuration() == 0 && record.RequestAt+record.GetRequestDuration() < curTime {
-				fmt.Printf("force update %v\n", record)
 				record.ActualDuration = record.RequestDuration
 				prefixStore.Set(iterator.Key(), k.cdc.MustMarshal(record))
 				sp.Status = types.STATUS_IN_SERVICE

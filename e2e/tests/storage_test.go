@@ -1787,12 +1787,19 @@ CheckProposalStatus:
 	}
 }
 
-// when a sp turn into maintenance mode, it should be able to create bucket and object by its testing account.
+// when a sp turn into maintenance mode, it should be able to create  bucket and object by its testing account.
 func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	var err error
 	ctx := context.Background()
-
-	sp := s.BaseSuite.PickStorageProvider()
+	var sp *core.StorageProvider
+	for _, tempSP := range s.BaseSuite.StorageProviders {
+		exists, err := s.BaseSuite.ExistsSPMaintenanceRecords(tempSP.OperatorKey.GetAddr().String())
+		s.Require().NoError(err)
+		if !exists {
+			sp = tempSP
+			break
+		}
+	}
 	spAddr := sp.OperatorKey.GetAddr()
 	spTestAddr := sp.TestKey.GetAddr()
 
@@ -1809,7 +1816,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	msg := sptypes.NewMsgUpdateStorageProviderStatus(
 		spAddr,
 		sptypes.STATUS_IN_MAINTENANCE,
-		120,
+		1200,
 	)
 	txRes := s.SendTxBlock(sp.OperatorKey, msg)
 	s.Require().Equal(txRes.Code, uint32(0))
@@ -1942,7 +1949,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	msg = sptypes.NewMsgUpdateStorageProviderStatus(
 		spAddr,
 		sptypes.STATUS_IN_SERVICE,
-		120,
+		0,
 	)
 	txRes = s.SendTxBlock(sp.OperatorKey, msg)
 	s.Require().Equal(txRes.Code, uint32(0))

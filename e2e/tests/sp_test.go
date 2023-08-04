@@ -334,7 +334,15 @@ CheckProposalStatus:
 
 func (s *StorageProviderTestSuite) TestUpdateStorageProviderStatus() {
 	ctx := context.Background()
-	sp := s.BaseSuite.PickStorageProvider()
+	var sp *core.StorageProvider
+	for _, tempSP := range s.BaseSuite.StorageProviders {
+		exists, err := s.BaseSuite.ExistsSPMaintenanceRecords(tempSP.OperatorKey.GetAddr().String())
+		s.Require().NoError(err)
+		if !exists {
+			sp = tempSP
+			break
+		}
+	}
 	operatorAddr := sp.OperatorKey.GetAddr()
 
 	// 1. query storage provider

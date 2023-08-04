@@ -45,6 +45,11 @@ service Query {
   rpc StorageProviderByOperatorAddress(QueryStorageProviderByOperatorAddressRequest) returns (QueryStorageProviderByOperatorAddressResponse) {
     option (google.api.http).get = "/greenfield/sp/storage_provider_by_operator_address";
   }
+
+  // Queries a StorageProvider by specify operator address.
+  rpc StorageProviderMaintenanceRecordsByOperatorAddress(QueryStorageProviderMaintenanceRecordsRequest) returns (QueryStorageProviderMaintenanceRecordsResponse) {
+    option (google.api.http).get = "/greenfield/sp/storage_provider_maintenance_records_by_operator_address";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -103,4 +108,14 @@ message QueryStorageProviderByOperatorAddressRequest {
 
 message QueryStorageProviderByOperatorAddressResponse {
   StorageProvider storageProvider = 1;
+}
+
+message QueryStorageProviderMaintenanceRecordsRequest {
+  string operator_address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+message QueryStorageProviderMaintenanceRecordsResponse {
+  repeated MaintenanceRecord records = 1;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
