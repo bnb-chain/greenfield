@@ -233,14 +233,26 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	if err != nil {
 		return err
 	}
-	err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
 		Operator:                   operator.String(),
 		Owner:                      bucketInfo.Owner,
 		BucketName:                 bucketInfo.BucketName,
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
-	})
-	return err
+	}); err != nil {
+		return err
+	}
+
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+		if err = ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
+			Operator:   operator.String(),
+			BucketName: bucketInfo.BucketName,
+			BucketId:   bucketInfo.Id,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (k Keeper) GetPrimarySPForBucket(ctx sdk.Context, bucketInfo *types.BucketInfo) (*sptypes.StorageProvider, error) {
@@ -465,6 +477,16 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 
 	k.appendDiscontinueBucketIds(ctx, deleteAt, []sdkmath.Uint{bucketInfo.Id})
 	k.SetDiscontinueBucketCount(ctx, operator, count+1)
+
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
+			Operator:   operator.String(),
+			BucketName: bucketInfo.BucketName,
+			BucketId:   bucketInfo.Id,
+		}); err != nil {
+			return err
+		}
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDiscontinueBucket{
 		BucketId:   bucketInfo.Id,
