@@ -2,8 +2,6 @@ package client
 
 import (
 	"context"
-	"fmt"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"testing"
 	"time"
 
@@ -196,36 +194,4 @@ func TestSendTXViaWebsocketClient(t *testing.T) {
 		nonce++
 		assert.Equal(t, uint32(0), response.TxResponse.Code)
 	}
-}
-
-func TestSpTXViaWebsocketClient(t *testing.T) {
-	km, err := keys.NewPrivateKeyManager("c8babf9a81412a04e840fbebc1fdf93d0c751e43af370dbc1e85424fed46bf85")
-	assert.NoError(t, err)
-	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
-	assert.NoError(t, err)
-	fmt.Println(km.GetAddr())
-
-	msg := &sptypes.MsgUpdateStorageProviderStatus{
-		SpAddress:           km.GetAddr().String(),
-		Status:              sptypes.STATUS_IN_MAINTENANCE,
-		MaintenanceDuration: 100,
-	}
-	response, err := gnfdCli.BroadcastTx(context.Background(), []sdk.Msg{msg}, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, uint32(0), response.TxResponse.Code)
-	t.Log(response.TxResponse)
-}
-
-func TestQuerySPMain(t *testing.T) {
-	km, err := keys.NewPrivateKeyManager("d68709c9e205478234b38bfb53787206a2d3fa760ed47fa85d008af0ad92891a")
-	assert.NoError(t, err)
-	gnfdCli, err := NewGreenfieldClient(test.TEST_RPC_ADDR, test.TEST_CHAIN_ID, WithKeyManager(km))
-	assert.NoError(t, err)
-	km.GetAddr()
-
-	resp, err := gnfdCli.StorageProviderMaintenanceRecordsByOperatorAddress(context.Background(), &sptypes.QueryStorageProviderMaintenanceRecordsRequest{OperatorAddress: "0xD738b122a78D79ABf14fB1C6AcB05f63CE3De58f"})
-	if err != nil {
-		panic(err)
-	}
-	t.Log(resp.Records)
 }
