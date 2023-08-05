@@ -170,6 +170,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		SealAddress:     sealAcc.String(),
 		ApprovalAddress: approvalAcc.String(),
 		GcAddress:       gcAcc.String(),
+		TestAddress:     testAcc.String(),
 		Endpoint:        msg.Endpoint,
 		TotalDeposit:    &msg.Deposit,
 		Status:          sp.Status,
@@ -263,6 +264,7 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		ApprovalAddress: sp.ApprovalAddress,
 		SealAddress:     sp.SealAddress,
 		GcAddress:       sp.GcAddress,
+		TestAddress:     sp.TestAddress,
 		BlsKey:          hex.EncodeToString(sp.BlsKey),
 	}); err != nil {
 		return nil, err

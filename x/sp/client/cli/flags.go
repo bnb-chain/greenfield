@@ -29,4 +29,6 @@ const (
 	FlagFreeReadQuota = "free-read-quota"
 
 	FlagSecurityContact = "security-contact"
+
+	FlagDuration = "duration"
 )

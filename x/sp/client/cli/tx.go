@@ -36,6 +36,7 @@ func GetTxCmd() *cobra.Command {
 		CmdDeposit(),
 		CmdEditStorageProvider(),
 		CmdGrantDepositAuthorization(),
+		CmdUpdateStorageProviderStatus(),
 	)
 
 	// this line is used by starport scaffolding # 1
@@ -69,6 +70,7 @@ Where create_storagep_provider.json contains:
       "seal_address": "0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
       "approval_address": "0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
       "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
+      "test_address": "0xbE03316B1D7c3FCB69136e47e02442d6Fb3396dB",
       "endpoint": "https://sp0.greenfield.io",
       "deposit": {
         "denom": "BNB",
@@ -593,7 +595,7 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.GcAddress = addr
 
-	// gc address
+	// test address
 	testAddress, err := flagSet.GetString(FlagTestAddress)
 	if err != nil {
 		return c, err
@@ -666,4 +668,50 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 	}
 
 	return txBldr, msg, nil
+}
+
+func CmdUpdateStorageProviderStatus() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-status [sp-address] [new-status] --duration",
+		Short: "Update status of a storage provider",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`update the storage provider status between STATUS_IN_SERVICE and STATUS_IN_MAINTENANCE, need to provide the maintenance duration in second if status is to STATUS_IN_MAINTENANCE.
+
+Examples:
+ $ %s tx %s update-status 0x.... STATUS_IN_MAINTENANCE --duration 21600
+	`, version.AppName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			spAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
+			if err != nil {
+				return err
+			}
+			newStatus := args[1]
+			duration, err := cmd.Flags().GetInt64(FlagDuration)
+			if err != nil {
+				return err
+			}
+			var msg sdk.Msg
+			switch newStatus {
+			case types.STATUS_IN_SERVICE.String():
+				msg = types.NewMsgUpdateStorageProviderStatus(spAddress, types.STATUS_IN_SERVICE, 0)
+			case types.STATUS_IN_MAINTENANCE.String():
+				msg = types.NewMsgUpdateStorageProviderStatus(spAddress, types.STATUS_IN_MAINTENANCE, duration)
+			default:
+				return fmt.Errorf("status %s is not expected\n", newStatus)
+			}
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().Int64(FlagDuration, 0, "maintenance duration requested by a SP")
+	return cmd
 }

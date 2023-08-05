@@ -28,6 +28,7 @@ func GetQueryCmd() *cobra.Command {
 		CmdStorageProviders(),
 		CmdStorageProvider(),
 		CmdStorageProviderByOperatorAddress(),
+		CmdMaintenanceRecordsBySPOperatorAddress(),
 	)
 
 	// this line is used by starport scaffolding # 1
@@ -125,6 +126,42 @@ func CmdStorageProviderByOperatorAddress() *cobra.Command {
 			}
 
 			res, err := queryClient.StorageProviderByOperatorAddress(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdMaintenanceRecordsBySPOperatorAddress() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "maintenance-records-by-operator-address [operator address]",
+		Short: "Query storage provider maintenance records with specify operator address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqSpAddr := args[0]
+
+			operatorAddr, err := sdk.AccAddressFromHexUnsafe(reqSpAddr)
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			params := &types.QueryStorageProviderMaintenanceRecordsRequest{
+				OperatorAddress: operatorAddr.String(),
+			}
+
+			res, err := queryClient.StorageProviderMaintenanceRecordsByOperatorAddress(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

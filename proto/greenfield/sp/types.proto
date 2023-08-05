@@ -102,7 +102,6 @@ message SecondarySpStorePrice {
   ];
 }
 
-
 message SpMaintenanceStats {
   repeated MaintenanceRecord records = 1;
 }
