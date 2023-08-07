@@ -29,6 +29,7 @@ jobs:
       - name: Test protobuf changes generates new go files
         run: |
           export PATH="$PATH:$(go env GOPATH)/bin"
+          go mod tidy
           make tools proto-gen-check
       - name: Test protobuf swagger changes
         run: |

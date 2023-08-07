@@ -302,7 +302,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 
 	// 4. UpdateGroupMember(add)
 	membersToAdd := []*storagetypes.MsgGroupMember{
-		&storagetypes.MsgGroupMember{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
 	membersToDelete := []sdk.AccAddress{}
 	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -320,7 +320,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	// 5. UpdateGroupMember(delete)
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd = []*storagetypes.MsgGroupMember{
-		&storagetypes.MsgGroupMember{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
 	membersToDelete = []sdk.AccAddress{member.GetAddr()}
 	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -351,7 +351,7 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 	membersToAdd := []*storagetypes.MsgGroupMember{
-		&storagetypes.MsgGroupMember{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
 	membersToDelete := []sdk.AccAddress{}
 	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -389,7 +389,7 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd = []*storagetypes.MsgGroupMember{
-		&storagetypes.MsgGroupMember{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
 	membersToDelete = []sdk.AccAddress{member.GetAddr()}
 	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -1561,7 +1561,7 @@ func (s *StorageTestSuite) TestCreateAndRenewGroup() {
 	expiration, err := time.Parse(time.RFC3339, "2022-12-31T23:59:59Z")
 	s.Require().NoError(err)
 	members := []*storagetypes.MsgGroupMember{
-		&storagetypes.MsgGroupMember{Member: member.GetAddr().String(), ExpirationTime: expiration}}
+		{Member: member.GetAddr().String(), ExpirationTime: expiration}}
 	msgUpdateGroupMember := storagetypes.NewMsgRenewGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, members)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
 
