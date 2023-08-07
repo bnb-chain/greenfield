@@ -3,7 +3,6 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	"time"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -22,12 +21,6 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
-)
-
-var (
-	// The max timestamp in underlying package `google.golang.org/protobuf/types/known/timestamppb` is 9999-12-31T23:59:59Z
-	// https://pkg.go.dev/google.golang.org/protobuf/types/known/timestamppb#Timestamp
-	maxTimeStamp, _ = time.Parse(time.RFC3339, "9999-12-31T23:59:59Z")
 )
 
 type (
@@ -1261,32 +1254,12 @@ func (k Keeper) CreateGroup(
 	store.Set(groupKey, k.groupSeq.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
-	addedMembersDetailEvent := make([]*types.EventGroupMemberDetail, 0, len(opts.Members))
-	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
-	for _, member := range opts.Members {
-		memberAddress, err := sdk.AccAddressFromHexUnsafe(member)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAddress, nil)
-		if err != nil {
-			return sdkmath.Uint{}, err
-		}
-
-		addedMembersDetailEvent = append(addedMembersDetailEvent, &types.EventGroupMemberDetail{
-			Member:         member,
-			ExpirationTime: maxTimeStamp,
-		})
-
-	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
-		Owner:              groupInfo.Owner,
-		GroupName:          groupInfo.GroupName,
-		GroupId:            groupInfo.Id,
-		SourceType:         groupInfo.SourceType,
-		Members:            opts.Members,
-		Extra:              opts.Extra,
-		AddedMembersDetail: addedMembersDetailEvent,
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Extra:      opts.Extra,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -1410,16 +1383,11 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 
 		groupMemberDetailEvent := &types.EventGroupMemberDetail{
 			Member:         opts.MembersToAdd[i],
-			ExpirationTime: maxTimeStamp,
-		}
-		var memberExpiration *time.Time = nil
-		if i < len(opts.MembersExpirationToAdd) {
-			// The expiration is allowed to be set from the cross-chain packet.
-			expiration := opts.MembersExpirationToAdd[i].UTC()
-			memberExpiration = &expiration
-			groupMemberDetailEvent.ExpirationTime = expiration
+			ExpirationTime: types.MaxTimeStamp,
 		}
 
+		memberExpiration := opts.MembersExpirationToAdd[i].UTC()
+		groupMemberDetailEvent.ExpirationTime = memberExpiration
 		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
 		if err != nil {
 			return err
@@ -1440,13 +1408,12 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateGroupMember{
-		Operator:           operator.String(),
-		Owner:              groupInfo.Owner,
-		GroupName:          groupInfo.GroupName,
-		GroupId:            groupInfo.Id,
-		MembersToAdd:       opts.MembersToAdd,
-		MembersToDelete:    opts.MembersToDelete,
-		AddedMembersDetail: addedMembersDetailEvent,
+		Operator:        operator.String(),
+		Owner:           groupInfo.Owner,
+		GroupName:       groupInfo.GroupName,
+		GroupId:         groupInfo.Id,
+		MembersToAdd:    addedMembersDetailEvent,
+		MembersToDelete: opts.MembersToDelete,
 	}); err != nil {
 		return err
 	}
@@ -1477,12 +1444,12 @@ func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, group
 
 		groupMember, found := k.permKeeper.GetGroupMember(ctx, groupInfo.Id, memberAcc)
 		if !found {
-			err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, &memberExpiration)
+			err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
 			if err != nil {
 				return err
 			}
 		} else {
-			k.permKeeper.UpdateGroupMember(ctx, groupInfo.Id, memberAcc, groupMember.Id, &memberExpiration)
+			k.permKeeper.UpdateGroupMember(ctx, groupInfo.Id, memberAcc, groupMember.Id, memberExpiration)
 		}
 
 		eventMembersDetail = append(eventMembersDetail, &types.EventGroupMemberDetail{
@@ -1492,14 +1459,12 @@ func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, group
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventRenewGroupMember{
-		Operator:      operator.String(),
-		Owner:         groupInfo.Owner,
-		GroupName:     groupInfo.GroupName,
-		GroupId:       groupInfo.Id,
-		SourceType:    groupInfo.SourceType,
-		Members:       opts.Members,
-		Extra:         groupInfo.Extra,
-		MembersDetail: eventMembersDetail,
+		Operator:   operator.String(),
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Members:    eventMembersDetail,
 	}); err != nil {
 		return err
 	}

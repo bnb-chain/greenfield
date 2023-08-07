@@ -92,6 +92,10 @@ var (
 
 	// For params
 	_ sdk.Msg = &MsgUpdateParams{}
+
+	// The max timestamp in underlying package `google.golang.org/protobuf/types/known/timestamppb` is 9999-12-31T23:59:59Z
+	// https://pkg.go.dev/google.golang.org/protobuf/types/known/timestamppb#Timestamp
+	MaxTimeStamp, _ = time.Parse(time.RFC3339, "9999-12-31T23:59:59Z")
 )
 
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
@@ -829,15 +833,10 @@ func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, membersAcc []sdk.AccAddress, extra string) *MsgCreateGroup {
-	var members []string
-	for _, member := range membersAcc {
-		members = append(members, member.String())
-	}
+func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, extra string) *MsgCreateGroup {
 	return &MsgCreateGroup{
 		Creator:   creator.String(),
 		GroupName: groupName,
-		Members:   members,
 		Extra:     extra,
 	}
 }
@@ -878,9 +877,7 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 	if err != nil {
 		return gnfderrors.ErrInvalidGroupName.Wrapf("invalid groupName (%s)", err)
 	}
-	if len(msg.Members) > MaxGroupMemberLimitOnce {
-		return gnfderrors.ErrInvalidParameter.Wrapf("Once update group member limit exceeded")
-	}
+
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
 		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
 	}
@@ -981,12 +978,9 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 }
 
 func NewMsgUpdateGroupMember(
-	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, membersToAdd []sdk.AccAddress,
+	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, membersToAdd []*MsgGroupMember,
 	membersToDelete []sdk.AccAddress) *MsgUpdateGroupMember {
-	var membersAddrToAdd, membersAddrToDelete []string
-	for _, member := range membersToAdd {
-		membersAddrToAdd = append(membersAddrToAdd, member.String())
-	}
+	var membersAddrToDelete []string
 	for _, member := range membersToDelete {
 		membersAddrToDelete = append(membersAddrToDelete, member.String())
 	}
@@ -994,7 +988,7 @@ func NewMsgUpdateGroupMember(
 		Operator:        operator.String(),
 		GroupOwner:      groupOwner.String(),
 		GroupName:       groupName,
-		MembersToAdd:    membersAddrToAdd,
+		MembersToAdd:    membersToAdd,
 		MembersToDelete: membersAddrToDelete,
 	}
 }
@@ -1045,10 +1039,14 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 		return gnfderrors.ErrInvalidParameter.Wrapf("Once update group member limit exceeded")
 	}
 	for _, member := range msg.MembersToAdd {
-		_, err = sdk.AccAddressFromHexUnsafe(member)
+		_, err = sdk.AccAddressFromHexUnsafe(member.Member)
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
 		}
+		if member.ExpirationTime.UTC().After(MaxTimeStamp) {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Expiration time is bigger than max timestamp [%s]", MaxTimeStamp)
+		}
+
 	}
 	for _, member := range msg.MembersToDelete {
 		_, err = sdk.AccAddressFromHexUnsafe(member)
@@ -1487,6 +1485,9 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 		_, err = sdk.AccAddressFromHexUnsafe(member.Member)
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
+		}
+		if member.ExpirationTime.UTC().After(MaxTimeStamp) {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Expiration time is bigger than max timestamp [%s]", MaxTimeStamp)
 		}
 	}
 

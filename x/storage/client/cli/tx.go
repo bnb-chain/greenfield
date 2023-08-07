@@ -525,7 +525,6 @@ func CmdCreateGroup() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
-			argMemberList, _ := cmd.Flags().GetString(FlagMemberList)
 			extra, _ := cmd.Flags().GetString(FlagExtra)
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -533,21 +532,9 @@ func CmdCreateGroup() *cobra.Command {
 				return err
 			}
 
-			var memberAddrs []sdk.AccAddress
-			if argMemberList != "" {
-				members := strings.Split(argMemberList, ",")
-				for _, member := range members {
-					memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
-					if err != nil {
-						return err
-					}
-					memberAddrs = append(memberAddrs, memberAddr)
-				}
-			}
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
-				memberAddrs,
 				extra,
 			)
 			if err := msg.ValidateBasic(); err != nil {
@@ -558,7 +545,6 @@ func CmdCreateGroup() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagExtra, "", "extra info for the group")
-	cmd.Flags().String(FlagMemberList, "", "init members of the group")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -631,41 +617,62 @@ func CmdLeaveGroup() *cobra.Command {
 
 func CmdUpdateGroupMember() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-group-member [group-name] [member-to-add] [member-to-delete]",
-		Short: "Update the member of the group you own, split member addresses by ,",
-		Args:  cobra.ExactArgs(3),
+		Use:   "update-group-member [group-name] [member-to-add] [member-expiration-to-add] [member-to-delete]",
+		Short: "Update the member of the group you own, split member addresses and expiration(UNIX timestamp) by ,",
+		Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
 			argMemberToAdd := args[1]
-			argMemberToDelete := args[2]
-
+			argMemberExpirationToAdd := args[2]
+			argMemberToDelete := args[3]
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			var memberAddrsToAdd []sdk.AccAddress
 			membersToAdd := strings.Split(argMemberToAdd, ",")
-			for _, member := range membersToAdd {
-				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
-				if err != nil {
-					return err
-				}
-				memberAddrsToAdd = append(memberAddrsToAdd, memberAddr)
+			memberExpirationStr := strings.Split(argMemberExpirationToAdd, ",")
+			if len(memberExpirationStr) != len(membersToAdd) {
+				return errors.New("[member-to-add] and [member-expiration-to-add] should have the same length")
 			}
-			var memberAddrsToDelete []sdk.AccAddress
-			membersToDelete := strings.Split(argMemberToDelete, ",")
-			for _, member := range membersToDelete {
-				memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
-				if err != nil {
-					return err
+
+			msgGroupMemberToAdd := make([]*types.MsgGroupMember, 0, len(argMemberToAdd))
+			if len(membersToAdd) > 0 {
+				for i := range membersToAdd {
+					if len(membersToAdd[i]) > 0 {
+						_, err := sdk.AccAddressFromHexUnsafe(membersToAdd[i])
+						if err != nil {
+							return err
+						}
+						expiration, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
+						if err != nil {
+							return err
+						}
+						msgGroupMemberToAdd = append(msgGroupMemberToAdd, &types.MsgGroupMember{
+							Member:         membersToAdd[i],
+							ExpirationTime: time.Unix(expiration, 0).UTC(),
+						})
+					}
 				}
-				memberAddrsToDelete = append(memberAddrsToDelete, memberAddr)
+			}
+
+			var memberAddrsToDelete []sdk.AccAddress
+			if len(argMemberToDelete) == 0 {
+				membersToDelete := strings.Split(argMemberToDelete, ",")
+				for _, member := range membersToDelete {
+					if len(member) > 0 {
+						memberAddr, err := sdk.AccAddressFromHexUnsafe(member)
+						if err != nil {
+							return err
+						}
+						memberAddrsToDelete = append(memberAddrsToDelete, memberAddr)
+					}
+				}
 			}
 			msg := types.NewMsgUpdateGroupMember(
 				clientCtx.GetFromAddress(),
 				clientCtx.GetFromAddress(),
 				argGroupName,
-				memberAddrsToAdd,
+				msgGroupMemberToAdd,
 				memberAddrsToDelete,
 			)
 			if err := msg.ValidateBasic(); err != nil {

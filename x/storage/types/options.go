@@ -51,7 +51,6 @@ type CopyObjectOptions struct {
 	ApprovalMsgBytes  []byte
 }
 type CreateGroupOptions struct {
-	Members    []string
 	SourceType SourceType
 	Extra      string
 }

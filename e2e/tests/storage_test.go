@@ -276,7 +276,7 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	groupName := storageutils.GenRandomGroupName()
 
 	// 1. CreateGroup
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 
@@ -300,7 +300,14 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	s.Require().NoError(err)
 	s.Require().GreaterOrEqual(len(queryListGroupResp.GroupInfos), 1)
 
-	// 3. HeadGroupMember
+	// 4. UpdateGroupMember(add)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		&storagetypes.MsgGroupMember{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
+
+	// 4-1. HeadGroupMember(add)
 	queryHeadGroupMemberReq := storagetypes.QueryHeadGroupMemberRequest{
 		Member:     member.GetAddr().String(),
 		GroupName:  groupName,
@@ -310,14 +317,15 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadGroupMemberResp.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
 
-	// 4. UpdateGroupMember
+	// 5. UpdateGroupMember(delete)
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
-	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
-	membersToDelete := []sdk.AccAddress{member.GetAddr()}
-	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	membersToAdd = []*storagetypes.MsgGroupMember{
+		&storagetypes.MsgGroupMember{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete = []sdk.AccAddress{member.GetAddr()}
+	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
 
-	// 5. HeadGroupMember (delete)
+	// 5-1. HeadGroupMember (delete)
 	queryHeadGroupMemberReqDelete := storagetypes.QueryHeadGroupMemberRequest{
 		Member:     member.GetAddr().String(),
 		GroupName:  groupName,
@@ -325,18 +333,9 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	}
 	_, err = s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqDelete)
 	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchGroupMember.Error()))
-	// 5. HeadGroupMember (add)
-	queryHeadGroupMemberReqAdd := storagetypes.QueryHeadGroupMemberRequest{
-		Member:     member2.GetAddr().String(),
-		GroupName:  groupName,
-		GroupOwner: owner.GetAddr().String(),
-	}
-	queryHeadGroupMemberRespAdd, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqAdd)
-	s.Require().NoError(err)
-	s.Require().Equal(queryHeadGroupMemberRespAdd.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
 
 	// 6. Create a group with the same name
-	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
 	s.SendTxBlockWithExpectErrorString(msgCreateGroup, owner, "exists")
 }
 
@@ -348,9 +347,14 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 	groupName := storageutils.GenRandomGroupName()
 
 	// 1. CreateGroup
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		&storagetypes.MsgGroupMember{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// 2. HeadGroup
 	queryHeadGroupReq := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: groupName}
@@ -384,9 +388,10 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
-	membersToAdd := []sdk.AccAddress{member2.GetAddr()}
-	membersToDelete := []sdk.AccAddress{member.GetAddr()}
-	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	membersToAdd = []*storagetypes.MsgGroupMember{
+		&storagetypes.MsgGroupMember{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete = []sdk.AccAddress{member.GetAddr()}
+	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// 5. leave group
@@ -692,11 +697,10 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	ctx := context.Background()
 
 	owner := s.GenAndChargeAccounts(1, 1000000)[0]
-	member := s.GenAndChargeAccounts(1, 1000000)[0]
 	groupName := storageutils.GenRandomGroupName()
 
 	// 1. CreateGroup
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 
@@ -713,7 +717,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 
 	// CreateGroup
 	groupName = storageutils.GenRandomGroupName()
-	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, []sdk.AccAddress{member.GetAddr()}, "")
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// MirrorGroup using name
@@ -1488,10 +1492,10 @@ func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
 	ctx := context.Background()
 	owner := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	// Create a group without members
+	// Create a group
 	testGroupName := "appName/bucketName"
 	extra := "{\"description\":\"no description\",\"imageUrl\":\"www.images.com/image1\"}"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, nil, extra)
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, extra)
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
@@ -1530,6 +1534,47 @@ func (s *StorageTestSuite) TestCreateAndUpdateGroupExtraField() {
 	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
 	s.Require().Equal(newExtra, headGroupResponse.GroupInfo.Extra)
 	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+}
+
+func (s *StorageTestSuite) TestCreateAndRenewGroup() {
+	var err error
+	ctx := context.Background()
+	owner := s.GenAndChargeAccounts(1, 1000000)[0]
+	member := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	// Create a group
+	testGroupName := "appName/bucketName"
+	extra := "{\"description\":\"no description\",\"imageUrl\":\"www.images.com/image1\"}"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, extra)
+	s.SendTxBlock(owner, msgCreateGroup)
+	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), testGroupName)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.Require().Equal(headGroupResponse.GroupInfo.Extra, extra)
+
+	// Renew GroupMember
+	expiration, err := time.Parse(time.RFC3339, "2022-12-31T23:59:59Z")
+	s.Require().NoError(err)
+	members := []*storagetypes.MsgGroupMember{
+		&storagetypes.MsgGroupMember{Member: member.GetAddr().String(), ExpirationTime: expiration}}
+	msgUpdateGroupMember := storagetypes.NewMsgRenewGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, members)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
+
+	// Head GroupMember
+	queryHeadGroupMemberReq := storagetypes.QueryHeadGroupMemberRequest{
+		Member:     member.GetAddr().String(),
+		GroupName:  testGroupName,
+		GroupOwner: owner.GetAddr().String(),
+	}
+	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadGroupMemberResp.GroupMember.GroupId, headGroupResponse.GroupInfo.Id)
+	s.Require().True(queryHeadGroupMemberResp.GroupMember.ExpirationTime.Equal(expiration))
 }
 
 func (s *StorageTestSuite) TestRejectSealObject() {

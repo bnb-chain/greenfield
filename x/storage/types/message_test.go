@@ -169,7 +169,6 @@ func TestMsgCreateGroup_ValidateBasic(t *testing.T) {
 			msg: MsgCreateGroup{
 				Creator:   sample.RandAccAddressHex(),
 				GroupName: testGroupName,
-				Members:   []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
 			},
 		},
 	}
@@ -247,10 +246,18 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 		{
 			name: "normal",
 			msg: MsgUpdateGroupMember{
-				Operator:        sample.RandAccAddressHex(),
-				GroupOwner:      sample.RandAccAddressHex(),
-				GroupName:       testGroupName,
-				MembersToAdd:    []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
+				Operator:   sample.RandAccAddressHex(),
+				GroupOwner: sample.RandAccAddressHex(),
+				GroupName:  testGroupName,
+				MembersToAdd: []*MsgGroupMember{{
+					Member:         sample.RandAccAddressHex(),
+					ExpirationTime: MaxTimeStamp,
+				},
+					{
+						Member:         sample.RandAccAddressHex(),
+						ExpirationTime: MaxTimeStamp,
+					},
+				},
 				MembersToDelete: []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
 			},
 		},
@@ -415,6 +422,42 @@ func TestMsgMirrorGroup_ValidateBasic(t *testing.T) {
 				Id:       math.NewUint(1),
 			},
 			err: sdkerrors.ErrInvalidAddress,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgRenewGroupMember_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgRenewGroupMember
+		err  error
+	}{
+		{
+			name: "normal",
+			msg: MsgRenewGroupMember{
+				Operator:   sample.RandAccAddressHex(),
+				GroupOwner: sample.RandAccAddressHex(),
+				GroupName:  testGroupName,
+				Members: []*MsgGroupMember{{
+					Member:         sample.RandAccAddressHex(),
+					ExpirationTime: MaxTimeStamp,
+				},
+					{
+						Member:         sample.RandAccAddressHex(),
+						ExpirationTime: MaxTimeStamp,
+					},
+				},
+			},
 		},
 	}
 	for _, tt := range tests {

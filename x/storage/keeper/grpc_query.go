@@ -559,10 +559,6 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 		return nil, types.ErrNoSuchGroupMember
 	}
 
-	if groupMember.ExpirationTime == nil {
-		groupMember.ExpirationTime = &maxTimeStamp
-	}
-
 	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
 }
 

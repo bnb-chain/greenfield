@@ -285,12 +285,8 @@ message EventCreateGroup {
   ];
   // source_type define the source of the group. CrossChain or Greenfield origin
   SourceType source_type = 4;
-  // members define the all the address of the members.
-  repeated string members = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // extra defines extra info for the group
-  string extra = 6;
-  // added_members_detail defines the all the members detail of the group.
-  repeated EventGroupMemberDetail added_members_detail = 7;
+  string extra = 5;
 }
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
@@ -338,11 +334,9 @@ message EventUpdateGroupMember {
     (gogoproto.nullable) = false
   ];
   // members_to_add defines all the members to be added to the group
-  repeated string members_to_add = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated EventGroupMemberDetail members_to_add = 5;
   // members_to_add defines all the members to be deleted from the group
   repeated string members_to_delete = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // added_members_detail defines the all the members detail of the group.
-  repeated EventGroupMemberDetail added_members_detail = 7;
 }
 
 message EventRenewGroupMember {
@@ -361,11 +355,7 @@ message EventRenewGroupMember {
   // source_type define the source of the group. CrossChain or Greenfield origin
   SourceType source_type = 5;
   // members define the all the address of the members.
-  repeated string members = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // extra defines extra info for the group
-  string extra = 7;
-  // members_detail defines the all the members detail of the group.
-  repeated EventGroupMemberDetail members_detail = 8;
+  repeated EventGroupMemberDetail members = 6;
 }
 
 message EventGroupMemberDetail {

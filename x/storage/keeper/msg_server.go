@@ -233,7 +233,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Members: msg.Members, Extra: msg.Extra})
+	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra})
 	if err != nil {
 		return nil, err
 	}
@@ -281,10 +281,17 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
+	membersToAdd := make([]string, 0, len(msg.MembersToAdd))
+	membersExpirationToAdd := make([]time.Time, 0, len(msg.MembersToAdd))
+	for i := range msg.MembersToAdd {
+		membersToAdd = append(membersToAdd, msg.MembersToAdd[i].GetMember())
+		membersExpirationToAdd = append(membersExpirationToAdd, msg.MembersToAdd[i].GetExpirationTime())
+	}
 	err := k.Keeper.UpdateGroupMember(ctx, operator, groupInfo, storagetypes.UpdateGroupMemberOptions{
-		SourceType:      types.SOURCE_TYPE_ORIGIN,
-		MembersToAdd:    msg.MembersToAdd,
-		MembersToDelete: msg.MembersToDelete,
+		SourceType:             types.SOURCE_TYPE_ORIGIN,
+		MembersToAdd:           membersToAdd,
+		MembersExpirationToAdd: membersExpirationToAdd,
+		MembersToDelete:        msg.MembersToDelete,
 	})
 	if err != nil {
 		return nil, err

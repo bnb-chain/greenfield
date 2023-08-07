@@ -59,7 +59,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration *time.Time) error {
+func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration time.Time) error {
 	store := ctx.KVStore(k.storeKey)
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	if store.Has(memberKey) {
@@ -76,7 +76,7 @@ func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.Ac
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration *time.Time) {
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration time.Time) {
 	store := ctx.KVStore(k.storeKey)
 	groupMember := types.GroupMember{
 		GroupId:        groupID,
@@ -306,10 +306,8 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 				}
 
 				// post check if the operator has not been expired
-				if allowed && memberFound && groupMember.ExpirationTime != nil {
-					if groupMember.ExpirationTime.Before(ctx.BlockTime()) {
-						return types.EFFECT_DENY
-					}
+				if allowed && memberFound && groupMember.ExpirationTime.Before(ctx.BlockTime()) {
+					return types.EFFECT_DENY
 				}
 			}
 		}

@@ -74,6 +74,6 @@ message GroupMember {
   // expiration_time defines the expiration time of the group member
   google.protobuf.Timestamp expiration_time = 4 [
     (gogoproto.stdtime) = true,
-    (gogoproto.nullable) = true
+    (gogoproto.nullable) = false
   ];
 }

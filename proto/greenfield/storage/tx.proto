@@ -275,11 +275,8 @@ message MsgCreateGroup {
   // group_name defines the name of the group. it's not globally unique.
   string group_name = 2;
 
-  // member_request defines a list of member which to be add or remove
-  repeated string members = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-
   // extra defines extra info for the group
-  string extra = 4;
+  string extra = 3;
 }
 
 message MsgCreateGroupResponse {
@@ -315,7 +312,7 @@ message MsgUpdateGroupMember {
   string group_name = 3;
 
   // members_to_add defines a list of members account address which will be add to the group
-  repeated string members_to_add = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  repeated MsgGroupMember members_to_add = 4;
 
   // members_to_delete defines a list of members account address which will be remove from the group
   repeated string members_to_delete = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];

@@ -965,7 +965,7 @@ func (p UpdateGroupMemberSynPackage) ValidateBasic() error {
 		}
 	}
 
-	if p.OperationType == OperationRenewGroupMember &&
+	if (p.OperationType == OperationRenewGroupMember || p.OperationType == OperationAddGroupMember) &&
 		len(p.Members) != len(p.MemberExpiration) {
 		return ErrInvalidGroupMemberExpiration
 	}

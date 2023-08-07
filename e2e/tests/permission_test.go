@@ -671,7 +671,7 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, "")
 	s.SendTxBlock(user[0], msgCreateGroup)
 
 	// Head Group
@@ -1168,9 +1168,7 @@ func (s *StorageTestSuite) TestDeleteGroupPolicy() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
@@ -1219,7 +1217,7 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
@@ -1316,9 +1314,7 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
@@ -1489,9 +1485,7 @@ func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// Head Group
