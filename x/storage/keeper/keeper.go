@@ -12,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
@@ -1414,13 +1413,11 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 			ExpirationTime: maxTimeStamp,
 		}
 		var memberExpiration *time.Time = nil
-		if !ctx.IsUpgraded(upgradetypes.Nagqu) {
-			if i < len(opts.MembersExpirationToAdd) {
-				// The expiration is allowed to be set from the cross-chain packet.
-				expiration := opts.MembersExpirationToAdd[i].UTC()
-				memberExpiration = &expiration
-				groupMemberDetailEvent.ExpirationTime = expiration
-			}
+		if i < len(opts.MembersExpirationToAdd) {
+			// The expiration is allowed to be set from the cross-chain packet.
+			expiration := opts.MembersExpirationToAdd[i].UTC()
+			memberExpiration = &expiration
+			groupMemberDetailEvent.ExpirationTime = expiration
 		}
 
 		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
@@ -1457,10 +1454,6 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 }
 
 func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.RenewGroupMemberOptions) error {
-	if !ctx.IsUpgraded(upgradetypes.Nagqu) {
-		return types.ErrRenewGroupMemberNotAllow
-	}
-
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
