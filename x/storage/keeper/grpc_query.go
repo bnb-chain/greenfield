@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -561,8 +560,7 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	}
 
 	if groupMember.ExpirationTime == nil {
-		t := time.Unix(maxTimeStampSeconds.Unix(), 0)
-		groupMember.ExpirationTime = &t
+		groupMember.ExpirationTime = &maxTimeStamp
 	}
 
 	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
