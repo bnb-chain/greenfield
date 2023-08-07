@@ -26,6 +26,8 @@ import (
 )
 
 var (
+	// The max timestamp in underlying package `google.golang.org/protobuf/types/known/timestamppb` is 9999-12-31T23:59:59Z
+	// https://pkg.go.dev/google.golang.org/protobuf/types/known/timestamppb#Timestamp
 	maxTimeStampSeconds, _ = time.Parse(time.RFC3339, "9999-12-31T23:59:59Z")
 )
 
