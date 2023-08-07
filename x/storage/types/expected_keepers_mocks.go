@@ -368,32 +368,17 @@ func (m *MockPermissionKeeper) EXPECT() *MockPermissionKeeperMockRecorder {
 }
 
 // AddGroupMember mocks base method.
-func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress) (math.Uint, error) {
+func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration *time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddGroupMember", ctx, groupID, member)
-	ret0, _ := ret[0].(math.Uint)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AddGroupMember indicates an expected call of AddGroupMember.
-func (mr *MockPermissionKeeperMockRecorder) AddGroupMember(ctx, groupID, member interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).AddGroupMember), ctx, groupID, member)
-}
-
-// AddGroupMemberWithExpiration mocks base method.
-func (m *MockPermissionKeeper) AddGroupMemberWithExpiration(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration time.Time) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddGroupMemberWithExpiration", ctx, groupID, member, expiration)
+	ret := m.ctrl.Call(m, "AddGroupMember", ctx, groupID, member, expiration)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AddGroupMemberWithExpiration indicates an expected call of AddGroupMemberWithExpiration.
-func (mr *MockPermissionKeeperMockRecorder) AddGroupMemberWithExpiration(ctx, groupID, member, expiration interface{}) *gomock.Call {
+// AddGroupMember indicates an expected call of AddGroupMember.
+func (mr *MockPermissionKeeperMockRecorder) AddGroupMember(ctx, groupID, member, expiration interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroupMemberWithExpiration", reflect.TypeOf((*MockPermissionKeeper)(nil).AddGroupMemberWithExpiration), ctx, groupID, member, expiration)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).AddGroupMember), ctx, groupID, member, expiration)
 }
 
 // DeletePolicy mocks base method.
@@ -528,36 +513,6 @@ func (mr *MockPermissionKeeperMockRecorder) GetGroupMemberByID(ctx, groupMemberI
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupMemberByID", reflect.TypeOf((*MockPermissionKeeper)(nil).GetGroupMemberByID), ctx, groupMemberID)
 }
 
-// GetGroupMemberExtra mocks base method.
-func (m *MockPermissionKeeper) GetGroupMemberExtra(ctx types3.Context, groupID math.Uint, member types3.AccAddress) (*types0.GroupMemberExtra, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupMemberExtra", ctx, groupID, member)
-	ret0, _ := ret[0].(*types0.GroupMemberExtra)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetGroupMemberExtra indicates an expected call of GetGroupMemberExtra.
-func (mr *MockPermissionKeeperMockRecorder) GetGroupMemberExtra(ctx, groupID, member interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupMemberExtra", reflect.TypeOf((*MockPermissionKeeper)(nil).GetGroupMemberExtra), ctx, groupID, member)
-}
-
-// GetGroupMemberExtraByID mocks base method.
-func (m *MockPermissionKeeper) GetGroupMemberExtraByID(ctx types3.Context, groupMemberID math.Uint) (*types0.GroupMemberExtra, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetGroupMemberExtraByID", ctx, groupMemberID)
-	ret0, _ := ret[0].(*types0.GroupMemberExtra)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetGroupMemberExtraByID indicates an expected call of GetGroupMemberExtraByID.
-func (mr *MockPermissionKeeperMockRecorder) GetGroupMemberExtraByID(ctx, groupMemberID interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupMemberExtraByID", reflect.TypeOf((*MockPermissionKeeper)(nil).GetGroupMemberExtraByID), ctx, groupMemberID)
-}
-
 // GetPolicyByID mocks base method.
 func (m *MockPermissionKeeper) GetPolicyByID(ctx types3.Context, policyID math.Uint) (*types0.Policy, bool) {
 	m.ctrl.T.Helper()
@@ -632,30 +587,16 @@ func (mr *MockPermissionKeeperMockRecorder) RemoveGroupMember(ctx, groupID, memb
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).RemoveGroupMember), ctx, groupID, member)
 }
 
-// RemoveGroupMemberExtra mocks base method.
-func (m *MockPermissionKeeper) RemoveGroupMemberExtra(ctx types3.Context, groupID math.Uint, member types3.AccAddress) error {
+// UpdateGroupMember mocks base method.
+func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration *time.Time) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RemoveGroupMemberExtra", ctx, groupID, member)
-	ret0, _ := ret[0].(error)
-	return ret0
+	m.ctrl.Call(m, "UpdateGroupMember", ctx, groupID, member, memberID, expiration)
 }
 
-// RemoveGroupMemberExtra indicates an expected call of RemoveGroupMemberExtra.
-func (mr *MockPermissionKeeperMockRecorder) RemoveGroupMemberExtra(ctx, groupID, member interface{}) *gomock.Call {
+// UpdateGroupMember indicates an expected call of UpdateGroupMember.
+func (mr *MockPermissionKeeperMockRecorder) UpdateGroupMember(ctx, groupID, member, memberID, expiration interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveGroupMemberExtra", reflect.TypeOf((*MockPermissionKeeper)(nil).RemoveGroupMemberExtra), ctx, groupID, member)
-}
-
-// UpdateGroupMemberExpiration mocks base method.
-func (m *MockPermissionKeeper) UpdateGroupMemberExpiration(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration time.Time) {
-	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "UpdateGroupMemberExpiration", ctx, groupID, member, memberID, expiration)
-}
-
-// UpdateGroupMemberExpiration indicates an expected call of UpdateGroupMemberExpiration.
-func (mr *MockPermissionKeeperMockRecorder) UpdateGroupMemberExpiration(ctx, groupID, member, memberID, expiration interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMemberExpiration", reflect.TypeOf((*MockPermissionKeeper)(nil).UpdateGroupMemberExpiration), ctx, groupID, member, memberID, expiration)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).UpdateGroupMember), ctx, groupID, member, memberID, expiration)
 }
 
 // VerifyPolicy mocks base method.

@@ -438,6 +438,7 @@ func (app *GroupApp) handleAddOrDeleteGroupMemberOperation(ctx sdk.Context, grou
 	}
 	if updateGroupPackage.OperationType == types.OperationAddGroupMember {
 		options.MembersToAdd = updateGroupPackage.GetMembers()
+		options.MembersExpirationToAdd = updateGroupPackage.GetMemberExpiration()
 	} else {
 		options.MembersToDelete = updateGroupPackage.GetMembers()
 	}

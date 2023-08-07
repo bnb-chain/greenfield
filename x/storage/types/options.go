@@ -60,9 +60,10 @@ type LeaveGroupOptions struct {
 }
 
 type UpdateGroupMemberOptions struct {
-	SourceType      SourceType
-	MembersToAdd    []string
-	MembersToDelete []string
+	SourceType             SourceType
+	MembersToAdd           []string
+	MembersExpirationToAdd []time.Time
+	MembersToDelete        []string
 }
 
 type RenewGroupMemberOptions struct {

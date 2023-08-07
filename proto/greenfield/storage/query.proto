@@ -280,7 +280,6 @@ message QueryHeadGroupMemberRequest {
 
 message QueryHeadGroupMemberResponse {
   permission.GroupMember group_member = 1;
-  permission.GroupMemberExtra group_member_extra = 2;
 }
 
 message QueryPolicyForGroupRequest {

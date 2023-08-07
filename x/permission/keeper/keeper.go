@@ -59,48 +59,31 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (math.Uint, error) {
+func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration *time.Time) error {
 	store := ctx.KVStore(k.storeKey)
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	if store.Has(memberKey) {
-		return math.ZeroUint(), storagetypes.ErrGroupMemberAlreadyExists
+		return storagetypes.ErrGroupMemberAlreadyExists
 	}
 	groupMember := types.GroupMember{
-		GroupId: groupID,
-		Member:  member.String(),
+		GroupId:        groupID,
+		Member:         member.String(),
+		ExpirationTime: expiration,
 	}
 	id := k.groupMemberSeq.NextVal(store)
 	store.Set(memberKey, id.Bytes())
 	store.Set(types.GetGroupMemberByIDKey(id), k.cdc.MustMarshal(&groupMember))
-	return id, nil
-}
-
-func (k Keeper) AddGroupMemberWithExpiration(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration time.Time) error {
-	id, err := k.AddGroupMember(ctx, groupID, member)
-	if err != nil {
-		return err
-	}
-
-	store := ctx.KVStore(k.storeKey)
-	// We can simply override the whole value here, because the expiration time is the only field in the value.
-	// If there are more fields in the future, we should use a more sophisticated way to update the value.
-	memberExtra := types.GroupMemberExtra{
-		ExpirationTime: expiration,
-	}
-	store.Set(types.GetGroupMemberExtraKey(groupID, member), id.Bytes())
-	store.Set(types.GetGroupMemberExtraByIDKey(id), k.cdc.MustMarshal(&memberExtra))
 	return nil
 }
 
-func (k Keeper) UpdateGroupMemberExpiration(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration time.Time) {
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration *time.Time) {
 	store := ctx.KVStore(k.storeKey)
-	// We can simply override the whole value here, because the expiration time is the only field in the value.
-	// If there are more fields in the future, we should use a more sophisticated way to update the value.
-	memberExtra := types.GroupMemberExtra{
+	groupMember := types.GroupMember{
+		GroupId:        groupID,
+		Member:         member.String(),
 		ExpirationTime: expiration,
 	}
-	store.Set(types.GetGroupMemberExtraKey(groupID, member), memberID.Bytes())
-	store.Set(types.GetGroupMemberExtraByIDKey(memberID), k.cdc.MustMarshal(&memberExtra))
+	store.Set(types.GetGroupMemberByIDKey(memberID), k.cdc.MustMarshal(&groupMember))
 }
 
 func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
@@ -112,18 +95,6 @@ func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk
 	}
 	store.Delete(memberKey)
 	store.Delete(types.GetGroupMemberByIDKey(k.groupMemberSeq.DecodeSequence(bz)))
-	return nil
-}
-
-func (k Keeper) RemoveGroupMemberExtra(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
-	store := ctx.KVStore(k.storeKey)
-	memberKey := types.GetGroupMemberExtraKey(groupID, member)
-	bz := store.Get(memberKey)
-	if bz == nil {
-		return storagetypes.ErrNoSuchGroupMember
-	}
-	store.Delete(memberKey)
-	store.Delete(types.GetGroupMemberExtraByIDKey(k.groupMemberSeq.DecodeSequence(bz)))
 	return nil
 }
 
@@ -147,28 +118,6 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 	var groupMember types.GroupMember
 	k.cdc.MustUnmarshal(bz, &groupMember)
 	groupMember.Id = groupMemberID
-	return &groupMember, true
-}
-
-func (k Keeper) GetGroupMemberExtra(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) (*types.GroupMemberExtra, bool) {
-	store := ctx.KVStore(k.storeKey)
-	memberKey := types.GetGroupMemberExtraKey(groupID, member)
-	bz := store.Get(memberKey)
-	if bz == nil {
-		return nil, false
-	}
-
-	return k.GetGroupMemberExtraByID(ctx, k.groupMemberSeq.DecodeSequence(bz))
-}
-
-func (k Keeper) GetGroupMemberExtraByID(ctx sdk.Context, groupMemberID math.Uint) (*types.GroupMemberExtra, bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetGroupMemberExtraByIDKey(groupMemberID))
-	if bz == nil {
-		return nil, false
-	}
-	var groupMember types.GroupMemberExtra
-	k.cdc.MustUnmarshal(bz, &groupMember)
 	return &groupMember, true
 }
 
@@ -347,7 +296,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
 			if effect != types.EFFECT_UNSPECIFIED {
 				// check the operator is the member of this group
-				_, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
+				groupMember, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
 				if memberFound {
 					if effect == types.EFFECT_ALLOW {
 						allowed = true
@@ -357,9 +306,8 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 				}
 
 				// post check if the operator has not been expired
-				groupMemberExtra, memberExtraFound := k.GetGroupMemberExtra(ctx, item.GroupId, operator)
-				if allowed && memberExtraFound {
-					if groupMemberExtra.ExpirationTime.Before(ctx.BlockTime()) {
+				if allowed && memberFound && groupMember.ExpirationTime != nil {
+					if groupMember.ExpirationTime.Before(ctx.BlockTime()) {
 						return types.EFFECT_DENY
 					}
 				}

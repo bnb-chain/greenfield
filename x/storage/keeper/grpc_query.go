@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -558,9 +559,13 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	if !found {
 		return nil, types.ErrNoSuchGroupMember
 	}
-	groupMemberExtra, _ := k.permKeeper.GetGroupMemberExtra(ctx, groupInfo.Id, member)
 
-	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember, GroupMemberExtra: groupMemberExtra}, nil
+	if groupMember.ExpirationTime == nil {
+		t := time.Unix(maxTimeStampSeconds.Unix(), 0)
+		groupMember.ExpirationTime = &t
+	}
+
+	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
 }
 
 func (k Keeper) QueryPolicyById(goCtx context.Context, req *types.QueryPolicyByIdRequest) (*types.
