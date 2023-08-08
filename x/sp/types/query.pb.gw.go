@@ -87,8 +87,8 @@ func local_request_Query_StorageProviders_0(ctx context.Context, marshaler runti
 
 }
 
-func request_Query_QueryGetSpStoragePriceByTime_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryGetSpStoragePriceByTimeRequest
+func request_Query_QuerySpStoragePrice_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QuerySpStoragePriceRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -109,24 +109,13 @@ func request_Query_QueryGetSpStoragePriceByTime_0(ctx context.Context, marshaler
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sp_addr", err)
 	}
 
-	val, ok = pathParams["timestamp"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "timestamp")
-	}
-
-	protoReq.Timestamp, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "timestamp", err)
-	}
-
-	msg, err := client.QueryGetSpStoragePriceByTime(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.QuerySpStoragePrice(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_QueryGetSpStoragePriceByTime_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryGetSpStoragePriceByTimeRequest
+func local_request_Query_QuerySpStoragePrice_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QuerySpStoragePriceRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -147,24 +136,13 @@ func local_request_Query_QueryGetSpStoragePriceByTime_0(ctx context.Context, mar
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "sp_addr", err)
 	}
 
-	val, ok = pathParams["timestamp"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "timestamp")
-	}
-
-	protoReq.Timestamp, err = runtime.Int64(val)
-
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "timestamp", err)
-	}
-
-	msg, err := server.QueryGetSpStoragePriceByTime(ctx, &protoReq)
+	msg, err := server.QuerySpStoragePrice(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Query_QueryGetSecondarySpStorePriceByTime_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryGetSecondarySpStorePriceByTimeRequest
+func request_Query_QueryGlobalSpStorePriceByTime_0(ctx context.Context, marshaler runtime.Marshaler, client QueryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryGlobalSpStorePriceByTimeRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -185,13 +163,13 @@ func request_Query_QueryGetSecondarySpStorePriceByTime_0(ctx context.Context, ma
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "timestamp", err)
 	}
 
-	msg, err := client.QueryGetSecondarySpStorePriceByTime(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.QueryGlobalSpStorePriceByTime(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Query_QueryGetSecondarySpStorePriceByTime_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq QueryGetSecondarySpStorePriceByTimeRequest
+func local_request_Query_QueryGlobalSpStorePriceByTime_0(ctx context.Context, marshaler runtime.Marshaler, server QueryServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq QueryGlobalSpStorePriceByTimeRequest
 	var metadata runtime.ServerMetadata
 
 	var (
@@ -212,7 +190,7 @@ func local_request_Query_QueryGetSecondarySpStorePriceByTime_0(ctx context.Conte
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "timestamp", err)
 	}
 
-	msg, err := server.QueryGetSecondarySpStorePriceByTime(ctx, &protoReq)
+	msg, err := server.QueryGlobalSpStorePriceByTime(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -395,7 +373,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 
 	})
 
-	mux.Handle("GET", pattern_Query_QueryGetSpStoragePriceByTime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_QuerySpStoragePrice_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -406,7 +384,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_QueryGetSpStoragePriceByTime_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_QuerySpStoragePrice_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -414,11 +392,11 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_QueryGetSpStoragePriceByTime_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_QuerySpStoragePrice_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_QueryGetSecondarySpStorePriceByTime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_QueryGlobalSpStorePriceByTime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -429,7 +407,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Query_QueryGetSecondarySpStorePriceByTime_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Query_QueryGlobalSpStorePriceByTime_0(rctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -437,7 +415,7 @@ func RegisterQueryHandlerServer(ctx context.Context, mux *runtime.ServeMux, serv
 			return
 		}
 
-		forward_Query_QueryGetSecondarySpStorePriceByTime_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_QueryGlobalSpStorePriceByTime_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -591,7 +569,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 
 	})
 
-	mux.Handle("GET", pattern_Query_QueryGetSpStoragePriceByTime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_QuerySpStoragePrice_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -600,18 +578,18 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_QueryGetSpStoragePriceByTime_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_QuerySpStoragePrice_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_QueryGetSpStoragePriceByTime_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_QuerySpStoragePrice_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("GET", pattern_Query_QueryGetSecondarySpStorePriceByTime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("GET", pattern_Query_QueryGlobalSpStorePriceByTime_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -620,14 +598,14 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Query_QueryGetSecondarySpStorePriceByTime_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Query_QueryGlobalSpStorePriceByTime_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Query_QueryGetSecondarySpStorePriceByTime_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Query_QueryGlobalSpStorePriceByTime_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -699,9 +677,9 @@ var (
 
 	pattern_Query_StorageProviders_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"greenfield", "storage_providers"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryGetSpStoragePriceByTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3, 1, 0, 4, 1, 5, 4}, []string{"greenfield", "sp", "get_sp_storage_price_by_time", "sp_addr", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_QuerySpStoragePrice_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "sp", "sp_storage_price", "sp_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_QueryGetSecondarySpStorePriceByTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "sp", "get_secondary_sp_store_price_by_time", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_QueryGlobalSpStorePriceByTime_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"greenfield", "sp", "global_sp_store_price_by_time", "timestamp"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_StorageProvider_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"greenfield", "storage_provider", "id"}, "", runtime.AssumeColonVerbOpt(false)))
 
@@ -715,9 +693,9 @@ var (
 
 	forward_Query_StorageProviders_0 = runtime.ForwardResponseMessage
 
-	forward_Query_QueryGetSpStoragePriceByTime_0 = runtime.ForwardResponseMessage
+	forward_Query_QuerySpStoragePrice_0 = runtime.ForwardResponseMessage
 
-	forward_Query_QueryGetSecondarySpStorePriceByTime_0 = runtime.ForwardResponseMessage
+	forward_Query_QueryGlobalSpStorePriceByTime_0 = runtime.ForwardResponseMessage
 
 	forward_Query_StorageProvider_0 = runtime.ForwardResponseMessage
 

@@ -302,14 +302,14 @@ func (s *PaymentTestSuite) TestDeposit_ActiveAccount() {
 
 	params := s.queryParams()
 	reserveTime := params.VersionedParams.ReserveTime
-	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 
 	bucketChargedReadQuota := uint64(1000)
-	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
@@ -388,14 +388,14 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInOneBlock() {
 
 	params := s.queryParams()
 	reserveTime := params.VersionedParams.ReserveTime
-	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 
 	bucketChargedReadQuota := uint64(1000)
-	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
@@ -505,14 +505,14 @@ func (s *PaymentTestSuite) TestDeposit_ResumeInBlocks() {
 	userAddr := user.GetAddr().String()
 
 	reserveTime := params.VersionedParams.ReserveTime
-	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 
 	bucketChargedReadQuota := uint64(1000)
-	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
@@ -642,12 +642,13 @@ func (s *PaymentTestSuite) TestAutoSettle_InOneBlock() {
 	bucketChargedReadQuota := uint64(1000)
 	params := s.queryParams()
 	reserveTime := params.VersionedParams.ReserveTime
-	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
-	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+
+	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
@@ -779,14 +780,14 @@ func (s *PaymentTestSuite) TestAutoSettle_InBlocks() {
 	userAddr := user.GetAddr().String()
 
 	reserveTime := params.VersionedParams.ReserveTime
-	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 
 	bucketChargedReadQuota := uint64(1000)
-	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
@@ -875,14 +876,14 @@ func (s *PaymentTestSuite) TestWithdraw() {
 
 	params := s.queryParams()
 	reserveTime := params.VersionedParams.ReserveTime
-	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.T().Logf("queryGetSpStoragePriceByTimeResp %s, err: %v", queryGetSpStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 
 	bucketChargedReadQuota := uint64(100000)
-	readPrice := queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice
+	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
 	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
 	taxRateParam := params.VersionedParams.ValidatorTaxRate
 	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
@@ -1218,9 +1219,8 @@ func (s *PaymentTestSuite) TestDiscontinue_InOneBlock_WithPriceChange() {
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// query storage price
-	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    sp.OperatorKey.GetAddr().String(),
-		Timestamp: 0,
+	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
 	s.Require().NoError(err)
 	s.T().Log("price", priceRes.SpStoragePrice)
@@ -1421,9 +1421,8 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChange() {
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// query storage price
-	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    sp.OperatorKey.GetAddr().String(),
-		Timestamp: 0,
+	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
 	s.Require().NoError(err)
 	s.T().Log("price", priceRes.SpStoragePrice)
@@ -1559,9 +1558,8 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// query storage price
-	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    sp.OperatorKey.GetAddr().String(),
-		Timestamp: 0,
+	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
 	s.Require().NoError(err)
 	s.T().Log("price", priceRes.SpStoragePrice)
@@ -1711,9 +1709,8 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// query storage price
-	priceRes, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    sp.OperatorKey.GetAddr().String(),
-		Timestamp: 0,
+	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+		SpAddr: sp.OperatorKey.GetAddr().String(),
 	})
 	s.Require().NoError(err)
 	s.T().Log("price", priceRes.SpStoragePrice)
@@ -2173,21 +2170,14 @@ func (s *PaymentTestSuite) calculateLockFee(sp *core.StorageProvider, bucketName
 func (s *PaymentTestSuite) getPrices(sp *core.StorageProvider, timestamp int64) (sdk.Dec, sdk.Dec, sdk.Dec) {
 	ctx := context.Background()
 
-	spStoragePriceByTimeResp, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    sp.OperatorKey.GetAddr().String(),
+	spStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
 		Timestamp: timestamp,
 	})
 	s.T().Logf("spStoragePriceByTimeResp %s, err: %v", spStoragePriceByTimeResp, err)
 	s.Require().NoError(err)
 
-	secondaryStoragePriceByTimeResp, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
-		Timestamp: timestamp,
-	})
-	s.T().Logf("spStoragePriceByTimeResp %s, err: %v", spStoragePriceByTimeResp, err)
-	s.Require().NoError(err)
-
-	return spStoragePriceByTimeResp.SpStoragePrice.ReadPrice, spStoragePriceByTimeResp.SpStoragePrice.StorePrice,
-		secondaryStoragePriceByTimeResp.SecondarySpStorePrice.StorePrice
+	return spStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice, spStoragePriceByTimeResp.GlobalSpStorePrice.PrimaryStorePrice,
+		spStoragePriceByTimeResp.GlobalSpStorePrice.SecondaryStorePrice
 }
 
 func (s *PaymentTestSuite) calculateReadRates(sp *core.StorageProvider, bucketName string) (sdkmath.Int, sdkmath.Int, sdkmath.Int) {

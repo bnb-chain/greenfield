@@ -31,7 +31,7 @@ var (
 	StorageProviderByApprovalAddrKey = []byte{0x26} // prefix for each key to a storage provider index, by approval address
 	StorageProviderByGcAddrKey       = []byte{0x27} // prefix for each key to a storage provider index, by gc address
 	SpStoragePriceKeyPrefix          = []byte{0x28}
-	SecondarySpStorePriceKeyPrefix   = []byte{0x29}
+	GlobalSpStorePriceKeyPrefix      = []byte{0x29}
 	StorageProviderByBlsPubKeyKey    = []byte{0x30} // prefix for each key to a storage provider index, by bls pub key
 	StorageProviderSequenceKey       = []byte{0x31}
 
@@ -98,30 +98,18 @@ func MustMarshalStorageProvider(cdc codec.BinaryCodec, sp *StorageProvider) []by
 	return cdc.MustMarshal(sp)
 }
 
-func SpStoragePriceKey(
-	spId uint32,
-	timestamp int64,
-) []byte {
+func SpStoragePriceKey(spId uint32) []byte {
 	idBytes := make([]byte, 4)
 	binary.BigEndian.PutUint32(idBytes, spId)
-
-	timeBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(timeBytes, uint64(timestamp))
-
-	var key []byte
-	key = append(key, idBytes...)
-	key = append(key, timeBytes...)
-
-	return key
+	return idBytes
 }
 
-func ParseSpStoragePriceKey(key []byte) (spId uint32, timestamp int64) {
+func ParseSpStoragePriceKey(key []byte) (spId uint32) {
 	spId = binary.BigEndian.Uint32(key[0:4])
-	timestamp = int64(binary.BigEndian.Uint64(key[4:]))
 	return
 }
 
-func SecondarySpStorePriceKey(
+func GlobalSpStorePriceKey(
 	timestamp int64,
 ) []byte {
 	timeBytes := make([]byte, 8)
@@ -129,7 +117,7 @@ func SecondarySpStorePriceKey(
 	return timeBytes
 }
 
-func ParseSecondarySpStorePriceKey(key []byte) (timestamp int64) {
+func ParseGlobalSpStorePriceKey(key []byte) (timestamp int64) {
 	timestamp = int64(binary.BigEndian.Uint64(key))
 	return
 }

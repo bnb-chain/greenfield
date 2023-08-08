@@ -43,17 +43,6 @@ func (change *StreamRecordChange) WithFrozenRateChange(frozenRateChange sdkmath.
 	return change
 }
 
-type StoragePriceParams struct {
-	PrimarySp uint32
-	PriceTime int64
-}
-
-type StoragePrice struct {
-	ReadPrice           sdk.Dec
-	PrimaryStorePrice   sdk.Dec
-	SecondaryStorePrice sdk.Dec
-}
-
 type UserFlows struct {
 	From  sdk.AccAddress
 	Flows []OutFlow

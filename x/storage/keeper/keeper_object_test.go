@@ -181,7 +181,7 @@ func (s *TestSuite) TestCreateObject() {
 		BucketName: bucketInfo.BucketName,
 		ObjectName: objectName,
 	})
-	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).Return(types4.StoragePrice{
+	s.spKeeper.EXPECT().GetGlobalSpStorePriceByTime(gomock.Any(), gomock.Any()).Return(types3.GlobalSpStorePrice{
 		ReadPrice:           sdk.NewDec(1),
 		PrimaryStorePrice:   sdk.NewDec(2),
 		SecondaryStorePrice: sdk.NewDec(1),

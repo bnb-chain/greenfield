@@ -157,12 +157,11 @@ func (s *StorageProviderTestSuite) TestDeposit() {
 
 func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	ctx := context.Background()
-	s.CheckSecondarySpPrice()
+	s.CheckGlobalSpStorePrice()
 	sp := s.BaseSuite.PickStorageProvider()
 	spAddr := sp.OperatorKey.GetAddr().String()
-	spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    spAddr,
-		Timestamp: 0,
+	spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+		SpAddr: spAddr,
 	})
 	s.Require().NoError(err)
 	s.T().Log(spStoragePrice)
@@ -177,62 +176,68 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	}
 	_ = s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
 	// query and assert
-	spStoragePrice2, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    spAddr,
-		Timestamp: 0,
+	spStoragePrice2, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+		SpAddr: spAddr,
 	})
 	s.Require().NoError(err)
 	s.T().Log(spStoragePrice2)
 	// check price changed as expected
 	s.Require().Equal(newReadPrice, spStoragePrice2.SpStoragePrice.ReadPrice)
 	s.Require().Equal(newStorePrice, spStoragePrice2.SpStoragePrice.StorePrice)
-	s.CheckSecondarySpPrice()
+	s.CheckGlobalSpStorePrice()
 	// query sp storage price by time before it exists, expect error
-	_, err = s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
-		Timestamp: 1,
-	})
-	s.Require().Error(err)
-	_, err = s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-		SpAddr:    spAddr,
+	_, err = s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
 		Timestamp: 1,
 	})
 	s.Require().Error(err)
 }
 
-func (s *StorageProviderTestSuite) CheckSecondarySpPrice() {
+func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
 	ctx := context.Background()
-	queryGetSecondarySpStorePriceByTimeResp, err := s.Client.QueryGetSecondarySpStorePriceByTime(ctx, &sptypes.QueryGetSecondarySpStorePriceByTimeRequest{
+	queryGlobalSpStorePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
 		Timestamp: 0,
 	})
 	s.Require().NoError(err)
-	s.T().Logf("Secondary SP store price: %s", core.YamlString(queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice))
+	s.T().Logf("global SP store price: %s", core.YamlString(queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice))
 	// query all sps
 	sps, err := s.Client.StorageProviders(ctx, &sptypes.QueryStorageProvidersRequest{})
 	s.Require().NoError(err)
 	s.T().Logf("sps: %s", sps)
 	spNum := int64(sps.Pagination.Total)
-	prices := make([]sdk.Dec, 0)
+	storePrices := make([]sdk.Dec, 0)
+	readPrices := make([]sdk.Dec, 0)
 	for _, sp := range sps.Sps {
-		spStoragePrice, err := s.Client.QueryGetSpStoragePriceByTime(ctx, &sptypes.QueryGetSpStoragePriceByTimeRequest{
-			SpAddr:    sp.OperatorAddress,
-			Timestamp: 0,
+		spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+			SpAddr: sp.OperatorAddress,
 		})
 		s.Require().NoError(err)
 		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
-		prices = append(prices, spStoragePrice.SpStoragePrice.StorePrice)
-	}
-	sort.Slice(prices, func(i, j int) bool { return prices[i].LT(prices[j]) })
-	var median sdk.Dec
-	if spNum%2 == 0 {
-		median = prices[spNum/2-1].Add(prices[spNum/2]).QuoInt64(2)
-	} else {
-		median = prices[spNum/2]
+		storePrices = append(storePrices, spStoragePrice.SpStoragePrice.StorePrice)
+		readPrices = append(readPrices, spStoragePrice.SpStoragePrice.ReadPrice)
 	}
 
+	sort.Slice(storePrices, func(i, j int) bool { return storePrices[i].LT(storePrices[j]) })
+	var storeMedian sdk.Dec
+	if spNum%2 == 0 {
+		storeMedian = storePrices[spNum/2-1].Add(storePrices[spNum/2]).QuoInt64(2)
+	} else {
+		storeMedian = storePrices[spNum/2]
+	}
+
+	sort.Slice(readPrices, func(i, j int) bool { return readPrices[i].LT(readPrices[j]) })
+	var readMedian sdk.Dec
+	if spNum%2 == 0 {
+		readMedian = readPrices[spNum/2-1].Add(readPrices[spNum/2]).QuoInt64(2)
+	} else {
+		readMedian = readPrices[spNum/2]
+	}
+
+	s.Require().Equal(storeMedian, queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice.PrimaryStorePrice)
 	params, err := s.Client.SpQueryClient.Params(ctx, &sptypes.QueryParamsRequest{})
 	s.Require().NoError(err)
-	expectedSecondarySpStorePrice := params.Params.SecondarySpStorePriceRatio.Mul(median)
-	s.Require().Equal(expectedSecondarySpStorePrice, queryGetSecondarySpStorePriceByTimeResp.SecondarySpStorePrice.StorePrice)
+	expectedSecondarySpStorePrice := params.Params.SecondarySpStorePriceRatio.Mul(storeMedian)
+	s.Require().Equal(expectedSecondarySpStorePrice, queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice.SecondaryStorePrice)
+	s.Require().Equal(readMedian, queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice.ReadPrice)
 }
 
 func TestStorageProviderTestSuite(t *testing.T) {

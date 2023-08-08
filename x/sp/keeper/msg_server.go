@@ -152,7 +152,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStoragePrice)
-	err = k.UpdateSecondarySpStorePrice(ctx)
+	err = k.UpdateGlobalSpStorePrice(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +327,7 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	err := k.UpdateSecondarySpStorePrice(ctx)
+	err := k.UpdateGlobalSpStorePrice(ctx)
 	if err != nil {
 		return nil, errors.Wrapf(err, "update secondary sp store price failed")
 	}

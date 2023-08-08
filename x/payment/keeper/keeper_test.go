@@ -18,7 +18,6 @@ import (
 type DepKeepers struct {
 	BankKeeper    *types.MockBankKeeper
 	AccountKeeper *types.MockAccountKeeper
-	SpKeeper      *types.MockSpKeeper
 }
 
 func makePaymentKeeper(t *testing.T) (*keeper.Keeper, sdk.Context, DepKeepers) {
@@ -29,13 +28,11 @@ func makePaymentKeeper(t *testing.T) (*keeper.Keeper, sdk.Context, DepKeepers) {
 	ctrl := gomock.NewController(t)
 	bankKeeper := types.NewMockBankKeeper(ctrl)
 	accountKeeper := types.NewMockAccountKeeper(ctrl)
-	spKeeper := types.NewMockSpKeeper(ctrl)
 	k := keeper.NewKeeper(
 		encCfg.Codec,
 		key,
 		bankKeeper,
 		accountKeeper,
-		spKeeper,
 		authtypes.NewModuleAddress(types.ModuleName).String(),
 	)
 	err := k.SetParams(testCtx.Ctx, types.DefaultParams())
@@ -46,7 +43,6 @@ func makePaymentKeeper(t *testing.T) (*keeper.Keeper, sdk.Context, DepKeepers) {
 	depKeepers := DepKeepers{
 		BankKeeper:    bankKeeper,
 		AccountKeeper: accountKeeper,
-		SpKeeper:      spKeeper,
 	}
 
 	return k, testCtx.Ctx, depKeepers

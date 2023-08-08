@@ -3,6 +3,8 @@ package keeper
 import (
 	"fmt"
 
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -63,10 +65,7 @@ func (k Keeper) GetBucketReadBill(ctx sdk.Context, bucketInfo *storagetypes.Buck
 		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
-	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: gvgFamily.PrimarySpId,
-		PriceTime: internalBucketInfo.PriceTime,
-	})
+	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
@@ -161,18 +160,13 @@ func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, primarySpId uint3
 	return k.ChargeObjectStoreFee(ctx, primarySpId, bucketInfo, internalBucketInfo, objectInfo)
 }
 
-func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, *types.StoragePrice, sdk.Dec, *types.StoragePrice, sdk.Dec, error) {
-	prePrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySpId,
-		PriceTime: priceTime,
-	})
+func (k Keeper) IsPriceChanged(ctx sdk.Context, primarySpId uint32, priceTime int64) (bool, *sptypes.GlobalSpStorePrice, sdk.Dec, *sptypes.GlobalSpStorePrice, sdk.Dec, error) {
+	prePrice, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, priceTime)
 	if err != nil {
 		return false, nil, sdk.ZeroDec(), nil, sdk.ZeroDec(), err
 	}
-	currentPrice, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySpId,
-		PriceTime: ctx.BlockTime().Unix(),
-	})
+
+	currentPrice, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, ctx.BlockTime().Unix())
 	if err != nil {
 		return false, nil, sdk.ZeroDec(), nil, sdk.ZeroDec(), err
 	}
@@ -263,10 +257,7 @@ func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, bucketInfo
 	}
 
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: gvgFamily.PrimarySpId,
-		PriceTime: internalBucketInfo.PriceTime,
-	})
+	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("get storage price failed: %w", err)
 	}
@@ -375,10 +366,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 		return fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
-	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: gvgFamily.PrimarySpId,
-		PriceTime: internalBucketInfo.PriceTime,
-	})
+	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
 		return fmt.Errorf("get storage price failed: %w", err)
 	}
@@ -424,7 +412,7 @@ func (k Keeper) ChargeViaObjectChange(ctx sdk.Context, bucketInfo *storagetypes.
 	return nil
 }
 
-func (k Keeper) calculateLVGStoreBill(ctx sdk.Context, price types.StoragePrice, params types.VersionedParams,
+func (k Keeper) calculateLVGStoreBill(ctx sdk.Context, price sptypes.GlobalSpStorePrice, params types.VersionedParams,
 	gvgFamily *vgtypes.GlobalVirtualGroupFamily, gvg *vgtypes.GlobalVirtualGroup, lvg *storagetypes.LocalVirtualGroup) []types.OutFlow {
 	outFlows := make([]types.OutFlow, 0)
 
@@ -473,10 +461,7 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 		return userFlows, fmt.Errorf("get GVG family failed: %d", bucketInfo.GlobalVirtualGroupFamilyId)
 	}
 
-	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: gvgFamily.PrimarySpId,
-		PriceTime: internalBucketInfo.PriceTime,
-	})
+	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, internalBucketInfo.PriceTime)
 	if err != nil {
 		return userFlows, fmt.Errorf("get storage price failed: %w", err)
 	}
@@ -518,6 +503,7 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 
 func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true) // used for bucket migration
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed, bucket: %s, err: %s", bucketInfo.BucketName, err.Error())
@@ -532,6 +518,7 @@ func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storaget
 
 func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
+	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true) // used for bucket migration
 	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
@@ -562,10 +549,7 @@ func getNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 }
 
 func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpId uint32, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
-	price, err := k.paymentKeeper.GetStoragePrice(ctx, types.StoragePriceParams{
-		PrimarySp: primarySpId,
-		PriceTime: priceTime,
-	})
+	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, priceTime)
 	if err != nil {
 		return amount, fmt.Errorf("get store price failed: %w", err)
 	}

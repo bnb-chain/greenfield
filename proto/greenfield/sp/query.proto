@@ -26,14 +26,14 @@ service Query {
     option (google.api.http).get = "/greenfield/storage_providers";
   }
 
-  // get storage price of specific sp and time
-  rpc QueryGetSpStoragePriceByTime(QueryGetSpStoragePriceByTimeRequest) returns (QueryGetSpStoragePriceByTimeResponse) {
-    option (google.api.http).get = "/greenfield/sp/get_sp_storage_price_by_time/{sp_addr}/{timestamp}";
+  // get the latest storage price of specific sp
+  rpc QuerySpStoragePrice(QuerySpStoragePriceRequest) returns (QuerySpStoragePriceResponse) {
+    option (google.api.http).get = "/greenfield/sp/sp_storage_price/{sp_addr}";
   }
 
-  // get secondary store price by time
-  rpc QueryGetSecondarySpStorePriceByTime(QueryGetSecondarySpStorePriceByTimeRequest) returns (QueryGetSecondarySpStorePriceByTimeResponse) {
-    option (google.api.http).get = "/greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}";
+  // get global store price by time
+  rpc QueryGlobalSpStorePriceByTime(QueryGlobalSpStorePriceByTimeRequest) returns (QueryGlobalSpStorePriceByTimeResponse) {
+    option (google.api.http).get = "/greenfield/sp/global_sp_store_price_by_time/{timestamp}";
   }
 
   // Queries a storage provider with specify id
@@ -74,24 +74,22 @@ message QueryStorageProvidersResponse {
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
-message QueryGetSpStoragePriceByTimeRequest {
+message QuerySpStoragePriceRequest {
   // operator address of sp
   string sp_addr = 1;
-  // unix timestamp in seconds. If it's 0, it will return the latest price.
-  int64 timestamp = 2;
 }
 
-message QueryGetSpStoragePriceByTimeResponse {
+message QuerySpStoragePriceResponse {
   SpStoragePrice sp_storage_price = 1 [(gogoproto.nullable) = false];
 }
 
-message QueryGetSecondarySpStorePriceByTimeRequest {
+message QueryGlobalSpStorePriceByTimeRequest {
   // unix timestamp in seconds. If it's 0, it will return the latest price.
   int64 timestamp = 1;
 }
 
-message QueryGetSecondarySpStorePriceByTimeResponse {
-  SecondarySpStorePrice secondary_sp_store_price = 1 [(gogoproto.nullable) = false];
+message QueryGlobalSpStorePriceByTimeResponse {
+  GlobalSpStorePrice global_sp_store_price = 1 [(gogoproto.nullable) = false];
 }
 
 message QueryStorageProviderRequest {
