@@ -1656,8 +1656,21 @@ func (s *StorageTestSuite) TestVerifyStaleGroupPermission() {
 
 	// Create Group with 3 group member
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()}, "")
-	s.SendTxBlock(owner, msgCreateGroup)
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName,
+		[]*storagetypes.MsgGroupMember{
+			{
+				Member:         user[0].GetAddr().String(),
+				ExpirationTime: storagetypes.MaxTimeStamp,
+			}, {
+				Member:         user[1].GetAddr().String(),
+				ExpirationTime: storagetypes.MaxTimeStamp,
+			}, {
+				Member:         user[2].GetAddr().String(),
+				ExpirationTime: storagetypes.MaxTimeStamp,
+			}},
+		[]sdk.AccAddress{})
+	s.SendTxBlock(owner, msgCreateGroup, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
