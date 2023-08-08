@@ -13,12 +13,13 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 
 	// Register the upgrade handlers here
 	// app.registerPublicDelegationUpgradeHandler()
-	// app.registerNagquUpgradeHandler()
-
+	// app.register...()
+	// ...
 	return nil
 }
 
 // registerPublicDelegationUpgradeHandler registers the upgrade handlers for the public delegation upgrade.
+// it will be enabled at the future version.
 // func (app *App) registerPublicDelegationUpgradeHandler() {
 // 	// Register the upgrade handler
 // 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.EnablePublicDelegationUpgrade,
@@ -31,24 +32,6 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 // 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.EnablePublicDelegationUpgrade,
 // 		func() error {
 // 			app.Logger().Info("Init enable public delegation upgrade")
-// 			return nil
-// 		},
-// 	)
-// }
-
-// registerNagquUpgradeHandler registers the upgrade handlers for Nagqu.
-// func (app *App) registerNagquUpgradeHandler() {
-// 	// Register the upgrade handler
-// 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Nagqu,
-// 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-// 			app.Logger().Info("processing upgrade handler", "name", plan.Name, "info", plan.Info)
-// 			return fromVM, nil
-// 		})
-
-// 	// Register the upgrade initializer
-// 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Nagqu,
-// 		func() error {
-// 			app.Logger().Info("processing upgrade initializer", "name", upgradetypes.Nagqu)
 // 			return nil
 // 		},
 // 	)
