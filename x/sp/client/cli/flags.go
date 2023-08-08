@@ -1,18 +1,19 @@
 package cli
 
 const (
-	FlagSpendLimit      = "spend-limit"
-	FlagSpAddress       = "SPAddress"
-	FlagOperatorAddress = "operator-address"
-	FlagFundingAddress  = "funding-address"
-	FlagSealAddress     = "seal-address"
-	FlagBlsPubKey       = "bls-pub-key"
-	FlagBlsProof        = "bls-proof"
-	FlagApprovalAddress = "approval-address"
-	FlagGcAddress       = "gc-address"
-	FlagCreator         = "creator"
-	FlagExpiration      = "expiration"
-	FlagEndpoint        = "endpoint"
+	FlagSpendLimit         = "spend-limit"
+	FlagSpAddress          = "SPAddress"
+	FlagOperatorAddress    = "operator-address"
+	FlagFundingAddress     = "funding-address"
+	FlagSealAddress        = "seal-address"
+	FlagBlsPubKey          = "bls-pub-key"
+	FlagBlsProof           = "bls-proof"
+	FlagApprovalAddress    = "approval-address"
+	FlagGcAddress          = "gc-address"
+	FlagMaintenanceAddress = "maintenance-address"
+	FlagCreator            = "creator"
+	FlagExpiration         = "expiration"
+	FlagEndpoint           = "endpoint"
 
 	FlagMoniker     = "moniker"
 	FlagEditMoniker = "new-moniker"
@@ -28,4 +29,6 @@ const (
 	FlagFreeReadQuota = "free-read-quota"
 
 	FlagSecurityContact = "security-contact"
+
+	FlagDuration = "duration"
 )

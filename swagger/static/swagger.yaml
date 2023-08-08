@@ -1704,6 +1704,24 @@ paths:
                     title: >-
                       the ratio of the store price of the secondary sp to the
                       primary sp, the default value is 80%
+                  num_of_historical_blocks_for_maintenance_records:
+                    type: string
+                    format: int64
+                    title: >-
+                      previous blocks that be traced back to for
+                      maintenance_records
+                  maintenance_duration_quota:
+                    type: string
+                    format: int64
+                    title: >-
+                      the max duration that a SP can be in_maintenance within
+                      num_of_historical_blocks_for_maintenance_records
+                  num_of_lockup_blocks_for_maintenance:
+                    type: string
+                    format: int64
+                    title: >-
+                      the number of blocks to be wait for sp to be in
+                      maintenance mode again if already requested
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -1777,6 +1795,12 @@ paths:
                     description: >-
                       gc_address defines one of the storage provider's accounts
                       which is used for gc purpose.
+                  maintenance_address:
+                    type: string
+                    title: >-
+                      maintenance_address defines one of the storage provider's
+                      accounts which is used for testing while in maintenance
+                      mode
                   total_deposit:
                     type: string
                     description: >-
@@ -1791,7 +1815,7 @@ paths:
                       - STATUS_IN_SERVICE
                       - STATUS_IN_JAILED
                       - STATUS_GRACEFUL_EXITING
-                      - STATUS_OUT_OF_SERVICE
+                      - STATUS_IN_MAINTENANCE
                     default: STATUS_IN_SERVICE
                     description: Status is the status of a storage provider.
                   endpoint:
@@ -1833,6 +1857,69 @@ paths:
                       bls_key defines the bls pub key of the Storage provider
                       for sealing object and completing migration
                 title: StorageProvider defines the meta info of storage provider
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: operator_address
+          in: query
+          required: false
+          type: string
+      tags:
+        - Query
+  /greenfield/sp/storage_provider_maintenance_records_by_operator_address:
+    get:
+      summary: Queries a StorageProvider by specify operator address.
+      operationId: StorageProviderMaintenanceRecordsByOperatorAddress
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              records:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    height:
+                      type: string
+                      format: int64
+                      title: block height that request to be in Maintenance mode
+                    request_duration:
+                      type: string
+                      format: int64
+                      title: request duration
+                    actual_duration:
+                      type: string
+                      format: int64
+                      title: actual duration
+                    request_at:
+                      type: string
+                      format: int64
+                      title: request timestamp
+                  title: >-
+                    MaintenanceRecord is to keep track of every time a sp
+                    request to be in Maintenance mode
         default:
           description: An unexpected error response.
           schema:
@@ -1908,6 +1995,12 @@ paths:
                     description: >-
                       gc_address defines one of the storage provider's accounts
                       which is used for gc purpose.
+                  maintenance_address:
+                    type: string
+                    title: >-
+                      maintenance_address defines one of the storage provider's
+                      accounts which is used for testing while in maintenance
+                      mode
                   total_deposit:
                     type: string
                     description: >-
@@ -1922,7 +2015,7 @@ paths:
                       - STATUS_IN_SERVICE
                       - STATUS_IN_JAILED
                       - STATUS_GRACEFUL_EXITING
-                      - STATUS_OUT_OF_SERVICE
+                      - STATUS_IN_MAINTENANCE
                     default: STATUS_IN_SERVICE
                     description: Status is the status of a storage provider.
                   endpoint:
@@ -2042,6 +2135,12 @@ paths:
                       description: >-
                         gc_address defines one of the storage provider's
                         accounts which is used for gc purpose.
+                    maintenance_address:
+                      type: string
+                      title: >-
+                        maintenance_address defines one of the storage
+                        provider's accounts which is used for testing while in
+                        maintenance mode
                     total_deposit:
                       type: string
                       description: >-
@@ -2056,7 +2155,7 @@ paths:
                         - STATUS_IN_SERVICE
                         - STATUS_IN_JAILED
                         - STATUS_GRACEFUL_EXITING
-                        - STATUS_OUT_OF_SERVICE
+                        - STATUS_IN_MAINTENANCE
                       default: STATUS_IN_SERVICE
                       description: Status is the status of a storage provider.
                     endpoint:
@@ -32604,6 +32703,28 @@ definitions:
         type: string
         description: details define other optional details.
     description: Description defines a storage provider description.
+  greenfield.sp.MaintenanceRecord:
+    type: object
+    properties:
+      height:
+        type: string
+        format: int64
+        title: block height that request to be in Maintenance mode
+      request_duration:
+        type: string
+        format: int64
+        title: request duration
+      actual_duration:
+        type: string
+        format: int64
+        title: actual duration
+      request_at:
+        type: string
+        format: int64
+        title: request timestamp
+    title: >-
+      MaintenanceRecord is to keep track of every time a sp request to be in
+      Maintenance mode
   greenfield.sp.Params:
     type: object
     properties:
@@ -32618,6 +32739,22 @@ definitions:
         title: >-
           the ratio of the store price of the secondary sp to the primary sp,
           the default value is 80%
+      num_of_historical_blocks_for_maintenance_records:
+        type: string
+        format: int64
+        title: previous blocks that be traced back to for maintenance_records
+      maintenance_duration_quota:
+        type: string
+        format: int64
+        title: >-
+          the max duration that a SP can be in_maintenance within
+          num_of_historical_blocks_for_maintenance_records
+      num_of_lockup_blocks_for_maintenance:
+        type: string
+        format: int64
+        title: >-
+          the number of blocks to be wait for sp to be in maintenance mode again
+          if already requested
     description: Params defines the parameters for the module.
   greenfield.sp.QueryGetSecondarySpStorePriceByTimeResponse:
     type: object
@@ -32678,6 +32815,22 @@ definitions:
             title: >-
               the ratio of the store price of the secondary sp to the primary
               sp, the default value is 80%
+          num_of_historical_blocks_for_maintenance_records:
+            type: string
+            format: int64
+            title: previous blocks that be traced back to for maintenance_records
+          maintenance_duration_quota:
+            type: string
+            format: int64
+            title: >-
+              the max duration that a SP can be in_maintenance within
+              num_of_historical_blocks_for_maintenance_records
+          num_of_lockup_blocks_for_maintenance:
+            type: string
+            format: int64
+            title: >-
+              the number of blocks to be wait for sp to be in maintenance mode
+              again if already requested
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.sp.QueryStorageProviderByOperatorAddressResponse:
     type: object
@@ -32716,6 +32869,11 @@ definitions:
             description: >-
               gc_address defines one of the storage provider's accounts which is
               used for gc purpose.
+          maintenance_address:
+            type: string
+            title: >-
+              maintenance_address defines one of the storage provider's accounts
+              which is used for testing while in maintenance mode
           total_deposit:
             type: string
             description: >-
@@ -32728,7 +32886,7 @@ definitions:
               - STATUS_IN_SERVICE
               - STATUS_IN_JAILED
               - STATUS_GRACEFUL_EXITING
-              - STATUS_OUT_OF_SERVICE
+              - STATUS_IN_MAINTENANCE
             default: STATUS_IN_SERVICE
             description: Status is the status of a storage provider.
           endpoint:
@@ -32766,6 +32924,33 @@ definitions:
               bls_key defines the bls pub key of the Storage provider for
               sealing object and completing migration
         title: StorageProvider defines the meta info of storage provider
+  greenfield.sp.QueryStorageProviderMaintenanceRecordsResponse:
+    type: object
+    properties:
+      records:
+        type: array
+        items:
+          type: object
+          properties:
+            height:
+              type: string
+              format: int64
+              title: block height that request to be in Maintenance mode
+            request_duration:
+              type: string
+              format: int64
+              title: request duration
+            actual_duration:
+              type: string
+              format: int64
+              title: actual duration
+            request_at:
+              type: string
+              format: int64
+              title: request timestamp
+          title: >-
+            MaintenanceRecord is to keep track of every time a sp request to be
+            in Maintenance mode
   greenfield.sp.QueryStorageProviderResponse:
     type: object
     properties:
@@ -32803,6 +32988,11 @@ definitions:
             description: >-
               gc_address defines one of the storage provider's accounts which is
               used for gc purpose.
+          maintenance_address:
+            type: string
+            title: >-
+              maintenance_address defines one of the storage provider's accounts
+              which is used for testing while in maintenance mode
           total_deposit:
             type: string
             description: >-
@@ -32815,7 +33005,7 @@ definitions:
               - STATUS_IN_SERVICE
               - STATUS_IN_JAILED
               - STATUS_GRACEFUL_EXITING
-              - STATUS_OUT_OF_SERVICE
+              - STATUS_IN_MAINTENANCE
             default: STATUS_IN_SERVICE
             description: Status is the status of a storage provider.
           endpoint:
@@ -32892,6 +33082,11 @@ definitions:
               description: >-
                 gc_address defines one of the storage provider's accounts which
                 is used for gc purpose.
+            maintenance_address:
+              type: string
+              title: >-
+                maintenance_address defines one of the storage provider's
+                accounts which is used for testing while in maintenance mode
             total_deposit:
               type: string
               description: >-
@@ -32906,7 +33101,7 @@ definitions:
                 - STATUS_IN_SERVICE
                 - STATUS_IN_JAILED
                 - STATUS_GRACEFUL_EXITING
-                - STATUS_OUT_OF_SERVICE
+                - STATUS_IN_MAINTENANCE
               default: STATUS_IN_SERVICE
               description: Status is the status of a storage provider.
             endpoint:
@@ -33004,7 +33199,7 @@ definitions:
       - STATUS_IN_SERVICE
       - STATUS_IN_JAILED
       - STATUS_GRACEFUL_EXITING
-      - STATUS_OUT_OF_SERVICE
+      - STATUS_IN_MAINTENANCE
     default: STATUS_IN_SERVICE
     description: Status is the status of a storage provider.
   greenfield.sp.StorageProvider:
@@ -33039,6 +33234,11 @@ definitions:
         description: >-
           gc_address defines one of the storage provider's accounts which is
           used for gc purpose.
+      maintenance_address:
+        type: string
+        title: >-
+          maintenance_address defines one of the storage provider's accounts
+          which is used for testing while in maintenance mode
       total_deposit:
         type: string
         description: >-
@@ -33051,7 +33251,7 @@ definitions:
           - STATUS_IN_SERVICE
           - STATUS_IN_JAILED
           - STATUS_GRACEFUL_EXITING
-          - STATUS_OUT_OF_SERVICE
+          - STATUS_IN_MAINTENANCE
         default: STATUS_IN_SERVICE
         description: Status is the status of a storage provider.
       endpoint:

@@ -44,6 +44,7 @@ type StorageProvider struct {
 	FundingKey                 keys.KeyManager
 	ApprovalKey                keys.KeyManager
 	GcKey                      keys.KeyManager
+	MaintenanceKey             keys.KeyManager
 	BlsKey                     keys.KeyManager
 	Info                       *sptypes.StorageProvider
 	GlobalVirtualGroupFamilies map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup
@@ -154,6 +155,8 @@ func (s *BaseSuite) SetupSuite() {
 		sp.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
 		s.Require().NoError(err)
 		sp.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
+		s.Require().NoError(err)
+		sp.MaintenanceKey, err = keys.NewMnemonicKeyManager(spMnemonics.MaintenanceMnemonic)
 		s.Require().NoError(err)
 		sp.BlsKey, err = keys.NewBlsMnemonicKeyManager(s.Config.SPBLSMnemonic[i])
 		s.Require().NoError(err)
@@ -432,16 +435,17 @@ func (sp *StorageProvider) GetFirstGlobalVirtualGroup() (*virtualgroupmoduletype
 }
 
 func (s *BaseSuite) NewSpAcc() *StorageProvider {
-	userAccs := s.GenAndChargeAccounts(5, 1000000)
+	userAccs := s.GenAndChargeAccounts(6, 1000000)
 	operatorAcc := userAccs[0]
 	fundingAcc := userAccs[1]
 	approvalAcc := userAccs[2]
 	sealAcc := userAccs[3]
 	gcAcc := userAccs[4]
+	maintenanceAcc := userAccs[5]
 
 	blsKm := s.GenRandomBlsKeyManager()
 	return &StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, BlsKey: blsKm}
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, MaintenanceKey: maintenanceAcc, BlsKey: blsKm}
 }
 
 func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
@@ -484,7 +488,9 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(),
-		newSP.GcKey.GetAddr(), description,
+		newSP.GcKey.GetAddr(),
+		newSP.MaintenanceKey.GetAddr(),
+		description,
 		endpoint, deposit, newReadPrice, 10000, newStorePrice,
 		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()),
 		hex.EncodeToString(blsProofBz),
@@ -549,7 +555,18 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Endpoint, endpoint)
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Status, sptypes.STATUS_IN_MAINTENANCE)
 	newSP.Info = querySPByOperatorAddrResp.StorageProvider
+
+	// SP need to activate itself
+	msg := sptypes.NewMsgUpdateStorageProviderStatus(
+		newSP.OperatorKey.GetAddr(),
+		sptypes.STATUS_IN_SERVICE,
+		0,
+	)
+
+	txRes = s.SendTxBlock(newSP.OperatorKey, msg)
+	s.Require().Equal(txRes.Code, uint32(0))
 	return newSP
 }
 
@@ -735,4 +752,12 @@ func (s *BaseSuite) PickStorageProviderByBucketName(bucketName string) *StorageP
 	s.Require().NoError(err)
 
 	return s.StorageProviders[family.GlobalVirtualGroupFamily.PrimarySpId]
+}
+
+func (s *BaseSuite) ExistsSPMaintenanceRecords(addr string) (bool, error) {
+	resp, err := s.Client.StorageProviderMaintenanceRecordsByOperatorAddress(context.Background(), &sptypes.QueryStorageProviderMaintenanceRecordsRequest{OperatorAddress: addr})
+	if err != nil {
+		return false, err
+	}
+	return len(resp.Records) > 0, nil
 }

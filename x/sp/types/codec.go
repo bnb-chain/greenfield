@@ -14,6 +14,8 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgEditStorageProvider{}, "sp/EditStorageProvider", nil)
 	cdc.RegisterConcrete(&MsgUpdateSpStoragePrice{}, "sp/UpdateSpStoragePrice", nil)
 	cdc.RegisterConcrete(&DepositAuthorization{}, "sp/DepositAuthorization", nil)
+	cdc.RegisterConcrete(&MsgUpdateStorageProviderStatus{}, "sp/UpdateSpStatus", nil)
+
 	// this line is used by starport scaffolding # 2
 }
 
@@ -29,6 +31,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateSpStoragePrice{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateStorageProviderStatus{},
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgUpdateParams{},

@@ -31,12 +31,13 @@ func (s *GenStorageProviderTestSuite) TestGenStorageProvider() {
 	querySPResp, err := s.Client.StorageProviderByOperatorAddress(ctx, &querySPReq)
 
 	genSP := &sptypes.StorageProvider{
-		OperatorAddress: sp.OperatorKey.GetAddr().String(),
-		FundingAddress:  sp.FundingKey.GetAddr().String(),
-		SealAddress:     sp.SealKey.GetAddr().String(),
-		ApprovalAddress: sp.ApprovalKey.GetAddr().String(),
-		GcAddress:       sp.GcKey.GetAddr().String(),
-		BlsKey:          sp.BlsKey.PubKey().Bytes(),
+		OperatorAddress:    sp.OperatorKey.GetAddr().String(),
+		FundingAddress:     sp.FundingKey.GetAddr().String(),
+		SealAddress:        sp.SealKey.GetAddr().String(),
+		ApprovalAddress:    sp.ApprovalKey.GetAddr().String(),
+		GcAddress:          sp.GcKey.GetAddr().String(),
+		MaintenanceAddress: sp.MaintenanceKey.GetAddr().String(),
+		BlsKey:             sp.BlsKey.PubKey().Bytes(),
 		Description: sptypes.Description{
 			Moniker:  sp.Info.Description.Moniker,
 			Identity: sp.Info.Description.Identity,

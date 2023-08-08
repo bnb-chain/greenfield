@@ -103,15 +103,20 @@ func (k Keeper) CreateBucket(
 
 	// check sp and its status
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primarySpAcc)
-	if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
-		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist or not in service")
+	if !found {
+		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist")
+	}
+
+	// a sp is not in service, neither in maintenance
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, ownerAcc) {
+		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 
 	// check primary sp approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -573,7 +578,7 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -1014,7 +1019,7 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err = k.VerifySPAndSignature(ctx, dstPrimarySP, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, dstPrimarySP, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -1096,7 +1101,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", operator.String())
 	}
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_IN_MAINTENANCE {
 		return sptypes.ErrStorageProviderNotInService
 	}
 	if sp.Id != spInState.Id {
@@ -1499,11 +1504,10 @@ func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, group
 	return nil
 }
 
-func (k Keeper) VerifySPAndSignature(ctx sdk.Context, sp *sptypes.StorageProvider, sigData []byte, signature []byte) error {
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
+func (k Keeper) VerifySPAndSignature(_ sdk.Context, sp *sptypes.StorageProvider, sigData []byte, signature []byte, operator sdk.AccAddress) error {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
 		return sptypes.ErrStorageProviderNotInService
 	}
-
 	approvalAccAddress := sdk.MustAccAddressFromHex(sp.ApprovalAddress)
 
 	err := gnfdtypes.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
@@ -1901,7 +1905,7 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 	if dstPrimarySPApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
 		return types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
 	}
-	err := k.VerifySPAndSignature(ctx, dstSP, approvalBytes, dstPrimarySPApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, dstSP, approvalBytes, dstPrimarySPApproval.Sig, operator)
 	if err != nil {
 		return err
 	}
@@ -2122,4 +2126,8 @@ func (k Keeper) SetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint, in
 
 	bz := k.cdc.MustMarshal(internalBucketInfo)
 	store.Set(types.GetInternalBucketInfoKey(bucketID), bz)
+}
+
+func (k Keeper) fromSpMaintenanceAcct(sp *sptypes.StorageProvider, operatorAddr sdk.AccAddress) bool {
+	return sp.Status == sptypes.STATUS_IN_MAINTENANCE && operatorAddr.Equals(sdk.MustAccAddressFromHex(sp.MaintenanceAddress))
 }

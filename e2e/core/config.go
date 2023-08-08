@@ -8,11 +8,12 @@ import (
 )
 
 type SPMnemonics struct {
-	OperatorMnemonic string `yaml:"OperatorMnemonic"` // operator account mnemonic with enough balance
-	SealMnemonic     string `yaml:"SealMnemonic"`     // seal account mnemonic with enough balance
-	FundingMnemonic  string `yaml:"FundingMnemonic"`  // funding account mnemonic with enough balance
-	ApprovalMnemonic string `yaml:"ApprovalMnemonic"` // approval account mnemonic with enough balance
-	GcMnemonic       string `yaml:"GcMnemonic"`       // gc account mnemonic with enough balance
+	OperatorMnemonic    string `yaml:"OperatorMnemonic"`    // operator account mnemonic with enough balance
+	SealMnemonic        string `yaml:"SealMnemonic"`        // seal account mnemonic with enough balance
+	FundingMnemonic     string `yaml:"FundingMnemonic"`     // funding account mnemonic with enough balance
+	ApprovalMnemonic    string `yaml:"ApprovalMnemonic"`    // approval account mnemonic with enough balance
+	GcMnemonic          string `yaml:"GcMnemonic"`          // gc account mnemonic with enough balance
+	MaintenanceMnemonic string `yaml:"MaintenanceMnemonic"` // maintenance account mnemonic with enough balance
 }
 
 type Config struct {
@@ -78,11 +79,12 @@ func ParseChallengerMnemonic(i int) string {
 // ParseSPMnemonics read the sp mnemonics from file
 func ParseSPMnemonics(i int) SPMnemonics {
 	return SPMnemonics{
-		OperatorMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/info", i)),
-		SealMnemonic:     ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/seal_info", i)),
-		FundingMnemonic:  ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/fund_info", i)),
-		ApprovalMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/approval_info", i)),
-		GcMnemonic:       ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/gc_info", i)),
+		OperatorMnemonic:    ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/info", i)),
+		SealMnemonic:        ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/seal_info", i)),
+		FundingMnemonic:     ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/fund_info", i)),
+		ApprovalMnemonic:    ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/approval_info", i)),
+		GcMnemonic:          ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/gc_info", i)),
+		MaintenanceMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/maintenance_info", i)),
 	}
 }
 
