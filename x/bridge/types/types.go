@@ -39,19 +39,19 @@ type TransferOutSynPackageStruct struct {
 }
 
 var (
-	transferOutSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+	TransferOutSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{Name: "Amount", Type: "uint256"},
 		{Name: "Recipient", Type: "address"},
 		{Name: "RefundAddress", Type: "address"},
 	})
 
-	transferOutSynPackageArgs = abi.Arguments{
-		{Type: transferOutSynPackageType},
+	TransferOutSynPackageArgs = abi.Arguments{
+		{Type: TransferOutSynPackageType},
 	}
 )
 
 func (pkg *TransferOutSynPackage) Serialize() ([]byte, error) {
-	return transferOutSynPackageArgs.Pack(&TransferOutSynPackageStruct{
+	return TransferOutSynPackageArgs.Pack(&TransferOutSynPackageStruct{
 		SafeBigInt(pkg.Amount),
 		common.BytesToAddress(pkg.Recipient),
 		common.BytesToAddress(pkg.RefundAddress),
@@ -59,9 +59,9 @@ func (pkg *TransferOutSynPackage) Serialize() ([]byte, error) {
 }
 
 func DeserializeTransferOutSynPackage(serializedPackage []byte) (*TransferOutSynPackage, error) {
-	unpacked, err := transferOutSynPackageArgs.Unpack(serializedPackage)
+	unpacked, err := TransferOutSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidPackage, "deserialize transfer out sync package failed")
+		return nil, errors.Wrapf(ErrInvalidPackage, "deserialize transfer out syn package failed")
 	}
 
 	unpackedStruct := abi.ConvertType(unpacked[0], TransferOutSynPackageStruct{})
@@ -79,39 +79,43 @@ func DeserializeTransferOutSynPackage(serializedPackage []byte) (*TransferOutSyn
 }
 
 type TransferOutRefundPackage struct {
-	RefundAmount *big.Int
-	RefundAddr   sdk.AccAddress
-	RefundReason uint32
+	RefundAmount  *big.Int
+	RefundAddress sdk.AccAddress
+	RefundReason  uint32
 }
 
 type TransferOutRefundPackageStruct struct {
-	RefundAmount *big.Int
-	RefundAddr   common.Address
-	RefundReason uint32
+	RefundAmount  *big.Int
+	RefundAddress common.Address
+	RefundReason  uint32
 }
 
 var (
-	transferOutRefundPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+	TransferOutRefundPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{Name: "RefundAmount", Type: "uint256"},
-		{Name: "RefundAddr", Type: "address"},
+		{Name: "RefundAddress", Type: "address"},
 		{Name: "RefundReason", Type: "uint32"},
 	})
 
-	transferOutRefundPackageArgs = abi.Arguments{
-		{Type: transferOutRefundPackageType},
+	TransferOutRefundPackageArgs = abi.Arguments{
+		{Type: TransferOutRefundPackageType},
 	}
 )
 
 func (pkg *TransferOutRefundPackage) Serialize() ([]byte, error) {
-	return transferOutRefundPackageArgs.Pack(&TransferOutRefundPackageStruct{
+	if pkg.RefundAmount.Cmp(big.NewInt(0)) < 0 {
+		return nil, errors.Wrapf(ErrInvalidPackage, "refund amount should not be negative")
+	}
+
+	return TransferOutRefundPackageArgs.Pack(&TransferOutRefundPackageStruct{
 		SafeBigInt(pkg.RefundAmount),
-		common.BytesToAddress(pkg.RefundAddr),
+		common.BytesToAddress(pkg.RefundAddress),
 		pkg.RefundReason,
 	})
 }
 
 func DeserializeTransferOutRefundPackage(serializedPackage []byte) (*TransferOutRefundPackage, error) {
-	unpacked, err := transferOutRefundPackageArgs.Unpack(serializedPackage)
+	unpacked, err := TransferOutRefundPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidPackage, "deserialize transfer out refund package failed")
 	}
@@ -124,7 +128,7 @@ func DeserializeTransferOutRefundPackage(serializedPackage []byte) (*TransferOut
 
 	tp := TransferOutRefundPackage{
 		pkgStruct.RefundAmount,
-		pkgStruct.RefundAddr.Bytes(),
+		pkgStruct.RefundAddress.Bytes(),
 		pkgStruct.RefundReason,
 	}
 	return &tp, nil
@@ -143,19 +147,19 @@ type TransferInSynPackageStruct struct {
 }
 
 var (
-	transferInSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+	TransferInSynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{Name: "Amount", Type: "uint256"},
 		{Name: "ReceiverAddress", Type: "address"},
 		{Name: "RefundAddress", Type: "address"},
 	})
 
-	transferInSynPackageArgs = abi.Arguments{
-		{Type: transferInSynPackageType},
+	TransferInSynPackageArgs = abi.Arguments{
+		{Type: TransferInSynPackageType},
 	}
 )
 
 func (pkg *TransferInSynPackage) Serialize() ([]byte, error) {
-	return transferInSynPackageArgs.Pack(&TransferInSynPackageStruct{
+	return TransferInSynPackageArgs.Pack(&TransferInSynPackageStruct{
 		SafeBigInt(pkg.Amount),
 		common.BytesToAddress(pkg.ReceiverAddress),
 		common.BytesToAddress(pkg.RefundAddress),
@@ -163,7 +167,7 @@ func (pkg *TransferInSynPackage) Serialize() ([]byte, error) {
 }
 
 func DeserializeTransferInSynPackage(serializedPackage []byte) (*TransferInSynPackage, error) {
-	unpacked, err := transferInSynPackageArgs.Unpack(serializedPackage)
+	unpacked, err := TransferInSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
 		return nil, errors.Wrapf(ErrInvalidPackage, "deserialize transfer in sync package failed")
 	}
@@ -195,19 +199,23 @@ type TransferInRefundPackageStruct struct {
 }
 
 var (
-	transferInRefundPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+	TransferInRefundPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
 		{Name: "RefundAmount", Type: "uint256"},
-		{Name: "RefundAddr", Type: "address"},
+		{Name: "RefundAddress", Type: "address"},
 		{Name: "RefundReason", Type: "uint32"},
 	})
 
-	transferInRefundPackageArgs = abi.Arguments{
-		{Type: transferInRefundPackageType},
+	TransferInRefundPackageArgs = abi.Arguments{
+		{Type: TransferInRefundPackageType},
 	}
 )
 
 func (pkg *TransferInRefundPackage) Serialize() ([]byte, error) {
-	return transferInRefundPackageArgs.Pack(&TransferInRefundPackageStruct{
+	if pkg.RefundAmount.Cmp(big.NewInt(0)) < 0 {
+		return nil, errors.Wrapf(ErrInvalidPackage, "refund amount should not be negative")
+	}
+
+	return TransferInRefundPackageArgs.Pack(&TransferInRefundPackageStruct{
 		SafeBigInt(pkg.RefundAmount),
 		common.BytesToAddress(pkg.RefundAddress),
 		pkg.RefundReason,

@@ -7,6 +7,7 @@ package types
 import (
 	big "math/big"
 	reflect "reflect"
+	time "time"
 
 	math "cosmossdk.io/math"
 	resource "github.com/bnb-chain/greenfield/types/resource"
@@ -14,6 +15,7 @@ import (
 	types0 "github.com/bnb-chain/greenfield/x/permission/types"
 	types1 "github.com/bnb-chain/greenfield/x/sp/types"
 	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	log "github.com/cometbft/cometbft/libs/log"
 	types3 "github.com/cosmos/cosmos-sdk/types"
 	types4 "github.com/cosmos/cosmos-sdk/x/auth/types"
 	gomock "github.com/golang/mock/gomock"
@@ -283,20 +285,6 @@ func (mr *MockPaymentKeeperMockRecorder) ApplyUserFlowsList(ctx, userFlows inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUserFlowsList", reflect.TypeOf((*MockPaymentKeeper)(nil).ApplyUserFlowsList), ctx, userFlows)
 }
 
-// GetParams mocks base method.
-func (m *MockPaymentKeeper) GetParams(ctx types3.Context) types.Params {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetParams", ctx)
-	ret0, _ := ret[0].(types.Params)
-	return ret0
-}
-
-// GetParams indicates an expected call of GetParams.
-func (mr *MockPaymentKeeperMockRecorder) GetParams(ctx interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetParams", reflect.TypeOf((*MockPaymentKeeper)(nil).GetParams), ctx)
-}
-
 // GetStoragePrice mocks base method.
 func (m *MockPaymentKeeper) GetStoragePrice(ctx types3.Context, params types.StoragePriceParams) (types.StoragePrice, error) {
 	m.ctrl.T.Helper()
@@ -310,21 +298,6 @@ func (m *MockPaymentKeeper) GetStoragePrice(ctx types3.Context, params types.Sto
 func (mr *MockPaymentKeeperMockRecorder) GetStoragePrice(ctx, params interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStoragePrice", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStoragePrice), ctx, params)
-}
-
-// GetStreamRecord mocks base method.
-func (m *MockPaymentKeeper) GetStreamRecord(ctx types3.Context, account types3.AccAddress) (*types.StreamRecord, bool) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
-	ret0, _ := ret[0].(*types.StreamRecord)
-	ret1, _ := ret[1].(bool)
-	return ret0, ret1
-}
-
-// GetStreamRecord indicates an expected call of GetStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
 }
 
 // GetVersionedParamsWithTs mocks base method.
@@ -356,20 +329,6 @@ func (mr *MockPaymentKeeperMockRecorder) IsPaymentAccountOwner(ctx, addr, owner 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsPaymentAccountOwner", reflect.TypeOf((*MockPaymentKeeper)(nil).IsPaymentAccountOwner), ctx, addr, owner)
 }
 
-// UpdateStreamRecord mocks base method.
-func (m *MockPaymentKeeper) UpdateStreamRecord(ctx types3.Context, streamRecord *types.StreamRecord, change *types.StreamRecordChange) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateStreamRecord", ctx, streamRecord, change)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// UpdateStreamRecord indicates an expected call of UpdateStreamRecord.
-func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecord(ctx, streamRecord, change interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecord), ctx, streamRecord, change)
-}
-
 // UpdateStreamRecordByAddr mocks base method.
 func (m *MockPaymentKeeper) UpdateStreamRecordByAddr(ctx types3.Context, change *types.StreamRecordChange) (*types.StreamRecord, error) {
 	m.ctrl.T.Helper()
@@ -383,20 +342,6 @@ func (m *MockPaymentKeeper) UpdateStreamRecordByAddr(ctx types3.Context, change 
 func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecordByAddr(ctx, change interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecordByAddr", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecordByAddr), ctx, change)
-}
-
-// Withdraw mocks base method.
-func (m *MockPaymentKeeper) Withdraw(ctx types3.Context, fromAddr, toAddr types3.AccAddress, amount math.Int) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Withdraw", ctx, fromAddr, toAddr, amount)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Withdraw indicates an expected call of Withdraw.
-func (mr *MockPaymentKeeperMockRecorder) Withdraw(ctx, fromAddr, toAddr, amount interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Withdraw", reflect.TypeOf((*MockPaymentKeeper)(nil).Withdraw), ctx, fromAddr, toAddr, amount)
 }
 
 // MockPermissionKeeper is a mock of PermissionKeeper interface.
@@ -423,17 +368,17 @@ func (m *MockPermissionKeeper) EXPECT() *MockPermissionKeeperMockRecorder {
 }
 
 // AddGroupMember mocks base method.
-func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress) error {
+func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration time.Time) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddGroupMember", ctx, groupID, member)
+	ret := m.ctrl.Call(m, "AddGroupMember", ctx, groupID, member, expiration)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddGroupMember indicates an expected call of AddGroupMember.
-func (mr *MockPermissionKeeperMockRecorder) AddGroupMember(ctx, groupID, member interface{}) *gomock.Call {
+func (mr *MockPermissionKeeperMockRecorder) AddGroupMember(ctx, groupID, member, expiration interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).AddGroupMember), ctx, groupID, member)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).AddGroupMember), ctx, groupID, member, expiration)
 }
 
 // DeletePolicy mocks base method.
@@ -613,6 +558,35 @@ func (mr *MockPermissionKeeperMockRecorder) GetPolicyForGroup(ctx, resourceID, r
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPolicyForGroup", reflect.TypeOf((*MockPermissionKeeper)(nil).GetPolicyForGroup), ctx, resourceID, resourceType, groupID)
 }
 
+// GetPolicyGroupForResource mocks base method.
+func (m *MockPermissionKeeper) GetPolicyGroupForResource(ctx types3.Context, resourceID math.Uint, resourceType resource.ResourceType) (*types0.PolicyGroup, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPolicyGroupForResource", ctx, resourceID, resourceType)
+	ret0, _ := ret[0].(*types0.PolicyGroup)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetPolicyGroupForResource indicates an expected call of GetPolicyGroupForResource.
+func (mr *MockPermissionKeeperMockRecorder) GetPolicyGroupForResource(ctx, resourceID, resourceType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPolicyGroupForResource", reflect.TypeOf((*MockPermissionKeeper)(nil).GetPolicyGroupForResource), ctx, resourceID, resourceType)
+}
+
+// MustGetPolicyByID mocks base method.
+func (m *MockPermissionKeeper) MustGetPolicyByID(ctx types3.Context, policyID math.Uint) *types0.Policy {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MustGetPolicyByID", ctx, policyID)
+	ret0, _ := ret[0].(*types0.Policy)
+	return ret0
+}
+
+// MustGetPolicyByID indicates an expected call of MustGetPolicyByID.
+func (mr *MockPermissionKeeperMockRecorder) MustGetPolicyByID(ctx, policyID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustGetPolicyByID", reflect.TypeOf((*MockPermissionKeeper)(nil).MustGetPolicyByID), ctx, policyID)
+}
+
 // PutPolicy mocks base method.
 func (m *MockPermissionKeeper) PutPolicy(ctx types3.Context, policy *types0.Policy) (math.Uint, error) {
 	m.ctrl.T.Helper()
@@ -642,18 +616,16 @@ func (mr *MockPermissionKeeperMockRecorder) RemoveGroupMember(ctx, groupID, memb
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).RemoveGroupMember), ctx, groupID, member)
 }
 
-// VerifyPolicy mocks base method.
-func (m *MockPermissionKeeper) VerifyPolicy(ctx types3.Context, resourceID math.Uint, resourceType resource.ResourceType, operator types3.AccAddress, action types0.ActionType, opts *types0.VerifyOptions) types0.Effect {
+// UpdateGroupMember mocks base method.
+func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration time.Time) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "VerifyPolicy", ctx, resourceID, resourceType, operator, action, opts)
-	ret0, _ := ret[0].(types0.Effect)
-	return ret0
+	m.ctrl.Call(m, "UpdateGroupMember", ctx, groupID, member, memberID, expiration)
 }
 
-// VerifyPolicy indicates an expected call of VerifyPolicy.
-func (mr *MockPermissionKeeperMockRecorder) VerifyPolicy(ctx, resourceID, resourceType, operator, action, opts interface{}) *gomock.Call {
+// UpdateGroupMember indicates an expected call of UpdateGroupMember.
+func (mr *MockPermissionKeeperMockRecorder) UpdateGroupMember(ctx, groupID, member, memberID, expiration interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "VerifyPolicy", reflect.TypeOf((*MockPermissionKeeper)(nil).VerifyPolicy), ctx, resourceID, resourceType, operator, action, opts)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMember", reflect.TypeOf((*MockPermissionKeeper)(nil).UpdateGroupMember), ctx, groupID, member, memberID, expiration)
 }
 
 // MockCrossChainKeeper is a mock of CrossChainKeeper interface.
@@ -845,4 +817,222 @@ func (m *MockVirtualGroupKeeper) SettleAndDistributeGVGFamily(ctx types3.Context
 func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVGFamily(ctx, sp, family interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SettleAndDistributeGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SettleAndDistributeGVGFamily), ctx, sp, family)
+}
+
+// MockStorageKeeper is a mock of StorageKeeper interface.
+type MockStorageKeeper struct {
+	ctrl     *gomock.Controller
+	recorder *MockStorageKeeperMockRecorder
+}
+
+// MockStorageKeeperMockRecorder is the mock recorder for MockStorageKeeper.
+type MockStorageKeeperMockRecorder struct {
+	mock *MockStorageKeeper
+}
+
+// NewMockStorageKeeper creates a new mock instance.
+func NewMockStorageKeeper(ctrl *gomock.Controller) *MockStorageKeeper {
+	mock := &MockStorageKeeper{ctrl: ctrl}
+	mock.recorder = &MockStorageKeeperMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockStorageKeeper) EXPECT() *MockStorageKeeperMockRecorder {
+	return m.recorder
+}
+
+// CreateBucket mocks base method.
+func (m *MockStorageKeeper) CreateBucket(ctx types3.Context, ownerAcc types3.AccAddress, bucketName string, primarySpAcc types3.AccAddress, opts *CreateBucketOptions) (math.Uint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateBucket", ctx, ownerAcc, bucketName, primarySpAcc, opts)
+	ret0, _ := ret[0].(math.Uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateBucket indicates an expected call of CreateBucket.
+func (mr *MockStorageKeeperMockRecorder) CreateBucket(ctx, ownerAcc, bucketName, primarySpAcc, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateBucket", reflect.TypeOf((*MockStorageKeeper)(nil).CreateBucket), ctx, ownerAcc, bucketName, primarySpAcc, opts)
+}
+
+// CreateGroup mocks base method.
+func (m *MockStorageKeeper) CreateGroup(ctx types3.Context, owner types3.AccAddress, groupName string, opts CreateGroupOptions) (math.Uint, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateGroup", ctx, owner, groupName, opts)
+	ret0, _ := ret[0].(math.Uint)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// CreateGroup indicates an expected call of CreateGroup.
+func (mr *MockStorageKeeperMockRecorder) CreateGroup(ctx, owner, groupName, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateGroup", reflect.TypeOf((*MockStorageKeeper)(nil).CreateGroup), ctx, owner, groupName, opts)
+}
+
+// DeleteBucket mocks base method.
+func (m *MockStorageKeeper) DeleteBucket(ctx types3.Context, operator types3.AccAddress, bucketName string, opts DeleteBucketOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteBucket", ctx, operator, bucketName, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteBucket indicates an expected call of DeleteBucket.
+func (mr *MockStorageKeeperMockRecorder) DeleteBucket(ctx, operator, bucketName, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteBucket", reflect.TypeOf((*MockStorageKeeper)(nil).DeleteBucket), ctx, operator, bucketName, opts)
+}
+
+// DeleteGroup mocks base method.
+func (m *MockStorageKeeper) DeleteGroup(ctx types3.Context, operator types3.AccAddress, groupName string, opts DeleteGroupOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteGroup", ctx, operator, groupName, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteGroup indicates an expected call of DeleteGroup.
+func (mr *MockStorageKeeperMockRecorder) DeleteGroup(ctx, operator, groupName, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteGroup", reflect.TypeOf((*MockStorageKeeper)(nil).DeleteGroup), ctx, operator, groupName, opts)
+}
+
+// DeleteObject mocks base method.
+func (m *MockStorageKeeper) DeleteObject(ctx types3.Context, operator types3.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "DeleteObject", ctx, operator, bucketName, objectName, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// DeleteObject indicates an expected call of DeleteObject.
+func (mr *MockStorageKeeperMockRecorder) DeleteObject(ctx, operator, bucketName, objectName, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockStorageKeeper)(nil).DeleteObject), ctx, operator, bucketName, objectName, opts)
+}
+
+// GetBucketInfoById mocks base method.
+func (m *MockStorageKeeper) GetBucketInfoById(ctx types3.Context, bucketId math.Uint) (*BucketInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetBucketInfoById", ctx, bucketId)
+	ret0, _ := ret[0].(*BucketInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetBucketInfoById indicates an expected call of GetBucketInfoById.
+func (mr *MockStorageKeeperMockRecorder) GetBucketInfoById(ctx, bucketId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetBucketInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetBucketInfoById), ctx, bucketId)
+}
+
+// GetGroupInfoById mocks base method.
+func (m *MockStorageKeeper) GetGroupInfoById(ctx types3.Context, groupId math.Uint) (*GroupInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroupInfoById", ctx, groupId)
+	ret0, _ := ret[0].(*GroupInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetGroupInfoById indicates an expected call of GetGroupInfoById.
+func (mr *MockStorageKeeperMockRecorder) GetGroupInfoById(ctx, groupId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGroupInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetGroupInfoById), ctx, groupId)
+}
+
+// GetObjectInfoById mocks base method.
+func (m *MockStorageKeeper) GetObjectInfoById(ctx types3.Context, objectId math.Uint) (*ObjectInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetObjectInfoById", ctx, objectId)
+	ret0, _ := ret[0].(*ObjectInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetObjectInfoById indicates an expected call of GetObjectInfoById.
+func (mr *MockStorageKeeperMockRecorder) GetObjectInfoById(ctx, objectId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetObjectInfoById), ctx, objectId)
+}
+
+// Logger mocks base method.
+func (m *MockStorageKeeper) Logger(ctx types3.Context) log.Logger {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Logger", ctx)
+	ret0, _ := ret[0].(log.Logger)
+	return ret0
+}
+
+// Logger indicates an expected call of Logger.
+func (mr *MockStorageKeeperMockRecorder) Logger(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Logger", reflect.TypeOf((*MockStorageKeeper)(nil).Logger), ctx)
+}
+
+// RenewGroupMember mocks base method.
+func (m *MockStorageKeeper) RenewGroupMember(ctx types3.Context, operator types3.AccAddress, groupInfo *GroupInfo, opts RenewGroupMemberOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RenewGroupMember", ctx, operator, groupInfo, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RenewGroupMember indicates an expected call of RenewGroupMember.
+func (mr *MockStorageKeeperMockRecorder) RenewGroupMember(ctx, operator, groupInfo, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RenewGroupMember", reflect.TypeOf((*MockStorageKeeper)(nil).RenewGroupMember), ctx, operator, groupInfo, opts)
+}
+
+// SetBucketInfo mocks base method.
+func (m *MockStorageKeeper) SetBucketInfo(ctx types3.Context, bucketInfo *BucketInfo) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetBucketInfo", ctx, bucketInfo)
+}
+
+// SetBucketInfo indicates an expected call of SetBucketInfo.
+func (mr *MockStorageKeeperMockRecorder) SetBucketInfo(ctx, bucketInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetBucketInfo", reflect.TypeOf((*MockStorageKeeper)(nil).SetBucketInfo), ctx, bucketInfo)
+}
+
+// SetGroupInfo mocks base method.
+func (m *MockStorageKeeper) SetGroupInfo(ctx types3.Context, groupInfo *GroupInfo) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetGroupInfo", ctx, groupInfo)
+}
+
+// SetGroupInfo indicates an expected call of SetGroupInfo.
+func (mr *MockStorageKeeperMockRecorder) SetGroupInfo(ctx, groupInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetGroupInfo", reflect.TypeOf((*MockStorageKeeper)(nil).SetGroupInfo), ctx, groupInfo)
+}
+
+// SetObjectInfo mocks base method.
+func (m *MockStorageKeeper) SetObjectInfo(ctx types3.Context, objectInfo *ObjectInfo) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "SetObjectInfo", ctx, objectInfo)
+}
+
+// SetObjectInfo indicates an expected call of SetObjectInfo.
+func (mr *MockStorageKeeperMockRecorder) SetObjectInfo(ctx, objectInfo interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetObjectInfo", reflect.TypeOf((*MockStorageKeeper)(nil).SetObjectInfo), ctx, objectInfo)
+}
+
+// UpdateGroupMember mocks base method.
+func (m *MockStorageKeeper) UpdateGroupMember(ctx types3.Context, operator types3.AccAddress, groupInfo *GroupInfo, opts UpdateGroupMemberOptions) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateGroupMember", ctx, operator, groupInfo, opts)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateGroupMember indicates an expected call of UpdateGroupMember.
+func (mr *MockStorageKeeperMockRecorder) UpdateGroupMember(ctx, operator, groupInfo, opts interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateGroupMember", reflect.TypeOf((*MockStorageKeeper)(nil).UpdateGroupMember), ctx, operator, groupInfo, opts)
 }

@@ -25,7 +25,7 @@ func TestMsgCancelMigrateBucket_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid address",
 			msg: MsgCancelMigrateBucket{
-				Operator:   sample.AccAddress(),
+				Operator:   sample.RandAccAddressHex(),
 				BucketName: testBucketName,
 			},
 		},

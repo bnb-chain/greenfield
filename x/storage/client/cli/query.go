@@ -12,7 +12,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group storage queries under a subcommand
 	storageQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -30,7 +30,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdListObjects(),
 		CmdVerifyPermission(),
 		CmdHeadGroup(),
-		CmdListGroup(),
+		CmdListGroups(),
 		CmdHeadGroupMember())
 
 	// this line is used by starport scaffolding # 1
@@ -109,7 +109,7 @@ func CmdHeadObject() *cobra.Command {
 func CmdListBuckets() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "list-buckets",
-		Short: "Query list buckets of the user",
+		Short: "Query all list buckets",
 		Args:  cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			clientCtx := client.GetClientContextFromCmd(cmd)
@@ -249,10 +249,10 @@ func CmdHeadGroup() *cobra.Command {
 	return cmd
 }
 
-func CmdListGroup() *cobra.Command {
+func CmdListGroups() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "list-group [group-owner]",
-		Short: "Query list group of owner",
+		Use:   "list-groups [group-owner]",
+		Short: "Query list groups of owner",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqGroupOwner := args[0]
@@ -264,11 +264,11 @@ func CmdListGroup() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryListGroupRequest{
+			params := &types.QueryListGroupsRequest{
 				GroupOwner: reqGroupOwner,
 			}
 
-			res, err := queryClient.ListGroup(cmd.Context(), params)
+			res, err := queryClient.ListGroups(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

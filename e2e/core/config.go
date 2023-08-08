@@ -8,11 +8,12 @@ import (
 )
 
 type SPMnemonics struct {
-	OperatorMnemonic string `yaml:"OperatorMnemonic"` // operator account mnemonic with enough balance
-	SealMnemonic     string `yaml:"SealMnemonic"`     // seal account mnemonic with enough balance
-	FundingMnemonic  string `yaml:"FundingMnemonic"`  // funding account mnemonic with enough balance
-	ApprovalMnemonic string `yaml:"ApprovalMnemonic"` // approval account mnemonic with enough balance
-	GcMnemonic       string `yaml:"GcMnemonic"`       // gc account mnemonic with enough balance
+	OperatorMnemonic    string `yaml:"OperatorMnemonic"`    // operator account mnemonic with enough balance
+	SealMnemonic        string `yaml:"SealMnemonic"`        // seal account mnemonic with enough balance
+	FundingMnemonic     string `yaml:"FundingMnemonic"`     // funding account mnemonic with enough balance
+	ApprovalMnemonic    string `yaml:"ApprovalMnemonic"`    // approval account mnemonic with enough balance
+	GcMnemonic          string `yaml:"GcMnemonic"`          // gc account mnemonic with enough balance
+	MaintenanceMnemonic string `yaml:"MaintenanceMnemonic"` // maintenance account mnemonic with enough balance
 }
 
 type Config struct {
@@ -26,6 +27,8 @@ type Config struct {
 	SPMnemonics          []SPMnemonics `yaml:"SPMnemonics"`
 	SPBLSMnemonic        []string      `yaml:"SPBLSMnemonic"`
 	Denom                string        `yaml:"Denom"`
+	ValidatorHomeDir     string        `yaml:"ValidatorHomeDir"`
+	ValidatorTmRPCAddr   string        `yaml:"ValidatorTmRPCAddr"`
 }
 
 func InitConfig() *Config {
@@ -43,6 +46,8 @@ func InitE2eConfig() *Config {
 		ValidatorBlsMnemonic: ParseValidatorBlsMnemonic(0),
 		RelayerMnemonic:      ParseRelayerMnemonic(0),
 		ChallengerMnemonic:   ParseChallengerMnemonic(0),
+		ValidatorHomeDir:     ParseValidatorHomeDir(0),
+		ValidatorTmRPCAddr:   ParseValidatorTmRPCAddrDir(0),
 	}
 	for i := 0; i < 7; i++ {
 		config.SPMnemonics = append(config.SPMnemonics, ParseSPMnemonics(i))
@@ -74,11 +79,12 @@ func ParseChallengerMnemonic(i int) string {
 // ParseSPMnemonics read the sp mnemonics from file
 func ParseSPMnemonics(i int) SPMnemonics {
 	return SPMnemonics{
-		OperatorMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/info", i)),
-		SealMnemonic:     ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/seal_info", i)),
-		FundingMnemonic:  ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/fund_info", i)),
-		ApprovalMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/approval_info", i)),
-		GcMnemonic:       ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/gc_info", i)),
+		OperatorMnemonic:    ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/info", i)),
+		SealMnemonic:        ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/seal_info", i)),
+		FundingMnemonic:     ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/fund_info", i)),
+		ApprovalMnemonic:    ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/approval_info", i)),
+		GcMnemonic:          ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/gc_info", i)),
+		MaintenanceMnemonic: ParseMnemonicFromFile(fmt.Sprintf("../../deployment/localup/.local/sp%d/maintenance_info", i)),
 	}
 }
 
@@ -104,4 +110,14 @@ func ParseMnemonicFromFile(fileName string) string {
 		}
 	}
 	return line
+}
+
+// ParseValidatorHomeDir returns the home dir of the validator
+func ParseValidatorHomeDir(i int) string {
+	return fmt.Sprintf("../../deployment/localup/.local/validator%d", i)
+}
+
+// ParseValidatorTmRPCAddrDir returns the home dir of the validator
+func ParseValidatorTmRPCAddrDir(i int) string {
+	return fmt.Sprintf("tcp://0.0.0.0:%d", 26750+i)
 }

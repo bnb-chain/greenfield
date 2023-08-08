@@ -33,8 +33,9 @@ var (
 	SpStoragePriceKeyPrefix          = []byte{0x28}
 	SecondarySpStorePriceKeyPrefix   = []byte{0x29}
 	StorageProviderByBlsPubKeyKey    = []byte{0x30} // prefix for each key to a storage provider index, by bls pub key
+	StorageProviderSequenceKey       = []byte{0x31}
 
-	StorageProviderSequenceKey = []byte{0x31}
+	StorageProviderMaintenanceRecordPrefix = []byte{0x41}
 )
 
 // GetStorageProviderKey creates the key for the provider with address
@@ -131,4 +132,8 @@ func SecondarySpStorePriceKey(
 func ParseSecondarySpStorePriceKey(key []byte) (timestamp int64) {
 	timestamp = int64(binary.BigEndian.Uint64(key))
 	return
+}
+
+func GetStorageProviderMaintenanceRecordsKey(spAddr sdk.AccAddress) []byte {
+	return append(StorageProviderMaintenanceRecordPrefix, spAddr.Bytes()...)
 }

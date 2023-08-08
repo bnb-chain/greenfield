@@ -25,16 +25,16 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid bucket name",
 			msg: MsgSubmit{
-				Challenger:        sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				BucketName:        "1",
 			},
 			err: gnfderrors.ErrInvalidBucketName,
 		}, {
 			name: "invalid object name",
 			msg: MsgSubmit{
-				Challenger:        sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				BucketName:        "bucket",
 				ObjectName:        "",
 			},
@@ -42,8 +42,8 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid message with random index",
 			msg: MsgSubmit{
-				Challenger:        sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				BucketName:        "bucket",
 				ObjectName:        "object",
 				RandomIndex:       true,
@@ -52,8 +52,8 @@ func TestMsgSubmit_ValidateBasic(t *testing.T) {
 		}, {
 			name: "valid message with specific index",
 			msg: MsgSubmit{
-				Challenger:        sample.AccAddress(),
-				SpOperatorAddress: sample.AccAddress(),
+				Challenger:        sample.RandAccAddressHex(),
+				SpOperatorAddress: sample.RandAccAddressHex(),
 				BucketName:        "bucket",
 				ObjectName:        "object",
 				RandomIndex:       false,

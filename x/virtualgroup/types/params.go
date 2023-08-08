@@ -120,7 +120,7 @@ func validateMaxStoreSizePerFamily(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("max buckets per account must be positive: %d", v)
+		return fmt.Errorf("max store size of family must be positive: %d", v)
 	}
 
 	return nil

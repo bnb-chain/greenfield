@@ -1,13 +1,14 @@
-package keeper
+package types
 
 import (
+	time "time"
+
 	"github.com/bnb-chain/greenfield/types/common"
-	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type CreateBucketOptions struct {
-	Visibility        types.VisibilityType
-	SourceType        types.SourceType
+	Visibility        VisibilityType
+	SourceType        SourceType
 	ChargedReadQuota  uint64
 	PaymentAddress    string
 	PrimarySpApproval *common.Approval
@@ -15,51 +16,61 @@ type CreateBucketOptions struct {
 }
 
 type DeleteBucketOptions struct {
-	SourceType types.SourceType
+	SourceType SourceType
 }
 
 type UpdateBucketOptions struct {
-	Visibility       types.VisibilityType
-	SourceType       types.SourceType
+	Visibility       VisibilityType
+	SourceType       SourceType
 	PaymentAddress   string
 	ChargedReadQuota *uint64
 }
 
 type CreateObjectOptions struct {
-	Visibility        types.VisibilityType
+	Visibility        VisibilityType
 	ContentType       string
-	SourceType        types.SourceType
-	RedundancyType    types.RedundancyType
+	SourceType        SourceType
+	RedundancyType    RedundancyType
 	Checksums         [][]byte
 	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
 }
 
 type CancelCreateObjectOptions struct {
-	SourceType types.SourceType
+	SourceType SourceType
 }
 
 type DeleteObjectOptions struct {
-	SourceType types.SourceType
+	SourceType SourceType
 }
 
 type CopyObjectOptions struct {
-	SourceType        types.SourceType
-	Visibility        types.VisibilityType
+	SourceType        SourceType
+	Visibility        VisibilityType
 	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
 }
 type CreateGroupOptions struct {
-	Members    []string
-	SourceType types.SourceType
+	SourceType SourceType
 	Extra      string
 }
 type LeaveGroupOptions struct {
-	SourceType types.SourceType
+	SourceType SourceType
 }
 
 type UpdateGroupMemberOptions struct {
-	SourceType      types.SourceType
-	MembersToAdd    []string
-	MembersToDelete []string
+	SourceType             SourceType
+	MembersToAdd           []string
+	MembersExpirationToAdd []time.Time
+	MembersToDelete        []string
+}
+
+type RenewGroupMemberOptions struct {
+	SourceType        SourceType
+	Members           []string
+	MembersExpiration []time.Time
+}
+
+type DeleteGroupOptions struct {
+	SourceType SourceType
 }

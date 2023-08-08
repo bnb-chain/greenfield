@@ -1,5 +1,54 @@
 # Changelog
 
+## v0.2.4-alpha.1
+This release includes 4 features, 9 bugfixes and 2 documentation updates.
+
+Features:
+* [#374](https://github.com/bnb-chain/greenfield/pull/374) feat: group member expiration
+* [#390](https://github.com/bnb-chain/greenfield/pull/390) feat: add flag to enable/disable heavy queries and refactor apis
+* [#399](https://github.com/bnb-chain/greenfield/pull/399) feat: add new query APIs for group and group member  
+* [#403](https://github.com/bnb-chain/greenfield/pull/403) feat: sp maintenance mode
+
+Bugfixes:
+* [#377](https://github.com/bnb-chain/greenfield/pull/377) fix: improve e2e tests to include more coverage from server side
+* [#379](https://github.com/bnb-chain/greenfield/pull/379) fix: error member name in transferInRefundPackageType
+* [#383](https://github.com/bnb-chain/greenfield/pull/383) fix: fix lock balance not updated for frozen payment account
+* [#385](https://github.com/bnb-chain/greenfield/pull/385) fix: fix returned operation type in group cross chain app
+* [#391](https://github.com/bnb-chain/greenfield/pull/391) fix: add cancel mb event for discontinue and delete
+* [#398](https://github.com/bnb-chain/greenfield/pull/398) fix: register gov cross-chain app
+* [#400](https://github.com/bnb-chain/greenfield/pull/400) fix: allow edit-sp by cmd without blskey
+* [#401](https://github.com/bnb-chain/greenfield/pull/401) fix: add group existence check when verify permission
+* [#375](https://github.com/bnb-chain/greenfield/pull/375) fix: fix defining err for ErrInvalidBlsPubKey  
+
+Chores:
+* [#376](https://github.com/bnb-chain/greenfield/pull/376) chore: add unit tests for the storage module
+* [#378](https://github.com/bnb-chain/greenfield/pull/378) chore: add unit test cases for challenge module
+* [#380](https://github.com/bnb-chain/greenfield/pull/380) chore: add unit test cases for payment module
+* [#381](https://github.com/bnb-chain/greenfield/pull/381) chore: add tests for bridge module
+* [#387](https://github.com/bnb-chain/greenfield/pull/387) chore: add more e2e test cases for payment module
+* [#388](https://github.com/bnb-chain/greenfield/pull/388) chore: add cli tests
+* [#389](https://github.com/bnb-chain/greenfield/pull/389) chore: add more test cases for cross chain apps
+
+Documentation:  
+* [#402](https://github.com/bnb-chain/greenfield/pull/402) docs: update testnet asset to v0.2.3
+* [#404](https://github.com/bnb-chain/greenfield/pull/404) docs: update document site link
+
+## 0.2.3
+This is a official release for v0.2.3, includes all the changes since v0.2.2.
+
+Bugfixes:
+* [#375](https://github.com/bnb-chain/greenfield/pull/375) fix: defining err
+* [#379](https://github.com/bnb-chain/greenfield/pull/379) fix: error member name in transferInRefundPackageType
+* [#383](https://github.com/bnb-chain/greenfield/pull/383) fix: lock balance not updated for frozen payment account
+* [#385](https://github.com/bnb-chain/greenfield/pull/385) fix: returned operation type in group cross chain app
+
+Chores:
+* [#376](https://github.com/bnb-chain/greenfield/pull/376) chore: add unit tests for the storage module
+* [#377](https://github.com/bnb-chain/greenfield/pull/377) chore: improve e2e tests to include more coverage from server side
+* [#380](https://github.com/bnb-chain/greenfield/pull/380) chore: add unit test cases for payment module
+* [#381](https://github.com/bnb-chain/greenfield/pull/381) chore: add tests for bridge module
+* [#383](https://github.com/bnb-chain/greenfield/pull/383) chore: add unit test cases for challenge module
+
 ## 0.2.3-alpha.7
 This release includes 2 features and 3 bugfixes.
 

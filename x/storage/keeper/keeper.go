@@ -86,7 +86,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 func (k Keeper) CreateBucket(
 	ctx sdk.Context, ownerAcc sdk.AccAddress, bucketName string,
-	primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error) {
+	primarySpAcc sdk.AccAddress, opts *types.CreateBucketOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check if the bucket exist
@@ -103,15 +103,20 @@ func (k Keeper) CreateBucket(
 
 	// check sp and its status
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primarySpAcc)
-	if !found || sp.Status != sptypes.STATUS_IN_SERVICE {
-		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist or not in service")
+	if !found {
+		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not exist")
+	}
+
+	// a sp is not in service, neither in maintenance
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, ownerAcc) {
+		return sdkmath.ZeroUint(), errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
 	}
 
 	// check primary sp approval
 	if opts.PrimarySpApproval.ExpiredHeight < uint64(ctx.BlockHeight()) {
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, ownerAcc)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -170,7 +175,17 @@ func (k Keeper) CreateBucket(
 	return bucketInfo.Id, nil
 }
 
-func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error {
+// StoreBucketInfo will store the bucket info
+// It's designed to be used by the test cases to create a bucket.
+func (k Keeper) StoreBucketInfo(ctx sdk.Context, bucketInfo *types.BucketInfo) {
+	store := ctx.KVStore(k.storeKey)
+	bucketKey := types.GetBucketKey(bucketInfo.BucketName)
+	bz := k.cdc.MustMarshal(bucketInfo)
+	store.Set(bucketKey, k.bucketSeq.EncodeSequence(bucketInfo.Id))
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+}
+
+func (k Keeper) DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts types.DeleteBucketOptions) error {
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
@@ -220,14 +235,26 @@ func (k Keeper) doDeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketI
 	if err != nil {
 		return err
 	}
-	err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventDeleteBucket{
 		Operator:                   operator.String(),
 		Owner:                      bucketInfo.Owner,
 		BucketName:                 bucketInfo.BucketName,
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
-	})
-	return err
+	}); err != nil {
+		return err
+	}
+
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+		if err = ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
+			Operator:   operator.String(),
+			BucketName: bucketInfo.BucketName,
+			BucketId:   bucketInfo.Id,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (k Keeper) GetPrimarySPForBucket(ctx sdk.Context, bucketInfo *types.BucketInfo) (*sptypes.StorageProvider, error) {
@@ -334,7 +361,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 	return bucketDeleted, deleted, nil
 }
 
-func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts UpdateBucketOptions) error {
+func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts types.UpdateBucketOptions) error {
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
 		return types.ErrNoSuchBucket
@@ -436,7 +463,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 			"only primary sp is allowed to do discontinue bucket, expect sp id : %d", spInState.Id)
 	}
 
-	count := k.getDiscontinueBucketCount(ctx, operator)
+	count := k.GetDiscontinueBucketCount(ctx, operator)
 	max := k.DiscontinueBucketMax(ctx)
 	if count+1 > max {
 		return types.ErrNoMoreDiscontinue.Wrapf("no more buckets can be requested in this window")
@@ -451,7 +478,17 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	deleteAt := ctx.BlockTime().Unix() + k.DiscontinueConfirmPeriod(ctx)
 
 	k.appendDiscontinueBucketIds(ctx, deleteAt, []sdkmath.Uint{bucketInfo.Id})
-	k.setDiscontinueBucketCount(ctx, operator, count+1)
+	k.SetDiscontinueBucketCount(ctx, operator, count+1)
+
+	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
+			Operator:   operator.String(),
+			BucketName: bucketInfo.BucketName,
+			BucketId:   bucketInfo.Id,
+		}); err != nil {
+			return err
+		}
+	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDiscontinueBucket{
 		BucketId:   bucketInfo.Id,
@@ -499,7 +536,7 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*type
 
 func (k Keeper) CreateObject(
 	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string,
-	payloadSize uint64, opts CreateObjectOptions) (sdkmath.Uint, error) {
+	payloadSize uint64, opts types.CreateObjectOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	// check payload size
@@ -541,7 +578,7 @@ func (k Keeper) CreateObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, sp, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -617,6 +654,29 @@ func (k Keeper) CreateObject(
 		return objectInfo.Id, err
 	}
 	return objectInfo.Id, nil
+}
+
+// StoreObjectInfo stores object related keys to KVStore,
+// it's designed to be used in tests
+func (k Keeper) StoreObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
+
+	obz := k.cdc.MustMarshal(objectInfo)
+	store.Set(objectKey, k.objectSeq.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+}
+
+// DeleteObjectInfo deletes object related keys from KVStore,
+// it's designed to be used in tests
+func (k Keeper) DeleteObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {
+	store := ctx.KVStore(k.storeKey)
+
+	objectKey := types.GetObjectKey(objectInfo.BucketName, objectInfo.ObjectName)
+
+	store.Delete(objectKey)
+	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 }
 
 func (k Keeper) SetObjectInfo(ctx sdk.Context, objectInfo *types.ObjectInfo) {
@@ -742,7 +802,7 @@ func (k Keeper) SealObject(
 
 func (k Keeper) CancelCreateObject(
 	ctx sdk.Context, operator sdk.AccAddress,
-	bucketName, objectName string, opts CancelCreateObjectOptions) error {
+	bucketName, objectName string, opts types.CancelCreateObjectOptions) error {
 	store := ctx.KVStore(k.storeKey)
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
@@ -796,7 +856,7 @@ func (k Keeper) CancelCreateObject(
 }
 
 func (k Keeper) DeleteObject(
-	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error {
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts types.DeleteObjectOptions) error {
 
 	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
 	if !found {
@@ -917,7 +977,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 
 func (k Keeper) CopyObject(
 	ctx sdk.Context, operator sdk.AccAddress, srcBucketName, srcObjectName, dstBucketName, dstObjectName string,
-	opts CopyObjectOptions) (sdkmath.Uint, error) {
+	opts types.CopyObjectOptions) (sdkmath.Uint, error) {
 
 	store := ctx.KVStore(k.storeKey)
 
@@ -959,7 +1019,7 @@ func (k Keeper) CopyObject(
 		return sdkmath.ZeroUint(), errors.Wrapf(types.ErrInvalidApproval, "The approval of sp is expired.")
 	}
 
-	err = k.VerifySPAndSignature(ctx, dstPrimarySP, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig)
+	err = k.VerifySPAndSignature(ctx, dstPrimarySP, opts.ApprovalMsgBytes, opts.PrimarySpApproval.Sig, operator)
 	if err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -1041,7 +1101,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 	if !found {
 		return errors.Wrapf(types.ErrNoSuchStorageProvider, "SP seal address: %s", operator.String())
 	}
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_IN_MAINTENANCE {
 		return sptypes.ErrStorageProviderNotInService
 	}
 	if sp.Id != spInState.Id {
@@ -1093,7 +1153,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 	}
 
-	count := k.getDiscontinueObjectCount(ctx, operator)
+	count := k.GetDiscontinueObjectCount(ctx, operator)
 	max := k.DiscontinueObjectMax(ctx)
 	if count+uint64(len(objectIds)) > max {
 		return types.ErrNoMoreDiscontinue.Wrapf("only %d objects can be requested in this window", max-count)
@@ -1122,7 +1182,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 
 	deleteAt := ctx.BlockTime().Unix() + k.DiscontinueConfirmPeriod(ctx)
 	k.AppendDiscontinueObjectIds(ctx, deleteAt, objectIds)
-	k.setDiscontinueObjectCount(ctx, operator, count+uint64(len(objectIds)))
+	k.SetDiscontinueObjectCount(ctx, operator, count+uint64(len(objectIds)))
 
 	events := make([]proto.Message, 0)
 	for _, objectId := range objectIds {
@@ -1178,7 +1238,7 @@ func (k Keeper) UpdateObjectInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 
 func (k Keeper) CreateGroup(
 	ctx sdk.Context, owner sdk.AccAddress,
-	groupName string, opts CreateGroupOptions) (sdkmath.Uint, error) {
+	groupName string, opts types.CreateGroupOptions) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
 	groupInfo := types.GroupInfo{
@@ -1199,23 +1259,11 @@ func (k Keeper) CreateGroup(
 	store.Set(groupKey, k.groupSeq.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
-	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
-	for _, member := range opts.Members {
-		memberAddress, err := sdk.AccAddressFromHexUnsafe(member)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAddress)
-		if err != nil {
-			return sdkmath.Uint{}, err
-		}
-	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
 		Owner:      groupInfo.Owner,
 		GroupName:  groupInfo.GroupName,
 		GroupId:    groupInfo.Id,
 		SourceType: groupInfo.SourceType,
-		Members:    opts.Members,
 		Extra:      opts.Extra,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
@@ -1255,11 +1303,7 @@ func (k Keeper) GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*types.
 	return &groupInfo, true
 }
 
-type DeleteGroupOptions struct {
-	SourceType types.SourceType
-}
-
-func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error {
+func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts types.DeleteGroupOptions) error {
 	store := ctx.KVStore(k.storeKey)
 
 	groupInfo, found := k.GetGroupInfo(ctx, operator, groupName)
@@ -1296,7 +1340,7 @@ func (k Keeper) DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName 
 
 func (k Keeper) LeaveGroup(
 	ctx sdk.Context, member sdk.AccAddress, owner sdk.AccAddress,
-	groupName string, opts LeaveGroupOptions) error {
+	groupName string, opts types.LeaveGroupOptions) error {
 
 	groupInfo, found := k.GetGroupInfo(ctx, owner, groupName)
 	if !found {
@@ -1322,7 +1366,7 @@ func (k Keeper) LeaveGroup(
 	return nil
 }
 
-func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts UpdateGroupMemberOptions) error {
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.UpdateGroupMemberOptions) error {
 	if groupInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
 	}
@@ -1335,15 +1379,26 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 			operator.String(), groupInfo.GroupName, groupInfo.Owner)
 	}
 
-	for _, member := range opts.MembersToAdd {
-		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
+	addedMembersDetailEvent := make([]*types.EventGroupMemberDetail, 0, len(opts.MembersToAdd))
+	for i := range opts.MembersToAdd {
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(opts.MembersToAdd[i])
 		if err != nil {
 			return err
 		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc)
+
+		groupMemberDetailEvent := &types.EventGroupMemberDetail{
+			Member:         opts.MembersToAdd[i],
+			ExpirationTime: types.MaxTimeStamp,
+		}
+
+		memberExpiration := opts.MembersExpirationToAdd[i].UTC()
+		groupMemberDetailEvent.ExpirationTime = memberExpiration
+		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
 		if err != nil {
 			return err
 		}
+
+		addedMembersDetailEvent = append(addedMembersDetailEvent, groupMemberDetailEvent)
 	}
 
 	for _, member := range opts.MembersToDelete {
@@ -1362,7 +1417,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		Owner:           groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
 		GroupId:         groupInfo.Id,
-		MembersToAdd:    opts.MembersToAdd,
+		MembersToAdd:    addedMembersDetailEvent,
 		MembersToDelete: opts.MembersToDelete,
 	}); err != nil {
 		return err
@@ -1370,8 +1425,59 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	return nil
 }
 
-func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, extra string) error {
+func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.RenewGroupMemberOptions) error {
+	if groupInfo.SourceType != opts.SourceType {
+		return types.ErrSourceTypeMismatch
+	}
 
+	// check permission
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
+	if effect != permtypes.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
+			operator.String(), groupInfo.GroupName, groupInfo.Owner)
+	}
+
+	eventMembersDetail := make([]*types.EventGroupMemberDetail, 0, len(opts.Members))
+	for i := range opts.Members {
+		member := opts.Members[i]
+		memberExpiration := opts.MembersExpiration[i].UTC()
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
+		if err != nil {
+			return err
+		}
+
+		groupMember, found := k.permKeeper.GetGroupMember(ctx, groupInfo.Id, memberAcc)
+		if !found {
+			err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
+			if err != nil {
+				return err
+			}
+		} else {
+			k.permKeeper.UpdateGroupMember(ctx, groupInfo.Id, memberAcc, groupMember.Id, memberExpiration)
+		}
+
+		eventMembersDetail = append(eventMembersDetail, &types.EventGroupMemberDetail{
+			Member:         member,
+			ExpirationTime: memberExpiration,
+		})
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventRenewGroupMember{
+		Operator:   operator.String(),
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Members:    eventMembersDetail,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, extra string) error {
 	// check permission
 	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_EXTRA)
 	if effect != permtypes.EFFECT_ALLOW {
@@ -1398,11 +1504,10 @@ func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, group
 	return nil
 }
 
-func (k Keeper) VerifySPAndSignature(ctx sdk.Context, sp *sptypes.StorageProvider, sigData []byte, signature []byte) error {
-	if sp.Status != sptypes.STATUS_IN_SERVICE {
+func (k Keeper) VerifySPAndSignature(_ sdk.Context, sp *sptypes.StorageProvider, sigData []byte, signature []byte, operator sdk.AccAddress) error {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
 		return sptypes.ErrStorageProviderNotInService
 	}
-
 	approvalAccAddress := sdk.MustAccAddressFromHex(sp.ApprovalAddress)
 
 	err := gnfdtypes.VerifySignature(approvalAccAddress, sdk.Keccak256(sigData), signature)
@@ -1441,7 +1546,7 @@ func (k Keeper) isNonEmptyBucket(ctx sdk.Context, bucketName string) bool {
 	return iter.Valid()
 }
 
-func (k Keeper) getDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
+func (k Keeper) GetDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueObjectCountPrefix)
 	bz := store.Get(operator.Bytes())
 
@@ -1451,7 +1556,7 @@ func (k Keeper) getDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddre
 	return binary.BigEndian.Uint64(bz)
 }
 
-func (k Keeper) setDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
+func (k Keeper) SetDiscontinueObjectCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueObjectCountPrefix)
 
 	countBytes := make([]byte, 8)
@@ -1522,7 +1627,7 @@ func (k Keeper) DeleteDiscontinueObjectsUntil(ctx sdk.Context, timestamp int64, 
 	return deleted, nil
 }
 
-func (k Keeper) getDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
+func (k Keeper) GetDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress) uint64 {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueBucketCountPrefix)
 	bz := store.Get(operator.Bytes())
 
@@ -1532,7 +1637,7 @@ func (k Keeper) getDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddre
 	return binary.BigEndian.Uint64(bz)
 }
 
-func (k Keeper) setDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
+func (k Keeper) SetDiscontinueBucketCount(ctx sdk.Context, operator sdk.AccAddress, count uint64) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.DiscontinueBucketCountPrefix)
 
 	countBytes := make([]byte, 8)
@@ -1800,7 +1905,7 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 	if dstPrimarySPApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
 		return types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
 	}
-	err := k.VerifySPAndSignature(ctx, dstSP, approvalBytes, dstPrimarySPApproval.Sig)
+	err := k.VerifySPAndSignature(ctx, dstSP, approvalBytes, dstPrimarySPApproval.Sig, operator)
 	if err != nil {
 		return err
 	}
@@ -2021,4 +2126,14 @@ func (k Keeper) SetInternalBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint, in
 
 	bz := k.cdc.MustMarshal(internalBucketInfo)
 	store.Set(types.GetInternalBucketInfoKey(bucketID), bz)
+}
+
+func (k Keeper) fromSpMaintenanceAcct(sp *sptypes.StorageProvider, operatorAddr sdk.AccAddress) bool {
+	return sp.Status == sptypes.STATUS_IN_MAINTENANCE && operatorAddr.Equals(sdk.MustAccAddressFromHex(sp.MaintenanceAddress))
+}
+
+func (k Keeper) hasGroup(ctx sdk.Context, groupID sdkmath.Uint) bool {
+	store := ctx.KVStore(k.storeKey)
+
+	return store.Has(types.GetGroupByIDKey(groupID))
 }

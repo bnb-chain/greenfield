@@ -13,7 +13,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for this module
-func GetQueryCmd(queryRoute string) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group sp queries under a subcommand
 	cmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -28,6 +28,7 @@ func GetQueryCmd(queryRoute string) *cobra.Command {
 		CmdStorageProviders(),
 		CmdStorageProvider(),
 		CmdStorageProviderByOperatorAddress(),
+		CmdMaintenanceRecordsBySPOperatorAddress(),
 	)
 
 	// this line is used by starport scaffolding # 1
@@ -67,7 +68,7 @@ func CmdStorageProviders() *cobra.Command {
 func CmdStorageProvider() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "storage-provider [sp-id]",
-		Short: "Query storage provider with specify operator address",
+		Short: "Query storage provider with specify sp id",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqSpID := args[0]
@@ -103,8 +104,8 @@ func CmdStorageProvider() *cobra.Command {
 func CmdStorageProviderByOperatorAddress() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "storage-provider-by-operator-address [operator address]",
-		Short: "Query StorageProviderByOperatorAddress",
-		Args:  cobra.ExactArgs(0),
+		Short: "Query storage provider with specify operator address",
+		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			reqSpAddr := args[0]
 
@@ -125,6 +126,42 @@ func CmdStorageProviderByOperatorAddress() *cobra.Command {
 			}
 
 			res, err := queryClient.StorageProviderByOperatorAddress(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdMaintenanceRecordsBySPOperatorAddress() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "maintenance-records-by-operator-address [operator address]",
+		Short: "Query storage provider maintenance records with specify operator address",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			reqSpAddr := args[0]
+
+			operatorAddr, err := sdk.AccAddressFromHexUnsafe(reqSpAddr)
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			params := &types.QueryStorageProviderMaintenanceRecordsRequest{
+				OperatorAddress: operatorAddr.String(),
+			}
+
+			res, err := queryClient.StorageProviderMaintenanceRecordsByOperatorAddress(cmd.Context(), params)
 			if err != nil {
 				return err
 			}

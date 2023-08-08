@@ -24,11 +24,11 @@ func CmdListAutoSettleRecord() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryAllAutoSettleRecordRequest{
+			params := &types.QueryAutoSettleRecordsRequest{
 				Pagination: pageReq,
 			}
 
-			res, err := queryClient.AutoSettleRecordAll(context.Background(), params)
+			res, err := queryClient.AutoSettleRecords(context.Background(), params)
 			if err != nil {
 				return err
 			}

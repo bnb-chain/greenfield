@@ -5,10 +5,14 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"strconv"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 
 	sdktype "github.com/bnb-chain/greenfield/sdk/types"
 	storageutil "github.com/bnb-chain/greenfield/testutil/storage"
@@ -671,8 +675,14 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, "")
 	s.SendTxBlock(user[0], msgCreateGroup)
+
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(user[0].GetAddr(), user[0].GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(user[0], msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
@@ -1107,6 +1117,113 @@ func (s *StorageTestSuite) TestStalePermissionForAccountGC() {
 	s.Require().ErrorContains(err, "No such Policy")
 }
 
+func (s *StorageTestSuite) TestDeleteObjectPolicy() {
+	var err error
+	ctx := context.Background()
+	user1 := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	_, owner, bucketName, _, objectName, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+
+	principal := types.NewPrincipalWithAccount(user1.GetAddr())
+
+	// Put bucket policy
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
+
+	// Put Object policy
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
+		principal, []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(owner, msgPutObjectPolicy)
+
+	// Query the policy which is enforced on bucket and object
+	grn1 := types2.NewObjectGRN(bucketName, objectName)
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{Resource: grn1.String(),
+		PrincipalAddress: user1.GetAddr().String()})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+
+	// Delete object policy
+	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(owner.GetAddr(), grn1.String(), types.NewPrincipalWithAccount(user1.GetAddr()))
+	s.SendTxBlock(owner, msgDeletePolicy)
+
+	// verify permission
+	verifyPermReq := storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user1.GetAddr().String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+		ActionType: types.ACTION_DELETE_OBJECT,
+	}
+	verifyPermResp, err := s.Client.VerifyPermission(ctx, &verifyPermReq)
+	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_DENY)
+}
+
+func (s *StorageTestSuite) TestDeleteGroupPolicy() {
+	var err error
+	ctx := context.Background()
+
+	user := s.GenAndChargeAccounts(4, 1000000)
+	owner := user[0]
+	_ = s.BaseSuite.PickStorageProvider()
+
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
+	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp},
+		{Member: user[2].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	// Put policy
+	groupStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_GROUP_MEMBER},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), testGroupName).String(),
+		types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{groupStatement}, nil)
+	s.SendTxBlock(owner, msgPutGroupPolicy)
+
+	// Query for policy
+	grn := types2.NewGroupGRN(owner.GetAddr(), testGroupName)
+	queryPolicyForAccountReq := storagetypes.QueryPolicyForAccountRequest{Resource: grn.String(),
+		PrincipalAddress: user[1].GetAddr().String()}
+
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryPolicyForAccountResp.Policy.ResourceType, resource.RESOURCE_TYPE_GROUP)
+	s.T().Logf("policy is %s", queryPolicyForAccountResp.Policy.String())
+
+	// Delete policy
+	msgDeletePolicy := storagetypes.NewMsgDeletePolicy(owner.GetAddr(), grn.String(), types.NewPrincipalWithAccount(user[1].GetAddr()))
+	s.SendTxBlock(owner, msgDeletePolicy)
+
+	// verify permission
+	_, err = s.Client.QueryPolicyForAccount(ctx, &queryPolicyForAccountReq)
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
+}
+
 // When resources are deleted, policies which associated with group and resources(Bucket and Object)
 // will also be garbage collected.
 func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
@@ -1116,8 +1233,13 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1213,10 +1335,14 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp},
+		{Member: user[2].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1253,8 +1379,8 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 	s.Require().Equal(headGroupMemberResponse.GroupMember.GroupId, headGroupResponse.GetGroupInfo().Id)
 
 	// list group
-	queryListGroupReq := storagetypes.QueryListGroupRequest{GroupOwner: owner.GetAddr().String()}
-	queryListGroupResp, err := s.Client.ListGroup(ctx, &queryListGroupReq)
+	queryListGroupReq := storagetypes.QueryListGroupsRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroups(ctx, &queryListGroupReq)
 	s.Require().NoError(err)
 	s.T().Log(queryListGroupResp.String())
 
@@ -1386,10 +1512,14 @@ func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp},
+		{Member: user[2].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1434,6 +1564,7 @@ func (s *StorageTestSuite) TestPutPolicy_ObjectWithSlash() {
 	var err error
 	user := s.GenAndChargeAccounts(2, 1000000)
 
+	ctx := context.Background()
 	sp := s.BaseSuite.PickStorageProvider()
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
@@ -1448,7 +1579,6 @@ func (s *StorageTestSuite) TestPutPolicy_ObjectWithSlash() {
 	s.SendTxBlock(user[0], msgCreateBucket)
 
 	// HeadBucket
-	ctx := context.Background()
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	}
@@ -1502,4 +1632,218 @@ func (s *StorageTestSuite) TestPutPolicy_ObjectWithSlash() {
 		principal, []*types.Statement{statement}, nil)
 	s.SendTxBlock(user[0], msgPutPolicy)
 
+}
+
+func (s *StorageTestSuite) TestVerifyStaleGroupPermission() {
+	ctx := context.Background()
+
+	// set the params, not to delete stale policy
+	queryParamsRequest := storagetypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.StorageQueryClient.Params(ctx, &queryParamsRequest)
+	s.Require().NoError(err)
+
+	newParams := queryParamsResponse.GetParams()
+	newParams.StalePolicyCleanupMax = 0
+	s.UpdateParams(&newParams)
+
+	defer func() {
+		newParams.StalePolicyCleanupMax = 100
+		s.UpdateParams(&newParams)
+	}()
+
+	user := s.GenAndChargeAccounts(3, 10000)
+	_, owner, bucketName, bucketId, objectName, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+
+	// Create Group with 3 group member
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName,
+		[]*storagetypes.MsgGroupMember{
+			{
+				Member:         user[0].GetAddr().String(),
+				ExpirationTime: storagetypes.MaxTimeStamp,
+			}, {
+				Member:         user[1].GetAddr().String(),
+				ExpirationTime: storagetypes.MaxTimeStamp,
+			}, {
+				Member:         user[2].GetAddr().String(),
+				ExpirationTime: storagetypes.MaxTimeStamp,
+			}},
+		[]sdk.AccAddress{})
+	s.SendTxBlock(owner, msgCreateGroup, msgUpdateGroupMember)
+
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
+
+	principal := types.NewPrincipalWithGroupId(headGroupResponse.GroupInfo.Id)
+	// Put bucket policy for group
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
+
+	// Put Object policy for group
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(),
+		principal, []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(owner, msgPutObjectPolicy)
+
+	// Query bucket policy for group
+	grn := types2.NewBucketGRN(bucketName)
+	queryPolicyForGroupReq := storagetypes.QueryPolicyForGroupRequest{Resource: grn.String(),
+		PrincipalGroupId: headGroupResponse.GroupInfo.Id.String()}
+
+	queryPolicyForGroupResp, err := s.Client.QueryPolicyForGroup(ctx, &queryPolicyForGroupReq)
+	s.Require().NoError(err)
+	s.Require().Equal(bucketId, queryPolicyForGroupResp.Policy.ResourceId)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
+	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
+	bucketPolicyID := queryPolicyForGroupResp.Policy.Id
+
+	// Query object policy for group
+	grn2 := types2.NewObjectGRN(bucketName, objectName)
+	queryPolicyForGroupResp, err = s.Client.QueryPolicyForGroup(ctx, &storagetypes.QueryPolicyForGroupRequest{Resource: grn2.String(),
+		PrincipalGroupId: headGroupResponse.GroupInfo.Id.String()})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForGroupResp.Policy.ResourceId)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_OBJECT)
+	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
+	objectPolicyID := queryPolicyForGroupResp.Policy.Id
+
+	// verify group policy
+	verifyPermResp, err := s.Client.VerifyPermission(ctx, &storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user[2].GetAddr().String(),
+		BucketName: bucketName,
+		ActionType: types.ACTION_DELETE_BUCKET,
+	})
+	s.T().Logf("Verify Bucket Permission, %s", verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(types.EFFECT_ALLOW, verifyPermResp.Effect)
+	// verify group policy
+	verifyPermResp, err = s.Client.VerifyPermission(ctx, &storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user[2].GetAddr().String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+		ActionType: types.ACTION_DELETE_OBJECT,
+	})
+	s.T().Logf("Verify Object Permission, %s", verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(types.EFFECT_ALLOW, verifyPermResp.Effect)
+
+	// user1 deletes the group
+	msgDeleteGroup := storagetypes.NewMsgDeleteGroup(owner.GetAddr(), testGroupName)
+	s.SendTxBlock(owner, msgDeleteGroup)
+
+	// group don't exist after deletion
+	_, err = s.Client.HeadGroup(ctx, &storagetypes.QueryHeadGroupRequest{
+		GroupOwner: owner.GetAddr().String(),
+		GroupName:  testGroupName,
+	})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such group")
+
+	// stale permission is still exist
+	queryPolicyByIDResp, err := s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: bucketPolicyID.String()})
+	s.T().Logf("Qyery policy by id resp: %s", queryPolicyByIDResp)
+	s.Require().NoError(err)
+
+	queryPolicyByIDResp, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: objectPolicyID.String()})
+	s.T().Logf("Qyery policy by id resp: %s", queryPolicyByIDResp)
+	s.Require().NoError(err)
+
+	// verify group policy
+	verifyPermResp, err = s.Client.VerifyPermission(ctx, &storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user[2].GetAddr().String(),
+		BucketName: bucketName,
+		ActionType: types.ACTION_DELETE_BUCKET,
+	})
+	s.T().Logf("Verify Bucket Permission, %s", verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(types.EFFECT_DENY, verifyPermResp.Effect)
+	// verify group policy
+	verifyPermResp, err = s.Client.VerifyPermission(ctx, &storagetypes.QueryVerifyPermissionRequest{
+		Operator:   user[2].GetAddr().String(),
+		BucketName: bucketName,
+		ObjectName: objectName,
+		ActionType: types.ACTION_DELETE_OBJECT,
+	})
+	s.T().Logf("Verify Object Permission, %s", verifyPermResp.String())
+	s.Require().NoError(err)
+	s.Require().Equal(types.EFFECT_DENY, verifyPermResp.Effect)
+}
+
+func (s *StorageTestSuite) UpdateParams(newParams *storagetypes.Params) {
+	var err error
+	validator := s.Validator.GetAddr()
+
+	ctx := context.Background()
+
+	msgUpdateParams := &storagetypes.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params:    *newParams,
+	}
+
+	msgProposal, err := govtypesv1.NewMsgSubmitProposal(
+		[]sdk.Msg{msgUpdateParams},
+		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, sdktype.NewIntFromInt64WithDecimal(100, sdktype.DecimalBNB))},
+		validator.String(),
+		"test", "test", "test",
+	)
+	s.Require().NoError(err)
+
+	txRes := s.SendTxBlock(s.Validator, msgProposal)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	// 3. query proposal and get proposal ID
+	var proposalId uint64
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "submit_proposal" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "proposal_id" {
+					proposalId, err = strconv.ParseUint(attr.Value, 10, 0)
+					s.Require().NoError(err)
+					break
+				}
+			}
+			break
+		}
+	}
+	s.Require().True(proposalId != 0)
+
+	queryProposal := &govtypesv1.QueryProposalRequest{ProposalId: proposalId}
+	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+
+	// 4. submit MsgVote and wait the proposal exec
+	msgVote := govtypesv1.NewMsgVote(validator, proposalId, govtypesv1.OptionYes, "test")
+	txRes = s.SendTxBlock(s.Validator, msgVote)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	queryVoteParamsReq := govtypesv1.QueryParamsRequest{ParamsType: "voting"}
+	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
+	s.Require().NoError(err)
+
+	// 5. wait a voting period and confirm that the proposal success.
+	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(1 * time.Second)
+	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+	s.Require().Equal(proposalRes.Proposal.Status, govtypesv1.ProposalStatus_PROPOSAL_STATUS_PASSED)
+
+	queryParamsResponse, err := s.Client.StorageQueryClient.Params(ctx, &storagetypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	s.T().Logf("QueryParmas: %s", queryParamsResponse.Params.String())
+	s.Require().Equal(queryParamsResponse.Params, *newParams)
 }

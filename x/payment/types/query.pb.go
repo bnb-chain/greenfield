@@ -383,22 +383,22 @@ func (m *QueryGetStreamRecordResponse) GetStreamRecord() StreamRecord {
 	return StreamRecord{}
 }
 
-type QueryAllStreamRecordRequest struct {
+type QueryStreamRecordsRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllStreamRecordRequest) Reset()         { *m = QueryAllStreamRecordRequest{} }
-func (m *QueryAllStreamRecordRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllStreamRecordRequest) ProtoMessage()    {}
-func (*QueryAllStreamRecordRequest) Descriptor() ([]byte, []int) {
+func (m *QueryStreamRecordsRequest) Reset()         { *m = QueryStreamRecordsRequest{} }
+func (m *QueryStreamRecordsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryStreamRecordsRequest) ProtoMessage()    {}
+func (*QueryStreamRecordsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{8}
 }
-func (m *QueryAllStreamRecordRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryStreamRecordsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllStreamRecordRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryStreamRecordsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllStreamRecordRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryStreamRecordsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -408,42 +408,42 @@ func (m *QueryAllStreamRecordRequest) XXX_Marshal(b []byte, deterministic bool) 
 		return b[:n], nil
 	}
 }
-func (m *QueryAllStreamRecordRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllStreamRecordRequest.Merge(m, src)
+func (m *QueryStreamRecordsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryStreamRecordsRequest.Merge(m, src)
 }
-func (m *QueryAllStreamRecordRequest) XXX_Size() int {
+func (m *QueryStreamRecordsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllStreamRecordRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllStreamRecordRequest.DiscardUnknown(m)
+func (m *QueryStreamRecordsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryStreamRecordsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllStreamRecordRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryStreamRecordsRequest proto.InternalMessageInfo
 
-func (m *QueryAllStreamRecordRequest) GetPagination() *query.PageRequest {
+func (m *QueryStreamRecordsRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryAllStreamRecordResponse struct {
-	StreamRecord []StreamRecord      `protobuf:"bytes,1,rep,name=stream_record,json=streamRecord,proto3" json:"stream_record"`
-	Pagination   *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+type QueryStreamRecordsResponse struct {
+	StreamRecords []StreamRecord      `protobuf:"bytes,1,rep,name=stream_records,json=streamRecords,proto3" json:"stream_records"`
+	Pagination    *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllStreamRecordResponse) Reset()         { *m = QueryAllStreamRecordResponse{} }
-func (m *QueryAllStreamRecordResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllStreamRecordResponse) ProtoMessage()    {}
-func (*QueryAllStreamRecordResponse) Descriptor() ([]byte, []int) {
+func (m *QueryStreamRecordsResponse) Reset()         { *m = QueryStreamRecordsResponse{} }
+func (m *QueryStreamRecordsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryStreamRecordsResponse) ProtoMessage()    {}
+func (*QueryStreamRecordsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{9}
 }
-func (m *QueryAllStreamRecordResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryStreamRecordsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllStreamRecordResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryStreamRecordsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllStreamRecordResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryStreamRecordsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -453,48 +453,48 @@ func (m *QueryAllStreamRecordResponse) XXX_Marshal(b []byte, deterministic bool)
 		return b[:n], nil
 	}
 }
-func (m *QueryAllStreamRecordResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllStreamRecordResponse.Merge(m, src)
+func (m *QueryStreamRecordsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryStreamRecordsResponse.Merge(m, src)
 }
-func (m *QueryAllStreamRecordResponse) XXX_Size() int {
+func (m *QueryStreamRecordsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllStreamRecordResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllStreamRecordResponse.DiscardUnknown(m)
+func (m *QueryStreamRecordsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryStreamRecordsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllStreamRecordResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryStreamRecordsResponse proto.InternalMessageInfo
 
-func (m *QueryAllStreamRecordResponse) GetStreamRecord() []StreamRecord {
+func (m *QueryStreamRecordsResponse) GetStreamRecords() []StreamRecord {
 	if m != nil {
-		return m.StreamRecord
+		return m.StreamRecords
 	}
 	return nil
 }
 
-func (m *QueryAllStreamRecordResponse) GetPagination() *query.PageResponse {
+func (m *QueryStreamRecordsResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryGetPaymentAccountCountRequest struct {
+type QueryPaymentAccountCountRequest struct {
 	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 }
 
-func (m *QueryGetPaymentAccountCountRequest) Reset()         { *m = QueryGetPaymentAccountCountRequest{} }
-func (m *QueryGetPaymentAccountCountRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetPaymentAccountCountRequest) ProtoMessage()    {}
-func (*QueryGetPaymentAccountCountRequest) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountCountRequest) Reset()         { *m = QueryPaymentAccountCountRequest{} }
+func (m *QueryPaymentAccountCountRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountCountRequest) ProtoMessage()    {}
+func (*QueryPaymentAccountCountRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{10}
 }
-func (m *QueryGetPaymentAccountCountRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountCountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetPaymentAccountCountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountCountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetPaymentAccountCountRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountCountRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -504,41 +504,41 @@ func (m *QueryGetPaymentAccountCountRequest) XXX_Marshal(b []byte, deterministic
 		return b[:n], nil
 	}
 }
-func (m *QueryGetPaymentAccountCountRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetPaymentAccountCountRequest.Merge(m, src)
+func (m *QueryPaymentAccountCountRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountCountRequest.Merge(m, src)
 }
-func (m *QueryGetPaymentAccountCountRequest) XXX_Size() int {
+func (m *QueryPaymentAccountCountRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetPaymentAccountCountRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetPaymentAccountCountRequest.DiscardUnknown(m)
+func (m *QueryPaymentAccountCountRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountCountRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetPaymentAccountCountRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountCountRequest proto.InternalMessageInfo
 
-func (m *QueryGetPaymentAccountCountRequest) GetOwner() string {
+func (m *QueryPaymentAccountCountRequest) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
 }
 
-type QueryGetPaymentAccountCountResponse struct {
+type QueryPaymentAccountCountResponse struct {
 	PaymentAccountCount PaymentAccountCount `protobuf:"bytes,1,opt,name=payment_account_count,json=paymentAccountCount,proto3" json:"payment_account_count"`
 }
 
-func (m *QueryGetPaymentAccountCountResponse) Reset()         { *m = QueryGetPaymentAccountCountResponse{} }
-func (m *QueryGetPaymentAccountCountResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetPaymentAccountCountResponse) ProtoMessage()    {}
-func (*QueryGetPaymentAccountCountResponse) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountCountResponse) Reset()         { *m = QueryPaymentAccountCountResponse{} }
+func (m *QueryPaymentAccountCountResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountCountResponse) ProtoMessage()    {}
+func (*QueryPaymentAccountCountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{11}
 }
-func (m *QueryGetPaymentAccountCountResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountCountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetPaymentAccountCountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountCountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetPaymentAccountCountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountCountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -548,41 +548,41 @@ func (m *QueryGetPaymentAccountCountResponse) XXX_Marshal(b []byte, deterministi
 		return b[:n], nil
 	}
 }
-func (m *QueryGetPaymentAccountCountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetPaymentAccountCountResponse.Merge(m, src)
+func (m *QueryPaymentAccountCountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountCountResponse.Merge(m, src)
 }
-func (m *QueryGetPaymentAccountCountResponse) XXX_Size() int {
+func (m *QueryPaymentAccountCountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetPaymentAccountCountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetPaymentAccountCountResponse.DiscardUnknown(m)
+func (m *QueryPaymentAccountCountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountCountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetPaymentAccountCountResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountCountResponse proto.InternalMessageInfo
 
-func (m *QueryGetPaymentAccountCountResponse) GetPaymentAccountCount() PaymentAccountCount {
+func (m *QueryPaymentAccountCountResponse) GetPaymentAccountCount() PaymentAccountCount {
 	if m != nil {
 		return m.PaymentAccountCount
 	}
 	return PaymentAccountCount{}
 }
 
-type QueryAllPaymentAccountCountRequest struct {
+type QueryPaymentAccountCountsRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllPaymentAccountCountRequest) Reset()         { *m = QueryAllPaymentAccountCountRequest{} }
-func (m *QueryAllPaymentAccountCountRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllPaymentAccountCountRequest) ProtoMessage()    {}
-func (*QueryAllPaymentAccountCountRequest) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountCountsRequest) Reset()         { *m = QueryPaymentAccountCountsRequest{} }
+func (m *QueryPaymentAccountCountsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountCountsRequest) ProtoMessage()    {}
+func (*QueryPaymentAccountCountsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{12}
 }
-func (m *QueryAllPaymentAccountCountRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountCountsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllPaymentAccountCountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountCountsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllPaymentAccountCountRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountCountsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -592,42 +592,42 @@ func (m *QueryAllPaymentAccountCountRequest) XXX_Marshal(b []byte, deterministic
 		return b[:n], nil
 	}
 }
-func (m *QueryAllPaymentAccountCountRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllPaymentAccountCountRequest.Merge(m, src)
+func (m *QueryPaymentAccountCountsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountCountsRequest.Merge(m, src)
 }
-func (m *QueryAllPaymentAccountCountRequest) XXX_Size() int {
+func (m *QueryPaymentAccountCountsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllPaymentAccountCountRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllPaymentAccountCountRequest.DiscardUnknown(m)
+func (m *QueryPaymentAccountCountsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountCountsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllPaymentAccountCountRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountCountsRequest proto.InternalMessageInfo
 
-func (m *QueryAllPaymentAccountCountRequest) GetPagination() *query.PageRequest {
+func (m *QueryPaymentAccountCountsRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryAllPaymentAccountCountResponse struct {
-	PaymentAccountCount []PaymentAccountCount `protobuf:"bytes,1,rep,name=payment_account_count,json=paymentAccountCount,proto3" json:"payment_account_count"`
-	Pagination          *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+type QueryPaymentAccountCountsResponse struct {
+	PaymentAccountCounts []PaymentAccountCount `protobuf:"bytes,1,rep,name=payment_account_counts,json=paymentAccountCounts,proto3" json:"payment_account_counts"`
+	Pagination           *query.PageResponse   `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllPaymentAccountCountResponse) Reset()         { *m = QueryAllPaymentAccountCountResponse{} }
-func (m *QueryAllPaymentAccountCountResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllPaymentAccountCountResponse) ProtoMessage()    {}
-func (*QueryAllPaymentAccountCountResponse) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountCountsResponse) Reset()         { *m = QueryPaymentAccountCountsResponse{} }
+func (m *QueryPaymentAccountCountsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountCountsResponse) ProtoMessage()    {}
+func (*QueryPaymentAccountCountsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{13}
 }
-func (m *QueryAllPaymentAccountCountResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountCountsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllPaymentAccountCountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountCountsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllPaymentAccountCountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountCountsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -637,48 +637,48 @@ func (m *QueryAllPaymentAccountCountResponse) XXX_Marshal(b []byte, deterministi
 		return b[:n], nil
 	}
 }
-func (m *QueryAllPaymentAccountCountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllPaymentAccountCountResponse.Merge(m, src)
+func (m *QueryPaymentAccountCountsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountCountsResponse.Merge(m, src)
 }
-func (m *QueryAllPaymentAccountCountResponse) XXX_Size() int {
+func (m *QueryPaymentAccountCountsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllPaymentAccountCountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllPaymentAccountCountResponse.DiscardUnknown(m)
+func (m *QueryPaymentAccountCountsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountCountsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllPaymentAccountCountResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountCountsResponse proto.InternalMessageInfo
 
-func (m *QueryAllPaymentAccountCountResponse) GetPaymentAccountCount() []PaymentAccountCount {
+func (m *QueryPaymentAccountCountsResponse) GetPaymentAccountCounts() []PaymentAccountCount {
 	if m != nil {
-		return m.PaymentAccountCount
+		return m.PaymentAccountCounts
 	}
 	return nil
 }
 
-func (m *QueryAllPaymentAccountCountResponse) GetPagination() *query.PageResponse {
+func (m *QueryPaymentAccountCountsResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryGetPaymentAccountRequest struct {
+type QueryPaymentAccountRequest struct {
 	Addr string `protobuf:"bytes,1,opt,name=addr,proto3" json:"addr,omitempty"`
 }
 
-func (m *QueryGetPaymentAccountRequest) Reset()         { *m = QueryGetPaymentAccountRequest{} }
-func (m *QueryGetPaymentAccountRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetPaymentAccountRequest) ProtoMessage()    {}
-func (*QueryGetPaymentAccountRequest) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountRequest) Reset()         { *m = QueryPaymentAccountRequest{} }
+func (m *QueryPaymentAccountRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountRequest) ProtoMessage()    {}
+func (*QueryPaymentAccountRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{14}
 }
-func (m *QueryGetPaymentAccountRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetPaymentAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetPaymentAccountRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -688,41 +688,41 @@ func (m *QueryGetPaymentAccountRequest) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *QueryGetPaymentAccountRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetPaymentAccountRequest.Merge(m, src)
+func (m *QueryPaymentAccountRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountRequest.Merge(m, src)
 }
-func (m *QueryGetPaymentAccountRequest) XXX_Size() int {
+func (m *QueryPaymentAccountRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetPaymentAccountRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetPaymentAccountRequest.DiscardUnknown(m)
+func (m *QueryPaymentAccountRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetPaymentAccountRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountRequest proto.InternalMessageInfo
 
-func (m *QueryGetPaymentAccountRequest) GetAddr() string {
+func (m *QueryPaymentAccountRequest) GetAddr() string {
 	if m != nil {
 		return m.Addr
 	}
 	return ""
 }
 
-type QueryGetPaymentAccountResponse struct {
+type QueryPaymentAccountResponse struct {
 	PaymentAccount PaymentAccount `protobuf:"bytes,1,opt,name=payment_account,json=paymentAccount,proto3" json:"payment_account"`
 }
 
-func (m *QueryGetPaymentAccountResponse) Reset()         { *m = QueryGetPaymentAccountResponse{} }
-func (m *QueryGetPaymentAccountResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetPaymentAccountResponse) ProtoMessage()    {}
-func (*QueryGetPaymentAccountResponse) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountResponse) Reset()         { *m = QueryPaymentAccountResponse{} }
+func (m *QueryPaymentAccountResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountResponse) ProtoMessage()    {}
+func (*QueryPaymentAccountResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{15}
 }
-func (m *QueryGetPaymentAccountResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetPaymentAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetPaymentAccountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -732,41 +732,41 @@ func (m *QueryGetPaymentAccountResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *QueryGetPaymentAccountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetPaymentAccountResponse.Merge(m, src)
+func (m *QueryPaymentAccountResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountResponse.Merge(m, src)
 }
-func (m *QueryGetPaymentAccountResponse) XXX_Size() int {
+func (m *QueryPaymentAccountResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetPaymentAccountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetPaymentAccountResponse.DiscardUnknown(m)
+func (m *QueryPaymentAccountResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetPaymentAccountResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountResponse proto.InternalMessageInfo
 
-func (m *QueryGetPaymentAccountResponse) GetPaymentAccount() PaymentAccount {
+func (m *QueryPaymentAccountResponse) GetPaymentAccount() PaymentAccount {
 	if m != nil {
 		return m.PaymentAccount
 	}
 	return PaymentAccount{}
 }
 
-type QueryAllPaymentAccountRequest struct {
+type QueryPaymentAccountsRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllPaymentAccountRequest) Reset()         { *m = QueryAllPaymentAccountRequest{} }
-func (m *QueryAllPaymentAccountRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllPaymentAccountRequest) ProtoMessage()    {}
-func (*QueryAllPaymentAccountRequest) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountsRequest) Reset()         { *m = QueryPaymentAccountsRequest{} }
+func (m *QueryPaymentAccountsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountsRequest) ProtoMessage()    {}
+func (*QueryPaymentAccountsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{16}
 }
-func (m *QueryAllPaymentAccountRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllPaymentAccountRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllPaymentAccountRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -776,42 +776,42 @@ func (m *QueryAllPaymentAccountRequest) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *QueryAllPaymentAccountRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllPaymentAccountRequest.Merge(m, src)
+func (m *QueryPaymentAccountsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountsRequest.Merge(m, src)
 }
-func (m *QueryAllPaymentAccountRequest) XXX_Size() int {
+func (m *QueryPaymentAccountsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllPaymentAccountRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllPaymentAccountRequest.DiscardUnknown(m)
+func (m *QueryPaymentAccountsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllPaymentAccountRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountsRequest proto.InternalMessageInfo
 
-func (m *QueryAllPaymentAccountRequest) GetPagination() *query.PageRequest {
+func (m *QueryPaymentAccountsRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryAllPaymentAccountResponse struct {
-	PaymentAccount []PaymentAccount    `protobuf:"bytes,1,rep,name=payment_account,json=paymentAccount,proto3" json:"payment_account"`
-	Pagination     *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+type QueryPaymentAccountsResponse struct {
+	PaymentAccounts []PaymentAccount    `protobuf:"bytes,1,rep,name=payment_accounts,json=paymentAccounts,proto3" json:"payment_accounts"`
+	Pagination      *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllPaymentAccountResponse) Reset()         { *m = QueryAllPaymentAccountResponse{} }
-func (m *QueryAllPaymentAccountResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllPaymentAccountResponse) ProtoMessage()    {}
-func (*QueryAllPaymentAccountResponse) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountsResponse) Reset()         { *m = QueryPaymentAccountsResponse{} }
+func (m *QueryPaymentAccountsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountsResponse) ProtoMessage()    {}
+func (*QueryPaymentAccountsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{17}
 }
-func (m *QueryAllPaymentAccountResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllPaymentAccountResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllPaymentAccountResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -821,26 +821,26 @@ func (m *QueryAllPaymentAccountResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *QueryAllPaymentAccountResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllPaymentAccountResponse.Merge(m, src)
+func (m *QueryPaymentAccountsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountsResponse.Merge(m, src)
 }
-func (m *QueryAllPaymentAccountResponse) XXX_Size() int {
+func (m *QueryPaymentAccountsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllPaymentAccountResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllPaymentAccountResponse.DiscardUnknown(m)
+func (m *QueryPaymentAccountsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllPaymentAccountResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountsResponse proto.InternalMessageInfo
 
-func (m *QueryAllPaymentAccountResponse) GetPaymentAccount() []PaymentAccount {
+func (m *QueryPaymentAccountsResponse) GetPaymentAccounts() []PaymentAccount {
 	if m != nil {
-		return m.PaymentAccount
+		return m.PaymentAccounts
 	}
 	return nil
 }
 
-func (m *QueryAllPaymentAccountResponse) GetPagination() *query.PageResponse {
+func (m *QueryPaymentAccountsResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
@@ -955,22 +955,22 @@ func (m *QueryDynamicBalanceResponse) GetCurrentTimestamp() int64 {
 	return 0
 }
 
-type QueryGetPaymentAccountsByOwnerRequest struct {
+type QueryPaymentAccountsByOwnerRequest struct {
 	Owner string `protobuf:"bytes,1,opt,name=owner,proto3" json:"owner,omitempty"`
 }
 
-func (m *QueryGetPaymentAccountsByOwnerRequest) Reset()         { *m = QueryGetPaymentAccountsByOwnerRequest{} }
-func (m *QueryGetPaymentAccountsByOwnerRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryGetPaymentAccountsByOwnerRequest) ProtoMessage()    {}
-func (*QueryGetPaymentAccountsByOwnerRequest) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountsByOwnerRequest) Reset()         { *m = QueryPaymentAccountsByOwnerRequest{} }
+func (m *QueryPaymentAccountsByOwnerRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountsByOwnerRequest) ProtoMessage()    {}
+func (*QueryPaymentAccountsByOwnerRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{20}
 }
-func (m *QueryGetPaymentAccountsByOwnerRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountsByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetPaymentAccountsByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountsByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetPaymentAccountsByOwnerRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountsByOwnerRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -980,43 +980,41 @@ func (m *QueryGetPaymentAccountsByOwnerRequest) XXX_Marshal(b []byte, determinis
 		return b[:n], nil
 	}
 }
-func (m *QueryGetPaymentAccountsByOwnerRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetPaymentAccountsByOwnerRequest.Merge(m, src)
+func (m *QueryPaymentAccountsByOwnerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountsByOwnerRequest.Merge(m, src)
 }
-func (m *QueryGetPaymentAccountsByOwnerRequest) XXX_Size() int {
+func (m *QueryPaymentAccountsByOwnerRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetPaymentAccountsByOwnerRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetPaymentAccountsByOwnerRequest.DiscardUnknown(m)
+func (m *QueryPaymentAccountsByOwnerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountsByOwnerRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetPaymentAccountsByOwnerRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountsByOwnerRequest proto.InternalMessageInfo
 
-func (m *QueryGetPaymentAccountsByOwnerRequest) GetOwner() string {
+func (m *QueryPaymentAccountsByOwnerRequest) GetOwner() string {
 	if m != nil {
 		return m.Owner
 	}
 	return ""
 }
 
-type QueryGetPaymentAccountsByOwnerResponse struct {
+type QueryPaymentAccountsByOwnerResponse struct {
 	PaymentAccounts []string `protobuf:"bytes,1,rep,name=paymentAccounts,proto3" json:"paymentAccounts,omitempty"`
 }
 
-func (m *QueryGetPaymentAccountsByOwnerResponse) Reset() {
-	*m = QueryGetPaymentAccountsByOwnerResponse{}
-}
-func (m *QueryGetPaymentAccountsByOwnerResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryGetPaymentAccountsByOwnerResponse) ProtoMessage()    {}
-func (*QueryGetPaymentAccountsByOwnerResponse) Descriptor() ([]byte, []int) {
+func (m *QueryPaymentAccountsByOwnerResponse) Reset()         { *m = QueryPaymentAccountsByOwnerResponse{} }
+func (m *QueryPaymentAccountsByOwnerResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryPaymentAccountsByOwnerResponse) ProtoMessage()    {}
+func (*QueryPaymentAccountsByOwnerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{21}
 }
-func (m *QueryGetPaymentAccountsByOwnerResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryPaymentAccountsByOwnerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryGetPaymentAccountsByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryPaymentAccountsByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryGetPaymentAccountsByOwnerResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryPaymentAccountsByOwnerResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1026,41 +1024,41 @@ func (m *QueryGetPaymentAccountsByOwnerResponse) XXX_Marshal(b []byte, determini
 		return b[:n], nil
 	}
 }
-func (m *QueryGetPaymentAccountsByOwnerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryGetPaymentAccountsByOwnerResponse.Merge(m, src)
+func (m *QueryPaymentAccountsByOwnerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryPaymentAccountsByOwnerResponse.Merge(m, src)
 }
-func (m *QueryGetPaymentAccountsByOwnerResponse) XXX_Size() int {
+func (m *QueryPaymentAccountsByOwnerResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryGetPaymentAccountsByOwnerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryGetPaymentAccountsByOwnerResponse.DiscardUnknown(m)
+func (m *QueryPaymentAccountsByOwnerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryPaymentAccountsByOwnerResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryGetPaymentAccountsByOwnerResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryPaymentAccountsByOwnerResponse proto.InternalMessageInfo
 
-func (m *QueryGetPaymentAccountsByOwnerResponse) GetPaymentAccounts() []string {
+func (m *QueryPaymentAccountsByOwnerResponse) GetPaymentAccounts() []string {
 	if m != nil {
 		return m.PaymentAccounts
 	}
 	return nil
 }
 
-type QueryAllAutoSettleRecordRequest struct {
+type QueryAutoSettleRecordsRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllAutoSettleRecordRequest) Reset()         { *m = QueryAllAutoSettleRecordRequest{} }
-func (m *QueryAllAutoSettleRecordRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryAllAutoSettleRecordRequest) ProtoMessage()    {}
-func (*QueryAllAutoSettleRecordRequest) Descriptor() ([]byte, []int) {
+func (m *QueryAutoSettleRecordsRequest) Reset()         { *m = QueryAutoSettleRecordsRequest{} }
+func (m *QueryAutoSettleRecordsRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryAutoSettleRecordsRequest) ProtoMessage()    {}
+func (*QueryAutoSettleRecordsRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{22}
 }
-func (m *QueryAllAutoSettleRecordRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryAutoSettleRecordsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllAutoSettleRecordRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAutoSettleRecordsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllAutoSettleRecordRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAutoSettleRecordsRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1070,42 +1068,42 @@ func (m *QueryAllAutoSettleRecordRequest) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *QueryAllAutoSettleRecordRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllAutoSettleRecordRequest.Merge(m, src)
+func (m *QueryAutoSettleRecordsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAutoSettleRecordsRequest.Merge(m, src)
 }
-func (m *QueryAllAutoSettleRecordRequest) XXX_Size() int {
+func (m *QueryAutoSettleRecordsRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllAutoSettleRecordRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllAutoSettleRecordRequest.DiscardUnknown(m)
+func (m *QueryAutoSettleRecordsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAutoSettleRecordsRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllAutoSettleRecordRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryAutoSettleRecordsRequest proto.InternalMessageInfo
 
-func (m *QueryAllAutoSettleRecordRequest) GetPagination() *query.PageRequest {
+func (m *QueryAutoSettleRecordsRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type QueryAllAutoSettleRecordResponse struct {
-	AutoSettleRecord []AutoSettleRecord  `protobuf:"bytes,1,rep,name=auto_settle_record,json=autoSettleRecord,proto3" json:"auto_settle_record"`
-	Pagination       *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+type QueryAutoSettleRecordsResponse struct {
+	AutoSettleRecords []AutoSettleRecord  `protobuf:"bytes,1,rep,name=auto_settle_records,json=autoSettleRecords,proto3" json:"auto_settle_records"`
+	Pagination        *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryAllAutoSettleRecordResponse) Reset()         { *m = QueryAllAutoSettleRecordResponse{} }
-func (m *QueryAllAutoSettleRecordResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryAllAutoSettleRecordResponse) ProtoMessage()    {}
-func (*QueryAllAutoSettleRecordResponse) Descriptor() ([]byte, []int) {
+func (m *QueryAutoSettleRecordsResponse) Reset()         { *m = QueryAutoSettleRecordsResponse{} }
+func (m *QueryAutoSettleRecordsResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryAutoSettleRecordsResponse) ProtoMessage()    {}
+func (*QueryAutoSettleRecordsResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_f62e6684473ccf4a, []int{23}
 }
-func (m *QueryAllAutoSettleRecordResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryAutoSettleRecordsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryAllAutoSettleRecordResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryAutoSettleRecordsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryAllAutoSettleRecordResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryAutoSettleRecordsResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1115,26 +1113,26 @@ func (m *QueryAllAutoSettleRecordResponse) XXX_Marshal(b []byte, deterministic b
 		return b[:n], nil
 	}
 }
-func (m *QueryAllAutoSettleRecordResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryAllAutoSettleRecordResponse.Merge(m, src)
+func (m *QueryAutoSettleRecordsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryAutoSettleRecordsResponse.Merge(m, src)
 }
-func (m *QueryAllAutoSettleRecordResponse) XXX_Size() int {
+func (m *QueryAutoSettleRecordsResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryAllAutoSettleRecordResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryAllAutoSettleRecordResponse.DiscardUnknown(m)
+func (m *QueryAutoSettleRecordsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryAutoSettleRecordsResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryAllAutoSettleRecordResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryAutoSettleRecordsResponse proto.InternalMessageInfo
 
-func (m *QueryAllAutoSettleRecordResponse) GetAutoSettleRecord() []AutoSettleRecord {
+func (m *QueryAutoSettleRecordsResponse) GetAutoSettleRecords() []AutoSettleRecord {
 	if m != nil {
-		return m.AutoSettleRecord
+		return m.AutoSettleRecords
 	}
 	return nil
 }
 
-func (m *QueryAllAutoSettleRecordResponse) GetPagination() *query.PageResponse {
+func (m *QueryAutoSettleRecordsResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
@@ -1150,112 +1148,112 @@ func init() {
 	proto.RegisterType((*QueryOutFlowsResponse)(nil), "greenfield.payment.QueryOutFlowsResponse")
 	proto.RegisterType((*QueryGetStreamRecordRequest)(nil), "greenfield.payment.QueryGetStreamRecordRequest")
 	proto.RegisterType((*QueryGetStreamRecordResponse)(nil), "greenfield.payment.QueryGetStreamRecordResponse")
-	proto.RegisterType((*QueryAllStreamRecordRequest)(nil), "greenfield.payment.QueryAllStreamRecordRequest")
-	proto.RegisterType((*QueryAllStreamRecordResponse)(nil), "greenfield.payment.QueryAllStreamRecordResponse")
-	proto.RegisterType((*QueryGetPaymentAccountCountRequest)(nil), "greenfield.payment.QueryGetPaymentAccountCountRequest")
-	proto.RegisterType((*QueryGetPaymentAccountCountResponse)(nil), "greenfield.payment.QueryGetPaymentAccountCountResponse")
-	proto.RegisterType((*QueryAllPaymentAccountCountRequest)(nil), "greenfield.payment.QueryAllPaymentAccountCountRequest")
-	proto.RegisterType((*QueryAllPaymentAccountCountResponse)(nil), "greenfield.payment.QueryAllPaymentAccountCountResponse")
-	proto.RegisterType((*QueryGetPaymentAccountRequest)(nil), "greenfield.payment.QueryGetPaymentAccountRequest")
-	proto.RegisterType((*QueryGetPaymentAccountResponse)(nil), "greenfield.payment.QueryGetPaymentAccountResponse")
-	proto.RegisterType((*QueryAllPaymentAccountRequest)(nil), "greenfield.payment.QueryAllPaymentAccountRequest")
-	proto.RegisterType((*QueryAllPaymentAccountResponse)(nil), "greenfield.payment.QueryAllPaymentAccountResponse")
+	proto.RegisterType((*QueryStreamRecordsRequest)(nil), "greenfield.payment.QueryStreamRecordsRequest")
+	proto.RegisterType((*QueryStreamRecordsResponse)(nil), "greenfield.payment.QueryStreamRecordsResponse")
+	proto.RegisterType((*QueryPaymentAccountCountRequest)(nil), "greenfield.payment.QueryPaymentAccountCountRequest")
+	proto.RegisterType((*QueryPaymentAccountCountResponse)(nil), "greenfield.payment.QueryPaymentAccountCountResponse")
+	proto.RegisterType((*QueryPaymentAccountCountsRequest)(nil), "greenfield.payment.QueryPaymentAccountCountsRequest")
+	proto.RegisterType((*QueryPaymentAccountCountsResponse)(nil), "greenfield.payment.QueryPaymentAccountCountsResponse")
+	proto.RegisterType((*QueryPaymentAccountRequest)(nil), "greenfield.payment.QueryPaymentAccountRequest")
+	proto.RegisterType((*QueryPaymentAccountResponse)(nil), "greenfield.payment.QueryPaymentAccountResponse")
+	proto.RegisterType((*QueryPaymentAccountsRequest)(nil), "greenfield.payment.QueryPaymentAccountsRequest")
+	proto.RegisterType((*QueryPaymentAccountsResponse)(nil), "greenfield.payment.QueryPaymentAccountsResponse")
 	proto.RegisterType((*QueryDynamicBalanceRequest)(nil), "greenfield.payment.QueryDynamicBalanceRequest")
 	proto.RegisterType((*QueryDynamicBalanceResponse)(nil), "greenfield.payment.QueryDynamicBalanceResponse")
-	proto.RegisterType((*QueryGetPaymentAccountsByOwnerRequest)(nil), "greenfield.payment.QueryGetPaymentAccountsByOwnerRequest")
-	proto.RegisterType((*QueryGetPaymentAccountsByOwnerResponse)(nil), "greenfield.payment.QueryGetPaymentAccountsByOwnerResponse")
-	proto.RegisterType((*QueryAllAutoSettleRecordRequest)(nil), "greenfield.payment.QueryAllAutoSettleRecordRequest")
-	proto.RegisterType((*QueryAllAutoSettleRecordResponse)(nil), "greenfield.payment.QueryAllAutoSettleRecordResponse")
+	proto.RegisterType((*QueryPaymentAccountsByOwnerRequest)(nil), "greenfield.payment.QueryPaymentAccountsByOwnerRequest")
+	proto.RegisterType((*QueryPaymentAccountsByOwnerResponse)(nil), "greenfield.payment.QueryPaymentAccountsByOwnerResponse")
+	proto.RegisterType((*QueryAutoSettleRecordsRequest)(nil), "greenfield.payment.QueryAutoSettleRecordsRequest")
+	proto.RegisterType((*QueryAutoSettleRecordsResponse)(nil), "greenfield.payment.QueryAutoSettleRecordsResponse")
 }
 
 func init() { proto.RegisterFile("greenfield/payment/query.proto", fileDescriptor_f62e6684473ccf4a) }
 
 var fileDescriptor_f62e6684473ccf4a = []byte{
-	// 1341 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x58, 0xcf, 0x6f, 0x1b, 0x45,
-	0x14, 0xce, 0xd6, 0x4d, 0xda, 0xbc, 0x94, 0x34, 0x9d, 0xa4, 0x28, 0xdd, 0x06, 0xa7, 0xdd, 0x52,
-	0xc7, 0x69, 0x88, 0xb7, 0x4e, 0x20, 0x25, 0x85, 0x22, 0xd9, 0xa0, 0x54, 0x11, 0x87, 0xa4, 0x2e,
-	0x12, 0xa8, 0x08, 0xad, 0xc6, 0xf6, 0xc4, 0xb1, 0xb2, 0xde, 0x75, 0xbd, 0xe3, 0x06, 0x2b, 0xca,
-	0x85, 0x03, 0xe2, 0x58, 0x89, 0x3f, 0x00, 0x89, 0x03, 0x20, 0xb8, 0x70, 0xe8, 0xb1, 0x17, 0x0e,
-	0x48, 0x3d, 0x16, 0x10, 0x12, 0xe2, 0x50, 0xa1, 0x84, 0x3f, 0x04, 0xed, 0xec, 0x5b, 0x67, 0x6d,
-	0xcf, 0xee, 0x3a, 0xa9, 0xb9, 0x34, 0xde, 0xd9, 0xf7, 0xe3, 0xfb, 0xde, 0xdb, 0x79, 0xf3, 0x4d,
-	0x21, 0x59, 0x69, 0x30, 0x66, 0x6d, 0x55, 0x99, 0x59, 0xd6, 0xeb, 0xb4, 0x55, 0x63, 0x16, 0xd7,
-	0x1f, 0x36, 0x59, 0xa3, 0x95, 0xa9, 0x37, 0x6c, 0x6e, 0x13, 0x72, 0xf4, 0x3e, 0x83, 0xef, 0xd5,
-	0x1b, 0x25, 0xdb, 0xa9, 0xd9, 0x8e, 0x5e, 0xa4, 0x0e, 0xf3, 0x8c, 0xf5, 0x47, 0xd9, 0x22, 0xe3,
-	0x34, 0xab, 0xd7, 0x69, 0xa5, 0x6a, 0x51, 0x5e, 0xb5, 0x2d, 0xcf, 0x5f, 0xbd, 0xe4, 0xd9, 0x1a,
-	0xe2, 0x49, 0xf7, 0x1e, 0xf0, 0xd5, 0x54, 0xc5, 0xae, 0xd8, 0xde, 0xba, 0xfb, 0x0b, 0x57, 0x67,
-	0x2a, 0xb6, 0x5d, 0x31, 0x99, 0x4e, 0xeb, 0x55, 0x9d, 0x5a, 0x96, 0xcd, 0x45, 0x34, 0xdf, 0x67,
-	0x41, 0x02, 0x97, 0x36, 0xb9, 0x6d, 0x38, 0x8c, 0x73, 0x93, 0x19, 0x0d, 0x56, 0xb2, 0x1b, 0x65,
-	0x34, 0xbe, 0x2a, 0x31, 0xb6, 0x9b, 0xdc, 0xd8, 0x32, 0xed, 0x5d, 0x34, 0x99, 0x95, 0x98, 0xd4,
-	0x69, 0x83, 0xd6, 0xfc, 0x84, 0x69, 0xa9, 0x81, 0xf8, 0x6b, 0xd0, 0x52, 0xc9, 0x6e, 0x5a, 0x1c,
-	0x2d, 0x33, 0xf1, 0x96, 0x46, 0xd0, 0x3e, 0x25, 0xb1, 0x77, 0x78, 0x83, 0xd1, 0x5a, 0x07, 0x0b,
-	0x6d, 0x0a, 0xc8, 0x3d, 0xb7, 0xc6, 0x9b, 0x02, 0x56, 0x81, 0x3d, 0x6c, 0x32, 0x87, 0x6b, 0x1b,
-	0x30, 0xd9, 0xb1, 0xea, 0xd4, 0x6d, 0xcb, 0x61, 0xe4, 0x6d, 0x18, 0xf1, 0xe0, 0x4f, 0x2b, 0x57,
-	0x94, 0xf4, 0xd8, 0x52, 0x10, 0x95, 0xdf, 0xbf, 0x8c, 0xe7, 0x93, 0x3f, 0xfd, 0xec, 0xc5, 0xec,
-	0x50, 0x01, 0xed, 0xb5, 0x3b, 0xf0, 0x5a, 0x20, 0x60, 0xbe, 0xf5, 0x51, 0xb5, 0xc6, 0x1c, 0x4e,
-	0x6b, 0x75, 0xcc, 0x48, 0x66, 0x60, 0x94, 0xfb, 0x6b, 0x22, 0x7a, 0xa2, 0x70, 0xb4, 0xa0, 0x3d,
-	0x80, 0x64, 0x98, 0xfb, 0x4b, 0x43, 0xbb, 0x09, 0x53, 0x22, 0xf6, 0x46, 0x93, 0xaf, 0x99, 0xf6,
-	0xae, 0x5f, 0x03, 0x32, 0x0d, 0x67, 0xb0, 0xb0, 0x22, 0xe4, 0x68, 0xc1, 0x7f, 0xd4, 0x3e, 0x86,
-	0x8b, 0x5d, 0x1e, 0x08, 0xe2, 0x3d, 0x18, 0xf5, 0xbf, 0x00, 0x17, 0x47, 0x22, 0x3d, 0xb6, 0x74,
-	0x59, 0x86, 0x03, 0x1d, 0x11, 0xc8, 0x59, 0x1b, 0xe3, 0x68, 0xb7, 0xe0, 0xb2, 0x08, 0x7c, 0x97,
-	0xf1, 0xfb, 0xa2, 0x57, 0x05, 0xd1, 0xaa, 0x78, 0x44, 0x3b, 0x30, 0x23, 0x77, 0x44, 0x60, 0x1f,
-	0xc2, 0x2b, 0x1d, 0xcd, 0xc7, 0x22, 0x5d, 0x91, 0x81, 0x0b, 0x06, 0x40, 0x84, 0xe7, 0x9c, 0xc0,
-	0x9a, 0xc6, 0x10, 0x65, 0xce, 0x34, 0x65, 0x28, 0xd7, 0x00, 0x8e, 0xf6, 0x29, 0x26, 0x4a, 0x65,
-	0x70, 0x6f, 0xba, 0x9b, 0x3a, 0xe3, 0x4d, 0x00, 0xdc, 0xd4, 0x99, 0x4d, 0x5a, 0x61, 0xe8, 0x5b,
-	0x08, 0x78, 0x6a, 0x4f, 0x14, 0x24, 0xd5, 0x93, 0x27, 0x9c, 0x54, 0xe2, 0xa4, 0xa4, 0xc8, 0xdd,
-	0x0e, 0xd4, 0xa7, 0x04, 0xea, 0xb9, 0x58, 0xd4, 0x1e, 0x92, 0x0e, 0xd8, 0xb7, 0x41, 0xf3, 0x5b,
-	0xb1, 0xe9, 0x25, 0xcf, 0x79, 0x4d, 0x7a, 0xdf, 0xfd, 0xc7, 0x2f, 0xd2, 0x14, 0x0c, 0xdb, 0xbb,
-	0x16, 0x6b, 0x60, 0x23, 0xbd, 0x07, 0xed, 0x2b, 0x05, 0xae, 0x45, 0x3a, 0x23, 0x73, 0x0a, 0x17,
-	0xa5, 0x7b, 0x1f, 0xab, 0x3d, 0x27, 0xff, 0xf6, 0x7b, 0xe2, 0x61, 0x21, 0x26, 0xeb, 0xbd, 0xaf,
-	0x34, 0x13, 0x69, 0xe4, 0x4c, 0x33, 0x82, 0xc6, 0xa0, 0x7a, 0xfd, 0x9b, 0x4f, 0x3c, 0x2c, 0x5d,
-	0x3c, 0xf1, 0xc4, 0x60, 0x88, 0x0f, 0xee, 0x43, 0x58, 0xc6, 0x91, 0xd7, 0xd3, 0x4b, 0xbf, 0x78,
-	0x04, 0x4e, 0xd3, 0x72, 0xd9, 0xff, 0x04, 0xc4, 0x6f, 0xcd, 0xc1, 0x41, 0x27, 0x71, 0xc2, 0x12,
-	0xdc, 0x83, 0xf3, 0x5d, 0x25, 0xc0, 0xba, 0x6b, 0xf1, 0xe4, 0x91, 0xf7, 0x78, 0x27, 0x6f, 0xad,
-	0x82, 0x48, 0x7b, 0x8a, 0x3f, 0xe8, 0x36, 0x3f, 0x55, 0x90, 0x9e, 0x24, 0x53, 0x14, 0xbd, 0xc4,
-	0xcb, 0xd0, 0x1b, 0x5c, 0x47, 0x57, 0x40, 0x15, 0xe8, 0x3f, 0x68, 0x59, 0xb4, 0x56, 0x2d, 0xe5,
-	0xa9, 0x49, 0xad, 0x12, 0x8b, 0x9f, 0xce, 0x5f, 0x0e, 0xe3, 0xc4, 0xec, 0x76, 0x44, 0xce, 0x0c,
-	0xce, 0x97, 0xbd, 0x37, 0x46, 0xd1, 0x7b, 0xe5, 0x45, 0xc8, 0xbf, 0xeb, 0xf2, 0xf9, 0xfb, 0xc5,
-	0x6c, 0xaa, 0x52, 0xe5, 0xdb, 0xcd, 0x62, 0xa6, 0x64, 0xd7, 0x50, 0xe4, 0xe0, 0x9f, 0x45, 0xa7,
-	0xbc, 0xa3, 0xf3, 0x56, 0x9d, 0x39, 0x99, 0x75, 0x8b, 0xff, 0xfe, 0x64, 0x11, 0x90, 0xd6, 0xba,
-	0xc5, 0x0b, 0xe3, 0xe5, 0x8e, 0x74, 0xbd, 0xf3, 0xf2, 0xd4, 0xc9, 0x0f, 0x01, 0xb2, 0x00, 0x17,
-	0x4a, 0xcd, 0x46, 0xc3, 0xed, 0xd3, 0xd1, 0xb9, 0x9d, 0x10, 0xe7, 0xf6, 0x04, 0xbe, 0x68, 0x1f,
-	0xd2, 0xc4, 0x80, 0x73, 0x45, 0x6a, 0xed, 0xb4, 0xd9, 0x9d, 0x1e, 0x00, 0xbb, 0x31, 0x37, 0xa2,
-	0x4f, 0xad, 0x0a, 0x17, 0xe8, 0x23, 0x5a, 0x35, 0x69, 0xd1, 0x64, 0xed, 0x2c, 0xc3, 0x03, 0xc8,
-	0x32, 0xd1, 0x0e, 0xeb, 0xa7, 0xfa, 0x14, 0xc0, 0xb4, 0x4b, 0x3b, 0xac, 0x6c, 0x6c, 0x31, 0x36,
-	0x3d, 0x32, 0x80, 0x1c, 0xa3, 0x5e, 0xbc, 0x35, 0xc6, 0xc8, 0x67, 0x30, 0x56, 0xda, 0xa6, 0x56,
-	0x85, 0x19, 0x0d, 0xca, 0xd9, 0xf4, 0x99, 0x01, 0x44, 0x07, 0x2f, 0x60, 0x81, 0x72, 0xa6, 0xdd,
-	0x81, 0xeb, 0xf2, 0xe9, 0xe2, 0xe4, 0x5b, 0x1b, 0xee, 0x09, 0x14, 0x7d, 0x3c, 0x15, 0x20, 0x15,
-	0xe7, 0x8e, 0x5f, 0x74, 0xba, 0xbd, 0x8b, 0x7d, 0x0b, 0xb1, 0x8b, 0x47, 0x0b, 0xdd, 0xcb, 0x5a,
-	0x15, 0x66, 0xfd, 0x89, 0x90, 0x6b, 0x72, 0xfb, 0xbe, 0x10, 0xda, 0xff, 0x8f, 0xa0, 0xf8, 0x55,
-	0x81, 0x2b, 0xe1, 0xb9, 0x10, 0xf9, 0x27, 0x40, 0x7a, 0x15, 0x3f, 0x8e, 0xa0, 0xd7, 0x65, 0x3b,
-	0xa5, 0x3b, 0x12, 0xee, 0x96, 0x09, 0xda, 0xb5, 0x3e, 0xb0, 0x31, 0xb4, 0xf4, 0xed, 0x04, 0x0c,
-	0x0b, 0x1e, 0x64, 0x1f, 0x46, 0x3c, 0x49, 0x4b, 0x52, 0x32, 0x68, 0xbd, 0xc2, 0x5e, 0x9d, 0x8b,
-	0xb5, 0xf3, 0x12, 0x6a, 0xda, 0x17, 0x7f, 0xfc, 0xfb, 0xf5, 0xa9, 0x19, 0xa2, 0xea, 0xa1, 0x77,
-	0x18, 0xf2, 0xa3, 0x02, 0x17, 0x7a, 0x14, 0x39, 0xc9, 0xc6, 0xa4, 0xe8, 0x15, 0xff, 0xea, 0xd2,
-	0x71, 0x5c, 0x10, 0x60, 0x46, 0x00, 0x4c, 0x93, 0x54, 0x38, 0x40, 0x7d, 0xaf, 0x3d, 0x9a, 0xf6,
-	0xc9, 0x63, 0x05, 0xce, 0xfa, 0x82, 0x9d, 0xa4, 0x43, 0x13, 0x76, 0xdd, 0x02, 0xd4, 0xf9, 0x3e,
-	0x2c, 0x11, 0x91, 0x2e, 0x10, 0xcd, 0x93, 0x39, 0x3d, 0xe2, 0x66, 0xe8, 0xe8, 0x7b, 0x78, 0x2c,
-	0xec, 0x93, 0xef, 0x14, 0x38, 0x17, 0x1c, 0xb4, 0x44, 0x0f, 0x4d, 0x26, 0xbf, 0x11, 0xa8, 0x37,
-	0xfb, 0x77, 0x40, 0x90, 0xcb, 0x02, 0xe4, 0x22, 0x59, 0xd0, 0xe3, 0x2e, 0x88, 0x01, 0xa0, 0xdf,
-	0x28, 0x70, 0x3e, 0x18, 0x2d, 0x67, 0x9a, 0x11, 0x58, 0xe5, 0xf7, 0x82, 0x08, 0xac, 0x21, 0x02,
-	0x5f, 0x9b, 0x17, 0x58, 0xaf, 0x91, 0xab, 0xb1, 0x58, 0xc9, 0x2f, 0x0a, 0x4c, 0x4a, 0x84, 0x1e,
-	0x59, 0x89, 0x2a, 0x50, 0xb8, 0xb0, 0x55, 0x6f, 0x1d, 0xdb, 0x0f, 0x31, 0xaf, 0x0a, 0xcc, 0xcb,
-	0x24, 0xab, 0xf7, 0x7b, 0x61, 0xd7, 0xf7, 0xc4, 0x74, 0xdd, 0x27, 0x4f, 0x15, 0x78, 0x55, 0x12,
-	0xda, 0x2d, 0xf6, 0x4a, 0x54, 0xed, 0x4e, 0x44, 0x23, 0x5a, 0x68, 0x6b, 0x59, 0x41, 0x63, 0x81,
-	0xcc, 0xf7, 0x4d, 0x83, 0xfc, 0xa4, 0xc0, 0x78, 0x67, 0xc8, 0x88, 0x51, 0x10, 0x26, 0x8a, 0x23,
-	0x46, 0x41, 0xa8, 0x24, 0xd6, 0x96, 0x04, 0xd8, 0x37, 0xc8, 0x8d, 0x3e, 0xc0, 0xea, 0x7b, 0xae,
-	0xce, 0xde, 0x27, 0xdf, 0x8b, 0xd9, 0x15, 0x0c, 0xe7, 0xd6, 0x39, 0xdb, 0x7f, 0xbd, 0xe2, 0x01,
-	0x87, 0x8a, 0x5c, 0x6d, 0x41, 0x00, 0xbe, 0x4e, 0xae, 0xf5, 0x01, 0x98, 0xfc, 0xa0, 0xc0, 0x78,
-	0xa7, 0x70, 0x24, 0x99, 0xd0, 0x9c, 0x52, 0x69, 0xaa, 0xea, 0x7d, 0xdb, 0x23, 0xc0, 0xb7, 0x04,
-	0x40, 0x9d, 0x2c, 0xca, 0x00, 0x76, 0x69, 0xd5, 0xc0, 0x9c, 0xf8, 0x53, 0x81, 0x4b, 0xa1, 0xe2,
-	0x80, 0xac, 0xf6, 0xdf, 0xda, 0x2e, 0x3d, 0xa2, 0xde, 0x3e, 0x89, 0x2b, 0x72, 0xc9, 0x09, 0x2e,
-	0xef, 0x90, 0x55, 0x19, 0x97, 0x0a, 0xe3, 0x46, 0x57, 0xc1, 0x1d, 0xa3, 0xd8, 0x32, 0xc4, 0x96,
-	0x6c, 0xef, 0xcc, 0x9f, 0x15, 0x98, 0xec, 0x3e, 0xe7, 0xdd, 0xcf, 0x65, 0x39, 0xaa, 0xf7, 0x21,
-	0x72, 0x46, 0x7d, 0xf3, 0x78, 0x4e, 0xfd, 0x1c, 0x77, 0xbd, 0x8a, 0x25, 0xbf, 0xfe, 0xec, 0x20,
-	0xa9, 0x3c, 0x3f, 0x48, 0x2a, 0xff, 0x1c, 0x24, 0x95, 0xc7, 0x87, 0xc9, 0xa1, 0xe7, 0x87, 0xc9,
-	0xa1, 0xbf, 0x0e, 0x93, 0x43, 0x0f, 0xf4, 0x80, 0x8c, 0x2c, 0x5a, 0xc5, 0xc5, 0xd2, 0x36, 0xad,
-	0x5a, 0xc1, 0xa8, 0x9f, 0xb7, 0xe3, 0x0a, 0x4d, 0x59, 0x1c, 0x11, 0xff, 0x53, 0xb8, 0xfc, 0x5f,
-	0x00, 0x00, 0x00, 0xff, 0xff, 0x40, 0x26, 0x77, 0xa3, 0xcd, 0x15, 0x00, 0x00,
+	// 1334 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x58, 0xcd, 0x6f, 0x1b, 0x45,
+	0x14, 0xcf, 0xb6, 0x4d, 0xda, 0xbc, 0x34, 0x5f, 0x13, 0xb7, 0x4a, 0xdd, 0xe0, 0xa4, 0x4b, 0xe4,
+	0xb8, 0x49, 0xbd, 0x9b, 0x0f, 0xd2, 0x00, 0xa2, 0x48, 0x35, 0x28, 0x55, 0x84, 0x50, 0x5a, 0x07,
+	0x09, 0x29, 0x08, 0xad, 0xc6, 0xeb, 0x89, 0x63, 0x62, 0xef, 0xba, 0xde, 0x71, 0x83, 0x15, 0xe5,
+	0x82, 0x04, 0xe7, 0x4a, 0xdc, 0x38, 0x22, 0x81, 0x10, 0x5c, 0x2b, 0x71, 0x80, 0x2b, 0x52, 0x8e,
+	0x05, 0x2e, 0x88, 0x43, 0x85, 0x12, 0xfe, 0x05, 0xee, 0xc8, 0xb3, 0x6f, 0x9d, 0x5d, 0x7b, 0xd6,
+	0x5e, 0x17, 0x73, 0x69, 0xbc, 0x3b, 0xef, 0xe3, 0xf7, 0x7b, 0x6f, 0xde, 0xcc, 0x6f, 0x0b, 0x89,
+	0x42, 0x95, 0x31, 0x6b, 0xaf, 0xc8, 0x4a, 0x79, 0xbd, 0x42, 0xeb, 0x65, 0x66, 0x71, 0xfd, 0x71,
+	0x8d, 0x55, 0xeb, 0x5a, 0xa5, 0x6a, 0x73, 0x9b, 0x90, 0xf3, 0x75, 0x0d, 0xd7, 0xe3, 0x8b, 0xa6,
+	0xed, 0x94, 0x6d, 0x47, 0xcf, 0x51, 0x87, 0xb9, 0xc6, 0xfa, 0x93, 0x95, 0x1c, 0xe3, 0x74, 0x45,
+	0xaf, 0xd0, 0x42, 0xd1, 0xa2, 0xbc, 0x68, 0x5b, 0xae, 0x7f, 0xfc, 0x86, 0x6b, 0x6b, 0x88, 0x27,
+	0xdd, 0x7d, 0xc0, 0xa5, 0x58, 0xc1, 0x2e, 0xd8, 0xee, 0xfb, 0xc6, 0x2f, 0x7c, 0x3b, 0x53, 0xb0,
+	0xed, 0x42, 0x89, 0xe9, 0xb4, 0x52, 0xd4, 0xa9, 0x65, 0xd9, 0x5c, 0x44, 0xf3, 0x7c, 0x96, 0x24,
+	0x70, 0x69, 0x8d, 0xdb, 0x86, 0xc3, 0x38, 0x2f, 0x31, 0xa3, 0xca, 0x4c, 0xbb, 0x9a, 0x47, 0xe3,
+	0x5b, 0x12, 0x63, 0xbb, 0xc6, 0x8d, 0xbd, 0x92, 0x7d, 0x88, 0x26, 0xb3, 0x12, 0x93, 0x0a, 0xad,
+	0xd2, 0xb2, 0x97, 0x30, 0x25, 0x35, 0x10, 0x7f, 0x0d, 0x6a, 0x9a, 0x76, 0xcd, 0xe2, 0x68, 0xa9,
+	0x75, 0xb7, 0x34, 0xfc, 0xf6, 0x49, 0x89, 0xbd, 0xc3, 0xab, 0x8c, 0x96, 0x03, 0x2c, 0xd4, 0x18,
+	0x90, 0x47, 0x8d, 0x1a, 0x3f, 0x14, 0xb0, 0xb2, 0xec, 0x71, 0x8d, 0x39, 0x5c, 0xdd, 0x86, 0xa9,
+	0xc0, 0x5b, 0xa7, 0x62, 0x5b, 0x0e, 0x23, 0xaf, 0xc3, 0x90, 0x0b, 0x7f, 0x5a, 0x99, 0x53, 0x52,
+	0x23, 0xab, 0x7e, 0x54, 0x5e, 0xff, 0x34, 0xd7, 0x27, 0x73, 0xe9, 0xe4, 0xc5, 0xec, 0x40, 0x16,
+	0xed, 0xd5, 0x7b, 0xf0, 0x8a, 0x2f, 0x60, 0xa6, 0xfe, 0x41, 0xb1, 0xcc, 0x1c, 0x4e, 0xcb, 0x15,
+	0xcc, 0x48, 0x66, 0x60, 0x98, 0x7b, 0xef, 0x44, 0xf4, 0x8b, 0xd9, 0xf3, 0x17, 0xea, 0x2e, 0x24,
+	0xc2, 0xdc, 0xff, 0x33, 0xb4, 0x65, 0x88, 0x89, 0xd8, 0xdb, 0x35, 0xbe, 0x59, 0xb2, 0x0f, 0xbd,
+	0x1a, 0x90, 0x69, 0xb8, 0x8c, 0x85, 0x15, 0x21, 0x87, 0xb3, 0xde, 0xa3, 0xfa, 0x21, 0x5c, 0x6b,
+	0xf1, 0x40, 0x10, 0x6f, 0xc3, 0xb0, 0xb7, 0x03, 0x1a, 0x38, 0x2e, 0xa6, 0x46, 0x56, 0x6f, 0xca,
+	0x70, 0xa0, 0x23, 0x02, 0xb9, 0x62, 0x63, 0x1c, 0x75, 0x03, 0x6e, 0x8a, 0xc0, 0x0f, 0x18, 0xdf,
+	0x11, 0xbd, 0xca, 0x8a, 0x56, 0x75, 0x47, 0x74, 0x00, 0x33, 0x72, 0x47, 0x04, 0xf6, 0x1e, 0x8c,
+	0x06, 0x9a, 0x8f, 0x45, 0x9a, 0x93, 0x81, 0xf3, 0x07, 0x40, 0x84, 0x57, 0x1d, 0xdf, 0x3b, 0xd5,
+	0x84, 0x1b, 0x22, 0x99, 0xdf, 0xb0, 0x59, 0xb5, 0x4d, 0x80, 0xf3, 0x29, 0xc5, 0x34, 0x49, 0x0d,
+	0x27, 0xb3, 0x31, 0xd2, 0x9a, 0x3b, 0xff, 0x38, 0xd2, 0xda, 0x43, 0x5a, 0x60, 0xe8, 0x9b, 0xf5,
+	0x79, 0xaa, 0xcf, 0x14, 0x88, 0xcb, 0xb2, 0x20, 0xa1, 0xf7, 0x61, 0x2c, 0x40, 0xc8, 0x2b, 0x77,
+	0x54, 0x46, 0xa3, 0x7e, 0x46, 0x0e, 0x79, 0x10, 0x40, 0x7d, 0x41, 0xa0, 0x5e, 0xe8, 0x8a, 0xda,
+	0xc5, 0x12, 0x80, 0xbd, 0x01, 0xb3, 0xb8, 0x51, 0x45, 0xea, 0xfb, 0x6e, 0x7f, 0xde, 0x69, 0xfc,
+	0xe3, 0x55, 0x28, 0x06, 0x83, 0xf6, 0xa1, 0xc5, 0xaa, 0xd8, 0x43, 0xf7, 0x41, 0xfd, 0x5c, 0x81,
+	0xb9, 0x70, 0x4f, 0x64, 0x4d, 0xe1, 0x9a, 0x74, 0xe6, 0xb1, 0xce, 0x0b, 0xf2, 0x3d, 0xdf, 0x16,
+	0x0f, 0x6b, 0x30, 0x55, 0x69, 0x5f, 0x52, 0x3f, 0x09, 0x87, 0xd1, 0xf7, 0x1e, 0xff, 0xaa, 0xc0,
+	0xad, 0x0e, 0xc9, 0x90, 0xb4, 0x09, 0xd7, 0xa5, 0xa4, 0xbd, 0x96, 0xf7, 0xc8, 0x3a, 0x26, 0x61,
+	0xdd, 0xc7, 0x0d, 0xb0, 0x8c, 0xdb, 0x36, 0x08, 0xc0, 0xab, 0x1c, 0x81, 0x4b, 0x34, 0x9f, 0xf7,
+	0x5a, 0x2f, 0x7e, 0xab, 0x15, 0x1c, 0xfa, 0x56, 0x0f, 0xa4, 0xff, 0x08, 0xc6, 0x5b, 0xe8, 0x63,
+	0xc5, 0xd5, 0xee, 0xbc, 0x91, 0xf2, 0x58, 0x90, 0xb2, 0xca, 0xa4, 0x19, 0xfb, 0xde, 0xde, 0x9f,
+	0x15, 0x3c, 0x95, 0xda, 0xf2, 0x20, 0xb5, 0x1d, 0x98, 0x68, 0xa1, 0xe6, 0xf5, 0x34, 0x3a, 0xb7,
+	0xf1, 0x20, 0xb7, 0x3e, 0x76, 0xf2, 0x2e, 0x76, 0xf2, 0xdd, 0xba, 0x45, 0xcb, 0x45, 0x33, 0x43,
+	0x4b, 0xd4, 0x32, 0x59, 0xf7, 0xb3, 0xf8, 0x8b, 0x41, 0x2c, 0x6f, 0xab, 0x23, 0xb2, 0x66, 0x30,
+	0x9e, 0x77, 0x57, 0x8c, 0x9c, 0xbb, 0xe4, 0x46, 0xc8, 0xbc, 0xd5, 0x20, 0xf4, 0xe7, 0x8b, 0xd9,
+	0x64, 0xa1, 0xc8, 0xf7, 0x6b, 0x39, 0xcd, 0xb4, 0xcb, 0x28, 0x69, 0xf0, 0x4f, 0xda, 0xc9, 0x1f,
+	0xe8, 0xbc, 0x5e, 0x61, 0x8e, 0xb6, 0x65, 0xf1, 0xdf, 0x9e, 0xa5, 0x01, 0x69, 0x6d, 0x59, 0x3c,
+	0x3b, 0x96, 0x0f, 0xa4, 0x6b, 0x3f, 0xf2, 0x2f, 0xbc, 0xfc, 0x91, 0x4f, 0x96, 0x60, 0xd2, 0xac,
+	0x55, 0xab, 0x8d, 0x4e, 0x9d, 0xdf, 0xd2, 0x17, 0xc5, 0x2d, 0x3d, 0x81, 0x0b, 0xcd, 0x2b, 0x99,
+	0x18, 0x70, 0x35, 0x47, 0xad, 0x83, 0x26, 0xbb, 0x4b, 0x7d, 0x60, 0x37, 0xd2, 0x88, 0xe8, 0x51,
+	0x2b, 0xc2, 0x24, 0x7d, 0x42, 0x8b, 0x25, 0x9a, 0x2b, 0xb1, 0x66, 0x96, 0xc1, 0x3e, 0x64, 0x99,
+	0x68, 0x86, 0xf5, 0x52, 0x7d, 0x04, 0x50, 0xb2, 0xcd, 0x03, 0x96, 0x37, 0xf6, 0x18, 0x9b, 0x1e,
+	0xea, 0x43, 0x8e, 0x61, 0x37, 0xde, 0x26, 0x63, 0xe4, 0x63, 0x18, 0x31, 0xf7, 0xa9, 0x55, 0x60,
+	0x46, 0x95, 0x72, 0x36, 0x7d, 0xb9, 0x0f, 0xd1, 0xc1, 0x0d, 0x98, 0xa5, 0x9c, 0xa9, 0x6f, 0x82,
+	0x2a, 0x1b, 0xbf, 0x4c, 0x7d, 0xbb, 0x71, 0xe3, 0x74, 0xbe, 0x8e, 0xb6, 0xe1, 0xd5, 0x8e, 0xbe,
+	0xb8, 0x97, 0x53, 0xd0, 0x3a, 0x7f, 0x62, 0x80, 0x87, 0xdb, 0xc6, 0x52, 0x2d, 0xa0, 0x00, 0xbc,
+	0x5f, 0xe3, 0xf6, 0x8e, 0x50, 0xd3, 0xff, 0x93, 0x70, 0xf8, 0x45, 0x41, 0xad, 0x28, 0xc9, 0x84,
+	0xa8, 0x77, 0x61, 0xaa, 0x5d, 0xd5, 0x7b, 0x47, 0xcf, 0xbc, 0x6c, 0x40, 0x5a, 0x63, 0xe1, 0x90,
+	0x4c, 0xd2, 0xd6, 0x1c, 0x7d, 0x3b, 0x7e, 0x56, 0xff, 0x19, 0x87, 0x41, 0xc1, 0x83, 0x1c, 0xc3,
+	0x90, 0x2b, 0x5c, 0x49, 0x52, 0x86, 0xad, 0x5d, 0xbe, 0xc7, 0x17, 0xba, 0xda, 0xb9, 0x09, 0x55,
+	0xf5, 0xb3, 0xdf, 0xff, 0xfe, 0xf2, 0xc2, 0x0c, 0x89, 0xeb, 0xa1, 0x5f, 0x2a, 0xe4, 0x7b, 0x05,
+	0x26, 0xdb, 0x74, 0x37, 0x59, 0xe9, 0x92, 0xa2, 0x5d, 0xe2, 0xc7, 0x57, 0x7b, 0x71, 0x41, 0x80,
+	0x9a, 0x00, 0x98, 0x22, 0xc9, 0x70, 0x80, 0xfa, 0x51, 0xf3, 0x48, 0x3a, 0x26, 0x4f, 0x15, 0xb8,
+	0xe2, 0xc9, 0x72, 0x92, 0x0a, 0x4d, 0xd8, 0xa2, 0xf5, 0xe3, 0xb7, 0x23, 0x58, 0x22, 0x22, 0x5d,
+	0x20, 0xba, 0x4d, 0x16, 0xf4, 0x0e, 0xdf, 0x7f, 0x8e, 0x7e, 0x84, 0xd7, 0xc1, 0x31, 0xf9, 0x56,
+	0x81, 0xab, 0xfe, 0x03, 0x96, 0xe8, 0xa1, 0xc9, 0xe4, 0xba, 0x3f, 0xbe, 0x1c, 0xdd, 0x01, 0x41,
+	0xae, 0x09, 0x90, 0x69, 0xb2, 0xa4, 0x77, 0xfb, 0x0c, 0xf4, 0x01, 0xfd, 0x4a, 0x81, 0xd1, 0x80,
+	0xda, 0x26, 0xe9, 0xd0, 0xc4, 0x32, 0xed, 0x1f, 0xd7, 0xa2, 0x9a, 0x23, 0xca, 0x45, 0x81, 0x72,
+	0x9e, 0xa8, 0x5d, 0x51, 0x3a, 0xe4, 0x27, 0x05, 0xa6, 0x24, 0xa2, 0x8e, 0xac, 0x75, 0xd8, 0x54,
+	0x61, 0x12, 0x3c, 0xfe, 0x5a, 0x6f, 0x4e, 0x08, 0xf7, 0x0d, 0x01, 0x77, 0x8d, 0xac, 0xe8, 0x51,
+	0xbf, 0xc5, 0xf5, 0x23, 0x71, 0x9a, 0x1e, 0x93, 0x1f, 0x15, 0x88, 0xc9, 0x44, 0x2e, 0xe9, 0x09,
+	0x49, 0xb3, 0xd0, 0xeb, 0x3d, 0x7a, 0x21, 0x81, 0x55, 0x41, 0xe0, 0x0e, 0x59, 0x8c, 0x4c, 0xc0,
+	0x21, 0xdf, 0x28, 0x30, 0x16, 0x0c, 0x4a, 0xb4, 0x88, 0xd9, 0x3d, 0xb4, 0x7a, 0x64, 0xfb, 0x97,
+	0xc0, 0xa9, 0x1f, 0x35, 0x44, 0xf4, 0x31, 0xf9, 0x5a, 0x81, 0xf1, 0x96, 0xcb, 0x8a, 0x44, 0x4d,
+	0xec, 0x74, 0x1f, 0xb4, 0x10, 0x09, 0xab, 0xde, 0x11, 0x50, 0x93, 0x64, 0x3e, 0x02, 0x54, 0x87,
+	0x7c, 0xa7, 0xc0, 0x58, 0x50, 0x15, 0x76, 0x28, 0xa6, 0x54, 0x77, 0x76, 0x28, 0xa6, 0x5c, 0x6e,
+	0xaa, 0xeb, 0x02, 0xa1, 0x4e, 0xd2, 0x32, 0x84, 0x2d, 0x42, 0xd4, 0x77, 0x18, 0x9c, 0x28, 0x70,
+	0x5d, 0x7e, 0xf9, 0x93, 0xbb, 0x51, 0xab, 0x14, 0x54, 0x1a, 0xf1, 0x8d, 0x9e, 0xfd, 0x90, 0xc2,
+	0x3d, 0x41, 0x61, 0x83, 0xac, 0x47, 0x29, 0xb2, 0x91, 0xab, 0x1b, 0x62, 0xea, 0x9a, 0xc3, 0xf7,
+	0x83, 0x02, 0x93, 0x6d, 0x62, 0xa0, 0xc3, 0x05, 0x16, 0x26, 0x51, 0x3a, 0x5c, 0x60, 0xa1, 0x5a,
+	0xa3, 0xf3, 0x75, 0x21, 0x51, 0x21, 0x99, 0xad, 0x93, 0xd3, 0x84, 0xf2, 0xfc, 0x34, 0xa1, 0xfc,
+	0x75, 0x9a, 0x50, 0x9e, 0x9e, 0x25, 0x06, 0x9e, 0x9f, 0x25, 0x06, 0xfe, 0x38, 0x4b, 0x0c, 0xec,
+	0xea, 0x3e, 0x45, 0x98, 0xb3, 0x72, 0x69, 0x73, 0x9f, 0x16, 0x2d, 0x7f, 0xd8, 0x4f, 0x9b, 0x81,
+	0x85, 0x3c, 0xcc, 0x0d, 0x89, 0xff, 0xe2, 0x5b, 0xfb, 0x37, 0x00, 0x00, 0xff, 0xff, 0x83, 0x93,
+	0xf5, 0x73, 0x86, 0x15, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1272,28 +1270,28 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Parameters queries the parameters of the module.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// ParamsByTimestamp queries the parameters of the module.
+	// ParamsByTimestamp queries the parameter of the module by timestamp.
 	ParamsByTimestamp(ctx context.Context, in *QueryParamsByTimestampRequest, opts ...grpc.CallOption) (*QueryParamsByTimestampResponse, error)
-	// Queries a StreamRecord by index.
+	// Queries our flows by account.
 	OutFlows(ctx context.Context, in *QueryOutFlowsRequest, opts ...grpc.CallOption) (*QueryOutFlowsResponse, error)
-	// Queries a StreamRecord by index.
+	// Queries a stream record by account.
 	StreamRecord(ctx context.Context, in *QueryGetStreamRecordRequest, opts ...grpc.CallOption) (*QueryGetStreamRecordResponse, error)
-	// Queries a list of StreamRecord items.
-	StreamRecordAll(ctx context.Context, in *QueryAllStreamRecordRequest, opts ...grpc.CallOption) (*QueryAllStreamRecordResponse, error)
-	// Queries a PaymentAccountCount by index.
-	PaymentAccountCount(ctx context.Context, in *QueryGetPaymentAccountCountRequest, opts ...grpc.CallOption) (*QueryGetPaymentAccountCountResponse, error)
-	// Queries a list of PaymentAccountCount items.
-	PaymentAccountCountAll(ctx context.Context, in *QueryAllPaymentAccountCountRequest, opts ...grpc.CallOption) (*QueryAllPaymentAccountCountResponse, error)
-	// Queries a PaymentAccount by index.
-	PaymentAccount(ctx context.Context, in *QueryGetPaymentAccountRequest, opts ...grpc.CallOption) (*QueryGetPaymentAccountResponse, error)
-	// Queries a list of PaymentAccount items.
-	PaymentAccountAll(ctx context.Context, in *QueryAllPaymentAccountRequest, opts ...grpc.CallOption) (*QueryAllPaymentAccountResponse, error)
-	// Queries a list of DynamicBalance items.
+	// Queries all stream records.
+	StreamRecords(ctx context.Context, in *QueryStreamRecordsRequest, opts ...grpc.CallOption) (*QueryStreamRecordsResponse, error)
+	// Queries the count of payment account by owner.
+	PaymentAccountCount(ctx context.Context, in *QueryPaymentAccountCountRequest, opts ...grpc.CallOption) (*QueryPaymentAccountCountResponse, error)
+	// Queries all counts of payment account for all owners.
+	PaymentAccountCounts(ctx context.Context, in *QueryPaymentAccountCountsRequest, opts ...grpc.CallOption) (*QueryPaymentAccountCountsResponse, error)
+	// Queries a payment account by payment account address.
+	PaymentAccount(ctx context.Context, in *QueryPaymentAccountRequest, opts ...grpc.CallOption) (*QueryPaymentAccountResponse, error)
+	// Queries all payment accounts.
+	PaymentAccounts(ctx context.Context, in *QueryPaymentAccountsRequest, opts ...grpc.CallOption) (*QueryPaymentAccountsResponse, error)
+	// Queries dynamic balance of a payment account.
 	DynamicBalance(ctx context.Context, in *QueryDynamicBalanceRequest, opts ...grpc.CallOption) (*QueryDynamicBalanceResponse, error)
-	// Queries a list of GetPaymentAccountsByOwner items.
-	GetPaymentAccountsByOwner(ctx context.Context, in *QueryGetPaymentAccountsByOwnerRequest, opts ...grpc.CallOption) (*QueryGetPaymentAccountsByOwnerResponse, error)
-	// Queries a list of AutoSettleRecord items.
-	AutoSettleRecordAll(ctx context.Context, in *QueryAllAutoSettleRecordRequest, opts ...grpc.CallOption) (*QueryAllAutoSettleRecordResponse, error)
+	// Queries all payment accounts by a owner.
+	PaymentAccountsByOwner(ctx context.Context, in *QueryPaymentAccountsByOwnerRequest, opts ...grpc.CallOption) (*QueryPaymentAccountsByOwnerResponse, error)
+	// Queries all auto settle records.
+	AutoSettleRecords(ctx context.Context, in *QueryAutoSettleRecordsRequest, opts ...grpc.CallOption) (*QueryAutoSettleRecordsResponse, error)
 }
 
 type queryClient struct {
@@ -1340,17 +1338,17 @@ func (c *queryClient) StreamRecord(ctx context.Context, in *QueryGetStreamRecord
 	return out, nil
 }
 
-func (c *queryClient) StreamRecordAll(ctx context.Context, in *QueryAllStreamRecordRequest, opts ...grpc.CallOption) (*QueryAllStreamRecordResponse, error) {
-	out := new(QueryAllStreamRecordResponse)
-	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/StreamRecordAll", in, out, opts...)
+func (c *queryClient) StreamRecords(ctx context.Context, in *QueryStreamRecordsRequest, opts ...grpc.CallOption) (*QueryStreamRecordsResponse, error) {
+	out := new(QueryStreamRecordsResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/StreamRecords", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) PaymentAccountCount(ctx context.Context, in *QueryGetPaymentAccountCountRequest, opts ...grpc.CallOption) (*QueryGetPaymentAccountCountResponse, error) {
-	out := new(QueryGetPaymentAccountCountResponse)
+func (c *queryClient) PaymentAccountCount(ctx context.Context, in *QueryPaymentAccountCountRequest, opts ...grpc.CallOption) (*QueryPaymentAccountCountResponse, error) {
+	out := new(QueryPaymentAccountCountResponse)
 	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccountCount", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1358,17 +1356,17 @@ func (c *queryClient) PaymentAccountCount(ctx context.Context, in *QueryGetPayme
 	return out, nil
 }
 
-func (c *queryClient) PaymentAccountCountAll(ctx context.Context, in *QueryAllPaymentAccountCountRequest, opts ...grpc.CallOption) (*QueryAllPaymentAccountCountResponse, error) {
-	out := new(QueryAllPaymentAccountCountResponse)
-	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccountCountAll", in, out, opts...)
+func (c *queryClient) PaymentAccountCounts(ctx context.Context, in *QueryPaymentAccountCountsRequest, opts ...grpc.CallOption) (*QueryPaymentAccountCountsResponse, error) {
+	out := new(QueryPaymentAccountCountsResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccountCounts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) PaymentAccount(ctx context.Context, in *QueryGetPaymentAccountRequest, opts ...grpc.CallOption) (*QueryGetPaymentAccountResponse, error) {
-	out := new(QueryGetPaymentAccountResponse)
+func (c *queryClient) PaymentAccount(ctx context.Context, in *QueryPaymentAccountRequest, opts ...grpc.CallOption) (*QueryPaymentAccountResponse, error) {
+	out := new(QueryPaymentAccountResponse)
 	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccount", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -1376,9 +1374,9 @@ func (c *queryClient) PaymentAccount(ctx context.Context, in *QueryGetPaymentAcc
 	return out, nil
 }
 
-func (c *queryClient) PaymentAccountAll(ctx context.Context, in *QueryAllPaymentAccountRequest, opts ...grpc.CallOption) (*QueryAllPaymentAccountResponse, error) {
-	out := new(QueryAllPaymentAccountResponse)
-	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccountAll", in, out, opts...)
+func (c *queryClient) PaymentAccounts(ctx context.Context, in *QueryPaymentAccountsRequest, opts ...grpc.CallOption) (*QueryPaymentAccountsResponse, error) {
+	out := new(QueryPaymentAccountsResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccounts", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1394,18 +1392,18 @@ func (c *queryClient) DynamicBalance(ctx context.Context, in *QueryDynamicBalanc
 	return out, nil
 }
 
-func (c *queryClient) GetPaymentAccountsByOwner(ctx context.Context, in *QueryGetPaymentAccountsByOwnerRequest, opts ...grpc.CallOption) (*QueryGetPaymentAccountsByOwnerResponse, error) {
-	out := new(QueryGetPaymentAccountsByOwnerResponse)
-	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/GetPaymentAccountsByOwner", in, out, opts...)
+func (c *queryClient) PaymentAccountsByOwner(ctx context.Context, in *QueryPaymentAccountsByOwnerRequest, opts ...grpc.CallOption) (*QueryPaymentAccountsByOwnerResponse, error) {
+	out := new(QueryPaymentAccountsByOwnerResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/PaymentAccountsByOwner", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) AutoSettleRecordAll(ctx context.Context, in *QueryAllAutoSettleRecordRequest, opts ...grpc.CallOption) (*QueryAllAutoSettleRecordResponse, error) {
-	out := new(QueryAllAutoSettleRecordResponse)
-	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/AutoSettleRecordAll", in, out, opts...)
+func (c *queryClient) AutoSettleRecords(ctx context.Context, in *QueryAutoSettleRecordsRequest, opts ...grpc.CallOption) (*QueryAutoSettleRecordsResponse, error) {
+	out := new(QueryAutoSettleRecordsResponse)
+	err := c.cc.Invoke(ctx, "/greenfield.payment.Query/AutoSettleRecords", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1416,28 +1414,28 @@ func (c *queryClient) AutoSettleRecordAll(ctx context.Context, in *QueryAllAutoS
 type QueryServer interface {
 	// Parameters queries the parameters of the module.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// ParamsByTimestamp queries the parameters of the module.
+	// ParamsByTimestamp queries the parameter of the module by timestamp.
 	ParamsByTimestamp(context.Context, *QueryParamsByTimestampRequest) (*QueryParamsByTimestampResponse, error)
-	// Queries a StreamRecord by index.
+	// Queries our flows by account.
 	OutFlows(context.Context, *QueryOutFlowsRequest) (*QueryOutFlowsResponse, error)
-	// Queries a StreamRecord by index.
+	// Queries a stream record by account.
 	StreamRecord(context.Context, *QueryGetStreamRecordRequest) (*QueryGetStreamRecordResponse, error)
-	// Queries a list of StreamRecord items.
-	StreamRecordAll(context.Context, *QueryAllStreamRecordRequest) (*QueryAllStreamRecordResponse, error)
-	// Queries a PaymentAccountCount by index.
-	PaymentAccountCount(context.Context, *QueryGetPaymentAccountCountRequest) (*QueryGetPaymentAccountCountResponse, error)
-	// Queries a list of PaymentAccountCount items.
-	PaymentAccountCountAll(context.Context, *QueryAllPaymentAccountCountRequest) (*QueryAllPaymentAccountCountResponse, error)
-	// Queries a PaymentAccount by index.
-	PaymentAccount(context.Context, *QueryGetPaymentAccountRequest) (*QueryGetPaymentAccountResponse, error)
-	// Queries a list of PaymentAccount items.
-	PaymentAccountAll(context.Context, *QueryAllPaymentAccountRequest) (*QueryAllPaymentAccountResponse, error)
-	// Queries a list of DynamicBalance items.
+	// Queries all stream records.
+	StreamRecords(context.Context, *QueryStreamRecordsRequest) (*QueryStreamRecordsResponse, error)
+	// Queries the count of payment account by owner.
+	PaymentAccountCount(context.Context, *QueryPaymentAccountCountRequest) (*QueryPaymentAccountCountResponse, error)
+	// Queries all counts of payment account for all owners.
+	PaymentAccountCounts(context.Context, *QueryPaymentAccountCountsRequest) (*QueryPaymentAccountCountsResponse, error)
+	// Queries a payment account by payment account address.
+	PaymentAccount(context.Context, *QueryPaymentAccountRequest) (*QueryPaymentAccountResponse, error)
+	// Queries all payment accounts.
+	PaymentAccounts(context.Context, *QueryPaymentAccountsRequest) (*QueryPaymentAccountsResponse, error)
+	// Queries dynamic balance of a payment account.
 	DynamicBalance(context.Context, *QueryDynamicBalanceRequest) (*QueryDynamicBalanceResponse, error)
-	// Queries a list of GetPaymentAccountsByOwner items.
-	GetPaymentAccountsByOwner(context.Context, *QueryGetPaymentAccountsByOwnerRequest) (*QueryGetPaymentAccountsByOwnerResponse, error)
-	// Queries a list of AutoSettleRecord items.
-	AutoSettleRecordAll(context.Context, *QueryAllAutoSettleRecordRequest) (*QueryAllAutoSettleRecordResponse, error)
+	// Queries all payment accounts by a owner.
+	PaymentAccountsByOwner(context.Context, *QueryPaymentAccountsByOwnerRequest) (*QueryPaymentAccountsByOwnerResponse, error)
+	// Queries all auto settle records.
+	AutoSettleRecords(context.Context, *QueryAutoSettleRecordsRequest) (*QueryAutoSettleRecordsResponse, error)
 }
 
 // UnimplementedQueryServer can be embedded to have forward compatible implementations.
@@ -1456,29 +1454,29 @@ func (*UnimplementedQueryServer) OutFlows(ctx context.Context, req *QueryOutFlow
 func (*UnimplementedQueryServer) StreamRecord(ctx context.Context, req *QueryGetStreamRecordRequest) (*QueryGetStreamRecordResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method StreamRecord not implemented")
 }
-func (*UnimplementedQueryServer) StreamRecordAll(ctx context.Context, req *QueryAllStreamRecordRequest) (*QueryAllStreamRecordResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StreamRecordAll not implemented")
+func (*UnimplementedQueryServer) StreamRecords(ctx context.Context, req *QueryStreamRecordsRequest) (*QueryStreamRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StreamRecords not implemented")
 }
-func (*UnimplementedQueryServer) PaymentAccountCount(ctx context.Context, req *QueryGetPaymentAccountCountRequest) (*QueryGetPaymentAccountCountResponse, error) {
+func (*UnimplementedQueryServer) PaymentAccountCount(ctx context.Context, req *QueryPaymentAccountCountRequest) (*QueryPaymentAccountCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccountCount not implemented")
 }
-func (*UnimplementedQueryServer) PaymentAccountCountAll(ctx context.Context, req *QueryAllPaymentAccountCountRequest) (*QueryAllPaymentAccountCountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccountCountAll not implemented")
+func (*UnimplementedQueryServer) PaymentAccountCounts(ctx context.Context, req *QueryPaymentAccountCountsRequest) (*QueryPaymentAccountCountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccountCounts not implemented")
 }
-func (*UnimplementedQueryServer) PaymentAccount(ctx context.Context, req *QueryGetPaymentAccountRequest) (*QueryGetPaymentAccountResponse, error) {
+func (*UnimplementedQueryServer) PaymentAccount(ctx context.Context, req *QueryPaymentAccountRequest) (*QueryPaymentAccountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccount not implemented")
 }
-func (*UnimplementedQueryServer) PaymentAccountAll(ctx context.Context, req *QueryAllPaymentAccountRequest) (*QueryAllPaymentAccountResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccountAll not implemented")
+func (*UnimplementedQueryServer) PaymentAccounts(ctx context.Context, req *QueryPaymentAccountsRequest) (*QueryPaymentAccountsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccounts not implemented")
 }
 func (*UnimplementedQueryServer) DynamicBalance(ctx context.Context, req *QueryDynamicBalanceRequest) (*QueryDynamicBalanceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DynamicBalance not implemented")
 }
-func (*UnimplementedQueryServer) GetPaymentAccountsByOwner(ctx context.Context, req *QueryGetPaymentAccountsByOwnerRequest) (*QueryGetPaymentAccountsByOwnerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPaymentAccountsByOwner not implemented")
+func (*UnimplementedQueryServer) PaymentAccountsByOwner(ctx context.Context, req *QueryPaymentAccountsByOwnerRequest) (*QueryPaymentAccountsByOwnerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PaymentAccountsByOwner not implemented")
 }
-func (*UnimplementedQueryServer) AutoSettleRecordAll(ctx context.Context, req *QueryAllAutoSettleRecordRequest) (*QueryAllAutoSettleRecordResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AutoSettleRecordAll not implemented")
+func (*UnimplementedQueryServer) AutoSettleRecords(ctx context.Context, req *QueryAutoSettleRecordsRequest) (*QueryAutoSettleRecordsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AutoSettleRecords not implemented")
 }
 
 func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
@@ -1557,26 +1555,26 @@ func _Query_StreamRecord_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_StreamRecordAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllStreamRecordRequest)
+func _Query_StreamRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryStreamRecordsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).StreamRecordAll(ctx, in)
+		return srv.(QueryServer).StreamRecords(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/greenfield.payment.Query/StreamRecordAll",
+		FullMethod: "/greenfield.payment.Query/StreamRecords",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).StreamRecordAll(ctx, req.(*QueryAllStreamRecordRequest))
+		return srv.(QueryServer).StreamRecords(ctx, req.(*QueryStreamRecordsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_PaymentAccountCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetPaymentAccountCountRequest)
+	in := new(QueryPaymentAccountCountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1588,31 +1586,31 @@ func _Query_PaymentAccountCount_Handler(srv interface{}, ctx context.Context, de
 		FullMethod: "/greenfield.payment.Query/PaymentAccountCount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PaymentAccountCount(ctx, req.(*QueryGetPaymentAccountCountRequest))
+		return srv.(QueryServer).PaymentAccountCount(ctx, req.(*QueryPaymentAccountCountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_PaymentAccountCountAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllPaymentAccountCountRequest)
+func _Query_PaymentAccountCounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPaymentAccountCountsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).PaymentAccountCountAll(ctx, in)
+		return srv.(QueryServer).PaymentAccountCounts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/greenfield.payment.Query/PaymentAccountCountAll",
+		FullMethod: "/greenfield.payment.Query/PaymentAccountCounts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PaymentAccountCountAll(ctx, req.(*QueryAllPaymentAccountCountRequest))
+		return srv.(QueryServer).PaymentAccountCounts(ctx, req.(*QueryPaymentAccountCountsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_PaymentAccount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetPaymentAccountRequest)
+	in := new(QueryPaymentAccountRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -1624,25 +1622,25 @@ func _Query_PaymentAccount_Handler(srv interface{}, ctx context.Context, dec fun
 		FullMethod: "/greenfield.payment.Query/PaymentAccount",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PaymentAccount(ctx, req.(*QueryGetPaymentAccountRequest))
+		return srv.(QueryServer).PaymentAccount(ctx, req.(*QueryPaymentAccountRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_PaymentAccountAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllPaymentAccountRequest)
+func _Query_PaymentAccounts_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPaymentAccountsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).PaymentAccountAll(ctx, in)
+		return srv.(QueryServer).PaymentAccounts(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/greenfield.payment.Query/PaymentAccountAll",
+		FullMethod: "/greenfield.payment.Query/PaymentAccounts",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PaymentAccountAll(ctx, req.(*QueryAllPaymentAccountRequest))
+		return srv.(QueryServer).PaymentAccounts(ctx, req.(*QueryPaymentAccountsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1665,38 +1663,38 @@ func _Query_DynamicBalance_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_GetPaymentAccountsByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryGetPaymentAccountsByOwnerRequest)
+func _Query_PaymentAccountsByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryPaymentAccountsByOwnerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).GetPaymentAccountsByOwner(ctx, in)
+		return srv.(QueryServer).PaymentAccountsByOwner(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/greenfield.payment.Query/GetPaymentAccountsByOwner",
+		FullMethod: "/greenfield.payment.Query/PaymentAccountsByOwner",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).GetPaymentAccountsByOwner(ctx, req.(*QueryGetPaymentAccountsByOwnerRequest))
+		return srv.(QueryServer).PaymentAccountsByOwner(ctx, req.(*QueryPaymentAccountsByOwnerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_AutoSettleRecordAll_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryAllAutoSettleRecordRequest)
+func _Query_AutoSettleRecords_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryAutoSettleRecordsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).AutoSettleRecordAll(ctx, in)
+		return srv.(QueryServer).AutoSettleRecords(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/greenfield.payment.Query/AutoSettleRecordAll",
+		FullMethod: "/greenfield.payment.Query/AutoSettleRecords",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).AutoSettleRecordAll(ctx, req.(*QueryAllAutoSettleRecordRequest))
+		return srv.(QueryServer).AutoSettleRecords(ctx, req.(*QueryAutoSettleRecordsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1722,36 +1720,36 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_StreamRecord_Handler,
 		},
 		{
-			MethodName: "StreamRecordAll",
-			Handler:    _Query_StreamRecordAll_Handler,
+			MethodName: "StreamRecords",
+			Handler:    _Query_StreamRecords_Handler,
 		},
 		{
 			MethodName: "PaymentAccountCount",
 			Handler:    _Query_PaymentAccountCount_Handler,
 		},
 		{
-			MethodName: "PaymentAccountCountAll",
-			Handler:    _Query_PaymentAccountCountAll_Handler,
+			MethodName: "PaymentAccountCounts",
+			Handler:    _Query_PaymentAccountCounts_Handler,
 		},
 		{
 			MethodName: "PaymentAccount",
 			Handler:    _Query_PaymentAccount_Handler,
 		},
 		{
-			MethodName: "PaymentAccountAll",
-			Handler:    _Query_PaymentAccountAll_Handler,
+			MethodName: "PaymentAccounts",
+			Handler:    _Query_PaymentAccounts_Handler,
 		},
 		{
 			MethodName: "DynamicBalance",
 			Handler:    _Query_DynamicBalance_Handler,
 		},
 		{
-			MethodName: "GetPaymentAccountsByOwner",
-			Handler:    _Query_GetPaymentAccountsByOwner_Handler,
+			MethodName: "PaymentAccountsByOwner",
+			Handler:    _Query_PaymentAccountsByOwner_Handler,
 		},
 		{
-			MethodName: "AutoSettleRecordAll",
-			Handler:    _Query_AutoSettleRecordAll_Handler,
+			MethodName: "AutoSettleRecords",
+			Handler:    _Query_AutoSettleRecords_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -2005,7 +2003,7 @@ func (m *QueryGetStreamRecordResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllStreamRecordRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryStreamRecordsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2015,12 +2013,12 @@ func (m *QueryAllStreamRecordRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllStreamRecordRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryStreamRecordsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllStreamRecordRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryStreamRecordsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2040,7 +2038,7 @@ func (m *QueryAllStreamRecordRequest) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllStreamRecordResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryStreamRecordsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2050,12 +2048,12 @@ func (m *QueryAllStreamRecordResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllStreamRecordResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryStreamRecordsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllStreamRecordResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryStreamRecordsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2072,10 +2070,10 @@ func (m *QueryAllStreamRecordResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.StreamRecord) > 0 {
-		for iNdEx := len(m.StreamRecord) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.StreamRecords) > 0 {
+		for iNdEx := len(m.StreamRecords) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.StreamRecord[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.StreamRecords[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -2089,7 +2087,7 @@ func (m *QueryAllStreamRecordResponse) MarshalToSizedBuffer(dAtA []byte) (int, e
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetPaymentAccountCountRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountCountRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2099,12 +2097,12 @@ func (m *QueryGetPaymentAccountCountRequest) Marshal() (dAtA []byte, err error) 
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetPaymentAccountCountRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetPaymentAccountCountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2119,7 +2117,7 @@ func (m *QueryGetPaymentAccountCountRequest) MarshalToSizedBuffer(dAtA []byte) (
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetPaymentAccountCountResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountCountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2129,12 +2127,12 @@ func (m *QueryGetPaymentAccountCountResponse) Marshal() (dAtA []byte, err error)
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetPaymentAccountCountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetPaymentAccountCountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2152,7 +2150,7 @@ func (m *QueryGetPaymentAccountCountResponse) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllPaymentAccountCountRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountCountsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2162,12 +2160,12 @@ func (m *QueryAllPaymentAccountCountRequest) Marshal() (dAtA []byte, err error) 
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllPaymentAccountCountRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllPaymentAccountCountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2187,7 +2185,7 @@ func (m *QueryAllPaymentAccountCountRequest) MarshalToSizedBuffer(dAtA []byte) (
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllPaymentAccountCountResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountCountsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2197,12 +2195,12 @@ func (m *QueryAllPaymentAccountCountResponse) Marshal() (dAtA []byte, err error)
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllPaymentAccountCountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllPaymentAccountCountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountCountsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2219,10 +2217,10 @@ func (m *QueryAllPaymentAccountCountResponse) MarshalToSizedBuffer(dAtA []byte) 
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.PaymentAccountCount) > 0 {
-		for iNdEx := len(m.PaymentAccountCount) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.PaymentAccountCounts) > 0 {
+		for iNdEx := len(m.PaymentAccountCounts) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.PaymentAccountCount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.PaymentAccountCounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -2236,7 +2234,7 @@ func (m *QueryAllPaymentAccountCountResponse) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetPaymentAccountRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2246,12 +2244,12 @@ func (m *QueryGetPaymentAccountRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetPaymentAccountRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetPaymentAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2266,7 +2264,7 @@ func (m *QueryGetPaymentAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetPaymentAccountResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2276,12 +2274,12 @@ func (m *QueryGetPaymentAccountResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetPaymentAccountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetPaymentAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2299,7 +2297,7 @@ func (m *QueryGetPaymentAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllPaymentAccountRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2309,12 +2307,12 @@ func (m *QueryAllPaymentAccountRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllPaymentAccountRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllPaymentAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2334,7 +2332,7 @@ func (m *QueryAllPaymentAccountRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllPaymentAccountResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2344,12 +2342,12 @@ func (m *QueryAllPaymentAccountResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllPaymentAccountResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllPaymentAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2366,10 +2364,10 @@ func (m *QueryAllPaymentAccountResponse) MarshalToSizedBuffer(dAtA []byte) (int,
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.PaymentAccount) > 0 {
-		for iNdEx := len(m.PaymentAccount) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.PaymentAccounts) > 0 {
+		for iNdEx := len(m.PaymentAccounts) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.PaymentAccount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.PaymentAccounts[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -2501,7 +2499,7 @@ func (m *QueryDynamicBalanceResponse) MarshalToSizedBuffer(dAtA []byte) (int, er
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetPaymentAccountsByOwnerRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountsByOwnerRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2511,12 +2509,12 @@ func (m *QueryGetPaymentAccountsByOwnerRequest) Marshal() (dAtA []byte, err erro
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetPaymentAccountsByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetPaymentAccountsByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2531,7 +2529,7 @@ func (m *QueryGetPaymentAccountsByOwnerRequest) MarshalToSizedBuffer(dAtA []byte
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryGetPaymentAccountsByOwnerResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryPaymentAccountsByOwnerResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2541,12 +2539,12 @@ func (m *QueryGetPaymentAccountsByOwnerResponse) Marshal() (dAtA []byte, err err
 	return dAtA[:n], nil
 }
 
-func (m *QueryGetPaymentAccountsByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryGetPaymentAccountsByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryPaymentAccountsByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2563,7 +2561,7 @@ func (m *QueryGetPaymentAccountsByOwnerResponse) MarshalToSizedBuffer(dAtA []byt
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllAutoSettleRecordRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryAutoSettleRecordsRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2573,12 +2571,12 @@ func (m *QueryAllAutoSettleRecordRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllAutoSettleRecordRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAutoSettleRecordsRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllAutoSettleRecordRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAutoSettleRecordsRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2598,7 +2596,7 @@ func (m *QueryAllAutoSettleRecordRequest) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryAllAutoSettleRecordResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryAutoSettleRecordsResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2608,12 +2606,12 @@ func (m *QueryAllAutoSettleRecordResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryAllAutoSettleRecordResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryAutoSettleRecordsResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryAllAutoSettleRecordResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryAutoSettleRecordsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2630,10 +2628,10 @@ func (m *QueryAllAutoSettleRecordResponse) MarshalToSizedBuffer(dAtA []byte) (in
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.AutoSettleRecord) > 0 {
-		for iNdEx := len(m.AutoSettleRecord) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.AutoSettleRecords) > 0 {
+		for iNdEx := len(m.AutoSettleRecords) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.AutoSettleRecord[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.AutoSettleRecords[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -2753,7 +2751,7 @@ func (m *QueryGetStreamRecordResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllStreamRecordRequest) Size() (n int) {
+func (m *QueryStreamRecordsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2766,14 +2764,14 @@ func (m *QueryAllStreamRecordRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllStreamRecordResponse) Size() (n int) {
+func (m *QueryStreamRecordsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.StreamRecord) > 0 {
-		for _, e := range m.StreamRecord {
+	if len(m.StreamRecords) > 0 {
+		for _, e := range m.StreamRecords {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -2785,7 +2783,7 @@ func (m *QueryAllStreamRecordResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetPaymentAccountCountRequest) Size() (n int) {
+func (m *QueryPaymentAccountCountRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2798,7 +2796,7 @@ func (m *QueryGetPaymentAccountCountRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetPaymentAccountCountResponse) Size() (n int) {
+func (m *QueryPaymentAccountCountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2809,7 +2807,7 @@ func (m *QueryGetPaymentAccountCountResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllPaymentAccountCountRequest) Size() (n int) {
+func (m *QueryPaymentAccountCountsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2822,14 +2820,14 @@ func (m *QueryAllPaymentAccountCountRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllPaymentAccountCountResponse) Size() (n int) {
+func (m *QueryPaymentAccountCountsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.PaymentAccountCount) > 0 {
-		for _, e := range m.PaymentAccountCount {
+	if len(m.PaymentAccountCounts) > 0 {
+		for _, e := range m.PaymentAccountCounts {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -2841,7 +2839,7 @@ func (m *QueryAllPaymentAccountCountResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetPaymentAccountRequest) Size() (n int) {
+func (m *QueryPaymentAccountRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2854,7 +2852,7 @@ func (m *QueryGetPaymentAccountRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetPaymentAccountResponse) Size() (n int) {
+func (m *QueryPaymentAccountResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2865,7 +2863,7 @@ func (m *QueryGetPaymentAccountResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllPaymentAccountRequest) Size() (n int) {
+func (m *QueryPaymentAccountsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2878,14 +2876,14 @@ func (m *QueryAllPaymentAccountRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllPaymentAccountResponse) Size() (n int) {
+func (m *QueryPaymentAccountsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.PaymentAccount) > 0 {
-		for _, e := range m.PaymentAccount {
+	if len(m.PaymentAccounts) > 0 {
+		for _, e := range m.PaymentAccounts {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -2934,7 +2932,7 @@ func (m *QueryDynamicBalanceResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetPaymentAccountsByOwnerRequest) Size() (n int) {
+func (m *QueryPaymentAccountsByOwnerRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2947,7 +2945,7 @@ func (m *QueryGetPaymentAccountsByOwnerRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryGetPaymentAccountsByOwnerResponse) Size() (n int) {
+func (m *QueryPaymentAccountsByOwnerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2962,7 +2960,7 @@ func (m *QueryGetPaymentAccountsByOwnerResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllAutoSettleRecordRequest) Size() (n int) {
+func (m *QueryAutoSettleRecordsRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2975,14 +2973,14 @@ func (m *QueryAllAutoSettleRecordRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryAllAutoSettleRecordResponse) Size() (n int) {
+func (m *QueryAutoSettleRecordsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.AutoSettleRecord) > 0 {
-		for _, e := range m.AutoSettleRecord {
+	if len(m.AutoSettleRecords) > 0 {
+		for _, e := range m.AutoSettleRecords {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -3616,7 +3614,7 @@ func (m *QueryGetStreamRecordResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllStreamRecordRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryStreamRecordsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3639,10 +3637,10 @@ func (m *QueryAllStreamRecordRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllStreamRecordRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryStreamRecordsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllStreamRecordRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryStreamRecordsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3702,7 +3700,7 @@ func (m *QueryAllStreamRecordRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllStreamRecordResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryStreamRecordsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3725,15 +3723,15 @@ func (m *QueryAllStreamRecordResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllStreamRecordResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryStreamRecordsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllStreamRecordResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryStreamRecordsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StreamRecord", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field StreamRecords", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3760,8 +3758,8 @@ func (m *QueryAllStreamRecordResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.StreamRecord = append(m.StreamRecord, StreamRecord{})
-			if err := m.StreamRecord[len(m.StreamRecord)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.StreamRecords = append(m.StreamRecords, StreamRecord{})
+			if err := m.StreamRecords[len(m.StreamRecords)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3822,7 +3820,7 @@ func (m *QueryAllStreamRecordResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3845,10 +3843,10 @@ func (m *QueryGetPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountCountRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountCountRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountCountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountCountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3904,7 +3902,7 @@ func (m *QueryGetPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3927,10 +3925,10 @@ func (m *QueryGetPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountCountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountCountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountCountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountCountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3987,7 +3985,7 @@ func (m *QueryGetPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountCountsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4010,10 +4008,10 @@ func (m *QueryAllPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountCountRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountCountsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountCountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountCountsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4073,7 +4071,7 @@ func (m *QueryAllPaymentAccountCountRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountCountsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4096,15 +4094,15 @@ func (m *QueryAllPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountCountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountCountsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountCountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountCountsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PaymentAccountCount", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PaymentAccountCounts", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -4131,8 +4129,8 @@ func (m *QueryAllPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PaymentAccountCount = append(m.PaymentAccountCount, PaymentAccountCount{})
-			if err := m.PaymentAccountCount[len(m.PaymentAccountCount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.PaymentAccountCounts = append(m.PaymentAccountCounts, PaymentAccountCount{})
+			if err := m.PaymentAccountCounts[len(m.PaymentAccountCounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -4193,7 +4191,7 @@ func (m *QueryAllPaymentAccountCountResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetPaymentAccountRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4216,10 +4214,10 @@ func (m *QueryGetPaymentAccountRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4275,7 +4273,7 @@ func (m *QueryGetPaymentAccountRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetPaymentAccountResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4298,10 +4296,10 @@ func (m *QueryGetPaymentAccountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4358,7 +4356,7 @@ func (m *QueryGetPaymentAccountResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllPaymentAccountRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4381,10 +4379,10 @@ func (m *QueryAllPaymentAccountRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4444,7 +4442,7 @@ func (m *QueryAllPaymentAccountRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllPaymentAccountResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4467,15 +4465,15 @@ func (m *QueryAllPaymentAccountResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllPaymentAccountResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PaymentAccount", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field PaymentAccounts", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -4502,8 +4500,8 @@ func (m *QueryAllPaymentAccountResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.PaymentAccount = append(m.PaymentAccount, PaymentAccount{})
-			if err := m.PaymentAccount[len(m.PaymentAccount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.PaymentAccounts = append(m.PaymentAccounts, PaymentAccount{})
+			if err := m.PaymentAccounts[len(m.PaymentAccounts)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -4918,7 +4916,7 @@ func (m *QueryDynamicBalanceResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetPaymentAccountsByOwnerRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountsByOwnerRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4941,10 +4939,10 @@ func (m *QueryGetPaymentAccountsByOwnerRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountsByOwnerRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountsByOwnerRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountsByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountsByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5000,7 +4998,7 @@ func (m *QueryGetPaymentAccountsByOwnerRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryGetPaymentAccountsByOwnerResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryPaymentAccountsByOwnerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5023,10 +5021,10 @@ func (m *QueryGetPaymentAccountsByOwnerResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountsByOwnerResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryPaymentAccountsByOwnerResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryGetPaymentAccountsByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryPaymentAccountsByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5082,7 +5080,7 @@ func (m *QueryGetPaymentAccountsByOwnerResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllAutoSettleRecordRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryAutoSettleRecordsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5105,10 +5103,10 @@ func (m *QueryAllAutoSettleRecordRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllAutoSettleRecordRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAutoSettleRecordsRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllAutoSettleRecordRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAutoSettleRecordsRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -5168,7 +5166,7 @@ func (m *QueryAllAutoSettleRecordRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryAllAutoSettleRecordResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryAutoSettleRecordsResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5191,15 +5189,15 @@ func (m *QueryAllAutoSettleRecordResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryAllAutoSettleRecordResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryAutoSettleRecordsResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryAllAutoSettleRecordResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryAutoSettleRecordsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field AutoSettleRecord", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field AutoSettleRecords", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -5226,8 +5224,8 @@ func (m *QueryAllAutoSettleRecordResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.AutoSettleRecord = append(m.AutoSettleRecord, AutoSettleRecord{})
-			if err := m.AutoSettleRecord[len(m.AutoSettleRecord)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.AutoSettleRecords = append(m.AutoSettleRecords, AutoSettleRecord{})
+			if err := m.AutoSettleRecords[len(m.AutoSettleRecords)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

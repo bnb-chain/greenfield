@@ -14,6 +14,9 @@ on:
 
 jobs:
   protobuf-check:
+    strategy:
+      matrix:
+        go-version: [1.20.x]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,6 +29,7 @@ jobs:
       - name: Test protobuf changes generates new go files
         run: |
           export PATH="$PATH:$(go env GOPATH)/bin"
+          go mod tidy
           make tools proto-gen-check
       - name: Test protobuf swagger changes
         run: |

@@ -10,3 +10,4 @@ build/
 vendor/
 .local
 .task
+coverage.out

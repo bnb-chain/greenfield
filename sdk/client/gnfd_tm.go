@@ -52,6 +52,7 @@ func (c *GreenfieldClient) GetStatus(ctx context.Context) (*ctypes.ResultStatus,
 
 func (c *GreenfieldClient) BroadcastVote(ctx context.Context, vote votepool.Vote) error {
 	_, err := c.tendermintClient.BroadcastVote(ctx, vote)
+
 	return err
 }
 

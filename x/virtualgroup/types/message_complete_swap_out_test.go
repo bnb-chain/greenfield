@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 )
 
 func TestMsgCompleteSwapOut_ValidateBasic(t *testing.T) {
@@ -16,18 +17,38 @@ func TestMsgCompleteSwapOut_ValidateBasic(t *testing.T) {
 		err  error
 	}{
 		{
+			name: "valid address",
+			msg: *NewMsgCompleteSwapOut(
+				sample.RandAccAddress(),
+				1,
+				[]uint32{},
+			),
+		},
+		{
 			name: "invalid address",
 			msg: MsgCompleteSwapOut{
 				StorageProvider:            "invalid_address",
 				GlobalVirtualGroupFamilyId: 1,
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
-			name: "valid address",
+		},
+		{
+			name: "invalid gvg groups",
 			msg: MsgCompleteSwapOut{
-				StorageProvider:            sample.AccAddress(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupIds:      []uint32{1, 2, 3},
 			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+		{
+			name: "invalid gvg groups",
+			msg: MsgCompleteSwapOut{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupIds:      []uint32{},
+			},
+			err: gnfderrors.ErrInvalidMessage,
 		},
 	}
 	for _, tt := range tests {

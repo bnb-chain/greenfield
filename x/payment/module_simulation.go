@@ -15,7 +15,7 @@ import (
 
 // avoid unused import issue
 var (
-	_ = sample.AccAddress
+	_ = sample.RandAccAddressHex
 	_ = paymentsimulation.FindAccount
 	_ = simulation.MsgEntryKind
 	_ = baseapp.Paramspace

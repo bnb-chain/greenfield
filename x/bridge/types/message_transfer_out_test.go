@@ -25,7 +25,7 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid to address",
 			msg: MsgTransferOut{
-				From: sample.AccAddress(),
+				From: sample.RandAccAddressHex(),
 				To:   "invalid address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
@@ -33,7 +33,7 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid amount",
 			msg: MsgTransferOut{
-				From:   sample.AccAddress(),
+				From:   sample.RandAccAddressHex(),
 				To:     "0x0000000000000000000000000000000000001000",
 				Amount: nil,
 			},
@@ -42,7 +42,7 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid amount",
 			msg: MsgTransferOut{
-				From: sample.AccAddress(),
+				From: sample.RandAccAddressHex(),
 				To:   "0x0000000000000000000000000000000000001000",
 				Amount: &sdk.Coin{
 					Denom:  "%%%%%",
@@ -54,7 +54,7 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid amount",
 			msg: MsgTransferOut{
-				From: sample.AccAddress(),
+				From: sample.RandAccAddressHex(),
 				To:   "0x0000000000000000000000000000000000001000",
 				Amount: &sdk.Coin{
 					Denom:  "coin",
@@ -66,7 +66,7 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid amount",
 			msg: MsgTransferOut{
-				From: sample.AccAddress(),
+				From: sample.RandAccAddressHex(),
 				To:   "0x0000000000000000000000000000000000001000",
 				Amount: &sdk.Coin{
 					Denom:  "coin",
@@ -78,7 +78,7 @@ func TestMsgTransferOut_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid amount",
 			msg: MsgTransferOut{
-				From: sample.AccAddress(),
+				From: sample.RandAccAddressHex(),
 				To:   "0x0000000000000000000000000000000000001000",
 				Amount: &sdk.Coin{
 					Denom:  "coin",

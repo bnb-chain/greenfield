@@ -119,3 +119,23 @@ func (k Keeper) StorageProviderByOperatorAddress(goCtx context.Context, req *typ
 	}
 	return &types.QueryStorageProviderByOperatorAddressResponse{StorageProvider: sp}, nil
 }
+
+func (k Keeper) StorageProviderMaintenanceRecordsByOperatorAddress(goCtx context.Context, req *types.QueryStorageProviderMaintenanceRecordsRequest) (*types.QueryStorageProviderMaintenanceRecordsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	operatorAddr, err := sdk.AccAddressFromHexUnsafe(req.OperatorAddress)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid primary storage provider address")
+	}
+	records := make([]*types.MaintenanceRecord, 0)
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetStorageProviderMaintenanceRecordsKey(operatorAddr))
+	if bz != nil {
+		stats := &types.SpMaintenanceStats{}
+		k.cdc.MustUnmarshal(bz, stats)
+		records = stats.Records
+	}
+	return &types.QueryStorageProviderMaintenanceRecordsResponse{Records: records}, nil
+}

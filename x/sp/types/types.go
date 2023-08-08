@@ -10,16 +10,17 @@ import (
 )
 
 const (
-	MaxMonikerLength  = 70
-	MaxIdentityLength = 3000
-	MaxWebsiteLength  = 140
-	MaxDetailsLength  = 280
+	MaxMonikerLength                      = 70
+	MaxIdentityLength                     = 3000
+	MaxWebsiteLength                      = 140
+	MaxDetailsLength                      = 280
+	MaintenanceRecordsGCFrequencyInBlocks = 100
 )
 
 // NewStorageProvider constructs a new StorageProvider
 func NewStorageProvider(
 	spID uint32, operator sdk.AccAddress, fundingAddress sdk.AccAddress,
-	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress,
+	sealAddress sdk.AccAddress, approvalAddress sdk.AccAddress, gcAddress sdk.AccAddress, maintenanceAddress sdk.AccAddress,
 	totalDeposit math.Int, endpoint string,
 	description Description,
 	blsKey string) (StorageProvider, error) {
@@ -30,16 +31,17 @@ func NewStorageProvider(
 	}
 
 	return StorageProvider{
-		Id:              spID,
-		OperatorAddress: operator.String(),
-		FundingAddress:  fundingAddress.String(),
-		SealAddress:     sealAddress.String(),
-		ApprovalAddress: approvalAddress.String(),
-		GcAddress:       gcAddress.String(),
-		TotalDeposit:    totalDeposit,
-		Endpoint:        endpoint,
-		Description:     description,
-		BlsKey:          blsKeyBytes,
+		Id:                 spID,
+		OperatorAddress:    operator.String(),
+		FundingAddress:     fundingAddress.String(),
+		SealAddress:        sealAddress.String(),
+		ApprovalAddress:    approvalAddress.String(),
+		GcAddress:          gcAddress.String(),
+		MaintenanceAddress: maintenanceAddress.String(),
+		TotalDeposit:       totalDeposit,
+		Endpoint:           endpoint,
+		Description:        description,
+		BlsKey:             blsKeyBytes,
 	}, nil
 }
 
@@ -77,6 +79,14 @@ func (sp *StorageProvider) GetGcAccAddress() sdk.AccAddress {
 		return sdk.AccAddress{}
 	}
 	addr := sdk.MustAccAddressFromHex(sp.GcAddress)
+	return addr
+}
+
+func (sp *StorageProvider) GetTestAccAddress() sdk.AccAddress {
+	if sp.OperatorAddress == "" {
+		return sdk.AccAddress{}
+	}
+	addr := sdk.MustAccAddressFromHex(sp.MaintenanceAddress)
 	return addr
 }
 

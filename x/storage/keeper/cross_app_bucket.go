@@ -13,10 +13,10 @@ import (
 var _ sdk.CrossChainApplication = &BucketApp{}
 
 type BucketApp struct {
-	storageKeeper Keeper
+	storageKeeper types.StorageKeeper
 }
 
-func NewBucketApp(keeper Keeper) *BucketApp {
+func NewBucketApp(keeper types.StorageKeeper) *BucketApp {
 	return &BucketApp{
 		storageKeeper: keeper,
 	}
@@ -216,7 +216,7 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 		createBucketPackage.Creator,
 		createBucketPackage.BucketName,
 		createBucketPackage.PrimarySpAddress,
-		&CreateBucketOptions{
+		&types.CreateBucketOptions{
 			Visibility:       types.VisibilityType(createBucketPackage.Visibility),
 			SourceType:       types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
@@ -267,6 +267,7 @@ func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, header *sdk.
 		return sdk.ExecuteResult{
 			Payload: types.DeleteBucketAckPackage{
 				Status:    types.StatusFail,
+				Id:        deleteBucketPackage.Id,
 				ExtraData: deleteBucketPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,
@@ -281,6 +282,7 @@ func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, header *sdk.
 		return sdk.ExecuteResult{
 			Payload: types.DeleteBucketAckPackage{
 				Status:    types.StatusFail,
+				Id:        deleteBucketPackage.Id,
 				ExtraData: deleteBucketPackage.ExtraData,
 			}.MustSerialize(),
 			Err: types.ErrNoSuchBucket,
@@ -290,7 +292,7 @@ func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, header *sdk.
 	err = app.storageKeeper.DeleteBucket(ctx,
 		deleteBucketPackage.Operator,
 		bucketInfo.BucketName,
-		DeleteBucketOptions{
+		types.DeleteBucketOptions{
 			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
 		},
 	)
@@ -298,6 +300,7 @@ func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, header *sdk.
 		return sdk.ExecuteResult{
 			Payload: types.DeleteBucketAckPackage{
 				Status:    types.StatusFail,
+				Id:        deleteBucketPackage.Id,
 				ExtraData: deleteBucketPackage.ExtraData,
 			}.MustSerialize(),
 			Err: err,

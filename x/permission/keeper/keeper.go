@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -58,20 +59,31 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
+func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration time.Time) error {
 	store := ctx.KVStore(k.storeKey)
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	if store.Has(memberKey) {
 		return storagetypes.ErrGroupMemberAlreadyExists
 	}
 	groupMember := types.GroupMember{
-		GroupId: groupID,
-		Member:  member.String(),
+		GroupId:        groupID,
+		Member:         member.String(),
+		ExpirationTime: expiration,
 	}
 	id := k.groupMemberSeq.NextVal(store)
 	store.Set(memberKey, id.Bytes())
 	store.Set(types.GetGroupMemberByIDKey(id), k.cdc.MustMarshal(&groupMember))
 	return nil
+}
+
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration time.Time) {
+	store := ctx.KVStore(k.storeKey)
+	groupMember := types.GroupMember{
+		GroupId:        groupID,
+		Member:         member.String(),
+		ExpirationTime: expiration,
+	}
+	store.Set(types.GetGroupMemberByIDKey(memberID), k.cdc.MustMarshal(&groupMember))
 }
 
 func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
@@ -105,6 +117,7 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 	}
 	var groupMember types.GroupMember
 	k.cdc.MustUnmarshal(bz, &groupMember)
+	groupMember.Id = groupMemberID
 	return &groupMember, true
 }
 
@@ -224,6 +237,20 @@ func (k Keeper) GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	return k.GetPolicyByID(ctx, k.policySeq.DecodeSequence(bz))
 }
 
+func (k Keeper) GetPolicyGroupForResource(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType) (*types.PolicyGroup, bool) {
+	store := ctx.KVStore(k.storeKey)
+	policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+
+	bz := store.Get(policyGroupKey)
+	if bz == nil {
+		return nil, false
+	}
+
+	var policyGroup types.PolicyGroup
+	k.cdc.MustUnmarshal(bz, &policyGroup)
+	return &policyGroup, true
+}
+
 func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	resourceType resource.ResourceType, groupID math.Uint) (policy *types.Policy,
 	isFound bool) {
@@ -245,68 +272,6 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 		}
 	}
 	return nil, false
-}
-
-func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType resource.ResourceType,
-	operator sdk.AccAddress, action types.ActionType, opts *types.VerifyOptions) types.Effect {
-	// verify policy which grant permission to account
-	policy, found := k.GetPolicyForAccount(ctx, resourceID, resourceType, operator)
-	if found {
-		effect, newPolicy := policy.Eval(action, ctx.BlockTime(), opts)
-		k.Logger(ctx).Info(fmt.Sprintf("CreateObject LimitSize update: %s, effect: %s, ctx.TxBytes : %d",
-			newPolicy.String(), effect, ctx.TxSize()))
-		if effect != types.EFFECT_UNSPECIFIED {
-			if effect == types.EFFECT_ALLOW && action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
-				_, err := k.PutPolicy(ctx, newPolicy)
-				if err != nil {
-					panic(fmt.Sprintf("Update policy error, %s", err))
-				}
-			}
-			return effect
-		}
-	}
-
-	// verify policy which grant permission to group
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetPolicyForGroupKey(resourceID, resourceType))
-	if bz != nil {
-		policyGroup := types.PolicyGroup{}
-		k.cdc.MustUnmarshal(bz, &policyGroup)
-		allowed := false
-		var (
-			newPolicy *types.Policy
-			effect    types.Effect
-		)
-		for _, item := range policyGroup.Items {
-			// check the group has the right permission of this resource
-			p := k.MustGetPolicyByID(ctx, item.PolicyId)
-			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
-			if effect != types.EFFECT_UNSPECIFIED {
-				// check the operator is the member of this group
-				_, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
-				if memberFound {
-					if effect == types.EFFECT_ALLOW {
-						allowed = true
-					} else if effect == types.EFFECT_DENY {
-						return types.EFFECT_DENY
-					}
-				}
-			}
-		}
-		if allowed {
-			if action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
-				if effect == types.EFFECT_ALLOW && action == types.ACTION_CREATE_OBJECT && newPolicy != nil && ctx.TxBytes() != nil {
-					_, err := k.PutPolicy(ctx, newPolicy)
-					if err != nil {
-						panic(fmt.Sprintf("Update policy error, %s", err))
-					}
-				}
-			}
-			return types.EFFECT_ALLOW
-		}
-	}
-
-	return types.EFFECT_UNSPECIFIED
 }
 
 func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resourceType resource.ResourceType,

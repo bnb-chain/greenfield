@@ -29,14 +29,14 @@ func TestMsgUpdateParams_ValidateBasic(t *testing.T) {
 		}, {
 			name: "invalid params",
 			msg: MsgUpdateParams{
-				Authority: sample.AccAddress(),
+				Authority: sample.RandAccAddressHex(),
 				Params:    wrongParams,
 			},
 			err: ErrInvalidParams,
 		}, {
 			name: "valid authority and params",
 			msg: MsgUpdateParams{
-				Authority: sample.AccAddress(),
+				Authority: sample.RandAccAddressHex(),
 				Params:    DefaultParams(),
 			},
 		},

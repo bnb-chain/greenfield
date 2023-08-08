@@ -215,7 +215,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "f35d1c0920d3b42f313f682907ff996f3ab08cd9@k8s-gnfdfull-gnfdfull-5caecaf140-3641960911e9b27b.elb.ap-northeast-1.amazonaws.com:26656,071fc182cda17d93d1a086060898bfb405418dc7@k8s-gnfdfull-gnfdfull-915e53c8f7-bca52664efa2d3fe.elb.us-east-1.amazonaws.com:26656"
+persistent_peers = "7a635c262955a2e85c654615f390f3a3e9c71328@k8s-gnfdfull-gnfdfull-514c3179cd-d1c316adcbfbfd3c.elb.us-east-1.amazonaws.com:26656,f811d0f87415bcc5daba37ec925b137a1b403372@k8s-gnfdfull-gnfdfull-92f4e91ef7-3d981d8d310e48f1.elb.ap-northeast-1.amazonaws.com:26656"
 
 # UPNP port forwarding
 upnp = false
@@ -334,7 +334,7 @@ ttl-num-blocks = 0
 # the network to take and serve state machine snapshots. State sync is not attempted if the node
 # has any local state (LastBlockHeight > 0). The node will have a truncated block history,
 # starting from the height of the snapshot.
-enable = false
+enable = true
 
 # RPC servers (comma-separated) for light client verification of the synced state machine and
 # retrieval of state data for node bootstrapping. Also needs a trusted height and corresponding
@@ -342,10 +342,10 @@ enable = false
 #
 # For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
 # weeks) during which they can be financially punished (slashed) for misbehavior.
-rpc_servers = ""
-trust_height = 0
-trust_hash = ""
-trust_period = "168h0m0s"
+rpc_servers = "https://gnfd-testnet-fullnode-tendermint-ap.bnbchain.org:443,https://gnfd-testnet-fullnode-tendermint-ap.bnbchain.org:443"
+trust_height = 65000
+trust_hash = "AC28AB55C96AFC73BC8313C5C99E4028A6FDBBCD22C02A95EFAC743B220F083A"
+trust_period = "999999h0m0s"
 
 # Time to spend discovering snapshots before initiating a restore.
 discovery_time = "15s"

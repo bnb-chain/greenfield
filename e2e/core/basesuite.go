@@ -9,10 +9,14 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto/tmhash"
+	tmlog "github.com/cometbft/cometbft/libs/log"
+	sdkClient "github.com/cosmos/cosmos-sdk/client"
+	sdkServer "github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/types/tx"
@@ -22,8 +26,10 @@ import (
 	gov "github.com/cosmos/cosmos-sdk/x/gov/types"
 	govtypesv1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
+	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/bnb-chain/greenfield/cmd/gnfd/cmd"
 	"github.com/bnb-chain/greenfield/sdk/client"
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
@@ -38,10 +44,13 @@ type StorageProvider struct {
 	FundingKey                 keys.KeyManager
 	ApprovalKey                keys.KeyManager
 	GcKey                      keys.KeyManager
+	MaintenanceKey             keys.KeyManager
 	BlsKey                     keys.KeyManager
 	Info                       *sptypes.StorageProvider
 	GlobalVirtualGroupFamilies map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup
 }
+
+var initValidatorOnce sync.Once
 
 type BaseSuite struct {
 	suite.Suite
@@ -55,8 +64,72 @@ type BaseSuite struct {
 	StorageProviders map[uint32]*StorageProvider
 }
 
+func findCommand(cmd *cobra.Command, name string) *cobra.Command {
+	if len(cmd.Commands()) == 0 {
+		return nil
+	}
+	for _, subCmd := range cmd.Commands() {
+		if subCmd.Name() == name {
+			return subCmd
+		}
+		if found := findCommand(subCmd, name); found != nil {
+			return found
+		}
+	}
+
+	return nil
+}
+
+func (s *BaseSuite) InitChain() {
+	s.T().Log("Initializing chain")
+	rootCmd, _ := cmd.NewRootCmd()
+	// Initialize and start chain
+	ctx := context.Background()
+	srvCtx := sdkServer.NewDefaultContext()
+	ctx = context.WithValue(ctx, sdkClient.ClientContextKey, &sdkClient.Context{})
+	ctx = context.WithValue(ctx, sdkServer.ServerContextKey, srvCtx)
+
+	// if you want to debug with chain logs, please discard this
+	startCmd := findCommand(rootCmd, "start")
+	startCmd.PersistentPreRunE = func(cmd *cobra.Command, args []string) error {
+		err := rootCmd.PersistentPreRunE(cmd, args)
+		if err != nil {
+			return err
+		}
+		ctx := cmd.Context()
+		serverCtx := sdkServer.GetServerContextFromCmd(cmd)
+		serverCtx.Logger = tmlog.NewNopLogger()
+		ctx = context.WithValue(ctx, sdkServer.ServerContextKey, serverCtx)
+		cmd.SetContext(ctx)
+		return nil
+	}
+	rootCmd.SetArgs([]string{
+		"start",
+		"--home", s.Config.ValidatorHomeDir,
+		"--rpc.laddr", s.Config.ValidatorTmRPCAddr,
+	})
+
+	errChan := make(chan error)
+	go func() {
+		errChan <- rootCmd.ExecuteContext(ctx)
+	}()
+
+	select {
+	case err := <-errChan:
+		s.Require().NoError(err)
+	case <-time.After(15 * time.Second):
+		// wait 15 seconds for the server to start if no errors
+	}
+
+	s.T().Log("Chain started")
+}
+
 func (s *BaseSuite) SetupSuite() {
 	s.Config = InitConfig()
+	initValidatorOnce.Do(func() {
+		s.InitChain()
+	})
+
 	s.Client, _ = client.NewGreenfieldClient(s.Config.TendermintAddr, s.Config.ChainId)
 	tmClient := client.NewTendermintClient(s.Config.TendermintAddr)
 	s.TmClient = &tmClient
@@ -82,6 +155,8 @@ func (s *BaseSuite) SetupSuite() {
 		sp.ApprovalKey, err = keys.NewMnemonicKeyManager(spMnemonics.ApprovalMnemonic)
 		s.Require().NoError(err)
 		sp.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
+		s.Require().NoError(err)
+		sp.MaintenanceKey, err = keys.NewMnemonicKeyManager(spMnemonics.MaintenanceMnemonic)
 		s.Require().NoError(err)
 		sp.BlsKey, err = keys.NewBlsMnemonicKeyManager(s.Config.SPBLSMnemonic[i])
 		s.Require().NoError(err)
@@ -360,16 +435,17 @@ func (sp *StorageProvider) GetFirstGlobalVirtualGroup() (*virtualgroupmoduletype
 }
 
 func (s *BaseSuite) NewSpAcc() *StorageProvider {
-	userAccs := s.GenAndChargeAccounts(5, 1000000)
+	userAccs := s.GenAndChargeAccounts(6, 1000000)
 	operatorAcc := userAccs[0]
 	fundingAcc := userAccs[1]
 	approvalAcc := userAccs[2]
 	sealAcc := userAccs[3]
 	gcAcc := userAccs[4]
+	maintenanceAcc := userAccs[5]
 
 	blsKm := s.GenRandomBlsKeyManager()
 	return &StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, BlsKey: blsKm}
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, MaintenanceKey: maintenanceAcc, BlsKey: blsKm}
 }
 
 func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
@@ -412,7 +488,9 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 		newSP.OperatorKey.GetAddr(), newSP.FundingKey.GetAddr(),
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(),
-		newSP.GcKey.GetAddr(), description,
+		newSP.GcKey.GetAddr(),
+		newSP.MaintenanceKey.GetAddr(),
+		description,
 		endpoint, deposit, newReadPrice, 10000, newStorePrice,
 		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()),
 		hex.EncodeToString(blsProofBz),
@@ -477,7 +555,18 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.SealAddress, newSP.SealKey.GetAddr().String())
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.ApprovalAddress, newSP.ApprovalKey.GetAddr().String())
 	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Endpoint, endpoint)
+	s.Require().Equal(querySPByOperatorAddrResp.StorageProvider.Status, sptypes.STATUS_IN_MAINTENANCE)
 	newSP.Info = querySPByOperatorAddrResp.StorageProvider
+
+	// SP need to activate itself
+	msg := sptypes.NewMsgUpdateStorageProviderStatus(
+		newSP.OperatorKey.GetAddr(),
+		sptypes.STATUS_IN_SERVICE,
+		0,
+	)
+
+	txRes = s.SendTxBlock(newSP.OperatorKey, msg)
+	s.Require().Equal(txRes.Code, uint32(0))
 	return newSP
 }
 
@@ -663,4 +752,12 @@ func (s *BaseSuite) PickStorageProviderByBucketName(bucketName string) *StorageP
 	s.Require().NoError(err)
 
 	return s.StorageProviders[family.GlobalVirtualGroupFamily.PrimarySpId]
+}
+
+func (s *BaseSuite) ExistsSPMaintenanceRecords(addr string) (bool, error) {
+	resp, err := s.Client.StorageProviderMaintenanceRecordsByOperatorAddress(context.Background(), &sptypes.QueryStorageProviderMaintenanceRecordsRequest{OperatorAddress: addr})
+	if err != nil {
+		return false, err
+	}
+	return len(resp.Records) > 0, nil
 }

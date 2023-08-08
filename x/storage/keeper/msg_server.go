@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -36,7 +37,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 
 	primarySPAcc := sdk.MustAccAddressFromHex(msg.PrimarySpAddress)
 
-	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, &CreateBucketOptions{
+	id, err := k.Keeper.CreateBucket(ctx, ownerAcc, msg.BucketName, primarySPAcc, &storagetypes.CreateBucketOptions{
 		PaymentAddress:    msg.PaymentAddress,
 		Visibility:        msg.Visibility,
 		ChargedReadQuota:  msg.ChargedReadQuota,
@@ -58,7 +59,7 @@ func (k msgServer) DeleteBucket(goCtx context.Context, msg *types.MsgDeleteBucke
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err := k.Keeper.DeleteBucket(ctx, operatorAcc, msg.BucketName, DeleteBucketOptions{
+	err := k.Keeper.DeleteBucket(ctx, operatorAcc, msg.BucketName, storagetypes.DeleteBucketOptions{
 		SourceType: types.SOURCE_TYPE_ORIGIN,
 	})
 	if err != nil {
@@ -76,7 +77,7 @@ func (k msgServer) UpdateBucketInfo(goCtx context.Context, msg *types.MsgUpdateB
 	if msg.ChargedReadQuota != nil {
 		chargedReadQuota = &msg.ChargedReadQuota.Value
 	}
-	err := k.Keeper.UpdateBucketInfo(ctx, operatorAcc, msg.BucketName, UpdateBucketOptions{
+	err := k.Keeper.UpdateBucketInfo(ctx, operatorAcc, msg.BucketName, storagetypes.UpdateBucketOptions{
 		SourceType:       types.SOURCE_TYPE_ORIGIN,
 		PaymentAddress:   msg.PaymentAddress,
 		Visibility:       msg.Visibility,
@@ -111,7 +112,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 			len(msg.ExpectChecksums))
 	}
 
-	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, CreateObjectOptions{
+	id, err := k.Keeper.CreateObject(ctx, ownerAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.CreateObjectOptions{
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		Visibility:        msg.Visibility,
 		ContentType:       msg.ContentType,
@@ -134,7 +135,7 @@ func (k msgServer) CancelCreateObject(goCtx context.Context, msg *types.MsgCance
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err := k.Keeper.CancelCreateObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+	err := k.Keeper.CancelCreateObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, storagetypes.CancelCreateObjectOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +165,7 @@ func (k msgServer) CopyObject(goCtx context.Context, msg *types.MsgCopyObject) (
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	id, err := k.Keeper.CopyObject(ctx, ownerAcc, msg.SrcBucketName, msg.SrcObjectName, msg.DstBucketName, msg.DstObjectName, CopyObjectOptions{
+	id, err := k.Keeper.CopyObject(ctx, ownerAcc, msg.SrcBucketName, msg.SrcObjectName, msg.DstBucketName, msg.DstObjectName, storagetypes.CopyObjectOptions{
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		Visibility:        storagetypes.VISIBILITY_TYPE_PRIVATE,
 		PrimarySpApproval: msg.DstPrimarySpApproval,
@@ -184,7 +185,7 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
 
-	err := k.Keeper.DeleteObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, DeleteObjectOptions{
+	err := k.Keeper.DeleteObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, storagetypes.DeleteObjectOptions{
 		SourceType: types.SOURCE_TYPE_ORIGIN,
 	})
 
@@ -232,7 +233,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, CreateGroupOptions{Members: msg.Members, Extra: msg.Extra})
+	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra})
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +247,7 @@ func (k msgServer) DeleteGroup(goCtx context.Context, msg *types.MsgDeleteGroup)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
-	err := k.Keeper.DeleteGroup(ctx, operatorAcc, msg.GroupName, DeleteGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+	err := k.Keeper.DeleteGroup(ctx, operatorAcc, msg.GroupName, storagetypes.DeleteGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	if err != nil {
 		return nil, err
 	}
@@ -261,7 +262,7 @@ func (k msgServer) LeaveGroup(goCtx context.Context, msg *types.MsgLeaveGroup) (
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.GroupOwner)
 
-	err := k.Keeper.LeaveGroup(ctx, memberAcc, ownerAcc, msg.GroupName, LeaveGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
+	err := k.Keeper.LeaveGroup(ctx, memberAcc, ownerAcc, msg.GroupName, storagetypes.LeaveGroupOptions{SourceType: types.SOURCE_TYPE_ORIGIN})
 	if err != nil {
 		return nil, err
 	}
@@ -280,16 +281,54 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
-	err := k.Keeper.UpdateGroupMember(ctx, operator, groupInfo, UpdateGroupMemberOptions{
-		SourceType:      types.SOURCE_TYPE_ORIGIN,
-		MembersToAdd:    msg.MembersToAdd,
-		MembersToDelete: msg.MembersToDelete,
+	membersToAdd := make([]string, 0, len(msg.MembersToAdd))
+	membersExpirationToAdd := make([]time.Time, 0, len(msg.MembersToAdd))
+	for i := range msg.MembersToAdd {
+		membersToAdd = append(membersToAdd, msg.MembersToAdd[i].GetMember())
+		membersExpirationToAdd = append(membersExpirationToAdd, msg.MembersToAdd[i].GetExpirationTime())
+	}
+	err := k.Keeper.UpdateGroupMember(ctx, operator, groupInfo, storagetypes.UpdateGroupMemberOptions{
+		SourceType:             types.SOURCE_TYPE_ORIGIN,
+		MembersToAdd:           membersToAdd,
+		MembersExpirationToAdd: membersExpirationToAdd,
+		MembersToDelete:        msg.MembersToDelete,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil
+}
+
+func (k msgServer) RenewGroupMember(goCtx context.Context, msg *types.MsgRenewGroupMember) (*types.MsgRenewGroupMemberResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+
+	members := make([]string, 0, len(msg.Members))
+	membersExpiration := make([]time.Time, 0, len(msg.Members))
+	for i := range msg.Members {
+		members = append(members, msg.Members[i].GetMember())
+		membersExpiration = append(membersExpiration, msg.Members[i].GetExpirationTime())
+	}
+
+	err := k.Keeper.RenewGroupMember(ctx, operator, groupInfo, storagetypes.RenewGroupMemberOptions{
+		SourceType:        types.SOURCE_TYPE_ORIGIN,
+		Members:           members,
+		MembersExpiration: membersExpiration,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRenewGroupMemberResponse{}, nil
 }
 
 func (k msgServer) UpdateGroupExtra(goCtx context.Context, msg *types.MsgUpdateGroupExtra) (*types.MsgUpdateGroupExtraResponse, error) {

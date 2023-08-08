@@ -40,6 +40,7 @@ function init() {
       ${bin} keys add sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --algo eth_bls > ${workspace}/.local/sp${i}/bls_info 2>&1
       ${bin} keys add sp${i}_approval --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/approval_info 2>&1
       ${bin} keys add sp${i}_gc --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/gc_info 2>&1
+      ${bin} keys add sp${i}_maintenance --keyring-backend test --home ${workspace}/.local/sp${i} > ${workspace}/.local/sp${i}/maintenance_info 2>&1
     done
 
 }
@@ -150,7 +151,7 @@ function generate_genesis() {
         sed -i -e "s/\"heartbeat_interval\": \"1000\"/\"heartbeat_interval\": \"100\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"attestation_inturn_interval\": \"120\"/\"attestation_inturn_interval\": \"10\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"discontinue_confirm_period\": \"604800\"/\"discontinue_confirm_period\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"discontinue_deletion_max\": \"10000\"/\"discontinue_deletion_max\": \"2\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"discontinue_deletion_max\": \"100\"/\"discontinue_deletion_max\": \"2\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"voting_period\": \"30s\"/\"voting_period\": \"5s\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         #sed -i -e "s/\"community_tax\": \"0.020000000000000000\"/\"community_tax\": \"0\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/log_level = \"info\"/\log_level= \"debug\"/g" ${workspace}/.local/validator${i}/config/config.toml
@@ -159,6 +160,9 @@ function generate_genesis() {
     # enable swagger API for validator0
     sed -i -e "/Enable defines if the API server should be enabled/{N;s/enable = false/enable = true/;}" ${workspace}/.local/validator0/config/app.toml
     sed -i -e 's/swagger = false/swagger = true/' ${workspace}/.local/validator0/config/app.toml
+
+    # enable telemetry for validator0
+    sed -i -e "/other sinks such as Prometheus/{N;s/enable = false/enable = true/;}" ${workspace}/.local/validator0/config/app.toml
 }
 
 function start() {
@@ -195,11 +199,13 @@ function generate_sp_genesis {
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spmaintenance_addr=("$(${bin} keys show sp${i}_maintenance -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     ${bin} add-genesis-account $spoperator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spfund_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spseal_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM}  --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spapproval_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
     ${bin} add-genesis-account $spgc_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
+    ${bin} add-genesis-account $spmaintenance_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator0
   done
 
   rm -rf ${workspace}/.local/gensptx
@@ -213,6 +219,7 @@ function generate_sp_genesis {
     bls_proof=("$(${bin} keys sign "${bls_pub_key}" --from sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spmaintenance_addr=("$(${bin} keys show sp${i}_maintenance -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
     # create bond storage provider tx
     ${bin} spgentx sp${i} ${SP_MIN_DEPOSIT_AMOUNT}${STAKING_BOND_DENOM} \
@@ -225,6 +232,7 @@ function generate_sp_genesis {
       --bls-proof=${bls_proof} \
       --approval-address=${spapproval_addr} \
       --gc-address=${spgc_addr} \
+      --maintenance-address=${spmaintenance_addr} \
       --keyring-backend=test \
       --chain-id=${CHAIN_ID} \
       --moniker="sp${i}" \
@@ -245,6 +253,18 @@ function generate_sp_genesis {
   ${bin} collect-spgentxs --gentx-dir ${workspace}/.local/validator0/config/gensptx --home ${workspace}/.local/validator0
 }
 
+function export_validator {
+    size=$1
+
+    for ((i = 0; i < ${size}; i++)); do
+        bls_priv_key=("$(echo "y" | ${bin} keys export validator_bls${i} --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/validator${i})")
+        relayer_key=("$(echo "y" | ${bin} keys export relayer${i}  --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/relayer${i})")
+
+        echo "validator_bls${i} bls_priv_key: ${bls_priv_key}"
+        echo "relayer${i} relayer_key: ${relayer_key}"
+    done
+}
+
 function export_sps {
   size=$1
   sp_size=1
@@ -258,12 +278,14 @@ function export_sps {
     spseal_addr=("$(${bin} keys show sp${i}_seal -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_addr=("$(${bin} keys show sp${i}_approval -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_addr=("$(${bin} keys show sp${i}_gc -a --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spmaintenance_addr=("$(${bin} keys show sp${i}_maintenance -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     bls_pub_key=("$(${bin} keys show sp${i}_bls --keyring-backend test --home ${workspace}/.local/sp${i} --output json | jq -r .pubkey_hex)")
     spoperator_priv_key=("$(echo "y" | ${bin} keys export sp${i} --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spfund_priv_key=("$(echo "y" | ${bin} keys export sp${i}_fund --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spseal_priv_key=("$(echo "y" | ${bin} keys export sp${i}_seal --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spapproval_priv_key=("$(echo "y" | ${bin} keys export sp${i}_approval --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     spgc_priv_key=("$(echo "y" | ${bin} keys export sp${i}_gc --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
+    spmaintenance_priv_key=("$(echo "y" | ${bin} keys export sp${i}_maintenance --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     bls_priv_key=("$(echo "y" | ${bin} keys export sp${i}_bls --unarmored-hex --unsafe --keyring-backend test --home ${workspace}/.local/sp${i})")
     output="${output}\"sp${i}\":{"
     output="${output}\"OperatorAddress\": \"${spoperator_addr}\","
@@ -271,12 +293,14 @@ function export_sps {
     output="${output}\"SealAddress\": \"${spseal_addr}\","
     output="${output}\"ApprovalAddress\": \"${spapproval_addr}\","
     output="${output}\"GcAddress\": \"${spgc_addr}\","
+    output="${output}\"MaintenanceAddress\": \"${spmaintenance_addr}\","
     output="${output}\"BlsPubKey\": \"${bls_pub_key}\","
     output="${output}\"OperatorPrivateKey\": \"${spoperator_priv_key}\","
     output="${output}\"FundingPrivateKey\": \"${spfund_priv_key}\","
     output="${output}\"SealPrivateKey\": \"${spseal_priv_key}\","
     output="${output}\"ApprovalPrivateKey\": \"${spapproval_priv_key}\","
     output="${output}\"GcPrivateKey\": \"${spgc_priv_key}\","
+    output="${output}\"MaintenancePrivateKey\": \"${spmaintenance_priv_key}\","
     output="${output}\"BlsPrivateKey\": \"${bls_priv_key}\""
     output="${output}},"
   done
@@ -308,6 +332,10 @@ generate)
 
 export_sps)
     export_sps $SIZE $SP_SIZE
+    ;;
+
+export_validator)
+    export_validator $SIZE
     ;;
 start)
     echo "===== start ===="

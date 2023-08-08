@@ -29,6 +29,33 @@ func TestParamsQuery(t *testing.T) {
 	require.Equal(t, &types.QueryParamsResponse{Params: params}, response)
 }
 
+func TestAttestedChallengeQuery(t *testing.T) {
+	keeper, ctx := makeKeeper(t)
+	err := keeper.SetParams(ctx, types.DefaultParams())
+	require.NoError(t, err)
+	c100 := &types.AttestedChallenge{Id: 100, Result: types.CHALLENGE_SUCCEED}
+	c200 := &types.AttestedChallenge{Id: 200, Result: types.CHALLENGE_FAILED}
+	keeper.AppendAttestedChallenge(ctx, c100)
+	keeper.AppendAttestedChallenge(ctx, c200)
+
+	response, err := keeper.AttestedChallenge(ctx, &types.QueryAttestedChallengeRequest{
+		ChallengeId: 100,
+	})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryAttestedChallengeResponse{Challenge: c100}, response)
+
+	response, err = keeper.AttestedChallenge(ctx, &types.QueryAttestedChallengeRequest{
+		ChallengeId: 200,
+	})
+	require.NoError(t, err)
+	require.Equal(t, &types.QueryAttestedChallengeResponse{Challenge: c200}, response)
+
+	_, err = keeper.AttestedChallenge(ctx, &types.QueryAttestedChallengeRequest{
+		ChallengeId: 300,
+	})
+	require.Error(t, err)
+}
+
 func TestLatestAttestedChallengesQuery(t *testing.T) {
 	keeper, ctx := makeKeeper(t)
 	err := keeper.SetParams(ctx, types.DefaultParams())

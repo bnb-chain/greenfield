@@ -36,6 +36,7 @@ func GetTxCmd() *cobra.Command {
 		CmdDeposit(),
 		CmdEditStorageProvider(),
 		CmdGrantDepositAuthorization(),
+		CmdUpdateStorageProviderStatus(),
 	)
 
 	// this line is used by starport scaffolding # 1
@@ -69,6 +70,7 @@ Where create_storagep_provider.json contains:
       "seal_address": "0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
       "approval_address": "0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
       "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
+      "maintenance_address": "0xbE03316B1D7c3FCB69136e47e02442d6Fb3396dB",
       "endpoint": "https://sp0.greenfield.io",
       "deposit": {
         "denom": "BNB",
@@ -207,12 +209,25 @@ func CmdEditStorageProvider() *cobra.Command {
 				}
 			}
 
+			// maintenance address
+			maintenanceAddressStr, err := cmd.Flags().GetString(FlagMaintenanceAddress)
+			if err != nil {
+				return err
+			}
+			maintenanceAddress := sdk.AccAddress{}
+			if maintenanceAddressStr != "" {
+				maintenanceAddress, err = sdk.AccAddressFromHexUnsafe(maintenanceAddressStr)
+				if err != nil {
+					return err
+				}
+			}
+
 			// bls key
 			blsPubKey, err := cmd.Flags().GetString(FlagBlsPubKey)
 			if err != nil {
 				return err
 			}
-			if len(blsPubKey) != 2*sdk.BLSPubKeyLength {
+			if len(blsPubKey) > 0 && len(blsPubKey) != 2*sdk.BLSPubKeyLength {
 				return fmt.Errorf("invalid bls pubkey")
 			}
 
@@ -231,6 +246,7 @@ func CmdEditStorageProvider() *cobra.Command {
 				sealAddress,
 				approvalAddress,
 				gcAddress,
+				maintenanceAddress,
 				blsPubKey,
 				blsProof,
 			)
@@ -254,6 +270,7 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
 	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
+	cmd.Flags().String(FlagMaintenanceAddress, "", "The maintenance address of storage provider")
 
 	return cmd
 }
@@ -418,6 +435,7 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
 	fsCreateStorageProvider.String(FlagGcAddress, "", "The gc address of storage provider")
+	fsCreateStorageProvider.String(FlagMaintenanceAddress, "", "The maintenance address of storage provider")
 
 	fsCreateStorageProvider.String(FlagEndpoint, "", "The storage provider's endpoint")
 
@@ -441,13 +459,14 @@ type TxCreateStorageProviderConfig struct {
 	SecurityContact string
 	Details         string
 
-	SpAddress       sdk.AccAddress
-	FundingAddress  sdk.AccAddress
-	SealAddress     sdk.AccAddress
-	BlsPubKey       string
-	BlsProof        string
-	ApprovalAddress sdk.AccAddress
-	GcAddress       sdk.AccAddress
+	SpAddress          sdk.AccAddress
+	FundingAddress     sdk.AccAddress
+	SealAddress        sdk.AccAddress
+	BlsPubKey          string
+	BlsProof           string
+	ApprovalAddress    sdk.AccAddress
+	GcAddress          sdk.AccAddress
+	MaintenanceAddress sdk.AccAddress
 
 	Endpoint string
 	Deposit  string
@@ -576,6 +595,17 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.GcAddress = addr
 
+	// maintenance address
+	maintenanceAddress, err := flagSet.GetString(FlagMaintenanceAddress)
+	if err != nil {
+		return c, err
+	}
+	addr, err = sdk.AccAddressFromHexUnsafe(maintenanceAddress)
+	if err != nil {
+		return c, err
+	}
+	c.MaintenanceAddress = addr
+
 	// Endpoint
 	endpoint, err := flagSet.GetString(FlagEndpoint)
 	if err != nil {
@@ -629,7 +659,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 
 	msg, err := types.NewMsgCreateStorageProvider(
 		config.Creator, config.SpAddress, config.FundingAddress,
-		config.SealAddress, config.ApprovalAddress, config.GcAddress, description,
+		config.SealAddress, config.ApprovalAddress, config.GcAddress, config.MaintenanceAddress, description,
 		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
 		config.BlsPubKey, config.BlsProof,
 	)
@@ -638,4 +668,50 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 	}
 
 	return txBldr, msg, nil
+}
+
+func CmdUpdateStorageProviderStatus() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-status [sp-address] [new-status] --duration",
+		Short: "Update status of a storage provider",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`update the storage provider status between STATUS_IN_SERVICE and STATUS_IN_MAINTENANCE, need to provide the maintenance duration in second if status is to STATUS_IN_MAINTENANCE.
+
+Examples:
+ $ %s tx %s update-status 0x.... STATUS_IN_MAINTENANCE --duration 21600
+	`, version.AppName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			spAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
+			if err != nil {
+				return err
+			}
+			newStatus := args[1]
+			duration, err := cmd.Flags().GetInt64(FlagDuration)
+			if err != nil {
+				return err
+			}
+			var msg sdk.Msg
+			switch newStatus {
+			case types.STATUS_IN_SERVICE.String():
+				msg = types.NewMsgUpdateStorageProviderStatus(spAddress, types.STATUS_IN_SERVICE, 0)
+			case types.STATUS_IN_MAINTENANCE.String():
+				msg = types.NewMsgUpdateStorageProviderStatus(spAddress, types.STATUS_IN_MAINTENANCE, duration)
+			default:
+				return fmt.Errorf("status %s is not expected\n", newStatus)
+			}
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().Int64(FlagDuration, 0, "maintenance duration requested by a SP")
+	return cmd
 }

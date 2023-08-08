@@ -27,12 +27,12 @@ func CmdGetPaymentAccountsByOwner() *cobra.Command {
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			params := &types.QueryGetPaymentAccountsByOwnerRequest{
+			params := &types.QueryPaymentAccountsByOwnerRequest{
 
 				Owner: reqOwner,
 			}
 
-			res, err := queryClient.GetPaymentAccountsByOwner(cmd.Context(), params)
+			res, err := queryClient.PaymentAccountsByOwner(cmd.Context(), params)
 			if err != nil {
 				return err
 			}
