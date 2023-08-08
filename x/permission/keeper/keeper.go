@@ -297,7 +297,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			if effect != types.EFFECT_UNSPECIFIED {
 				// check the operator is the member of this group
 				groupMember, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
-				if memberFound && groupMember.ExpirationTime.After(ctx.BlockTime()) {
+				if memberFound && groupMember.ExpirationTime.After(ctx.BlockTime().UTC()) {
 					// check if the operator has been revoked
 					if effect == types.EFFECT_ALLOW {
 						allowed = true
