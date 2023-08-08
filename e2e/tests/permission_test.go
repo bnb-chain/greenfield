@@ -674,6 +674,12 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, "")
 	s.SendTxBlock(user[0], msgCreateGroup)
 
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(user[0].GetAddr(), user[0].GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(user[0], msgUpdateGroupMember)
+
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
 	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
