@@ -79,6 +79,7 @@ func (k Keeper) ForceUpdateMaintenanceRecords(ctx sdk.Context) {
 			k.cdc.MustUnmarshal(bz, &stats)
 			size := len(stats.Records)
 			// force update any maintenance record that not been updated back to in_service after requested duration.
+			changed := false
 			if sp.Status != types.STATUS_IN_SERVICE {
 				for i := size - 1; i >= 0; i-- {
 					if stats.Records[i].GetActualDuration() == 0 && stats.Records[i].RequestAt+stats.Records[i].GetRequestDuration() < curTime {
@@ -86,6 +87,7 @@ func (k Keeper) ForceUpdateMaintenanceRecords(ctx sdk.Context) {
 						store.Set(key, k.cdc.MustMarshal(&stats))
 						sp.Status = types.STATUS_IN_SERVICE
 						k.SetStorageProvider(ctx, sp)
+						changed = true
 					}
 				}
 			}
@@ -93,12 +95,13 @@ func (k Keeper) ForceUpdateMaintenanceRecords(ctx sdk.Context) {
 			for i := size - 1; i >= 0; i-- {
 				if stats.Records[i].GetHeight()+params.GetNumOfHistoricalBlocksForMaintenanceRecords() < ctx.BlockHeight() {
 					stats.Records = stats.Records[i+1:]
+					changed = true
 					break
 				}
 			}
 			if len(stats.Records) == 0 {
 				store.Delete(key)
-			} else {
+			} else if changed {
 				store.Set(key, k.cdc.MustMarshal(&stats))
 			}
 		}
