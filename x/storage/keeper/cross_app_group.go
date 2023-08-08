@@ -336,21 +336,13 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 		}
 	}
 
-	options := types.UpdateGroupMemberOptions{
-		SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
-	}
-	if updateGroupPackage.OperationType == types.OperationAddGroupMember {
-		options.MembersToAdd = updateGroupPackage.GetMembers()
-	} else {
-		options.MembersToDelete = updateGroupPackage.GetMembers()
+	switch updateGroupPackage.OperationType {
+	case types.OperationAddGroupMember, types.OperationDeleteGroupMember:
+		err = app.handleAddOrDeleteGroupMemberOperation(ctx, groupInfo, updateGroupPackage)
+	case types.OperationRenewGroupMember:
+		err = app.handleRenewGroupOperation(ctx, groupInfo, updateGroupPackage)
 	}
 
-	err = app.storageKeeper.UpdateGroupMember(
-		ctx,
-		updateGroupPackage.Operator,
-		groupInfo,
-		options,
-	)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.UpdateGroupMemberAckPackage{
@@ -372,6 +364,40 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 			ExtraData:     updateGroupPackage.ExtraData,
 		}.MustSerialize(),
 	}
+}
+
+func (app *GroupApp) handleAddOrDeleteGroupMemberOperation(ctx sdk.Context, groupInfo *types.GroupInfo, updateGroupPackage *types.UpdateGroupMemberSynPackage) error {
+	options := types.UpdateGroupMemberOptions{
+		SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+	}
+	if updateGroupPackage.OperationType == types.OperationAddGroupMember {
+		options.MembersToAdd = updateGroupPackage.GetMembers()
+		options.MembersExpirationToAdd = updateGroupPackage.GetMemberExpiration()
+	} else {
+		options.MembersToDelete = updateGroupPackage.GetMembers()
+	}
+
+	return app.storageKeeper.UpdateGroupMember(
+		ctx,
+		updateGroupPackage.Operator,
+		groupInfo,
+		options,
+	)
+}
+
+func (app *GroupApp) handleRenewGroupOperation(ctx sdk.Context, groupInfo *types.GroupInfo, updateGroupPackage *types.UpdateGroupMemberSynPackage) error {
+	options := types.RenewGroupMemberOptions{
+		SourceType:        types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+		Members:           updateGroupPackage.GetMembers(),
+		MembersExpiration: updateGroupPackage.GetMemberExpiration(),
+	}
+
+	return app.storageKeeper.RenewGroupMember(
+		ctx,
+		updateGroupPackage.Operator,
+		groupInfo,
+		options,
+	)
 }
 
 func (app *GroupApp) handleUpdateGroupMemberAckPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, createGroupPackage *types.UpdateGroupMemberAckPackage) sdk.ExecuteResult {

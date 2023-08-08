@@ -1,6 +1,8 @@
 package types
 
 import (
+	time "time"
+
 	"github.com/bnb-chain/greenfield/types/common"
 )
 
@@ -49,7 +51,6 @@ type CopyObjectOptions struct {
 	ApprovalMsgBytes  []byte
 }
 type CreateGroupOptions struct {
-	Members    []string
 	SourceType SourceType
 	Extra      string
 }
@@ -58,9 +59,16 @@ type LeaveGroupOptions struct {
 }
 
 type UpdateGroupMemberOptions struct {
-	SourceType      SourceType
-	MembersToAdd    []string
-	MembersToDelete []string
+	SourceType             SourceType
+	MembersToAdd           []string
+	MembersExpirationToAdd []time.Time
+	MembersToDelete        []string
+}
+
+type RenewGroupMemberOptions struct {
+	SourceType        SourceType
+	Members           []string
+	MembersExpiration []time.Time
 }
 
 type DeleteGroupOptions struct {

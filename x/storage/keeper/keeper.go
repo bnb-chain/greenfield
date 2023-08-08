@@ -1259,23 +1259,11 @@ func (k Keeper) CreateGroup(
 	store.Set(groupKey, k.groupSeq.EncodeSequence(groupInfo.Id))
 	store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
 
-	// need to limit the size of Msg.Members to avoid taking too long to execute the msg
-	for _, member := range opts.Members {
-		memberAddress, err := sdk.AccAddressFromHexUnsafe(member)
-		if err != nil {
-			return sdkmath.ZeroUint(), err
-		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAddress)
-		if err != nil {
-			return sdkmath.Uint{}, err
-		}
-	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCreateGroup{
 		Owner:      groupInfo.Owner,
 		GroupName:  groupInfo.GroupName,
 		GroupId:    groupInfo.Id,
 		SourceType: groupInfo.SourceType,
-		Members:    opts.Members,
 		Extra:      opts.Extra,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
@@ -1391,15 +1379,26 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 			operator.String(), groupInfo.GroupName, groupInfo.Owner)
 	}
 
-	for _, member := range opts.MembersToAdd {
-		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
+	addedMembersDetailEvent := make([]*types.EventGroupMemberDetail, 0, len(opts.MembersToAdd))
+	for i := range opts.MembersToAdd {
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(opts.MembersToAdd[i])
 		if err != nil {
 			return err
 		}
-		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc)
+
+		groupMemberDetailEvent := &types.EventGroupMemberDetail{
+			Member:         opts.MembersToAdd[i],
+			ExpirationTime: types.MaxTimeStamp,
+		}
+
+		memberExpiration := opts.MembersExpirationToAdd[i].UTC()
+		groupMemberDetailEvent.ExpirationTime = memberExpiration
+		err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
 		if err != nil {
 			return err
 		}
+
+		addedMembersDetailEvent = append(addedMembersDetailEvent, groupMemberDetailEvent)
 	}
 
 	for _, member := range opts.MembersToDelete {
@@ -1418,7 +1417,7 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 		Owner:           groupInfo.Owner,
 		GroupName:       groupInfo.GroupName,
 		GroupId:         groupInfo.Id,
-		MembersToAdd:    opts.MembersToAdd,
+		MembersToAdd:    addedMembersDetailEvent,
 		MembersToDelete: opts.MembersToDelete,
 	}); err != nil {
 		return err
@@ -1426,8 +1425,59 @@ func (k Keeper) UpdateGroupMember(ctx sdk.Context, operator sdk.AccAddress, grou
 	return nil
 }
 
-func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, extra string) error {
+func (k Keeper) RenewGroupMember(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, opts types.RenewGroupMemberOptions) error {
+	if groupInfo.SourceType != opts.SourceType {
+		return types.ErrSourceTypeMismatch
+	}
 
+	// check permission
+	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_MEMBER)
+	if effect != permtypes.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no UpdateGroupMember permission of the group(%s), operator(%s)",
+			operator.String(), groupInfo.GroupName, groupInfo.Owner)
+	}
+
+	eventMembersDetail := make([]*types.EventGroupMemberDetail, 0, len(opts.Members))
+	for i := range opts.Members {
+		member := opts.Members[i]
+		memberExpiration := opts.MembersExpiration[i].UTC()
+		memberAcc, err := sdk.AccAddressFromHexUnsafe(member)
+		if err != nil {
+			return err
+		}
+
+		groupMember, found := k.permKeeper.GetGroupMember(ctx, groupInfo.Id, memberAcc)
+		if !found {
+			err = k.permKeeper.AddGroupMember(ctx, groupInfo.Id, memberAcc, memberExpiration)
+			if err != nil {
+				return err
+			}
+		} else {
+			k.permKeeper.UpdateGroupMember(ctx, groupInfo.Id, memberAcc, groupMember.Id, memberExpiration)
+		}
+
+		eventMembersDetail = append(eventMembersDetail, &types.EventGroupMemberDetail{
+			Member:         member,
+			ExpirationTime: memberExpiration,
+		})
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventRenewGroupMember{
+		Operator:   operator.String(),
+		Owner:      groupInfo.Owner,
+		GroupName:  groupInfo.GroupName,
+		GroupId:    groupInfo.Id,
+		SourceType: groupInfo.SourceType,
+		Members:    eventMembersDetail,
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) UpdateGroupExtra(ctx sdk.Context, operator sdk.AccAddress, groupInfo *types.GroupInfo, extra string) error {
 	// check permission
 	effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_EXTRA)
 	if effect != permtypes.EFFECT_ALLOW {
