@@ -33,6 +33,22 @@ Documentation:
 * [#402](https://github.com/bnb-chain/greenfield/pull/402) docs: update testnet asset to v0.2.3
 * [#404](https://github.com/bnb-chain/greenfield/pull/404) docs: update document site link
 
+## 0.2.3
+This is a official release for v0.2.3, includes all the changes since v0.2.2.
+
+Bugfixes:
+* [#375](https://github.com/bnb-chain/greenfield/pull/375) fix: defining err
+* [#379](https://github.com/bnb-chain/greenfield/pull/379) fix: error member name in transferInRefundPackageType
+* [#383](https://github.com/bnb-chain/greenfield/pull/383) fix: lock balance not updated for frozen payment account
+* [#385](https://github.com/bnb-chain/greenfield/pull/385) fix: returned operation type in group cross chain app
+
+Chores:
+* [#376](https://github.com/bnb-chain/greenfield/pull/376) chore: add unit tests for the storage module
+* [#377](https://github.com/bnb-chain/greenfield/pull/377) chore: improve e2e tests to include more coverage from server side
+* [#380](https://github.com/bnb-chain/greenfield/pull/380) chore: add unit test cases for payment module
+* [#381](https://github.com/bnb-chain/greenfield/pull/381) chore: add tests for bridge module
+* [#383](https://github.com/bnb-chain/greenfield/pull/383) chore: add unit test cases for challenge module
+
 ## 0.2.3-alpha.7
 This release includes 2 features and 3 bugfixes.
 
