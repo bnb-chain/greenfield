@@ -3,13 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	vgtypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )

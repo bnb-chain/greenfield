@@ -22,6 +22,10 @@ const (
 	DefaultMaintenanceDurationQuota = 21600 // 6 hour
 	// DefaultNumOfLockUpBlocksForMaintenance defines blocks difference which Sp update itself to Maintenance mode is allowed
 	DefaultNumOfLockUpBlocksForMaintenance = 21600
+	// DefaultUpdateGlobalPriceInterval defines the default time duration for updating global storage price
+	DefaultUpdateGlobalPriceInterval uint64 = 30 * 24 * 60 * 60 // 30 days
+	// DefaultMaxUpdatePriceTimes defines the max allowed times to update price for each sp in one interval
+	DefaultMaxUpdatePriceTimes uint32 = 3
 )
 
 var (
@@ -38,6 +42,8 @@ var (
 	KeyNumOfHistoricalBlocksForMaintenanceRecords = []byte("NumOfHistoricalBlocksForMaintenanceRecords")
 	KeyMaintenanceDurationQuota                   = []byte("MaintenanceDurationQuota")
 	KeyNumOfLockUpBlocksForMaintenance            = []byte("NumOfLockUpBlocksForMaintenance")
+	KeyUpdateGlobalPriceInterval                  = []byte("UpdateGlobalPriceInterval")
+	KeyMaxUpdatePriceTimes                        = []byte("MaxUpdatePriceTimes")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -49,7 +55,8 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(depositDenom string, minDeposit math.Int, secondarySpStorePriceRatio sdk.Dec,
-	historicalBlocksForMaintenanceRecords, maintenanceDurationQuota, lockUpBlocksForMaintenance int64) Params {
+	historicalBlocksForMaintenanceRecords, maintenanceDurationQuota, lockUpBlocksForMaintenance int64,
+	updateGlobalPriceInterval uint64, maxUpdatePriceTimes uint32) Params {
 	return Params{
 		DepositDenom:               depositDenom,
 		MinDeposit:                 minDeposit,
@@ -57,13 +64,16 @@ func NewParams(depositDenom string, minDeposit math.Int, secondarySpStorePriceRa
 		NumOfHistoricalBlocksForMaintenanceRecords: historicalBlocksForMaintenanceRecords,
 		MaintenanceDurationQuota:                   maintenanceDurationQuota,
 		NumOfLockupBlocksForMaintenance:            lockUpBlocksForMaintenance,
+		UpdateGlobalPriceInterval:                  updateGlobalPriceInterval,
+		MaxUpdatePriceTimes:                        maxUpdatePriceTimes,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
 	return NewParams(DefaultDepositDenom, DefaultMinDeposit, DefaultSecondarySpStorePriceRatio,
-		DefaultNumOfHistoricalBlocksForMaintenanceRecords, DefaultMaintenanceDurationQuota, DefaultNumOfLockUpBlocksForMaintenance)
+		DefaultNumOfHistoricalBlocksForMaintenanceRecords, DefaultMaintenanceDurationQuota, DefaultNumOfLockUpBlocksForMaintenance,
+		DefaultUpdateGlobalPriceInterval, DefaultMaxUpdatePriceTimes)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -75,6 +85,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyNumOfHistoricalBlocksForMaintenanceRecords, &p.NumOfHistoricalBlocksForMaintenanceRecords, validateHistoricalBlocksForMaintenanceRecords),
 		paramtypes.NewParamSetPair(KeyMaintenanceDurationQuota, &p.MaintenanceDurationQuota, validateMaintenanceDurationQuota),
 		paramtypes.NewParamSetPair(KeyNumOfLockUpBlocksForMaintenance, &p.NumOfLockupBlocksForMaintenance, validateLockUpBlocksForMaintenance),
+		paramtypes.NewParamSetPair(KeyUpdateGlobalPriceInterval, &p.UpdateGlobalPriceInterval, validateUpdateGlobalPriceInterval),
+		paramtypes.NewParamSetPair(KeyMaxUpdatePriceTimes, &p.MaxUpdatePriceTimes, validateMaxUpdatePriceTimes),
 	}
 }
 
@@ -100,6 +112,13 @@ func (p Params) Validate() error {
 	if err := validateLockUpBlocksForMaintenance(p.NumOfLockupBlocksForMaintenance); err != nil {
 		return err
 	}
+	if err := validateUpdateGlobalPriceInterval(p.UpdateGlobalPriceInterval); err != nil {
+		return err
+	}
+	if err := validateMaxUpdatePriceTimes(p.MaxUpdatePriceTimes); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -175,6 +194,7 @@ func validateMaintenanceDurationQuota(i interface{}) error {
 	}
 	return nil
 }
+
 func validateLockUpBlocksForMaintenance(i interface{}) error {
 	v, ok := i.(int64)
 	if !ok {
@@ -182,6 +202,28 @@ func validateLockUpBlocksForMaintenance(i interface{}) error {
 	}
 	if v == 0 {
 		return errors.New("LockUpBlocksForMaintenance cannot be zero")
+	}
+	return nil
+}
+
+func validateUpdateGlobalPriceInterval(i interface{}) error {
+	v, ok := i.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v == 0 {
+		return errors.New("UpdateGlobalPriceInterval cannot be zero")
+	}
+	return nil
+}
+
+func validateMaxUpdatePriceTimes(i interface{}) error {
+	v, ok := i.(uint32)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v == 0 {
+		return errors.New("MaxUpdatePriceTimes cannot be zero")
 	}
 	return nil
 }

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"encoding/binary"
 	"fmt"
 	"sort"
 
@@ -144,4 +145,36 @@ func (k Keeper) GetGlobalSpStorePriceByTime(ctx sdk.Context, time int64) (val ty
 	updateTimeSec := types.ParseGlobalSpStorePriceKey(iterator.Key())
 	val.UpdateTimeSec = updateTimeSec
 	return val, nil
+}
+
+func (k Keeper) SetSpUpdatePriceTimes(ctx sdk.Context, spId uint32, times uint32) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceUpdateTimesKeyPrefix)
+	idBz := make([]byte, 4)
+	binary.BigEndian.PutUint32(idBz, spId)
+	timesBz := make([]byte, 4)
+	binary.BigEndian.PutUint32(timesBz, times)
+	store.Set(idBz, timesBz)
+}
+
+func (k Keeper) GetSpUpdatePriceTimes(ctx sdk.Context, spId uint32) uint32 {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceUpdateTimesKeyPrefix)
+	idBz := make([]byte, 4)
+	binary.BigEndian.PutUint32(idBz, spId)
+	timesBz := store.Get(idBz)
+	if timesBz == nil {
+		return 0
+	}
+	times := binary.BigEndian.Uint32(timesBz)
+	return times
+}
+
+func (k Keeper) ClearSpUpdatePriceTimes(ctx sdk.Context) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceUpdateTimesKeyPrefix)
+
+	iterator := storetypes.KVStorePrefixIterator(store, []byte{})
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		store.Delete(iterator.Key())
+	}
 }

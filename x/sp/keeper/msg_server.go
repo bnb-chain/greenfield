@@ -152,10 +152,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStoragePrice)
-	err = k.UpdateGlobalSpStorePrice(ctx)
-	if err != nil {
-		return nil, err
-	}
+	k.SetSpUpdatePriceTimes(ctx, sp.Id, k.GetSpUpdatePriceTimes(ctx, sp.Id)+1)
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpId:               sp.Id,
@@ -318,6 +315,12 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		return nil, types.ErrStorageProviderNotInService
 	}
 
+	updateTimes := k.GetSpUpdatePriceTimes(ctx, sp.Id)
+	params := k.GetParams(ctx)
+	if updateTimes+1 >= params.MaxUpdatePriceTimes {
+		return nil, types.ErrStorageProviderPriceUpdateNotAllow
+	}
+
 	current := ctx.BlockTime().Unix()
 	spStorePrice := types.SpStoragePrice{
 		UpdateTimeSec: current,
@@ -327,10 +330,8 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	err := k.UpdateGlobalSpStorePrice(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "update secondary sp store price failed")
-	}
+	k.SetSpUpdatePriceTimes(ctx, sp.Id, updateTimes+1)
+
 	return &types.MsgUpdateSpStoragePriceResponse{}, nil
 }
 
