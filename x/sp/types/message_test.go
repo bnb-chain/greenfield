@@ -22,11 +22,11 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 	blsPubKey, blsProof := sample.RandBlsPubKeyAndBlsProof()
 
 	tests := []struct {
-		name, moniker, identity, website, details                                                string
-		creator, spAddress, fundingAddress, sealAddress, approvalAddress, gcAddress, testAddress sdk.AccAddress
-		blsKey, blsProof                                                                         string
-		deposit                                                                                  sdk.Coin
-		err                                                                                      error
+		name, moniker, identity, website, details                                                       string
+		creator, spAddress, fundingAddress, sealAddress, approvalAddress, gcAddress, maintenanceAddress sdk.AccAddress
+		blsKey, blsProof                                                                                string
+		deposit                                                                                         sdk.Coin
+		err                                                                                             error
 	}{
 		{"basic", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinPos, nil},
 		{"basic_empty", "a", "b", "c", "d", sdk.AccAddress{}, spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinPos, sdkerrors.ErrInvalidAddress},
@@ -35,20 +35,20 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			msg := MsgCreateStorageProvider{
-				Creator:         tt.creator.String(),
-				Description:     NewDescription(tt.moniker, tt.identity, tt.website, tt.details),
-				SpAddress:       tt.spAddress.String(),
-				FundingAddress:  tt.fundingAddress.String(),
-				SealAddress:     tt.sealAddress.String(),
-				ApprovalAddress: tt.approvalAddress.String(),
-				GcAddress:       tt.gcAddress.String(),
-				TestAddress:     tt.testAddress.String(),
-				BlsKey:          tt.blsKey,
-				BlsProof:        tt.blsProof,
-				Endpoint:        "http://127.0.0.1:9033",
-				StorePrice:      sdk.ZeroDec(),
-				ReadPrice:       sdk.ZeroDec(),
-				Deposit:         coinPos,
+				Creator:            tt.creator.String(),
+				Description:        NewDescription(tt.moniker, tt.identity, tt.website, tt.details),
+				SpAddress:          tt.spAddress.String(),
+				FundingAddress:     tt.fundingAddress.String(),
+				SealAddress:        tt.sealAddress.String(),
+				ApprovalAddress:    tt.approvalAddress.String(),
+				GcAddress:          tt.gcAddress.String(),
+				MaintenanceAddress: tt.maintenanceAddress.String(),
+				BlsKey:             tt.blsKey,
+				BlsProof:           tt.blsProof,
+				Endpoint:           "http://127.0.0.1:9033",
+				StorePrice:         sdk.ZeroDec(),
+				ReadPrice:          sdk.ZeroDec(),
+				Deposit:            coinPos,
 			}
 			err := msg.ValidateBasic()
 			if tt.err != nil {

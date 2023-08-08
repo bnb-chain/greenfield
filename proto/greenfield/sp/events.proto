@@ -22,8 +22,8 @@ message EventCreateStorageProvider {
   string approval_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose
   string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // test_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
-  string test_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // maintenance_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
+  string maintenance_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // endpoint is the domain name address used by SP to provide storage services
   string endpoint = 8;
   // total_deposit is the token coin that the storage provider deposit to the storage module
@@ -52,8 +52,8 @@ message EventEditStorageProvider {
   string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose
   string gc_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // test_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
-  string test_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // maintenance_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
+  string maintenance_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bls_key defines the bls pub key owned by storage provider used when sealing object
   string bls_key = 9;
 }

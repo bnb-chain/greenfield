@@ -88,13 +88,13 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	newBlsPubKeyBz, newBlsProofBz := sample.RandBlsPubKeyAndBlsProofBz()
 
 	newSP := &sptypes.StorageProvider{
-		OperatorAddress: prevSP.OperatorAddress,
-		FundingAddress:  prevSP.FundingAddress,
-		SealAddress:     prevSP.SealAddress,
-		ApprovalAddress: prevSP.ApprovalAddress,
-		GcAddress:       prevSP.GcAddress,
-		TestAddress:     prevSP.TestAddress,
-		BlsKey:          newBlsPubKeyBz,
+		OperatorAddress:    prevSP.OperatorAddress,
+		FundingAddress:     prevSP.FundingAddress,
+		SealAddress:        prevSP.SealAddress,
+		ApprovalAddress:    prevSP.ApprovalAddress,
+		GcAddress:          prevSP.GcAddress,
+		MaintenanceAddress: prevSP.MaintenanceAddress,
+		BlsKey:             newBlsPubKeyBz,
 		Description: sptypes.Description{
 			Moniker:  "sp_test_edit",
 			Identity: "",

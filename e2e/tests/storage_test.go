@@ -1801,7 +1801,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 		}
 	}
 	spAddr := sp.OperatorKey.GetAddr()
-	spTestAddr := sp.TestKey.GetAddr()
+	spMaintenanceAddr := sp.TestKey.GetAddr()
 
 	req := sptypes.QueryStorageProviderByOperatorAddressRequest{
 		OperatorAddress: spAddr.String(),
@@ -1828,7 +1828,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	// create a bucket
 	bucketName := storageutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		spTestAddr, bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		spMaintenanceAddr, bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
 		nil, math.MaxUint, nil, 0)
 	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
@@ -1842,7 +1842,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
 	s.Require().NoError(err)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
-	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, spTestAddr.String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, spMaintenanceAddr.String())
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
@@ -1859,7 +1859,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	checksum := sdk.Keccak256(buffer.Bytes())
 	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
 	contextType := "text/event-stream"
-	msgCreateObject := storagetypes.NewMsgCreateObject(spTestAddr, bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject := storagetypes.NewMsgCreateObject(spMaintenanceAddr, bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.TestKey, msgCreateObject)
@@ -1876,7 +1876,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
-	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, spTestAddr.String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, spMaintenanceAddr.String())
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
@@ -1920,7 +1920,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 
 	// UpdateObjectInfo
 	updateObjectInfo := storagetypes.NewMsgUpdateObjectInfo(
-		spTestAddr, bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
+		spMaintenanceAddr, bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
 	s.Require().NoError(err)
 	s.SendTxBlock(sp.TestKey, updateObjectInfo)
 	s.Require().NoError(err)
@@ -1938,11 +1938,11 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.ObjectName, objectName)
 
 	// DeleteObject
-	msgDeleteObject := storagetypes.NewMsgDeleteObject(spTestAddr, bucketName, objectName)
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(spMaintenanceAddr, bucketName, objectName)
 	s.SendTxBlock(sp.TestKey, msgDeleteObject)
 
 	// DeleteBucket
-	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(spTestAddr, bucketName)
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(spMaintenanceAddr, bucketName)
 	s.SendTxBlock(sp.TestKey, msgDeleteBucket)
 
 	// revert back

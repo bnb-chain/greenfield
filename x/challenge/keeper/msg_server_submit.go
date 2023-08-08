@@ -24,7 +24,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrUnknownBucketObject
 	}
 	sp := k.StorageKeeper.MustGetPrimarySPForBucket(ctx, bucketInfo)
-	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING && sp.Status != sptypes.STATUS_IN_MAINTENANCE {
+	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 		return nil, types.ErrInvalidSpStatus
 	}
 

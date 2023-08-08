@@ -82,17 +82,6 @@ func (k Keeper) GetStorageProviderByGcAddr(ctx sdk.Context, gcAddr sdk.AccAddres
 	return k.GetStorageProvider(ctx, k.spSequence.DecodeSequence(id))
 }
 
-func (k Keeper) GetStorageProviderByTestAddr(ctx sdk.Context, testAddr sdk.AccAddress) (sp *types.StorageProvider, found bool) {
-	store := ctx.KVStore(k.storeKey)
-
-	id := store.Get(types.GetStorageProviderByTestAddrKey(testAddr))
-	if id == nil {
-		return sp, false
-	}
-
-	return k.GetStorageProvider(ctx, k.spSequence.DecodeSequence(id))
-}
-
 func (k Keeper) SetStorageProvider(ctx sdk.Context, sp *types.StorageProvider) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalStorageProvider(k.cdc, sp)
@@ -129,12 +118,6 @@ func (k Keeper) SetStorageProviderByGcAddr(ctx sdk.Context, sp *types.StoragePro
 	gcAddr := sp.GetGcAccAddress()
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetStorageProviderByGcAddrKey(gcAddr), k.spSequence.EncodeSequence(sp.Id))
-}
-
-func (k Keeper) SetStorageProviderByTestAddr(ctx sdk.Context, sp *types.StorageProvider) {
-	testAddr := sp.GetTestAccAddress()
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetStorageProviderByTestAddrKey(testAddr), k.spSequence.EncodeSequence(sp.Id))
 }
 
 func (k Keeper) GetAllStorageProviders(ctx sdk.Context) (sps []types.StorageProvider) {

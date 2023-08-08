@@ -46,7 +46,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
 	approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
 	gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
-	testAcc := sdk.MustAccAddressFromHex(msg.TestAddress)
+	maintenanceAcc := sdk.MustAccAddressFromHex(msg.MaintenanceAddress)
 
 	signers := msg.GetSigners()
 	if ctx.BlockHeight() == 0 {
@@ -81,11 +81,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	// check to see if the gc address has been registered before
 	if _, found := k.GetStorageProviderByGcAddr(ctx, gcAcc); found {
 		return nil, types.ErrStorageProviderGcAddrExists
-	}
-
-	// check to see if the test address has been registered before
-	if _, found := k.GetStorageProviderByTestAddr(ctx, testAcc); found {
-		return nil, types.ErrStorageProviderTestAddrExists
 	}
 
 	// check if the bls pubkey has been registered before
@@ -129,7 +124,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		return nil, err
 	}
 
-	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc, testAcc,
+	sp, err := types.NewStorageProvider(k.GetNextSpID(ctx), spAcc, fundingAcc, sealAcc, approvalAcc, gcAcc, maintenanceAcc,
 		msg.Deposit.Amount, msg.Endpoint, msg.Description, msg.BlsKey)
 	if err != nil {
 		return nil, err
@@ -146,7 +141,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	k.SetStorageProviderByFundingAddr(ctx, &sp)
 	k.SetStorageProviderBySealAddr(ctx, &sp)
 	k.SetStorageProviderByGcAddr(ctx, &sp)
-	k.SetStorageProviderByTestAddr(ctx, &sp)
 	k.SetStorageProviderByBlsKey(ctx, &sp)
 
 	// set initial sp storage price
@@ -164,18 +158,18 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
-		SpId:            sp.Id,
-		SpAddress:       spAcc.String(),
-		FundingAddress:  fundingAcc.String(),
-		SealAddress:     sealAcc.String(),
-		ApprovalAddress: approvalAcc.String(),
-		GcAddress:       gcAcc.String(),
-		TestAddress:     testAcc.String(),
-		Endpoint:        msg.Endpoint,
-		TotalDeposit:    &msg.Deposit,
-		Status:          sp.Status,
-		Description:     sp.Description,
-		BlsKey:          hex.EncodeToString(sp.BlsKey),
+		SpId:               sp.Id,
+		SpAddress:          spAcc.String(),
+		FundingAddress:     fundingAcc.String(),
+		SealAddress:        sealAcc.String(),
+		ApprovalAddress:    approvalAcc.String(),
+		GcAddress:          gcAcc.String(),
+		MaintenanceAddress: maintenanceAcc.String(),
+		Endpoint:           msg.Endpoint,
+		TotalDeposit:       &msg.Deposit,
+		Status:             sp.Status,
+		Description:        sp.Description,
+		BlsKey:             hex.EncodeToString(sp.BlsKey),
 	}); err != nil {
 		return nil, err
 	}
@@ -227,9 +221,9 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 		sp.GcAddress = gcAcc.String()
 		changed = true
 	}
-	if msg.TestAddress != "" {
-		testAcc := sdk.MustAccAddressFromHex(msg.TestAddress)
-		sp.TestAddress = testAcc.String()
+	if msg.MaintenanceAddress != "" {
+		testAcc := sdk.MustAccAddressFromHex(msg.MaintenanceAddress)
+		sp.MaintenanceAddress = testAcc.String()
 		changed = true
 	}
 	if msg.BlsKey != "" && len(msg.BlsProof) != 0 {
@@ -253,19 +247,18 @@ func (k msgServer) EditStorageProvider(goCtx context.Context, msg *types.MsgEdit
 	k.SetStorageProviderBySealAddr(ctx, sp)
 	k.SetStorageProviderByApprovalAddr(ctx, sp)
 	k.SetStorageProviderByGcAddr(ctx, sp)
-	k.SetStorageProviderByTestAddr(ctx, sp)
 	k.SetStorageProviderByBlsKey(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventEditStorageProvider{
-		SpId:            sp.Id,
-		SpAddress:       operatorAcc.String(),
-		Endpoint:        sp.Endpoint,
-		Description:     sp.Description,
-		ApprovalAddress: sp.ApprovalAddress,
-		SealAddress:     sp.SealAddress,
-		GcAddress:       sp.GcAddress,
-		TestAddress:     sp.TestAddress,
-		BlsKey:          hex.EncodeToString(sp.BlsKey),
+		SpId:               sp.Id,
+		SpAddress:          operatorAcc.String(),
+		Endpoint:           sp.Endpoint,
+		Description:        sp.Description,
+		ApprovalAddress:    sp.ApprovalAddress,
+		SealAddress:        sp.SealAddress,
+		GcAddress:          sp.GcAddress,
+		MaintenanceAddress: sp.MaintenanceAddress,
+		BlsKey:             hex.EncodeToString(sp.BlsKey),
 	}); err != nil {
 		return nil, err
 	}
@@ -378,8 +371,8 @@ func (k msgServer) checkBlsProof(blsPk []byte, sig string) error {
 	return nil
 }
 
-// UpdateStorageProviderStatus only allow SP to update status between STATUS_MAINTENANCE and STATUS_IN_SERVICE for now.
-func (k msgServer) UpdateStorageProviderStatus(goCtx context.Context, msg *types.MsgUpdateStorageProviderStatus) (*types.MsgUpdateStorageProviderStatusResponse, error) {
+// UpdateSpStatus only allow SP to update status between STATUS_MAINTENANCE and STATUS_IN_SERVICE for now.
+func (k msgServer) UpdateSpStatus(goCtx context.Context, msg *types.MsgUpdateStorageProviderStatus) (*types.MsgUpdateStorageProviderStatusResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operatorAcc := sdk.MustAccAddressFromHex(msg.SpAddress)
@@ -401,7 +394,7 @@ func (k msgServer) UpdateStorageProviderStatus(goCtx context.Context, msg *types
 		if newStatus != types.STATUS_IN_MAINTENANCE {
 			return nil, types.ErrStorageProviderStatusUpdateNotAllow
 		}
-		err := k.UpdateToInMaintenance(ctx, sp, msg.GetMaintenanceDuration())
+		err := k.UpdateToInMaintenance(ctx, sp, msg.GetDuration())
 		if err != nil {
 			return nil, err
 		}
@@ -414,12 +407,6 @@ func (k msgServer) UpdateStorageProviderStatus(goCtx context.Context, msg *types
 		return nil, types.ErrStorageProviderStatusUpdateNotAllow
 	}
 	k.SetStorageProvider(ctx, sp)
-	k.SetStorageProviderByFundingAddr(ctx, sp)
-	k.SetStorageProviderBySealAddr(ctx, sp)
-	k.SetStorageProviderByApprovalAddr(ctx, sp)
-	k.SetStorageProviderByGcAddr(ctx, sp)
-	k.SetStorageProviderByTestAddr(ctx, sp)
-	k.SetStorageProviderByBlsKey(ctx, sp)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateStorageProviderStatus{
 		SpId:      sp.Id,

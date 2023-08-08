@@ -19,7 +19,7 @@ service Msg {
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
   rpc EditStorageProvider(MsgEditStorageProvider) returns (MsgEditStorageProviderResponse);
   rpc UpdateSpStoragePrice(MsgUpdateSpStoragePrice) returns (MsgUpdateSpStoragePriceResponse);
-  rpc UpdateStorageProviderStatus(MsgUpdateStorageProviderStatus) returns (MsgUpdateStorageProviderStatusResponse);
+  rpc UpdateSpStatus(MsgUpdateStorageProviderStatus) returns (MsgUpdateStorageProviderStatusResponse);
 
   // UpdateParams defines a governance operation for updating the x/sp module parameters.
   // The authority is defined in the keeper.
@@ -47,8 +47,8 @@ message MsgCreateStorageProvider {
   string approval_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose.
   string gc_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // test_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
-  string test_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // maintenance_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
+  string maintenance_address = 8 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // endpoint is the service address of the storage provider
   string endpoint = 9;
   // deposit define the deposit token
@@ -104,8 +104,8 @@ message MsgEditStorageProvider {
   string approval_address = 5 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // gc_address defines one of the storage provider's accounts which is used for gc purpose
   string gc_address = 6 [(cosmos_proto.scalar) = "cosmos.AddressString"];
-  // test_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
-  string test_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // maintenance_address defines one of the storage provider's accounts which is used for testing while in maintenance mode
+  string maintenance_address = 7 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // bls_key defines the bls pub key of the Storage provider for sealing object
   string bls_key = 8;
   string bls_proof = 9;
@@ -161,8 +161,8 @@ message MsgUpdateStorageProviderStatus {
   string sp_address = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // status defines the desired status be update to.
   Status status = 2;
-  // maintenancePeriod defines the time if status is set to STATUS_IN_MAINTENANCE
-  int64 maintenance_duration = 3;
+  // duration defines the time requested in desired status
+  int64 duration = 3;
 }
 
 // MsgUpdateStorageProviderStatusResponse defines the MsgUpdateStorageProviderStatus response type.

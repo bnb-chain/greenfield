@@ -70,7 +70,7 @@ Where create_storagep_provider.json contains:
       "seal_address": "0xbBD6cD73Cd376c3Dda20de0c4CBD8Fb1Bca2410D",
       "approval_address": "0xdCE01bfaBc7c9c0865bCCeF872493B4BE3b343E8",
       "gc_address": "0x0a1C8982C619B93bA7100411Fc58382306ab431b",
-      "test_address": "0xbE03316B1D7c3FCB69136e47e02442d6Fb3396dB",
+      "maintenance_address": "0xbE03316B1D7c3FCB69136e47e02442d6Fb3396dB",
       "endpoint": "https://sp0.greenfield.io",
       "deposit": {
         "denom": "BNB",
@@ -209,14 +209,14 @@ func CmdEditStorageProvider() *cobra.Command {
 				}
 			}
 
-			// test address
-			testAddressStr, err := cmd.Flags().GetString(FlagTestAddress)
+			// maintenance address
+			maintenanceAddressStr, err := cmd.Flags().GetString(FlagMaintenanceAddress)
 			if err != nil {
 				return err
 			}
-			testAddress := sdk.AccAddress{}
-			if testAddressStr != "" {
-				testAddress, err = sdk.AccAddressFromHexUnsafe(testAddressStr)
+			maintenanceAddress := sdk.AccAddress{}
+			if maintenanceAddressStr != "" {
+				maintenanceAddress, err = sdk.AccAddressFromHexUnsafe(maintenanceAddressStr)
 				if err != nil {
 					return err
 				}
@@ -246,7 +246,7 @@ func CmdEditStorageProvider() *cobra.Command {
 				sealAddress,
 				approvalAddress,
 				gcAddress,
-				testAddress,
+				maintenanceAddress,
 				blsPubKey,
 				blsProof,
 			)
@@ -270,7 +270,7 @@ func CmdEditStorageProvider() *cobra.Command {
 	cmd.Flags().String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	cmd.Flags().String(FlagApprovalAddress, "", "The approval address of storage provider")
 	cmd.Flags().String(FlagGcAddress, "", "The gc address of storage provider")
-	cmd.Flags().String(FlagTestAddress, "", "The test address of storage provider")
+	cmd.Flags().String(FlagMaintenanceAddress, "", "The maintenance address of storage provider")
 
 	return cmd
 }
@@ -435,7 +435,7 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagBlsProof, "", "The Bls signature of storage provider signing the bls pub key")
 	fsCreateStorageProvider.String(FlagApprovalAddress, "", "The approval address of storage provider")
 	fsCreateStorageProvider.String(FlagGcAddress, "", "The gc address of storage provider")
-	fsCreateStorageProvider.String(FlagTestAddress, "", "The test address of storage provider")
+	fsCreateStorageProvider.String(FlagMaintenanceAddress, "", "The maintenance address of storage provider")
 
 	fsCreateStorageProvider.String(FlagEndpoint, "", "The storage provider's endpoint")
 
@@ -459,14 +459,14 @@ type TxCreateStorageProviderConfig struct {
 	SecurityContact string
 	Details         string
 
-	SpAddress       sdk.AccAddress
-	FundingAddress  sdk.AccAddress
-	SealAddress     sdk.AccAddress
-	BlsPubKey       string
-	BlsProof        string
-	ApprovalAddress sdk.AccAddress
-	GcAddress       sdk.AccAddress
-	TestAddress     sdk.AccAddress
+	SpAddress          sdk.AccAddress
+	FundingAddress     sdk.AccAddress
+	SealAddress        sdk.AccAddress
+	BlsPubKey          string
+	BlsProof           string
+	ApprovalAddress    sdk.AccAddress
+	GcAddress          sdk.AccAddress
+	MaintenanceAddress sdk.AccAddress
 
 	Endpoint string
 	Deposit  string
@@ -595,16 +595,16 @@ func PrepareConfigForTxCreateStorageProvider(flagSet *flag.FlagSet) (TxCreateSto
 	}
 	c.GcAddress = addr
 
-	// test address
-	testAddress, err := flagSet.GetString(FlagTestAddress)
+	// maintenance address
+	maintenanceAddress, err := flagSet.GetString(FlagMaintenanceAddress)
 	if err != nil {
 		return c, err
 	}
-	addr, err = sdk.AccAddressFromHexUnsafe(testAddress)
+	addr, err = sdk.AccAddressFromHexUnsafe(maintenanceAddress)
 	if err != nil {
 		return c, err
 	}
-	c.TestAddress = addr
+	c.MaintenanceAddress = addr
 
 	// Endpoint
 	endpoint, err := flagSet.GetString(FlagEndpoint)
@@ -659,7 +659,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 
 	msg, err := types.NewMsgCreateStorageProvider(
 		config.Creator, config.SpAddress, config.FundingAddress,
-		config.SealAddress, config.ApprovalAddress, config.GcAddress, config.TestAddress, description,
+		config.SealAddress, config.ApprovalAddress, config.GcAddress, config.MaintenanceAddress, description,
 		config.Endpoint, deposit, config.ReadPrice, config.FreeReadQuota, config.StorePrice,
 		config.BlsPubKey, config.BlsProof,
 	)

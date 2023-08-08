@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"cosmossdk.io/math"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 
@@ -122,9 +121,6 @@ func (k Keeper) VerifyGVGSecondarySPsBlsSignature(ctx sdk.Context, gvg *vgtypes.
 		secondarySp, found := k.spKeeper.GetStorageProvider(ctx, spId)
 		if !found {
 			panic("should not happen")
-		}
-		if secondarySp.Status != sptypes.STATUS_IN_SERVICE {
-			return sptypes.ErrStorageProviderNotInService
 		}
 		spBlsPubKey, err := bls.PublicKeyFromBytes(secondarySp.BlsKey)
 		if err != nil {

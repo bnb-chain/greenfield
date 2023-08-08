@@ -1795,10 +1795,10 @@ paths:
                     description: >-
                       gc_address defines one of the storage provider's accounts
                       which is used for gc purpose.
-                  test_address:
+                  maintenance_address:
                     type: string
                     title: >-
-                      test_address defines one of the storage provider's
+                      maintenance_address defines one of the storage provider's
                       accounts which is used for testing while in maintenance
                       mode
                   total_deposit:
@@ -1995,10 +1995,10 @@ paths:
                     description: >-
                       gc_address defines one of the storage provider's accounts
                       which is used for gc purpose.
-                  test_address:
+                  maintenance_address:
                     type: string
                     title: >-
-                      test_address defines one of the storage provider's
+                      maintenance_address defines one of the storage provider's
                       accounts which is used for testing while in maintenance
                       mode
                   total_deposit:
@@ -2135,12 +2135,12 @@ paths:
                       description: >-
                         gc_address defines one of the storage provider's
                         accounts which is used for gc purpose.
-                    test_address:
+                    maintenance_address:
                       type: string
                       title: >-
-                        test_address defines one of the storage provider's
-                        accounts which is used for testing while in maintenance
-                        mode
+                        maintenance_address defines one of the storage
+                        provider's accounts which is used for testing while in
+                        maintenance mode
                     total_deposit:
                       type: string
                       description: >-
@@ -32863,11 +32863,11 @@ definitions:
             description: >-
               gc_address defines one of the storage provider's accounts which is
               used for gc purpose.
-          test_address:
+          maintenance_address:
             type: string
             title: >-
-              test_address defines one of the storage provider's accounts which
-              is used for testing while in maintenance mode
+              maintenance_address defines one of the storage provider's accounts
+              which is used for testing while in maintenance mode
           total_deposit:
             type: string
             description: >-
@@ -32982,11 +32982,11 @@ definitions:
             description: >-
               gc_address defines one of the storage provider's accounts which is
               used for gc purpose.
-          test_address:
+          maintenance_address:
             type: string
             title: >-
-              test_address defines one of the storage provider's accounts which
-              is used for testing while in maintenance mode
+              maintenance_address defines one of the storage provider's accounts
+              which is used for testing while in maintenance mode
           total_deposit:
             type: string
             description: >-
@@ -33076,11 +33076,11 @@ definitions:
               description: >-
                 gc_address defines one of the storage provider's accounts which
                 is used for gc purpose.
-            test_address:
+            maintenance_address:
               type: string
               title: >-
-                test_address defines one of the storage provider's accounts
-                which is used for testing while in maintenance mode
+                maintenance_address defines one of the storage provider's
+                accounts which is used for testing while in maintenance mode
             total_deposit:
               type: string
               description: >-
@@ -33228,11 +33228,11 @@ definitions:
         description: >-
           gc_address defines one of the storage provider's accounts which is
           used for gc purpose.
-      test_address:
+      maintenance_address:
         type: string
         title: >-
-          test_address defines one of the storage provider's accounts which is
-          used for testing while in maintenance mode
+          maintenance_address defines one of the storage provider's accounts
+          which is used for testing while in maintenance mode
       total_deposit:
         type: string
         description: >-

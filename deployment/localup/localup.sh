@@ -281,7 +281,7 @@ function export_sps {
     output="${output}\"SealAddress\": \"${spseal_addr}\","
     output="${output}\"ApprovalAddress\": \"${spapproval_addr}\","
     output="${output}\"GcAddress\": \"${spgc_addr}\","
-    output="${output}\"TestAddress\": \"${sptest_addr}\","
+    output="${output}\"MaintenanceAddress\": \"${sptest_addr}\","
     output="${output}\"BlsPubKey\": \"${bls_pub_key}\","
     output="${output}\"OperatorPrivateKey\": \"${spoperator_priv_key}\","
     output="${output}\"FundingPrivateKey\": \"${spfund_priv_key}\","
