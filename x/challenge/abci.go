@@ -89,7 +89,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		if !found {
 			continue
 		}
-		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING && sp.Status != sptypes.STATUS_IN_MAINTENANCE {
+		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
 			continue
 		}
 
