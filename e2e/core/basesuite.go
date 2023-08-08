@@ -44,7 +44,7 @@ type StorageProvider struct {
 	FundingKey                 keys.KeyManager
 	ApprovalKey                keys.KeyManager
 	GcKey                      keys.KeyManager
-	TestKey                    keys.KeyManager
+	MaintenanceKey             keys.KeyManager
 	BlsKey                     keys.KeyManager
 	Info                       *sptypes.StorageProvider
 	GlobalVirtualGroupFamilies map[uint32][]*virtualgroupmoduletypes.GlobalVirtualGroup
@@ -156,7 +156,7 @@ func (s *BaseSuite) SetupSuite() {
 		s.Require().NoError(err)
 		sp.GcKey, err = keys.NewMnemonicKeyManager(spMnemonics.GcMnemonic)
 		s.Require().NoError(err)
-		sp.TestKey, err = keys.NewMnemonicKeyManager(spMnemonics.TestMnemonic)
+		sp.MaintenanceKey, err = keys.NewMnemonicKeyManager(spMnemonics.MaintenanceMnemonic)
 		s.Require().NoError(err)
 		sp.BlsKey, err = keys.NewBlsMnemonicKeyManager(s.Config.SPBLSMnemonic[i])
 		s.Require().NoError(err)
@@ -441,11 +441,11 @@ func (s *BaseSuite) NewSpAcc() *StorageProvider {
 	approvalAcc := userAccs[2]
 	sealAcc := userAccs[3]
 	gcAcc := userAccs[4]
-	testAcc := userAccs[5]
+	maintenanceAcc := userAccs[5]
 
 	blsKm := s.GenRandomBlsKeyManager()
 	return &StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, TestKey: testAcc, BlsKey: blsKm}
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, MaintenanceKey: maintenanceAcc, BlsKey: blsKm}
 }
 
 func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
@@ -489,7 +489,7 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 		newSP.SealKey.GetAddr(),
 		newSP.ApprovalKey.GetAddr(),
 		newSP.GcKey.GetAddr(),
-		newSP.TestKey.GetAddr(),
+		newSP.MaintenanceKey.GetAddr(),
 		description,
 		endpoint, deposit, newReadPrice, 10000, newStorePrice,
 		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()),

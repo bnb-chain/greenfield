@@ -104,7 +104,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	}
 	msgEditSP := sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), newSP.Endpoint, &newSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), sp.TestKey.GetAddr(),
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), sp.MaintenanceKey.GetAddr(),
 		hex.EncodeToString(newBlsPubKeyBz),
 		hex.EncodeToString(newBlsProofBz),
 	)
@@ -125,7 +125,7 @@ func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	// 4. revert storage provider info
 	msgEditSP = sptypes.NewMsgEditStorageProvider(
 		sp.OperatorKey.GetAddr(), prevSP.Endpoint, &prevSP.Description,
-		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), sp.TestKey.GetAddr(),
+		sp.SealKey.GetAddr(), sp.ApprovalKey.GetAddr(), sp.GcKey.GetAddr(), sp.MaintenanceKey.GetAddr(),
 		hex.EncodeToString(prevSP.BlsKey), hex.EncodeToString(blsProof))
 
 	txRes = s.SendTxBlock(sp.OperatorKey, msgEditSP)
@@ -356,7 +356,7 @@ func (s *StorageProviderTestSuite) TestUpdateStorageProviderStatus() {
 	msg := sptypes.NewMsgUpdateStorageProviderStatus(
 		operatorAddr,
 		sptypes.STATUS_IN_MAINTENANCE,
-		120,
+		120, // seconds
 	)
 	txRes := s.SendTxBlock(sp.OperatorKey, msg)
 	s.Require().Equal(txRes.Code, uint32(0))

@@ -1801,7 +1801,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 		}
 	}
 	spAddr := sp.OperatorKey.GetAddr()
-	spMaintenanceAddr := sp.TestKey.GetAddr()
+	spMaintenanceAddr := sp.MaintenanceKey.GetAddr()
 
 	req := sptypes.QueryStorageProviderByOperatorAddressRequest{
 		OperatorAddress: spAddr.String(),
@@ -1833,7 +1833,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(sp.TestKey, msgCreateBucket)
+	s.SendTxBlock(sp.MaintenanceKey, msgCreateBucket)
 
 	// HeadBucket
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
@@ -1862,7 +1862,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	msgCreateObject := storagetypes.NewMsgCreateObject(spMaintenanceAddr, bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
 	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(sp.TestKey, msgCreateObject)
+	s.SendTxBlock(sp.MaintenanceKey, msgCreateObject)
 
 	// HeadObject
 	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
@@ -1922,7 +1922,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	updateObjectInfo := storagetypes.NewMsgUpdateObjectInfo(
 		spMaintenanceAddr, bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
 	s.Require().NoError(err)
-	s.SendTxBlock(sp.TestKey, updateObjectInfo)
+	s.SendTxBlock(sp.MaintenanceKey, updateObjectInfo)
 	s.Require().NoError(err)
 
 	// verify modified objectinfo
@@ -1939,11 +1939,11 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 
 	// DeleteObject
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(spMaintenanceAddr, bucketName, objectName)
-	s.SendTxBlock(sp.TestKey, msgDeleteObject)
+	s.SendTxBlock(sp.MaintenanceKey, msgDeleteObject)
 
 	// DeleteBucket
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(spMaintenanceAddr, bucketName)
-	s.SendTxBlock(sp.TestKey, msgDeleteBucket)
+	s.SendTxBlock(sp.MaintenanceKey, msgDeleteBucket)
 
 	// revert back
 	msg = sptypes.NewMsgUpdateStorageProviderStatus(
