@@ -558,6 +558,7 @@ func (k Keeper) HeadGroupMember(goCtx context.Context, req *types.QueryHeadGroup
 	if !found {
 		return nil, types.ErrNoSuchGroupMember
 	}
+
 	return &types.QueryHeadGroupMemberResponse{GroupMember: groupMember}, nil
 }
 

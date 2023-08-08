@@ -2826,6 +2826,12 @@ paths:
                   member:
                     type: string
                     title: member is the account address of the member
+                  expiration_time:
+                    type: string
+                    format: date-time
+                    title: >-
+                      expiration_time defines the expiration time of the group
+                      member
         default:
           description: An unexpected error response.
           schema:
@@ -33135,6 +33141,10 @@ definitions:
       member:
         type: string
         title: member is the account address of the member
+      expiration_time:
+        type: string
+        format: date-time
+        title: expiration_time defines the expiration time of the group member
   greenfield.permission.Policy:
     type: object
     properties:
@@ -34083,6 +34093,10 @@ definitions:
           member:
             type: string
             title: member is the account address of the member
+          expiration_time:
+            type: string
+            format: date-time
+            title: expiration_time defines the expiration time of the group member
   greenfield.storage.QueryHeadGroupResponse:
     type: object
     properties:

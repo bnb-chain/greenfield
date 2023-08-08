@@ -2,6 +2,7 @@ package types
 
 import (
 	"math/big"
+	time "time"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -873,22 +874,25 @@ func (p DeleteGroupAckPackage) MustSerialize() []byte {
 const (
 	OperationAddGroupMember    uint8 = 0
 	OperationDeleteGroupMember uint8 = 1
+	OperationRenewGroupMember  uint8 = 2
 )
 
 type UpdateGroupMemberSynPackage struct {
-	Operator      sdk.AccAddress
-	GroupId       *big.Int
-	OperationType uint8
-	Members       []sdk.AccAddress
-	ExtraData     []byte
+	Operator         sdk.AccAddress
+	GroupId          *big.Int
+	OperationType    uint8
+	Members          []sdk.AccAddress
+	ExtraData        []byte
+	MemberExpiration []uint64
 }
 
 type UpdateGroupMemberSynPackageStruct struct {
-	Operator      common.Address
-	GroupId       *big.Int
-	OperationType uint8
-	Members       []common.Address
-	ExtraData     []byte
+	Operator         common.Address
+	GroupId          *big.Int
+	OperationType    uint8
+	Members          []common.Address
+	ExtraData        []byte
+	MemberExpiration []uint64
 }
 
 var (
@@ -898,6 +902,7 @@ var (
 		{Name: "OperationType", Type: "uint8"},
 		{Name: "Members", Type: "address[]"},
 		{Name: "ExtraData", Type: "bytes"},
+		{Name: "MemberExpiration", Type: "uint64[]"},
 	})
 
 	updateGroupMemberSynPackageArgs = abi.Arguments{
@@ -913,6 +918,14 @@ func (p UpdateGroupMemberSynPackage) GetMembers() []string {
 	return members
 }
 
+func (p UpdateGroupMemberSynPackage) GetMemberExpiration() []time.Time {
+	memberExpiration := make([]time.Time, 0, len(p.MemberExpiration))
+	for _, expiration := range p.MemberExpiration {
+		memberExpiration = append(memberExpiration, time.Unix(int64(expiration), 0))
+	}
+	return memberExpiration
+}
+
 func (p UpdateGroupMemberSynPackage) MustSerialize() []byte {
 	totalMember := len(p.Members)
 	members := make([]common.Address, totalMember)
@@ -926,6 +939,7 @@ func (p UpdateGroupMemberSynPackage) MustSerialize() []byte {
 		p.OperationType,
 		members,
 		p.ExtraData,
+		p.MemberExpiration,
 	})
 	if err != nil {
 		panic("encode update group member syn package error")
@@ -934,7 +948,7 @@ func (p UpdateGroupMemberSynPackage) MustSerialize() []byte {
 }
 
 func (p UpdateGroupMemberSynPackage) ValidateBasic() error {
-	if p.OperationType != OperationAddGroupMember && p.OperationType != OperationDeleteGroupMember {
+	if p.OperationType != OperationAddGroupMember && p.OperationType != OperationDeleteGroupMember && p.OperationType != OperationRenewGroupMember {
 		return ErrInvalidOperationType
 	}
 
@@ -950,19 +964,25 @@ func (p UpdateGroupMemberSynPackage) ValidateBasic() error {
 			return sdkerrors.ErrInvalidAddress
 		}
 	}
+
+	if (p.OperationType == OperationRenewGroupMember || p.OperationType == OperationAddGroupMember) &&
+		len(p.Members) != len(p.MemberExpiration) {
+		return ErrInvalidGroupMemberExpiration
+	}
+
 	return nil
 }
 
 func DeserializeUpdateGroupMemberSynPackage(serializedPackage []byte) (interface{}, error) {
 	unpacked, err := updateGroupMemberSynPackageArgs.Unpack(serializedPackage)
 	if err != nil {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete bucket ack package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize update group member sun package failed")
 	}
 
 	unpackedStruct := abi.ConvertType(unpacked[0], UpdateGroupMemberSynPackageStruct{})
 	pkgStruct, ok := unpackedStruct.(UpdateGroupMemberSynPackageStruct)
 	if !ok {
-		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete bucket ack package failed")
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect update group member sun package failed")
 	}
 
 	totalMember := len(pkgStruct.Members)
@@ -976,6 +996,7 @@ func DeserializeUpdateGroupMemberSynPackage(serializedPackage []byte) (interface
 		pkgStruct.OperationType,
 		members,
 		pkgStruct.ExtraData,
+		pkgStruct.MemberExpiration,
 	}
 	return &tp, nil
 }

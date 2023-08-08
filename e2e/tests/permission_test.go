@@ -671,8 +671,14 @@ func (s *StorageTestSuite) TestGrantsPermissionToGroup() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, []sdk.AccAddress{user[1].GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(user[0].GetAddr(), testGroupName, "")
 	s.SendTxBlock(user[0], msgCreateGroup)
+
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(user[0].GetAddr(), user[0].GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(user[0], msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: user[0].GetAddr().String(), GroupName: testGroupName}
@@ -1168,10 +1174,14 @@ func (s *StorageTestSuite) TestDeleteGroupPolicy() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp},
+		{Member: user[2].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1219,8 +1229,13 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, []sdk.AccAddress{user[0].GetAddr(), user[1].GetAddr(), user[2].GetAddr()}, "")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1316,10 +1331,14 @@ func (s *StorageTestSuite) TestGroupMembersAndPolicyGC() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp},
+		{Member: user[2].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
@@ -1489,10 +1508,14 @@ func (s *StorageTestSuite) TestUpdateGroupExtraWithPermission() {
 
 	// Create Group
 	testGroupName := "testGroup"
-	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName,
-		[]sdk.AccAddress{user[1].GetAddr(), user[2].GetAddr(), user[3].GetAddr()},
-		"")
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
 	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp},
+		{Member: user[2].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}

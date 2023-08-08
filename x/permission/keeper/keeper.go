@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"time"
 
 	"cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -58,20 +59,31 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
+func (k Keeper) AddGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, expiration time.Time) error {
 	store := ctx.KVStore(k.storeKey)
 	memberKey := types.GetGroupMemberKey(groupID, member)
 	if store.Has(memberKey) {
 		return storagetypes.ErrGroupMemberAlreadyExists
 	}
 	groupMember := types.GroupMember{
-		GroupId: groupID,
-		Member:  member.String(),
+		GroupId:        groupID,
+		Member:         member.String(),
+		ExpirationTime: expiration,
 	}
 	id := k.groupMemberSeq.NextVal(store)
 	store.Set(memberKey, id.Bytes())
 	store.Set(types.GetGroupMemberByIDKey(id), k.cdc.MustMarshal(&groupMember))
 	return nil
+}
+
+func (k Keeper) UpdateGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress, memberID math.Uint, expiration time.Time) {
+	store := ctx.KVStore(k.storeKey)
+	groupMember := types.GroupMember{
+		GroupId:        groupID,
+		Member:         member.String(),
+		ExpirationTime: expiration,
+	}
+	store.Set(types.GetGroupMemberByIDKey(memberID), k.cdc.MustMarshal(&groupMember))
 }
 
 func (k Keeper) RemoveGroupMember(ctx sdk.Context, groupID math.Uint, member sdk.AccAddress) error {
@@ -105,6 +117,7 @@ func (k Keeper) GetGroupMemberByID(ctx sdk.Context, groupMemberID math.Uint) (*t
 	}
 	var groupMember types.GroupMember
 	k.cdc.MustUnmarshal(bz, &groupMember)
+	groupMember.Id = groupMemberID
 	return &groupMember, true
 }
 
@@ -283,8 +296,9 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			effect, newPolicy = p.Eval(action, ctx.BlockTime(), opts)
 			if effect != types.EFFECT_UNSPECIFIED {
 				// check the operator is the member of this group
-				_, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
-				if memberFound {
+				groupMember, memberFound := k.GetGroupMember(ctx, item.GroupId, operator)
+				if memberFound && groupMember.ExpirationTime.After(ctx.BlockTime().UTC()) {
+					// check if the operator has been revoked
 					if effect == types.EFFECT_ALLOW {
 						allowed = true
 					} else if effect == types.EFFECT_DENY {

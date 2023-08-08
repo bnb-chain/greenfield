@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"time"
 
 	errorsmod "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -232,7 +233,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Members: msg.Members, Extra: msg.Extra})
+	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra})
 	if err != nil {
 		return nil, err
 	}
@@ -280,16 +281,54 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 	if !found {
 		return nil, types.ErrNoSuchGroup
 	}
+	membersToAdd := make([]string, 0, len(msg.MembersToAdd))
+	membersExpirationToAdd := make([]time.Time, 0, len(msg.MembersToAdd))
+	for i := range msg.MembersToAdd {
+		membersToAdd = append(membersToAdd, msg.MembersToAdd[i].GetMember())
+		membersExpirationToAdd = append(membersExpirationToAdd, msg.MembersToAdd[i].GetExpirationTime())
+	}
 	err := k.Keeper.UpdateGroupMember(ctx, operator, groupInfo, storagetypes.UpdateGroupMemberOptions{
-		SourceType:      types.SOURCE_TYPE_ORIGIN,
-		MembersToAdd:    msg.MembersToAdd,
-		MembersToDelete: msg.MembersToDelete,
+		SourceType:             types.SOURCE_TYPE_ORIGIN,
+		MembersToAdd:           membersToAdd,
+		MembersExpirationToAdd: membersExpirationToAdd,
+		MembersToDelete:        msg.MembersToDelete,
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	return &types.MsgUpdateGroupMemberResponse{}, nil
+}
+
+func (k msgServer) RenewGroupMember(goCtx context.Context, msg *types.MsgRenewGroupMember) (*types.MsgRenewGroupMemberResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	groupOwner := sdk.MustAccAddressFromHex(msg.GroupOwner)
+
+	groupInfo, found := k.GetGroupInfo(ctx, groupOwner, msg.GroupName)
+	if !found {
+		return nil, types.ErrNoSuchGroup
+	}
+
+	members := make([]string, 0, len(msg.Members))
+	membersExpiration := make([]time.Time, 0, len(msg.Members))
+	for i := range msg.Members {
+		members = append(members, msg.Members[i].GetMember())
+		membersExpiration = append(membersExpiration, msg.Members[i].GetExpirationTime())
+	}
+
+	err := k.Keeper.RenewGroupMember(ctx, operator, groupInfo, storagetypes.RenewGroupMemberOptions{
+		SourceType:        types.SOURCE_TYPE_ORIGIN,
+		Members:           members,
+		MembersExpiration: membersExpiration,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRenewGroupMemberResponse{}, nil
 }
 
 func (k msgServer) UpdateGroupExtra(goCtx context.Context, msg *types.MsgUpdateGroupExtra) (*types.MsgUpdateGroupExtraResponse, error) {
