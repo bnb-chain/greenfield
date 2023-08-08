@@ -1235,7 +1235,7 @@ func (s *StorageTestSuite) TestStalePermissionForGroupGC() {
 		{Member: user[1].GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
 	membersToDelete := []sdk.AccAddress{}
 	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
-	s.SendTxBlock(user[0], msgUpdateGroupMember)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
 	// Head Group
 	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
