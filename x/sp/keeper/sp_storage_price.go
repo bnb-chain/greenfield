@@ -93,7 +93,7 @@ func (k Keeper) UpdateGlobalSpStorePrice(ctx sdk.Context) error {
 		}
 		price, found := k.GetSpStoragePrice(ctx, sp.Id)
 		if !found {
-			return fmt.Errorf("cannot find secondaryStorePrice for storage provider %d", sp.Id)
+			return fmt.Errorf("cannot find price for storage provider %d", sp.Id)
 		}
 		storePrices = append(storePrices, price.StorePrice)
 		readPrices = append(readPrices, price.ReadPrice)

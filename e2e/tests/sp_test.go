@@ -27,10 +27,12 @@ import (
 
 type StorageProviderTestSuite struct {
 	core.BaseSuite
+	defaultParams sptypes.Params
 }
 
 func (s *StorageProviderTestSuite) SetupSuite() {
 	s.BaseSuite.SetupSuite()
+	s.defaultParams = s.queryParams()
 }
 
 func (s *StorageProviderTestSuite) SetupTest() {
@@ -155,9 +157,23 @@ func (s *StorageProviderTestSuite) TestDeposit() {
 	s.Require().Equal(txRes.Code, uint32(0))
 }
 
-func (s *StorageProviderTestSuite) TestSpStoragePrice() {
+func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 	ctx := context.Background()
-	s.CheckGlobalSpStorePrice()
+	defer s.revertParams()
+
+	// update params
+	params := s.queryParams()
+	params.UpdateGlobalPriceInterval = 10
+	params.MaxUpdatePriceTimes = 2
+	s.updateParams(params)
+
+	// query sp storage price by time before it exists, expect error
+	_, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 1,
+	})
+	s.Require().Error(err)
+
+	// check update price
 	sp := s.BaseSuite.PickStorageProvider()
 	spAddr := sp.OperatorKey.GetAddr().String()
 	spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
@@ -165,31 +181,74 @@ func (s *StorageProviderTestSuite) TestSpStoragePrice() {
 	})
 	s.Require().NoError(err)
 	s.T().Log(spStoragePrice)
-	// update storage price
-	newReadPrice := sdk.NewDec(core.RandInt64(100, 200))
-	newStorePrice := sdk.NewDec(core.RandInt64(10000, 20000))
+
+	// update storage price - first update is ok
 	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     spAddr,
-		ReadPrice:     newReadPrice,
-		StorePrice:    newStorePrice,
+		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
+		StorePrice:    spStoragePrice.SpStoragePrice.StorePrice,
 		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
 	}
 	_ = s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
-	// query and assert
-	spStoragePrice2, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: spAddr,
-	})
-	s.Require().NoError(err)
-	s.T().Log(spStoragePrice2)
-	// check price changed as expected
-	s.Require().Equal(newReadPrice, spStoragePrice2.SpStoragePrice.ReadPrice)
-	s.Require().Equal(newStorePrice, spStoragePrice2.SpStoragePrice.StorePrice)
+
+	// update storage price - secondary update is ok
+	msgUpdateSpStoragePrice = &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     spAddr,
+		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
+		StorePrice:    spStoragePrice.SpStoragePrice.StorePrice,
+		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
+	}
+	_ = s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
+
+	// update storage price - third update is not ok
+	msgUpdateSpStoragePrice = &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     spAddr,
+		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
+		StorePrice:    spStoragePrice.SpStoragePrice.StorePrice,
+		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
+	}
+	s.SendTxBlockWithExpectErrorString(msgUpdateSpStoragePrice, sp.OperatorKey, "cannot update price due to frequency limited")
+
+	time.Sleep(12 * time.Second)
+
+	// verify price is updated after interval
+	globalPriceResBefore, _ := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
+	s.T().Log("globalPriceResBefore", core.YamlString(globalPriceResBefore))
+	priceChanged := false
+	globalPriceResAfter1, _ := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
+	s.T().Log("globalPriceResAfter1", core.YamlString(globalPriceResAfter1))
+	for _, sp := range s.BaseSuite.StorageProviders {
+		msgUpdateSpStoragePrice = &sptypes.MsgUpdateSpStoragePrice{
+			SpAddress:     sp.OperatorKey.GetAddr().String(),
+			ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice.MulInt64(10),
+			StorePrice:    spStoragePrice.SpStoragePrice.StorePrice.MulInt64(10),
+			FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
+		}
+		s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
+
+		globalPriceResAfter1, _ = s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
+		s.T().Log("globalPriceResAfter1", core.YamlString(globalPriceResAfter1))
+		if !globalPriceResAfter1.GlobalSpStorePrice.PrimaryStorePrice.Equal(globalPriceResBefore.GlobalSpStorePrice.PrimaryStorePrice) {
+			s.CheckGlobalSpStorePrice()
+			priceChanged = true
+			break
+		}
+	}
+
+	time.Sleep(12 * time.Second)
+	globalPriceResAfter2, _ := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
+	s.T().Log("globalPriceResAfter2", core.YamlString(globalPriceResAfter2))
+
 	s.CheckGlobalSpStorePrice()
-	// query sp storage price by time before it exists, expect error
-	_, err = s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
-		Timestamp: 1,
-	})
-	s.Require().Error(err)
+	if !priceChanged { //if price not changed, then after 10 seconds, it should change
+		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.PrimaryStorePrice, globalPriceResBefore.GlobalSpStorePrice.PrimaryStorePrice)
+		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.SecondaryStorePrice, globalPriceResBefore.GlobalSpStorePrice.SecondaryStorePrice)
+		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.ReadPrice, globalPriceResBefore.GlobalSpStorePrice.ReadPrice)
+	} else { //if price not changed already, then after 10 seconds, it should not change
+		s.Require().Equal(globalPriceResAfter2.GlobalSpStorePrice.PrimaryStorePrice, globalPriceResAfter1.GlobalSpStorePrice.PrimaryStorePrice)
+		s.Require().Equal(globalPriceResAfter2.GlobalSpStorePrice.SecondaryStorePrice, globalPriceResAfter1.GlobalSpStorePrice.SecondaryStorePrice)
+		s.Require().Equal(globalPriceResAfter2.GlobalSpStorePrice.ReadPrice, globalPriceResAfter1.GlobalSpStorePrice.ReadPrice)
+	}
 }
 
 func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
@@ -381,4 +440,86 @@ func (s *StorageProviderTestSuite) TestUpdateStorageProviderStatus() {
 	spResp, err = s.Client.StorageProviderByOperatorAddress(ctx, &req)
 	s.Require().NoError(err)
 	s.Require().Equal(sptypes.STATUS_IN_SERVICE, spResp.StorageProvider.Status)
+}
+
+func (s *StorageProviderTestSuite) queryParams() sptypes.Params {
+	queryParamsRequest := sptypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.SpQueryClient.Params(context.Background(), &queryParamsRequest)
+	s.Require().NoError(err)
+	s.T().Log("params", core.YamlString(queryParamsResponse.Params))
+	return queryParamsResponse.Params
+}
+
+func (s *StorageProviderTestSuite) revertParams() {
+	s.updateParams(s.defaultParams)
+}
+
+func (s *StorageProviderTestSuite) updateParams(params sptypes.Params) {
+	var err error
+	validator := s.Validator.GetAddr()
+
+	ctx := context.Background()
+
+	queryParamsRequest := &sptypes.QueryParamsRequest{}
+	queryParamsResponse, err := s.Client.SpQueryClient.Params(ctx, queryParamsRequest)
+	s.Require().NoError(err)
+	s.T().Log("params before", core.YamlString(queryParamsResponse.Params))
+
+	msgUpdateParams := &sptypes.MsgUpdateParams{
+		Authority: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		Params:    params,
+	}
+
+	msgProposal, err := v1.NewMsgSubmitProposal(
+		[]sdk.Msg{msgUpdateParams},
+		sdk.Coins{sdk.NewCoin(s.BaseSuite.Config.Denom, types.NewIntFromInt64WithDecimal(100, types.DecimalBNB))},
+		validator.String(),
+		"test", "test", "test",
+	)
+	s.Require().NoError(err)
+
+	txRes := s.SendTxBlock(s.Validator, msgProposal)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	// 3. query proposal and get proposal ID
+	var proposalId uint64
+	for _, event := range txRes.Logs[0].Events {
+		if event.Type == "submit_proposal" {
+			for _, attr := range event.Attributes {
+				if attr.Key == "proposal_id" {
+					proposalId, err = strconv.ParseUint(attr.Value, 10, 0)
+					s.Require().NoError(err)
+					break
+				}
+			}
+			break
+		}
+	}
+	s.Require().True(proposalId != 0)
+
+	queryProposal := &v1.QueryProposalRequest{ProposalId: proposalId}
+	_, err = s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+
+	// 4. submit MsgVote and wait the proposal exec
+	msgVote := v1.NewMsgVote(validator, proposalId, v1.OptionYes, "test")
+	txRes = s.SendTxBlock(s.Validator, msgVote)
+	s.Require().Equal(txRes.Code, uint32(0))
+
+	queryVoteParamsReq := v1.QueryParamsRequest{ParamsType: "voting"}
+	queryVoteParamsResp, err := s.Client.GovQueryClientV1.Params(ctx, &queryVoteParamsReq)
+	s.Require().NoError(err)
+
+	// 5. wait a voting period and confirm that the proposal success.
+	s.T().Logf("voting period %s", *queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod)
+	time.Sleep(1 * time.Second)
+	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
+	s.Require().NoError(err)
+	s.Require().Equal(proposalRes.Proposal.Status, v1.ProposalStatus_PROPOSAL_STATUS_PASSED)
+
+	queryParamsRequest = &sptypes.QueryParamsRequest{}
+	queryParamsResponse, err = s.Client.SpQueryClient.Params(ctx, queryParamsRequest)
+	s.Require().NoError(err)
+	s.T().Log("params after", core.YamlString(queryParamsResponse.Params))
 }

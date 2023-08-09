@@ -317,7 +317,7 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 
 	updateTimes := k.GetSpUpdatePriceTimes(ctx, sp.Id)
 	params := k.GetParams(ctx)
-	if updateTimes+1 >= params.MaxUpdatePriceTimes {
+	if updateTimes+1 > params.MaxUpdatePriceTimes {
 		return nil, types.ErrStorageProviderPriceUpdateNotAllow
 	}
 

@@ -441,20 +441,15 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	s.Require().NoError(err)
 
 	// sp price changes
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
-	s.T().Log("price", priceRes.SpStoragePrice)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice.MulInt64(1000),
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(10000),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(1000), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	s.SendTxBlock(user, msgDeleteObject)
 	s.SendTxBlock(user, msgDeleteBucket)
@@ -466,15 +461,6 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
-
-	// revert price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeReserveTimeChange() {
@@ -555,20 +541,15 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	s.Require().NoError(err)
 
 	// sp price changes
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
-	s.T().Log("price", priceRes.SpStoragePrice)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice.MulInt64(1000),
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(10000),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(1000), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	// update params
 	params := s.queryParams()
@@ -589,15 +570,6 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
-
-	// revert price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserveTime() {
@@ -637,8 +609,8 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserve
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	_, _, userRateRead := s.calculateReadRates(sp, bucketName)
-	_, _, _, userRateStore := s.calculateStorageRates(sp, bucketName, objectName1, payloadSize, 0)
+	_, _, userRateRead := s.calculateReadRates(bucketName)
+	_, _, _, userRateStore := s.calculateStorageRates(bucketName, objectName1, payloadSize, 0)
 
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	s.SendTxBlock(user, msgDeleteObject)
@@ -709,8 +681,8 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserve
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	_, _, userRateRead := s.calculateReadRates(sp, bucketName)
-	_, _, _, userRateStore := s.calculateStorageRates(sp, bucketName, objectName1, payloadSize, 0)
+	_, _, userRateRead := s.calculateReadRates(bucketName)
+	_, _, _, userRateStore := s.calculateStorageRates(bucketName, objectName1, payloadSize, 0)
 
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	simulateResponse := s.SimulateTx(msgDeleteObject, user)
@@ -860,7 +832,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -873,7 +845,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -912,7 +884,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidator
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -936,7 +908,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidator
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFeeAfterParameterChange := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFeeAfterParameterChange := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFeeAfterParameterChange)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -974,7 +946,7 @@ func (s *PaymentTestSuite) TestStorageBill_CancelCreateObject() {
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -1023,7 +995,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithoutPriceChange() {
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -1037,7 +1009,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithoutPriceChange() {
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -1069,29 +1041,26 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChange() {
 	// case: seal object with read price change and storage price change
 	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
 	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice.MulInt64(2),
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(2),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(2), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(2))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	gvgFamilyRateReadBefore, taxRateReadBefore, userTotalRateReadBefore := s.calculateReadRates(sp, bucketName)
+	gvgFamilyRateReadBefore, taxRateReadBefore, userTotalRateReadBefore := s.calculateReadRates(bucketName)
 
 	// seal object
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
 
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
-	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter := s.calculateReadRatesCurrentTimestamp(sp, bucketName)
-	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore := s.calculateStorageRatesCurrentTimestamp(sp, bucketName, objectName, payloadSize)
+	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter := s.calculateReadRatesCurrentTimestamp(bucketName)
+	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore := s.calculateStorageRatesCurrentTimestamp(bucketName, objectName, payloadSize)
 
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
@@ -1129,29 +1098,25 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 	// case: seal object with read price change and storage price change
 	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
-	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice.MulInt64(2),
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(2),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(2), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(2))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-	gvgFamilyRateReadBefore, taxRateReadBefore, userTotalRateReadBefore := s.calculateReadRates(sp, bucketName)
+	gvgFamilyRateReadBefore, taxRateReadBefore, userTotalRateReadBefore := s.calculateReadRates(bucketName)
 
 	// seal object
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
 
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
-	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter := s.calculateReadRatesCurrentTimestamp(sp, bucketName)
-	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore := s.calculateStorageRatesCurrentTimestamp(sp, bucketName, objectName, payloadSize)
+	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter := s.calculateReadRatesCurrentTimestamp(bucketName)
+	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore := s.calculateStorageRatesCurrentTimestamp(bucketName, objectName, payloadSize)
 
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
@@ -1175,8 +1140,8 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter = s.calculateReadRatesCurrentTimestamp(sp, bucketName)
-	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore = s.calculateStorageRatesCurrentTimestamp(sp, bucketName, objectName, payloadSize*2)
+	gvgFamilyRateReadAfter, taxRateReadAfter, userTotalRateReadAfter = s.calculateReadRatesCurrentTimestamp(bucketName)
+	gvgFamilyRateStore, gvgRateStore, taxRateStore, userTotalRateStore = s.calculateStorageRatesCurrentTimestamp(bucketName, objectName, payloadSize*2)
 
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
@@ -1185,15 +1150,6 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRateStore)
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRateReadAfter.Sub(gvgFamilyRateReadBefore).Add(gvgFamilyRateStore))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRateReadAfter.Sub(taxRateReadBefore).Add(taxRateStore))
-
-	// revert price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_RejectSealObject_WithPriceChange() {
@@ -1221,18 +1177,15 @@ func (s *PaymentTestSuite) TestStorageBill_RejectSealObject_WithPriceChange() {
 	// case: seal object with read price change and storage price change
 	_, _, objectName, _, _, _ := s.createObject(user, bucketName, false)
 
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
 	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice.MulInt64(2),
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(2),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(2), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(2))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 	s.Require().True(streamRecordsBefore.User.LockBalance.IsPositive())
@@ -1249,15 +1202,6 @@ func (s *PaymentTestSuite) TestStorageBill_RejectSealObject_WithPriceChange() {
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
-
-	// revert price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
@@ -1276,11 +1220,11 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	// query storage price
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
-	s.T().Log("price", priceRes.SpStoragePrice)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	streamAddresses := []string{
 		user.GetAddr().String(),
@@ -1314,13 +1258,8 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
 	s.sealObject(sp, gvg, bucketName3, objectName5, objectId5, checksums5)
 
 	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(10000),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(50), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	// update params
 	params = s.queryParams()
@@ -1376,15 +1315,6 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
-
-	// revert price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
 }
 
 // TestStorageBill_CopyObject_WithoutPriceChange
@@ -1421,7 +1351,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -1435,7 +1365,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -1492,7 +1422,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(sp, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -1506,40 +1436,37 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(sp, bucketName, objectName, payloadSize, 0)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
 
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
 	})
 	s.Require().NoError(err)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
 	// update new price
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     priceRes.SpStoragePrice.ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    priceRes.SpStoragePrice.StorePrice.MulInt64(1000),
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(1000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	distBucketName := s.createBucket(sp, user, 0)
 	distObjectName := storagetestutils.GenRandomObjectName()
 	objectIfo, err := s.copyObject(user, sp, bucketName, objectName, distBucketName, distObjectName)
 	s.Require().NoError(err)
 	s.sealObject(sp, gvg, distBucketName, distObjectName, objectIfo.Id, objectIfo.Checksums)
+
 	// assertions
 	streamRecordsAfterCopy := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfterCopy.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfterCopy.User.LockBalance, sdkmath.ZeroInt())
-	gvgFamilyRate1, gvgRate1, taxRate1, userTotalRate1 := s.calculateStorageRates(sp, distBucketName, distObjectName, payloadSize, 0)
+	gvgFamilyRate1, gvgRate1, taxRate1, userTotalRate1 := s.calculateStorageRates(distBucketName, distObjectName, payloadSize, 0)
 	s.Require().Equal(streamRecordsAfterCopy.GVGFamily.NetflowRate.Sub(streamRecordsAfter.GVGFamily.NetflowRate), gvgFamilyRate1)
 	s.Require().Equal(streamRecordsAfterCopy.GVG.NetflowRate.Sub(streamRecordsAfter.GVG.NetflowRate), gvgRate1)
 	s.Require().Equal(streamRecordsAfterCopy.Tax.NetflowRate.Sub(streamRecordsAfter.Tax.NetflowRate), taxRate1)
 	s.Require().Equal(streamRecordsAfterCopy.User.NetflowRate.Sub(streamRecordsAfter.User.NetflowRate).BigInt().String(), userTotalRate1.Neg().BigInt().String())
-
 }
 
 // TestStorageBill_UpdateBucketQuota
@@ -1548,8 +1475,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
 	user := s.GenAndChargeAccounts(1, 10)[0]
-	// recover price
-	defer s.SetSPPrice(sp, "12.34", "0")
+
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -1625,17 +1551,10 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 		return expectedOutFlows[i].ToAddress < expectedOutFlows[j].ToAddress
 	})
 	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
+
 	// update new price
-	spPriceRes, _ := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
-	})
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     spPriceRes.SpStoragePrice.ReadPrice.MulInt64(100),
-		FreeReadQuota: spPriceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    spPriceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	// case: update bucket read quota
 	bucketInfo, err = s.updateBucket(user, bucketName, "", readQuota*2)
@@ -1674,14 +1593,9 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 		return expectedOutFlows[i].ToAddress < expectedOutFlows[j].ToAddress
 	})
 	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
+
 	// set big read price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     spPriceRes.SpStoragePrice.ReadPrice.MulInt64(1024 * 1024 * 1024),
-		FreeReadQuota: spPriceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    spPriceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(1024*1024*1025), priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	chargedReadQuota := readQuota * 1024 * 1024
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
@@ -1695,7 +1609,6 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	var err error
 	ctx := context.Background()
 	sp := s.PickStorageProvider()
-	defer s.SetSPPrice(sp, "12.34", "0")
 	gvg, found := sp.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -1774,17 +1687,10 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 		return expectedOutFlows[i].ToAddress < expectedOutFlows[j].ToAddress
 	})
 	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
+
 	// update new price
-	spPriceRes, _ := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
-	})
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     spPriceRes.SpStoragePrice.ReadPrice.MulInt64(100),
-		FreeReadQuota: spPriceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    spPriceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(100), priceRes.GlobalSpStorePrice.PrimaryStorePrice)
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	// case: update bucket paymentAccountAddr
 	bucketInfo, err = s.updateBucket(user, bucketName, paymentAccountAddr, readQuota)
@@ -1792,7 +1698,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 
 	// check price and rate calculation
 	priceRes, err = s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
-		Timestamp: bucketInfo.CreateAt,
+		Timestamp: 0,
 	})
 	s.T().Logf("priceRes %s, err: %v", priceRes, err)
 	s.Require().NoError(err)
@@ -1826,13 +1732,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
 
 	// set big read price
-	msgUpdatePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     spPriceRes.SpStoragePrice.ReadPrice.MulInt64(1024 * 1024 * 1024),
-		FreeReadQuota: spPriceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    spPriceRes.SpStoragePrice.StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(1024*1024*1024), priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
 	chargedReadQuota := readQuota * 1024 * 1024 * 1024 * 1024
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
@@ -1851,8 +1751,6 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	var err error
 	ctx := context.Background()
 	primarySP := s.PickStorageProvider()
-	s.SetSPPrice(primarySP, "1", "1.15")
-
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -1862,14 +1760,13 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 	user := s.GenAndChargeAccounts(1, 10)[0]
 
-	streamAddresses := []string{
+	streamAddresses0 := []string{
 		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	streamAddresses0 := streamAddresses
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
@@ -1881,13 +1778,13 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.Require().NoError(err)
 
 	// create object with none zero payload size
-	streamRecordsBefore := s.getStreamRecords(streamAddresses)
+	streamRecordsBefore := s.getStreamRecords(streamAddresses0)
 	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
 	// assertions
-	streamRecordsAfter := s.getStreamRecords(streamAddresses)
+	streamRecordsAfter := s.getStreamRecords(streamAddresses0)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(primarySP, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -1898,8 +1795,8 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.sealObject(primarySP, gvg, bucketName, objectName, objectId, checksums)
 
 	// assertions
-	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize, 0)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
@@ -1908,9 +1805,19 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
 	taxRate0 := taxRate
+
 	dstPrimarySP := s.CreateNewStorageProvider()
 
-	s.SetSPPrice(dstPrimarySP, "2", "1.45")
+	// update price
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(2), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
+
 	_, secondarySPIDs := s.GetSecondarySP(dstPrimarySP, primarySP)
 	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(dstPrimarySP, 0, secondarySPIDs, 1)
 	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgrouptypes.QueryGlobalVirtualGroupRequest{
@@ -1924,33 +1831,35 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 		FamilyId: dstGVG.FamilyId,
 	})
 	s.Require().NoError(err)
-	family = queryFamilyResponse.GlobalVirtualGroupFamily
-	streamAddresses = []string{
+	dstFamily := queryFamilyResponse.GlobalVirtualGroupFamily
+
+	streamAddresses1 := []string{
 		user.GetAddr().String(),
-		family.VirtualPaymentAddress,
+		dstFamily.VirtualPaymentAddress,
 		dstGVG.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
-	fundAddress := primarySP.FundingKey.GetAddr()
-	streamRecordsBefore = s.getStreamRecords(streamAddresses)
+	streamRecordsBefore = s.getStreamRecords(streamAddresses1)
 
+	fundAddress := primarySP.FundingKey.GetAddr()
 	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
 	fundBalanceBefore, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 
-	// MigrationBucket
+	// MigrateBucket
 	msgMigrationBucket, msgCompleteMigrationBucket := s.NewMigrateBucket(primarySP, dstPrimarySP, user, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
 	s.SendTxBlock(user, msgMigrationBucket)
 	s.Require().NoError(err)
 
-	// complete MigrationBucket
+	// complete MigrateBucket
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
-	streamRecordsAfter = s.getStreamRecords(streamAddresses)
+
+	streamRecordsAfter = s.getStreamRecords(streamAddresses1)
 	fundBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
 	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(dstPrimarySP, bucketName, objectName, payloadSize, time.Now().Unix())
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(bucketName, objectName, payloadSize, time.Now().Unix())
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 
@@ -1962,39 +1871,46 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 
-	s.SetSPPrice(primarySP, "12.3", "100")
+	// try to migrate again
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(120), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(5000))
 
 	queryBalanceRequest.Address = dstPrimarySP.FundingKey.GetAddr().String()
 	fundBalanceBefore, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 	streamRecordsBefore = s.getStreamRecords(streamAddresses0)
-	// send msgMigrationBucket
-	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
 
+	// send msgMigrateBucket
+	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
 	s.SendTxBlock(user, msgMigrationBucket)
-	s.Require().NoError(err)
+
 	s.reduceBNBBalance(user, s.Validator, sdkmath.NewIntWithDecimal(1, 1))
 
-	s.SendTxBlockWithExpectErrorString(msgCompleteMigrationBucket, primarySP.OperatorKey, "apply stream record changes for user failed")
-
-	s.SetSPPrice(primarySP, "12.3", "13")
-	readPrice, primaryPrice, secondaryPrice := s.getPrices(primarySP, time.Now().Unix())
-	s.T().Logf("readPrice: %v, primaryPrice: %v,secondaryPrice: %v", readPrice, primaryPrice, secondaryPrice)
-
-	s.transferBNB(s.Validator, user, sdkmath.NewIntWithDecimal(10000, 18))
-
 	s.SendTxBlock(primarySP.OperatorKey, msgCompleteMigrationBucket)
+	// account will be frozen
+	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
+	s.Require().Equal(streamRecordsAfter.User.Status, paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
+
+	// deposit to the account
+	s.transferBNB(s.Validator, user, sdkmath.NewIntWithDecimal(10000, 18))
+	msgDeposit := &paymenttypes.MsgDeposit{
+		Creator: user.GetAddr().String(),
+		To:      user.GetAddr().String(),
+		Amount:  sdkmath.NewIntWithDecimal(1000, 18),
+	}
+	_ = s.SendTxBlock(user, msgDeposit)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
+	s.Require().Equal(streamRecordsAfter.User.Status, paymenttypes.STREAM_ACCOUNT_STATUS_ACTIVE)
+
 	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
 	fundBalanceAfter, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
 	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
 	taxRate1 := taxRate
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize, time.Now().Unix())
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(bucketName, objectName, payloadSize, time.Now().Unix())
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 
-	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -2003,12 +1919,10 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 }
 
-func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_ThenDiscontinueBucket() {
+func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_LockedFee_ThenDiscontinueBucket() {
 	var err error
 	ctx := context.Background()
 	primarySP := s.PickStorageProvider()
-	s.SetSPPrice(primarySP, "1", "1.15")
-
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -2042,7 +1956,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_ThenDiscontinueBucket()
 	// assertions
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	lockFee := s.calculateLockFee(primarySP, bucketName, objectName, payloadSize)
+	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
@@ -2054,7 +1968,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_ThenDiscontinueBucket()
 
 	// assertions
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(primarySP, bucketName, objectName, payloadSize, 0)
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
@@ -2068,7 +1982,16 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_ThenDiscontinueBucket()
 	// create a new object without seal
 	s.createObject(user, bucketName, false)
 
-	s.SetSPPrice(dstPrimarySP, "2", "1.45")
+	// update price after lock
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
+
 	_, secondarySPIDs := s.GetSecondarySP(dstPrimarySP, primarySP)
 	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(dstPrimarySP, 0, secondarySPIDs, 1)
 	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgrouptypes.QueryGlobalVirtualGroupRequest{
@@ -2108,7 +2031,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_ThenDiscontinueBucket()
 	s.Require().NoError(err)
 	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
 	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
-	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(dstPrimarySP, bucketName, objectName, payloadSize, time.Now().Unix())
+	gvgFamilyRate, gvgRate, taxRate, userTotalRate = s.calculateStorageRates(bucketName, objectName, payloadSize, time.Now().Unix())
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 
@@ -2147,8 +2070,6 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	var err error
 	ctx := context.Background()
 	primarySP := s.PickStorageProvider()
-	s.SetSPPrice(primarySP, "1", "1.15")
-
 	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
 	s.Require().True(found)
 	queryFamilyResponse, err := s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
@@ -2158,7 +2079,6 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	s.T().Log("queryFamilyResponse", core.YamlString(queryFamilyResponse))
 	user := s.GenAndChargeAccounts(1, 10)[0]
 
-	bucketChargedReadQuota := uint64(1000)
 	params := s.queryParams()
 	reserveTime := params.VersionedParams.ReserveTime
 	queryGetSpStoragePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
@@ -2168,11 +2088,11 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	s.Require().NoError(err)
 
 	readPrice := queryGetSpStoragePriceByTimeResp.GlobalSpStorePrice.ReadPrice
-	totalUserRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
-	taxRateParam := params.VersionedParams.ValidatorTaxRate
-	taxStreamRate := taxRateParam.MulInt(totalUserRate).TruncateInt()
-	expectedRate := totalUserRate.Add(taxStreamRate)
-	paymentAccountBNBNeeded := expectedRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
+	bucketChargedReadQuota := uint64(1000)
+	readRate := readPrice.MulInt(sdkmath.NewIntFromUint64(bucketChargedReadQuota)).TruncateInt()
+	readTaxRate := params.VersionedParams.ValidatorTaxRate.MulInt(readRate).TruncateInt()
+	readTotalRate := readRate.Add(readTaxRate)
+	paymentAccountBNBNeeded := readTotalRate.Mul(sdkmath.NewIntFromUint64(reserveTime))
 
 	// create payment account and deposit
 	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
@@ -2183,6 +2103,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
 	s.Require().NoError(err)
 	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
+
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
 	s.Require().Lenf(paymentAccounts.PaymentAccounts, 1, "paymentAccounts %s", core.YamlString(paymentAccounts))
 	msgDeposit := &paymenttypes.MsgDeposit{
@@ -2191,10 +2112,6 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 		Amount:  paymentAccountBNBNeeded,
 	}
 	_ = s.SendTxBlock(user, msgDeposit)
-
-	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
-	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
-	s.Require().NoError(err)
 
 	bucketName := "ch" + storagetestutils.GenRandomBucketName()
 	msgCreateBucket := storagetypes.NewMsgCreateBucket(
@@ -2235,10 +2152,21 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	// check auto settle
 	paymentAccountStreamRecordAfterAutoSettle := s.getStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecordAfterAutoSettle %s", core.YamlString(paymentAccountStreamRecordAfterAutoSettle))
-	s.Require().NotEqual(paymentAccountStreamRecordAfterAutoSettle.Status, paymenttypes.STREAM_ACCOUNT_STATUS_ACTIVE)
+	s.Require().Equal(paymentAccountStreamRecordAfterAutoSettle.Status, paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
+	s.Require().Equal(paymentAccountStreamRecordAfterAutoSettle.NetflowRate.Int64(), int64(0))
+	s.Require().Equal(paymentAccountStreamRecordAfterAutoSettle.FrozenNetflowRate.Int64(), readTotalRate.Neg().Int64())
 
 	dstPrimarySP := s.CreateNewStorageProvider()
-	s.SetSPPrice(dstPrimarySP, "2", "1.45")
+	// update price
+	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
+		Timestamp: 0,
+	})
+	s.Require().NoError(err)
+	s.T().Log("price", priceRes.GlobalSpStorePrice)
+
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(10), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
+	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
+
 	_, secondarySPIDs := s.GetSecondarySP(dstPrimarySP, primarySP)
 	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(dstPrimarySP, 0, secondarySPIDs, 1)
 	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgrouptypes.QueryGlobalVirtualGroupRequest{
@@ -2253,15 +2181,16 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	})
 	s.Require().NoError(err)
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
+
 	streamAddresses := []string{
 		paymentAddr,
 		family.VirtualPaymentAddress,
 		dstGVG.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
-	fundAddress := primarySP.FundingKey.GetAddr()
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
+	fundAddress := primarySP.FundingKey.GetAddr()
 	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
 	fundBalanceBefore, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
@@ -2273,21 +2202,38 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 
 	// complete MigrateBucket
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrateBucket)
+
+	time.Sleep(1 * time.Second)
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	fundBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
+
 	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
 	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
-	gvgFamilyRate, taxRate, userTotalRate := s.calculateReadRates(dstPrimarySP, bucketName)
+
+	gvgFamilyRate, taxRate, userTotalRate := s.calculateReadRatesCurrentTimestamp(bucketName)
 	s.T().Logf("gvgFamilyRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, taxRate, userTotalRate)
-	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
+
+	expectedOutFlows := []paymenttypes.OutFlow{
+		{ToAddress: family.VirtualPaymentAddress, Rate: gvgFamilyRate, Status: paymenttypes.OUT_FLOW_STATUS_FROZEN},
+		{ToAddress: paymenttypes.ValidatorTaxPoolAddress.String(), Rate: taxRate, Status: paymenttypes.OUT_FLOW_STATUS_FROZEN},
+	}
+	userOutFlowsResponse, err := s.Client.OutFlows(ctx, &paymenttypes.QueryOutFlowsRequest{Account: paymentAddr})
+	s.Require().NoError(err)
+	sort.Slice(userOutFlowsResponse.OutFlows, func(i, j int) bool {
+		return userOutFlowsResponse.OutFlows[i].ToAddress < userOutFlowsResponse.OutFlows[j].ToAddress
+	})
+	sort.Slice(expectedOutFlows, func(i, j int) bool {
+		return expectedOutFlows[i].ToAddress < expectedOutFlows[j].ToAddress
+	})
+	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
 
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
-	// tax rate diff
-	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
+	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
+	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
 	s.Require().Equal(streamRecordsAfter.User.FrozenNetflowRate.Neg(), userTotalRate.Abs())
+	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), sdkmath.ZeroInt())
 
 	// force delete bucket
 	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(dstPrimarySP.GcKey.GetAddr(), bucketName, "test")
@@ -2309,6 +2255,12 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 
 	_, err = s.Client.HeadBucket(ctx, &storagetypes.QueryHeadBucketRequest{BucketName: bucketName})
 	s.Require().ErrorContains(err, "No such bucket")
+
+	// check streams after delete
+	streamRecordsAfter = s.getStreamRecords(streamAddresses)
+	s.Require().Equal(streamRecordsAfter.User.FrozenNetflowRate.Neg(), sdkmath.ZeroInt())
+	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), sdkmath.ZeroInt())
+	s.Require().Equal(streamRecordsAfter.User.OutFlowCount, uint64(0))
 }
 
 func (s *PaymentTestSuite) GetSecondarySP(sps ...*core.StorageProvider) ([]*core.StorageProvider, []uint32) {
@@ -2333,6 +2285,7 @@ func (s *PaymentTestSuite) GetSecondarySP(sps ...*core.StorageProvider) ([]*core
 	}
 	return secondarySPs, secondarySPIDs
 }
+
 func (s *PaymentTestSuite) NewMigrateBucket(srcSP, dstSP *core.StorageProvider, user keys.KeyManager, bucketName string, srcID, dstID uint32, bucketID sdkmath.Uint) (*storagetypes.MsgMigrateBucket, *storagetypes.MsgCompleteMigrateBucket) {
 
 	secondarySPs, _ := s.GetSecondarySP(srcSP, dstSP)
@@ -2363,35 +2316,6 @@ func (s *PaymentTestSuite) NewMigrateBucket(srcSP, dstSP *core.StorageProvider, 
 
 	return msgMigrationBucket, msgCompleteMigrationBucket
 
-}
-func (s *PaymentTestSuite) SetSPPrice(sp *core.StorageProvider, readPrice, storePrice string) {
-	ctx := context.Background()
-
-	priceRes, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
-	})
-	s.Require().NoError(err)
-	ReadPrice, err := sdk.NewDecFromStr(readPrice)
-	s.Require().NoError(err)
-	StorePrice := priceRes.SpStoragePrice.StorePrice
-	if storePrice != "0" {
-		StorePrice, err = sdk.NewDecFromStr(storePrice)
-		s.Require().NoError(err)
-	}
-
-	msgUpdatePrice := &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     sp.OperatorKey.GetAddr().String(),
-		ReadPrice:     ReadPrice,
-		FreeReadQuota: priceRes.SpStoragePrice.FreeReadQuota,
-		StorePrice:    StorePrice,
-	}
-	s.SendTxBlock(sp.OperatorKey, msgUpdatePrice)
-	priceRes, err = s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-		SpAddr: sp.OperatorKey.GetAddr().String(),
-	})
-	s.Require().NoError(err)
-	s.T().Logf("priceRes read price: %s, store price: %v",
-		priceRes.SpStoragePrice.ReadPrice, priceRes.SpStoragePrice.StorePrice)
 }
 
 // CreatePaymentAccount create new payment account and return latest payment account
