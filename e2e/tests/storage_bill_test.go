@@ -300,7 +300,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithoutPriceChange
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 256)
+	bucketName := s.createBucket(sp, gvg, user, 256)
 
 	//simulate delete bucket gas
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
@@ -387,7 +387,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 256)
+	bucketName := s.createBucket(sp, gvg, user, 256)
 
 	//simulate delete bucket gas
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
@@ -487,7 +487,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 256)
+	bucketName := s.createBucket(sp, gvg, user, 256)
 
 	//simulate delete bucket gas
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
@@ -589,7 +589,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreLessThanReserve
 	reserveTime := params.VersionedParams.ReserveTime
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 256)
+	bucketName := s.createBucket(sp, gvg, user, 256)
 
 	// create & seal objects
 	_, _, objectName1, objectId1, checksums1, payloadSize := s.createObject(user, bucketName, false)
@@ -655,7 +655,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObject_WithStoreMoreThanReserve
 	s.updateParams(params)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 256)
+	bucketName := s.createBucket(sp, gvg, user, 256)
 
 	// create & seal objects
 	_, _, objectName1, objectId1, checksums1, payloadSize := s.createObject(user, bucketName, false)
@@ -741,7 +741,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	params := s.queryParams()
 
 	// case: create bucket with zero read quota
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// bucket created
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
@@ -758,7 +758,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateBucket_WithZeroNoneZeroReadQuot
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate, streamRecordsBefore.Tax.NetflowRate)
 
 	// case: create bucket with none zero read quota
-	bucketName = s.createBucket(sp, user, 10240)
+	bucketName = s.createBucket(sp, gvg, user, 10240)
 
 	// bucket created
 	queryHeadBucketRequest = storagetypes.QueryHeadBucketRequest{
@@ -822,7 +822,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithZeroNoneZeroPayload(
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// case: create object with zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
@@ -875,7 +875,7 @@ func (s *PaymentTestSuite) TestStorageBill_CreateObject_WithReserveTimeValidator
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
@@ -937,7 +937,7 @@ func (s *PaymentTestSuite) TestStorageBill_CancelCreateObject() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
@@ -986,7 +986,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithoutPriceChange() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
@@ -1036,7 +1036,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChange() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 102400)
+	bucketName := s.createBucket(sp, gvg, user, 102400)
 
 	// case: seal object with read price change and storage price change
 	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
@@ -1093,7 +1093,7 @@ func (s *PaymentTestSuite) TestStorageBill_SealObject_WithPriceChangeValidatorTa
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 102400)
+	bucketName := s.createBucket(sp, gvg, user, 102400)
 
 	// case: seal object with read price change and storage price change
 	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
@@ -1172,7 +1172,7 @@ func (s *PaymentTestSuite) TestStorageBill_RejectSealObject_WithPriceChange() {
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
-	bucketName := s.createBucket(sp, user, 102400)
+	bucketName := s.createBucket(sp, gvg, user, 102400)
 
 	// case: seal object with read price change and storage price change
 	_, _, objectName, _, _, _ := s.createObject(user, bucketName, false)
@@ -1235,12 +1235,12 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// full lifecycle
-	bucketName1 := s.createBucket(sp, user, 0)
+	bucketName1 := s.createBucket(sp, gvg, user, 0)
 	_, _, objectName1, _, _, _ := s.createObject(user, bucketName1, true)
 	_, _, objectName2, objectId2, checksums2, _ := s.createObject(user, bucketName1, false)
 	s.sealObject(sp, gvg, bucketName1, objectName2, objectId2, checksums2)
 
-	bucketName2 := s.createBucket(sp, user, 1024)
+	bucketName2 := s.createBucket(sp, gvg, user, 1024)
 	_, _, objectName3, objectId3, checksums3, _ := s.createObject(user, bucketName2, false)
 	s.sealObject(sp, gvg, bucketName2, objectName3, objectId3, checksums3)
 
@@ -1253,7 +1253,7 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
 	_, _, objectName4, objectId4, checksums4, _ := s.createObject(user, bucketName2, false)
 	s.sealObject(sp, gvg, bucketName2, objectName4, objectId4, checksums4)
 
-	bucketName3 := s.createBucket(sp, user, 1024)
+	bucketName3 := s.createBucket(sp, gvg, user, 1024)
 	_, _, objectName5, objectId5, checksums5, _ := s.createObject(user, bucketName3, false)
 	s.sealObject(sp, gvg, bucketName3, objectName5, objectId5, checksums5)
 
@@ -1270,7 +1270,7 @@ func (s *PaymentTestSuite) TestStorageBill_FullLifecycle() {
 	_, _, objectName6, objectId6, checksums6, _ := s.createObject(user, bucketName3, false)
 	s.sealObject(sp, gvg, bucketName3, objectName6, objectId6, checksums6)
 
-	bucketName4 := s.createBucket(sp, user, 1024)
+	bucketName4 := s.createBucket(sp, gvg, user, 1024)
 	_, _, objectName7, objectId7, checksums7, _ := s.createObject(user, bucketName4, false)
 	s.sealObject(sp, gvg, bucketName4, objectName7, objectId7, checksums7)
 
@@ -1342,7 +1342,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
@@ -1413,7 +1413,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create object with none zero payload size
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
@@ -1452,7 +1452,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(1000))
 	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
 
-	distBucketName := s.createBucket(sp, user, 0)
+	distBucketName := s.createBucket(sp, gvg, user, 0)
 	distObjectName := storagetestutils.GenRandomObjectName()
 	objectIfo, err := s.copyObject(user, sp, bucketName, objectName, distBucketName, distObjectName)
 	s.Require().NoError(err)
@@ -1497,7 +1497,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 	s.Require().NoError(err)
 
 	// case: create bucket with zero read quota
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// bucket created
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
@@ -1633,7 +1633,7 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	s.Require().NoError(err)
 
 	// case: create bucket with zero read quota
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// bucket created
 	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
@@ -1771,7 +1771,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(primarySP, user, 0)
+	bucketName := s.createBucket(primarySP, gvg, user, 0)
 	bucketInfo, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	})
@@ -1943,7 +1943,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_LockedFee_ThenDiscontin
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
 
-	bucketName := s.createBucket(primarySP, user, 0)
+	bucketName := s.createBucket(primarySP, gvg, user, 0)
 	bucketInfo, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	})

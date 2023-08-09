@@ -960,7 +960,7 @@ func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	bucketName := s.createBucket(sp, user, 1024)
+	bucketName := s.createBucket(sp, gvg, user, 1024)
 	_, _, objectName, objectId, checksums, _ := s.createObject(user, bucketName, false)
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
 
@@ -1130,7 +1130,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InOneBlock_WithoutPriceChange() {
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create & seal objects
 	_, _, objectName1, objectId1, checksums1, _ := s.createObject(user, bucketName, false)
@@ -1224,7 +1224,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InOneBlock_WithPriceChange() {
 	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 1200987)
+	bucketName := s.createBucket(sp, gvg, user, 1200987)
 
 	// create & seal objects
 	_, _, objectName1, objectId1, checksums1, _ := s.createObject(user, bucketName, false)
@@ -1315,7 +1315,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithoutPriceChange() {
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 12780)
+	bucketName := s.createBucket(sp, gvg, user, 12780)
 
 	// create & seal objects
 	for i := 0; i < 4; i++ {
@@ -1412,7 +1412,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChange() {
 	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create objects
 	for i := 0; i < 2; i++ {
@@ -1537,7 +1537,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	// create bucket
-	bucketName := s.createBucketWithGVG(sp, gvg, user, 10200)
+	bucketName := s.createBucket(sp, gvg, user, 10200)
 
 	// create objects
 	for i := 0; i < 2; i++ {
@@ -1668,7 +1668,7 @@ func (s *PaymentTestSuite) TestDiscontinue_InBlocks_WithPriceChangeReserveTimeCh
 	s.T().Log("price", priceRes.GlobalSpStorePrice)
 
 	// create bucket
-	bucketName := s.createBucketWithGVG(sp, gvg, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 
 	// create objects
 	for i := 0; i < 2; i++ {
@@ -1798,7 +1798,7 @@ func (s *PaymentTestSuite) TestDiscontinue_MultiObjects() {
 	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 
 	// create bucket
-	bucketName := s.createBucket(sp, user, 0)
+	bucketName := s.createBucket(sp, gvg, user, 0)
 	objectIds := []sdkmath.Uint{}
 
 	// create objects
@@ -1909,7 +1909,7 @@ func (s *PaymentTestSuite) TestDiscontinue_MultiBuckets() {
 
 	bucketNames := []string{}
 	// create bucket
-	bucketName1 := s.createBucket(sp, user, 1023)
+	bucketName1 := s.createBucket(sp, gvg, user, 1023)
 	bucketNames = append(bucketNames, bucketName1)
 
 	// create objects
@@ -1940,15 +1940,15 @@ func (s *PaymentTestSuite) TestDiscontinue_MultiBuckets() {
 	}
 
 	// create bucket
-	bucketName2 := s.createBucket(sp, user, 21023)
+	bucketName2 := s.createBucket(sp, gvg, user, 21023)
 	bucketNames = append(bucketNames, bucketName2)
 
 	// create bucket
-	bucketName3 := s.createBucket(sp, user, 0)
+	bucketName3 := s.createBucket(sp, gvg, user, 0)
 	bucketNames = append(bucketNames, bucketName3)
 
 	// create bucket
-	bucketName4 := s.createBucket(sp, user, 55)
+	bucketName4 := s.createBucket(sp, gvg, user, 55)
 	bucketNames = append(bucketNames, bucketName4)
 
 	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: user.GetAddr().String()}
@@ -2336,31 +2336,7 @@ func (s *PaymentTestSuite) createBucketAndObject(sp *core.StorageProvider) (keys
 	return user, bucketName, objectName, queryHeadObjectResponse.ObjectInfo.Id, expectChecksum
 }
 
-func (s *PaymentTestSuite) createBucket(sp *core.StorageProvider, user keys.KeyManager, readQuota uint64) string {
-	var err error
-	gvg, found := sp.GetFirstGlobalVirtualGroup()
-	s.Require().True(found)
-
-	// CreateBucket
-	bucketName := "ch" + storagetestutils.GenRandomBucketName()
-	msgCreateBucket := storagetypes.NewMsgCreateBucket(
-		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
-		nil, math.MaxUint, nil, readQuota)
-	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
-	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(user, msgCreateBucket)
-
-	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
-		BucketName: bucketName,
-	}
-	_, err = s.Client.HeadBucket(context.Background(), &queryHeadBucketRequest)
-	s.Require().NoError(err)
-
-	return bucketName
-}
-
-func (s *PaymentTestSuite) createBucketWithGVG(sp *core.StorageProvider, gvg *virtualgrouptypes.GlobalVirtualGroup, user keys.KeyManager, readQuota uint64) string {
+func (s *PaymentTestSuite) createBucket(sp *core.StorageProvider, gvg *virtualgrouptypes.GlobalVirtualGroup, user keys.KeyManager, readQuota uint64) string {
 	var err error
 	// CreateBucket
 	bucketName := "ch" + storagetestutils.GenRandomBucketName()
