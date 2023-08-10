@@ -266,7 +266,7 @@ func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
 	storePrices := make([]sdk.Dec, 0)
 	readPrices := make([]sdk.Dec, 0)
 	for _, sp := range sps.Sps {
-		if sp.Status == sptypes.STATUS_IN_SERVICE {
+		if sp.Status == sptypes.STATUS_IN_SERVICE || sp.Status == sptypes.STATUS_IN_MAINTENANCE {
 			spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
 				SpAddr: sp.OperatorAddress,
 			})

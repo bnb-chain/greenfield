@@ -88,15 +88,14 @@ func (k Keeper) UpdateGlobalSpStorePrice(ctx sdk.Context) error {
 	storePrices := make([]sdk.Dec, 0)
 	readPrices := make([]sdk.Dec, 0)
 	for _, sp := range sps {
-		if sp.Status != types.STATUS_IN_SERVICE {
-			continue
+		if sp.Status == types.STATUS_IN_SERVICE || sp.Status == types.STATUS_IN_MAINTENANCE {
+			price, found := k.GetSpStoragePrice(ctx, sp.Id)
+			if !found {
+				return fmt.Errorf("cannot find price for storage provider %d", sp.Id)
+			}
+			storePrices = append(storePrices, price.StorePrice)
+			readPrices = append(readPrices, price.ReadPrice)
 		}
-		price, found := k.GetSpStoragePrice(ctx, sp.Id)
-		if !found {
-			return fmt.Errorf("cannot find price for storage provider %d", sp.Id)
-		}
-		storePrices = append(storePrices, price.StorePrice)
-		readPrices = append(readPrices, price.ReadPrice)
 	}
 	l := len(storePrices)
 	if l == 0 {
