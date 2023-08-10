@@ -42,6 +42,18 @@ message Params {
   uint64 min_quota_update_interval = 16;
   // the max number of local virtual group per bucket
   uint32 max_local_virtual_group_num_per_bucket = 17;
+  // relayer fee for the mirror bucket tx to op chain
+  string op_mirror_bucket_relayer_fee = 18;
+  // relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx to op chain
+  string op_mirror_bucket_ack_relayer_fee = 19;
+  // relayer fee for the mirror object tx to op chain
+  string op_mirror_object_relayer_fee = 20;
+  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to op chain
+  string op_mirror_object_ack_relayer_fee = 21;
+  // relayer fee for the mirror object tx to op chain
+  string op_mirror_group_relayer_fee = 22;
+  // Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to op chain
+  string op_mirror_group_ack_relayer_fee = 23;
 }
 
 // VersionedParams defines the parameters for the storage module with multi version, each version store with different timestamp.

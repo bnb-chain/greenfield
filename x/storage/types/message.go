@@ -1225,11 +1225,12 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 }
 
 // NewMsgMirrorBucket creates a new MsgMirrorBucket instance
-func NewMsgMirrorBucket(operator sdk.AccAddress, id Uint, bucketName string) *MsgMirrorBucket {
+func NewMsgMirrorBucket(operator sdk.AccAddress, destChainId sdk.ChainID, id Uint, bucketName string) *MsgMirrorBucket {
 	return &MsgMirrorBucket{
-		Operator:   operator.String(),
-		Id:         id,
-		BucketName: bucketName,
+		Operator:    operator.String(),
+		Id:          id,
+		BucketName:  bucketName,
+		DestChainId: uint32(destChainId),
 	}
 }
 
@@ -1281,12 +1282,13 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 }
 
 // NewMsgMirrorObject creates a new MsgMirrorObject instance
-func NewMsgMirrorObject(operator sdk.AccAddress, id Uint, bucketName, objectName string) *MsgMirrorObject {
+func NewMsgMirrorObject(operator sdk.AccAddress, destChainId sdk.ChainID, id Uint, bucketName, objectName string) *MsgMirrorObject {
 	return &MsgMirrorObject{
-		Operator:   operator.String(),
-		Id:         id,
-		BucketName: bucketName,
-		ObjectName: objectName,
+		Operator:    operator.String(),
+		DestChainId: uint32(destChainId),
+		Id:          id,
+		BucketName:  bucketName,
+		ObjectName:  objectName,
 	}
 }
 
@@ -1346,11 +1348,12 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 }
 
 // NewMsgMirrorGroup creates a new MsgMirrorGroup instance
-func NewMsgMirrorGroup(operator sdk.AccAddress, id Uint, groupName string) *MsgMirrorGroup {
+func NewMsgMirrorGroup(operator sdk.AccAddress, destChainId sdk.ChainID, id Uint, groupName string) *MsgMirrorGroup {
 	return &MsgMirrorGroup{
-		Operator:  operator.String(),
-		Id:        id,
-		GroupName: groupName,
+		Operator:    operator.String(),
+		DestChainId: uint32(destChainId),
+		Id:          id,
+		GroupName:   groupName,
 	}
 }
 

@@ -408,6 +408,11 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
+	destChainId := sdk.ChainID(msg.DestChainId)
+
+	if !k.crossChainKeeper.IsDestChainSupported(destChainId) {
+		return nil, errorsmod.Wrapf(types.ErrChainNotSupported, "dest chain id (%d) is not supported", msg.DestChainId)
+	}
 
 	var objectInfo *types.ObjectInfo
 	found := false
@@ -450,8 +455,8 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 	}
 	encodedWrapPackage := wrapPackage.MustSerialize()
 
-	relayerFee := k.Keeper.MirrorObjectRelayerFee(ctx)
-	ackRelayerFee := k.Keeper.MirrorObjectAckRelayerFee(ctx)
+	relayerFee := k.Keeper.MirrorObjectRelayerFee(ctx, destChainId)
+	ackRelayerFee := k.Keeper.MirrorObjectAckRelayerFee(ctx, destChainId)
 
 	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
 		types.ObjectChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
@@ -468,7 +473,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 		BucketName:  objectInfo.BucketName,
 		ObjectName:  objectInfo.ObjectName,
 		ObjectId:    objectInfo.Id,
-		DestChainId: uint32(k.crossChainKeeper.GetDestBscChainID()),
+		DestChainId: uint32(destChainId),
 	}); err != nil {
 		return nil, err
 	}
@@ -479,6 +484,11 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
+	destChainId := sdk.ChainID(msg.DestChainId)
+
+	if !k.crossChainKeeper.IsDestChainSupported(destChainId) {
+		return nil, errorsmod.Wrapf(types.ErrChainNotSupported, "dest chain id (%d) is not supported", msg.DestChainId)
+	}
 
 	var bucketInfo *types.BucketInfo
 	found := false
@@ -520,8 +530,8 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	}
 	encodedWrapPackage := wrapPackage.MustSerialize()
 
-	relayerFee := k.Keeper.MirrorBucketRelayerFee(ctx)
-	ackRelayerFee := k.Keeper.MirrorBucketAckRelayerFee(ctx)
+	relayerFee := k.Keeper.MirrorBucketRelayerFee(ctx, destChainId)
+	ackRelayerFee := k.Keeper.MirrorBucketAckRelayerFee(ctx, destChainId)
 
 	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
 		types.BucketChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
@@ -537,7 +547,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 		Operator:    bucketInfo.Owner,
 		BucketName:  bucketInfo.BucketName,
 		BucketId:    bucketInfo.Id,
-		DestChainId: uint32(k.crossChainKeeper.GetDestBscChainID()),
+		DestChainId: uint32(destChainId),
 	}); err != nil {
 		return nil, err
 	}
@@ -549,6 +559,11 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	operator := sdk.MustAccAddressFromHex(msg.Operator)
+	destChainId := sdk.ChainID(msg.DestChainId)
+
+	if !k.crossChainKeeper.IsDestChainSupported(destChainId) {
+		return nil, errorsmod.Wrapf(types.ErrChainNotSupported, "dest chain id (%d) is not supported", msg.DestChainId)
+	}
 
 	var groupInfo *types.GroupInfo
 	found := false
@@ -585,8 +600,8 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	}
 	encodedWrapPackage := wrapPackage.MustSerialize()
 
-	relayerFee := k.Keeper.MirrorGroupRelayerFee(ctx)
-	ackRelayerFee := k.Keeper.MirrorGroupAckRelayerFee(ctx)
+	relayerFee := k.Keeper.MirrorGroupRelayerFee(ctx, destChainId)
+	ackRelayerFee := k.Keeper.MirrorGroupAckRelayerFee(ctx, destChainId)
 
 	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
 		types.GroupChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
@@ -602,7 +617,7 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 		Owner:       groupInfo.Owner,
 		GroupName:   groupInfo.GroupName,
 		GroupId:     groupInfo.Id,
-		DestChainId: uint32(k.crossChainKeeper.GetDestBscChainID()),
+		DestChainId: uint32(destChainId),
 	}); err != nil {
 		return nil, err
 	}

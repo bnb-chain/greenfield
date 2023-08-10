@@ -2137,3 +2137,19 @@ func (k Keeper) hasGroup(ctx sdk.Context, groupID sdkmath.Uint) bool {
 
 	return store.Has(types.GetGroupByIDKey(groupID))
 }
+
+func (k Keeper) GetSourceTypeByChainId(ctx sdk.Context, chainId sdk.ChainID) (types.SourceType, error) {
+	if chainId == 0 {
+		return 0, types.ErrChainNotSupported
+	}
+
+	if chainId == k.crossChainKeeper.GetDestBscChainID() {
+		return types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil
+	}
+
+	if chainId == k.crossChainKeeper.GetDestOpChainID() {
+		return types.SOURCE_TYPE_OP_CROSS_CHAIN, nil
+	}
+
+	return 0, types.ErrChainNotSupported
+}

@@ -23,6 +23,7 @@ const (
 	FlagChargedReadQuota     = "charged-read-quota"
 	FlagBucketId             = "bucket-id"
 	FlagBucketName           = "bucket-name"
+	FlagDestChainId          = "dest-chain-id"
 	FlagObjectId             = "object-id"
 	FlagObjectName           = "object-name"
 	FlagGroupId              = "group-id"

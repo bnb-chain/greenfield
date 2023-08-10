@@ -12,8 +12,9 @@ enum SourceType {
   option (gogoproto.goproto_enum_prefix) = false;
 
   SOURCE_TYPE_ORIGIN = 0;
-  SOURCE_TYPE_BSC_CROSS_CHAIN = 1;
-  SOURCE_TYPE_MIRROR_PENDING = 2;
+  SOURCE_TYPE_MIRROR_PENDING = 1;
+  SOURCE_TYPE_BSC_CROSS_CHAIN = 2;
+  SOURCE_TYPE_OP_CROSS_CHAIN = 3;
 }
 
 // BucketStatus represents the status of a bucket. After a user successfully
