@@ -266,13 +266,15 @@ func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
 	storePrices := make([]sdk.Dec, 0)
 	readPrices := make([]sdk.Dec, 0)
 	for _, sp := range sps.Sps {
-		spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
-			SpAddr: sp.OperatorAddress,
-		})
-		s.Require().NoError(err)
-		s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
-		storePrices = append(storePrices, spStoragePrice.SpStoragePrice.StorePrice)
-		readPrices = append(readPrices, spStoragePrice.SpStoragePrice.ReadPrice)
+		if sp.Status == sptypes.STATUS_IN_SERVICE {
+			spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
+				SpAddr: sp.OperatorAddress,
+			})
+			s.Require().NoError(err)
+			s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
+			storePrices = append(storePrices, spStoragePrice.SpStoragePrice.StorePrice)
+			readPrices = append(readPrices, spStoragePrice.SpStoragePrice.ReadPrice)
+		}
 	}
 
 	sort.Slice(storePrices, func(i, j int) bool { return storePrices[i].LT(storePrices[j]) })
