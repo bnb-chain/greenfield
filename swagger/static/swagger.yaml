@@ -1663,10 +1663,12 @@ paths:
                       the time interval to update global storage price, if it is
                       not set then the price will be updated at the first block
                       of each natural month
-                  max_update_price_times:
+                  update_price_disallowed_days:
                     type: integer
                     format: int64
-                    title: the max times allowed to update price during an interval
+                    title: >-
+                      the days counting backwards from end of a month in which a
+                      sp cannot update its price
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -32861,10 +32863,12 @@ definitions:
           the time interval to update global storage price, if it is not set
           then the price will be updated at the first block of each natural
           month
-      max_update_price_times:
+      update_price_disallowed_days:
         type: integer
         format: int64
-        title: the max times allowed to update price during an interval
+        title: >-
+          the days counting backwards from end of a month in which a sp cannot
+          update its price
     description: Params defines the parameters for the module.
   greenfield.sp.QueryGlobalSpStorePriceByTimeResponse:
     type: object
@@ -32929,10 +32933,12 @@ definitions:
               the time interval to update global storage price, if it is not set
               then the price will be updated at the first block of each natural
               month
-          max_update_price_times:
+          update_price_disallowed_days:
             type: integer
             format: int64
-            title: the max times allowed to update price during an interval
+            title: >-
+              the days counting backwards from end of a month in which a sp
+              cannot update its price
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.sp.QuerySpStoragePriceResponse:
     type: object

@@ -161,19 +161,17 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 	ctx := context.Background()
 	defer s.revertParams()
 
-	// update params
-	params := s.queryParams()
-	params.UpdateGlobalPriceInterval = 10
-	params.MaxUpdatePriceTimes = 2
-	s.updateParams(params)
-
 	// query sp storage price by time before it exists, expect error
 	_, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
 		Timestamp: 1,
 	})
 	s.Require().Error(err)
 
-	// check update price
+	// update params
+	params := s.queryParams()
+	params.UpdateGlobalPriceInterval = 5
+	s.updateParams(params)
+
 	sp := s.BaseSuite.PickStorageProvider()
 	spAddr := sp.OperatorKey.GetAddr().String()
 	spStoragePrice, err := s.Client.QuerySpStoragePrice(ctx, &sptypes.QuerySpStoragePriceRequest{
@@ -182,7 +180,7 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 	s.Require().NoError(err)
 	s.T().Log(spStoragePrice)
 
-	// update storage price - first update is ok
+	// update storage price - update is ok
 	msgUpdateSpStoragePrice := &sptypes.MsgUpdateSpStoragePrice{
 		SpAddress:     spAddr,
 		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
@@ -191,25 +189,7 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 	}
 	_ = s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
 
-	// update storage price - secondary update is ok
-	msgUpdateSpStoragePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     spAddr,
-		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
-		StorePrice:    spStoragePrice.SpStoragePrice.StorePrice,
-		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
-	}
-	_ = s.SendTxBlock(sp.OperatorKey, msgUpdateSpStoragePrice)
-
-	// update storage price - third update is not ok
-	msgUpdateSpStoragePrice = &sptypes.MsgUpdateSpStoragePrice{
-		SpAddress:     spAddr,
-		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
-		StorePrice:    spStoragePrice.SpStoragePrice.StorePrice,
-		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
-	}
-	s.SendTxBlockWithExpectErrorString(msgUpdateSpStoragePrice, sp.OperatorKey, "cannot update price due to frequency limited")
-
-	time.Sleep(12 * time.Second)
+	time.Sleep(6 * time.Second)
 
 	// verify price is updated after interval
 	globalPriceResBefore, _ := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
@@ -235,20 +215,37 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 		}
 	}
 
-	time.Sleep(12 * time.Second)
+	time.Sleep(6 * time.Second)
 	globalPriceResAfter2, _ := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
 	s.T().Log("globalPriceResAfter2", core.YamlString(globalPriceResAfter2))
 
 	s.CheckGlobalSpStorePrice()
-	if !priceChanged { //if price not changed, then after 10 seconds, it should change
+	if !priceChanged { //if price not changed, then after 6 seconds, it should change
 		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.PrimaryStorePrice, globalPriceResBefore.GlobalSpStorePrice.PrimaryStorePrice)
 		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.SecondaryStorePrice, globalPriceResBefore.GlobalSpStorePrice.SecondaryStorePrice)
 		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.ReadPrice, globalPriceResBefore.GlobalSpStorePrice.ReadPrice)
-	} else { //if price not changed already, then after 10 seconds, it should not change
+	} else { //if price not changed already, then after 6 seconds, it should not change
 		s.Require().Equal(globalPriceResAfter2.GlobalSpStorePrice.PrimaryStorePrice, globalPriceResAfter1.GlobalSpStorePrice.PrimaryStorePrice)
 		s.Require().Equal(globalPriceResAfter2.GlobalSpStorePrice.SecondaryStorePrice, globalPriceResAfter1.GlobalSpStorePrice.SecondaryStorePrice)
 		s.Require().Equal(globalPriceResAfter2.GlobalSpStorePrice.ReadPrice, globalPriceResAfter1.GlobalSpStorePrice.ReadPrice)
 	}
+
+	// update params
+	now := time.Now().UTC()
+	_, _, day := now.Date()
+	params = s.queryParams()
+	params.UpdateGlobalPriceInterval = 0 // update by month
+	params.UpdatePriceDisallowedDays = uint32(31 - day + 1)
+	s.updateParams(params)
+
+	// update storage price - third update is not ok
+	msgUpdateSpStoragePrice = &sptypes.MsgUpdateSpStoragePrice{
+		SpAddress:     spAddr,
+		ReadPrice:     spStoragePrice.SpStoragePrice.ReadPrice,
+		StorePrice:    spStoragePrice.SpStoragePrice.StorePrice,
+		FreeReadQuota: spStoragePrice.SpStoragePrice.FreeReadQuota,
+	}
+	s.SendTxBlockWithExpectErrorString(msgUpdateSpStoragePrice, sp.OperatorKey, "update price is disallowed")
 }
 
 func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {

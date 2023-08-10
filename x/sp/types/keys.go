@@ -24,17 +24,16 @@ const (
 var (
 	ParamsKey = []byte{0x01}
 
-	StorageProviderKey                 = []byte{0x21} // prefix for each key to a storage provider
-	StorageProviderByOperatorAddrKey   = []byte{0x23} // prefix for each key to a storage provider index, by operator address
-	StorageProviderByFundingAddrKey    = []byte{0x24} // prefix for each key to a storage provider index, by funding address
-	StorageProviderBySealAddrKey       = []byte{0x25} // prefix for each key to a storage provider index, by seal address
-	StorageProviderByApprovalAddrKey   = []byte{0x26} // prefix for each key to a storage provider index, by approval address
-	StorageProviderByGcAddrKey         = []byte{0x27} // prefix for each key to a storage provider index, by gc address
-	SpStoragePriceKeyPrefix            = []byte{0x28}
-	GlobalSpStorePriceKeyPrefix        = []byte{0x29}
-	StorageProviderByBlsPubKeyKey      = []byte{0x30} // prefix for each key to a storage provider index, by bls pub key
-	StorageProviderSequenceKey         = []byte{0x31}
-	SpStoragePriceUpdateTimesKeyPrefix = []byte{0x32}
+	StorageProviderKey               = []byte{0x21} // prefix for each key to a storage provider
+	StorageProviderByOperatorAddrKey = []byte{0x23} // prefix for each key to a storage provider index, by operator address
+	StorageProviderByFundingAddrKey  = []byte{0x24} // prefix for each key to a storage provider index, by funding address
+	StorageProviderBySealAddrKey     = []byte{0x25} // prefix for each key to a storage provider index, by seal address
+	StorageProviderByApprovalAddrKey = []byte{0x26} // prefix for each key to a storage provider index, by approval address
+	StorageProviderByGcAddrKey       = []byte{0x27} // prefix for each key to a storage provider index, by gc address
+	SpStoragePriceKeyPrefix          = []byte{0x28}
+	GlobalSpStorePriceKeyPrefix      = []byte{0x29}
+	StorageProviderByBlsPubKeyKey    = []byte{0x30} // prefix for each key to a storage provider index, by bls pub key
+	StorageProviderSequenceKey       = []byte{0x31}
 
 	StorageProviderMaintenanceRecordPrefix = []byte{0x41}
 )

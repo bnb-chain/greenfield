@@ -153,7 +153,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStoragePrice)
-	k.SetSpUpdatePriceTimes(ctx, sp.Id, 1)
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpId:               sp.Id,
@@ -317,17 +316,10 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 	}
 
 	params := k.GetParams(ctx)
-	updateTimes := uint32(0)
-	if params.UpdateGlobalPriceInterval > 0 { // update price by interval
-		updateTimes = k.GetSpUpdatePriceTimes(ctx, sp.Id)
-		if updateTimes+1 > params.MaxUpdatePriceTimes {
-			return nil, errors.Wrapf(types.ErrStorageProviderPriceUpdateNotAllow, "exceeds the limit %d", params.MaxUpdatePriceTimes)
-		}
-		updateTimes++
-	} else { // update price by month
+	if params.UpdateGlobalPriceInterval == 0 { // update price by month
 		blockTime := ctx.BlockTime().UTC()
-		days := 2
-		if IsLastDaysOfTheMonth(blockTime, days) {
+		days := params.UpdatePriceDisallowedDays
+		if IsLastDaysOfTheMonth(blockTime, int(days)) {
 			return nil, errors.Wrapf(types.ErrStorageProviderPriceUpdateNotAllow, "price cannot be updated in the last %d days of the month", days)
 		}
 	}
@@ -341,9 +333,6 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	if updateTimes > 0 {
-		k.SetSpUpdatePriceTimes(ctx, sp.Id, updateTimes)
-	}
 
 	return &types.MsgUpdateSpStoragePriceResponse{}, nil
 }

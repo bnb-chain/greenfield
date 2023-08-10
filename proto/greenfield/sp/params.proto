@@ -33,6 +33,6 @@ message Params {
   int64 num_of_lockup_blocks_for_maintenance = 6 [(gogoproto.moretags) = "yaml:\"num_of_lockup_blocks_for_maintenance\""];
   // the time interval to update global storage price, if it is not set then the price will be updated at the first block of each natural month
   uint64 update_global_price_interval = 7 [(gogoproto.moretags) = "yaml:\"update_global_price_interval\""];
-  // the max times allowed to update price during an interval
-  uint32 max_update_price_times = 8 [(gogoproto.moretags) = "yaml:\"max_update_price_times\""];
+  // the days counting backwards from end of a month in which a sp cannot update its price
+  uint32 update_price_disallowed_days = 8 [(gogoproto.moretags) = "yaml:\"update_price_disallowed_days\""];
 }

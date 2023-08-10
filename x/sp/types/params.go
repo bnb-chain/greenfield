@@ -24,8 +24,8 @@ const (
 	DefaultNumOfLockUpBlocksForMaintenance = 21600
 	// DefaultUpdateGlobalPriceInterval defines the default time duration for updating global storage price
 	DefaultUpdateGlobalPriceInterval uint64 = 0 // 0 means the global price will be updated at the first day of each month
-	// DefaultMaxUpdatePriceTimes defines the max allowed times to update price for each sp in one interval
-	DefaultMaxUpdatePriceTimes uint32 = 3
+	// UpdatePriceDisallowedDays defines the days, counting backward from the end of a month, in which sp is not allowed to update its price
+	DefaultUpdatePriceDisallowedDays uint32 = 2
 )
 
 var (
@@ -43,7 +43,7 @@ var (
 	KeyMaintenanceDurationQuota                   = []byte("MaintenanceDurationQuota")
 	KeyNumOfLockUpBlocksForMaintenance            = []byte("NumOfLockUpBlocksForMaintenance")
 	KeyUpdateGlobalPriceInterval                  = []byte("UpdateGlobalPriceInterval")
-	KeyMaxUpdatePriceTimes                        = []byte("MaxUpdatePriceTimes")
+	KeyUpdatePriceDisallowedDays                  = []byte("UpdatePriceDisallowedDays")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -56,7 +56,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 // NewParams creates a new Params instance
 func NewParams(depositDenom string, minDeposit math.Int, secondarySpStorePriceRatio sdk.Dec,
 	historicalBlocksForMaintenanceRecords, maintenanceDurationQuota, lockUpBlocksForMaintenance int64,
-	updateGlobalPriceInterval uint64, maxUpdatePriceTimes uint32) Params {
+	updateGlobalPriceInterval uint64, updatePriceDisallowedDays uint32) Params {
 	return Params{
 		DepositDenom:               depositDenom,
 		MinDeposit:                 minDeposit,
@@ -65,7 +65,7 @@ func NewParams(depositDenom string, minDeposit math.Int, secondarySpStorePriceRa
 		MaintenanceDurationQuota:                   maintenanceDurationQuota,
 		NumOfLockupBlocksForMaintenance:            lockUpBlocksForMaintenance,
 		UpdateGlobalPriceInterval:                  updateGlobalPriceInterval,
-		MaxUpdatePriceTimes:                        maxUpdatePriceTimes,
+		UpdatePriceDisallowedDays:                  updatePriceDisallowedDays,
 	}
 }
 
@@ -73,7 +73,7 @@ func NewParams(depositDenom string, minDeposit math.Int, secondarySpStorePriceRa
 func DefaultParams() Params {
 	return NewParams(DefaultDepositDenom, DefaultMinDeposit, DefaultSecondarySpStorePriceRatio,
 		DefaultNumOfHistoricalBlocksForMaintenanceRecords, DefaultMaintenanceDurationQuota, DefaultNumOfLockUpBlocksForMaintenance,
-		DefaultUpdateGlobalPriceInterval, DefaultMaxUpdatePriceTimes)
+		DefaultUpdateGlobalPriceInterval, DefaultUpdatePriceDisallowedDays)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -86,7 +86,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyMaintenanceDurationQuota, &p.MaintenanceDurationQuota, validateMaintenanceDurationQuota),
 		paramtypes.NewParamSetPair(KeyNumOfLockUpBlocksForMaintenance, &p.NumOfLockupBlocksForMaintenance, validateLockUpBlocksForMaintenance),
 		paramtypes.NewParamSetPair(KeyUpdateGlobalPriceInterval, &p.UpdateGlobalPriceInterval, validateUpdateGlobalPriceInterval),
-		paramtypes.NewParamSetPair(KeyMaxUpdatePriceTimes, &p.MaxUpdatePriceTimes, validateMaxUpdatePriceTimes),
+		paramtypes.NewParamSetPair(KeyUpdatePriceDisallowedDays, &p.UpdatePriceDisallowedDays, validateUpdatePriceDisallowedDays),
 	}
 }
 
@@ -115,7 +115,7 @@ func (p Params) Validate() error {
 	if err := validateUpdateGlobalPriceInterval(p.UpdateGlobalPriceInterval); err != nil {
 		return err
 	}
-	if err := validateMaxUpdatePriceTimes(p.MaxUpdatePriceTimes); err != nil {
+	if err := validateUpdatePriceDisallowedDays(p.UpdatePriceDisallowedDays); err != nil {
 		return err
 	}
 
@@ -214,13 +214,10 @@ func validateUpdateGlobalPriceInterval(i interface{}) error {
 	return nil
 }
 
-func validateMaxUpdatePriceTimes(i interface{}) error {
-	v, ok := i.(uint32)
+func validateUpdatePriceDisallowedDays(i interface{}) error {
+	_, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v == 0 {
-		return errors.New("MaxUpdatePriceTimes cannot be zero")
 	}
 	return nil
 }

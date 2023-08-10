@@ -43,6 +43,5 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 		if err != nil {
 			ctx.Logger().Error("fail to update global sp store price", "err", err)
 		}
-		k.ClearSpUpdatePriceTimes(ctx)
 	}
 }
