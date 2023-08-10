@@ -503,7 +503,6 @@ func (k Keeper) GetBucketReadStoreBill(ctx sdk.Context, bucketInfo *storagetypes
 
 func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
-	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true) // used for bucket migration
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {
 		return fmt.Errorf("get bucket bill failed: %s %s", bucketInfo.BucketName, err.Error())
@@ -518,7 +517,6 @@ func (k Keeper) UnChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storaget
 
 func (k Keeper) ChargeBucketReadStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo) error {
-	ctx = ctx.WithValue(types.ForceUpdateStreamRecordKey, true) // used for bucket migration
 	internalBucketInfo.PriceTime = ctx.BlockTime().Unix()
 	bill, err := k.GetBucketReadStoreBill(ctx, bucketInfo, internalBucketInfo)
 	if err != nil {

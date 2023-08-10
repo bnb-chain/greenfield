@@ -1760,13 +1760,14 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	family := queryFamilyResponse.GlobalVirtualGroupFamily
 	user := s.GenAndChargeAccounts(1, 10)[0]
 
-	streamAddresses0 := []string{
+	streamAddresses := []string{
 		user.GetAddr().String(),
 		family.VirtualPaymentAddress,
 		gvg.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
 
+	streamAddresses0 := streamAddresses
 	paymentParams, err := s.Client.PaymentQueryClient.Params(ctx, &paymenttypes.QueryParamsRequest{})
 	s.T().Logf("paymentParams %s, err: %v", paymentParams, err)
 	s.Require().NoError(err)
@@ -1778,11 +1779,11 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.Require().NoError(err)
 
 	// create object with none zero payload size
-	streamRecordsBefore := s.getStreamRecords(streamAddresses0)
+	streamRecordsBefore := s.getStreamRecords(streamAddresses)
 	_, _, objectName, objectId, checksums, payloadSize := s.createObject(user, bucketName, false)
 
 	// assertions
-	streamRecordsAfter := s.getStreamRecords(streamAddresses0)
+	streamRecordsAfter := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	lockFee := s.calculateLockFee(bucketName, objectName, payloadSize)
 	s.Require().Equal(streamRecordsAfter.User.LockBalance.Sub(streamRecordsBefore.User.LockBalance), lockFee)
@@ -1795,7 +1796,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.sealObject(primarySP, gvg, bucketName, objectName, objectId, checksums)
 
 	// assertions
-	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	gvgFamilyRate, gvgRate, taxRate, userTotalRate := s.calculateStorageRates(bucketName, objectName, payloadSize, 0)
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
@@ -1831,30 +1832,28 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 		FamilyId: dstGVG.FamilyId,
 	})
 	s.Require().NoError(err)
-	dstFamily := queryFamilyResponse.GlobalVirtualGroupFamily
-
-	streamAddresses1 := []string{
+	family = queryFamilyResponse.GlobalVirtualGroupFamily
+	streamAddresses = []string{
 		user.GetAddr().String(),
-		dstFamily.VirtualPaymentAddress,
+		family.VirtualPaymentAddress,
 		dstGVG.VirtualPaymentAddress,
 		paymenttypes.ValidatorTaxPoolAddress.String(),
 	}
-	streamRecordsBefore = s.getStreamRecords(streamAddresses1)
-
 	fundAddress := primarySP.FundingKey.GetAddr()
+	streamRecordsBefore = s.getStreamRecords(streamAddresses)
+
 	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
 	fundBalanceBefore, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 
-	// MigrateBucket
+	// MigrationBucket
 	msgMigrationBucket, msgCompleteMigrationBucket := s.NewMigrateBucket(primarySP, dstPrimarySP, user, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
 	s.SendTxBlock(user, msgMigrationBucket)
 	s.Require().NoError(err)
 
-	// complete MigrateBucket
+	// complete MigrationBucket
 	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrationBucket)
-
-	streamRecordsAfter = s.getStreamRecords(streamAddresses1)
+	streamRecordsAfter = s.getStreamRecords(streamAddresses)
 	fundBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
@@ -1871,36 +1870,29 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Abs())
 
-	// try to migrate again
+	// set price
 	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(120), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(5000))
 
 	queryBalanceRequest.Address = dstPrimarySP.FundingKey.GetAddr().String()
 	fundBalanceBefore, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
 	streamRecordsBefore = s.getStreamRecords(streamAddresses0)
-
-	// send msgMigrateBucket
+	// send msgMigrationBucket
 	msgMigrationBucket, msgCompleteMigrationBucket = s.NewMigrateBucket(dstPrimarySP, primarySP, user, bucketName, dstGVG.FamilyId, gvg.FamilyId, bucketInfo.BucketInfo.Id)
-	s.SendTxBlock(user, msgMigrationBucket)
 
+	s.SendTxBlock(user, msgMigrationBucket)
+	s.Require().NoError(err)
 	s.reduceBNBBalance(user, s.Validator, sdkmath.NewIntWithDecimal(1, 1))
 
-	s.SendTxBlock(primarySP.OperatorKey, msgCompleteMigrationBucket)
-	// account will be frozen
-	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
-	s.Require().Equal(streamRecordsAfter.User.Status, paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN)
+	s.SendTxBlockWithExpectErrorString(msgCompleteMigrationBucket, primarySP.OperatorKey, "apply stream record changes for user failed")
 
-	// deposit to the account
+	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(10), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10))
+	readPrice, primaryPrice, secondaryPrice := s.getPrices(time.Now().Unix())
+	s.T().Logf("readPrice: %v, primaryPrice: %v,secondaryPrice: %v", readPrice, primaryPrice, secondaryPrice)
+
 	s.transferBNB(s.Validator, user, sdkmath.NewIntWithDecimal(10000, 18))
-	msgDeposit := &paymenttypes.MsgDeposit{
-		Creator: user.GetAddr().String(),
-		To:      user.GetAddr().String(),
-		Amount:  sdkmath.NewIntWithDecimal(1000, 18),
-	}
-	_ = s.SendTxBlock(user, msgDeposit)
-	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
-	s.Require().Equal(streamRecordsAfter.User.Status, paymenttypes.STREAM_ACCOUNT_STATUS_ACTIVE)
 
+	s.SendTxBlock(primarySP.OperatorKey, msgCompleteMigrationBucket)
 	streamRecordsAfter = s.getStreamRecords(streamAddresses0)
 	fundBalanceAfter, err = s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
 	s.Require().NoError(err)
@@ -1911,6 +1903,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket() {
 	s.T().Logf("gvgFamilyRate: %v, gvgRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, gvgRate, taxRate, userTotalRate)
 	s.T().Logf("NetflowRate: %v, userTotalRate: %v, actual taxRate diff: %v, expect taxRate diff: %v", streamRecordsAfter.User.NetflowRate.Neg(), userTotalRate.Neg(), streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate.Sub(taxRate0))
 
+	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate), gvgRate)
@@ -2066,7 +2059,7 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_LockedFee_ThenDiscontin
 	s.Require().ErrorContains(err, "No such bucket")
 }
 
-func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDiscontinueBucket() {
+func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_NotAllowed() {
 	var err error
 	ctx := context.Background()
 	primarySP := s.PickStorageProvider()
@@ -2157,16 +2150,6 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	s.Require().Equal(paymentAccountStreamRecordAfterAutoSettle.FrozenNetflowRate.Int64(), readTotalRate.Neg().Int64())
 
 	dstPrimarySP := s.CreateNewStorageProvider()
-	// update price
-	priceRes, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
-		Timestamp: 0,
-	})
-	s.Require().NoError(err)
-	s.T().Log("price", priceRes.GlobalSpStorePrice)
-
-	s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice.MulInt64(10), priceRes.GlobalSpStorePrice.PrimaryStorePrice.MulInt64(10000))
-	defer s.updateGlobalSpPrice(priceRes.GlobalSpStorePrice.ReadPrice, priceRes.GlobalSpStorePrice.PrimaryStorePrice)
-
 	_, secondarySPIDs := s.GetSecondarySP(dstPrimarySP, primarySP)
 	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(dstPrimarySP, 0, secondarySPIDs, 1)
 	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgrouptypes.QueryGlobalVirtualGroupRequest{
@@ -2176,91 +2159,9 @@ func (s *PaymentTestSuite) TestStorageBill_MigrateBucket_FrozenAccount_ThenDisco
 	dstGVG := gvgResp.GlobalVirtualGroup
 	s.Require().True(found)
 
-	queryFamilyResponse, err = s.Client.GlobalVirtualGroupFamily(ctx, &virtualgrouptypes.QueryGlobalVirtualGroupFamilyRequest{
-		FamilyId: dstGVG.FamilyId,
-	})
-	s.Require().NoError(err)
-	family := queryFamilyResponse.GlobalVirtualGroupFamily
-
-	streamAddresses := []string{
-		paymentAddr,
-		family.VirtualPaymentAddress,
-		dstGVG.VirtualPaymentAddress,
-		paymenttypes.ValidatorTaxPoolAddress.String(),
-	}
-	streamRecordsBefore := s.getStreamRecords(streamAddresses)
-
-	fundAddress := primarySP.FundingKey.GetAddr()
-	queryBalanceRequest := banktypes.QueryBalanceRequest{Denom: s.Config.Denom, Address: fundAddress.String()}
-	fundBalanceBefore, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
-	s.Require().NoError(err)
-
 	// MigrateBucket
-	msgMigrateBucket, msgCompleteMigrateBucket := s.NewMigrateBucket(primarySP, dstPrimarySP, user, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
-	s.SendTxBlock(user, msgMigrateBucket)
-	s.Require().NoError(err)
-
-	// complete MigrateBucket
-	s.SendTxBlock(dstPrimarySP.OperatorKey, msgCompleteMigrateBucket)
-
-	time.Sleep(1 * time.Second)
-	streamRecordsAfter := s.getStreamRecords(streamAddresses)
-	fundBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &queryBalanceRequest)
-	s.Require().NoError(err)
-
-	s.T().Logf("fundBalanceBefore: %v, fundBalanceAfter: %v, diff: %v", fundBalanceBefore, fundBalanceAfter, fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount))
-	s.Require().True(fundBalanceAfter.Balance.Amount.Sub(fundBalanceBefore.Balance.Amount).GT(sdkmath.NewInt(0)), "migrate sp fund address need settle")
-
-	gvgFamilyRate, taxRate, userTotalRate := s.calculateReadRatesCurrentTimestamp(bucketName)
-	s.T().Logf("gvgFamilyRate: %v, taxRate: %v, userTotalRate: %v", gvgFamilyRate, taxRate, userTotalRate)
-
-	expectedOutFlows := []paymenttypes.OutFlow{
-		{ToAddress: family.VirtualPaymentAddress, Rate: gvgFamilyRate, Status: paymenttypes.OUT_FLOW_STATUS_FROZEN},
-		{ToAddress: paymenttypes.ValidatorTaxPoolAddress.String(), Rate: taxRate, Status: paymenttypes.OUT_FLOW_STATUS_FROZEN},
-	}
-	userOutFlowsResponse, err := s.Client.OutFlows(ctx, &paymenttypes.QueryOutFlowsRequest{Account: paymentAddr})
-	s.Require().NoError(err)
-	sort.Slice(userOutFlowsResponse.OutFlows, func(i, j int) bool {
-		return userOutFlowsResponse.OutFlows[i].ToAddress < userOutFlowsResponse.OutFlows[j].ToAddress
-	})
-	sort.Slice(expectedOutFlows, func(i, j int) bool {
-		return expectedOutFlows[i].ToAddress < expectedOutFlows[j].ToAddress
-	})
-	s.Require().Equal(expectedOutFlows, userOutFlowsResponse.OutFlows)
-
-	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
-	s.Require().Equal(streamRecordsAfter.User.LockBalance, sdkmath.ZeroInt())
-	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate).Int64(), int64(0))
-	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate).Int64(), int64(0))
-	s.Require().Equal(streamRecordsAfter.User.FrozenNetflowRate.Neg(), userTotalRate.Abs())
-	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), sdkmath.ZeroInt())
-
-	// force delete bucket
-	msgDiscontinueBucket := storagetypes.NewMsgDiscontinueBucket(dstPrimarySP.GcKey.GetAddr(), bucketName, "test")
-	txRes := s.SendTxBlock(dstPrimarySP.GcKey, msgDiscontinueBucket)
-	deleteAt := filterDiscontinueBucketEventFromTx(txRes).DeleteAt
-
-	for {
-		time.Sleep(200 * time.Millisecond)
-		statusRes, err := s.TmClient.TmClient.Status(context.Background())
-		s.Require().NoError(err)
-		blockTime := statusRes.SyncInfo.LatestBlockTime.Unix()
-
-		s.T().Logf("current blockTime: %d, delete blockTime: %d", blockTime, deleteAt)
-
-		if blockTime > deleteAt {
-			break
-		}
-	}
-
-	_, err = s.Client.HeadBucket(ctx, &storagetypes.QueryHeadBucketRequest{BucketName: bucketName})
-	s.Require().ErrorContains(err, "No such bucket")
-
-	// check streams after delete
-	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	s.Require().Equal(streamRecordsAfter.User.FrozenNetflowRate.Neg(), sdkmath.ZeroInt())
-	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Neg(), sdkmath.ZeroInt())
-	s.Require().Equal(streamRecordsAfter.User.OutFlowCount, uint64(0))
+	msgMigrateBucket, _ := s.NewMigrateBucket(primarySP, dstPrimarySP, user, bucketName, gvg.FamilyId, dstGVG.FamilyId, bucketInfo.BucketInfo.Id)
+	s.SendTxBlockWithExpectErrorString(msgMigrateBucket, user, "frozen")
 }
 
 func (s *PaymentTestSuite) GetSecondarySP(sps ...*core.StorageProvider) ([]*core.StorageProvider, []uint32) {

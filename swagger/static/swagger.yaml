@@ -1659,7 +1659,10 @@ paths:
                   update_global_price_interval:
                     type: string
                     format: uint64
-                    title: the time interval to update global storage price
+                    title: >-
+                      the time interval to update global storage price, if it is
+                      not set then the price will be updated at the first block
+                      of each natural month
                   max_update_price_times:
                     type: integer
                     format: int64
@@ -32854,7 +32857,10 @@ definitions:
       update_global_price_interval:
         type: string
         format: uint64
-        title: the time interval to update global storage price
+        title: >-
+          the time interval to update global storage price, if it is not set
+          then the price will be updated at the first block of each natural
+          month
       max_update_price_times:
         type: integer
         format: int64
@@ -32919,7 +32925,10 @@ definitions:
           update_global_price_interval:
             type: string
             format: uint64
-            title: the time interval to update global storage price
+            title: >-
+              the time interval to update global storage price, if it is not set
+              then the price will be updated at the first block of each natural
+              month
           max_update_price_times:
             type: integer
             format: int64

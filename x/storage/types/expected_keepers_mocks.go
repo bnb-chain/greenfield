@@ -300,6 +300,21 @@ func (mr *MockPaymentKeeperMockRecorder) ApplyUserFlowsList(ctx, userFlows inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUserFlowsList", reflect.TypeOf((*MockPaymentKeeper)(nil).ApplyUserFlowsList), ctx, userFlows)
 }
 
+// GetStreamRecord mocks base method.
+func (m *MockPaymentKeeper) GetStreamRecord(ctx types3.Context, account types3.AccAddress) (*types.StreamRecord, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
+	ret0, _ := ret[0].(*types.StreamRecord)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetStreamRecord indicates an expected call of GetStreamRecord.
+func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
+}
+
 // GetVersionedParamsWithTs mocks base method.
 func (m *MockPaymentKeeper) GetVersionedParamsWithTs(ctx types3.Context, time int64) (types.VersionedParams, error) {
 	m.ctrl.T.Helper()

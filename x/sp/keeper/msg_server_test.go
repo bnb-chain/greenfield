@@ -2,6 +2,9 @@ package keeper_test
 
 import (
 	"testing"
+	"time"
+
+	"github.com/bnb-chain/greenfield/x/sp/keeper"
 
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
@@ -147,4 +150,11 @@ func (s *KeeperTestSuite) TestMsgCreateStorageProvider() {
 
 	}
 
+}
+
+func (s *KeeperTestSuite) TestIsLastDaysOfTheMonth() {
+	s.Require().True(keeper.IsLastDaysOfTheMonth(time.Unix(1693328461, 0), 2))  // 2023-08-30
+	s.Require().True(keeper.IsLastDaysOfTheMonth(time.Unix(1693414861, 0), 2))  // 2023-08-31
+	s.Require().True(!keeper.IsLastDaysOfTheMonth(time.Unix(1693242061, 0), 2)) // 2023-08-29
+	s.Require().True(!keeper.IsLastDaysOfTheMonth(time.Unix(1693587661, 0), 2)) // 2023-09-02
 }

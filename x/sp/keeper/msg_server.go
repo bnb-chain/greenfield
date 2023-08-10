@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"time"
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
@@ -152,7 +153,7 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStoragePrice)
-	k.SetSpUpdatePriceTimes(ctx, sp.Id, k.GetSpUpdatePriceTimes(ctx, sp.Id)+1)
+	k.SetSpUpdatePriceTimes(ctx, sp.Id, 1)
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpId:               sp.Id,
@@ -315,10 +316,20 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		return nil, types.ErrStorageProviderNotInService
 	}
 
-	updateTimes := k.GetSpUpdatePriceTimes(ctx, sp.Id)
 	params := k.GetParams(ctx)
-	if updateTimes+1 > params.MaxUpdatePriceTimes {
-		return nil, types.ErrStorageProviderPriceUpdateNotAllow
+	updateTimes := uint32(0)
+	if params.UpdateGlobalPriceInterval > 0 { // update price by interval
+		updateTimes = k.GetSpUpdatePriceTimes(ctx, sp.Id)
+		if updateTimes+1 > params.MaxUpdatePriceTimes {
+			return nil, errors.Wrapf(types.ErrStorageProviderPriceUpdateNotAllow, "exceeds the limit %d", params.MaxUpdatePriceTimes)
+		}
+		updateTimes++
+	} else { // update price by month
+		blockTime := ctx.BlockTime().UTC()
+		days := 2
+		if IsLastDaysOfTheMonth(blockTime, days) {
+			return nil, errors.Wrapf(types.ErrStorageProviderPriceUpdateNotAllow, "price cannot be updated in the last %d days of the month", days)
+		}
 	}
 
 	current := ctx.BlockTime().Unix()
@@ -330,9 +341,19 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	k.SetSpUpdatePriceTimes(ctx, sp.Id, updateTimes+1)
+	if updateTimes > 0 {
+		k.SetSpUpdatePriceTimes(ctx, sp.Id, updateTimes)
+	}
 
 	return &types.MsgUpdateSpStoragePriceResponse{}, nil
+}
+
+func IsLastDaysOfTheMonth(now time.Time, days int) bool {
+	year, month, _ := now.Date()
+	location := now.Location()
+	nextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, location)
+	daysBack := nextMonth.AddDate(0, 0, -1*days)
+	return now.After(daysBack)
 }
 
 func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {

@@ -47,6 +47,7 @@ type PaymentKeeper interface {
 	IsPaymentAccountOwner(ctx sdk.Context, addr, owner sdk.AccAddress) bool
 	ApplyUserFlowsList(ctx sdk.Context, userFlows []paymenttypes.UserFlows) (err error)
 	UpdateStreamRecordByAddr(ctx sdk.Context, change *paymenttypes.StreamRecordChange) (ret *paymenttypes.StreamRecord, err error)
+	GetStreamRecord(ctx sdk.Context, account sdk.AccAddress) (ret *paymenttypes.StreamRecord, found bool)
 }
 
 type PermissionKeeper interface {

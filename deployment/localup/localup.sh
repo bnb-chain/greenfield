@@ -153,7 +153,7 @@ function generate_genesis() {
         sed -i -e "s/\"discontinue_confirm_period\": \"604800\"/\"discontinue_confirm_period\": \"5\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"discontinue_deletion_max\": \"100\"/\"discontinue_deletion_max\": \"2\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"voting_period\": \"30s\"/\"voting_period\": \"5s\"/g" ${workspace}/.local/validator${i}/config/genesis.json
-        sed -i -e "s/\"update_global_price_interval\": \"2592000\"/\"update_global_price_interval\": \"1\"/g" ${workspace}/.local/validator${i}/config/genesis.json
+        sed -i -e "s/\"update_global_price_interval\": \"0\"/\"update_global_price_interval\": \"1\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"max_update_price_times\": 3/\"max_update_price_times\": 1000000/g" ${workspace}/.local/validator${i}/config/genesis.json
         #sed -i -e "s/\"community_tax\": \"0.020000000000000000\"/\"community_tax\": \"0\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/log_level = \"info\"/\log_level= \"debug\"/g" ${workspace}/.local/validator${i}/config/config.toml

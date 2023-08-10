@@ -39,7 +39,7 @@ type Params struct {
 	MaintenanceDurationQuota int64 `protobuf:"varint,5,opt,name=maintenance_duration_quota,json=maintenanceDurationQuota,proto3" json:"maintenance_duration_quota,omitempty" yaml:"maintenance_duration_quota"`
 	// the number of blocks to be wait for sp to be in maintenance mode again if already requested
 	NumOfLockupBlocksForMaintenance int64 `protobuf:"varint,6,opt,name=num_of_lockup_blocks_for_maintenance,json=numOfLockupBlocksForMaintenance,proto3" json:"num_of_lockup_blocks_for_maintenance,omitempty" yaml:"num_of_lockup_blocks_for_maintenance"`
-	// the time interval to update global storage price
+	// the time interval to update global storage price, if it is not set then the price will be updated at the first block of each natural month
 	UpdateGlobalPriceInterval uint64 `protobuf:"varint,7,opt,name=update_global_price_interval,json=updateGlobalPriceInterval,proto3" json:"update_global_price_interval,omitempty" yaml:"update_global_price_interval"`
 	// the max times allowed to update price during an interval
 	MaxUpdatePriceTimes uint32 `protobuf:"varint,8,opt,name=max_update_price_times,json=maxUpdatePriceTimes,proto3" json:"max_update_price_times,omitempty" yaml:"max_update_price_times"`

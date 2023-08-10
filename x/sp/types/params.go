@@ -23,7 +23,7 @@ const (
 	// DefaultNumOfLockUpBlocksForMaintenance defines blocks difference which Sp update itself to Maintenance mode is allowed
 	DefaultNumOfLockUpBlocksForMaintenance = 21600
 	// DefaultUpdateGlobalPriceInterval defines the default time duration for updating global storage price
-	DefaultUpdateGlobalPriceInterval uint64 = 30 * 24 * 60 * 60 // 30 days
+	DefaultUpdateGlobalPriceInterval uint64 = 0 // 0 means the global price will be updated at the first day of each month
 	// DefaultMaxUpdatePriceTimes defines the max allowed times to update price for each sp in one interval
 	DefaultMaxUpdatePriceTimes uint32 = 3
 )
@@ -207,12 +207,9 @@ func validateLockUpBlocksForMaintenance(i interface{}) error {
 }
 
 func validateUpdateGlobalPriceInterval(i interface{}) error {
-	v, ok := i.(uint64)
+	_, ok := i.(uint64)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-	if v == 0 {
-		return errors.New("UpdateGlobalPriceInterval cannot be zero")
 	}
 	return nil
 }

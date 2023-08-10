@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -1901,6 +1903,11 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 			"origin SP status: %s, dst SP status: %s", srcSP.Status.String(), dstSP.Status.String())
 	}
 
+	streamRecord, found := k.paymentKeeper.GetStreamRecord(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress))
+	if !found || streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
+		return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is frozen")
+	}
+
 	// check approval
 	if dstPrimarySPApproval.ExpiredHeight < (uint64)(ctx.BlockHeight()) {
 		return types.ErrInvalidApproval.Wrap("dst primary sp approval timeout")
@@ -1971,6 +1978,11 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 	srcGvgFamily, found := k.virtualGroupKeeper.GetGVGFamily(ctx, bucketInfo.GlobalVirtualGroupFamilyId)
 	if !found {
 		return virtualgroupmoduletypes.ErrGVGFamilyNotExist
+	}
+
+	streamRecord, found := k.paymentKeeper.GetStreamRecord(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress))
+	if !found || streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
+		return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is frozen")
 	}
 
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
