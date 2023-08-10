@@ -82,13 +82,23 @@ func GetPolicyByIDKey(policyID math.Uint) []byte {
 }
 
 func GroupMembersPrefix(groupID math.Uint) []byte {
-	return append(GroupMemberPrefix, groupID.Bytes()...)
+	return append(GroupMemberPrefix, LengthPrefix(groupID)...)
 }
 
 func GetGroupMemberKey(groupID math.Uint, member sdk.AccAddress) []byte {
-	return append(GroupMemberPrefix, append(groupID.Bytes(), member.Bytes()...)...)
+	return append(GroupMemberPrefix, append(LengthPrefix(groupID), member.Bytes()...)...)
 }
 
 func GetGroupMemberByIDKey(memberID math.Uint) []byte {
 	return append(GroupMemberByIDPrefix, memberID.Bytes()...)
+}
+
+func LengthPrefix(id math.Uint) []byte {
+	bz := id.Bytes()
+	bzLen := len(bz)
+	if bzLen == 0 {
+		return bz
+	}
+
+	return append([]byte{byte(bzLen)}, bz...)
 }
