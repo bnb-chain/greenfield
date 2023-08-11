@@ -29242,6 +29242,10 @@ paths:
                   min_gas_price:
                     type: string
                     description: MinGasPrice are the min gas price.
+                  rw_used:
+                    type: string
+                    format: uint64
+                    description: RWUsed is the amount of r/w actually consumed.
               result:
                 description: result is the result of the simulation.
                 type: object
@@ -51943,6 +51947,10 @@ definitions:
       min_gas_price:
         type: string
         description: MinGasPrice are the min gas price.
+      rw_used:
+        type: string
+        format: uint64
+        description: RWUsed is the amount of r/w actually consumed.
     description: GasInfo defines tx execution gas context.
   cosmos.base.abci.v1beta1.Result:
     type: object
@@ -54769,6 +54777,10 @@ definitions:
           min_gas_price:
             type: string
             description: MinGasPrice are the min gas price.
+          rw_used:
+            type: string
+            format: uint64
+            description: RWUsed is the amount of r/w actually consumed.
       result:
         description: result is the result of the simulation.
         type: object
