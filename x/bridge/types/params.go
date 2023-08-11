@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	DefaultBscTransferOutRelayerFeeParam    = sdkmath.NewInt(250000000000000) // 0.00025
+	DefaultBscTransferOutRelayerFeeParam    = sdkmath.NewInt(780000000000000) // 0.00078
 	DefaultBscTransferOutAckRelayerFeeParam = sdkmath.NewInt(0)
 )
 

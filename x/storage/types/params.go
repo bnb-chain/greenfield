@@ -26,12 +26,12 @@ const (
 	DefaultMinUpdateQuotaInterval    uint64 = 2592000 // 30 days (in second)
 
 	DefaultMaxLocalVirtualGroupNumPerBucket uint32 = 10
-	DefaultMirrorBucketRelayerFee                  = "250000000000000" // 0.00025
-	DefaultMirrorBucketAckRelayerFee               = "250000000000000" // 0.00025
-	DefaultMirrorObjectRelayerFee                  = "250000000000000" // 0.00025
-	DefaultMirrorObjectAckRelayerFee               = "250000000000000" // 0.00025
-	DefaultMirrorGroupRelayerFee                   = "250000000000000" // 0.00025
-	DefaultMirrorGroupAckRelayerFee                = "250000000000000" // 0.00025
+	DefaultMirrorBucketRelayerFee                  = "1300000000000000" // 0.0013
+	DefaultMirrorBucketAckRelayerFee               = "250000000000000"  // 0.00025
+	DefaultMirrorObjectRelayerFee                  = "1300000000000000" // 0.0013
+	DefaultMirrorObjectAckRelayerFee               = "250000000000000"  // 0.00025
+	DefaultMirrorGroupRelayerFee                   = "1300000000000000" // 0.0013
+	DefaultMirrorGroupAckRelayerFee                = "250000000000000"  // 0.00025
 )
 
 var (
