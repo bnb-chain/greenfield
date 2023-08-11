@@ -702,17 +702,19 @@ func New(
 		}
 	}
 
-	// enable diff for reconciliation
-	bankIavl, ok := ms.GetCommitStore(keys[banktypes.StoreKey]).(*iavl.Store)
-	if !ok {
-		tmos.Exit("cannot convert bank store to ival store")
+	if app.IsIavlStore() {
+		//enable diff for reconciliation
+		bankIavl, ok := ms.GetCommitStore(keys[banktypes.StoreKey]).(*iavl.Store)
+		if !ok {
+			tmos.Exit("cannot convert bank store to ival store")
+		}
+		bankIavl.EnableDiff()
+		paymentIavl, ok := ms.GetCommitStore(keys[paymentmoduletypes.StoreKey]).(*iavl.Store)
+		if !ok {
+			tmos.Exit("cannot convert payment store to ival store")
+		}
+		paymentIavl.EnableDiff()
 	}
-	bankIavl.EnableDiff()
-	paymentIavl, ok := ms.GetCommitStore(keys[paymentmoduletypes.StoreKey]).(*iavl.Store)
-	if !ok {
-		tmos.Exit("cannot convert payment store to ival store")
-	}
-	paymentIavl.EnableDiff()
 
 	app.initModules(ctx)
 
@@ -763,9 +765,11 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
 	resp := app.mm.EndBlock(ctx, req)
-	bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
-	paymentIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(paymentmoduletypes.StoreKey)).(*iavl.Store)
-	app.reconcile(ctx, bankIavl, paymentIavl)
+	if app.IsIavlStore() {
+		bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
+		paymentIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(paymentmoduletypes.StoreKey)).(*iavl.Store)
+		app.reconcile(ctx, bankIavl, paymentIavl)
+	}
 	return resp
 }
 
