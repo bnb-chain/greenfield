@@ -13,4 +13,6 @@ message Params {
   // By placing a cap on the number of group permissions, permission control policies can be made more robust and better
   // enforced, thereby reducing the chances of DDos and other security incidents.
   uint64 maximum_group_num = 2;
+  // the maximum iteration number of `RemoveExpiredPolicies` loops in endblocker
+  uint64 maximum_remove_expired_policies_iteration = 3;
 }

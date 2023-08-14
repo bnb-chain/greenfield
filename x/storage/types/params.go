@@ -350,6 +350,7 @@ func validateRedundantDataChunkNum(i interface{}) error {
 
 	return nil
 }
+
 func validateRedundantParityChunkNum(i interface{}) error {
 	v, ok := i.(uint32)
 	if !ok {
