@@ -16,6 +16,11 @@ func (k Keeper) MaximumPolicyGroupSize(ctx sdk.Context) (res uint64) {
 	return params.MaximumGroupNum
 }
 
+func (k Keeper) MaximumRemoveExpiredPoliciesIteration(ctx sdk.Context) (res uint64) {
+	params := k.GetParams(ctx)
+	return params.MaximumRemoveExpiredPoliciesIteration
+}
+
 // GetParams returns the current permission module parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
 	store := ctx.KVStore(k.storeKey)

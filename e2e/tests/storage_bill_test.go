@@ -303,7 +303,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithoutPriceChange
 	// create bucket
 	bucketName := s.createBucket(sp, user, 256)
 
-	//simulate delete bucket gas
+	// simulate delete bucket gas
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	simulateResponse := s.SimulateTx(msgDeleteBucket, user)
 	gasLimit := simulateResponse.GasInfo.GetGasUsed()
@@ -320,7 +320,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithoutPriceChange
 	// for payment
 	time.Sleep(2 * time.Second)
 
-	//transfer gas
+	// transfer gas
 	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
 		sdk.NewCoin(s.Config.Denom, sdkmath.NewInt(5*types.DecimalGwei)),
 	))
@@ -332,7 +332,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithoutPriceChange
 	gas = gas.Add(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))
 	s.T().Log("total gas", "gas", gas)
 
-	//delete object gas
+	// delete object gas
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	simulateResponse = s.SimulateTx(msgDeleteObject, user)
 	gasLimit = simulateResponse.GasInfo.GetGasUsed()
@@ -390,7 +390,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	// create bucket
 	bucketName := s.createBucket(sp, user, 256)
 
-	//simulate delete bucket gas
+	// simulate delete bucket gas
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	simulateResponse := s.SimulateTx(msgDeleteBucket, user)
 	gasLimit := simulateResponse.GasInfo.GetGasUsed()
@@ -407,7 +407,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	// for payment
 	time.Sleep(2 * time.Second)
 
-	//transfer gas
+	// transfer gas
 	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
 		sdk.NewCoin(s.Config.Denom, sdkmath.NewInt(5*types.DecimalGwei)),
 	))
@@ -419,7 +419,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChange() 
 	gas = gas.Add(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))
 	s.T().Log("total gas", "gas", gas)
 
-	//delete object gas
+	// delete object gas
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	simulateResponse = s.SimulateTx(msgDeleteObject, user)
 	gasLimit = simulateResponse.GasInfo.GetGasUsed()
@@ -505,7 +505,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	// create bucket
 	bucketName := s.createBucket(sp, user, 256)
 
-	//simulate delete bucket gas
+	// simulate delete bucket gas
 	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
 	simulateResponse := s.SimulateTx(msgDeleteBucket, user)
 	gasLimit := simulateResponse.GasInfo.GetGasUsed()
@@ -522,7 +522,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	// for payment
 	time.Sleep(2 * time.Second)
 
-	//transfer gas
+	// transfer gas
 	msgSend := banktypes.NewMsgSend(user.GetAddr(), core.GenRandomAddr(), sdk.NewCoins(
 		sdk.NewCoin(s.Config.Denom, sdkmath.NewInt(5*types.DecimalGwei)),
 	))
@@ -534,7 +534,7 @@ func (s *PaymentTestSuite) TestStorageBill_DeleteObjectBucket_WithPriceChangeRes
 	gas = gas.Add(gasPrice.Amount.Mul(sdk.NewInt(int64(gasLimit))))
 	s.T().Log("total gas", "gas", gas)
 
-	//delete object gas
+	// delete object gas
 	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName1)
 	simulateResponse = s.SimulateTx(msgDeleteObject, user)
 	gasLimit = simulateResponse.GasInfo.GetGasUsed()
@@ -1459,7 +1459,7 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithoutPriceChange() {
 	streamRecordsAfterCopy := s.getStreamRecords(streamAddresses)
 	s.Require().Equal(streamRecordsAfterCopy.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfterCopy.User.LockBalance, sdkmath.ZeroInt())
-	//gvgFamilyRate1, gvgRate1, taxRate1, userTotalRate1 := s.calculateStorageRates(sp,distBucketName, distObjectName, payloadSize)
+	// gvgFamilyRate1, gvgRate1, taxRate1, userTotalRate1 := s.calculateStorageRates(sp,distBucketName, distObjectName, payloadSize)
 	s.Require().Equal(streamRecordsAfterCopy.User.NetflowRate.Sub(streamRecordsAfter.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfterCopy.GVGFamily.NetflowRate.Sub(streamRecordsAfter.GVGFamily.NetflowRate), gvgFamilyRate)
 	s.Require().Equal(streamRecordsAfterCopy.GVG.NetflowRate.Sub(streamRecordsAfter.GVG.NetflowRate), gvgRate)
@@ -1548,7 +1548,6 @@ func (s *PaymentTestSuite) TestStorageBill_CopyObject_WithPriceChange() {
 	s.Require().Equal(streamRecordsAfterCopy.GVG.NetflowRate.Sub(streamRecordsAfter.GVG.NetflowRate), gvgRate1)
 	s.Require().Equal(streamRecordsAfterCopy.Tax.NetflowRate.Sub(streamRecordsAfter.Tax.NetflowRate), taxRate1)
 	s.Require().Equal(streamRecordsAfterCopy.User.NetflowRate.Sub(streamRecordsAfter.User.NetflowRate).BigInt().String(), userTotalRate1.Neg().BigInt().String())
-
 }
 
 // TestStorageBill_UpdateBucketQuota
@@ -1696,7 +1695,6 @@ func (s *PaymentTestSuite) TestStorageBill_UpdateBucketQuota() {
 		user.GetAddr(), bucketName, &chargedReadQuota, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
 	s.reduceBNBBalance(user, s.Validator, sdkmath.NewIntWithDecimal(1, 16))
 	s.SendTxBlockWithExpectErrorString(msgUpdateBucketInfo, user, "apply user flows list failed")
-
 }
 
 // TestStorageBill_UpdatePaymentAddress
@@ -1853,7 +1851,6 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 		user.GetAddr(), bucketName, &readQuota, paymentAcc, storagetypes.VISIBILITY_TYPE_PRIVATE)
 
 	s.SendTxBlockWithExpectErrorString(msgUpdateBucketInfo, user, "apply user flows list failed")
-
 }
 
 func (s *PaymentTestSuite) TestStorageBill_MigrationBucket() {
@@ -2034,8 +2031,8 @@ func (s *PaymentTestSuite) GetSecondarySP(sps ...*core.StorageProvider) ([]*core
 	}
 	return secondarySPs, secondarySPIDs
 }
-func (s *PaymentTestSuite) NewMigrateBucket(srcSP, dstSP *core.StorageProvider, user keys.KeyManager, bucketName string, srcID, dstID uint32, bucketID sdkmath.Uint) (*storagetypes.MsgMigrateBucket, *storagetypes.MsgCompleteMigrateBucket) {
 
+func (s *PaymentTestSuite) NewMigrateBucket(srcSP, dstSP *core.StorageProvider, user keys.KeyManager, bucketName string, srcID, dstID uint32, bucketID sdkmath.Uint) (*storagetypes.MsgMigrateBucket, *storagetypes.MsgCompleteMigrateBucket) {
 	secondarySPs, _ := s.GetSecondarySP(srcSP, dstSP)
 	var gvgMappings []*storagetypes.GVGMapping
 	gvgMappings = append(gvgMappings, &storagetypes.GVGMapping{SrcGlobalVirtualGroupId: srcID, DstGlobalVirtualGroupId: dstID})
@@ -2063,8 +2060,8 @@ func (s *PaymentTestSuite) NewMigrateBucket(srcSP, dstSP *core.StorageProvider, 
 	msgCompleteMigrationBucket := storagetypes.NewMsgCompleteMigrateBucket(dstSP.OperatorKey.GetAddr(), bucketName, dstID, gvgMappings)
 
 	return msgMigrationBucket, msgCompleteMigrationBucket
-
 }
+
 func (s *PaymentTestSuite) SetSPPrice(sp *core.StorageProvider, readPrice, storePrice string) {
 	ctx := context.Background()
 
@@ -2095,7 +2092,6 @@ func (s *PaymentTestSuite) SetSPPrice(sp *core.StorageProvider, readPrice, store
 	s.Require().NoError(err)
 	s.T().Logf("queryGetSpStoragePriceByTimeResp read price: %s, store price: %v",
 		queryGetSpStoragePriceByTimeResp.SpStoragePrice.ReadPrice, queryGetSpStoragePriceByTimeResp.SpStoragePrice.StorePrice)
-
 }
 
 // CreatePaymentAccount create new payment account and return latest payment account
@@ -2134,11 +2130,9 @@ func (s *PaymentTestSuite) copyObject(user keys.KeyManager, sp *core.StorageProv
 	}
 	headObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
 	return headObjectResponse.ObjectInfo, err
-
 }
 
-func (s *PaymentTestSuite) updateBucket(user keys.KeyManager, bucketName string, paymentAddress string, chargedReadQuota uint64) (*storagetypes.BucketInfo, error) {
-
+func (s *PaymentTestSuite) updateBucket(user keys.KeyManager, bucketName, paymentAddress string, chargedReadQuota uint64) (*storagetypes.BucketInfo, error) {
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
 		user.GetAddr(), bucketName, &chargedReadQuota, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
 	if paymentAddress != "" {
@@ -2151,7 +2145,6 @@ func (s *PaymentTestSuite) updateBucket(user keys.KeyManager, bucketName string,
 	}
 	headObjectResponse, err := s.Client.HeadBucket(context.Background(), &queryHeadObjectRequest)
 	return headObjectResponse.BucketInfo, err
-
 }
 
 func (s *PaymentTestSuite) reduceBNBBalance(user, to keys.KeyManager, leftBalance sdkmath.Int) {
@@ -2178,10 +2171,8 @@ func (s *PaymentTestSuite) reduceBNBBalance(user, to keys.KeyManager, leftBalanc
 }
 
 func (s *PaymentTestSuite) transferBNB(user, to keys.KeyManager, amount sdkmath.Int) {
-
 	msgSend := banktypes.NewMsgSend(user.GetAddr(), to.GetAddr(), sdk.NewCoins(
 		sdk.NewCoin(s.Config.Denom, amount),
 	))
 	s.SendTxBlock(user, msgSend)
-
 }

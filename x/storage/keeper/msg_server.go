@@ -282,7 +282,7 @@ func (k msgServer) UpdateGroupMember(goCtx context.Context, msg *types.MsgUpdate
 		return nil, types.ErrNoSuchGroup
 	}
 	membersToAdd := make([]string, 0, len(msg.MembersToAdd))
-	membersExpirationToAdd := make([]time.Time, 0, len(msg.MembersToAdd))
+	membersExpirationToAdd := make([]*time.Time, 0, len(msg.MembersToAdd))
 	for i := range msg.MembersToAdd {
 		membersToAdd = append(membersToAdd, msg.MembersToAdd[i].GetMember())
 		membersExpirationToAdd = append(membersExpirationToAdd, msg.MembersToAdd[i].GetExpirationTime())
@@ -313,7 +313,7 @@ func (k msgServer) RenewGroupMember(goCtx context.Context, msg *types.MsgRenewGr
 	}
 
 	members := make([]string, 0, len(msg.Members))
-	membersExpiration := make([]time.Time, 0, len(msg.Members))
+	membersExpiration := make([]*time.Time, 0, len(msg.Members))
 	for i := range msg.Members {
 		members = append(members, msg.Members[i].GetMember())
 		membersExpiration = append(membersExpiration, msg.Members[i].GetExpirationTime())
