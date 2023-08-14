@@ -768,7 +768,10 @@ func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Respo
 	if app.IsIavlStore() {
 		bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
 		paymentIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(paymentmoduletypes.StoreKey)).(*iavl.Store)
-		app.reconcile(ctx, bankIavl, paymentIavl)
+
+		reconCtx, _ := ctx.CacheContext()
+		reconCtx = reconCtx.WithGasMeter(sdk.NewInfiniteGasMeter())
+		app.reconcile(reconCtx, bankIavl, paymentIavl)
 	}
 	return resp
 }

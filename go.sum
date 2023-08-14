@@ -159,12 +159,12 @@ github.com/bgentry/speakeasy v0.1.1-0.20220910012023-760eaf8b6816/go.mod h1:+zsy
 github.com/bits-and-blooms/bitset v1.2.0 h1:Kn4yilvwNtMACtf1eYDlG8H77R07mZSPbMjLyS07ChA=
 github.com/bits-and-blooms/bitset v1.2.0/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
 github.com/bmizerany/pat v0.0.0-20170815010413-6226ea591a40/go.mod h1:8rLXio+WjiTceGBHIoTvn60HIbs7Hm7bcHjyrSqYB9c=
-github.com/bnb-chain/greenfield-cometbft v0.0.0-20230810120916-f5f3421ab490 h1:sztr3uiKE/iI8O6ccIb6Bc9b9K0GVJryPXMhWx6Xk/U=
-github.com/bnb-chain/greenfield-cometbft v0.0.0-20230810120916-f5f3421ab490/go.mod h1:3nGT4Z9fHwgRlBY/rofn0rSarnIcNbuhz/eq0XlLlkg=
+github.com/bnb-chain/greenfield-cometbft v0.0.0-20230814120724-de27df092336 h1:QgLdZETHMQ99lPeIjzVY/lNEki0Uo1XudDWEkvC/rCY=
+github.com/bnb-chain/greenfield-cometbft v0.0.0-20230814120724-de27df092336/go.mod h1:3nGT4Z9fHwgRlBY/rofn0rSarnIcNbuhz/eq0XlLlkg=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1 h1:XcWulGacHVRiSCx90Q8Y//ajOrLNBQWR/KDB89dy3cU=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1/go.mod h1:ey1CiK4bYo1RBNJLRiVbYr5CMdSxci9S/AZRINLtppI=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230814021346-db9421ad0fa2 h1:2jLRWwnqwOS2foqCJaH+z7cStfxo6H9jMTEsRlbjW+4=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230814021346-db9421ad0fa2/go.mod h1:C4iDO5NuIlmlyFsIqhItF1A6ouAwsZmn20LQ0YhE0Mg=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230814122601-2bf41d8d834b h1:ylTT/c7SBSwp68djjDxD6h95s+5lRzdmzEoCRuPsorQ=
+github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230814122601-2bf41d8d834b/go.mod h1:LsaSWgry7Yl7wyz+aGVipkZVhlopkHP3nCC4/bMQ7nM=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9 h1:6fLpmmI0EZvDTfPvI0zy5dBaaTUboHnEkoC5/p/w8TQ=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9/go.mod h1:rbc4o84RSEvhf09o2+4Qiazsv0snRJLiEZdk17HeIDw=
 github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230425074444-eb5869b05fe9 h1:1ZdK+iR1Up02bOa2YTZCml7PBpP//kcdamOcK6aWO/s=
