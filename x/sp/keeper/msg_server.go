@@ -338,9 +338,9 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 }
 
 func IsLastDaysOfTheMonth(now time.Time, days int) bool {
+	now = now.UTC()
 	year, month, _ := now.Date()
-	location := now.Location()
-	nextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, location)
+	nextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, time.FixedZone("UTC", 0))
 	daysBack := nextMonth.AddDate(0, 0, -1*days)
 	return now.After(daysBack)
 }
