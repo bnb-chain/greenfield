@@ -383,7 +383,7 @@ func (m *MockPermissionKeeper) EXPECT() *MockPermissionKeeperMockRecorder {
 }
 
 // AddGroupMember mocks base method.
-func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration time.Time) error {
+func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration *time.Time) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddGroupMember", ctx, groupID, member, expiration)
 	ret0, _ := ret[0].(error)
@@ -632,7 +632,7 @@ func (mr *MockPermissionKeeperMockRecorder) RemoveGroupMember(ctx, groupID, memb
 }
 
 // UpdateGroupMember mocks base method.
-func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration time.Time) {
+func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration *time.Time) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateGroupMember", ctx, groupID, member, memberID, expiration)
 }

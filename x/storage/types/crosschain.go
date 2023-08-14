@@ -918,10 +918,15 @@ func (p UpdateGroupMemberSynPackage) GetMembers() []string {
 	return members
 }
 
-func (p UpdateGroupMemberSynPackage) GetMemberExpiration() []time.Time {
-	memberExpiration := make([]time.Time, 0, len(p.MemberExpiration))
+func (p UpdateGroupMemberSynPackage) GetMemberExpiration() []*time.Time {
+	memberExpiration := make([]*time.Time, 0, len(p.MemberExpiration))
 	for _, expiration := range p.MemberExpiration {
-		memberExpiration = append(memberExpiration, time.Unix(int64(expiration), 0))
+		if expiration == 0 {
+			memberExpiration = append(memberExpiration, nil)
+		} else {
+			t := time.Unix(int64(expiration), 0)
+			memberExpiration = append(memberExpiration, &t)
+		}
 	}
 	return memberExpiration
 }

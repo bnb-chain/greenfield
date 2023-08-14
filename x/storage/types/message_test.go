@@ -249,13 +249,12 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 				Operator:   sample.RandAccAddressHex(),
 				GroupOwner: sample.RandAccAddressHex(),
 				GroupName:  testGroupName,
-				MembersToAdd: []*MsgGroupMember{{
-					Member:         sample.RandAccAddressHex(),
-					ExpirationTime: MaxTimeStamp,
-				},
+				MembersToAdd: []*MsgGroupMember{
 					{
-						Member:         sample.RandAccAddressHex(),
-						ExpirationTime: MaxTimeStamp,
+						Member: sample.RandAccAddressHex(),
+					},
+					{
+						Member: sample.RandAccAddressHex(),
 					},
 				},
 				MembersToDelete: []string{sample.RandAccAddressHex(), sample.RandAccAddressHex()},
@@ -275,7 +274,6 @@ func TestMsgUpdateGroupMember_ValidateBasic(t *testing.T) {
 }
 
 func TestMsgUpdateGroupExtra_ValidateBasic(t *testing.T) {
-
 	tests := []struct {
 		name string
 		msg  MsgUpdateGroupExtra
@@ -325,8 +323,10 @@ func TestMsgPutPolicy_ValidateBasic(t *testing.T) {
 				Operator:  sample.RandAccAddressHex(),
 				Resource:  types2.NewBucketGRN(testBucketName).String(),
 				Principal: types.NewPrincipalWithAccount(sdk.MustAccAddressFromHex(sample.RandAccAddressHex())),
-				Statements: []*types.Statement{{Effect: types.EFFECT_ALLOW,
-					Actions: []types.ActionType{types.ACTION_DELETE_BUCKET}}},
+				Statements: []*types.Statement{{
+					Effect:  types.EFFECT_ALLOW,
+					Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+				}},
 			},
 		},
 	}
@@ -448,13 +448,12 @@ func TestMsgRenewGroupMember_ValidateBasic(t *testing.T) {
 				Operator:   sample.RandAccAddressHex(),
 				GroupOwner: sample.RandAccAddressHex(),
 				GroupName:  testGroupName,
-				Members: []*MsgGroupMember{{
-					Member:         sample.RandAccAddressHex(),
-					ExpirationTime: MaxTimeStamp,
-				},
+				Members: []*MsgGroupMember{
 					{
-						Member:         sample.RandAccAddressHex(),
-						ExpirationTime: MaxTimeStamp,
+						Member: sample.RandAccAddressHex(),
+					},
+					{
+						Member: sample.RandAccAddressHex(),
 					},
 				},
 			},

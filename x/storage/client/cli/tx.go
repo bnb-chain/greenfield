@@ -643,14 +643,19 @@ func CmdUpdateGroupMember() *cobra.Command {
 						if err != nil {
 							return err
 						}
-						expiration, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
-						if err != nil {
-							return err
+						member := types.MsgGroupMember{
+							Member: membersToAdd[i],
 						}
-						msgGroupMemberToAdd = append(msgGroupMemberToAdd, &types.MsgGroupMember{
-							Member:         membersToAdd[i],
-							ExpirationTime: time.Unix(expiration, 0).UTC(),
-						})
+						if len(memberExpirationStr[i]) > 0 {
+							unix, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
+							if err != nil {
+								return err
+							}
+							expiration := time.Unix(unix, 0)
+							member.ExpirationTime = &expiration
+						}
+
+						msgGroupMemberToAdd = append(msgGroupMemberToAdd, &member)
 					}
 				}
 			}
@@ -711,18 +716,25 @@ func CmdRenewGroupMember() *cobra.Command {
 
 			msgGroupMember := make([]*types.MsgGroupMember, 0, len(argMember))
 			for i := range members {
-				_, err := sdk.AccAddressFromHexUnsafe(members[i])
-				if err != nil {
-					return err
+				if len(members[i]) > 0 {
+					_, err := sdk.AccAddressFromHexUnsafe(members[i])
+					if err != nil {
+						return err
+					}
+					member := types.MsgGroupMember{
+						Member: members[i],
+					}
+					if len(memberExpirationStr[i]) > 0 {
+						unix, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
+						if err != nil {
+							return err
+						}
+						expiration := time.Unix(unix, 0)
+						member.ExpirationTime = &expiration
+					}
+
+					msgGroupMember = append(msgGroupMember, &member)
 				}
-				expiration, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
-				if err != nil {
-					return err
-				}
-				msgGroupMember = append(msgGroupMember, &types.MsgGroupMember{
-					Member:         members[i],
-					ExpirationTime: time.Unix(expiration, 0),
-				})
 			}
 
 			msg := types.NewMsgRenewGroupMember(

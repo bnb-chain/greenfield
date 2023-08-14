@@ -75,5 +75,5 @@ lint:
 proto-gen-check: proto-gen
 	git diff --exit-code
 
-ci: proto-format-check build test e2e_init_localchain e2e_test lint proto-gen-check
+ci: proto-format-check build unit_test e2e_init_localchain e2e_test lint proto-gen-check
 	echo "ci passed"

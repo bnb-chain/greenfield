@@ -2040,8 +2040,9 @@ func (s *PaymentTestSuite) getStreamRecords(addrs []string) (streamRecords Strea
 	return
 }
 
-func (s *PaymentTestSuite) checkStreamRecordsBeforeAndAfter(streamRecordsBefore StreamRecords, streamRecordsAfter StreamRecords, readPrice sdk.Dec,
-	readChargeRate sdkmath.Int, primaryStorePrice sdk.Dec, secondaryStorePrice sdk.Dec, chargeSize uint64, payloadSize uint64) {
+func (s *PaymentTestSuite) checkStreamRecordsBeforeAndAfter(streamRecordsBefore, streamRecordsAfter StreamRecords, readPrice sdk.Dec,
+	readChargeRate sdkmath.Int, primaryStorePrice, secondaryStorePrice sdk.Dec, chargeSize, payloadSize uint64,
+) {
 	userRateDiff := streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate)
 	gvgFamilyRateDiff := streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate)
 	gvgRateDiff := streamRecordsAfter.GVG.NetflowRate.Sub(streamRecordsBefore.GVG.NetflowRate)

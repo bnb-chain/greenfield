@@ -444,8 +444,10 @@ func (s *BaseSuite) NewSpAcc() *StorageProvider {
 	maintenanceAcc := userAccs[5]
 
 	blsKm := s.GenRandomBlsKeyManager()
-	return &StorageProvider{OperatorKey: operatorAcc, SealKey: fundingAcc,
-		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, MaintenanceKey: maintenanceAcc, BlsKey: blsKm}
+	return &StorageProvider{
+		OperatorKey: operatorAcc, SealKey: fundingAcc,
+		FundingKey: approvalAcc, ApprovalKey: sealAcc, GcKey: gcAcc, MaintenanceKey: maintenanceAcc, BlsKey: blsKm,
+	}
 }
 
 func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
