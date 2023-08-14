@@ -29,9 +29,11 @@ func (s *TestSuite) TestAckMirrorGroup() {
 	s.Require().NoError(err)
 	serializedAckPackage = append([]byte{types.OperationMirrorGroup}, serializedAckPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: mirror group not found
 	storageKeeper.EXPECT().GetGroupInfoById(gomock.Any(), gomock.Any()).Return(nil, false)
-	res := app.ExecuteAckPackage(s.ctx, nil, serializedAckPackage)
+	res := app.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
 	s.Require().ErrorIs(res.Err, types.ErrNoSuchGroup)
 
 	// case 2: normal case
@@ -57,8 +59,10 @@ func (s *TestSuite) TestAckCreateGroup() {
 	serializedAckPackage := ackPackage.MustSerialize()
 	serializedAckPackage = append([]byte{types.OperationCreateGroup}, serializedAckPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: normal case
-	res := app.ExecuteAckPackage(s.ctx, nil, serializedAckPackage)
+	res := app.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
 	s.Require().NoError(res.Err)
 }
 
@@ -77,8 +81,10 @@ func (s *TestSuite) TestAckDeleteGroup() {
 	serializedAckPackage := ackPackage.MustSerialize()
 	serializedAckPackage = append([]byte{types.OperationDeleteGroup}, serializedAckPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: normal case
-	res := app.ExecuteAckPackage(s.ctx, nil, serializedAckPackage)
+	res := app.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
 	s.Require().NoError(res.Err)
 }
 
@@ -97,9 +103,11 @@ func (s *TestSuite) TestFailAckMirrorGroup() {
 	s.Require().NoError(err)
 	serializedAckPackage = append([]byte{types.OperationMirrorGroup}, serializedAckPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: group not found
 	storageKeeper.EXPECT().GetGroupInfoById(gomock.Any(), gomock.Any()).Return(nil, false)
-	res := app.ExecuteFailAckPackage(s.ctx, nil, serializedAckPackage)
+	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
 	s.Require().ErrorIs(res.Err, types.ErrNoSuchGroup)
 
 	// case 2: normal case
@@ -124,6 +132,8 @@ func (s *TestSuite) TestFailAckCreateGroup() {
 	serializedAckPackage := ackPackage.MustSerialize()
 	serializedAckPackage = append([]byte{types.OperationCreateGroup}, serializedAckPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: normal case
 	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
 	s.Require().NoError(res.Err)
@@ -143,6 +153,8 @@ func (s *TestSuite) TestFailAckDeleteGroup() {
 
 	serializedAckPackage := ackPackage.MustSerialize()
 	serializedAckPackage = append([]byte{types.OperationDeleteGroup}, serializedAckPackage...)
+
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
 
 	// case 1: normal case
 	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
@@ -164,6 +176,8 @@ func (s *TestSuite) TestFailAckUpdateGroupMember() {
 	serializedAckPackage := ackPackage.MustSerialize()
 	serializedAckPackage = append([]byte{types.OperationUpdateGroupMember}, serializedAckPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: normal case
 	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPackage)
 	s.Require().NoError(res.Err)
@@ -184,6 +198,8 @@ func (s *TestSuite) TestSynMirrorGroup() {
 	s.Require().NoError(err)
 	serializedSynPackage = append([]byte{types.OperationMirrorGroup}, serializedSynPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: normal case
 	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().NoError(res.Err)
@@ -200,6 +216,8 @@ func (s *TestSuite) TestSynCreateGroup() {
 		GroupName: "group",
 		ExtraData: []byte("extra data"),
 	}
+
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
 
 	// case 1: invalid group name
 	synPackage.GroupName = "g"
@@ -239,6 +257,8 @@ func (s *TestSuite) TestSynDeleteGroup() {
 	serializedSynPackage := synPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationDeleteGroup}, serializedSynPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: group not exist
 	storageKeeper.EXPECT().GetGroupInfoById(gomock.Any(), gomock.Any()).Return(nil, false)
 	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
@@ -271,6 +291,8 @@ func (s *TestSuite) TestSynUpdateGroupMember() {
 		GroupId:   big.NewInt(10),
 		ExtraData: []byte("extra data"),
 	}
+
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
 
 	// case 1: invalid package
 	synPackage.OperationType = 3

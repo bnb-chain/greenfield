@@ -127,9 +127,16 @@ func (app *ObjectApp) handleMirrorObjectAckPackage(ctx sdk.Context, appCtx *sdk.
 		}
 	}
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	// update object
 	if ackPackage.Status == types.StatusSuccess {
-		objectInfo.SourceType = types.SOURCE_TYPE_BSC_CROSS_CHAIN
+		objectInfo.SourceType = sourceType
 
 		app.storageKeeper.SetObjectInfo(ctx, objectInfo)
 	}
@@ -182,7 +189,7 @@ func (app *ObjectApp) handleMirrorObjectSynPackage(ctx sdk.Context, header *sdk.
 	return sdk.ExecuteResult{}
 }
 
-func (app *ObjectApp) handleDeleteObjectSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, deleteObjectPackage *types.DeleteObjectSynPackage) sdk.ExecuteResult {
+func (app *ObjectApp) handleDeleteObjectSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, deleteObjectPackage *types.DeleteObjectSynPackage) sdk.ExecuteResult {
 	err := deleteObjectPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{
@@ -207,12 +214,19 @@ func (app *ObjectApp) handleDeleteObjectSynPackage(ctx sdk.Context, header *sdk.
 		}
 	}
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	err = app.storageKeeper.DeleteObject(ctx,
 		deleteObjectPackage.Operator,
 		objectInfo.BucketName,
 		objectInfo.ObjectName,
 		types.DeleteObjectOptions{
-			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+			SourceType: sourceType,
 		},
 	)
 	if err != nil {

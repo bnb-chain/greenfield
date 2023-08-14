@@ -490,6 +490,9 @@ message MsgMirrorObject {
 
   // object_name defines the name of object
   string object_name = 4;
+
+  // destination chain id
+  uint32 dest_chain_id = 5;
 }
 
 message MsgMirrorObjectResponse {}
@@ -509,6 +512,9 @@ message MsgMirrorBucket {
 
   // bucket_name defines a globally unique name of bucket
   string bucket_name = 3;
+
+  // destination chain id
+  uint32 dest_chain_id = 4;
 }
 
 message MsgUpdateObjectInfoResponse {}
@@ -547,6 +553,9 @@ message MsgMirrorGroup {
 
   // group_name defines the name of the group
   string group_name = 3;
+
+  // destination chain id
+  uint32 dest_chain_id = 4;
 }
 
 message MsgMirrorGroupResponse {}

@@ -2489,8 +2489,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
@@ -2598,8 +2599,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
@@ -2859,8 +2861,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                   id:
                     type: string
@@ -3113,8 +3116,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                     title: >-
                       SourceType represents the source of resource creation,
@@ -3300,8 +3304,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                     title: >-
                       SourceType represents the source of resource creation,
@@ -3568,8 +3573,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                     create_at:
                       type: string
@@ -3772,8 +3778,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                     id:
                       type: string
@@ -3949,8 +3956,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                       title: >-
                         SourceType represents the source of resource creation,
@@ -4165,8 +4173,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                       title: >-
                         SourceType represents the source of resource creation,
@@ -4468,6 +4477,30 @@ paths:
                     type: integer
                     format: int64
                     title: the max number of local virtual group per bucket
+                  op_mirror_bucket_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror bucket tx to op chain
+                  op_mirror_bucket_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      relayer fee for the ACK or FAIL_ACK package of the mirror
+                      bucket tx to op chain
+                  op_mirror_object_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_object_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
+                  op_mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -4611,6 +4644,30 @@ paths:
                     type: integer
                     format: int64
                     title: the max number of local virtual group per bucket
+                  op_mirror_bucket_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror bucket tx to op chain
+                  op_mirror_bucket_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      relayer fee for the ACK or FAIL_ACK package of the mirror
+                      bucket tx to op chain
+                  op_mirror_object_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_object_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
+                  op_mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
             description: >-
               QueryVersionedParamsResponse is response type for the Query/Params
               RPC method with timestamp.
@@ -33634,8 +33691,9 @@ definitions:
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
-          - SOURCE_TYPE_BSC_CROSS_CHAIN
           - SOURCE_TYPE_MIRROR_PENDING
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_OP_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
       create_at:
         type: string
@@ -33721,8 +33779,9 @@ definitions:
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
-          - SOURCE_TYPE_BSC_CROSS_CHAIN
           - SOURCE_TYPE_MIRROR_PENDING
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_OP_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
       id:
         type: string
@@ -33917,8 +33976,9 @@ definitions:
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
-          - SOURCE_TYPE_BSC_CROSS_CHAIN
           - SOURCE_TYPE_MIRROR_PENDING
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_OP_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
         title: |-
           SourceType represents the source of resource creation, which can
@@ -34072,6 +34132,30 @@ definitions:
         type: integer
         format: int64
         title: the max number of local virtual group per bucket
+      op_mirror_bucket_relayer_fee:
+        type: string
+        title: relayer fee for the mirror bucket tx to op chain
+      op_mirror_bucket_ack_relayer_fee:
+        type: string
+        title: >-
+          relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx to
+          op chain
+      op_mirror_object_relayer_fee:
+        type: string
+        title: relayer fee for the mirror object tx to op chain
+      op_mirror_object_ack_relayer_fee:
+        type: string
+        title: >-
+          Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to
+          op chain
+      op_mirror_group_relayer_fee:
+        type: string
+        title: relayer fee for the mirror object tx to op chain
+      op_mirror_group_ack_relayer_fee:
+        type: string
+        title: >-
+          Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to
+          op chain
     description: Params defines the parameters for the module.
   greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -34243,8 +34327,9 @@ definitions:
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
-              - SOURCE_TYPE_BSC_CROSS_CHAIN
               - SOURCE_TYPE_MIRROR_PENDING
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_OP_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
           create_at:
             type: string
@@ -34316,8 +34401,9 @@ definitions:
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
-              - SOURCE_TYPE_BSC_CROSS_CHAIN
               - SOURCE_TYPE_MIRROR_PENDING
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_OP_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
           id:
             type: string
@@ -34397,8 +34483,9 @@ definitions:
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
-              - SOURCE_TYPE_BSC_CROSS_CHAIN
               - SOURCE_TYPE_MIRROR_PENDING
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_OP_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
             title: |-
               SourceType represents the source of resource creation, which can
@@ -34520,8 +34607,9 @@ definitions:
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
-                - SOURCE_TYPE_BSC_CROSS_CHAIN
                 - SOURCE_TYPE_MIRROR_PENDING
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_OP_CROSS_CHAIN
               default: SOURCE_TYPE_ORIGIN
             create_at:
               type: string
@@ -34630,8 +34718,9 @@ definitions:
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
-                - SOURCE_TYPE_BSC_CROSS_CHAIN
                 - SOURCE_TYPE_MIRROR_PENDING
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_OP_CROSS_CHAIN
               default: SOURCE_TYPE_ORIGIN
             id:
               type: string
@@ -34713,8 +34802,9 @@ definitions:
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
-                - SOURCE_TYPE_BSC_CROSS_CHAIN
                 - SOURCE_TYPE_MIRROR_PENDING
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_OP_CROSS_CHAIN
               default: SOURCE_TYPE_ORIGIN
               title: |-
                 SourceType represents the source of resource creation, which can
@@ -34889,6 +34979,30 @@ definitions:
             type: integer
             format: int64
             title: the max number of local virtual group per bucket
+          op_mirror_bucket_relayer_fee:
+            type: string
+            title: relayer fee for the mirror bucket tx to op chain
+          op_mirror_bucket_ack_relayer_fee:
+            type: string
+            title: >-
+              relayer fee for the ACK or FAIL_ACK package of the mirror bucket
+              tx to op chain
+          op_mirror_object_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_object_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
+          op_mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
     description: >-
       QueryVersionedParamsResponse is response type for the Query/Params RPC
       method with timestamp.
@@ -34993,6 +35107,30 @@ definitions:
             type: integer
             format: int64
             title: the max number of local virtual group per bucket
+          op_mirror_bucket_relayer_fee:
+            type: string
+            title: relayer fee for the mirror bucket tx to op chain
+          op_mirror_bucket_ack_relayer_fee:
+            type: string
+            title: >-
+              relayer fee for the ACK or FAIL_ACK package of the mirror bucket
+              tx to op chain
+          op_mirror_object_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_object_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
+          op_mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.storage.QueryPolicyByIdResponse:
     type: object
@@ -35476,8 +35614,9 @@ definitions:
     type: string
     enum:
       - SOURCE_TYPE_ORIGIN
-      - SOURCE_TYPE_BSC_CROSS_CHAIN
       - SOURCE_TYPE_MIRROR_PENDING
+      - SOURCE_TYPE_BSC_CROSS_CHAIN
+      - SOURCE_TYPE_OP_CROSS_CHAIN
     default: SOURCE_TYPE_ORIGIN
     title: |-
       SourceType represents the source of resource creation, which can

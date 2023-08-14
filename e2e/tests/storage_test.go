@@ -534,7 +534,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
 	// MirrorBucket using id
-	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), queryHeadBucketResponse.BucketInfo.Id, "")
+	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.ChainID(714), queryHeadBucketResponse.BucketInfo.Id, "")
 	s.SendTxBlock(user, msgMirrorBucket)
 
 	// CreateBucket
@@ -548,7 +548,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	s.SendTxBlock(user, msgCreateBucket)
 
 	// MirrorBucket using name
-	msgMirrorBucket = storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.NewUint(0), bucketName)
+	msgMirrorBucket = storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.ChainID(714), sdk.NewUint(0), bucketName)
 	s.SendTxBlock(user, msgMirrorBucket)
 }
 
@@ -653,7 +653,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
 
 	// MirrorObject using id
-	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, "", "")
+	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.ChainID(714), queryHeadObjectResponse.ObjectInfo.Id, "", "")
 	s.SendTxBlock(user, msgMirrorObject)
 
 	// CreateObject
@@ -691,7 +691,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// MirrorObject using names
-	msgMirrorObject = storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.NewUint(0), bucketName, objectName)
+	msgMirrorObject = storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.ChainID(714), sdk.NewUint(0), bucketName, objectName)
 	s.SendTxBlock(user, msgMirrorObject)
 }
 
@@ -714,7 +714,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
 
 	// MirrorGroup using id
-	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), queryHeadGroupResp.GroupInfo.Id, "")
+	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.ChainID(714), queryHeadGroupResp.GroupInfo.Id, "")
 	s.SendTxBlock(owner, msgMirrorGroup)
 
 	// CreateGroup
@@ -723,7 +723,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// MirrorGroup using name
-	msgMirrorGroup = storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.NewUint(0), groupName)
+	msgMirrorGroup = storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.ChainID(714), sdk.NewUint(0), groupName)
 	s.SendTxBlock(owner, msgMirrorGroup)
 }
 

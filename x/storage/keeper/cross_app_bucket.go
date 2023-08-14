@@ -135,8 +135,14 @@ func (app *BucketApp) handleMirrorBucketAckPackage(ctx sdk.Context, appCtx *sdk.
 
 	// update bucket
 	if ackPackage.Status == types.StatusSuccess {
-		bucketInfo.SourceType = types.SOURCE_TYPE_BSC_CROSS_CHAIN
+		sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+		if err != nil {
+			return sdk.ExecuteResult{
+				Err: err,
+			}
+		}
 
+		bucketInfo.SourceType = sourceType
 		app.storageKeeper.SetBucketInfo(ctx, bucketInfo)
 	}
 
@@ -212,13 +218,20 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 	}
 	app.storageKeeper.Logger(ctx).Info("process create bucket syn package", "bucket name", createBucketPackage.BucketName)
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	bucketId, err := app.storageKeeper.CreateBucket(ctx,
 		createBucketPackage.Creator,
 		createBucketPackage.BucketName,
 		createBucketPackage.PrimarySpAddress,
 		&types.CreateBucketOptions{
 			Visibility:       types.VisibilityType(createBucketPackage.Visibility),
-			SourceType:       types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+			SourceType:       sourceType,
 			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
 			PaymentAddress:   createBucketPackage.PaymentAddress.String(),
 			PrimarySpApproval: &common.Approval{
@@ -261,7 +274,7 @@ func (app *BucketApp) handleDeleteBucketFailAckPackage(ctx sdk.Context, appCtx *
 	return sdk.ExecuteResult{}
 }
 
-func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, deleteBucketPackage *types.DeleteBucketSynPackage) sdk.ExecuteResult {
+func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, deleteBucketPackage *types.DeleteBucketSynPackage) sdk.ExecuteResult {
 	err := deleteBucketPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{
@@ -289,11 +302,18 @@ func (app *BucketApp) handleDeleteBucketSynPackage(ctx sdk.Context, header *sdk.
 		}
 	}
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	err = app.storageKeeper.DeleteBucket(ctx,
 		deleteBucketPackage.Operator,
 		bucketInfo.BucketName,
 		types.DeleteBucketOptions{
-			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+			SourceType: sourceType,
 		},
 	)
 	if err != nil {

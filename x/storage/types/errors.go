@@ -36,6 +36,7 @@ var (
 	ErrAlreadyMirrored          = errors.Register(ModuleName, 3001, "resource is already mirrored")
 	ErrInvalidOperationType     = errors.Register(ModuleName, 3002, "invalid operation type")
 	ErrInvalidId                = errors.Register(ModuleName, 3003, "id is invalid")
+	ErrChainNotSupported        = errors.Register(ModuleName, 3004, "chain is not supported")
 
 	ErrInvalidObjectIds          = errors.Register(ModuleName, 3101, "object ids are invalid")
 	ErrInvalidReason             = errors.Register(ModuleName, 3102, "reason is invalid")

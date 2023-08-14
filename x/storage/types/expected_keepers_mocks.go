@@ -680,6 +680,34 @@ func (mr *MockCrossChainKeeperMockRecorder) GetDestBscChainID() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDestBscChainID", reflect.TypeOf((*MockCrossChainKeeper)(nil).GetDestBscChainID))
 }
 
+// GetDestOpChainID mocks base method.
+func (m *MockCrossChainKeeper) GetDestOpChainID() types3.ChainID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDestOpChainID")
+	ret0, _ := ret[0].(types3.ChainID)
+	return ret0
+}
+
+// GetDestOpChainID indicates an expected call of GetDestOpChainID.
+func (mr *MockCrossChainKeeperMockRecorder) GetDestOpChainID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDestOpChainID", reflect.TypeOf((*MockCrossChainKeeper)(nil).GetDestOpChainID))
+}
+
+// IsDestChainSupported mocks base method.
+func (m *MockCrossChainKeeper) IsDestChainSupported(chainID types3.ChainID) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsDestChainSupported", chainID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDestChainSupported indicates an expected call of IsDestChainSupported.
+func (mr *MockCrossChainKeeperMockRecorder) IsDestChainSupported(chainID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDestChainSupported", reflect.TypeOf((*MockCrossChainKeeper)(nil).IsDestChainSupported), chainID)
+}
+
 // RegisterChannel mocks base method.
 func (m *MockCrossChainKeeper) RegisterChannel(name string, id types3.ChannelID, app types3.CrossChainApplication) error {
 	m.ctrl.T.Helper()
@@ -957,6 +985,21 @@ func (m *MockStorageKeeper) GetObjectInfoById(ctx types3.Context, objectId math.
 func (mr *MockStorageKeeperMockRecorder) GetObjectInfoById(ctx, objectId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetObjectInfoById), ctx, objectId)
+}
+
+// GetSourceTypeByChainId mocks base method.
+func (m *MockStorageKeeper) GetSourceTypeByChainId(ctx types3.Context, chainId types3.ChainID) (SourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSourceTypeByChainId", ctx, chainId)
+	ret0, _ := ret[0].(SourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSourceTypeByChainId indicates an expected call of GetSourceTypeByChainId.
+func (mr *MockStorageKeeperMockRecorder) GetSourceTypeByChainId(ctx, chainId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSourceTypeByChainId", reflect.TypeOf((*MockStorageKeeper)(nil).GetSourceTypeByChainId), ctx, chainId)
 }
 
 // Logger mocks base method.
