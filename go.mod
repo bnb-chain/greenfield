@@ -174,10 +174,10 @@ replace (
 	cosmossdk.io/api => github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230425074444-eb5869b05fe9
 	cosmossdk.io/math => github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230425074444-eb5869b05fe9
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.23.0
-	github.com/cometbft/cometbft => github.com/bnb-chain/greenfield-cometbft v0.0.2
+	github.com/cometbft/cometbft => github.com/bnb-chain/greenfield-cometbft v0.0.0-20230810120916-f5f3421ab490
 	github.com/cometbft/cometbft-db => github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
-	github.com/cosmos/cosmos-sdk => github.com/yutianwu/greenfield-cosmos-sdk v0.0.0-20230810000415-718b1f26fd54
+	github.com/cosmos/cosmos-sdk => github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20230814021346-db9421ad0fa2
 	github.com/cosmos/iavl => github.com/bnb-chain/greenfield-iavl v0.20.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
