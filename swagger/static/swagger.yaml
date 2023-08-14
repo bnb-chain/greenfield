@@ -15715,6 +15715,12 @@ paths:
                       type: string
                       format: byte
       parameters:
+        - name: dest_chain_id
+          description: destination chain id.
+          in: query
+          required: false
+          type: integer
+          format: int64
         - name: channel_id
           description: channel id of the cross chain package.
           in: query
@@ -15815,6 +15821,12 @@ paths:
                       type: string
                       format: byte
       parameters:
+        - name: dest_chain_id
+          description: destination chain id.
+          in: query
+          required: false
+          type: integer
+          format: int64
         - name: channel_id
           description: channel id of the cross chain package.
           in: query
@@ -15863,6 +15875,12 @@ paths:
                       type: string
                       format: byte
       parameters:
+        - name: dest_chain_id
+          description: destination chain id.
+          in: query
+          required: false
+          type: integer
+          format: int64
         - name: channel_id
           description: channel id of the cross chain package.
           in: query

@@ -24,6 +24,6 @@ func (s *TestSuite) TestInitGenesis() {
 
 	// Check that the genesis state was set correctly.
 	params := k.GetParams(s.ctx)
-	s.Require().Equal(sdkmath.NewInt(250000000000000), params.BscTransferOutRelayerFee)
+	s.Require().Equal(sdkmath.NewInt(780000000000000), params.BscTransferOutRelayerFee)
 	s.Require().Equal(sdkmath.NewInt(0), params.BscTransferOutAckRelayerFee)
 }
