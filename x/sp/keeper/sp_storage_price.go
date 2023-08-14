@@ -118,13 +118,13 @@ func (k Keeper) UpdateGlobalSpStorePrice(ctx sdk.Context) error {
 func (k Keeper) calculateMedian(prices []sdk.Dec) sdk.Dec {
 	l := len(prices)
 	sort.Slice(prices, func(i, j int) bool { return prices[i].LT(prices[j]) })
-	var storeMedian sdk.Dec
+	var median sdk.Dec
 	if l%2 == 0 {
-		storeMedian = prices[l/2-1].Add(prices[l/2]).QuoInt64(2)
+		median = prices[l/2-1].Add(prices[l/2]).QuoInt64(2)
 	} else {
-		storeMedian = prices[l/2]
+		median = prices[l/2]
 	}
-	return storeMedian
+	return median
 }
 
 func (k Keeper) GetGlobalSpStorePriceByTime(ctx sdk.Context, time int64) (val types.GlobalSpStorePrice, err error) {

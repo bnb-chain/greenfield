@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -19,6 +17,7 @@ import (
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/types/resource"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"

@@ -64,7 +64,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 			if err != nil {
 				return err
 			}
-		} else { // frozen status, should be called in end block for stop serving (uncharge fee) or for bucket migration (charge fee)
+		} else { // frozen status, should be called in end block for stop serving (uncharge fee)
 			err = k.applyFrozenUserFlows(ctx, userFlows, from, streamRecord)
 			if err != nil {
 				return err

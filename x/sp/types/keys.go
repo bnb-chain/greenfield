@@ -105,7 +105,7 @@ func SpStoragePriceKey(spId uint32) []byte {
 }
 
 func ParseSpStoragePriceKey(key []byte) (spId uint32) {
-	spId = binary.BigEndian.Uint32(key[0:4])
+	spId = binary.BigEndian.Uint32(key)
 	return
 }
 
