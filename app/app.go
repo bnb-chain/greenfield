@@ -173,7 +173,7 @@ var (
 		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:                {authtypes.Burner},
-		paymentmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		paymentmoduletypes.ModuleName:      {authtypes.Burner, authtypes.Staking},
 		crosschaintypes.ModuleName:         {authtypes.Minter},
 		permissionmoduletypes.ModuleName:   nil,
 		bridgemoduletypes.ModuleName:       nil,
