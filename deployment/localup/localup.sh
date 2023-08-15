@@ -81,7 +81,7 @@ function generate_genesis() {
     for ((i=0;i<${size};i++));do
         for validator_addr in "${validator_addrs[@]}";do
             # init genesis account in genesis state
-            ${bin} add-genesis-account $validator_addr ${GENESIS_VALIDATOR_OPERATOR_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+            ${bin} add-genesis-account $validator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
         for deletgator_addr in "${deletgator_addrs[@]}";do
