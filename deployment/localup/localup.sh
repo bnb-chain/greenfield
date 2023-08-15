@@ -21,6 +21,7 @@ function init() {
 
         # create genesis accounts
         ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info 2>&1
+        ${bin} keys add validator_delegator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/delegator_info 2>&1
         ${bin} keys add validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i} --algo eth_bls > ${workspace}/.local/validator${i}/bls_info 2>&1
         ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/relayer_info 2>&1
         ${bin} keys add challenger${i} --keyring-backend test --home ${workspace}/.local/challenger${i} > ${workspace}/.local/challenger${i}/challenger_info 2>&1
@@ -58,6 +59,12 @@ function generate_genesis() {
         validator_addrs+=("$(${bin} keys show validator${i} -a --keyring-backend test --home ${workspace}/.local/validator${i})")
     done
 
+    declare -a deletgator_addrs=()
+    for ((i=0;i<${size};i++));do
+        # export delegator addresses
+        deletgator_addrs+=("$(${bin} keys show validator_delegator${i} -a --keyring-backend test --home ${workspace}/.local/validator${i})")
+    done
+
     declare -a relayer_addrs=()
     for ((i=0;i<${size};i++));do
         # export validator addresses
@@ -77,6 +84,11 @@ function generate_genesis() {
             ${bin} add-genesis-account $validator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
+        for deletgator_addr in "${deletgator_addrs[@]}";do
+            # init genesis account in genesis state
+            ${bin} add-genesis-account $deletgator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+        done
+
         for relayer_addr in "${relayer_addrs[@]}";do
             # init genesis account in genesis state
             ${bin} add-genesis-account $relayer_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
@@ -90,13 +102,14 @@ function generate_genesis() {
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
 
         validatorAddr=${validator_addrs[$i]}
+        deletgatorAddr=${deletgator_addrs[$i]}
         relayerAddr="$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})"
         challengerAddr="$(${bin} keys show challenger${i} -a --keyring-backend test --home ${workspace}/.local/challenger${i})"
         blsKey="$(${bin} keys show validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i} --output json | jq -r .pubkey_hex)"
         blsProof="$(${bin} keys sign "${blsKey}" --from validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i})"
 
         # create bond validator tx
-        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $validatorAddr $relayerAddr $challengerAddr $blsKey $blsProof \
+        ${bin} gentx "${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM}" "$validatorAddr" "$deletgatorAddr" "$relayerAddr" "$challengerAddr" "$blsKey" "$blsProof" \
             --home ${workspace}/.local/validator${i} \
             --keyring-backend=test \
             --chain-id=${CHAIN_ID} \
@@ -224,7 +237,7 @@ function generate_sp_genesis {
     spmaintenance_addr=("$(${bin} keys show sp${i}_maintenance -a --keyring-backend test --home ${workspace}/.local/sp${i})")
     validator0Addr="$(${bin} keys show validator0 -a --keyring-backend test --home ${workspace}/.local/validator0)"
     # create bond storage provider tx
-    ${bin} spgentx sp${i} ${SP_MIN_DEPOSIT_AMOUNT}${STAKING_BOND_DENOM} \
+    ${bin} spgentx ${SP_MIN_DEPOSIT_AMOUNT}${STAKING_BOND_DENOM} \
       --home ${workspace}/.local/sp${i} \
       --creator=${spoperator_addr} \
       --operator-address=${spoperator_addr} \
@@ -245,8 +258,7 @@ function generate_sp_genesis {
       --node-id "sp${i}" \
       --ip 127.0.0.1 \
       --gas "" \
-      --output-document=${workspace}/.local/gensptx/gentx-sp${i}.json \
-      --from sp${i}
+      --output-document=${workspace}/.local/gensptx/gentx-sp${i}.json
   done
 
   rm -rf ${workspace}/.local/validator0/config/gensptx/
