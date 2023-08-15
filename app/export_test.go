@@ -3,11 +3,12 @@ package app_test
 import (
 	"testing"
 
-	"github.com/bnb-chain/greenfield/sdk/client/test"
-	"github.com/bnb-chain/greenfield/testutil"
 	dbm "github.com/cometbft/cometbft-db"
 	"github.com/cometbft/cometbft/libs/log"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
+	"github.com/bnb-chain/greenfield/sdk/client/test"
+	"github.com/bnb-chain/greenfield/testutil"
 )
 
 func TestExportAppStateAndValidators(t *testing.T) {

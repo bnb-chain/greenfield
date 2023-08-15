@@ -13,6 +13,10 @@ import (
 func (s *KeeperTestSuite) TestGetSpStoragePriceByTime() {
 	ctx := s.ctx.WithBlockTime(time.Unix(100, 0))
 	spId := uint32(10)
+
+	_, found := s.spKeeper.GetSpStoragePrice(ctx, spId)
+	s.Require().True(!found)
+
 	spStoragePrice := types.SpStoragePrice{
 		SpId:          spId,
 		UpdateTimeSec: 1,
@@ -20,6 +24,11 @@ func (s *KeeperTestSuite) TestGetSpStoragePriceByTime() {
 		StorePrice:    sdk.NewDec(100),
 	}
 	s.spKeeper.SetSpStoragePrice(ctx, spStoragePrice)
+
+	price, found := s.spKeeper.GetSpStoragePrice(ctx, spId)
+	s.Require().True(found)
+	s.Require().True(reflect.DeepEqual(price, spStoragePrice))
+
 	spStoragePrice2 := types.SpStoragePrice{
 		SpId:          spId,
 		UpdateTimeSec: 100,
@@ -27,67 +36,47 @@ func (s *KeeperTestSuite) TestGetSpStoragePriceByTime() {
 		StorePrice:    sdk.NewDec(200),
 	}
 	s.spKeeper.SetSpStoragePrice(ctx, spStoragePrice2)
-	type args struct {
-		time int64
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantVal types.SpStoragePrice
-		wantErr bool
-	}{
-		{"test 0", args{time: 0}, types.SpStoragePrice{}, true},
-		{"test 1", args{time: 1}, types.SpStoragePrice{}, true},
-		{"test 2", args{time: 2}, spStoragePrice, false},
-		{"test 100", args{time: 100}, spStoragePrice, false},
-		{"test 101", args{time: 101}, spStoragePrice2, false},
-	}
-	for _, tt := range tests {
-		s.T().Run(tt.name, func(t *testing.T) {
-			gotVal, err := s.spKeeper.GetSpStoragePriceByTime(ctx, spId, tt.args.time)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetSpStoragePriceByTime() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !reflect.DeepEqual(gotVal, tt.wantVal) {
-				t.Errorf("GetSpStoragePriceByTime() gotVal = %v, want %v", gotVal, tt.wantVal)
-			}
-		})
-	}
 
+	price, found = s.spKeeper.GetSpStoragePrice(ctx, spId)
+	s.Require().True(found)
+	s.Require().True(reflect.DeepEqual(price, spStoragePrice2))
 }
 
-func (s *KeeperTestSuite) TestGetSecondarySpStorePriceByTime() {
+func (s *KeeperTestSuite) TestGetGlobalSpStorePriceByTime() {
 	keeper := s.spKeeper
 	ctx := s.ctx
-	secondarySpStorePrice := types.SecondarySpStorePrice{
-		UpdateTimeSec: 1,
-		StorePrice:    sdk.NewDec(100),
+	secondarySpStorePrice := types.GlobalSpStorePrice{
+		UpdateTimeSec:       1,
+		PrimaryStorePrice:   sdk.NewDec(100),
+		SecondaryStorePrice: sdk.NewDec(40),
+		ReadPrice:           sdk.NewDec(80),
 	}
-	keeper.SetSecondarySpStorePrice(ctx, secondarySpStorePrice)
-	secondarySpStorePrice2 := types.SecondarySpStorePrice{
-		UpdateTimeSec: 100,
-		StorePrice:    sdk.NewDec(200),
+	keeper.SetGlobalSpStorePrice(ctx, secondarySpStorePrice)
+	secondarySpStorePrice2 := types.GlobalSpStorePrice{
+		UpdateTimeSec:       100,
+		PrimaryStorePrice:   sdk.NewDec(200),
+		SecondaryStorePrice: sdk.NewDec(70),
+		ReadPrice:           sdk.NewDec(90),
 	}
-	keeper.SetSecondarySpStorePrice(ctx, secondarySpStorePrice2)
+	keeper.SetGlobalSpStorePrice(ctx, secondarySpStorePrice2)
 	type args struct {
 		time int64
 	}
 	tests := []struct {
 		name    string
 		args    args
-		wantVal types.SecondarySpStorePrice
+		wantVal types.GlobalSpStorePrice
 		wantErr bool
 	}{
-		{"test 0", args{time: 0}, types.SecondarySpStorePrice{}, true},
-		{"test 1", args{time: 1}, types.SecondarySpStorePrice{}, true},
+		{"test 0", args{time: 0}, types.GlobalSpStorePrice{}, true},
+		{"test 1", args{time: 1}, types.GlobalSpStorePrice{}, true},
 		{"test 2", args{time: 2}, secondarySpStorePrice, false},
 		{"test 100", args{time: 100}, secondarySpStorePrice, false},
 		{"test 101", args{time: 101}, secondarySpStorePrice2, false},
 	}
 	for _, tt := range tests {
 		s.T().Run(tt.name, func(t *testing.T) {
-			gotVal, err := keeper.GetSecondarySpStorePriceByTime(ctx, tt.args.time)
+			gotVal, err := keeper.GetGlobalSpStorePriceByTime(ctx, tt.args.time)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetSpStoragePriceByTime() error = %v, wantErr %v", err, tt.wantErr)
 				return

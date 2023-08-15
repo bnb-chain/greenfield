@@ -64,7 +64,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 			if err != nil {
 				return err
 			}
-		} else { // frozen status, should be called in end block for stop serving
+		} else { // frozen status, should be called in end block for stop serving (uncharge fee)
 			err = k.applyFrozenUserFlows(ctx, userFlows, from, streamRecord)
 			if err != nil {
 				return err
@@ -126,15 +126,15 @@ func (k Keeper) applyFrozenUserFlows(ctx sdk.Context, userFlows types.UserFlows,
 	//var frozenRateChanges []types.StreamRecordChange
 	totalActiveRate, totalFrozenRate := sdk.ZeroInt(), sdk.ZeroInt()
 	for _, flowChange := range userFlows.Flows {
-		outFlow := k.GetOutFlow(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), types.OUT_FLOW_STATUS_FROZEN, sdk.MustAccAddressFromHex(flowChange.ToAddress))
+		outFlow := k.GetOutFlow(ctx, sdk.MustAccAddressFromHex(streamRecord.Account), types.OUT_FLOW_STATUS_ACTIVE, sdk.MustAccAddressFromHex(flowChange.ToAddress))
 		if outFlow != nil {
-			frozenOutFlows = append(frozenOutFlows, flowChange)
-			//frozenRateChanges = append(frozenRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithFrozenRateChange(flowChange.Rate))
-			totalFrozenRate = totalFrozenRate.Add(flowChange.Rate)
-		} else {
 			activeOutFlows = append(activeOutFlows, flowChange)
 			activeRateChanges = append(activeRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithRateChange(flowChange.Rate))
 			totalActiveRate = totalActiveRate.Add(flowChange.Rate)
+		} else {
+			frozenOutFlows = append(frozenOutFlows, flowChange)
+			//frozenRateChanges = append(frozenRateChanges, *types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flowChange.ToAddress)).WithFrozenRateChange(flowChange.Rate))
+			totalFrozenRate = totalFrozenRate.Add(flowChange.Rate)
 		}
 	}
 	streamRecordChange := types.NewDefaultStreamRecordChangeWithAddr(from).
@@ -146,7 +146,7 @@ func (k Keeper) applyFrozenUserFlows(ctx sdk.Context, userFlows types.UserFlows,
 
 	// update flows
 	deltaActiveFlowCount := k.MergeActiveOutFlows(ctx, from, activeOutFlows) // can be negative
-	deltaFrozenFlowCount := k.MergeFrozenOutFlows(ctx, from, frozenOutFlows) //  can be negative
+	deltaFrozenFlowCount := k.MergeFrozenOutFlows(ctx, from, frozenOutFlows) // can be negative
 	streamRecord.OutFlowCount = uint64(int64(streamRecord.OutFlowCount) + int64(deltaActiveFlowCount) + int64(deltaFrozenFlowCount))
 
 	k.SetStreamRecord(ctx, streamRecord)

@@ -1043,7 +1043,7 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
 		}
-		if member.ExpirationTime.UTC().After(MaxTimeStamp) {
+		if member.ExpirationTime != nil && member.ExpirationTime.UTC().After(MaxTimeStamp) {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Expiration time is bigger than max timestamp [%s]", MaxTimeStamp)
 		}
 
@@ -1489,7 +1489,7 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid member address (%s)", err)
 		}
-		if member.ExpirationTime.UTC().After(MaxTimeStamp) {
+		if member.ExpirationTime != nil && member.ExpirationTime.UTC().After(MaxTimeStamp) {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Expiration time is bigger than max timestamp [%s]", MaxTimeStamp)
 		}
 	}

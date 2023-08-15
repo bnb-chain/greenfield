@@ -34,16 +34,10 @@ func (k Keeper) StorageProviders(goCtx context.Context, req *types.QueryStorageP
 	return &types.QueryStorageProvidersResponse{Sps: sps, Pagination: pageRes}, nil
 }
 
-func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.QueryGetSpStoragePriceByTimeRequest) (*types.QueryGetSpStoragePriceByTimeResponse, error) {
+func (k Keeper) QuerySpStoragePrice(goCtx context.Context, req *types.QuerySpStoragePriceRequest) (*types.QuerySpStoragePriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
-	}
-	if req.Timestamp < 0 {
-		return nil, status.Error(codes.InvalidArgument, "invalid timestamp")
-	}
-	if req.Timestamp == 0 {
-		req.Timestamp = ctx.BlockTime().Unix() + 1
 	}
 	spAddr, err := sdk.AccAddressFromHexUnsafe(req.SpAddr)
 	if err != nil {
@@ -53,14 +47,14 @@ func (k Keeper) QueryGetSpStoragePriceByTime(goCtx context.Context, req *types.Q
 	if !found {
 		return nil, status.Error(codes.InvalidArgument, "unknown sp with the operator address")
 	}
-	spStoragePrice, err := k.GetSpStoragePriceByTime(ctx, sp.Id, req.Timestamp)
-	if err != nil {
+	spStoragePrice, found := k.GetSpStoragePrice(ctx, sp.Id)
+	if !found {
 		return nil, status.Errorf(codes.NotFound, "not found, err: %s", err)
 	}
-	return &types.QueryGetSpStoragePriceByTimeResponse{SpStoragePrice: spStoragePrice}, nil
+	return &types.QuerySpStoragePriceResponse{SpStoragePrice: spStoragePrice}, nil
 }
 
-func (k Keeper) QueryGetSecondarySpStorePriceByTime(goCtx context.Context, req *types.QueryGetSecondarySpStorePriceByTimeRequest) (*types.QueryGetSecondarySpStorePriceByTimeResponse, error) {
+func (k Keeper) QueryGlobalSpStorePriceByTime(goCtx context.Context, req *types.QueryGlobalSpStorePriceByTimeRequest) (*types.QueryGlobalSpStorePriceByTimeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if req == nil {
 		return nil, status.Error(codes.InvalidArgument, "invalid request")
@@ -72,11 +66,11 @@ func (k Keeper) QueryGetSecondarySpStorePriceByTime(goCtx context.Context, req *
 		req.Timestamp = ctx.BlockTime().Unix() + 1
 	}
 
-	price, err := k.GetSecondarySpStorePriceByTime(ctx, req.Timestamp)
+	price, err := k.GetGlobalSpStorePriceByTime(ctx, req.Timestamp)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "err: %s", err)
 	}
-	return &types.QueryGetSecondarySpStorePriceByTimeResponse{SecondarySpStorePrice: price}, nil
+	return &types.QueryGlobalSpStorePriceByTimeResponse{GlobalSpStorePrice: price}, nil
 }
 
 func (k Keeper) StorageProvider(goCtx context.Context, req *types.QueryStorageProviderRequest) (*types.QueryStorageProviderResponse, error) {

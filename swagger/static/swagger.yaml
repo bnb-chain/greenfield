@@ -1551,29 +1551,33 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}:
+  /greenfield/sp/global_sp_store_price_by_time/{timestamp}:
     get:
-      summary: get secondary store price by time
-      operationId: QueryGetSecondarySpStorePriceByTime
+      summary: get global store price by time
+      operationId: QueryGlobalSpStorePriceByTime
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              secondary_sp_store_price:
+              global_sp_store_price:
                 type: object
                 properties:
                   update_time_sec:
                     type: string
                     format: int64
                     title: update time, unix timestamp in seconds
-                  store_price:
+                  read_price:
                     type: string
-                    title: store price, in bnb wei per charge byte
-                title: >-
-                  global secondary sp store price, the price for all secondary
-                  sps
+                    title: read price, in bnb wei per charge byte
+                  primary_store_price:
+                    type: string
+                    title: primary store price, in bnb wei per charge byte
+                  secondary_store_price:
+                    type: string
+                    title: secondary store price, in bnb wei per charge byte
+                title: global sp store price, the price for all sps
         default:
           description: An unexpected error response.
           schema:
@@ -1607,10 +1611,95 @@ paths:
           format: int64
       tags:
         - Query
-  /greenfield/sp/get_sp_storage_price_by_time/{sp_addr}/{timestamp}:
+  /greenfield/sp/params:
     get:
-      summary: get storage price of specific sp and time
-      operationId: QueryGetSpStoragePriceByTime
+      summary: Parameters queries the parameters of the module.
+      operationId: SpParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  deposit_denom:
+                    type: string
+                    description: deposit_denom defines the staking coin denomination.
+                  min_deposit:
+                    type: string
+                    description: >-
+                      min_deposit defines the minimum deposit amount for storage
+                      providers.
+                  secondary_sp_store_price_ratio:
+                    type: string
+                    title: >-
+                      the ratio of the store price of the secondary sp to the
+                      primary sp, the default value is 80%
+                  num_of_historical_blocks_for_maintenance_records:
+                    type: string
+                    format: int64
+                    title: >-
+                      previous blocks that be traced back to for
+                      maintenance_records
+                  maintenance_duration_quota:
+                    type: string
+                    format: int64
+                    title: >-
+                      the max duration that a SP can be in_maintenance within
+                      num_of_historical_blocks_for_maintenance_records
+                  num_of_lockup_blocks_for_maintenance:
+                    type: string
+                    format: int64
+                    title: >-
+                      the number of blocks to be wait for sp to be in
+                      maintenance mode again if already requested
+                  update_global_price_interval:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the time interval to update global storage price, if it is
+                      not set then the price will be updated at the first block
+                      of each natural month
+                  update_price_disallowed_days:
+                    type: integer
+                    format: int64
+                    title: >-
+                      the days counting backwards from end of a month in which a
+                      sp cannot update its price
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /greenfield/sp/sp_storage_price/{sp_addr}:
+    get:
+      summary: get the latest storage price of specific sp
+      operationId: QuerySpStoragePrice
       responses:
         '200':
           description: A successful response.
@@ -1667,86 +1756,6 @@ paths:
           in: path
           required: true
           type: string
-        - name: timestamp
-          description: >-
-            unix timestamp in seconds. If it's 0, it will return the latest
-            price.
-          in: path
-          required: true
-          type: string
-          format: int64
-      tags:
-        - Query
-  /greenfield/sp/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: SpParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-                properties:
-                  deposit_denom:
-                    type: string
-                    description: deposit_denom defines the staking coin denomination.
-                  min_deposit:
-                    type: string
-                    description: >-
-                      min_deposit defines the minimum deposit amount for storage
-                      providers.
-                  secondary_sp_store_price_ratio:
-                    type: string
-                    title: >-
-                      the ratio of the store price of the secondary sp to the
-                      primary sp, the default value is 80%
-                  num_of_historical_blocks_for_maintenance_records:
-                    type: string
-                    format: int64
-                    title: >-
-                      previous blocks that be traced back to for
-                      maintenance_records
-                  maintenance_duration_quota:
-                    type: string
-                    format: int64
-                    title: >-
-                      the max duration that a SP can be in_maintenance within
-                      num_of_historical_blocks_for_maintenance_records
-                  num_of_lockup_blocks_for_maintenance:
-                    type: string
-                    format: int64
-                    title: >-
-                      the number of blocks to be wait for sp to be in
-                      maintenance mode again if already requested
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
       tags:
         - Query
   /greenfield/sp/storage_provider_by_operator_address:
@@ -32782,6 +32791,23 @@ definitions:
         type: string
         description: details define other optional details.
     description: Description defines a storage provider description.
+  greenfield.sp.GlobalSpStorePrice:
+    type: object
+    properties:
+      update_time_sec:
+        type: string
+        format: int64
+        title: update time, unix timestamp in seconds
+      read_price:
+        type: string
+        title: read price, in bnb wei per charge byte
+      primary_store_price:
+        type: string
+        title: primary store price, in bnb wei per charge byte
+      secondary_store_price:
+        type: string
+        title: secondary store price, in bnb wei per charge byte
+    title: global sp store price, the price for all sps
   greenfield.sp.MaintenanceRecord:
     type: object
     properties:
@@ -32834,31 +32860,26 @@ definitions:
         title: >-
           the number of blocks to be wait for sp to be in maintenance mode again
           if already requested
+      update_global_price_interval:
+        type: string
+        format: uint64
+        title: >-
+          the time interval to update global storage price, if it is not set
+          then the price will be updated at the first block of each natural
+          month
+      update_price_disallowed_days:
+        type: integer
+        format: int64
+        title: >-
+          the days counting backwards from end of a month in which a sp cannot
+          update its price
     description: Params defines the parameters for the module.
-  greenfield.sp.QueryGetSecondarySpStorePriceByTimeResponse:
+  greenfield.sp.QueryGlobalSpStorePriceByTimeResponse:
     type: object
     properties:
-      secondary_sp_store_price:
+      global_sp_store_price:
         type: object
         properties:
-          update_time_sec:
-            type: string
-            format: int64
-            title: update time, unix timestamp in seconds
-          store_price:
-            type: string
-            title: store price, in bnb wei per charge byte
-        title: global secondary sp store price, the price for all secondary sps
-  greenfield.sp.QueryGetSpStoragePriceByTimeResponse:
-    type: object
-    properties:
-      sp_storage_price:
-        type: object
-        properties:
-          sp_id:
-            type: integer
-            format: int64
-            title: sp id
           update_time_sec:
             type: string
             format: int64
@@ -32866,14 +32887,13 @@ definitions:
           read_price:
             type: string
             title: read price, in bnb wei per charge byte
-          free_read_quota:
+          primary_store_price:
             type: string
-            format: uint64
-            title: free read quota, in byte
-          store_price:
+            title: primary store price, in bnb wei per charge byte
+          secondary_store_price:
             type: string
-            title: store price, in bnb wei per charge byte
-        title: storage price of a specific sp
+            title: secondary store price, in bnb wei per charge byte
+        title: global sp store price, the price for all sps
   greenfield.sp.QueryParamsResponse:
     type: object
     properties:
@@ -32910,7 +32930,45 @@ definitions:
             title: >-
               the number of blocks to be wait for sp to be in maintenance mode
               again if already requested
+          update_global_price_interval:
+            type: string
+            format: uint64
+            title: >-
+              the time interval to update global storage price, if it is not set
+              then the price will be updated at the first block of each natural
+              month
+          update_price_disallowed_days:
+            type: integer
+            format: int64
+            title: >-
+              the days counting backwards from end of a month in which a sp
+              cannot update its price
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.sp.QuerySpStoragePriceResponse:
+    type: object
+    properties:
+      sp_storage_price:
+        type: object
+        properties:
+          sp_id:
+            type: integer
+            format: int64
+            title: sp id
+          update_time_sec:
+            type: string
+            format: int64
+            title: update time, unix timestamp in seconds
+          read_price:
+            type: string
+            title: read price, in bnb wei per charge byte
+          free_read_quota:
+            type: string
+            format: uint64
+            title: free read quota, in byte
+          store_price:
+            type: string
+            title: store price, in bnb wei per charge byte
+        title: storage price of a specific sp
   greenfield.sp.QueryStorageProviderByOperatorAddressResponse:
     type: object
     properties:
@@ -33239,17 +33297,6 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
-  greenfield.sp.SecondarySpStorePrice:
-    type: object
-    properties:
-      update_time_sec:
-        type: string
-        format: int64
-        title: update time, unix timestamp in seconds
-      store_price:
-        type: string
-        title: store price, in bnb wei per charge byte
-    title: global secondary sp store price, the price for all secondary sps
   greenfield.sp.SpStoragePrice:
     type: object
     properties:

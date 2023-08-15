@@ -173,7 +173,7 @@ var (
 		stakingtypes.BondedPoolName:        {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName:     {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:                {authtypes.Burner},
-		paymentmoduletypes.ModuleName:      {authtypes.Minter, authtypes.Burner, authtypes.Staking},
+		paymentmoduletypes.ModuleName:      {authtypes.Burner, authtypes.Staking},
 		crosschaintypes.ModuleName:         {authtypes.Minter},
 		permissionmoduletypes.ModuleName:   nil,
 		bridgemoduletypes.ModuleName:       nil,
@@ -312,12 +312,6 @@ func New(
 		memKeys:           memKeys,
 	}
 
-	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
-		appCodec,
-		keys[crosschaintypes.StoreKey],
-		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
-	)
-
 	// set the BaseApp's parameter store
 	app.ConsensusParamsKeeper = consensusparamkeeper.NewKeeper(appCodec, keys[consensusparamtypes.StoreKey], authtypes.NewModuleAddress(govtypes.ModuleName).String())
 	bApp.SetParamStore(&app.ConsensusParamsKeeper)
@@ -352,6 +346,14 @@ func New(
 		app.AuthzKeeper,
 		app.BankKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	)
+
+	app.CrossChainKeeper = crosschainkeeper.NewKeeper(
+		appCodec,
+		keys[crosschaintypes.StoreKey],
+		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+		app.StakingKeeper,
+		app.BankKeeper,
 	)
 
 	app.DistrKeeper = distrkeeper.NewKeeper(
@@ -455,11 +457,8 @@ func New(
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
 		keys[paymentmoduletypes.StoreKey],
-
 		app.BankKeeper,
 		app.AccountKeeper,
-		app.SpKeeper,
-
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
@@ -764,6 +763,9 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	lastBlockTime := app.GetCheckState().Context().BlockHeader().Time.Unix()
+	ctx = ctx.WithValue(spmodule.LastBlockTimeKey, lastBlockTime)
+
 	resp := app.mm.EndBlock(ctx, req)
 	if app.IsIavlStore() {
 		bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)

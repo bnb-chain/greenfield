@@ -162,7 +162,7 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 			if effect != permtypes.EFFECT_UNSPECIFIED {
 				// check the operator is the member of this group
 				groupMember, memberFound := k.permKeeper.GetGroupMember(ctx, item.GroupId, operator)
-				if memberFound && groupMember.ExpirationTime.After(ctx.BlockTime().UTC()) {
+				if memberFound && (groupMember.ExpirationTime == nil || groupMember.ExpirationTime.After(ctx.BlockTime())) {
 					if effect == permtypes.EFFECT_ALLOW {
 						allowed = true
 						allowedPolicy = newPolicy
