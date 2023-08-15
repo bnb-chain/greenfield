@@ -104,12 +104,12 @@ func (s *TestSuite) TestGetObjectLockFee() {
 	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
 		Return(primarySp, true).AnyTimes()
 
-	price := paymenttypes.StoragePrice{
+	price := sptypes.GlobalSpStorePrice{
 		ReadPrice:           sdk.NewDec(100),
 		PrimaryStorePrice:   sdk.NewDec(1000),
 		SecondaryStorePrice: sdk.NewDec(500),
 	}
-	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
+	s.spKeeper.EXPECT().GetGlobalSpStorePriceByTime(gomock.Any(), gomock.Any()).
 		Return(price, nil).AnyTimes()
 	params := paymenttypes.DefaultParams()
 	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).
@@ -143,12 +143,12 @@ func (s *TestSuite) TestGetBucketReadBill() {
 	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
 		Return(primarySp, true).AnyTimes()
 
-	price := paymenttypes.StoragePrice{
+	price := sptypes.GlobalSpStorePrice{
 		ReadPrice:           sdk.NewDec(100),
 		PrimaryStorePrice:   sdk.NewDec(1000),
 		SecondaryStorePrice: sdk.NewDec(500),
 	}
-	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
+	s.spKeeper.EXPECT().GetGlobalSpStorePriceByTime(gomock.Any(), gomock.Any()).
 		Return(price, nil).AnyTimes()
 	params := paymenttypes.DefaultParams()
 	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).
@@ -205,12 +205,12 @@ func (s *TestSuite) TestGetBucketReadStoreBill() {
 	s.spKeeper.EXPECT().GetStorageProvider(gomock.Any(), gomock.Eq(primarySp.Id)).
 		Return(primarySp, true).AnyTimes()
 
-	price := paymenttypes.StoragePrice{
+	price := sptypes.GlobalSpStorePrice{
 		ReadPrice:           sdk.NewDec(100),
 		PrimaryStorePrice:   sdk.NewDec(1000),
 		SecondaryStorePrice: sdk.NewDec(500),
 	}
-	s.paymentKeeper.EXPECT().GetStoragePrice(gomock.Any(), gomock.Any()).
+	s.spKeeper.EXPECT().GetGlobalSpStorePriceByTime(gomock.Any(), gomock.Any()).
 		Return(price, nil).AnyTimes()
 	params := paymenttypes.DefaultParams()
 	s.paymentKeeper.EXPECT().GetVersionedParamsWithTs(gomock.Any(), gomock.Any()).

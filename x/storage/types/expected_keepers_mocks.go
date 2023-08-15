@@ -174,6 +174,21 @@ func (m *MockSpKeeper) EXPECT() *MockSpKeeperMockRecorder {
 	return m.recorder
 }
 
+// GetGlobalSpStorePriceByTime mocks base method.
+func (m *MockSpKeeper) GetGlobalSpStorePriceByTime(ctx types3.Context, time int64) (types1.GlobalSpStorePrice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGlobalSpStorePriceByTime", ctx, time)
+	ret0, _ := ret[0].(types1.GlobalSpStorePrice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGlobalSpStorePriceByTime indicates an expected call of GetGlobalSpStorePriceByTime.
+func (mr *MockSpKeeperMockRecorder) GetGlobalSpStorePriceByTime(ctx, time interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalSpStorePriceByTime", reflect.TypeOf((*MockSpKeeper)(nil).GetGlobalSpStorePriceByTime), ctx, time)
+}
+
 // GetStorageProvider mocks base method.
 func (m *MockSpKeeper) GetStorageProvider(ctx types3.Context, id uint32) (*types1.StorageProvider, bool) {
 	m.ctrl.T.Helper()
@@ -285,19 +300,19 @@ func (mr *MockPaymentKeeperMockRecorder) ApplyUserFlowsList(ctx, userFlows inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUserFlowsList", reflect.TypeOf((*MockPaymentKeeper)(nil).ApplyUserFlowsList), ctx, userFlows)
 }
 
-// GetStoragePrice mocks base method.
-func (m *MockPaymentKeeper) GetStoragePrice(ctx types3.Context, params types.StoragePriceParams) (types.StoragePrice, error) {
+// GetStreamRecord mocks base method.
+func (m *MockPaymentKeeper) GetStreamRecord(ctx types3.Context, account types3.AccAddress) (*types.StreamRecord, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStoragePrice", ctx, params)
-	ret0, _ := ret[0].(types.StoragePrice)
-	ret1, _ := ret[1].(error)
+	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
+	ret0, _ := ret[0].(*types.StreamRecord)
+	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-// GetStoragePrice indicates an expected call of GetStoragePrice.
-func (mr *MockPaymentKeeperMockRecorder) GetStoragePrice(ctx, params interface{}) *gomock.Call {
+// GetStreamRecord indicates an expected call of GetStreamRecord.
+func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStoragePrice", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStoragePrice), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
 }
 
 // GetVersionedParamsWithTs mocks base method.

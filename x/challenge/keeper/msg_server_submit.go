@@ -96,6 +96,7 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		ChallengeId:       challengeId,
 		ObjectId:          objectInfo.Id,
 		SegmentIndex:      segmentIndex,
+		SpId:              sp.Id,
 		SpOperatorAddress: spOperator.String(),
 		RedundancyIndex:   redundancyIndex,
 		ChallengerAddress: challenger.String(),

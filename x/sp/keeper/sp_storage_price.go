@@ -21,11 +21,7 @@ func (k Keeper) SetSpStoragePrice(ctx sdk.Context, spStoragePrice types.SpStorag
 		FreeReadQuota: spStoragePrice.FreeReadQuota,
 	}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
-	key := types.SpStoragePriceKey(
-		spStoragePrice.SpId,
-		spStoragePrice.UpdateTimeSec,
-	)
-	spStoragePrice.UpdateTimeSec = 0
+	key := types.SpStoragePriceKey(spStoragePrice.SpId)
 	spStoragePrice.SpId = 0
 	b := k.cdc.MustMarshal(&spStoragePrice)
 	store.Set(key, b)
@@ -36,21 +32,16 @@ func (k Keeper) SetSpStoragePrice(ctx sdk.Context, spStoragePrice types.SpStorag
 func (k Keeper) GetSpStoragePrice(
 	ctx sdk.Context,
 	spId uint32,
-	timestamp int64,
 ) (val types.SpStoragePrice, found bool) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
 
-	b := store.Get(types.SpStoragePriceKey(
-		spId,
-		timestamp,
-	))
+	b := store.Get(types.SpStoragePriceKey(spId))
 	if b == nil {
 		return val, false
 	}
 
 	k.cdc.MustUnmarshal(b, &val)
 	val.SpId = spId
-	val.UpdateTimeSec = timestamp
 	return val, true
 }
 
@@ -64,79 +55,68 @@ func (k Keeper) GetAllSpStoragePrice(ctx sdk.Context) (list []types.SpStoragePri
 	for ; iterator.Valid(); iterator.Next() {
 		var val types.SpStoragePrice
 		k.cdc.MustUnmarshal(iterator.Value(), &val)
-		spId, timestamp := types.ParseSpStoragePriceKey(iterator.Key())
+		spId := types.ParseSpStoragePriceKey(iterator.Key())
 		val.SpId = spId
-		val.UpdateTimeSec = timestamp
 		list = append(list, val)
 	}
 
 	return
 }
 
-// GetSpStoragePriceByTime find the latest price before the given time
-func (k Keeper) GetSpStoragePriceByTime(
-	ctx sdk.Context,
-	spId uint32,
-	timestamp int64,
-) (val types.SpStoragePrice, err error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SpStoragePriceKeyPrefix)
-
-	startKey := types.SpStoragePriceKey(
-		spId,
-		timestamp,
+func (k Keeper) SetGlobalSpStorePrice(ctx sdk.Context, globalSpStorePrice types.GlobalSpStorePrice) {
+	event := &types.EventGlobalSpStorePriceUpdate{
+		UpdateTimeSec:       globalSpStorePrice.UpdateTimeSec,
+		PrimaryStorePrice:   globalSpStorePrice.PrimaryStorePrice,
+		SecondaryStorePrice: globalSpStorePrice.SecondaryStorePrice,
+		ReadPrice:           globalSpStorePrice.ReadPrice,
+	}
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GlobalSpStorePriceKeyPrefix)
+	key := types.GlobalSpStorePriceKey(
+		globalSpStorePrice.UpdateTimeSec,
 	)
-	iterator := store.ReverseIterator(nil, startKey)
-	defer iterator.Close()
-	if !iterator.Valid() {
-		return val, fmt.Errorf("no price found")
-	}
-
-	resSpId, resTimestamp := types.ParseSpStoragePriceKey(iterator.Key())
-	if resSpId != spId {
-		return val, fmt.Errorf("no price found")
-	}
-	k.cdc.MustUnmarshal(iterator.Value(), &val)
-	val.SpId = spId
-	val.UpdateTimeSec = resTimestamp
-
-	return val, nil
-}
-
-func (k Keeper) SetSecondarySpStorePrice(ctx sdk.Context, secondarySpStorePrice types.SecondarySpStorePrice) {
-	event := &types.EventSecondarySpStorePriceUpdate{
-		UpdateTimeSec: secondarySpStorePrice.UpdateTimeSec,
-		StorePrice:    secondarySpStorePrice.StorePrice,
-	}
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondarySpStorePriceKeyPrefix)
-	key := types.SecondarySpStorePriceKey(
-		secondarySpStorePrice.UpdateTimeSec,
-	)
-	secondarySpStorePrice.UpdateTimeSec = 0
-	b := k.cdc.MustMarshal(&secondarySpStorePrice)
+	globalSpStorePrice.UpdateTimeSec = 0
+	b := k.cdc.MustMarshal(&globalSpStorePrice)
 	store.Set(key, b)
 	_ = ctx.EventManager().EmitTypedEvents(event)
 }
 
-// UpdateSecondarySpStorePrice calculate the price of secondary store by the average price of all sp store price
-func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
+// UpdateGlobalSpStorePrice calculate the global prices by the median price of all sp store price
+func (k Keeper) UpdateGlobalSpStorePrice(ctx sdk.Context) error {
 	sps := k.GetAllStorageProviders(ctx)
 	current := ctx.BlockTime().Unix()
-	prices := make([]sdk.Dec, 0)
+	storePrices := make([]sdk.Dec, 0)
+	readPrices := make([]sdk.Dec, 0)
 	for _, sp := range sps {
-		if sp.Status != types.STATUS_IN_SERVICE {
-			continue
+		if sp.Status == types.STATUS_IN_SERVICE || sp.Status == types.STATUS_IN_MAINTENANCE {
+			price, found := k.GetSpStoragePrice(ctx, sp.Id)
+			if !found {
+				return fmt.Errorf("cannot find price for storage provider %d", sp.Id)
+			}
+			storePrices = append(storePrices, price.StorePrice)
+			readPrices = append(readPrices, price.ReadPrice)
 		}
-		price, err := k.GetSpStoragePriceByTime(ctx, sp.Id, current+1)
-		if err != nil {
-			return err
-		}
-		prices = append(prices, price.StorePrice)
 	}
-	l := len(prices)
+	l := len(storePrices)
 	if l == 0 {
 		return nil
 	}
 
+	primaryStorePrice := k.calculateMedian(storePrices)
+	secondaryStorePrice := k.SecondarySpStorePriceRatio(ctx).Mul(primaryStorePrice)
+	readPrice := k.calculateMedian(readPrices)
+
+	globalSpStorePrice := types.GlobalSpStorePrice{
+		PrimaryStorePrice:   primaryStorePrice,
+		SecondaryStorePrice: secondaryStorePrice,
+		ReadPrice:           readPrice,
+		UpdateTimeSec:       current,
+	}
+	k.SetGlobalSpStorePrice(ctx, globalSpStorePrice)
+	return nil
+}
+
+func (k Keeper) calculateMedian(prices []sdk.Dec) sdk.Dec {
+	l := len(prices)
 	sort.Slice(prices, func(i, j int) bool { return prices[i].LT(prices[j]) })
 	var median sdk.Dec
 	if l%2 == 0 {
@@ -144,19 +124,13 @@ func (k Keeper) UpdateSecondarySpStorePrice(ctx sdk.Context) error {
 	} else {
 		median = prices[l/2]
 	}
-	price := k.SecondarySpStorePriceRatio(ctx).Mul(median)
-	secondarySpStorePrice := types.SecondarySpStorePrice{
-		StorePrice:    price,
-		UpdateTimeSec: current,
-	}
-	k.SetSecondarySpStorePrice(ctx, secondarySpStorePrice)
-	return nil
+	return median
 }
 
-func (k Keeper) GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val types.SecondarySpStorePrice, err error) {
-	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.SecondarySpStorePriceKeyPrefix)
+func (k Keeper) GetGlobalSpStorePriceByTime(ctx sdk.Context, time int64) (val types.GlobalSpStorePrice, err error) {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.GlobalSpStorePriceKeyPrefix)
 
-	startKey := types.SecondarySpStorePriceKey(
+	startKey := types.GlobalSpStorePriceKey(
 		time,
 	)
 	iterator := store.ReverseIterator(nil, startKey)
@@ -166,7 +140,7 @@ func (k Keeper) GetSecondarySpStorePriceByTime(ctx sdk.Context, time int64) (val
 	}
 
 	k.cdc.MustUnmarshal(iterator.Value(), &val)
-	updateTimeSec := types.ParseSecondarySpStorePriceKey(iterator.Key())
+	updateTimeSec := types.ParseGlobalSpStorePriceKey(iterator.Key())
 	val.UpdateTimeSec = updateTimeSec
 	return val, nil
 }

@@ -29,7 +29,6 @@ type TestSuite struct {
 
 	bankKeeper    *types.MockBankKeeper
 	accountKeeper *types.MockAccountKeeper
-	spKeeper      *types.MockSpKeeper
 
 	ctx         sdk.Context
 	queryClient types.QueryClient
@@ -46,21 +45,18 @@ func (s *TestSuite) SetupTest() {
 
 	bankKeeper := types.NewMockBankKeeper(ctrl)
 	accountKeeper := types.NewMockAccountKeeper(ctrl)
-	spKeeper := types.NewMockSpKeeper(ctrl)
 
 	s.paymentKeeper = keeper.NewKeeper(
 		encCfg.Codec,
 		key,
 		bankKeeper,
 		accountKeeper,
-		spKeeper,
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 
 	s.cdc = encCfg.Codec
 	s.bankKeeper = bankKeeper
 	s.accountKeeper = accountKeeper
-	s.spKeeper = spKeeper
 
 	err := s.paymentKeeper.SetParams(s.ctx, types.DefaultParams())
 	s.Require().NoError(err)

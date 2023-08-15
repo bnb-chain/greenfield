@@ -89,11 +89,23 @@ message EventSpStoragePriceUpdate {
   ];
 }
 
-message EventSecondarySpStorePriceUpdate {
+message EventGlobalSpStorePriceUpdate {
   // update time, in unix timestamp
   int64 update_time_sec = 1;
-  // store price, in bnb wei per charge byte
-  string store_price = 2 [
+  // read price, in bnb wei per charge byte
+  string read_price = 2 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // primary store price, in bnb wei per charge byte
+  string primary_store_price = 3 [
+    (cosmos_proto.scalar) = "cosmos.Dec",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable) = false
+  ];
+  // secondary store price, in bnb wei per charge byte
+  string secondary_store_price = 4 [
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false

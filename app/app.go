@@ -457,11 +457,8 @@ func New(
 	app.PaymentKeeper = *paymentmodulekeeper.NewKeeper(
 		appCodec,
 		keys[paymentmoduletypes.StoreKey],
-
 		app.BankKeeper,
 		app.AccountKeeper,
-		app.SpKeeper,
-
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	paymentModule := paymentmodule.NewAppModule(appCodec, app.PaymentKeeper, app.AccountKeeper, app.BankKeeper)
@@ -764,6 +761,9 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	lastBlockTime := app.GetCheckState().Context().BlockHeader().Time.Unix()
+	ctx = ctx.WithValue(spmodule.LastBlockTimeKey, lastBlockTime)
+
 	resp := app.mm.EndBlock(ctx, req)
 	bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
 	paymentIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(paymentmoduletypes.StoreKey)).(*iavl.Store)

@@ -2,9 +2,10 @@ package keeper
 
 import (
 	"cosmossdk.io/errors"
-	"github.com/bnb-chain/greenfield/x/sp/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
 func (k Keeper) UpdateToInMaintenance(ctx sdk.Context, sp *types.StorageProvider, requestDuration int64) error {

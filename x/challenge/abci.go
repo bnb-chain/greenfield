@@ -118,6 +118,7 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 			ChallengeId:       challengeId,
 			ObjectId:          objectInfo.Id,
 			SegmentIndex:      segmentIndex,
+			SpId:              sp.Id,
 			SpOperatorAddress: sp.OperatorAddress,
 			RedundancyIndex:   redundancyIndex,
 			ChallengerAddress: "",

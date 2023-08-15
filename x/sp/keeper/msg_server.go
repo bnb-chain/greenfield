@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"time"
 
 	"cosmossdk.io/errors"
 	errorsmod "cosmossdk.io/errors"
@@ -152,10 +153,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStoragePrice)
-	err = k.UpdateSecondarySpStorePrice(ctx)
-	if err != nil {
-		return nil, err
-	}
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpId:               sp.Id,
@@ -318,6 +315,15 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		return nil, types.ErrStorageProviderNotInService
 	}
 
+	params := k.GetParams(ctx)
+	if params.UpdateGlobalPriceInterval == 0 { // update price by month
+		blockTime := ctx.BlockTime().UTC()
+		days := params.UpdatePriceDisallowedDays
+		if IsLastDaysOfTheMonth(blockTime, int(days)) {
+			return nil, errors.Wrapf(types.ErrStorageProviderPriceUpdateNotAllow, "price cannot be updated in the last %d days of the month", days)
+		}
+	}
+
 	current := ctx.BlockTime().Unix()
 	spStorePrice := types.SpStoragePrice{
 		UpdateTimeSec: current,
@@ -327,11 +333,16 @@ func (k msgServer) UpdateSpStoragePrice(goCtx context.Context, msg *types.MsgUpd
 		FreeReadQuota: msg.FreeReadQuota,
 	}
 	k.SetSpStoragePrice(ctx, spStorePrice)
-	err := k.UpdateSecondarySpStorePrice(ctx)
-	if err != nil {
-		return nil, errors.Wrapf(err, "update secondary sp store price failed")
-	}
+
 	return &types.MsgUpdateSpStoragePriceResponse{}, nil
+}
+
+func IsLastDaysOfTheMonth(now time.Time, days int) bool {
+	now = now.UTC()
+	year, month, _ := now.Date()
+	nextMonth := time.Date(year, month+1, 1, 0, 0, 0, 0, time.FixedZone("UTC", 0))
+	daysBack := nextMonth.AddDate(0, 0, -1*days)
+	return now.After(daysBack)
 }
 
 func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {

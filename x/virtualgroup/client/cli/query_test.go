@@ -3,12 +3,12 @@ package cli_test
 import (
 	"fmt"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	clitestutil "github.com/cosmos/cosmos-sdk/testutil/cli"
 	"github.com/cosmos/gogoproto/proto"
 
 	"github.com/bnb-chain/greenfield/x/virtualgroup/client/cli"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 )
 
 func (s *CLITestSuite) TestQueryCmd() {
