@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/hex"
+
 	"github.com/cometbft/cometbft/crypto/tmhash"
 
 	"cosmossdk.io/errors"
