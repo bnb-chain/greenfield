@@ -21,6 +21,7 @@ function init() {
 
         # create genesis accounts
         ${bin} keys add validator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/info 2>&1
+        ${bin} keys add validator_delegator${i} --keyring-backend test --home ${workspace}/.local/validator${i} > ${workspace}/.local/validator${i}/delegator_info 2>&1
         ${bin} keys add validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i} --algo eth_bls > ${workspace}/.local/validator${i}/bls_info 2>&1
         ${bin} keys add relayer${i} --keyring-backend test --home ${workspace}/.local/relayer${i} > ${workspace}/.local/relayer${i}/relayer_info 2>&1
         ${bin} keys add challenger${i} --keyring-backend test --home ${workspace}/.local/challenger${i} > ${workspace}/.local/challenger${i}/challenger_info 2>&1
@@ -58,6 +59,12 @@ function generate_genesis() {
         validator_addrs+=("$(${bin} keys show validator${i} -a --keyring-backend test --home ${workspace}/.local/validator${i})")
     done
 
+    declare -a deletgator_addrs=()
+    for ((i=0;i<${size};i++));do
+        # export delegator addresses
+        deletgator_addrs+=("$(${bin} keys show validator_delegator${i} -a --keyring-backend test --home ${workspace}/.local/validator${i})")
+    done
+
     declare -a relayer_addrs=()
     for ((i=0;i<${size};i++));do
         # export validator addresses
@@ -74,7 +81,12 @@ function generate_genesis() {
     for ((i=0;i<${size};i++));do
         for validator_addr in "${validator_addrs[@]}";do
             # init genesis account in genesis state
-            ${bin} add-genesis-account $validator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+            ${bin} add-genesis-account $validator_addr ${GENESIS_VALIDATOR_OPERATOR_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
+        done
+
+        for deletgator_addr in "${deletgator_addrs[@]}";do
+            # init genesis account in genesis state
+            ${bin} add-genesis-account $deletgator_addr ${GENESIS_ACCOUNT_BALANCE}${STAKING_BOND_DENOM} --home ${workspace}/.local/validator${i}
         done
 
         for relayer_addr in "${relayer_addrs[@]}";do
@@ -89,14 +101,14 @@ function generate_genesis() {
 
         rm -rf ${workspace}/.local/validator${i}/config/gentx/
 
-        validatorAddr=${validator_addrs[$i]}
+        deletgatorAddr=${deletgator_addrs[$i]}
         relayerAddr="$(${bin} keys show relayer${i} -a --keyring-backend test --home ${workspace}/.local/relayer${i})"
         challengerAddr="$(${bin} keys show challenger${i} -a --keyring-backend test --home ${workspace}/.local/challenger${i})"
         blsKey="$(${bin} keys show validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i} --output json | jq -r .pubkey_hex)"
         blsProof="$(${bin} keys sign "${blsKey}" --from validator_bls${i} --keyring-backend test --home ${workspace}/.local/validator${i})"
 
         # create bond validator tx
-        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $validatorAddr $relayerAddr $challengerAddr $blsKey $blsProof \
+        ${bin} gentx validator${i} ${STAKING_BOND_AMOUNT}${STAKING_BOND_DENOM} $deletgatorAddr $relayerAddr $challengerAddr $blsKey $blsProof \
             --home ${workspace}/.local/validator${i} \
             --keyring-backend=test \
             --chain-id=${CHAIN_ID} \
