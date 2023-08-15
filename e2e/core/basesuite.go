@@ -13,7 +13,6 @@ import (
 	"time"
 
 	sdkmath "cosmossdk.io/math"
-	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmlog "github.com/cometbft/cometbft/libs/log"
 	sdkClient "github.com/cosmos/cosmos-sdk/client"
 	sdkServer "github.com/cosmos/cosmos-sdk/server"
@@ -482,8 +481,8 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 	newStorePrice := sdk.NewDec(RandInt64(10000, 20000))
 
 	// bls pub key
-	newSpBlsKm := newSP.BlsKey
-	blsProofBz, err := newSpBlsKm.Sign(tmhash.Sum(newSpBlsKm.PubKey().Bytes()))
+	//newSpBlsKm := newSP.BlsKey
+	//blsProofBz, err := newSpBlsKm.Sign(tmhash.Sum(newSpBlsKm.PubKey().Bytes()))
 	s.Require().NoError(err)
 
 	msgCreateSP, _ := sptypes.NewMsgCreateStorageProvider(govAddr,
@@ -494,8 +493,8 @@ func (s *BaseSuite) CreateNewStorageProvider() *StorageProvider {
 		newSP.MaintenanceKey.GetAddr(),
 		description,
 		endpoint, deposit, newReadPrice, 10000, newStorePrice,
-		hex.EncodeToString(newSP.BlsKey.PubKey().Bytes()),
-		hex.EncodeToString(blsProofBz),
+		"866d1fd69b4e84c7593a47705d1672eab8951a634e9ba8d1ca039e10ad94d80ec4cc9a6cbe4215b40d2bff585d88e064",
+		"a94ea0a9b976baea7d83fda8d50eda3fba0a610eab9bffe9afd5232edcc2a709a6f25385e6a8e7af0e55f8f3a96f8fe90b350e2d7f2977529e64294f9c50606d5772654cfdf706ee9469f250c16a1e8c3a6edd8f2f35f6fae827470bb3de19f5",
 	)
 
 	msgProposal, err := govtypesv1.NewMsgSubmitProposal(

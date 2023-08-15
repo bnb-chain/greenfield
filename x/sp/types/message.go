@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/hex"
+	"github.com/cometbft/cometbft/crypto/tmhash"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -104,31 +105,16 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.GcAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
 	}
-
-	blsPk, err := hex.DecodeString(msg.BlsKey)
-	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
-		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
-	}
-
-	blsProof, err := hex.DecodeString(msg.BlsProof)
-	if err != nil || len(blsProof) != sdk.BLSSignatureLength {
-		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "invalid bls sig")
-	}
-
-	_, err = bls.SignatureFromBytes(blsProof)
-	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
-	}
-
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
 	}
-
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
-
-	err = IsValidEndpointURL(msg.Endpoint)
+	if err := validateBlsKeyAndProof(msg.BlsKey, msg.BlsProof); err != nil {
+		return err
+	}
+	err := IsValidEndpointURL(msg.Endpoint)
 	if err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
 	}
@@ -223,17 +209,8 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 		if msg.BlsProof == "" {
 			return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "bls proof is not provided")
 		}
-		blsPk, err := hex.DecodeString(msg.BlsKey)
-		if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
-			return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
-		}
-		blsProof, err := hex.DecodeString(msg.BlsProof)
-		if err != nil || len(blsProof) != sdk.BLSSignatureLength {
-			return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
-		}
-		_, err = bls.SignatureFromBytes(blsProof)
-		if err != nil {
-			return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
+		if err := validateBlsKeyAndProof(msg.BlsKey, msg.BlsProof); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -393,6 +370,29 @@ func (msg *MsgUpdateStorageProviderStatus) ValidateBasic() error {
 	}
 	if msg.Status == STATUS_IN_MAINTENANCE && msg.Duration <= 0 {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "maintenanceDuration need to be set for %s", msg.Status)
+	}
+	return nil
+}
+
+func validateBlsKeyAndProof(blsKey, blsProof string) error {
+	blsPk, err := hex.DecodeString(blsKey)
+	if err != nil || len(blsPk) != sdk.BLSPubKeyLength {
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
+	}
+	blsPubKey, err := bls.PublicKeyFromBytes(blsPk)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
+	}
+	bp, err := hex.DecodeString(blsProof)
+	if err != nil || len(blsProof) != sdk.BLSSignatureLength {
+		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "invalid bls sig")
+	}
+	sig, err := bls.SignatureFromBytes(bp)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrorInvalidSigner, "invalid bls signature")
+	}
+	if !sig.Verify(blsPubKey, tmhash.Sum(blsPk)) {
+		return sdkerrors.ErrorInvalidSigner.Wrapf("check bls proof failed.")
 	}
 	return nil
 }
