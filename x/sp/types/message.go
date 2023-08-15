@@ -385,7 +385,7 @@ func validateBlsKeyAndProof(blsKey, blsProof string) error {
 		return errors.Wrapf(sdkerrors.ErrInvalidPubKey, "invalid bls pub key")
 	}
 	bp, err := hex.DecodeString(blsProof)
-	if err != nil || len(blsProof) != sdk.BLSSignatureLength {
+	if err != nil || len(bp) != sdk.BLSSignatureLength {
 		return errors.Wrapf(gnfderrors.ErrInvalidBlsSignature, "invalid bls sig")
 	}
 	sig, err := bls.SignatureFromBytes(bp)
