@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.2.4-alpha.2
+This release contains 4 features and 4 bugfixes.      
+
+Features:
+* [#411](https://github.com/bnb-chain/greenfield/pull/411) feat: add
+* [#413](https://github.com/bnb-chain/greenfield/pull/413) feat: implement cross-chain mechanism between op and greenfield
+* [#415](https://github.com/bnb-chain/greenfield/pull/415) feat: enable plain store for full node
+* [#420](https://github.com/bnb-chain/greenfield/pull/420) feat: skip sig verification on genesis block
+
+Bugfixes:
+* [#416](https://github.com/bnb-chain/greenfield/pull/416) fix: update the dependencies to the latest develop branch
+* [#419](https://github.com/bnb-chain/greenfield/pull/419) fix: validate bls key and proof before submitting proposal
+* [#410](https://github.com/bnb-chain/greenfield/pull/410) fix: fix group member key collision issues
+* [#422](https://github.com/bnb-chain/greenfield/pull/422) fix: fix the SettleTimestamp calculation
+
+Chores:
+* [#408](https://github.com/bnb-chain/greenfield/pull/408) chore: payment refactor to use global store prices for billing
+* [#409](https://github.com/bnb-chain/greenfield/pull/409) chore: add issue template
+* [#414](https://github.com/bnb-chain/greenfield/pull/414) chore: modify default gas
+* [#417](https://github.com/bnb-chain/greenfield/pull/417) chore: adapt to cross chain token mintable version
+* [#421](https://github.com/bnb-chain/greenfield/pull/421) chore: update go version to 1.20
+
+
 ## v0.2.4-alpha.1
 This release includes 4 features, 9 bugfixes and 2 documentation updates.
 
