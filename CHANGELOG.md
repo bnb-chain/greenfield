@@ -1,7 +1,7 @@
 # Changelog
 
 ## v0.2.4-alpha.2
-This release contains 4 features and 3 bugfixes.    
+This release contains 4 features and 4 bugfixes.      
 
 Features:
 * [#411](https://github.com/bnb-chain/greenfield/pull/411) feat: add
@@ -13,6 +13,7 @@ Bugfixes:
 * [#416](https://github.com/bnb-chain/greenfield/pull/416) fix: update the dependencies to the latest develop branch
 * [#419](https://github.com/bnb-chain/greenfield/pull/419) fix: validate bls key and proof before submitting proposal
 * [#410](https://github.com/bnb-chain/greenfield/pull/410) fix: fix group member key collision issues
+* [#422](https://github.com/bnb-chain/greenfield/pull/422) fix: fix the SettleTimestamp calculation
 
 Chores:
 * [#408](https://github.com/bnb-chain/greenfield/pull/408) chore: payment refactor to use global store prices for billing
