@@ -373,7 +373,7 @@ func (k Keeper) TryResumeStreamRecord(ctx sdk.Context, streamRecord *types.Strea
 	}
 
 	now := ctx.BlockTime().Unix()
-	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRate).Int64() - int64(forcedSettleTime)
+	streamRecord.SettleTimestamp = now + streamRecord.StaticBalance.Quo(totalRate.Abs()).Int64() - int64(forcedSettleTime)
 	streamRecord.BufferBalance = expectedBalanceToResume
 	streamRecord.StaticBalance = streamRecord.StaticBalance.Sub(expectedBalanceToResume)
 	streamRecord.CrudTimestamp = now
