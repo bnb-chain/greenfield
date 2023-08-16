@@ -27,9 +27,11 @@ func (s *TestSuite) TestSynDeleteBucket() {
 	serializedSynPackage := deleteSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationDeleteBucket}, serializedSynPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: bucket not found
 	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(nil, false)
-	res := app.ExecuteSynPackage(s.ctx, nil, serializedSynPackage)
+	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().ErrorIs(res.Err, types.ErrNoSuchBucket)
 
 	// case 2: delete bucket error
@@ -37,7 +39,7 @@ func (s *TestSuite) TestSynDeleteBucket() {
 		BucketName: "bucket",
 	}, true)
 	storageKeeper.EXPECT().DeleteBucket(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(fmt.Errorf("delete error"))
-	res = app.ExecuteSynPackage(s.ctx, nil, serializedSynPackage)
+	res = app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().ErrorContains(res.Err, "delete error")
 
 	// case 3: delete bucket success
@@ -46,7 +48,7 @@ func (s *TestSuite) TestSynDeleteBucket() {
 		Id:         sdk.NewUint(10),
 	}, true)
 	storageKeeper.EXPECT().DeleteBucket(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(nil)
-	res = app.ExecuteSynPackage(s.ctx, nil, serializedSynPackage)
+	res = app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().NoError(res.Err)
 }
 
@@ -66,8 +68,10 @@ func (s *TestSuite) TestSynCreateBucket() {
 	serializedSynPackage := createSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: invalid package
-	res := app.ExecuteSynPackage(s.ctx, nil, serializedSynPackage)
+	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().ErrorContains(res.Err, "Invalid type of visibility")
 
 	// case 2: create bucket error
@@ -76,7 +80,7 @@ func (s *TestSuite) TestSynCreateBucket() {
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
 
 	storageKeeper.EXPECT().CreateBucket(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(sdk.NewUint(1), fmt.Errorf("create error"))
-	res = app.ExecuteSynPackage(s.ctx, nil, serializedSynPackage)
+	res = app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().ErrorContains(res.Err, "create error")
 
 	// case 3: create bucket success
@@ -85,7 +89,7 @@ func (s *TestSuite) TestSynCreateBucket() {
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
 
 	storageKeeper.EXPECT().CreateBucket(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).Return(sdk.NewUint(1), nil)
-	res = app.ExecuteSynPackage(s.ctx, nil, serializedSynPackage)
+	res = app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().NoError(res.Err)
 }
 
@@ -104,8 +108,10 @@ func (s *TestSuite) TestSynMirrorBucket() {
 	s.Require().NoError(err)
 	serializedSynPack = append([]byte{types.OperationMirrorBucket}, serializedSynPack...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1:  normal case
-	res := app.ExecuteSynPackage(s.ctx, nil, serializedSynPack)
+	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPack)
 	s.Require().NoError(res.Err)
 }
 
@@ -124,10 +130,12 @@ func (s *TestSuite) TestAckMirrorBucket() {
 	s.Require().NoError(err)
 	serializedAckPack = append([]byte{types.OperationMirrorBucket}, serializedAckPack...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1: bucket not found
 	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(nil, false)
 
-	res := app.ExecuteAckPackage(s.ctx, nil, serializedAckPack)
+	res := app.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPack)
 	s.Require().ErrorIs(res.Err, types.ErrNoSuchBucket)
 
 	// case 2: success case
@@ -154,8 +162,10 @@ func (s *TestSuite) TestAckCreateBucket() {
 	serializedAckPack := ackPackage.MustSerialize()
 	serializedAckPack = append([]byte{types.OperationCreateBucket}, serializedAckPack...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1:  normal case
-	res := app.ExecuteAckPackage(s.ctx, nil, serializedAckPack)
+	res := app.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPack)
 	s.Require().NoError(res.Err)
 }
 
@@ -174,8 +184,10 @@ func (s *TestSuite) TestAckDeleteBucket() {
 	serializedAckPack := ackPackage.MustSerialize()
 	serializedAckPack = append([]byte{types.OperationDeleteBucket}, serializedAckPack...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1:  normal case
-	res := app.ExecuteAckPackage(s.ctx, nil, serializedAckPack)
+	res := app.ExecuteAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPack)
 	s.Require().NoError(res.Err)
 }
 
@@ -194,10 +206,12 @@ func (s *TestSuite) TestFailAckMirrorBucket() {
 	s.Require().NoError(err)
 	serializedAckPack = append([]byte{types.OperationMirrorBucket}, serializedAckPack...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1:  bucket not found
 	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(&types.BucketInfo{}, false)
 
-	res := app.ExecuteFailAckPackage(s.ctx, nil, serializedAckPack)
+	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedAckPack)
 	s.Require().ErrorIs(res.Err, types.ErrNoSuchBucket)
 
 	// case 2: normal case
@@ -224,8 +238,10 @@ func (s *TestSuite) TestFailAckCreateBucket() {
 	serializedSynPackage := createSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationCreateBucket}, serializedSynPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1:  normal case
-	res := app.ExecuteFailAckPackage(s.ctx, nil, serializedSynPackage)
+	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().NoError(res.Err)
 }
 
@@ -244,7 +260,9 @@ func (s *TestSuite) TestFailAckDeleteBucket() {
 	serializedSynPackage := deleteSynPackage.MustSerialize()
 	serializedSynPackage = append([]byte{types.OperationDeleteBucket}, serializedSynPackage...)
 
+	storageKeeper.EXPECT().GetSourceTypeByChainId(gomock.Any(), gomock.Any()).Return(types.SOURCE_TYPE_BSC_CROSS_CHAIN, nil).AnyTimes()
+
 	// case 1:  normal case
-	res := app.ExecuteFailAckPackage(s.ctx, nil, serializedSynPackage)
+	res := app.ExecuteFailAckPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
 	s.Require().NoError(res.Err)
 }

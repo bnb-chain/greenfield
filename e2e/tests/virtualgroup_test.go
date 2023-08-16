@@ -136,7 +136,8 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 
 	// test withdraw
 	balance, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
-		Denom: s.Config.Denom, Address: primarySP.FundingKey.GetAddr().String()})
+		Denom: s.Config.Denom, Address: primarySP.FundingKey.GetAddr().String(),
+	})
 	s.Require().NoError(err)
 
 	msgWithdraw := virtualgroupmoduletypes.MsgWithdraw{
@@ -146,7 +147,8 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	}
 	s.SendTxBlock(primarySP.FundingKey, &msgWithdraw)
 	balanceAfterWithdraw, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
-		Denom: s.Config.Denom, Address: primarySP.FundingKey.GetAddr().String()})
+		Denom: s.Config.Denom, Address: primarySP.FundingKey.GetAddr().String(),
+	})
 	s.Require().NoError(err)
 
 	s.T().Logf("balance: %s, after: %s", balance.String(), balanceAfterWithdraw.String())
@@ -208,12 +210,14 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	time.Sleep(3 * time.Second)
 
 	primaryBalance, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
-		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String()})
+		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String(),
+	})
 	s.Require().NoError(err)
 	secondaryBalances := make([]sdkmath.Int, 0)
 	for _, addr := range secondarySpAddrs {
 		tempResp, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
-			Denom: s.Config.Denom, Address: addr})
+			Denom: s.Config.Denom, Address: addr,
+		})
 		s.Require().NoError(err)
 		secondaryBalances = append(secondaryBalances, tempResp.Balance.Amount)
 	}
@@ -233,7 +237,8 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	s.SendTxBlock(primarySp.FundingKey, &msgSettle)
 
 	primaryBalanceAfter, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
-		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String()})
+		Denom: s.Config.Denom, Address: primarySp.FundingKey.GetAddr().String(),
+	})
 	s.Require().NoError(err)
 
 	s.T().Logf("primaryBalance: %s, after: %s", primaryBalance.String(), primaryBalanceAfter.String())
@@ -257,7 +262,8 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 	secondaryBalancesAfter := make([]sdkmath.Int, 0, len(secondaryBalances))
 	for _, addr := range secondarySpAddrs {
 		tempResp, err := s.Client.BankQueryClient.Balance(context.Background(), &types2.QueryBalanceRequest{
-			Denom: s.Config.Denom, Address: addr})
+			Denom: s.Config.Denom, Address: addr,
+		})
 		s.Require().NoError(err)
 		secondaryBalancesAfter = append(secondaryBalancesAfter, tempResp.Balance.Amount)
 	}
@@ -510,11 +516,9 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 		sp.OperatorKey,
 		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 	)
-
 }
 
 func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
-
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := storagetestutil.GenRandomBucketName()
 	objectName := storagetestutil.GenRandomObjectName()
@@ -568,7 +572,6 @@ func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
 		sp.OperatorKey,
 		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
 	)
-
 }
 
 func (s *VirtualGroupTestSuite) TestUpdateVirtualGroupParams() {

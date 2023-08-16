@@ -174,6 +174,21 @@ func (m *MockSpKeeper) EXPECT() *MockSpKeeperMockRecorder {
 	return m.recorder
 }
 
+// GetGlobalSpStorePriceByTime mocks base method.
+func (m *MockSpKeeper) GetGlobalSpStorePriceByTime(ctx types3.Context, time int64) (types1.GlobalSpStorePrice, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGlobalSpStorePriceByTime", ctx, time)
+	ret0, _ := ret[0].(types1.GlobalSpStorePrice)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetGlobalSpStorePriceByTime indicates an expected call of GetGlobalSpStorePriceByTime.
+func (mr *MockSpKeeperMockRecorder) GetGlobalSpStorePriceByTime(ctx, time interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetGlobalSpStorePriceByTime", reflect.TypeOf((*MockSpKeeper)(nil).GetGlobalSpStorePriceByTime), ctx, time)
+}
+
 // GetStorageProvider mocks base method.
 func (m *MockSpKeeper) GetStorageProvider(ctx types3.Context, id uint32) (*types1.StorageProvider, bool) {
 	m.ctrl.T.Helper()
@@ -285,19 +300,19 @@ func (mr *MockPaymentKeeperMockRecorder) ApplyUserFlowsList(ctx, userFlows inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ApplyUserFlowsList", reflect.TypeOf((*MockPaymentKeeper)(nil).ApplyUserFlowsList), ctx, userFlows)
 }
 
-// GetStoragePrice mocks base method.
-func (m *MockPaymentKeeper) GetStoragePrice(ctx types3.Context, params types.StoragePriceParams) (types.StoragePrice, error) {
+// GetStreamRecord mocks base method.
+func (m *MockPaymentKeeper) GetStreamRecord(ctx types3.Context, account types3.AccAddress) (*types.StreamRecord, bool) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetStoragePrice", ctx, params)
-	ret0, _ := ret[0].(types.StoragePrice)
-	ret1, _ := ret[1].(error)
+	ret := m.ctrl.Call(m, "GetStreamRecord", ctx, account)
+	ret0, _ := ret[0].(*types.StreamRecord)
+	ret1, _ := ret[1].(bool)
 	return ret0, ret1
 }
 
-// GetStoragePrice indicates an expected call of GetStoragePrice.
-func (mr *MockPaymentKeeperMockRecorder) GetStoragePrice(ctx, params interface{}) *gomock.Call {
+// GetStreamRecord indicates an expected call of GetStreamRecord.
+func (mr *MockPaymentKeeperMockRecorder) GetStreamRecord(ctx, account interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStoragePrice", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStoragePrice), ctx, params)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetStreamRecord", reflect.TypeOf((*MockPaymentKeeper)(nil).GetStreamRecord), ctx, account)
 }
 
 // GetVersionedParamsWithTs mocks base method.
@@ -368,7 +383,7 @@ func (m *MockPermissionKeeper) EXPECT() *MockPermissionKeeperMockRecorder {
 }
 
 // AddGroupMember mocks base method.
-func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration time.Time) error {
+func (m *MockPermissionKeeper) AddGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, expiration *time.Time) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "AddGroupMember", ctx, groupID, member, expiration)
 	ret0, _ := ret[0].(error)
@@ -617,7 +632,7 @@ func (mr *MockPermissionKeeperMockRecorder) RemoveGroupMember(ctx, groupID, memb
 }
 
 // UpdateGroupMember mocks base method.
-func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration time.Time) {
+func (m *MockPermissionKeeper) UpdateGroupMember(ctx types3.Context, groupID math.Uint, member types3.AccAddress, memberID math.Uint, expiration *time.Time) {
 	m.ctrl.T.Helper()
 	m.ctrl.Call(m, "UpdateGroupMember", ctx, groupID, member, memberID, expiration)
 }
@@ -678,6 +693,34 @@ func (m *MockCrossChainKeeper) GetDestBscChainID() types3.ChainID {
 func (mr *MockCrossChainKeeperMockRecorder) GetDestBscChainID() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDestBscChainID", reflect.TypeOf((*MockCrossChainKeeper)(nil).GetDestBscChainID))
+}
+
+// GetDestOpChainID mocks base method.
+func (m *MockCrossChainKeeper) GetDestOpChainID() types3.ChainID {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetDestOpChainID")
+	ret0, _ := ret[0].(types3.ChainID)
+	return ret0
+}
+
+// GetDestOpChainID indicates an expected call of GetDestOpChainID.
+func (mr *MockCrossChainKeeperMockRecorder) GetDestOpChainID() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetDestOpChainID", reflect.TypeOf((*MockCrossChainKeeper)(nil).GetDestOpChainID))
+}
+
+// IsDestChainSupported mocks base method.
+func (m *MockCrossChainKeeper) IsDestChainSupported(chainID types3.ChainID) bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsDestChainSupported", chainID)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// IsDestChainSupported indicates an expected call of IsDestChainSupported.
+func (mr *MockCrossChainKeeperMockRecorder) IsDestChainSupported(chainID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsDestChainSupported", reflect.TypeOf((*MockCrossChainKeeper)(nil).IsDestChainSupported), chainID)
 }
 
 // RegisterChannel mocks base method.
@@ -957,6 +1000,21 @@ func (m *MockStorageKeeper) GetObjectInfoById(ctx types3.Context, objectId math.
 func (mr *MockStorageKeeperMockRecorder) GetObjectInfoById(ctx, objectId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObjectInfoById", reflect.TypeOf((*MockStorageKeeper)(nil).GetObjectInfoById), ctx, objectId)
+}
+
+// GetSourceTypeByChainId mocks base method.
+func (m *MockStorageKeeper) GetSourceTypeByChainId(ctx types3.Context, chainId types3.ChainID) (SourceType, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSourceTypeByChainId", ctx, chainId)
+	ret0, _ := ret[0].(SourceType)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetSourceTypeByChainId indicates an expected call of GetSourceTypeByChainId.
+func (mr *MockStorageKeeperMockRecorder) GetSourceTypeByChainId(ctx, chainId interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSourceTypeByChainId", reflect.TypeOf((*MockStorageKeeper)(nil).GetSourceTypeByChainId), ctx, chainId)
 }
 
 // Logger mocks base method.

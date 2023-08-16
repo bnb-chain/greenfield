@@ -20,7 +20,6 @@ type (
 
 		bankKeeper    types.BankKeeper
 		accountKeeper types.AccountKeeper
-		spKeeper      types.SpKeeper
 		authority     string
 	}
 )
@@ -30,7 +29,6 @@ func NewKeeper(
 	storeKey storetypes.StoreKey,
 	bankKeeper types.BankKeeper,
 	accountKeeper types.AccountKeeper,
-	spKeeper types.SpKeeper,
 	authority string,
 ) *Keeper {
 	return &Keeper{
@@ -38,7 +36,6 @@ func NewKeeper(
 		storeKey:      storeKey,
 		bankKeeper:    bankKeeper,
 		accountKeeper: accountKeeper,
-		spKeeper:      spKeeper,
 		authority:     authority,
 	}
 }

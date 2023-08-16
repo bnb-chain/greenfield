@@ -370,6 +370,7 @@ func (a appCreator) newApp(
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(server.FlagDisableIAVLFastNode))),
 		baseapp.SetChainID(chainID),
 		baseapp.SetEnableUnsafeQuery(cast.ToBool(appOpts.Get(server.FlagEnableUnsafeQuery))),
+		baseapp.SetEnablePlainStore(cast.ToBool(appOpts.Get(server.FlagEnablePlainStore))),
 	)
 }
 

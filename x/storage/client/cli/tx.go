@@ -643,14 +643,19 @@ func CmdUpdateGroupMember() *cobra.Command {
 						if err != nil {
 							return err
 						}
-						expiration, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
-						if err != nil {
-							return err
+						member := types.MsgGroupMember{
+							Member: membersToAdd[i],
 						}
-						msgGroupMemberToAdd = append(msgGroupMemberToAdd, &types.MsgGroupMember{
-							Member:         membersToAdd[i],
-							ExpirationTime: time.Unix(expiration, 0).UTC(),
-						})
+						if len(memberExpirationStr[i]) > 0 {
+							unix, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
+							if err != nil {
+								return err
+							}
+							expiration := time.Unix(unix, 0)
+							member.ExpirationTime = &expiration
+						}
+
+						msgGroupMemberToAdd = append(msgGroupMemberToAdd, &member)
 					}
 				}
 			}
@@ -711,18 +716,25 @@ func CmdRenewGroupMember() *cobra.Command {
 
 			msgGroupMember := make([]*types.MsgGroupMember, 0, len(argMember))
 			for i := range members {
-				_, err := sdk.AccAddressFromHexUnsafe(members[i])
-				if err != nil {
-					return err
+				if len(members[i]) > 0 {
+					_, err := sdk.AccAddressFromHexUnsafe(members[i])
+					if err != nil {
+						return err
+					}
+					member := types.MsgGroupMember{
+						Member: members[i],
+					}
+					if len(memberExpirationStr[i]) > 0 {
+						unix, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
+						if err != nil {
+							return err
+						}
+						expiration := time.Unix(unix, 0)
+						member.ExpirationTime = &expiration
+					}
+
+					msgGroupMember = append(msgGroupMember, &member)
 				}
-				expiration, err := strconv.ParseInt(memberExpirationStr[i], 10, 64)
-				if err != nil {
-					return err
-				}
-				msgGroupMember = append(msgGroupMember, &types.MsgGroupMember{
-					Member:         members[i],
-					ExpirationTime: time.Unix(expiration, 0),
-				})
 			}
 
 			msg := types.NewMsgRenewGroupMember(
@@ -866,6 +878,7 @@ func CmdMirrorBucket() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argBucketId, _ := cmd.Flags().GetString(FlagBucketId)
 			argBucketName, _ := cmd.Flags().GetString(FlagBucketName)
+			argDestChainId, _ := cmd.Flags().GetString(FlagDestChainId)
 
 			bucketId := big.NewInt(0)
 			if argBucketId == "" && argBucketName == "" {
@@ -883,6 +896,14 @@ func CmdMirrorBucket() *cobra.Command {
 				}
 			}
 
+			if argDestChainId == "" {
+				return fmt.Errorf("destination chain id should be provided")
+			}
+			destChainId, err := strconv.ParseUint(argDestChainId, 10, 64)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -890,6 +911,7 @@ func CmdMirrorBucket() *cobra.Command {
 
 			msg := types.NewMsgMirrorBucket(
 				clientCtx.GetFromAddress(),
+				sdk.ChainID(destChainId),
 				cmath.NewUintFromBigInt(bucketId),
 				argBucketName,
 			)
@@ -947,6 +969,7 @@ func CmdMirrorObject() *cobra.Command {
 			argObjectId, _ := cmd.Flags().GetString(FlagObjectId)
 			argBucketName, _ := cmd.Flags().GetString(FlagBucketName)
 			argObjectName, _ := cmd.Flags().GetString(FlagObjectName)
+			argDestChainId, _ := cmd.Flags().GetString(FlagDestChainId)
 
 			objectId := big.NewInt(0)
 			if argObjectId == "" && argObjectName == "" {
@@ -966,6 +989,14 @@ func CmdMirrorObject() *cobra.Command {
 				return fmt.Errorf("object name and bucket name should not be provided together")
 			}
 
+			if argDestChainId == "" {
+				return fmt.Errorf("destination chain id should be provided")
+			}
+			destChainId, err := strconv.ParseUint(argDestChainId, 10, 64)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -973,6 +1004,7 @@ func CmdMirrorObject() *cobra.Command {
 
 			msg := types.NewMsgMirrorObject(
 				clientCtx.GetFromAddress(),
+				sdk.ChainID(destChainId),
 				cmath.NewUintFromBigInt(objectId),
 				argBucketName,
 				argObjectName,
@@ -1000,6 +1032,7 @@ func CmdMirrorGroup() *cobra.Command {
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupId, _ := cmd.Flags().GetString(FlagGroupId)
 			argGroupName, _ := cmd.Flags().GetString(FlagGroupName)
+			argDestChainId, _ := cmd.Flags().GetString(FlagDestChainId)
 
 			groupId := big.NewInt(0)
 			if argGroupId == "" && argGroupName == "" {
@@ -1017,6 +1050,14 @@ func CmdMirrorGroup() *cobra.Command {
 				}
 			}
 
+			if argDestChainId == "" {
+				return fmt.Errorf("destination chain id should be provided")
+			}
+			destChainId, err := strconv.ParseUint(argDestChainId, 10, 64)
+			if err != nil {
+				return err
+			}
+
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
@@ -1024,6 +1065,7 @@ func CmdMirrorGroup() *cobra.Command {
 
 			msg := types.NewMsgMirrorGroup(
 				clientCtx.GetFromAddress(),
+				sdk.ChainID(destChainId),
 				cmath.NewUintFromBigInt(groupId),
 				argGroupName,
 			)

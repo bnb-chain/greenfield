@@ -1,6 +1,8 @@
 package keeper_test
 
-import "github.com/bnb-chain/greenfield/testutil/sample"
+import (
+	"github.com/bnb-chain/greenfield/testutil/sample"
+)
 
 func (s *TestSuite) TestClearDiscontinueBucketCount() {
 	acc1 := sample.RandAccAddress()

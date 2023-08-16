@@ -146,7 +146,7 @@ func (app *GroupApp) handleDeleteGroupFailAckPackage(ctx sdk.Context, appCtx *sd
 	return sdk.ExecuteResult{}
 }
 
-func (app *GroupApp) handleDeleteGroupSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, deleteGroupPackage *types.DeleteGroupSynPackage) sdk.ExecuteResult {
+func (app *GroupApp) handleDeleteGroupSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, deleteGroupPackage *types.DeleteGroupSynPackage) sdk.ExecuteResult {
 	err := deleteGroupPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{
@@ -171,11 +171,18 @@ func (app *GroupApp) handleDeleteGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 		}
 	}
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	err = app.storageKeeper.DeleteGroup(ctx,
 		deleteGroupPackage.Operator,
 		groupInfo.GroupName,
 		types.DeleteGroupOptions{
-			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+			SourceType: sourceType,
 		},
 	)
 	if err != nil {
@@ -209,7 +216,7 @@ func (app *GroupApp) handleCreateGroupFailAckPackage(ctx sdk.Context, appCtx *sd
 	return sdk.ExecuteResult{}
 }
 
-func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, createGroupPackage *types.CreateGroupSynPackage) sdk.ExecuteResult {
+func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createGroupPackage *types.CreateGroupSynPackage) sdk.ExecuteResult {
 	err := createGroupPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{
@@ -223,11 +230,18 @@ func (app *GroupApp) handleCreateGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 	}
 	app.storageKeeper.Logger(ctx).Info("process create group syn package", "group name", createGroupPackage.GroupName)
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	groupId, err := app.storageKeeper.CreateGroup(ctx,
 		createGroupPackage.Creator,
 		createGroupPackage.GroupName,
 		types.CreateGroupOptions{
-			SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+			SourceType: sourceType,
 		},
 	)
 	if err != nil {
@@ -260,8 +274,15 @@ func (app *GroupApp) handleMirrorGroupAckPackage(ctx sdk.Context, appCtx *sdk.Cr
 		}
 	}
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	if ackPackage.Status == types.StatusSuccess {
-		groupInfo.SourceType = types.SOURCE_TYPE_BSC_CROSS_CHAIN
+		groupInfo.SourceType = sourceType
 
 		app.storageKeeper.SetGroupInfo(ctx, groupInfo)
 	}
@@ -311,7 +332,7 @@ func (app *GroupApp) handleMirrorGroupSynPackage(ctx sdk.Context, header *sdk.Cr
 	return sdk.ExecuteResult{}
 }
 
-func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *sdk.CrossChainAppContext, updateGroupPackage *types.UpdateGroupMemberSynPackage) sdk.ExecuteResult {
+func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, updateGroupPackage *types.UpdateGroupMemberSynPackage) sdk.ExecuteResult {
 	err := updateGroupPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{
@@ -336,11 +357,18 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 		}
 	}
 
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
 	switch updateGroupPackage.OperationType {
 	case types.OperationAddGroupMember, types.OperationDeleteGroupMember:
-		err = app.handleAddOrDeleteGroupMemberOperation(ctx, groupInfo, updateGroupPackage)
+		err = app.handleAddOrDeleteGroupMemberOperation(ctx, sourceType, groupInfo, updateGroupPackage)
 	case types.OperationRenewGroupMember:
-		err = app.handleRenewGroupOperation(ctx, groupInfo, updateGroupPackage)
+		err = app.handleRenewGroupOperation(ctx, sourceType, groupInfo, updateGroupPackage)
 	}
 
 	if err != nil {
@@ -366,9 +394,9 @@ func (app *GroupApp) handleUpdateGroupMemberSynPackage(ctx sdk.Context, header *
 	}
 }
 
-func (app *GroupApp) handleAddOrDeleteGroupMemberOperation(ctx sdk.Context, groupInfo *types.GroupInfo, updateGroupPackage *types.UpdateGroupMemberSynPackage) error {
+func (app *GroupApp) handleAddOrDeleteGroupMemberOperation(ctx sdk.Context, sourceType types.SourceType, groupInfo *types.GroupInfo, updateGroupPackage *types.UpdateGroupMemberSynPackage) error {
 	options := types.UpdateGroupMemberOptions{
-		SourceType: types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+		SourceType: sourceType,
 	}
 	if updateGroupPackage.OperationType == types.OperationAddGroupMember {
 		options.MembersToAdd = updateGroupPackage.GetMembers()
@@ -385,9 +413,9 @@ func (app *GroupApp) handleAddOrDeleteGroupMemberOperation(ctx sdk.Context, grou
 	)
 }
 
-func (app *GroupApp) handleRenewGroupOperation(ctx sdk.Context, groupInfo *types.GroupInfo, updateGroupPackage *types.UpdateGroupMemberSynPackage) error {
+func (app *GroupApp) handleRenewGroupOperation(ctx sdk.Context, sourceType types.SourceType, groupInfo *types.GroupInfo, updateGroupPackage *types.UpdateGroupMemberSynPackage) error {
 	options := types.RenewGroupMemberOptions{
-		SourceType:        types.SOURCE_TYPE_BSC_CROSS_CHAIN,
+		SourceType:        sourceType,
 		Members:           updateGroupPackage.GetMembers(),
 		MembersExpiration: updateGroupPackage.GetMemberExpiration(),
 	}

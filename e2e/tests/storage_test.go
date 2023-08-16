@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
-
 	sdkmath "cosmossdk.io/math"
 	ctypes "github.com/cometbft/cometbft/rpc/core/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,6 +27,7 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	types2 "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
@@ -46,8 +45,7 @@ func (s *StorageTestSuite) SetupTest() {
 	s.User = s.GenAndChargeAccounts(1, 1000000)[0]
 }
 
-var (
-	line = `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
+var line = `1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
 	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
 	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
 	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
@@ -57,7 +55,6 @@ var (
 	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
 	1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,1234567890,
 	1234567890,1234567890,1234567890,123`
-)
 
 func (s *StorageTestSuite) TestCreateBucket() {
 	var err error
@@ -304,7 +301,8 @@ func (s *StorageTestSuite) TestCreateGroup() {
 
 	// 4. UpdateGroupMember(add)
 	membersToAdd := []*storagetypes.MsgGroupMember{
-		{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member.GetAddr().String()},
+	}
 	membersToDelete := []sdk.AccAddress{}
 	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -322,7 +320,8 @@ func (s *StorageTestSuite) TestCreateGroup() {
 	// 5. UpdateGroupMember(delete)
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd = []*storagetypes.MsgGroupMember{
-		{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member2.GetAddr().String()},
+	}
 	membersToDelete = []sdk.AccAddress{member.GetAddr()}
 	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -353,7 +352,8 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 	s.SendTxBlock(owner, msgCreateGroup)
 	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
 	membersToAdd := []*storagetypes.MsgGroupMember{
-		{Member: member.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member.GetAddr().String()},
+	}
 	membersToDelete := []sdk.AccAddress{}
 	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -391,7 +391,8 @@ func (s *StorageTestSuite) TestLeaveGroup() {
 	// 4. UpdateGroupMember
 	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
 	membersToAdd = []*storagetypes.MsgGroupMember{
-		{Member: member2.GetAddr().String(), ExpirationTime: storagetypes.MaxTimeStamp}}
+		{Member: member2.GetAddr().String()},
+	}
 	membersToDelete = []sdk.AccAddress{member.GetAddr()}
 	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
@@ -534,7 +535,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
 	// MirrorBucket using id
-	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), queryHeadBucketResponse.BucketInfo.Id, "")
+	msgMirrorBucket := storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.ChainID(714), queryHeadBucketResponse.BucketInfo.Id, "")
 	s.SendTxBlock(user, msgMirrorBucket)
 
 	// CreateBucket
@@ -548,7 +549,7 @@ func (s *StorageTestSuite) TestMirrorBucket() {
 	s.SendTxBlock(user, msgCreateBucket)
 
 	// MirrorBucket using name
-	msgMirrorBucket = storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.NewUint(0), bucketName)
+	msgMirrorBucket = storagetypes.NewMsgMirrorBucket(user.GetAddr(), sdk.ChainID(714), sdk.NewUint(0), bucketName)
 	s.SendTxBlock(user, msgMirrorBucket)
 }
 
@@ -653,7 +654,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
 
 	// MirrorObject using id
-	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), queryHeadObjectResponse.ObjectInfo.Id, "", "")
+	msgMirrorObject := storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.ChainID(714), queryHeadObjectResponse.ObjectInfo.Id, "", "")
 	s.SendTxBlock(user, msgMirrorObject)
 
 	// CreateObject
@@ -691,7 +692,7 @@ func (s *StorageTestSuite) TestMirrorObject() {
 	s.SendTxBlock(sp.SealKey, msgSealObject)
 
 	// MirrorObject using names
-	msgMirrorObject = storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.NewUint(0), bucketName, objectName)
+	msgMirrorObject = storagetypes.NewMsgMirrorObject(user.GetAddr(), sdk.ChainID(714), sdk.NewUint(0), bucketName, objectName)
 	s.SendTxBlock(user, msgMirrorObject)
 }
 
@@ -714,7 +715,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
 
 	// MirrorGroup using id
-	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), queryHeadGroupResp.GroupInfo.Id, "")
+	msgMirrorGroup := storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.ChainID(714), queryHeadGroupResp.GroupInfo.Id, "")
 	s.SendTxBlock(owner, msgMirrorGroup)
 
 	// CreateGroup
@@ -723,7 +724,7 @@ func (s *StorageTestSuite) TestMirrorGroup() {
 	s.SendTxBlock(owner, msgCreateGroup)
 
 	// MirrorGroup using name
-	msgMirrorGroup = storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.NewUint(0), groupName)
+	msgMirrorGroup = storagetypes.NewMsgMirrorGroup(owner.GetAddr(), sdk.ChainID(714), sdk.NewUint(0), groupName)
 	s.SendTxBlock(owner, msgMirrorGroup)
 }
 
@@ -1560,10 +1561,11 @@ func (s *StorageTestSuite) TestCreateAndRenewGroup() {
 	s.Require().Equal(headGroupResponse.GroupInfo.Extra, extra)
 
 	// Renew GroupMember
-	expiration, err := time.Parse(time.RFC3339, "2022-12-31T23:59:59Z")
+	expiration, err := time.Parse(time.RFC3339, "3023-12-31T23:59:59Z")
 	s.Require().NoError(err)
 	members := []*storagetypes.MsgGroupMember{
-		{Member: member.GetAddr().String(), ExpirationTime: expiration}}
+		{Member: member.GetAddr().String(), ExpirationTime: &expiration},
+	}
 	msgUpdateGroupMember := storagetypes.NewMsgRenewGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, members)
 	s.SendTxBlock(owner, msgUpdateGroupMember)
 

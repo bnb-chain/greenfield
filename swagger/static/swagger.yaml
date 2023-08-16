@@ -1551,29 +1551,33 @@ paths:
           type: boolean
       tags:
         - Query
-  /greenfield/sp/get_secondary_sp_store_price_by_time/{timestamp}:
+  /greenfield/sp/global_sp_store_price_by_time/{timestamp}:
     get:
-      summary: get secondary store price by time
-      operationId: QueryGetSecondarySpStorePriceByTime
+      summary: get global store price by time
+      operationId: QueryGlobalSpStorePriceByTime
       responses:
         '200':
           description: A successful response.
           schema:
             type: object
             properties:
-              secondary_sp_store_price:
+              global_sp_store_price:
                 type: object
                 properties:
                   update_time_sec:
                     type: string
                     format: int64
                     title: update time, unix timestamp in seconds
-                  store_price:
+                  read_price:
                     type: string
-                    title: store price, in bnb wei per charge byte
-                title: >-
-                  global secondary sp store price, the price for all secondary
-                  sps
+                    title: read price, in bnb wei per charge byte
+                  primary_store_price:
+                    type: string
+                    title: primary store price, in bnb wei per charge byte
+                  secondary_store_price:
+                    type: string
+                    title: secondary store price, in bnb wei per charge byte
+                title: global sp store price, the price for all sps
         default:
           description: An unexpected error response.
           schema:
@@ -1607,10 +1611,95 @@ paths:
           format: int64
       tags:
         - Query
-  /greenfield/sp/get_sp_storage_price_by_time/{sp_addr}/{timestamp}:
+  /greenfield/sp/params:
     get:
-      summary: get storage price of specific sp and time
-      operationId: QueryGetSpStoragePriceByTime
+      summary: Parameters queries the parameters of the module.
+      operationId: SpParams
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              params:
+                description: params holds all the parameters of this module.
+                type: object
+                properties:
+                  deposit_denom:
+                    type: string
+                    description: deposit_denom defines the staking coin denomination.
+                  min_deposit:
+                    type: string
+                    description: >-
+                      min_deposit defines the minimum deposit amount for storage
+                      providers.
+                  secondary_sp_store_price_ratio:
+                    type: string
+                    title: >-
+                      the ratio of the store price of the secondary sp to the
+                      primary sp, the default value is 80%
+                  num_of_historical_blocks_for_maintenance_records:
+                    type: string
+                    format: int64
+                    title: >-
+                      previous blocks that be traced back to for
+                      maintenance_records
+                  maintenance_duration_quota:
+                    type: string
+                    format: int64
+                    title: >-
+                      the max duration that a SP can be in_maintenance within
+                      num_of_historical_blocks_for_maintenance_records
+                  num_of_lockup_blocks_for_maintenance:
+                    type: string
+                    format: int64
+                    title: >-
+                      the number of blocks to be wait for sp to be in
+                      maintenance mode again if already requested
+                  update_global_price_interval:
+                    type: string
+                    format: uint64
+                    title: >-
+                      the time interval to update global storage price, if it is
+                      not set then the price will be updated at the first block
+                      of each natural month
+                  update_price_disallowed_days:
+                    type: integer
+                    format: int64
+                    title: >-
+                      the days counting backwards from end of a month in which a
+                      sp cannot update its price
+            description: >-
+              QueryParamsResponse is response type for the Query/Params RPC
+              method.
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      tags:
+        - Query
+  /greenfield/sp/sp_storage_price/{sp_addr}:
+    get:
+      summary: get the latest storage price of specific sp
+      operationId: QuerySpStoragePrice
       responses:
         '200':
           description: A successful response.
@@ -1667,86 +1756,6 @@ paths:
           in: path
           required: true
           type: string
-        - name: timestamp
-          description: >-
-            unix timestamp in seconds. If it's 0, it will return the latest
-            price.
-          in: path
-          required: true
-          type: string
-          format: int64
-      tags:
-        - Query
-  /greenfield/sp/params:
-    get:
-      summary: Parameters queries the parameters of the module.
-      operationId: SpParams
-      responses:
-        '200':
-          description: A successful response.
-          schema:
-            type: object
-            properties:
-              params:
-                description: params holds all the parameters of this module.
-                type: object
-                properties:
-                  deposit_denom:
-                    type: string
-                    description: deposit_denom defines the staking coin denomination.
-                  min_deposit:
-                    type: string
-                    description: >-
-                      min_deposit defines the minimum deposit amount for storage
-                      providers.
-                  secondary_sp_store_price_ratio:
-                    type: string
-                    title: >-
-                      the ratio of the store price of the secondary sp to the
-                      primary sp, the default value is 80%
-                  num_of_historical_blocks_for_maintenance_records:
-                    type: string
-                    format: int64
-                    title: >-
-                      previous blocks that be traced back to for
-                      maintenance_records
-                  maintenance_duration_quota:
-                    type: string
-                    format: int64
-                    title: >-
-                      the max duration that a SP can be in_maintenance within
-                      num_of_historical_blocks_for_maintenance_records
-                  num_of_lockup_blocks_for_maintenance:
-                    type: string
-                    format: int64
-                    title: >-
-                      the number of blocks to be wait for sp to be in
-                      maintenance mode again if already requested
-            description: >-
-              QueryParamsResponse is response type for the Query/Params RPC
-              method.
-        default:
-          description: An unexpected error response.
-          schema:
-            type: object
-            properties:
-              error:
-                type: string
-              code:
-                type: integer
-                format: int32
-              message:
-                type: string
-              details:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    type_url:
-                      type: string
-                    value:
-                      type: string
-                      format: byte
       tags:
         - Query
   /greenfield/sp/storage_provider_by_operator_address:
@@ -2489,8 +2498,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
@@ -2598,8 +2608,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                   create_at:
                     type: string
@@ -2859,8 +2870,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                   id:
                     type: string
@@ -3113,8 +3125,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                     title: >-
                       SourceType represents the source of resource creation,
@@ -3300,8 +3313,9 @@ paths:
                     type: string
                     enum:
                       - SOURCE_TYPE_ORIGIN
-                      - SOURCE_TYPE_BSC_CROSS_CHAIN
                       - SOURCE_TYPE_MIRROR_PENDING
+                      - SOURCE_TYPE_BSC_CROSS_CHAIN
+                      - SOURCE_TYPE_OP_CROSS_CHAIN
                     default: SOURCE_TYPE_ORIGIN
                     title: >-
                       SourceType represents the source of resource creation,
@@ -3568,8 +3582,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                     create_at:
                       type: string
@@ -3772,8 +3787,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                     id:
                       type: string
@@ -3949,8 +3965,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                       title: >-
                         SourceType represents the source of resource creation,
@@ -4165,8 +4182,9 @@ paths:
                       type: string
                       enum:
                         - SOURCE_TYPE_ORIGIN
-                        - SOURCE_TYPE_BSC_CROSS_CHAIN
                         - SOURCE_TYPE_MIRROR_PENDING
+                        - SOURCE_TYPE_BSC_CROSS_CHAIN
+                        - SOURCE_TYPE_OP_CROSS_CHAIN
                       default: SOURCE_TYPE_ORIGIN
                       title: >-
                         SourceType represents the source of resource creation,
@@ -4468,6 +4486,30 @@ paths:
                     type: integer
                     format: int64
                     title: the max number of local virtual group per bucket
+                  op_mirror_bucket_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror bucket tx to op chain
+                  op_mirror_bucket_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      relayer fee for the ACK or FAIL_ACK package of the mirror
+                      bucket tx to op chain
+                  op_mirror_object_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_object_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
+                  op_mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -4611,6 +4653,30 @@ paths:
                     type: integer
                     format: int64
                     title: the max number of local virtual group per bucket
+                  op_mirror_bucket_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror bucket tx to op chain
+                  op_mirror_bucket_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      relayer fee for the ACK or FAIL_ACK package of the mirror
+                      bucket tx to op chain
+                  op_mirror_object_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_object_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
+                  op_mirror_group_relayer_fee:
+                    type: string
+                    title: relayer fee for the mirror object tx to op chain
+                  op_mirror_group_ack_relayer_fee:
+                    type: string
+                    title: >-
+                      Relayer fee for the ACK or FAIL_ACK package of the mirror
+                      object tx to op chain
             description: >-
               QueryVersionedParamsResponse is response type for the Query/Params
               RPC method with timestamp.
@@ -15658,6 +15724,12 @@ paths:
                       type: string
                       format: byte
       parameters:
+        - name: dest_chain_id
+          description: destination chain id.
+          in: query
+          required: false
+          type: integer
+          format: int64
         - name: channel_id
           description: channel id of the cross chain package.
           in: query
@@ -15758,6 +15830,12 @@ paths:
                       type: string
                       format: byte
       parameters:
+        - name: dest_chain_id
+          description: destination chain id.
+          in: query
+          required: false
+          type: integer
+          format: int64
         - name: channel_id
           description: channel id of the cross chain package.
           in: query
@@ -15806,6 +15884,12 @@ paths:
                       type: string
                       format: byte
       parameters:
+        - name: dest_chain_id
+          description: destination chain id.
+          in: query
+          required: false
+          type: integer
+          format: int64
         - name: channel_id
           description: channel id of the cross chain package.
           in: query
@@ -29167,6 +29251,10 @@ paths:
                   min_gas_price:
                     type: string
                     description: MinGasPrice are the min gas price.
+                  rw_used:
+                    type: string
+                    format: uint64
+                    description: RWUsed is the amount of r/w actually consumed.
               result:
                 description: result is the result of the simulation.
                 type: object
@@ -32703,6 +32791,23 @@ definitions:
         type: string
         description: details define other optional details.
     description: Description defines a storage provider description.
+  greenfield.sp.GlobalSpStorePrice:
+    type: object
+    properties:
+      update_time_sec:
+        type: string
+        format: int64
+        title: update time, unix timestamp in seconds
+      read_price:
+        type: string
+        title: read price, in bnb wei per charge byte
+      primary_store_price:
+        type: string
+        title: primary store price, in bnb wei per charge byte
+      secondary_store_price:
+        type: string
+        title: secondary store price, in bnb wei per charge byte
+    title: global sp store price, the price for all sps
   greenfield.sp.MaintenanceRecord:
     type: object
     properties:
@@ -32755,31 +32860,26 @@ definitions:
         title: >-
           the number of blocks to be wait for sp to be in maintenance mode again
           if already requested
+      update_global_price_interval:
+        type: string
+        format: uint64
+        title: >-
+          the time interval to update global storage price, if it is not set
+          then the price will be updated at the first block of each natural
+          month
+      update_price_disallowed_days:
+        type: integer
+        format: int64
+        title: >-
+          the days counting backwards from end of a month in which a sp cannot
+          update its price
     description: Params defines the parameters for the module.
-  greenfield.sp.QueryGetSecondarySpStorePriceByTimeResponse:
+  greenfield.sp.QueryGlobalSpStorePriceByTimeResponse:
     type: object
     properties:
-      secondary_sp_store_price:
+      global_sp_store_price:
         type: object
         properties:
-          update_time_sec:
-            type: string
-            format: int64
-            title: update time, unix timestamp in seconds
-          store_price:
-            type: string
-            title: store price, in bnb wei per charge byte
-        title: global secondary sp store price, the price for all secondary sps
-  greenfield.sp.QueryGetSpStoragePriceByTimeResponse:
-    type: object
-    properties:
-      sp_storage_price:
-        type: object
-        properties:
-          sp_id:
-            type: integer
-            format: int64
-            title: sp id
           update_time_sec:
             type: string
             format: int64
@@ -32787,14 +32887,13 @@ definitions:
           read_price:
             type: string
             title: read price, in bnb wei per charge byte
-          free_read_quota:
+          primary_store_price:
             type: string
-            format: uint64
-            title: free read quota, in byte
-          store_price:
+            title: primary store price, in bnb wei per charge byte
+          secondary_store_price:
             type: string
-            title: store price, in bnb wei per charge byte
-        title: storage price of a specific sp
+            title: secondary store price, in bnb wei per charge byte
+        title: global sp store price, the price for all sps
   greenfield.sp.QueryParamsResponse:
     type: object
     properties:
@@ -32831,7 +32930,45 @@ definitions:
             title: >-
               the number of blocks to be wait for sp to be in maintenance mode
               again if already requested
+          update_global_price_interval:
+            type: string
+            format: uint64
+            title: >-
+              the time interval to update global storage price, if it is not set
+              then the price will be updated at the first block of each natural
+              month
+          update_price_disallowed_days:
+            type: integer
+            format: int64
+            title: >-
+              the days counting backwards from end of a month in which a sp
+              cannot update its price
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.sp.QuerySpStoragePriceResponse:
+    type: object
+    properties:
+      sp_storage_price:
+        type: object
+        properties:
+          sp_id:
+            type: integer
+            format: int64
+            title: sp id
+          update_time_sec:
+            type: string
+            format: int64
+            title: update time, unix timestamp in seconds
+          read_price:
+            type: string
+            title: read price, in bnb wei per charge byte
+          free_read_quota:
+            type: string
+            format: uint64
+            title: free read quota, in byte
+          store_price:
+            type: string
+            title: store price, in bnb wei per charge byte
+        title: storage price of a specific sp
   greenfield.sp.QueryStorageProviderByOperatorAddressResponse:
     type: object
     properties:
@@ -33160,17 +33297,6 @@ definitions:
               PageRequest.count_total
 
               was set, its value is undefined otherwise
-  greenfield.sp.SecondarySpStorePrice:
-    type: object
-    properties:
-      update_time_sec:
-        type: string
-        format: int64
-        title: update time, unix timestamp in seconds
-      store_price:
-        type: string
-        title: store price, in bnb wei per charge byte
-    title: global secondary sp store price, the price for all secondary sps
   greenfield.sp.SpStoragePrice:
     type: object
     properties:
@@ -33634,8 +33760,9 @@ definitions:
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
-          - SOURCE_TYPE_BSC_CROSS_CHAIN
           - SOURCE_TYPE_MIRROR_PENDING
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_OP_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
       create_at:
         type: string
@@ -33721,8 +33848,9 @@ definitions:
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
-          - SOURCE_TYPE_BSC_CROSS_CHAIN
           - SOURCE_TYPE_MIRROR_PENDING
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_OP_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
       id:
         type: string
@@ -33917,8 +34045,9 @@ definitions:
         type: string
         enum:
           - SOURCE_TYPE_ORIGIN
-          - SOURCE_TYPE_BSC_CROSS_CHAIN
           - SOURCE_TYPE_MIRROR_PENDING
+          - SOURCE_TYPE_BSC_CROSS_CHAIN
+          - SOURCE_TYPE_OP_CROSS_CHAIN
         default: SOURCE_TYPE_ORIGIN
         title: |-
           SourceType represents the source of resource creation, which can
@@ -34072,6 +34201,30 @@ definitions:
         type: integer
         format: int64
         title: the max number of local virtual group per bucket
+      op_mirror_bucket_relayer_fee:
+        type: string
+        title: relayer fee for the mirror bucket tx to op chain
+      op_mirror_bucket_ack_relayer_fee:
+        type: string
+        title: >-
+          relayer fee for the ACK or FAIL_ACK package of the mirror bucket tx to
+          op chain
+      op_mirror_object_relayer_fee:
+        type: string
+        title: relayer fee for the mirror object tx to op chain
+      op_mirror_object_ack_relayer_fee:
+        type: string
+        title: >-
+          Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to
+          op chain
+      op_mirror_group_relayer_fee:
+        type: string
+        title: relayer fee for the mirror object tx to op chain
+      op_mirror_group_ack_relayer_fee:
+        type: string
+        title: >-
+          Relayer fee for the ACK or FAIL_ACK package of the mirror object tx to
+          op chain
     description: Params defines the parameters for the module.
   greenfield.storage.QueryBucketNFTResponse:
     type: object
@@ -34243,8 +34396,9 @@ definitions:
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
-              - SOURCE_TYPE_BSC_CROSS_CHAIN
               - SOURCE_TYPE_MIRROR_PENDING
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_OP_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
           create_at:
             type: string
@@ -34316,8 +34470,9 @@ definitions:
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
-              - SOURCE_TYPE_BSC_CROSS_CHAIN
               - SOURCE_TYPE_MIRROR_PENDING
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_OP_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
           id:
             type: string
@@ -34397,8 +34552,9 @@ definitions:
             type: string
             enum:
               - SOURCE_TYPE_ORIGIN
-              - SOURCE_TYPE_BSC_CROSS_CHAIN
               - SOURCE_TYPE_MIRROR_PENDING
+              - SOURCE_TYPE_BSC_CROSS_CHAIN
+              - SOURCE_TYPE_OP_CROSS_CHAIN
             default: SOURCE_TYPE_ORIGIN
             title: |-
               SourceType represents the source of resource creation, which can
@@ -34520,8 +34676,9 @@ definitions:
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
-                - SOURCE_TYPE_BSC_CROSS_CHAIN
                 - SOURCE_TYPE_MIRROR_PENDING
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_OP_CROSS_CHAIN
               default: SOURCE_TYPE_ORIGIN
             create_at:
               type: string
@@ -34630,8 +34787,9 @@ definitions:
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
-                - SOURCE_TYPE_BSC_CROSS_CHAIN
                 - SOURCE_TYPE_MIRROR_PENDING
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_OP_CROSS_CHAIN
               default: SOURCE_TYPE_ORIGIN
             id:
               type: string
@@ -34713,8 +34871,9 @@ definitions:
               type: string
               enum:
                 - SOURCE_TYPE_ORIGIN
-                - SOURCE_TYPE_BSC_CROSS_CHAIN
                 - SOURCE_TYPE_MIRROR_PENDING
+                - SOURCE_TYPE_BSC_CROSS_CHAIN
+                - SOURCE_TYPE_OP_CROSS_CHAIN
               default: SOURCE_TYPE_ORIGIN
               title: |-
                 SourceType represents the source of resource creation, which can
@@ -34889,6 +35048,30 @@ definitions:
             type: integer
             format: int64
             title: the max number of local virtual group per bucket
+          op_mirror_bucket_relayer_fee:
+            type: string
+            title: relayer fee for the mirror bucket tx to op chain
+          op_mirror_bucket_ack_relayer_fee:
+            type: string
+            title: >-
+              relayer fee for the ACK or FAIL_ACK package of the mirror bucket
+              tx to op chain
+          op_mirror_object_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_object_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
+          op_mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
     description: >-
       QueryVersionedParamsResponse is response type for the Query/Params RPC
       method with timestamp.
@@ -34993,6 +35176,30 @@ definitions:
             type: integer
             format: int64
             title: the max number of local virtual group per bucket
+          op_mirror_bucket_relayer_fee:
+            type: string
+            title: relayer fee for the mirror bucket tx to op chain
+          op_mirror_bucket_ack_relayer_fee:
+            type: string
+            title: >-
+              relayer fee for the ACK or FAIL_ACK package of the mirror bucket
+              tx to op chain
+          op_mirror_object_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_object_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
+          op_mirror_group_relayer_fee:
+            type: string
+            title: relayer fee for the mirror object tx to op chain
+          op_mirror_group_ack_relayer_fee:
+            type: string
+            title: >-
+              Relayer fee for the ACK or FAIL_ACK package of the mirror object
+              tx to op chain
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.storage.QueryPolicyByIdResponse:
     type: object
@@ -35476,8 +35683,9 @@ definitions:
     type: string
     enum:
       - SOURCE_TYPE_ORIGIN
-      - SOURCE_TYPE_BSC_CROSS_CHAIN
       - SOURCE_TYPE_MIRROR_PENDING
+      - SOURCE_TYPE_BSC_CROSS_CHAIN
+      - SOURCE_TYPE_OP_CROSS_CHAIN
     default: SOURCE_TYPE_ORIGIN
     title: |-
       SourceType represents the source of resource creation, which can
@@ -51786,6 +51994,10 @@ definitions:
       min_gas_price:
         type: string
         description: MinGasPrice are the min gas price.
+      rw_used:
+        type: string
+        format: uint64
+        description: RWUsed is the amount of r/w actually consumed.
     description: GasInfo defines tx execution gas context.
   cosmos.base.abci.v1beta1.Result:
     type: object
@@ -54612,6 +54824,10 @@ definitions:
           min_gas_price:
             type: string
             description: MinGasPrice are the min gas price.
+          rw_used:
+            type: string
+            format: uint64
+            description: RWUsed is the amount of r/w actually consumed.
       result:
         description: result is the result of the simulation.
         type: object

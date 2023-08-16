@@ -342,10 +342,7 @@ message MsgGroupMember {
   // member defines the account address of the group member
   string member = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // expiration_time defines the expiration time of the group member
-  google.protobuf.Timestamp expiration_time = 2 [
-    (gogoproto.stdtime) = true,
-    (gogoproto.nullable) = false
-  ];
+  google.protobuf.Timestamp expiration_time = 2 [(gogoproto.stdtime) = true];
 }
 
 message MsgUpdateGroupExtra {
@@ -490,6 +487,9 @@ message MsgMirrorObject {
 
   // object_name defines the name of object
   string object_name = 4;
+
+  // destination chain id
+  uint32 dest_chain_id = 5;
 }
 
 message MsgMirrorObjectResponse {}
@@ -509,6 +509,9 @@ message MsgMirrorBucket {
 
   // bucket_name defines a globally unique name of bucket
   string bucket_name = 3;
+
+  // destination chain id
+  uint32 dest_chain_id = 4;
 }
 
 message MsgUpdateObjectInfoResponse {}
@@ -547,6 +550,9 @@ message MsgMirrorGroup {
 
   // group_name defines the name of the group
   string group_name = 3;
+
+  // destination chain id
+  uint32 dest_chain_id = 4;
 }
 
 message MsgMirrorGroupResponse {}
