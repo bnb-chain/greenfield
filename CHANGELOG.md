@@ -4,7 +4,7 @@
 This release contains 4 features and 4 bugfixes.      
 
 Features:
-* [#411](https://github.com/bnb-chain/greenfield/pull/411) feat: add
+* [#411](https://github.com/bnb-chain/greenfield/pull/411) feat: add RemoveExpiredPolicies to add method to remove expired data from kvstore
 * [#413](https://github.com/bnb-chain/greenfield/pull/413) feat: implement cross-chain mechanism between op and greenfield
 * [#415](https://github.com/bnb-chain/greenfield/pull/415) feat: enable plain store for full node
 * [#420](https://github.com/bnb-chain/greenfield/pull/420) feat: skip sig verification on genesis block
