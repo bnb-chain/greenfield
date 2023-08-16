@@ -702,8 +702,8 @@ github.com/ipfs/go-log/v2 v2.1.1/go.mod h1:2v2nsGfZsvvAJz13SyFzf9ObaqwHiHxsPLEHn
 github.com/ipfs/go-log/v2 v2.1.3/go.mod h1:/8d0SH3Su5Ooc31QlL1WysJhvyOTDCjcCZ9Axpmri6g=
 github.com/ipfs/go-log/v2 v2.3.0/go.mod h1:QqGoj30OTpnKaG/LKTGTxoP2mmQtjVMEnK72gynbe/g=
 github.com/ipfs/go-log/v2 v2.4.0/go.mod h1:nPZnh7Cj7lwS3LpRU5Mwr2ol1c2gXIEXuF6aywqrtmo=
-github.com/j75689/greenfield-cosmos-sdk v0.0.0-20230816015055-befcfb33ef1e h1:8y425s2sT2j0LL72WX50lGL5t6FCqDEZvXZSQ0yNQVQ=
-github.com/j75689/greenfield-cosmos-sdk v0.0.0-20230816015055-befcfb33ef1e/go.mod h1:C4iDO5NuIlmlyFsIqhItF1A6ouAwsZmn20LQ0YhE0Mg=
+github.com/j75689/greenfield-cosmos-sdk v0.0.0-20230816020331-19cb4c075f46 h1:e19rHrAIw81OBSFJw1vl0ik1SIYiXFZGcxSwCXZMPOM=
+github.com/j75689/greenfield-cosmos-sdk v0.0.0-20230816020331-19cb4c075f46/go.mod h1:IGSt+LL/UIUEBzpy3AOdrs3wDsSKYeqUZDH0shyOFkg=
 github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jackpal/go-nat-pmp v1.0.2/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jbenet/go-cienv v0.1.0/go.mod h1:TqNnHUmJgXau0nCzC7kXWeotg3J9W34CUv5Djy1+FlA=
