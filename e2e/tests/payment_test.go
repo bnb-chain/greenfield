@@ -126,7 +126,7 @@ func (s *PaymentTestSuite) TestVersionedParams_SealObjectAfterReserveTimeChange(
 	s.Require().True(found)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp, gvg)
 
 	// update params
 	params := s.queryParams()
@@ -180,7 +180,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteBucketAfterValidatorTaxRate
 	s.T().Logf("netflow, validatorTaxPoolRate: %s", validatorTaxPoolRate)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp, gvg)
 
 	// seal object
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
@@ -221,7 +221,7 @@ func (s *PaymentTestSuite) TestVersionedParams_DeleteObjectAfterReserveTimeChang
 	s.Require().True(found)
 
 	// create bucket, create object
-	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp)
+	user, bucketName, objectName, objectId, checksums := s.createBucketAndObject(sp, gvg)
 
 	// seal object
 	s.sealObject(sp, gvg, bucketName, objectName, objectId, checksums)
@@ -2279,11 +2279,8 @@ func (s *PaymentTestSuite) updateParams(params paymenttypes.Params) {
 	s.T().Log("params after", core.YamlString(queryParamsResponse.Params))
 }
 
-func (s *PaymentTestSuite) createBucketAndObject(sp *core.StorageProvider) (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
+func (s *PaymentTestSuite) createBucketAndObject(sp *core.StorageProvider, gvg *virtualgrouptypes.GlobalVirtualGroup) (keys.KeyManager, string, string, storagetypes.Uint, [][]byte) {
 	var err error
-	gvg, found := sp.GetFirstGlobalVirtualGroup()
-	s.Require().True(found)
-
 	// CreateBucket
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
 	bucketName := "ch" + storagetestutils.GenRandomBucketName()
