@@ -42,14 +42,10 @@ func (k Keeper) GetAllAutoSettleRecord(ctx sdk.Context) (list []types.AutoSettle
 		val := types.ParseAutoSettleRecordKey(iterator.Key())
 		list = append(list, val)
 	}
-
 	return
 }
 
 func (k Keeper) UpdateAutoSettleRecord(ctx sdk.Context, addr sdk.AccAddress, oldTime, newTime int64) {
-	if oldTime == newTime {
-		return
-	}
 	if oldTime != 0 {
 		k.RemoveAutoSettleRecord(ctx, oldTime, addr)
 	}
