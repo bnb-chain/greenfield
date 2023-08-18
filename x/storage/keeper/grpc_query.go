@@ -367,7 +367,7 @@ func (k Keeper) QueryIsPriceChanged(c context.Context, req *types.QueryIsPriceCh
 		Changed:                    changed,
 		CurrentReadPrice:           currentPrice.ReadPrice,
 		CurrentPrimaryStorePrice:   currentPrice.PrimaryStorePrice,
-		CurrentSecondaryStorePrice: currentPrice.ReadPrice,
+		CurrentSecondaryStorePrice: currentPrice.SecondaryStorePrice,
 		CurrentValidatorTaxRate:    currentTaxRate,
 		NewReadPrice:               newPrice.ReadPrice,
 		NewPrimaryStorePrice:       newPrice.PrimaryStorePrice,
