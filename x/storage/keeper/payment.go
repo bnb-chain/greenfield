@@ -250,7 +250,7 @@ func (k Keeper) UnChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, buck
 func (k Keeper) ChargeObjectStoreFeeForEarlyDeletion(ctx sdk.Context, userFlows []types.OutFlow, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo, timeToPay int64) error {
 	totalStaticBalanceChange := sdkmath.NewInt(0)
 	for _, flow := range userFlows {
-		staticBalanceChange := flow.Rate.MulRaw(timeToPay)
+		staticBalanceChange := flow.Rate.Abs().MulRaw(timeToPay)
 		_, err := k.paymentKeeper.UpdateStreamRecordByAddr(ctx,
 			types.NewDefaultStreamRecordChangeWithAddr(sdk.MustAccAddressFromHex(flow.ToAddress)).WithStaticBalanceChange(staticBalanceChange))
 		if err != nil {
