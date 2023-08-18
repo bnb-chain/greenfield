@@ -209,7 +209,7 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 		globalPriceResAfter1, _ = s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
 		s.T().Log("globalPriceResAfter1", core.YamlString(globalPriceResAfter1))
 		if !globalPriceResAfter1.GlobalSpStorePrice.PrimaryStorePrice.Equal(globalPriceResBefore.GlobalSpStorePrice.PrimaryStorePrice) {
-			s.CheckGlobalSpStorePrice()
+			_ = s.CheckGlobalSpStorePrice()
 			priceChanged = true
 			break
 		}
@@ -219,7 +219,9 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 	globalPriceResAfter2, _ := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{Timestamp: 0})
 	s.T().Log("globalPriceResAfter2", core.YamlString(globalPriceResAfter2))
 
-	s.CheckGlobalSpStorePrice()
+	checked := s.CheckGlobalSpStorePrice()
+	s.Require().True(checked)
+
 	if !priceChanged { //if price not changed, then after 6 seconds, it should change
 		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.PrimaryStorePrice, globalPriceResBefore.GlobalSpStorePrice.PrimaryStorePrice)
 		s.Require().NotEqual(globalPriceResAfter2.GlobalSpStorePrice.SecondaryStorePrice, globalPriceResBefore.GlobalSpStorePrice.SecondaryStorePrice)
@@ -248,7 +250,7 @@ func (s *StorageProviderTestSuite) TestUpdateSpStoragePrice() {
 	s.SendTxBlockWithExpectErrorString(msgUpdateSpStoragePrice, sp.OperatorKey, "update price is disallowed")
 }
 
-func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
+func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() bool {
 	ctx := context.Background()
 	queryGlobalSpStorePriceByTimeResp, err := s.Client.QueryGlobalSpStorePriceByTime(ctx, &sptypes.QueryGlobalSpStorePriceByTimeRequest{
 		Timestamp: 0,
@@ -269,6 +271,12 @@ func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
 			})
 			s.Require().NoError(err)
 			s.T().Logf("sp: %s, storage price: %s", sp.OperatorAddress, core.YamlString(spStoragePrice.SpStoragePrice))
+
+			if spStoragePrice.SpStoragePrice.UpdateTimeSec >= queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice.UpdateTimeSec {
+				s.T().Logf("cannot do the calculation for there is a new price update for %s", sp.OperatorAddress)
+				return false
+			}
+
 			storePrices = append(storePrices, spStoragePrice.SpStoragePrice.StorePrice)
 			readPrices = append(readPrices, spStoragePrice.SpStoragePrice.ReadPrice)
 		}
@@ -296,6 +304,7 @@ func (s *StorageProviderTestSuite) CheckGlobalSpStorePrice() {
 	expectedSecondarySpStorePrice := params.Params.SecondarySpStorePriceRatio.Mul(storeMedian)
 	s.Require().Equal(expectedSecondarySpStorePrice, queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice.SecondaryStorePrice)
 	s.Require().Equal(readMedian, queryGlobalSpStorePriceByTimeResp.GlobalSpStorePrice.ReadPrice)
+	return true
 }
 
 func TestStorageProviderTestSuite(t *testing.T) {
