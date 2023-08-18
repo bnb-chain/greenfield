@@ -4,8 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/x/sp/keeper"
-
 	"github.com/cosmos/cosmos-sdk/crypto/hd"
 	"github.com/cosmos/cosmos-sdk/testutil"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -16,6 +14,7 @@ import (
 
 	"github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/bnb-chain/greenfield/x/sp/keeper"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 )
 
