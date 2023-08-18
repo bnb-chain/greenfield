@@ -4,8 +4,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/bnb-chain/greenfield/testutil/sample"
-
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -18,6 +16,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/bnb-chain/greenfield/testutil/sample"
 	spmodule "github.com/bnb-chain/greenfield/x/sp"
 	"github.com/bnb-chain/greenfield/x/sp/keeper"
 	"github.com/bnb-chain/greenfield/x/sp/types"

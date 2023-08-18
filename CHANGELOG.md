@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.2.4-alpha.3
+This release contains 1 bugfix.
+
+Bugfixes:
+* [#428](https://github.com/bnb-chain/greenfield/pull/428) fix: fix early deletion fee calculation
+
 ## v0.2.4-alpha.2
 This release contains 4 features and 4 bugfixes.      
 
