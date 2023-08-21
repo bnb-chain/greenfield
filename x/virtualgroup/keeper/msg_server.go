@@ -56,8 +56,8 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
-	if !sp.IsInService() {
-		return nil, sptypes.ErrStorageProviderNotInService.Wrapf("sp status: %s", sp.Status.String())
+	if !sp.IsInService() && !sp.IsInMaintenance() {
+		return nil, sptypes.ErrStorageProviderNotInService.Wrapf("sp is not in service or in maintenance, status: %s", sp.Status.String())
 	}
 
 	stat := k.GetOrCreateGVGStatisticsWithinSP(ctx, sp.Id)
@@ -277,7 +277,7 @@ func (k msgServer) SwapOut(goCtx context.Context, msg *types.MsgSwapOut) (*types
 	}
 
 	if !successorSP.IsInService() {
-		return nil, sptypes.ErrStorageProviderNotInService.Wrapf("successor sp status: %s", sp.Status.String())
+		return nil, sptypes.ErrStorageProviderNotInService.Wrapf("successor sp is not in service, status: %s", sp.Status.String())
 	}
 	// verify the approval
 	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(msg.GetApprovalBytes()), msg.SuccessorSpApproval.Sig)
