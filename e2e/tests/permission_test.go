@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"strings"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -1877,4 +1878,31 @@ func (s *StorageTestSuite) UpdateParams(newParams *storagetypes.Params) {
 	s.Require().NoError(err)
 	s.T().Logf("QueryParmas: %s", queryParamsResponse.Params.String())
 	s.Require().Equal(queryParamsResponse.Params, *newParams)
+}
+
+func (s *StorageTestSuite) TestGrantsPermissionToObjectWithWildcardInName() {
+	user := s.GenAndChargeAccounts(2, 1000000)
+
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	bucketName := storageutil.GenRandomBucketName()
+	objectName := "*.jpg"
+	s.CreateObject(user[0], sp, gvg.Id, bucketName, objectName)
+
+	// grant permission to *.jpg
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewObjectGRN(bucketName, objectName).String(), types.NewPrincipalWithAccount(user[1].GetAddr()), []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(user[0], msgPutObjectPolicy)
+
+	// Delete object
+	s.SendTxBlock(user[1], storagetypes.NewMsgDeleteObject(user[1].GetAddr(), bucketName, objectName))
+
+	// head object
+	_, err := s.Client.HeadObject(context.Background(), &storagetypes.QueryHeadObjectRequest{BucketName: bucketName, ObjectName: objectName})
+	s.Require().True(strings.Contains(err.Error(), "No such object"))
 }
