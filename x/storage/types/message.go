@@ -1153,7 +1153,7 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 	}
 
 	var grn grn2.GRN
-	err = grn.ParseFromString(msg.Resource, false)
+	err = grn.ParseFromString(msg.Resource, true)
 	if err != nil {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
