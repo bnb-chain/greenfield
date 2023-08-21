@@ -356,7 +356,7 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
 
 	var grn types2.GRN
-	err := grn.ParseFromString(msg.Resource, false)
+	err := grn.ParseFromString(msg.Resource, true)
 	if err != nil {
 		return nil, err
 	}
