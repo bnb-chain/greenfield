@@ -186,7 +186,6 @@ func (s *TestSuite) TestEndBlocker_WithoutUpdateInterval() {
 	s.spKeeper.SetSpStoragePrice(s.ctx, spPrice)
 
 	// in the same month
-	s.ctx = s.ctx.WithValue(spmodule.LastBlockTimeKey, newTime+1)
 	s.ctx = s.ctx.WithBlockTime(time.Unix(newTime+2, 0))
 	spmodule.EndBlocker(s.ctx, *s.spKeeper)
 	// global price will not be updated
@@ -196,7 +195,6 @@ func (s *TestSuite) TestEndBlocker_WithoutUpdateInterval() {
 	s.Require().Equal(globalPrice.ReadPrice, globalPriceAfter.ReadPrice)
 
 	// a new month
-	s.ctx = s.ctx.WithValue(spmodule.LastBlockTimeKey, newTime+10)
 	t := time.Unix(newTime+10, 0).UTC()
 	year, month, _ := t.Date()
 	location := t.Location()
