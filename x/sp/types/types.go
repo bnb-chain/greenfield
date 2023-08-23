@@ -94,6 +94,10 @@ func (sp *StorageProvider) IsInService() bool {
 	return sp.GetStatus() == STATUS_IN_SERVICE
 }
 
+func (sp *StorageProvider) IsInMaintenance() bool {
+	return sp.GetStatus() == STATUS_IN_MAINTENANCE
+}
+
 func (sp *StorageProvider) GetTotalDeposit() math.Int { return sp.TotalDeposit }
 
 // constant used in flags to indicate that description field should not be updated
