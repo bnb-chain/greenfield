@@ -70,6 +70,10 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		if !found {
 			return nil, sdkerrors.Wrapf(sptypes.ErrStorageProviderNotFound, "secondary sp not found, ID: %d", id)
 		}
+		if !ssp.IsInService() && !ssp.IsInMaintenance() {
+			return nil, sptypes.ErrStorageProviderNotInService.Wrapf("sp in GVG is not in service or in maintenance, status: %s", sp.Status.String())
+		}
+
 		secondarySpIds = append(secondarySpIds, ssp.Id)
 		gvgStatisticsWithinSP := k.GetOrCreateGVGStatisticsWithinSP(ctx, ssp.Id)
 		gvgStatisticsWithinSP.SecondaryCount++
