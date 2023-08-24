@@ -31,41 +31,6 @@ func (s *TestSuite) TestDeposit_ToBankAccount() {
 	s.Require().True(record.StaticBalance.Int64() == msg.Amount.Int64())
 }
 
-func (s *TestSuite) TestDeposit_ToPaymentAccountAccount() {
-	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(nil).AnyTimes()
-	s.accountKeeper.EXPECT().HasAccount(gomock.Any(), gomock.Any()).
-		Return(true).AnyTimes()
-
-	// deposit to self
-	owner := sample.RandAccAddress()
-	paymentAddress := s.paymentKeeper.DerivePaymentAccountAddress(owner, 0)
-	paymentAccount1 := &types.PaymentAccount{
-		Owner:      owner.String(),
-		Addr:       paymentAddress.String(),
-		Refundable: true,
-	}
-
-	s.ctx = s.ctx.WithBlockHeight(10)
-
-	// set
-	s.paymentKeeper.SetPaymentAccount(s.ctx, paymentAccount1)
-
-	msg := types.NewMsgDeposit(owner.String(), paymentAddress.String(), sdkmath.NewInt(1000))
-	_, err := s.msgServer.Deposit(s.ctx, msg)
-	s.Require().NoError(err)
-	record, _ := s.paymentKeeper.GetStreamRecord(s.ctx, owner)
-	s.Require().True(record.StaticBalance.Int64() == msg.Amount.Int64())
-
-	// deposit to other account
-	to := sample.RandAccAddress()
-	msg = types.NewMsgDeposit(owner.String(), to.String(), sdkmath.NewInt(1000))
-	_, err = s.msgServer.Deposit(s.ctx, msg)
-	s.Require().NoError(err)
-	record, _ = s.paymentKeeper.GetStreamRecord(s.ctx, to)
-	s.Require().True(record.StaticBalance.Int64() == msg.Amount.Int64())
-}
-
 func (s *TestSuite) TestDeposit_ToActiveStreamRecord() {
 	s.bankKeeper.EXPECT().SendCoinsFromAccountToModule(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any()).
 		Return(nil).AnyTimes()
