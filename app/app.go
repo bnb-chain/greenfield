@@ -763,9 +763,6 @@ func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.R
 
 // EndBlocker application updates every end block
 func (app *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	lastBlockTime := app.GetCheckState().Context().BlockHeader().Time.Unix()
-	ctx = ctx.WithValue(spmodule.LastBlockTimeKey, lastBlockTime)
-
 	resp := app.mm.EndBlock(ctx, req)
 	if app.IsIavlStore() {
 		bankIavl, _ := app.CommitMultiStore().GetCommitStore(sdk.NewKVStoreKey(banktypes.StoreKey)).(*iavl.Store)
