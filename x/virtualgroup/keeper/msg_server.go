@@ -56,6 +56,10 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
+	if !sp.IsInService() && !sp.IsInMaintenance() {
+		return nil, sptypes.ErrStorageProviderNotInService.Wrapf("sp is not in service or in maintenance, status: %s", sp.Status.String())
+	}
+
 	stat := k.GetOrCreateGVGStatisticsWithinSP(ctx, sp.Id)
 	stat.PrimaryCount++
 	gvgStatisticsWithinSPs = append(gvgStatisticsWithinSPs, stat)
@@ -66,6 +70,10 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		if !found {
 			return nil, sdkerrors.Wrapf(sptypes.ErrStorageProviderNotFound, "secondary sp not found, ID: %d", id)
 		}
+		if !ssp.IsInService() && !ssp.IsInMaintenance() {
+			return nil, sptypes.ErrStorageProviderNotInService.Wrapf("sp in GVG is not in service or in maintenance, status: %s", sp.Status.String())
+		}
+
 		secondarySpIds = append(secondarySpIds, ssp.Id)
 		gvgStatisticsWithinSP := k.GetOrCreateGVGStatisticsWithinSP(ctx, ssp.Id)
 		gvgStatisticsWithinSP.SecondaryCount++
@@ -272,6 +280,9 @@ func (k msgServer) SwapOut(goCtx context.Context, msg *types.MsgSwapOut) (*types
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("successor sp not found.")
 	}
 
+	if !successorSP.IsInService() {
+		return nil, sptypes.ErrStorageProviderNotInService.Wrapf("successor sp is not in service, status: %s", sp.Status.String())
+	}
 	// verify the approval
 	err := gnfdtypes.VerifySignature(sdk.MustAccAddressFromHex(successorSP.ApprovalAddress), sdk.Keccak256(msg.GetApprovalBytes()), msg.SuccessorSpApproval.Sig)
 	if err != nil {
