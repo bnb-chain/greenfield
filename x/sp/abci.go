@@ -35,9 +35,6 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	if ctx.BlockHeight() == 153419 || ctx.BlockHeight() == 160857 {
 		needUpdate = true
 	}
-	if ctx.BlockHeight() == 189875 {
-		panic("need to switch binary")
-	}
 	if needUpdate { // no global price yet or need to update
 		err = k.UpdateGlobalSpStorePrice(ctx)
 		if err != nil {
