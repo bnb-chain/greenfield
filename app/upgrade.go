@@ -51,7 +51,7 @@ func (app *App) registerNagquUpgradeHandler() {
 	// Register the upgrade initializer
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Nagqu,
 		func() error {
-			app.Logger().Info("Init enable public delegation upgrade")
+			app.Logger().Info("Init Nagqu upgrade")
 			return nil
 		},
 	)

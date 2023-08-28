@@ -52,10 +52,9 @@ func (k Keeper) IsPaymentAccount(
 	addr sdk.AccAddress,
 ) bool {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
-	b := store.Get(types.PaymentAccountKey(
+	return store.Has(types.PaymentAccountKey(
 		addr,
 	))
-	return b != nil
 }
 
 // GetAllPaymentAccount returns all paymentAccount
