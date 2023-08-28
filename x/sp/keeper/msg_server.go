@@ -144,16 +144,6 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	k.SetStorageProviderByGcAddr(ctx, &sp)
 	k.SetStorageProviderByBlsKey(ctx, &sp)
 
-	// set initial sp storage price
-	spStoragePrice := types.SpStoragePrice{
-		SpId:          sp.Id,
-		UpdateTimeSec: ctx.BlockTime().Unix(),
-		ReadPrice:     msg.ReadPrice,
-		StorePrice:    msg.StorePrice,
-		FreeReadQuota: msg.FreeReadQuota,
-	}
-	k.SetSpStoragePrice(ctx, spStoragePrice)
-
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateStorageProvider{
 		SpId:               sp.Id,
 		SpAddress:          spAcc.String(),
@@ -170,6 +160,17 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	}); err != nil {
 		return nil, err
 	}
+
+	// set initial sp storage price
+	spStoragePrice := types.SpStoragePrice{
+		SpId:          sp.Id,
+		UpdateTimeSec: ctx.BlockTime().Unix(),
+		ReadPrice:     msg.ReadPrice,
+		StorePrice:    msg.StorePrice,
+		FreeReadQuota: msg.FreeReadQuota,
+	}
+	k.SetSpStoragePrice(ctx, spStoragePrice)
+
 	return &types.MsgCreateStorageProviderResponse{}, nil
 }
 
