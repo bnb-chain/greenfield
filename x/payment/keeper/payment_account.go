@@ -31,7 +31,7 @@ func (k Keeper) GetPaymentAccount(
 	ctx sdk.Context,
 	addr sdk.AccAddress,
 ) (val *types.PaymentAccount, found bool) {
-	val = &types.PaymentAccount{}
+	val = &types.PaymentAccount{Addr: addr.String()}
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
 
 	b := store.Get(types.PaymentAccountKey(

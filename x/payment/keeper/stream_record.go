@@ -29,7 +29,7 @@ func (k Keeper) CheckStreamRecord(streamRecord *types.StreamRecord) {
 		panic(fmt.Sprintf("invalid streamRecord netflowRate %s", streamRecord.NetflowRate))
 	}
 	if !streamRecord.FrozenNetflowRate.IsNil() && streamRecord.FrozenNetflowRate.IsPositive() {
-		panic(fmt.Sprintf("invalid streamRecord frozenNetflowRate %s", streamRecord.NetflowRate))
+		panic(fmt.Sprintf("invalid streamRecord frozenNetflowRate %s", streamRecord.FrozenNetflowRate))
 	}
 	if streamRecord.LockBalance.IsNil() || streamRecord.LockBalance.IsNegative() {
 		panic(fmt.Sprintf("invalid streamRecord lockBalance %s", streamRecord.LockBalance))
@@ -146,7 +146,7 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 	timestamp := streamRecord.CrudTimestamp
 	params := k.GetParams(ctx)
 	// update delta balance
-	if currentTimestamp != timestamp {
+	if currentTimestamp > timestamp {
 		if !streamRecord.NetflowRate.IsZero() {
 			flowDelta := streamRecord.NetflowRate.MulRaw(currentTimestamp - timestamp)
 			streamRecord.StaticBalance = streamRecord.StaticBalance.Add(flowDelta)
