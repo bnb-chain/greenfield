@@ -9,9 +9,6 @@ import (
 	"github.com/bnb-chain/greenfield/x/sp/types"
 )
 
-// LastBlockTimeKey is the key to record last block's time, which will be set by app
-const LastBlockTimeKey = "last_block_time"
-
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	if ctx.BlockHeight()%types.MaintenanceRecordsGCFrequencyInBlocks == 0 {
 		k.ForceUpdateMaintenanceRecords(ctx)
@@ -28,13 +25,10 @@ func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 				needUpdate = true
 			}
 		} else { // update every month
-			lastBlockTimeUnix := ctx.Value(LastBlockTimeKey).(int64)
-			if lastBlockTimeUnix != 0 {
-				lastBlockTime := time.Unix(lastBlockTimeUnix, 0).UTC()
-				currentBlockTime := ctx.BlockTime().UTC()
-				if lastBlockTime.Month() != currentBlockTime.Month() {
-					needUpdate = true
-				}
+			lastUpdateTime := time.Unix(price.UpdateTimeSec, 0).UTC()
+			currentBlockTime := ctx.BlockTime().UTC()
+			if lastUpdateTime.Month() != currentBlockTime.Month() {
+				needUpdate = true
 			}
 		}
 	}

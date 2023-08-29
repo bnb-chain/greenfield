@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.2.4
+This release contains all the changes in the v0.2.4 alpha versions and 5 new bugfixes.
+
+Bugfixes:
+* [#433](https://github.com/bnb-chain/greenfield/pull/433) fix: add sp exit status check when craete gvg
+* [#437](https://github.com/bnb-chain/greenfield/pull/437) fix: fix the last block time is empty issue
+* [#443](https://github.com/bnb-chain/greenfield/pull/443) fix: fix some issues in payment module
+* [#432](https://github.com/bnb-chain/greenfield/pull/432) fix: grant permission with wildcard objectname
+* [#440](https://github.com/bnb-chain/greenfield/pull/440) fix: check secondary sp in gvg
+
+Chores:
+* [#431](https://github.com/bnb-chain/greenfield/pull/431) chore: fix sp e2e test sometimes fail issue
+* [#442](https://github.com/bnb-chain/greenfield/pull/442) chore: switch the order of create sp event and update price event
+
 ## v0.2.4-alpha.3
 This release contains 1 bugfix.
 
