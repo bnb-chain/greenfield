@@ -22,12 +22,14 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, errors.Wrapf(types.ErrInvalidStreamAccountStatus, "stream record is frozen")
 	}
 	// check whether creator can withdraw
-	if msg.Creator != msg.From {
+	creator := sdk.MustAccAddressFromHex(msg.Creator)
+	if !creator.Equals(from) {
 		paymentAccount, found := k.Keeper.GetPaymentAccount(ctx, from)
 		if !found {
 			return nil, types.ErrPaymentAccountNotFound
 		}
-		if paymentAccount.Owner != msg.Creator {
+		owner := sdk.MustAccAddressFromHex(paymentAccount.Owner)
+		if !creator.Equals(owner) {
 			return nil, types.ErrNotPaymentAccountOwner
 		}
 		if !paymentAccount.Refundable {
@@ -44,7 +46,6 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 		return nil, errors.Wrapf(types.ErrInsufficientBalance, "static balance: %s after withdraw", streamRecord.StaticBalance)
 	}
 	// bank transfer
-	creator := sdk.MustAccAddressFromHex(msg.Creator)
 	coins := sdk.NewCoins(sdk.NewCoin(k.GetParams(ctx).FeeDenom, msg.Amount))
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, creator, coins)
 	if err != nil {

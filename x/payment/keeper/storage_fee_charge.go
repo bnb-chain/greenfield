@@ -60,7 +60,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 			streamRecord = types.NewStreamRecord(from, currentTime)
 		}
 		if streamRecord.Status == types.STREAM_ACCOUNT_STATUS_ACTIVE {
-			err = k.applyActiveUerFlows(ctx, userFlows, from, streamRecord)
+			err = k.applyActiveUserFlows(ctx, userFlows, from, streamRecord)
 			if err != nil {
 				return err
 			}
@@ -74,7 +74,7 @@ func (k Keeper) ApplyUserFlowsList(ctx sdk.Context, userFlowsList []types.UserFl
 	return nil
 }
 
-func (k Keeper) applyActiveUerFlows(ctx sdk.Context, userFlows types.UserFlows, from sdk.AccAddress, streamRecord *types.StreamRecord) error {
+func (k Keeper) applyActiveUserFlows(ctx sdk.Context, userFlows types.UserFlows, from sdk.AccAddress, streamRecord *types.StreamRecord) error {
 	var rateChanges []types.StreamRecordChange
 	totalRate := sdk.ZeroInt()
 	for _, flowChange := range userFlows.Flows {
