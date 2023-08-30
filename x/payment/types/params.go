@@ -2,7 +2,9 @@ package types
 
 import (
 	"fmt"
+	"math/big"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
@@ -10,22 +12,26 @@ import (
 var _ paramtypes.ParamSet = (*Params)(nil)
 
 var (
-	KeyReserveTime              = []byte("ReserveTime")
-	KeyForcedSettleTime         = []byte("ForcedSettleTime")
-	KeyPaymentAccountCountLimit = []byte("PaymentAccountCountLimit")
-	KeyMaxAutoSettleFlowCount   = []byte("MaxAutoSettleFlowCount")
-	KeyMaxAutoResumeFlowCount   = []byte("MaxAutoResumeFlowCount")
-	KeyFeeDenom                 = []byte("FeeDenom")
-	KeyValidatorTaxRate         = []byte("ValidatorTaxRate")
+	KeyReserveTime               = []byte("ReserveTime")
+	KeyForcedSettleTime          = []byte("ForcedSettleTime")
+	KeyPaymentAccountCountLimit  = []byte("PaymentAccountCountLimit")
+	KeyMaxAutoSettleFlowCount    = []byte("MaxAutoSettleFlowCount")
+	KeyMaxAutoResumeFlowCount    = []byte("MaxAutoResumeFlowCount")
+	KeyFeeDenom                  = []byte("FeeDenom")
+	KeyValidatorTaxRate          = []byte("ValidatorTaxRate")
+	KeyWithdrawTimeLockThreshold = []byte("WithdrawTimeLockThreshold")
+	KeyWithdrawTimeLockDuration  = []byte("WithdrawTimeLockDuration")
 
 	DefaultReserveTime      uint64  = 180 * 24 * 60 * 60       // 180 days
 	DefaultValidatorTaxRate sdk.Dec = sdk.NewDecWithPrec(1, 2) // 1%
 
-	DefaultForcedSettleTime         uint64 = 24 * 60 * 60 // 1 day
-	DefaultPaymentAccountCountLimit uint64 = 200
-	DefaultMaxAutoSettleFlowCount   uint64 = 100
-	DefaultMaxAutoResumeFlowCount   uint64 = 100
-	DefaultFeeDenom                 string = "BNB"
+	DefaultForcedSettleTime          uint64 = 24 * 60 * 60 // 1 day
+	DefaultPaymentAccountCountLimit  uint64 = 200
+	DefaultMaxAutoSettleFlowCount    uint64 = 100
+	DefaultMaxAutoResumeFlowCount    uint64 = 100
+	DefaultFeeDenom                  string = "BNB"
+	DefaultWithdrawTimeLockThreshold        = math.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100) // 100 BNB
+	DefaultWithdrawTimeLockDuration  uint64 = 24 * 60 * 60                                        // 1 day
 )
 
 // ParamKeyTable the param key table for launch module
@@ -42,14 +48,18 @@ func NewParams(
 	MaxAutoSettleFlowCount uint64,
 	maxAutoResumeFlowCount uint64,
 	feeDenom string,
+	withdrawTimeLockThreshold math.Int,
+	withdrawTimeLockDuration uint64,
 ) Params {
 	return Params{
-		VersionedParams:          VersionedParams{ReserveTime: reserveTime, ValidatorTaxRate: validatorTaxRate},
-		ForcedSettleTime:         forcedSettleTime,
-		PaymentAccountCountLimit: paymentAccountCountLimit,
-		MaxAutoSettleFlowCount:   MaxAutoSettleFlowCount,
-		MaxAutoResumeFlowCount:   maxAutoResumeFlowCount,
-		FeeDenom:                 feeDenom,
+		VersionedParams:           VersionedParams{ReserveTime: reserveTime, ValidatorTaxRate: validatorTaxRate},
+		ForcedSettleTime:          forcedSettleTime,
+		PaymentAccountCountLimit:  paymentAccountCountLimit,
+		MaxAutoSettleFlowCount:    MaxAutoSettleFlowCount,
+		MaxAutoResumeFlowCount:    maxAutoResumeFlowCount,
+		FeeDenom:                  feeDenom,
+		WithdrawTimeLockThreshold: withdrawTimeLockThreshold,
+		WithdrawTimeLockDuration:  withdrawTimeLockDuration,
 	}
 }
 
@@ -63,6 +73,8 @@ func DefaultParams() Params {
 		DefaultMaxAutoSettleFlowCount,
 		DefaultMaxAutoResumeFlowCount,
 		DefaultFeeDenom,
+		DefaultWithdrawTimeLockThreshold,
+		DefaultWithdrawTimeLockDuration,
 	)
 }
 
@@ -76,6 +88,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyMaxAutoSettleFlowCount, &p.MaxAutoSettleFlowCount, validateMaxAutoSettleFlowCount),
 		paramtypes.NewParamSetPair(KeyMaxAutoResumeFlowCount, &p.MaxAutoResumeFlowCount, validateMaxAutoResumeFlowCount),
 		paramtypes.NewParamSetPair(KeyFeeDenom, &p.FeeDenom, validateFeeDenom),
+		paramtypes.NewParamSetPair(KeyWithdrawTimeLockThreshold, &p.WithdrawTimeLockThreshold, validateWithdrawTimeLockThreshold),
+		paramtypes.NewParamSetPair(KeyWithdrawTimeLockDuration, &p.WithdrawTimeLockDuration, validateWithdrawTimeLockDuration),
 	}
 }
 
@@ -106,6 +120,14 @@ func (p Params) Validate() error {
 	}
 
 	if err := validateFeeDenom(p.FeeDenom); err != nil {
+		return err
+	}
+
+	if err := validateWithdrawTimeLockThreshold(p.WithdrawTimeLockThreshold); err != nil {
+		return err
+	}
+
+	if err := validateWithdrawTimeLockDuration(p.WithdrawTimeLockDuration); err != nil {
 		return err
 	}
 
@@ -206,6 +228,30 @@ func validateValidatorTaxRate(v interface{}) error {
 
 	if validatorTaxRate.IsNil() || validatorTaxRate.IsNegative() || validatorTaxRate.GT(sdk.OneDec()) {
 		return fmt.Errorf("validator tax ratio should be between 0 and 1, is %s", validatorTaxRate)
+	}
+
+	return nil
+}
+
+// validateWithdrawTimeLockThreshold validates the WithdrawTimeLockThreshold param
+func validateWithdrawTimeLockThreshold(v interface{}) error {
+	withdrawTimeLockThreshold, ok := v.(math.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if withdrawTimeLockThreshold.IsNil() || !withdrawTimeLockThreshold.IsPositive() {
+		return fmt.Errorf("withdraw time lock threshold should be positive, is %s", withdrawTimeLockThreshold)
+	}
+
+	return nil
+}
+
+// validateWithdrawTimeLockDuration validates the WithdrawTimeLockDuration param
+func validateWithdrawTimeLockDuration(v interface{}) error {
+	_, ok := v.(uint64)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
 	return nil

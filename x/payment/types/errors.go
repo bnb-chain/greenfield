@@ -16,4 +16,6 @@ var (
 	ErrReceiveAccountNotExist             = errorsmod.Register(ModuleName, 1207, "receive account not exist")
 	ErrInvalidStreamAccountStatus         = errorsmod.Register(ModuleName, 1208, "invalid stream account status")
 	ErrInvalidParams                      = errorsmod.Register(ModuleName, 1209, "invalid params")
+	ErrIncorrectWithdrawAmount            = errorsmod.Register(ModuleName, 1210, "the withdrawal amount is not equal to the delayed one")
+	ErrNotReachTimeLockDuration           = errorsmod.Register(ModuleName, 1211, "the withdrawal does not reach to the delayed duration")
 )

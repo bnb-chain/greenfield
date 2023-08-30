@@ -722,6 +722,13 @@ paths:
                   fee_denom:
                     type: string
                     title: The denom of fee charged in payment module
+                  withdraw_time_lock_threshold:
+                    type: string
+                    title: The withdrawal amount threshold to trigger time lock
+                  withdraw_time_lock_duration:
+                    type: string
+                    format: uint64
+                    title: The duration of the time lock for a big amount withdrawal
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -809,6 +816,13 @@ paths:
                   fee_denom:
                     type: string
                     title: The denom of fee charged in payment module
+                  withdraw_time_lock_threshold:
+                    type: string
+                    title: The withdrawal amount threshold to trigger time lock
+                  withdraw_time_lock_duration:
+                    type: string
+                    format: uint64
+                    title: The duration of the time lock for a big amount withdrawal
             description: >-
               QueryParamsByTimestampResponse is response type for the
               Query/ParamsByTimestamp RPC method with timestamp.
@@ -32107,6 +32121,13 @@ definitions:
       fee_denom:
         type: string
         title: The denom of fee charged in payment module
+      withdraw_time_lock_threshold:
+        type: string
+        title: The withdrawal amount threshold to trigger time lock
+      withdraw_time_lock_duration:
+        type: string
+        format: uint64
+        title: The duration of the time lock for a big amount withdrawal
     description: Params defines the parameters for the module.
   greenfield.payment.PaymentAccount:
     type: object
@@ -32411,6 +32432,13 @@ definitions:
           fee_denom:
             type: string
             title: The denom of fee charged in payment module
+          withdraw_time_lock_threshold:
+            type: string
+            title: The withdrawal amount threshold to trigger time lock
+          withdraw_time_lock_duration:
+            type: string
+            format: uint64
+            title: The duration of the time lock for a big amount withdrawal
     description: >-
       QueryParamsByTimestampResponse is response type for the
       Query/ParamsByTimestamp RPC method with timestamp.
@@ -32465,6 +32493,13 @@ definitions:
           fee_denom:
             type: string
             title: The denom of fee charged in payment module
+          withdraw_time_lock_threshold:
+            type: string
+            title: The withdrawal amount threshold to trigger time lock
+          withdraw_time_lock_duration:
+            type: string
+            format: uint64
+            title: The duration of the time lock for a big amount withdrawal
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.payment.QueryPaymentAccountCountResponse:
     type: object

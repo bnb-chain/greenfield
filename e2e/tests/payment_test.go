@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"math/big"
 	"reflect"
 	"strconv"
 	"testing"
@@ -1008,6 +1009,100 @@ func (s *PaymentTestSuite) TestWithdraw() {
 
 	staticBalanceChange := paymentAccountStreamRecord.NetflowRate.MulRaw(paymentAccountStreamRecordAfter.CrudTimestamp - paymentAccountStreamRecord.CrudTimestamp).Neg()
 	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.Sub(paymentAccountStreamRecordAfter.StaticBalance).Int64(), amount.Add(staticBalanceChange).Int64())
+}
+
+func (s *PaymentTestSuite) TestWithdrawDelayed() {
+	defer s.revertParams()
+
+	ctx := context.Background()
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	userAddr := user.GetAddr().String()
+	var err error
+
+	// create payment account and deposit
+	msgCreatePaymentAccount := &paymenttypes.MsgCreatePaymentAccount{
+		Creator: userAddr,
+	}
+	_ = s.SendTxBlock(user, msgCreatePaymentAccount)
+	paymentAccountsReq := &paymenttypes.QueryPaymentAccountsByOwnerRequest{Owner: userAddr}
+	paymentAccounts, err := s.Client.PaymentQueryClient.PaymentAccountsByOwner(ctx, paymentAccountsReq)
+	s.Require().NoError(err)
+	s.T().Logf("paymentAccounts %s", core.YamlString(paymentAccounts))
+	paymentAddr := paymentAccounts.PaymentAccounts[0]
+	s.Require().Lenf(paymentAccounts.PaymentAccounts, 1, "paymentAccounts %s", core.YamlString(paymentAccounts))
+
+	// deposit BNB needed
+	msgDeposit := &paymenttypes.MsgDeposit{
+		Creator: user.GetAddr().String(),
+		To:      paymentAddr,
+		Amount:  sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(200),
+	}
+	_ = s.SendTxBlock(user, msgDeposit)
+
+	paymentAccountStreamRecord := s.getStreamRecord(paymentAddr)
+	// withdraw less than limit
+	amount := sdk.NewInt(1000)
+	withdrawMsg := paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	s.SendTxBlock(user, withdrawMsg)
+	paymentAccountStreamRecordAfter := s.getStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecordAfter %s", core.YamlString(paymentAccountStreamRecordAfter))
+
+	staticBalanceChange := paymentAccountStreamRecord.NetflowRate.MulRaw(paymentAccountStreamRecordAfter.CrudTimestamp - paymentAccountStreamRecord.CrudTimestamp).Neg()
+	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.Sub(paymentAccountStreamRecordAfter.StaticBalance).Int64(), amount.Add(staticBalanceChange).Int64())
+
+	paymentAccountStreamRecord = s.getStreamRecord(paymentAddr)
+	balance, err := s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: userAddr,
+		Denom:   "BNB",
+	})
+	s.Require().NoError(err)
+
+	// update params
+	params := s.queryParams()
+	params.WithdrawTimeLockDuration = 10
+	s.updateParams(params)
+
+	// withdraw more than limit
+	amount = sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100)
+	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	s.SendTxBlock(user, withdrawMsg)
+	paymentAccountStreamRecordAfter = s.getStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecordAfter %s", core.YamlString(paymentAccountStreamRecordAfter))
+
+	staticBalanceChange = paymentAccountStreamRecord.NetflowRate.MulRaw(paymentAccountStreamRecordAfter.CrudTimestamp - paymentAccountStreamRecord.CrudTimestamp).Neg()
+	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.Sub(paymentAccountStreamRecordAfter.StaticBalance).Int64(), amount.Add(staticBalanceChange).Int64())
+
+	// balance does not increase
+	balanceAfter, err := s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: userAddr,
+		Denom:   "BNB",
+	})
+	s.Require().NoError(err)
+	s.Require().True(balanceAfter.Balance.Amount.LTE(balance.Balance.Amount))
+
+	// wait after time lock, and withdraw again
+	time.Sleep(11 * time.Second)
+
+	paymentAccountStreamRecord = s.getStreamRecord(paymentAddr)
+	balance, err = s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: userAddr,
+		Denom:   "BNB",
+	})
+	s.Require().NoError(err)
+	amount = sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100)
+	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	s.SendTxBlock(user, withdrawMsg)
+
+	paymentAccountStreamRecordAfter = s.getStreamRecord(paymentAddr)
+	s.T().Logf("paymentAccountStreamRecordAfter %s", core.YamlString(paymentAccountStreamRecordAfter))
+	s.Require().Equal(paymentAccountStreamRecord.StaticBalance, paymentAccountStreamRecordAfter.StaticBalance)
+
+	balanceAfter, err = s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
+		Address: userAddr,
+		Denom:   "BNB",
+	})
+	s.Require().NoError(err)
+	s.Require().True(balanceAfter.Balance.Amount.GT(balance.Balance.Amount))
 }
 
 func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
