@@ -471,6 +471,60 @@ paths:
           type: boolean
       tags:
         - Query
+  /greenfield/payment/delayed_withdrawal/{account}:
+    get:
+      summary: Queries delayed withdrawal of a account.
+      operationId: DelayedWithdrawal
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              delayed_withdrawal:
+                type: object
+                properties:
+                  timestamp:
+                    type: string
+                    format: int64
+                    title: >-
+                      timestamp is the unix timestamp to record the start of the
+                      withdrawal
+                  addr:
+                    type: string
+                    title: the withdrawal address
+                  amount:
+                    type: string
+                    title: the withdrawal amount
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: account
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/payment/dynamic_balance/{account}:
     get:
       summary: Queries dynamic balance of a payment account.
@@ -32040,6 +32094,19 @@ definitions:
 
       and settle the stream account if the timestamp is less than the current
       time.
+  greenfield.payment.DelayedWithdrawalRecord:
+    type: object
+    properties:
+      timestamp:
+        type: string
+        format: int64
+        title: timestamp is the unix timestamp to record the start of the withdrawal
+      addr:
+        type: string
+        title: the withdrawal address
+      amount:
+        type: string
+        title: the withdrawal amount
   greenfield.payment.OutFlow:
     type: object
     properties:
@@ -32206,6 +32273,24 @@ definitions:
                    repeated Bar results = 1;
                    PageResponse page = 2;
            }
+  greenfield.payment.QueryDelayedWithdrawalResponse:
+    type: object
+    properties:
+      delayed_withdrawal:
+        type: object
+        properties:
+          timestamp:
+            type: string
+            format: int64
+            title: >-
+              timestamp is the unix timestamp to record the start of the
+              withdrawal
+          addr:
+            type: string
+            title: the withdrawal address
+          amount:
+            type: string
+            title: the withdrawal amount
   greenfield.payment.QueryDynamicBalanceResponse:
     type: object
     properties:

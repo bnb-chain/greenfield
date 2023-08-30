@@ -1079,6 +1079,11 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 	s.Require().NoError(err)
 	s.Require().True(balanceAfter.Balance.Amount.LTE(balance.Balance.Amount))
 
+	// withdraw before time lock duration
+	amount = sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100)
+	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	s.SendTxBlockWithExpectErrorString(withdrawMsg, user, "does not reach to the delayed duration")
+
 	// wait after time lock, and withdraw again
 	time.Sleep(11 * time.Second)
 

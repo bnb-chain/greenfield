@@ -25,7 +25,6 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 				if !delayedWithdrawal.Amount.Equal(msg.Amount) {
 					return nil, errors.Wrapf(types.ErrIncorrectWithdrawAmount, "withdrawal amount should be equal to the delayed %s", delayedWithdrawal.Amount)
 				}
-				params := k.GetParams(ctx)
 				now := ctx.BlockTime().Unix()
 				end := delayedWithdrawal.Timestamp + int64(params.WithdrawTimeLockDuration)
 				if now <= end {
@@ -84,7 +83,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 				Amount:    msg.Amount,
 			}
 			k.SetDelayedWithdrawalRecord(ctx, delayedWithdrawal)
-			return &types.MsgWithdrawResponse{}, nil // TODO: how to let the user know that his/her withdrawal is delayed?
+			return &types.MsgWithdrawResponse{}, nil // user can query `DelayedWithdrawal` to find the details
 		}
 	}
 

@@ -41,7 +41,7 @@ func (k Keeper) GetDelayedWithdrawalRecord(
 	return delayedWithdrawal, true
 }
 
-// RemoveAutoResumeRecord removes a delayedWithdrawal from the store
+// RemoveDelayedWithdrawalRecord removes a delayedWithdrawal from the store
 func (k Keeper) RemoveDelayedWithdrawalRecord(
 	ctx sdk.Context,
 	addr sdk.AccAddress,
