@@ -1069,8 +1069,7 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 	paymentAccountStreamRecordAfter = s.getStreamRecord(paymentAddr)
 	s.T().Logf("paymentAccountStreamRecordAfter %s", core.YamlString(paymentAccountStreamRecordAfter))
 
-	staticBalanceChange = paymentAccountStreamRecord.NetflowRate.MulRaw(paymentAccountStreamRecordAfter.CrudTimestamp - paymentAccountStreamRecord.CrudTimestamp).Neg()
-	s.Require().Equal(paymentAccountStreamRecord.StaticBalance.Sub(paymentAccountStreamRecordAfter.StaticBalance).Int64(), amount.Add(staticBalanceChange).Int64())
+	s.Require().True(paymentAccountStreamRecord.StaticBalance.Sub(paymentAccountStreamRecordAfter.StaticBalance).Equal(amount))
 
 	// balance does not increase
 	balanceAfter, err := s.Client.Balance(ctx, &banktypes.QueryBalanceRequest{
@@ -1089,6 +1088,8 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 		Denom:   "BNB",
 	})
 	s.Require().NoError(err)
+	s.T().Logf("balance %s", core.YamlString(balance))
+
 	amount = sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100)
 	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
 	s.SendTxBlock(user, withdrawMsg)
@@ -1102,6 +1103,8 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 		Denom:   "BNB",
 	})
 	s.Require().NoError(err)
+	s.T().Logf("balanceAfter %s", core.YamlString(balanceAfter))
+
 	s.Require().True(balanceAfter.Balance.Amount.GT(balance.Balance.Amount))
 }
 
