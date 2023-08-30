@@ -1712,7 +1712,6 @@ func (s *PaymentTestSuite) TestStorageBill_UpdatePaymentAddress() {
 	// assertions
 	streamAddresses[0] = paymentAccountAddr
 	streamRecordsAfter = s.getStreamRecords(streamAddresses)
-	s.Require().Equal(streamRecordsAfter.User.StaticBalance, sdkmath.ZeroInt())
 	s.Require().Equal(streamRecordsAfter.User.NetflowRate.Sub(streamRecordsBefore.User.NetflowRate), userTotalRate.Neg())
 	s.Require().Equal(streamRecordsAfter.GVGFamily.NetflowRate.Sub(streamRecordsBefore.GVGFamily.NetflowRate), readChargeRate)
 	s.Require().Equal(streamRecordsAfter.Tax.NetflowRate.Sub(streamRecordsBefore.Tax.NetflowRate), taxRate)
@@ -2235,8 +2234,12 @@ func (s *PaymentTestSuite) CreatePaymentAccount(user keys.KeyManager, amount, de
 	paymentAccountAddr := paymentAccounts.PaymentAccounts[len(paymentAccounts.PaymentAccounts)-1]
 	// charge payment account
 	paymentAcc := sdk.MustAccAddressFromHex(paymentAccountAddr)
-	msgSend := banktypes.NewMsgSend(user.GetAddr(), paymentAcc, []sdk.Coin{{Denom: "BNB", Amount: types.NewIntFromInt64WithDecimal(amount, decimal)}})
-	s.SendTxBlock(user, msgSend)
+	msgDeposit := &paymenttypes.MsgDeposit{
+		Creator: user.GetAddr().String(),
+		To:      paymentAcc.String(),
+		Amount:  types.NewIntFromInt64WithDecimal(amount, decimal), // deposit more than needed
+	}
+	s.SendTxBlock(user, msgDeposit)
 
 	return paymentAccountAddr
 }

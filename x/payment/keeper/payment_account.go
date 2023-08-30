@@ -46,6 +46,17 @@ func (k Keeper) GetPaymentAccount(
 	return val, true
 }
 
+// IsPaymentAccount returns is the account address a payment account
+func (k Keeper) IsPaymentAccount(
+	ctx sdk.Context,
+	addr sdk.AccAddress,
+) bool {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
+	return store.Has(types.PaymentAccountKey(
+		addr,
+	))
+}
+
 // GetAllPaymentAccount returns all paymentAccount
 func (k Keeper) GetAllPaymentAccount(ctx sdk.Context) (list []types.PaymentAccount) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.PaymentAccountKeyPrefix)
