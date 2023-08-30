@@ -26,6 +26,7 @@ import (
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	vgtypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func Codec() *codec.ProtoCodec {
@@ -52,6 +53,7 @@ func Codec() *codec.ProtoCodec {
 	evidencetypes.RegisterInterfaces(interfaceRegistry)
 	gashubtypes.RegisterInterfaces(interfaceRegistry)
 	minttypes.RegisterInterfaces(interfaceRegistry)
+	vgtypes.RegisterInterfaces(interfaceRegistry)
 
 	return codec.NewProtoCodec(interfaceRegistry)
 }
