@@ -496,6 +496,9 @@ paths:
                   amount:
                     type: string
                     title: the withdrawal amount
+                  from:
+                    type: string
+                    title: the withdrawal from payment account address
         default:
           description: An unexpected error response.
           schema:
@@ -32107,6 +32110,9 @@ definitions:
       amount:
         type: string
         title: the withdrawal amount
+      from:
+        type: string
+        title: the withdrawal from payment account address
   greenfield.payment.OutFlow:
     type: object
     properties:
@@ -32291,6 +32297,9 @@ definitions:
           amount:
             type: string
             title: the withdrawal amount
+          from:
+            type: string
+            title: the withdrawal from payment account address
   greenfield.payment.QueryDynamicBalanceResponse:
     type: object
     properties:

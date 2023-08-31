@@ -17,4 +17,6 @@ message DelayedWithdrawalRecord {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+  // the withdrawal from payment account address
+  string from = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }

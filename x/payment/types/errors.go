@@ -17,5 +17,6 @@ var (
 	ErrInvalidStreamAccountStatus         = errorsmod.Register(ModuleName, 1208, "invalid stream account status")
 	ErrInvalidParams                      = errorsmod.Register(ModuleName, 1209, "invalid params")
 	ErrIncorrectWithdrawAmount            = errorsmod.Register(ModuleName, 1210, "the withdrawal amount is not equal to the delayed one")
-	ErrNotReachTimeLockDuration           = errorsmod.Register(ModuleName, 1211, "the withdrawal does not reach to the delayed duration")
+	ErrIncorrectWithdrawFrom              = errorsmod.Register(ModuleName, 1211, "the withdrawal from is not equal to the delayed one")
+	ErrNotReachTimeLockDuration           = errorsmod.Register(ModuleName, 1212, "the withdrawal does not reach to the delayed duration")
 )

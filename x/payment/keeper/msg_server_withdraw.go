@@ -25,15 +25,21 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 				if !delayedWithdrawal.Amount.Equal(msg.Amount) {
 					return nil, errors.Wrapf(types.ErrIncorrectWithdrawAmount, "withdrawal amount should be equal to the delayed %s", delayedWithdrawal.Amount)
 				}
+
+				delayedFrom := sdk.MustAccAddressFromHex(delayedWithdrawal.From)
+				if delayedFrom.String() != from.String() {
+					return nil, errors.Wrapf(types.ErrIncorrectWithdrawFrom, "withdrawal from should be equal to the delayed %s", delayedFrom.String())
+				}
+
 				now := ctx.BlockTime().Unix()
 				end := delayedWithdrawal.Timestamp + int64(params.WithdrawTimeLockDuration)
 				if now <= end {
-					return nil, errors.Wrapf(types.ErrNotReachTimeLockDuration, "withdrawal should be after %d", end)
+					return nil, errors.Wrapf(types.ErrNotReachTimeLockDuration, "delayed withdrawal should be after %d", end)
 				}
-				k.RemoveDelayedWithdrawalRecord(ctx, creator)
 
+				k.RemoveDelayedWithdrawalRecord(ctx, creator)
 				// withdraw it from module account directly
-				err := k.bankTransfer(ctx, creator, from, msg.Amount)
+				err := k.bankTransfer(ctx, creator, delayedFrom, msg.Amount)
 				if err != nil {
 					return nil, err
 				}
@@ -81,6 +87,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 				Timestamp: ctx.BlockTime().Unix(),
 				Addr:      creator.String(),
 				Amount:    msg.Amount,
+				From:      from.String(),
 			}
 			k.SetDelayedWithdrawalRecord(ctx, delayedWithdrawal)
 			return &types.MsgWithdrawResponse{}, nil // user can query `DelayedWithdrawal` to find the details
