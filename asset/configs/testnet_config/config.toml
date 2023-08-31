@@ -3,7 +3,7 @@
 
 # NOTE: Any path below can be absolute (e.g. "/var/myawesomeapp/data") or
 # relative to the home directory (e.g. "data"). The home directory is
-# "$HOME/.cometbft" by default, but could be changed via $CMTHOME env variable
+# "$HOME/.tendermint" by default, but could be changed via $TMHOME env variable
 # or --home cmd flag.
 
 #######################################################################
@@ -11,19 +11,16 @@
 #######################################################################
 
 # TCP or UNIX socket address of the ABCI application,
-# or the name of an ABCI application compiled in with the CometBFT binary
+# or the name of an ABCI application compiled in with the Tendermint binary
 proxy_app = "tcp://0.0.0.0:26658"
 
 # A custom human readable name for this node
-moniker = "node"
+moniker = "fullnode"
 
-# If this node is many blocks behind the tip of the chain, BlockSync
+# If this node is many blocks behind the tip of the chain, FastSync
 # allows them to catchup quickly by downloading blocks in parallel
 # and verifying their commits
-#
-# Deprecated: this key will be removed and BlockSync will be enabled 
-# unconditionally in the next major release.
-block_sync = true
+fast_sync = true
 
 # Database backend: goleveldb | cleveldb | boltdb | rocksdb | badgerdb
 # * goleveldb (github.com/syndtr/goleveldb - most popular implementation)
@@ -53,7 +50,7 @@ db_dir = "data"
 log_level = "info"
 
 # Output format: 'plain' (colored text) or 'json'
-log_format = "plain"
+log_format = "json"
 
 ##### additional base config options #####
 
@@ -66,7 +63,7 @@ priv_validator_key_file = "config/priv_validator_key.json"
 # Path to the JSON file containing the last sign state of a validator
 priv_validator_state_file = "data/priv_validator_state.json"
 
-# TCP or UNIX socket address for CometBFT to listen on for
+# TCP or UNIX socket address for Tendermint to listen on for
 # connections from an external PrivValidator process
 priv_validator_laddr = ""
 
@@ -163,7 +160,7 @@ experimental_websocket_write_buffer_size = 200
 #
 # Enabling this experimental parameter will cause the WebSocket connection to
 # be closed instead if it cannot read fast enough, allowing for greater
-# predictability in subscription behavior.
+# predictability in subscription behaviour.
 experimental_close_on_slow_client = false
 
 # How long to wait for a tx to be committed during /broadcast_tx_commit.
@@ -179,17 +176,17 @@ max_body_bytes = 1000000
 max_header_bytes = 1048576
 
 # The path to a file containing certificate that is used to create the HTTPS server.
-# Might be either absolute path or path related to CometBFT's config directory.
+# Might be either absolute path or path related to Tendermint's config directory.
 # If the certificate is signed by a certificate authority,
 # the certFile should be the concatenation of the server's certificate, any intermediates,
 # and the CA's certificate.
-# NOTE: both tls_cert_file and tls_key_file must be present for CometBFT to create HTTPS server.
+# NOTE: both tls_cert_file and tls_key_file must be present for Tendermint to create HTTPS server.
 # Otherwise, HTTP server is run.
 tls_cert_file = ""
 
 # The path to a file containing matching private key that is used to create the HTTPS server.
-# Might be either absolute path or path related to CometBFT's config directory.
-# NOTE: both tls-cert-file and tls-key-file must be present for CometBFT to create HTTPS server.
+# Might be either absolute path or path related to Tendermint's config directory.
+# NOTE: both tls-cert-file and tls-key-file must be present for Tendermint to create HTTPS server.
 # Otherwise, HTTP server is run.
 tls_key_file = ""
 
@@ -215,7 +212,7 @@ external_address = ""
 seeds = ""
 
 # Comma separated list of nodes to keep persistent connections to
-persistent_peers = "7a635c262955a2e85c654615f390f3a3e9c71328@k8s-gnfdfull-gnfdfull-514c3179cd-d1c316adcbfbfd3c.elb.us-east-1.amazonaws.com:26656,f811d0f87415bcc5daba37ec925b137a1b403372@k8s-gnfdfull-gnfdfull-92f4e91ef7-3d981d8d310e48f1.elb.ap-northeast-1.amazonaws.com:26656"
+persistent_peers = "f35d1c0920d3b42f313f682907ff996f3ab08cd9@k8s-gnfdfull-gnfdfull-5caecaf140-3641960911e9b27b.elb.ap-northeast-1.amazonaws.com:26656,071fc182cda17d93d1a086060898bfb405418dc7@k8s-gnfdfull-gnfdfull-915e53c8f7-bca52664efa2d3fe.elb.us-east-1.amazonaws.com:26656"
 
 # UPNP port forwarding
 upnp = false
@@ -277,7 +274,7 @@ dial_timeout = "3s"
 
 # Mempool version to use:
 #   1) "v0" - (default) FIFO mempool.
-#   2) "v1" - prioritized mempool (deprecated; will be removed in the next release).
+#   2) "v1" - prioritized mempool.
 version = "v0"
 
 recheck = true
@@ -342,9 +339,9 @@ enable = true
 #
 # For Cosmos SDK-based chains, trust_period should usually be about 2/3 of the unbonding time (~2
 # weeks) during which they can be financially punished (slashed) for misbehavior.
-rpc_servers = "https://gnfd-testnet-fullnode-tendermint-ap.bnbchain.org:443,https://gnfd-testnet-fullnode-tendermint-ap.bnbchain.org:443"
-trust_height = 65000
-trust_hash = "AC28AB55C96AFC73BC8313C5C99E4028A6FDBBCD22C02A95EFAC743B220F083A"
+rpc_servers = "https://gnfd-testnet-fullnode-tendermint-ap.bnbchain.org:443,https://gnfd-testnet-fullnode-tendermint-us.bnbchain.org:443"
+trust_height = 30001
+trust_hash = "2DFCA1371B392DE345841BEACE68F8D51BFB69D65FFD45794B985395A3AB46B5"
 trust_period = "999999h0m0s"
 
 # Time to spend discovering snapshots before initiating a restore.
@@ -362,16 +359,14 @@ chunk_request_timeout = "10s"
 chunk_fetchers = "4"
 
 #######################################################
-###       Block Sync Configuration Options          ###
+###       Fast Sync Configuration Connections       ###
 #######################################################
-[blocksync]
+[fastsync]
 
-# Block Sync version to use:
-# 
-# In v0.37, v1 and v2 of the block sync protocols were deprecated.
-# Please use v0 instead.
-#
-#   1) "v0" - the default block sync implementation
+# Fast Sync version to use:
+#   1) "v0" (default) - the legacy fast sync implementation
+#   2) "v1" - refactor of v0 version for better testability
+#   2) "v2" - complete redesign of v0, optimized for testability & readability
 version = "v0"
 
 #######################################################
@@ -382,7 +377,7 @@ version = "v0"
 wal_file = "data/cs.wal/wal"
 
 # How long we wait for a proposal block before prevoting nil
-timeout_propose = "3s"
+timeout_propose = "2s"
 # How much timeout_propose increases with each round
 timeout_propose_delta = "500ms"
 # How long we wait after receiving +2/3 prevotes for “anything” (ie. not a single block or nil)
@@ -447,6 +442,10 @@ indexer = "kv"
 # The PostgreSQL connection configuration, the connection format:
 #   postgresql://<user>:<password>@<host>:<port>/<db>?<opts>
 psql-conn = ""
+
+# The option to skip indexing events by indexer
+# It's only used for "kv" indexer
+disable-events-indexing = "false"
 
 #######################################################
 ###       Instrumentation Configuration Options     ###
