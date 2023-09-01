@@ -14,11 +14,15 @@ minimum-gas-prices = "5000000000BNB"
 # nothing: all historic states will be saved, nothing will be deleted (i.e. archiving node)
 # everything: 2 latest states will be kept; pruning at 10 block intervals.
 # custom: allow pruning options to be manually specified through 'pruning-keep-recent', and 'pruning-interval'
-pruning = "default"
+pruning = "custom"
 
 # These are applied if and only if the pruning strategy is custom.
-pruning-keep-recent = "0"
-pruning-interval = "0"
+pruning-keep-recent = "100000"
+pruning-interval = "10"
+
+# everything: all events will be emitted
+# nothing: no events will be emitted.
+eventing = "everything"
 
 # HaltHeight contains a non-zero block height at which a node will gracefully
 # halt and shutdown that can be used to assist upgrades and testing.
@@ -76,6 +80,16 @@ iavl-lazy-loading = false
 # Second fallback (if the types.DBBackend also isn't set), is the db-backend value set in Tendermint's config.toml.
 app-db-backend = ""
 
+# EnableUnsafeQuery enables or disables the unsafe queries.
+# Default is false.
+enable-unsafe-query = "false"
+
+# EnablePlainStore enables or disables the plain store. If it is true, then plain store will be used, not IAVL store.
+# Do not enable it on validator nodes or other nodes which require high security level.
+# If you enable it, please also enable skip_app_hash config in config.toml file.
+# Default is false.
+enable-plain-store = "false"
+
 ###############################################################################
 ###                           Upgrade Configuration                         ###
 ###############################################################################
@@ -96,12 +110,12 @@ app-db-backend = ""
 [telemetry]
 
 # Prefixed with keys to separate services.
-service-name = ""
+service-name = "cosmos"
 
 # Enabled enables the application telemetry functionality. When enabled,
 # an in-memory sink is also enabled by default. Operators may also enabled
 # other sinks such as Prometheus.
-enabled = false
+enabled = true
 
 # Enable prefixing gauge values with hostname.
 enable-hostname = false
@@ -110,10 +124,10 @@ enable-hostname = false
 enable-hostname-label = false
 
 # Enable adding service to labels.
-enable-service-label = false
+enable-service-label = true
 
 # PrometheusRetentionTime, when positive, enables a Prometheus metrics sink.
-prometheus-retention-time = 0
+prometheus-retention-time = 1
 
 # GlobalLabels defines a global set of name/value label tuples applied to all
 # metrics emitted using the wrapper functions defined in telemetry package.
@@ -121,6 +135,7 @@ prometheus-retention-time = 0
 # Example:
 # [["chain_id", "cosmoshub-1"]]
 global-labels = [
+    ["chain_id", "greenfield_5600-1"],
 ]
 
 ###############################################################################
@@ -152,42 +167,6 @@ rpc-max-body-bytes = 1000000
 
 # EnableUnsafeCORS defines if CORS should be enabled (unsafe - use it at your own risk).
 enabled-unsafe-cors = false
-
-###############################################################################
-###                           Rosetta Configuration                         ###
-###############################################################################
-
-[rosetta]
-
-# Enable defines if the Rosetta API server should be enabled.
-enable = false
-
-# Address defines the Rosetta API server to listen on.
-address = ":8080"
-
-# Network defines the name of the blockchain that will be returned by Rosetta.
-blockchain = "app"
-
-# Network defines the name of the network that will be returned by Rosetta.
-network = "network"
-
-# Retries defines the number of retries when connecting to the node before failing.
-retries = 3
-
-# Offline defines if Rosetta server should run in offline mode.
-offline = false
-
-# EnableDefaultSuggestedFee defines if the server should suggest fee by default.
-# If 'construction/medata' is called without gas limit and gas price,
-# suggested fee based on gas-to-suggest and denom-to-suggest will be given.
-enable-fee-suggestion = false
-
-# GasToSuggest defines gas limit when calculating the fee
-gas-to-suggest = 210000
-
-# DenomToSuggest defines the defult denom for fee suggestion.
-# Price must be in minimum-gas-prices.
-denom-to-suggest = "BNB"
 
 ###############################################################################
 ###                           gRPC Configuration                            ###
@@ -282,5 +261,5 @@ max-txs = "5000"
 [cross-chain]
 # chain-id for current chain
 src-chain-id = 5600
-# chain-id for destination chain(bsc)
+# chain-id for bsc destination chain
 dest-bsc-chain-id = 97
