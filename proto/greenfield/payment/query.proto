@@ -7,6 +7,7 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "greenfield/payment/auto_settle_record.proto";
+import "greenfield/payment/delayed_withdrawal_record.proto";
 import "greenfield/payment/out_flow.proto";
 import "greenfield/payment/params.proto";
 import "greenfield/payment/payment_account.proto";
@@ -77,6 +78,11 @@ service Query {
   // Queries all auto settle records.
   rpc AutoSettleRecords(QueryAutoSettleRecordsRequest) returns (QueryAutoSettleRecordsResponse) {
     option (google.api.http).get = "/greenfield/payment/auto_settle_records";
+  }
+
+  // Queries delayed withdrawal of a account.
+  rpc DelayedWithdrawal(QueryDelayedWithdrawalRequest) returns (QueryDelayedWithdrawalResponse) {
+    option (google.api.http).get = "/greenfield/payment/delayed_withdrawal/{account}";
   }
 }
 
@@ -216,4 +222,12 @@ message QueryAutoSettleRecordsRequest {
 message QueryAutoSettleRecordsResponse {
   repeated AutoSettleRecord auto_settle_records = 1 [(gogoproto.nullable) = false];
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+message QueryDelayedWithdrawalRequest {
+  string account = 1;
+}
+
+message QueryDelayedWithdrawalResponse {
+  DelayedWithdrawalRecord delayed_withdrawal = 1 [(gogoproto.nullable) = false];
 }

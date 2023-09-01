@@ -30,6 +30,7 @@ var (
 	OutFlowKeyPrefix             = []byte{0x06}
 	ParamsKey                    = []byte{0x07}
 	VersionedParamsKeyPrefix     = []byte{0x08}
+	DelayedWithdrawalKeyPrefix   = []byte{0x09}
 )
 
 // AutoSettleRecordKey returns the store key to retrieve a AutoSettleRecord from the index fields
@@ -139,4 +140,11 @@ func VersionedParamsKey(timestamp int64) []byte {
 	bz := make([]byte, 8)
 	binary.BigEndian.PutUint64(bz, uint64(timestamp))
 	return append(ParamsKey, bz...)
+}
+
+// DelayedWithdrawalKey returns the store key to retrieve a DelayedWithdrawal from the index fields
+func DelayedWithdrawalKey(
+	account sdk.AccAddress,
+) []byte {
+	return account
 }

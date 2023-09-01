@@ -154,7 +154,6 @@ function generate_genesis() {
         sed -i -e "s/src-chain-id = 1/src-chain-id = ${SRC_CHAIN_ID}/g" ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/dest-bsc-chain-id = 2/dest-bsc-chain-id = ${DEST_CHAIN_ID}/g" ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/snapshot-keep-recent = 2/snapshot-keep-recent = ${SNAPSHOT_KEEP_RECENT}/g" ${workspace}/.local/validator${i}/config/app.toml
-        echo -e '[[upgrade]]\nname = "Nagqu"\nheight = 1\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
         sed -i -e "s/\"reserve_time\": \"15552000\"/\"reserve_time\": \"60\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/\"forced_settle_time\": \"86400\"/\"forced_settle_time\": \"30\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/172800s/${DEPOSIT_VOTE_PERIOD}/g" ${workspace}/.local/validator${i}/config/genesis.json
@@ -171,6 +170,7 @@ function generate_genesis() {
         sed -i -e "s/\"update_price_disallowed_days\": 2/\"update_price_disallowed_days\": 0/g" ${workspace}/.local/validator${i}/config/genesis.json
         #sed -i -e "s/\"community_tax\": \"0.020000000000000000\"/\"community_tax\": \"0\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/log_level = \"info\"/\log_level= \"debug\"/g" ${workspace}/.local/validator${i}/config/config.toml
+        echo -e '[[upgrade]]\nname = "Nagqu"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
     done
 
     # enable swagger API for validator0

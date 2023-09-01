@@ -45,7 +45,7 @@ func (app *App) registerNagquUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Nagqu,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
-			return fromVM, nil
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
 	// Register the upgrade initializer
