@@ -1031,11 +1031,11 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 	paymentAddr := paymentAccounts.PaymentAccounts[0]
 	s.Require().Lenf(paymentAccounts.PaymentAccounts, 1, "paymentAccounts %s", core.YamlString(paymentAccounts))
 
-	// deposit BNB needed
+	// deposit BNB
 	msgDeposit := &paymenttypes.MsgDeposit{
 		Creator: user.GetAddr().String(),
 		To:      paymentAddr,
-		Amount:  sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(200),
+		Amount:  sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(300),
 	}
 	_ = s.SendTxBlock(user, msgDeposit)
 
@@ -1081,8 +1081,12 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 
 	// withdraw before time lock duration
 	amount = sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100)
-	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, "", amount)
 	s.SendTxBlockWithExpectErrorString(withdrawMsg, user, "does not reach to the delayed duration")
+
+	// withdraw another large amount
+	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	s.SendTxBlockWithExpectErrorString(withdrawMsg, user, "delayed withdrawal already exists")
 
 	// wait after time lock, and withdraw again
 	time.Sleep(11 * time.Second)
@@ -1096,7 +1100,7 @@ func (s *PaymentTestSuite) TestWithdrawDelayed() {
 	s.T().Logf("balance %s", core.YamlString(balance))
 
 	amount = sdkmath.NewIntFromBigInt(big.NewInt(1e18)).MulRaw(100)
-	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, paymentAddr, amount)
+	withdrawMsg = paymenttypes.NewMsgWithdraw(userAddr, "", amount)
 	s.SendTxBlock(user, withdrawMsg)
 
 	paymentAccountStreamRecordAfter = s.getStreamRecord(paymentAddr)

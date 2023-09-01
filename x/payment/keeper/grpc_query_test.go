@@ -312,15 +312,17 @@ func TestDelayedWithdrawalQuery(t *testing.T) {
 	require.NoError(t, err)
 
 	owner := sample.RandAccAddress()
+	from := sample.RandAccAddress()
 	_, err = keeper.DelayedWithdrawal(ctx, &types.QueryDelayedWithdrawalRequest{
 		Account: owner.String(),
 	})
 	require.Error(t, err)
 
 	delayedWithdrawal := &types.DelayedWithdrawalRecord{
-		Timestamp: time.Now().Unix(),
-		Addr:      owner.String(),
-		Amount:    sdkmath.NewInt(100),
+		Addr:            owner.String(),
+		Amount:          sdkmath.NewInt(100),
+		From:            from.String(),
+		UnlockTimestamp: time.Now().Unix(),
 	}
 	keeper.SetDelayedWithdrawalRecord(ctx, delayedWithdrawal)
 
@@ -329,6 +331,7 @@ func TestDelayedWithdrawalQuery(t *testing.T) {
 	})
 	require.NoError(t, err)
 	require.True(t, response.DelayedWithdrawal.Addr == delayedWithdrawal.Addr)
-	require.True(t, response.DelayedWithdrawal.Timestamp == delayedWithdrawal.Timestamp)
+	require.True(t, response.DelayedWithdrawal.From == from.String())
 	require.True(t, response.DelayedWithdrawal.Amount.Equal(delayedWithdrawal.Amount))
+	require.True(t, response.DelayedWithdrawal.UnlockTimestamp == delayedWithdrawal.UnlockTimestamp)
 }

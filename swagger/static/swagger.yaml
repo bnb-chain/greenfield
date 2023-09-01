@@ -484,12 +484,6 @@ paths:
               delayed_withdrawal:
                 type: object
                 properties:
-                  timestamp:
-                    type: string
-                    format: int64
-                    title: >-
-                      timestamp is the unix timestamp to record the start of the
-                      withdrawal
                   addr:
                     type: string
                     title: the withdrawal address
@@ -499,6 +493,12 @@ paths:
                   from:
                     type: string
                     title: the withdrawal from payment account address
+                  unlock_timestamp:
+                    type: string
+                    format: int64
+                    title: >-
+                      unlock timestamp is the unix timestamp to unlock the
+                      withdrawal
         default:
           description: An unexpected error response.
           schema:
@@ -32100,10 +32100,6 @@ definitions:
   greenfield.payment.DelayedWithdrawalRecord:
     type: object
     properties:
-      timestamp:
-        type: string
-        format: int64
-        title: timestamp is the unix timestamp to record the start of the withdrawal
       addr:
         type: string
         title: the withdrawal address
@@ -32113,6 +32109,10 @@ definitions:
       from:
         type: string
         title: the withdrawal from payment account address
+      unlock_timestamp:
+        type: string
+        format: int64
+        title: unlock timestamp is the unix timestamp to unlock the withdrawal
   greenfield.payment.OutFlow:
     type: object
     properties:
@@ -32285,12 +32285,6 @@ definitions:
       delayed_withdrawal:
         type: object
         properties:
-          timestamp:
-            type: string
-            format: int64
-            title: >-
-              timestamp is the unix timestamp to record the start of the
-              withdrawal
           addr:
             type: string
             title: the withdrawal address
@@ -32300,6 +32294,10 @@ definitions:
           from:
             type: string
             title: the withdrawal from payment account address
+          unlock_timestamp:
+            type: string
+            format: int64
+            title: unlock timestamp is the unix timestamp to unlock the withdrawal
   greenfield.payment.QueryDynamicBalanceResponse:
     type: object
     properties:

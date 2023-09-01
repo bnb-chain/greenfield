@@ -7,16 +7,16 @@ import "gogoproto/gogo.proto";
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 message DelayedWithdrawalRecord {
-  // timestamp is the unix timestamp to record the start of the withdrawal
-  int64 timestamp = 1;
   // the withdrawal address
-  string addr = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string addr = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // the withdrawal amount
-  string amount = 3 [
+  string amount = 2 [
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
   // the withdrawal from payment account address
-  string from = 4 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  string from = 3 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // unlock timestamp is the unix timestamp to unlock the withdrawal
+  int64 unlock_timestamp = 4;
 }
