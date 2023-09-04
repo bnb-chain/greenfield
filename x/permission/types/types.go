@@ -180,7 +180,11 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 			var grn gnfd.GRN
 			err := grn.ParseFromString(r, true)
 			if err != nil {
-				return err
+				return ErrInvalidStatement.Wrapf("GRN parse from string failed, err: %s", err)
+			}
+			_, err = regexp.Compile(r)
+			if err != nil {
+				return ErrInvalidStatement.Wrapf("regexp compile error. err: %s", err)
 			}
 		}
 
