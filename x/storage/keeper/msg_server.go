@@ -16,6 +16,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 type msgServer struct {
@@ -368,6 +369,12 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 	for _, s := range msg.Statements {
 		if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
 			return nil, permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
+		}
+		if ctx.IsUpgraded(upgradetypes.Nagqu) {
+			err := s.ValidateAfterNagqu(grn.ResourceType())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

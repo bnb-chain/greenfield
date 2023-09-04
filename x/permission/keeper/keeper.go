@@ -15,6 +15,7 @@ import (
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 type (
@@ -345,7 +346,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 						store.Delete(types.PolicyPrefixQueue(policy.ExpirationTime, policy.Id.Bytes()))
 					}
 					updated = true
-					break
+					break // Only one should be deleted
 				}
 			}
 			if updated {
@@ -353,8 +354,10 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 					// delete the key if value is empty
 					store.Delete(policyGroupKey)
 				} else {
-					// persist policy group after updated.
-					store.Set(policyGroupKey, k.cdc.MustMarshal(&policyGroup))
+					if ctx.IsUpgraded(upgradetypes.Nagqu) {
+						// persist policy group after updated.
+						store.Set(policyGroupKey, k.cdc.MustMarshal(&policyGroup))
+					}
 				}
 			}
 		}
