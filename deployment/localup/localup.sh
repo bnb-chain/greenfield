@@ -170,6 +170,7 @@ function generate_genesis() {
         sed -i -e "s/\"update_price_disallowed_days\": 2/\"update_price_disallowed_days\": 0/g" ${workspace}/.local/validator${i}/config/genesis.json
         #sed -i -e "s/\"community_tax\": \"0.020000000000000000\"/\"community_tax\": \"0\"/g" ${workspace}/.local/validator${i}/config/genesis.json
         sed -i -e "s/log_level = \"info\"/\log_level= \"debug\"/g" ${workspace}/.local/validator${i}/config/config.toml
+         sed -i -e "s/iavl-disable-fastnode = false/iavl-disable-fastnode = true/g" ${workspace}/.local/validator${i}/config/app.toml
     done
 
     # enable swagger API for validator0
