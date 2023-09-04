@@ -16,6 +16,9 @@ import (
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
+// one_gb_bytes stands for the total bytes in 1gb
+const one_gb_bytes = 1024 * 1024 * 1024
+
 // Attest handles user's request for attesting a challenge.
 // The attestation can include a valid challenge or is only for heartbeat purpose.
 // If the challenge is valid, the related storage provider will be slashed.
@@ -145,8 +148,8 @@ func (k msgServer) Attest(goCtx context.Context, msg *types.MsgAttest) (*types.M
 func (k msgServer) calculateSlashAmount(ctx sdk.Context, objectSize uint64) sdkmath.Int {
 	params := k.GetParams(ctx)
 	sizeRate := params.SlashAmountSizeRate
-	objectSizeInGB := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize)).QuoRoundUp(sdk.NewDec(1073741824))
-	slashAmount := objectSizeInGB.MulMut(sizeRate).MulMut(sdk.NewDec(1e18)).TruncateInt()
+	objectSizeInGB := sdk.NewDecFromBigInt(new(big.Int).SetUint64(objectSize)).QuoRoundUp(sdk.NewDec(one_gb_bytes))
+	slashAmount := objectSizeInGB.Mul(sizeRate).Mul(sdk.NewDec(1e18)).TruncateInt()
 
 	min := params.SlashAmountMin
 	if slashAmount.LT(min) {
@@ -195,37 +198,40 @@ func (k msgServer) calculateSlashRewards(ctx sdk.Context, total sdkmath.Int, cha
 func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteResult types.VoteResult, slashAmount sdkmath.Int,
 	spID uint32, submitter, challenger sdk.AccAddress, validators []string) error {
 
-	challengerReward, eachValidatorReward, submitterReward := k.calculateSlashRewards(ctx, slashAmount,
-		challenger, int64(len(validators)))
+	challengerReward, eachValidatorReward, submitterReward := sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt()
 
-	denom := k.SpKeeper.DepositDenomForSP(ctx)
-	rewards := make([]sptypes.RewardInfo, 0)
-	if !challenger.Equals(sdk.AccAddress{}) {
+	if !slashAmount.IsZero() {
+
+		challengerReward, eachValidatorReward, submitterReward = k.calculateSlashRewards(ctx, slashAmount,
+			challenger, int64(len(validators)))
+
+		denom := k.SpKeeper.DepositDenomForSP(ctx)
+		rewards := make([]sptypes.RewardInfo, 0)
+		if !challenger.Equals(sdk.AccAddress{}) {
+			rewards = append(rewards, sptypes.RewardInfo{
+				Address: challenger.String(),
+				Amount: sdk.Coin{
+					Denom:  denom,
+					Amount: challengerReward,
+				},
+			})
+		}
+		for _, val := range validators {
+			rewards = append(rewards, sptypes.RewardInfo{
+				Address: val,
+				Amount: sdk.Coin{
+					Denom:  denom,
+					Amount: eachValidatorReward,
+				},
+			})
+		}
 		rewards = append(rewards, sptypes.RewardInfo{
-			Address: challenger.String(),
+			Address: submitter.String(),
 			Amount: sdk.Coin{
 				Denom:  denom,
-				Amount: challengerReward,
-			},
-		})
-	}
-	for _, val := range validators {
-		rewards = append(rewards, sptypes.RewardInfo{
-			Address: val,
-			Amount: sdk.Coin{
-				Denom:  denom,
-				Amount: eachValidatorReward,
-			},
-		})
-	}
-	rewards = append(rewards, sptypes.RewardInfo{
-		Address: submitter.String(),
-		Amount: sdk.Coin{
-			Denom:  denom,
-			Amount: submitterReward,
-		}})
+				Amount: submitterReward,
+			}})
 
-	if challengerReward.IsPositive() || eachValidatorReward.IsPositive() || submitterReward.IsPositive() {
 		err := k.SpKeeper.Slash(ctx, spID, rewards)
 		if err != nil {
 			return err
