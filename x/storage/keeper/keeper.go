@@ -2020,7 +2020,7 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 		BucketName:                 bucketName,
 		BucketId:                   bucketInfo.Id,
 		GlobalVirtualGroupFamilyId: gvgFamilyID,
-		SrcPrimarySpId:             srcGvgFamily.Id,
+		SrcPrimarySpId:             srcGvgFamily.PrimarySpId,
 	}); err != nil {
 		return err
 	}
