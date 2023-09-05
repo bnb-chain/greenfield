@@ -469,3 +469,16 @@ func TestQueryPolicyById(t *testing.T) {
 	})
 	require.ErrorContains(t, err, "invalid policy id")
 }
+
+func TestQueryQuotaUpdateTime(t *testing.T) {
+	// invalid argument
+	k, ctx := makeKeeper(t)
+	_, err := k.QueryQuotaUpdateTime(ctx, nil)
+	require.ErrorContains(t, err, "invalid request")
+
+	// bucket not exist
+	_, err = k.QueryQuotaUpdateTime(ctx, &types.QueryQuoteUpdateTimeRequest{
+		BucketName: "xxx",
+	})
+	require.ErrorIs(t, err, types.ErrNoSuchBucket)
+}

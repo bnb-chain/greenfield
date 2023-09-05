@@ -86,6 +86,12 @@ func (s *StorageTestSuite) TestCreateBucket() {
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
 
+	queryQuotaUpdateTimeResponse, err := s.Client.QueryQuotaUpdateTime(ctx, &storagetypes.QueryQuoteUpdateTimeRequest{
+		BucketName: bucketName,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.CreateAt, queryQuotaUpdateTimeResponse.UpdateAt)
+
 	// UpdateBucketInfo
 	msgUpdateBucketInfo := storagetypes.NewMsgUpdateBucketInfo(
 		user.GetAddr(), bucketName, nil, user.GetAddr(), storagetypes.VISIBILITY_TYPE_PRIVATE)
