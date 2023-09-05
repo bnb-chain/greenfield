@@ -673,17 +673,19 @@ func New(
 		panic(fmt.Errorf("failed to create AnteHandler: %s", err))
 	}
 
+	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
+	// Make sure `RegisterUpgradeHandlers` is called before `SetUpgradeChecker` so that upgrade configs
+	// can be correctly picked up
+	err = app.RegisterUpgradeHandlers(app.ChainID(), &app.appConfig.Config)
+	if err != nil {
+		panic(err)
+	}
+
 	app.SetAnteHandler(anteHandler)
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 	app.SetUpgradeChecker(app.UpgradeKeeper.IsUpgraded)
-
-	// RegisterUpgradeHandlers is used for registering any on-chain upgrades.
-	err = app.RegisterUpgradeHandlers(app.ChainID(), &app.appConfig.Config)
-	if err != nil {
-		panic(err)
-	}
 
 	ms := app.CommitMultiStore()
 	ctx := sdk.NewContext(ms, tmproto.Header{ChainID: app.ChainID(), Height: app.LastBlockHeight()}, true, app.UpgradeKeeper.IsUpgraded, app.Logger())
