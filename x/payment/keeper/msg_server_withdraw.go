@@ -18,7 +18,6 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	params := k.GetParams(ctx)
 	if ctx.IsUpgraded(upgradetypes.Nagqu) {
 		if msg.From == "" { // withdraw from the locked one
-
 			delayedWithdrawal, found := k.GetDelayedWithdrawalRecord(ctx, creator)
 			if !found {
 				return nil, errors.Wrapf(types.ErrNoDelayedWithdrawal, "delayed withdrawal not found %s", creator.String())
@@ -80,7 +79,7 @@ func (k msgServer) Withdraw(goCtx context.Context, msg *types.MsgWithdraw) (*typ
 	}
 
 	if ctx.IsUpgraded(upgradetypes.Nagqu) {
-		if msg.Amount.GTE(params.WithdrawTimeLockThreshold) {
+		if msg.Amount.GTE(*params.WithdrawTimeLockThreshold) {
 			// check whether there is delayed withdrawal, if there is delayed withdrawal, must withdraw it firstly
 			if _, found := k.GetDelayedWithdrawalRecord(ctx, creator); found {
 				return nil, errors.Wrapf(types.ErrExistsDelayedWithdrawal, "delayed withdrawal should be proceed firstly %s", creator.String())

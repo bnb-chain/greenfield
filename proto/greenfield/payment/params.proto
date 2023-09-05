@@ -23,8 +23,7 @@ message Params {
   // The withdrawal amount threshold to trigger time lock
   string withdraw_time_lock_threshold = 7 [
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   // The duration of the time lock for a big amount withdrawal
   uint64 withdraw_time_lock_duration = 8 [(gogoproto.moretags) = "yaml:\"withdraw_time_lock_duration\""];
