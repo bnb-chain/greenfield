@@ -376,6 +376,23 @@ func (k Keeper) QueryIsPriceChanged(c context.Context, req *types.QueryIsPriceCh
 	}, nil
 }
 
+func (k Keeper) QueryQuotaUpdateTime(c context.Context, req *types.QueryQuoteUpdateTimeRequest) (*types.QueryQuoteUpdateTimeResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	bucketInfo, found := k.GetBucketInfo(ctx, req.BucketName)
+	if !found {
+		return nil, types.ErrNoSuchBucket
+	}
+
+	updateAt, _ := k.getQuotaUpdateTime(ctx, bucketInfo.Id) // the bucket exists, so it will always get a result
+	return &types.QueryQuoteUpdateTimeResponse{
+		UpdateAt: int64(updateAt),
+	}, nil
+}
+
 func validateAndGetId(req *types.QueryNFTRequest) (math.Uint, error) {
 	if req == nil {
 		return math.ZeroUint(), status.Error(codes.InvalidArgument, "invalid request")

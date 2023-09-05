@@ -5372,6 +5372,48 @@ paths:
           type: string
       tags:
         - Query
+  /greenfield/storage/quota_update_time/{bucket_name}:
+    get:
+      summary: Queries whether read and storage prices changed for the bucket.
+      operationId: QueryQuotaUpdateTime
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              update_at:
+                type: string
+                format: int64
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_name
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
   /greenfield/storage/verify_permission/{operator}/{bucket_name}/{action_type}:
     get:
       summary: Queries a list of VerifyPermission items.
@@ -35784,6 +35826,12 @@ definitions:
 
               Notices: Its priority is higher than the expiration time inside
               the Statement
+  greenfield.storage.QueryQuoteUpdateTimeResponse:
+    type: object
+    properties:
+      update_at:
+        type: string
+        format: int64
   greenfield.storage.QueryVerifyPermissionResponse:
     type: object
     properties:
