@@ -304,3 +304,34 @@ func TestOutFlowQuery(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 2, len(response.OutFlows))
 }
+
+func TestDelayedWithdrawalQuery(t *testing.T) {
+	keeper, ctx, _ := makePaymentKeeper(t)
+	params := types.DefaultParams()
+	err := keeper.SetParams(ctx, params)
+	require.NoError(t, err)
+
+	owner := sample.RandAccAddress()
+	from := sample.RandAccAddress()
+	_, err = keeper.DelayedWithdrawal(ctx, &types.QueryDelayedWithdrawalRequest{
+		Account: owner.String(),
+	})
+	require.Error(t, err)
+
+	delayedWithdrawal := &types.DelayedWithdrawalRecord{
+		Addr:            owner.String(),
+		Amount:          sdkmath.NewInt(100),
+		From:            from.String(),
+		UnlockTimestamp: time.Now().Unix(),
+	}
+	keeper.SetDelayedWithdrawalRecord(ctx, delayedWithdrawal)
+
+	response, err := keeper.DelayedWithdrawal(ctx, &types.QueryDelayedWithdrawalRequest{
+		Account: owner.String(),
+	})
+	require.NoError(t, err)
+	require.True(t, response.DelayedWithdrawal.Addr == delayedWithdrawal.Addr)
+	require.True(t, response.DelayedWithdrawal.From == from.String())
+	require.True(t, response.DelayedWithdrawal.Amount.Equal(delayedWithdrawal.Amount))
+	require.True(t, response.DelayedWithdrawal.UnlockTimestamp == delayedWithdrawal.UnlockTimestamp)
+}

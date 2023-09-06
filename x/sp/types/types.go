@@ -112,7 +112,7 @@ func NewDescription(moniker, identity, website, details string) Description {
 	}
 }
 
-// EnsureLength ensures the length of a validator's description.
+// EnsureLength ensures the length of a storage provider's description.
 func (d *Description) EnsureLength() error {
 	if len(d.Moniker) > MaxMonikerLength {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)

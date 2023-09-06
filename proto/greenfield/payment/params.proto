@@ -20,6 +20,13 @@ message Params {
   uint64 max_auto_resume_flow_count = 5 [(gogoproto.moretags) = "yaml:\"max_auto_resume_flow_count\""];
   // The denom of fee charged in payment module
   string fee_denom = 6 [(gogoproto.moretags) = "yaml:\"fee_denom\""];
+  // The withdrawal amount threshold to trigger time lock
+  string withdraw_time_lock_threshold = 7 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // The duration of the time lock for a big amount withdrawal
+  uint64 withdraw_time_lock_duration = 8 [(gogoproto.moretags) = "yaml:\"withdraw_time_lock_duration\""];
 }
 
 // VersionedParams defines the parameters with multiple versions, each version is stored with different timestamp.

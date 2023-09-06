@@ -899,7 +899,7 @@ func CmdMirrorBucket() *cobra.Command {
 			if argDestChainId == "" {
 				return fmt.Errorf("destination chain id should be provided")
 			}
-			destChainId, err := strconv.ParseUint(argDestChainId, 10, 64)
+			destChainId, err := strconv.ParseUint(argDestChainId, 10, 16)
 			if err != nil {
 				return err
 			}
@@ -992,7 +992,7 @@ func CmdMirrorObject() *cobra.Command {
 			if argDestChainId == "" {
 				return fmt.Errorf("destination chain id should be provided")
 			}
-			destChainId, err := strconv.ParseUint(argDestChainId, 10, 64)
+			destChainId, err := strconv.ParseUint(argDestChainId, 10, 16)
 			if err != nil {
 				return err
 			}
@@ -1053,7 +1053,7 @@ func CmdMirrorGroup() *cobra.Command {
 			if argDestChainId == "" {
 				return fmt.Errorf("destination chain id should be provided")
 			}
-			destChainId, err := strconv.ParseUint(argDestChainId, 10, 64)
+			destChainId, err := strconv.ParseUint(argDestChainId, 10, 16)
 			if err != nil {
 				return err
 			}

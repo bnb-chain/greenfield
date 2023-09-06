@@ -36,7 +36,7 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 type MsgCreateStorageProvider struct {
 	// creator is the msg signer
 	Creator string `protobuf:"bytes,1,opt,name=creator,proto3" json:"creator,omitempty"`
-	// description defines the description terms for the validator.
+	// description defines the description terms for the storage provider.
 	Description Description `protobuf:"bytes,2,opt,name=description,proto3" json:"description"`
 	// sp_address defines the address of the sp's operator; It also is the unqiue index key of sp.
 	SpAddress string `protobuf:"bytes,3,opt,name=sp_address,json=spAddress,proto3" json:"sp_address,omitempty"`

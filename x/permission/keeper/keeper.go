@@ -15,6 +15,7 @@ import (
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 type (
@@ -298,7 +299,7 @@ func (k Keeper) GetPolicyForGroup(ctx sdk.Context, resourceID math.Uint,
 	for _, item := range policyGroup.Items {
 		k.Logger(ctx).Info(fmt.Sprintf("GetPolicy, policyID: %s, groupID: %s", item.PolicyId.String(), item.GroupId.String()))
 		if item.GroupId.Equal(groupID) {
-			return k.MustGetPolicyByID(ctx, item.PolicyId), true
+			return k.GetPolicyByID(ctx, item.PolicyId)
 		}
 	}
 	return nil, false
@@ -325,7 +326,9 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		if err != nil {
 			return math.ZeroUint(), err
 		}
-		bz := store.Get(types.GetPolicyForGroupKey(resourceID, resourceType))
+		policyGroupKey := types.GetPolicyForGroupKey(resourceID, resourceType)
+		bz := store.Get(policyGroupKey)
+		updated := false
 		if bz != nil {
 			policyGroup := types.PolicyGroup{}
 			k.cdc.MustUnmarshal(bz, &policyGroup)
@@ -342,11 +345,20 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 					if policy.ExpirationTime != nil {
 						store.Delete(types.PolicyPrefixQueue(policy.ExpirationTime, policy.Id.Bytes()))
 					}
+					updated = true
+					break // Only one should be deleted
 				}
 			}
-			// delete the key if value is empty
-			if len(policyGroup.Items) == 0 {
-				store.Delete(types.GetPolicyForGroupKey(resourceID, resourceType))
+			if updated {
+				if len(policyGroup.Items) == 0 {
+					// delete the key if value is empty
+					store.Delete(policyGroupKey)
+				} else {
+					if ctx.IsUpgraded(upgradetypes.Nagqu) {
+						// persist policy group after updated.
+						store.Set(policyGroupKey, k.cdc.MustMarshal(&policyGroup))
+					}
+				}
 			}
 		}
 	} else {

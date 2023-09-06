@@ -45,7 +45,7 @@ func CmdSubmit() *cobra.Command {
 
 			argSegmentIndex := uint64(0)
 			if !argRandomIndex {
-				argSegmentIndex, err = strconv.ParseUint(args[4], 10, 64)
+				argSegmentIndex, err = strconv.ParseUint(args[4], 10, 32)
 				if err != nil {
 					return fmt.Errorf("segment-index %s not a valid uint, please input a valid segment-index", args[4])
 				}
