@@ -58,7 +58,7 @@ func NewParams(
 		MaxAutoSettleFlowCount:    MaxAutoSettleFlowCount,
 		MaxAutoResumeFlowCount:    maxAutoResumeFlowCount,
 		FeeDenom:                  feeDenom,
-		WithdrawTimeLockThreshold: withdrawTimeLockThreshold,
+		WithdrawTimeLockThreshold: &withdrawTimeLockThreshold,
 		WithdrawTimeLockDuration:  withdrawTimeLockDuration,
 	}
 }
@@ -235,13 +235,15 @@ func validateValidatorTaxRate(v interface{}) error {
 
 // validateWithdrawTimeLockThreshold validates the WithdrawTimeLockThreshold param
 func validateWithdrawTimeLockThreshold(v interface{}) error {
-	withdrawTimeLockThreshold, ok := v.(math.Int)
+	withdrawTimeLockThreshold, ok := v.(*math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if withdrawTimeLockThreshold.IsNil() || !withdrawTimeLockThreshold.IsPositive() {
-		return fmt.Errorf("withdraw time lock threshold should be positive, is %s", withdrawTimeLockThreshold)
+	if withdrawTimeLockThreshold != nil && !withdrawTimeLockThreshold.IsNil() {
+		if !withdrawTimeLockThreshold.IsPositive() {
+			return fmt.Errorf("withdraw time lock threshold should be positive, is %s", withdrawTimeLockThreshold)
+		}
 	}
 
 	return nil
