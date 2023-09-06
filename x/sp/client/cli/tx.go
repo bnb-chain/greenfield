@@ -52,7 +52,7 @@ func CmdCreateStorageProvider() *cobra.Command {
 		Long:  `Submit a create new storage provider proposal by submitting a JSON file with the new storage provider details, once the proposal has been passed, create a new storage provider initialized with a self deposit.`,
 		Example: strings.TrimSpace(
 			fmt.Sprintf(`
-$ %s tx sp create-storage-provider path/to/create_validator_proposal.json --from keyname
+$ %s tx sp create-storage-provider path/to/create_sp_proposal.json --from keyname
 Where create_storagep_provider.json contains:
 {
   "messages": [
@@ -421,9 +421,9 @@ func CreateStorageProviderMsgFlagSet(ipDefault string) (fs *flag.FlagSet, defaul
 	fsCreateStorageProvider.String(FlagNodeID, "", "The node's NodeID")
 
 	fsCreateStorageProvider.String(FlagMoniker, "", "The sp's name")
-	fsCreateStorageProvider.String(FlagWebsite, "", "The validator's (optional) website")
-	fsCreateStorageProvider.String(FlagSecurityContact, "", "The validator's (optional) security contact email")
-	fsCreateStorageProvider.String(FlagDetails, "", "The validator's (optional) details")
+	fsCreateStorageProvider.String(FlagWebsite, "", "The storage provider's (optional) website")
+	fsCreateStorageProvider.String(FlagSecurityContact, "", "The storage provider's (optional) security contact email")
+	fsCreateStorageProvider.String(FlagDetails, "", "The storage provider's (optional) details")
 	fsCreateStorageProvider.String(FlagIdentity, "", "The (optional) identity signature (ex. UPort or Keybase)")
 
 	fsCreateStorageProvider.String(FlagCreator, "", "The creator address of storage provider")
