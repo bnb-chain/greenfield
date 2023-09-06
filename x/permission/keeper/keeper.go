@@ -384,6 +384,12 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
+		// if exceeding the limit, pause the GC and mark the current resource's deletion is not complete yet
+		if ctx.IsUpgraded(upgradetypes.Nagqu) {
+			if deletedTotal >= maxDelete {
+				return deletedTotal, false
+			}
+		}
 		policyId := k.policySeq.DecodeSequence(iterator.Value())
 		policy, _ := k.GetPolicyByID(ctx, policyId)
 		if policy != nil && policy.ExpirationTime != nil {
@@ -400,11 +406,11 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 			PolicyId: policyId,
 		})
 		deletedTotal++
-		// if exceeding the limit, pause the GC and mark the current resource's deletion is not complete yet
-		if deletedTotal > maxDelete {
-			return deletedTotal, false
+		if !ctx.IsUpgraded(upgradetypes.Nagqu) {
+			if deletedTotal > maxDelete {
+				return deletedTotal, false
+			}
 		}
-
 	}
 	return deletedTotal, true
 }
@@ -421,6 +427,13 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 		policyGroup := types.PolicyGroup{}
 		k.cdc.MustUnmarshal(bz, &policyGroup)
 		for i := 0; i < len(policyGroup.Items); i++ {
+			if ctx.IsUpgraded(upgradetypes.Nagqu) {
+				if deletedTotal >= maxDelete {
+					remainingPolicies := policyGroup.Items[i:]
+					store.Set(policyForGroupKey, k.cdc.MustMarshal(&types.PolicyGroup{Items: remainingPolicies}))
+					return deletedTotal, false
+				}
+			}
 			policyId := policyGroup.Items[i].PolicyId
 			policy, _ := k.GetPolicyByID(ctx, policyId)
 			if policy != nil && policy.ExpirationTime != nil {
@@ -434,8 +447,10 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 				PolicyId: policyId,
 			})
 			deletedTotal++
-			if deletedTotal > maxDelete {
-				return deletedTotal, false
+			if !ctx.IsUpgraded(upgradetypes.Nagqu) {
+				if deletedTotal > maxDelete {
+					return deletedTotal, false
+				}
 			}
 		}
 		store.Delete(policyForGroupKey)
@@ -450,14 +465,21 @@ func (k Keeper) ForceDeleteGroupMembers(ctx sdk.Context, maxDelete, deletedTotal
 	iter := groupMembersPrefixStore.Iterator(nil, nil)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
+		if ctx.IsUpgraded(upgradetypes.Nagqu) {
+			if deletedTotal >= maxDelete {
+				return deletedTotal, false
+			}
+		}
 		memberID := k.groupMemberSeq.DecodeSequence(iter.Value())
 		// delete GroupMemberByIDPrefix_id -> groupMember
 		store.Delete(types.GetGroupMemberByIDKey(memberID))
 		// delete GroupMemberPrefix_groupId_memberAddr -> memberSequence(id)
 		groupMembersPrefixStore.Delete(iter.Key())
 		deletedTotal++
-		if deletedTotal > maxDelete {
-			return deletedTotal, false
+		if !ctx.IsUpgraded(upgradetypes.Nagqu) {
+			if deletedTotal > maxDelete {
+				return deletedTotal, false
+			}
 		}
 	}
 	return deletedTotal, true

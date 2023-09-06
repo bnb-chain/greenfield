@@ -315,12 +315,12 @@ func (k Keeper) QueryLockFee(c context.Context, req *types.QueryLockFeeRequest) 
 		return nil, status.Error(codes.InvalidArgument, "invalid primary storage provider address")
 	}
 
-	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primaryAcc)
+	_, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, primaryAcc)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound
 	}
 
-	amount, err := k.GetObjectLockFee(ctx, sp.GetId(), createAt, req.PayloadSize)
+	amount, err := k.GetObjectLockFee(ctx, createAt, req.PayloadSize)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
