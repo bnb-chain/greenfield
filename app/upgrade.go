@@ -4,6 +4,9 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+
+	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
@@ -52,7 +55,12 @@ func (app *App) registerNagquUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Nagqu,
 		func() error {
 			app.Logger().Info("Init Nagqu upgrade")
+			mm, ok := app.mm.Modules[paymenttypes.ModuleName].(*paymentmodule.AppModule)
+			if !ok {
+				panic("*paymentmodule.AppModule not found")
+			}
+			mm.SetConsensusVersion(2)
 			return nil
-		},
-	)
+
+		})
 }
