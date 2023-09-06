@@ -240,7 +240,7 @@ func validateWithdrawTimeLockThreshold(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	if !withdrawTimeLockThreshold.IsNil() {
+	if withdrawTimeLockThreshold != nil && !withdrawTimeLockThreshold.IsNil() {
 		if !withdrawTimeLockThreshold.IsPositive() {
 			return fmt.Errorf("withdraw time lock threshold should be positive, is %s", withdrawTimeLockThreshold)
 		}
