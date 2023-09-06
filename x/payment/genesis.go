@@ -4,11 +4,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/keeper"
-	"github.com/bnb-chain/greenfield/x/payment/types"
+	v1 "github.com/bnb-chain/greenfield/x/payment/types/v1"
 )
 
 // InitGenesis initializes the module's state from a provided genesis state.
-func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) {
+func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState v1.GenesisState) {
 	// Set all the streamRecord
 	for _, elem := range genState.StreamRecordList {
 		k.SetStreamRecord(ctx, &elem)
@@ -25,16 +25,16 @@ func InitGenesis(ctx sdk.Context, k keeper.Keeper, genState types.GenesisState) 
 	for _, elem := range genState.AutoSettleRecordList {
 		k.SetAutoSettleRecord(ctx, &elem)
 	}
-	err := k.SetParams(ctx, genState.Params)
+	err := k.SetV1Params(ctx, genState.Params)
 	if err != nil {
 		panic(err)
 	}
 }
 
 // ExportGenesis returns the module's exported genesis
-func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
-	genesis := types.DefaultGenesis()
-	genesis.Params = k.GetParams(ctx)
+func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *v1.GenesisState {
+	genesis := v1.DefaultGenesis()
+	genesis.Params = k.GetV1Params(ctx)
 
 	genesis.StreamRecordList = k.GetAllStreamRecord(ctx)
 	genesis.PaymentAccountCountList = k.GetAllPaymentAccountCount(ctx)

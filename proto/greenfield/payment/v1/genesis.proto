@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package greenfield.payment.v1;
+
+import "gogoproto/gogo.proto";
+import "greenfield/payment/auto_settle_record.proto";
+import "greenfield/payment/payment_account.proto";
+import "greenfield/payment/payment_account_count.proto";
+import "greenfield/payment/stream_record.proto";
+import "greenfield/payment/v1/params.proto";
+
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/bnb-chain/greenfield/x/payment/types/v1";
+
+// GenesisState defines the payment module's genesis state.
+message GenesisState {
+  Params params = 1 [(gogoproto.nullable) = false];
+  repeated StreamRecord stream_record_list = 2 [(gogoproto.nullable) = false];
+  repeated PaymentAccountCount payment_account_count_list = 3 [(gogoproto.nullable) = false];
+  repeated PaymentAccount payment_account_list = 4 [(gogoproto.nullable) = false];
+  repeated AutoSettleRecord auto_settle_record_list = 5 [(gogoproto.nullable) = false];
+  // this line is used by starport scaffolding # genesis/proto/state
+}

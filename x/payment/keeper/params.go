@@ -7,7 +7,48 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	v1 "github.com/bnb-chain/greenfield/x/payment/types/v1"
 )
+
+// GetV1Params get all parameters as v1.Params
+func (k Keeper) GetV1Params(ctx sdk.Context) (p v1.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
+}
+
+// SetV1Params set the params
+func (k Keeper) SetV1Params(ctx sdk.Context, params v1.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	// store versioned params
+	err := k.SetV1VersionedParamsWithTs(ctx, params.VersionedParams)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) SetV1VersionedParamsWithTs(ctx sdk.Context, verParams v1.VersionedParams) error {
+	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.VersionedParamsKeyPrefix)
+	key := types.VersionedParamsKey(ctx.BlockTime().Unix())
+
+	b := k.cdc.MustMarshal(&verParams)
+	store.Set(key, b)
+
+	return nil
+}
 
 // GetParams get all parameters as types.Params
 func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {

@@ -5,8 +5,8 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v1 "github.com/bnb-chain/greenfield/x/payment/keeper/v1"
 	"github.com/bnb-chain/greenfield/x/payment/types"
+	v1 "github.com/bnb-chain/greenfield/x/payment/types/v1"
 )
 
 func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, cdc codec.BinaryCodec) error {
