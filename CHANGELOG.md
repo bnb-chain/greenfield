@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.2.5-alpha.1
+This release contains 4 features and 4 bugfixes.
+
+Features:
+* [#435](https://github.com/bnb-chain/greenfield/pull/435) feat: deposit the balance of the bank account to the payment account
+* [#448](https://github.com/bnb-chain/greenfield/pull/448) feat: timelock for large amount withdraw from payment
+* [#449](https://github.com/bnb-chain/greenfield/pull/449) feat: complete cdc register
+* [#457](https://github.com/bnb-chain/greenfield/pull/457) feat: add api for querying last quota update time
+
+Bugfixes:
+* [#451](https://github.com/bnb-chain/greenfield/pull/451) fix: audit issues by verichain
+* [#456](https://github.com/bnb-chain/greenfield/pull/456) fix: fix parameter init issue
+* [#458](https://github.com/bnb-chain/greenfield/pull/458) fix: correct emit event filed
+* [#462](https://github.com/bnb-chain/greenfield/pull/462) fix: fix app hash mismatch for genesis block
+
 ## v0.2.4
 This release contains all the changes in the v0.2.4 alpha versions and 5 new bugfixes.
 
