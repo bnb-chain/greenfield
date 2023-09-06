@@ -18,8 +18,8 @@ const (
 )
 
 var (
-	validGRNRegex       = regexp.MustCompile("^grn:([b|o|g]):([^:]*):([^:]*)$")
-	validGRNRegexNoWild = regexp.MustCompile("^grn:([b|o|g]):([^:]*):([^:*]*)$")
+	validGRNRegex       = regexp.MustCompile("^grn:([bog]):([^:]*):([^:]*)$")
+	validGRNRegexNoWild = regexp.MustCompile("^grn:([bog]):([^:]*):([^:*]*)$")
 )
 
 // GRN define a standard ResourceName format, full name: GreenFieldResourceName
