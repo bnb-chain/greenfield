@@ -36,9 +36,6 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	if objectInfo.ObjectStatus != storagetypes.OBJECT_STATUS_SEALED {
 		return nil, types.ErrInvalidObjectStatus
 	}
-	if objectInfo.PayloadSize == 0 {
-		return nil, errors.Wrap(types.ErrInvalidSegmentIndex, "the object is empty, no segment")
-	}
 
 	// check whether the sp stores the object info, generate redundancy index
 	stored := false
