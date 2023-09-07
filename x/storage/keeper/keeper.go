@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -24,6 +22,7 @@ import (
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 type (
