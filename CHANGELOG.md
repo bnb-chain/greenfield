@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.5-alpha.2
+This release contains 1 bugfix.
+* [#465](https://github.com/bnb-chain/greenfield/pull/465) fix: remaining policies need re-persistence
+
 ## v0.2.5-alpha.1
 This release contains 4 features and 4 bugfixes.
 

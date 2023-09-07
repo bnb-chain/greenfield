@@ -326,7 +326,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 		}
 
 		if objectStatus == types.OBJECT_STATUS_CREATED {
-			if err = k.UnlockObjectStoreFee(ctx, sp.Id, bucketInfo, &objectInfo); err != nil {
+			if err = k.UnlockObjectStoreFee(ctx, bucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("unlock store fee error", "err", err)
 				return false, deleted, err
 			}
@@ -623,7 +623,7 @@ func (k Keeper) CreateObject(
 		}
 	} else {
 		// Lock Fee
-		err = k.LockObjectStoreFee(ctx, sp.Id, bucketInfo, &objectInfo)
+		err = k.LockObjectStoreFee(ctx, bucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -835,7 +835,7 @@ func (k Keeper) CancelCreateObject(
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/creator to do cancel create object")
 	}
 
-	err := k.UnlockObjectStoreFee(ctx, spInState.Id, bucketInfo, objectInfo)
+	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -955,7 +955,7 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	if objectStatus == types.OBJECT_STATUS_CREATED {
-		err := k.UnlockObjectStoreFee(ctx, spInState.Id, bucketInfo, objectInfo)
+		err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 		if err != nil {
 			ctx.Logger().Error("unlock store fee error", "err", err)
 			return err
@@ -1057,7 +1057,7 @@ func (k Keeper) CopyObject(
 			return sdkmath.ZeroUint(), err
 		}
 	} else {
-		err = k.LockObjectStoreFee(ctx, dstPrimarySP.Id, dstBucketInfo, &objectInfo)
+		err = k.LockObjectStoreFee(ctx, dstBucketInfo, &objectInfo)
 		if err != nil {
 			return sdkmath.ZeroUint(), err
 		}
@@ -1111,7 +1111,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary SP to do cancel create object")
 	}
 
-	err := k.UnlockObjectStoreFee(ctx, spInState.Id, bucketInfo, objectInfo)
+	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -1843,7 +1843,6 @@ func (k Keeper) garbageCollectionForResource(ctx sdk.Context, deleteStalePolicie
 			deletedTotal, done = k.permKeeper.ForceDeleteAccountPolicyForResource(ctx, maxCleanup, deletedTotal, resourceType, id)
 			if !done {
 				resourceIds.Id = temp
-
 				deleteStalePoliciesPrefixStore.Set(iterator.Key(), k.cdc.MustMarshal(deleteInfo))
 				return deletedTotal, false
 			}

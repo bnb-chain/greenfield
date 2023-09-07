@@ -107,9 +107,9 @@ func (k Keeper) UpdateBucketInfoAndCharge(ctx sdk.Context, bucketInfo *storagety
 	return err
 }
 
-func (k Keeper) LockObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+func (k Keeper) LockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	paymentAddr := sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress)
-	amount, err := k.GetObjectLockFee(ctx, primarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
+	amount, err := k.GetObjectLockFee(ctx, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %s %s %w", bucketInfo.BucketName, objectInfo.ObjectName, err)
 	}
@@ -133,9 +133,8 @@ func (k Keeper) LockObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketIn
 }
 
 // UnlockObjectStoreFee unlock store fee if the object is deleted in INIT state
-func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
-
-	lockedBalance, err := k.GetObjectLockFee(ctx, primarySpId, objectInfo.CreateAt, objectInfo.PayloadSize)
+func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, bucketInfo *storagetypes.BucketInfo, objectInfo *storagetypes.ObjectInfo) error {
+	lockedBalance, err := k.GetObjectLockFee(ctx, objectInfo.CreateAt, objectInfo.PayloadSize)
 	if err != nil {
 		return fmt.Errorf("get object store fee rate failed: %s %s %w", bucketInfo.BucketName, objectInfo.ObjectName, err)
 	}
@@ -151,7 +150,7 @@ func (k Keeper) UnlockObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucket
 func (k Keeper) UnlockAndChargeObjectStoreFee(ctx sdk.Context, primarySpId uint32, bucketInfo *storagetypes.BucketInfo,
 	internalBucketInfo *storagetypes.InternalBucketInfo, objectInfo *storagetypes.ObjectInfo) error {
 	// unlock store fee
-	err := k.UnlockObjectStoreFee(ctx, primarySpId, bucketInfo, objectInfo)
+	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
 	if err != nil {
 		return fmt.Errorf("unlock store fee failed: %s %s %w", bucketInfo.BucketName, objectInfo.ObjectName, err)
 	}
@@ -488,7 +487,7 @@ func getNegFlows(flows []types.OutFlow) (negFlows []types.OutFlow) {
 	return negFlows
 }
 
-func (k Keeper) GetObjectLockFee(ctx sdk.Context, primarySpId uint32, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
+func (k Keeper) GetObjectLockFee(ctx sdk.Context, priceTime int64, payloadSize uint64) (amount sdkmath.Int, err error) {
 	price, err := k.spKeeper.GetGlobalSpStorePriceByTime(ctx, priceTime)
 	if err != nil {
 		return amount, fmt.Errorf("get store price failed: %d %w", priceTime, err)
