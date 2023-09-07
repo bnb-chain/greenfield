@@ -14,7 +14,7 @@ import (
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
 
-	if ctx.BlockHeight() == 686000 {
+	if ctx.BlockHeight() == 686500 {
 		panic("please switch binary")
 	}
 
