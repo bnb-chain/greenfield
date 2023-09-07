@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/libs/log"
@@ -1903,8 +1905,14 @@ func (k Keeper) MigrateBucket(ctx sdk.Context, operator sdk.AccAddress, bucketNa
 	}
 
 	streamRecord, found := k.paymentKeeper.GetStreamRecord(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress))
-	if !found || streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
-		return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is frozen")
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
+		if found && streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
+			return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is frozen")
+		}
+	} else {
+		if !found || streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
+			return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is not found or frozen")
+		}
 	}
 
 	// check approval
@@ -1980,8 +1988,14 @@ func (k Keeper) CompleteMigrateBucket(ctx sdk.Context, operator sdk.AccAddress, 
 	}
 
 	streamRecord, found := k.paymentKeeper.GetStreamRecord(ctx, sdk.MustAccAddressFromHex(bucketInfo.PaymentAddress))
-	if !found || streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
-		return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is frozen")
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
+		if found && streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
+			return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is frozen")
+		}
+	} else {
+		if !found || streamRecord.Status == paymenttypes.STREAM_ACCOUNT_STATUS_FROZEN {
+			return paymenttypes.ErrInvalidStreamAccountStatus.Wrap("stream account is not found or frozen")
+		}
 	}
 
 	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
