@@ -13,6 +13,11 @@ import (
 )
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
+
+	if ctx.BlockHeight() == 689000 {
+		panic("please switch binary")
+	}
+
 	blockHeight := uint64(ctx.BlockHeight())
 	// delete expired challenges at this height
 	keeper.RemoveChallengeUntil(ctx, blockHeight)
