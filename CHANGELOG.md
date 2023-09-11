@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.5-alpha.3
+This release is a bugfix release.
+
+Bugfixes:
+* [#470](https://github.com/bnb-chain/greenfield/pull/470) fix: testnet block sync issue
+* [#471](https://github.com/bnb-chain/greenfield/pull/471) fix: some issues in challenge module
+
 ## v0.2.5-alpha.2
 This release contains 1 bugfix.
 * [#465](https://github.com/bnb-chain/greenfield/pull/465) fix: remaining policies need re-persistence
