@@ -4,6 +4,8 @@ import (
 	"context"
 	"math/big"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -200,8 +202,9 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 
 	challengerReward, eachValidatorReward, submitterReward := sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt()
 
-	if !slashAmount.IsZero() {
+	noNeedCalculation := ctx.IsUpgraded(upgradetypes.Nagqu) && slashAmount.IsZero()
 
+	if !noNeedCalculation {
 		challengerReward, eachValidatorReward, submitterReward = k.calculateSlashRewards(ctx, slashAmount,
 			challenger, int64(len(validators)))
 
@@ -232,9 +235,11 @@ func (k msgServer) doSlashAndRewards(ctx sdk.Context, challengeId uint64, voteRe
 				Amount: submitterReward,
 			}})
 
-		err := k.SpKeeper.Slash(ctx, spID, rewards)
-		if err != nil {
-			return err
+		if challengerReward.IsPositive() || eachValidatorReward.IsPositive() || submitterReward.IsPositive() {
+			err := k.SpKeeper.Slash(ctx, spID, rewards)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
