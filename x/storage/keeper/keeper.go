@@ -1361,10 +1361,11 @@ func (k Keeper) LeaveGroup(
 		return err
 	}
 
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeleteGroup{
-		Owner:     groupInfo.Owner,
-		GroupName: groupInfo.GroupName,
-		GroupId:   groupInfo.Id,
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventLeaveGroup{
+		MemberAddress: member.String(),
+		Owner:         groupInfo.Owner,
+		GroupName:     groupInfo.GroupName,
+		GroupId:       groupInfo.Id,
 	}); err != nil {
 		return err
 	}
