@@ -39,9 +39,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-
 
-      - name: Setup GitHub Token
-        run: git config --global url.https://${{ secrets.GH_ACCESS_SECRET }}@github.com/.insteadOf https://github.com/
-
       # ==============================
       #       Linux/Macos Build
       # ==============================
@@ -117,7 +114,7 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_ACCESS_SECRET }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
           tag_name: ${{ env.RELEASE_VERSION}}
           release_name: ${{ env.RELEASE_VERSION}}

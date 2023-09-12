@@ -16,8 +16,6 @@ jobs:
         os: [ubuntu-latest]
     runs-on: ${{ matrix.os }}
     env:
-      GOPRIVATE: github.com/bnb-chain
-      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_SECRET }}
       CGO_CFLAGS: "-O -D__BLST_PORTABLE__"
       CGO_CFLAGS_ALLOW: "-O -D__BLST_PORTABLE__"
     steps:
@@ -44,9 +42,6 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
-
-    - name: Setup GitHub Token
-      run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
 
     - name: Test Build
       run: |
