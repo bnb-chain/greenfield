@@ -47,7 +47,10 @@ func (k msgServer) CreateStorageProvider(goCtx context.Context, msg *types.MsgCr
 	sealAcc := sdk.MustAccAddressFromHex(msg.SealAddress)
 	approvalAcc := sdk.MustAccAddressFromHex(msg.ApprovalAddress)
 	gcAcc := sdk.MustAccAddressFromHex(msg.GcAddress)
-	maintenanceAcc := sdk.MustAccAddressFromHex(msg.MaintenanceAddress)
+	maintenanceAcc, err := sdk.AccAddressFromHexUnsafe(msg.MaintenanceAddress)
+	if err != nil {
+		return nil, err
+	}
 
 	signers := msg.GetSigners()
 	if ctx.BlockHeight() == 0 {
