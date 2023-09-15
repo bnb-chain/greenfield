@@ -102,11 +102,11 @@ func validateDepositDenom(i interface{}) error {
 }
 
 func validateGVGStakingPerBytes(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdk.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if v.IsNil() || !v.IsPositive() || v.GT(sdk.OneDec()) {
+	if v.IsNil() || !v.IsPositive() {
 		return fmt.Errorf("invalid value for GVG staking per bytes")
 	}
 	return nil
