@@ -320,6 +320,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 			if policy.ExpirationTime != nil {
 				store.Delete(types.PolicyPrefixQueue(policy.ExpirationTime, policy.Id.Bytes()))
 			}
+			policyID = policy.Id
 		}
 	} else if principal.Type == types.PRINCIPAL_TYPE_GNFD_GROUP {
 		groupID, err := principal.GetGroupID()
