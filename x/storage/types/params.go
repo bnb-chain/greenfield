@@ -243,6 +243,18 @@ func (p Params) Validate() error {
 	if err := validateDiscontinueConfirmPeriod(p.DiscontinueConfirmPeriod); err != nil {
 		return err
 	}
+	if err := validateDiscontinueDeletionMax(p.DiscontinueDeletionMax); err != nil {
+		return err
+	}
+	if err := validateStalePolicyCleanupMax(p.StalePolicyCleanupMax); err != nil {
+		return err
+	}
+	if err := validateMinUpdateQuotaInterval(p.MinQuotaUpdateInterval); err != nil {
+		return err
+	}
+	if err := validateMaxLocalVirtualGroupNumPerBucket(p.MaxLocalVirtualGroupNumPerBucket); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -446,7 +458,7 @@ func validateStalePolicyCleanupMax(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("StalePolicyCleanupMax must be positive: %d", v)
+		return fmt.Errorf(" max stale policy to cleanup must be positive: %d", v)
 	}
 	return nil
 }
@@ -467,7 +479,7 @@ func validateMaxLocalVirtualGroupNumPerBucket(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("max buckets per account must be positive: %d", v)
+		return fmt.Errorf("max LVG per bucket must be positive: %d", v)
 	}
 
 	return nil
