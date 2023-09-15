@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.6-alpha.1
+This release contains 3 new bugfixes.
+
+Bugfixes:
+* [#478](https://github.com/bnb-chain/greenfield/pull/478) fix: wrong event emitted for leaving group
+* [#481](https://github.com/bnb-chain/greenfield/pull/481) fix: policy id not emit in deletepolicy event
+* [#482](https://github.com/bnb-chain/greenfield/pull/482) fix: use versioned segment size parameter
+
+Chores:
+* [#480](https://github.com/bnb-chain/greenfield/pull/480) chore: improve the validations of parameters
+
 ## v0.2.5
 This release contains all the changes for the v0.2.5 alpha versions.    
 
