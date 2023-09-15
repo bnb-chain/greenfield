@@ -3,6 +3,7 @@ package types
 import (
 	"testing"
 
+	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stretchr/testify/require"
 )
@@ -47,6 +48,7 @@ func TestDepositDenom(t *testing.T) {
 }
 
 func TestGVGStakingPerBytes(t *testing.T) {
+	var nilInt math.Int
 	tests := []struct {
 		name  string
 		ratio interface{}
@@ -55,7 +57,7 @@ func TestGVGStakingPerBytes(t *testing.T) {
 
 		{
 			name:  "valid",
-			ratio: sdk.NewDec(1),
+			ratio: sdk.NewInt(1),
 		},
 		{
 			name:  "invalid type",
@@ -63,9 +65,9 @@ func TestGVGStakingPerBytes(t *testing.T) {
 			err:   "invalid parameter type",
 		},
 		{
-			name:  "invalid ratio",
-			ratio: sdk.NewDec(100),
-			err:   "invalid secondary sp store price ratio",
+			name:  "invalid value",
+			ratio: nilInt,
+			err:   "invalid value for GVG staking per bytes",
 		},
 	}
 	for _, tt := range tests {
@@ -99,7 +101,7 @@ func TestMaxGlobalVirtualGroupNumPerFamily(t *testing.T) {
 		{
 			name:   "invalid size",
 			number: uint32(0),
-			err:    "max buckets per account must be positive",
+			err:    "max GVG per family must be positive",
 		},
 	}
 	for _, tt := range tests {
@@ -133,7 +135,7 @@ func TestMaxStoreSizePerFamily(t *testing.T) {
 		{
 			name: "invalid size",
 			size: uint64(0),
-			err:  "max store size of family must be positive",
+			err:  "max store size per GVG family must be positive",
 		},
 	}
 	for _, tt := range tests {

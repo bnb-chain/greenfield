@@ -63,6 +63,18 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 // Validate validates the set of params
 func (p Params) Validate() error {
+	if err := validateDepositDenom(p.DepositDenom); err != nil {
+		return err
+	}
+	if err := validateGVGStakingPerBytes(p.GvgStakingPerBytes); err != nil {
+		return err
+	}
+	if err := validateMaxGlobalVirtualGroupNumPerFamily(p.MaxGlobalVirtualGroupNumPerFamily); err != nil {
+		return err
+	}
+	if err := validateMaxStoreSizePerFamily(p.MaxStoreSizePerFamily); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -90,12 +102,12 @@ func validateDepositDenom(i interface{}) error {
 }
 
 func validateGVGStakingPerBytes(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if v.IsNil() || !v.IsPositive() || v.GT(sdk.OneDec()) {
-		return fmt.Errorf("invalid secondary sp store price ratio")
+	if v.IsNil() || !v.IsPositive() {
+		return fmt.Errorf("invalid value for GVG staking per bytes")
 	}
 	return nil
 }
@@ -107,7 +119,7 @@ func validateMaxGlobalVirtualGroupNumPerFamily(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("max buckets per account must be positive: %d", v)
+		return fmt.Errorf("max GVG per family must be positive: %d", v)
 	}
 
 	return nil
@@ -120,7 +132,7 @@ func validateMaxStoreSizePerFamily(i interface{}) error {
 	}
 
 	if v == 0 {
-		return fmt.Errorf("max store size of family must be positive: %d", v)
+		return fmt.Errorf("max store size per GVG family must be positive: %d", v)
 	}
 
 	return nil

@@ -1673,7 +1673,7 @@ func (s *StorageTestSuite) TestVerifyStaleGroupPermission() {
 	s.Require().NoError(err)
 
 	newParams := queryParamsResponse.GetParams()
-	newParams.StalePolicyCleanupMax = 0
+	newParams.StalePolicyCleanupMax = 1
 	s.UpdateParams(&newParams)
 
 	defer func() {

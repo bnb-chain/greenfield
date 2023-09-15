@@ -279,6 +279,10 @@ func validateSlashAmountSizeRate(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	if slashAmountSizeRate.IsNil() {
+		return errors.New("slash amount size rate cannot be nil")
+	}
+
 	if slashAmountSizeRate.LT(sdk.ZeroDec()) {
 		return errors.New("slash amount size rate cannot be lower than zero")
 	}
@@ -291,6 +295,10 @@ func validateSlashAmountMin(v interface{}) error {
 	slashAmountMin, ok := v.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if slashAmountMin.IsNil() {
+		return errors.New("min slash amount cannot be nil")
 	}
 
 	if slashAmountMin.LT(sdk.ZeroInt()) {
@@ -307,6 +315,10 @@ func validateSlashAmountMax(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	if slashAmountMax.IsNil() {
+		return errors.New("max slash amount cannot be nil")
+	}
+
 	if slashAmountMax.LT(sdk.ZeroInt()) {
 		return errors.New("max slash amount cannot be lower than zero")
 	}
@@ -319,6 +331,10 @@ func validateRewardValidatorRatio(v interface{}) error {
 	rewardValidatorRatio, ok := v.(sdk.Dec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if rewardValidatorRatio.IsNil() {
+		return errors.New("validator reward ratio cannot be nil")
 	}
 
 	if rewardValidatorRatio.LT(sdk.ZeroDec()) {
@@ -335,6 +351,10 @@ func validateRewardSubmitterRatio(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	if rewardSubmitterRatio.IsNil() {
+		return errors.New("submitter reward ratio cannot be nil")
+	}
+
 	if rewardSubmitterRatio.LT(sdk.ZeroDec()) {
 		return errors.New("submitter reward ratio cannot be lower than zero")
 	}
@@ -347,6 +367,10 @@ func validateRewardSubmitterThreshold(v interface{}) error {
 	rewardSubmitterThreshold, ok := v.(math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", v)
+	}
+
+	if rewardSubmitterThreshold.IsNil() {
+		return errors.New("submitter reward threshold cannot be nil")
 	}
 
 	if rewardSubmitterThreshold.LT(sdk.ZeroInt()) {
@@ -402,8 +426,12 @@ func validateSpSlashMaxAmount(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
+	if spSlashMaxAmount.IsNil() {
+		return errors.New("storage provider max slash amount cannot be nil")
+	}
+
 	if spSlashMaxAmount.LT(sdk.ZeroInt()) {
-		return errors.New("storage provider slash amount cannot be lower than zero")
+		return errors.New("storage provider max slash amount cannot be lower than zero")
 	}
 
 	return nil

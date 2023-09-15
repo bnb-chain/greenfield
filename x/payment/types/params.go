@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"math/big"
+	"strings"
 
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -214,7 +215,9 @@ func validateFeeDenom(v interface{}) error {
 		return fmt.Errorf("invalid parameter type: %T", v)
 	}
 
-	_ = feeDenom
+	if strings.TrimSpace(feeDenom) == "" {
+		return fmt.Errorf("fee denom cannt be blank")
+	}
 
 	return nil
 }
