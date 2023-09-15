@@ -45,7 +45,6 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		return
 	}
 
-	segmentSize := keeper.StorageKeeper.MaxSegmentSize(ctx)
 	expiredHeight := params.ChallengeKeepAlivePeriod + uint64(ctx.BlockHeight())
 
 	events := make([]proto.Message, 0)                      // for events
@@ -104,6 +103,12 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// random segment/piece index
+		segmentSize, err := keeper.StorageKeeper.MaxSegmentSize(ctx, objectInfo.CreateAt)
+		if err != nil {
+			ctx.Logger().Error("fail to get segment size", "timestamp", objectInfo.CreateAt,
+				"err", err.Error())
+			continue
+		}
 		segments := k.CalculateSegments(objectInfo.PayloadSize, segmentSize)
 		segmentIndex := k.RandomSegmentIndex(seed, segments)
 

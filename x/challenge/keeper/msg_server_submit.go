@@ -77,8 +77,12 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// generate segment index
+	segmentSize, err := k.Keeper.StorageKeeper.MaxSegmentSize(ctx, objectInfo.CreateAt)
+	if err != nil {
+		return nil, errors.Wrapf(types.ErrInvalidSegmentIndex, "cannot get segment size: %s", err.Error())
+	}
 	segmentIndex := msg.SegmentIndex
-	segments := CalculateSegments(objectInfo.PayloadSize, k.Keeper.StorageKeeper.MaxSegmentSize(ctx))
+	segments := CalculateSegments(objectInfo.PayloadSize, segmentSize)
 	if msg.RandomIndex {
 		segmentIndex = RandomSegmentIndex(ctx.BlockHeader().RandaoMix, segments)
 	} else {
