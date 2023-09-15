@@ -192,7 +192,7 @@ func (msg *MsgWithdraw) ValidateBasic() error {
 	}
 
 	if !msg.Withdraw.IsValid() || !msg.Withdraw.Amount.IsPositive() {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid or non-positive deposit amount")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid or non-positive withdraw amount")
 	}
 	return nil
 }

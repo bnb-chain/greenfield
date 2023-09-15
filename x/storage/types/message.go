@@ -970,6 +970,11 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner (%s)", err)
+	}
+
 	err = s3util.CheckValidGroupName(msg.GroupName)
 	if err != nil {
 		return err
@@ -1158,6 +1163,10 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
+	if msg.Principal == nil {
+		return gnfderrors.ErrInvalidPrincipal.Wrapf("principal cannot be empty")
+	}
+
 	if msg.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
@@ -1218,9 +1227,19 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
+	if msg.Principal == nil {
+		return gnfderrors.ErrInvalidPrincipal.Wrapf("principal cannot be empty")
+	}
+
 	if msg.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
+
+	err = msg.Principal.ValidateBasic()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -1266,7 +1285,7 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Id.GT(sdk.NewUint(0)) {
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
 		}
@@ -1324,7 +1343,7 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Id.GT(sdk.NewUint(0)) {
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
 		}
@@ -1389,7 +1408,7 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Id.GT(sdk.NewUint(0)) {
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.GroupName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
 		}
