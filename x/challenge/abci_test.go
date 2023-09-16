@@ -189,7 +189,7 @@ func (s *TestSuite) TestEndBlocker_ObjectNotExists() {
 
 func (s *TestSuite) TestEndBlocker_SuccessRandomChallenge() {
 	s.storageKeeper.EXPECT().GetObjectInfoCount(gomock.Any()).Return(sdk.NewUint(100))
-	s.storageKeeper.EXPECT().MaxSegmentSize(gomock.Any(), gomock.Any()).Return(uint64(10000), nil).AnyTimes()
+	s.storageKeeper.EXPECT().MaxSegmentSize(gomock.Any()).Return(uint64(10000)).AnyTimes()
 
 	existObject := &storagetypes.ObjectInfo{
 		Id:           math.NewUint(64),

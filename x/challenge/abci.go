@@ -10,6 +10,7 @@ import (
 	"github.com/bnb-chain/greenfield/x/challenge/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 func BeginBlocker(ctx sdk.Context, keeper k.Keeper) {
@@ -45,6 +46,10 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		return
 	}
 
+	var segmentSize uint64
+	if !ctx.IsUpgraded(upgradetypes.Nagqu) {
+		segmentSize = keeper.StorageKeeper.MaxSegmentSize(ctx)
+	}
 	expiredHeight := params.ChallengeKeepAlivePeriod + uint64(ctx.BlockHeight())
 
 	events := make([]proto.Message, 0)                      // for events
@@ -103,11 +108,14 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		}
 
 		// random segment/piece index
-		segmentSize, err := keeper.StorageKeeper.MaxSegmentSize(ctx, objectInfo.CreateAt)
-		if err != nil {
-			ctx.Logger().Error("fail to get segment size", "timestamp", objectInfo.CreateAt,
-				"err", err.Error())
-			continue
+		if ctx.IsUpgraded(upgradetypes.Nagqu) {
+			var err error
+			segmentSize, err = keeper.StorageKeeper.MaxSegmentSizeAtTime(ctx, objectInfo.CreateAt)
+			if err != nil {
+				ctx.Logger().Error("fail to get segment size", "timestamp", objectInfo.CreateAt,
+					"err", err.Error())
+				continue
+			}
 		}
 		segments := k.CalculateSegments(objectInfo.PayloadSize, segmentSize)
 		segmentIndex := k.RandomSegmentIndex(seed, segments)

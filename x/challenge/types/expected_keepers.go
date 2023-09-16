@@ -28,7 +28,8 @@ type StorageKeeper interface {
 	GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*storage.ObjectInfo, bool)
 	GetObjectInfoCount(ctx sdk.Context) sdkmath.Uint
 	GetBucketInfo(ctx sdk.Context, bucketName string) (*storage.BucketInfo, bool)
-	MaxSegmentSize(ctx sdk.Context, timestamp int64) (res uint64, err error)
+	MaxSegmentSize(ctx sdk.Context) (res uint64)
+	MaxSegmentSizeAtTime(ctx sdk.Context, timestamp int64) (res uint64, err error)
 	GetObjectGVG(ctx sdk.Context, bucketID sdkmath.Uint, lvgID uint32) (*types.GlobalVirtualGroup, bool)
 	MustGetPrimarySPForBucket(ctx sdk.Context, bucketInfo *storage.BucketInfo) *sp.StorageProvider
 }

@@ -3,6 +3,8 @@ package keeper
 import (
 	"context"
 
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -77,9 +79,15 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 	}
 
 	// generate segment index
-	segmentSize, err := k.Keeper.StorageKeeper.MaxSegmentSize(ctx, objectInfo.CreateAt)
-	if err != nil {
-		return nil, errors.Wrapf(types.ErrInvalidSegmentIndex, "cannot get segment size: %s", err.Error())
+	var segmentSize uint64
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
+		var err error
+		segmentSize, err = k.Keeper.StorageKeeper.MaxSegmentSizeAtTime(ctx, objectInfo.CreateAt)
+		if err != nil {
+			return nil, errors.Wrapf(types.ErrInvalidSegmentIndex, "cannot get segment size: %s", err.Error())
+		}
+	} else {
+		segmentSize = k.Keeper.StorageKeeper.MaxSegmentSize(ctx)
 	}
 	segmentIndex := msg.SegmentIndex
 	segments := CalculateSegments(objectInfo.PayloadSize, segmentSize)

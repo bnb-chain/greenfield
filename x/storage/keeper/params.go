@@ -172,7 +172,13 @@ func (k Keeper) DiscontinueDeletionMax(ctx sdk.Context) (res uint64) {
 	return params.DiscontinueDeletionMax
 }
 
-func (k Keeper) MaxSegmentSize(ctx sdk.Context, timestamp int64) (res uint64, err error) {
+func (k Keeper) MaxSegmentSize(ctx sdk.Context) (res uint64) {
+	p := k.GetParams(ctx)
+	params := p.GetVersionedParams()
+	return params.MaxSegmentSize
+}
+
+func (k Keeper) MaxSegmentSizeAtTime(ctx sdk.Context, timestamp int64) (res uint64, err error) {
 	params, err := k.GetVersionedParamsWithTs(ctx, timestamp)
 	if err != nil {
 		return 0, err
