@@ -251,14 +251,18 @@ func (s *StorageTestSuite) TestCreateObjectByOthers() {
 	s.Require().Equal(verifyPermResp.Effect, types.EFFECT_DENY)
 	s.T().Logf("resp: %s, rep %s", verifyPermReq.String(), verifyPermResp.String())
 
-	// Put bucket policy
-	statement := &types.Statement{
+	// Put object policy
+	statement1 := &types.Statement{
 		Actions: []types.ActionType{types.ACTION_CREATE_OBJECT},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	statement2 := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_OBJECT_INFO},
 		Effect:  types.EFFECT_ALLOW,
 	}
 	principal := types.NewPrincipalWithAccount(user[1].GetAddr())
 	msgPutPolicy := storagetypes.NewMsgPutPolicy(user[0].GetAddr(), types2.NewBucketGRN(bucketName).String(),
-		principal, []*types.Statement{statement}, nil)
+		principal, []*types.Statement{statement1, statement2}, nil)
 	s.SendTxBlock(user[0], msgPutPolicy)
 
 	// verify permission

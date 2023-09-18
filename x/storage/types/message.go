@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	grn2 "github.com/bnb-chain/greenfield/types"
@@ -1186,6 +1187,19 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 	return nil
 }
 
+func (msg *MsgPutPolicy) ValidateRuntime(ctx sdk.Context) error {
+	var grn grn2.GRN
+	_ = grn.ParseFromString(msg.Resource, true) // no error after ValidateBasic
+	for _, s := range msg.Statements {
+		err := s.ValidateRuntime(ctx, grn.ResourceType())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func NewMsgDeletePolicy(operator sdk.AccAddress, resource string, principal *permtypes.Principal) *MsgDeletePolicy {
 	return &MsgDeletePolicy{
 		Operator:  operator.String(),
@@ -1235,11 +1249,15 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
 
-	err = msg.Principal.ValidateBasic()
-	if err != nil {
-		return err
-	}
+	return nil
+}
 
+func (msg *MsgDeletePolicy) ValidateRuntime(ctx sdk.Context) error {
+	if ctx.IsUpgraded(upgradetypes.Xxxxx) {
+		if err := msg.Principal.ValidateBasic(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
