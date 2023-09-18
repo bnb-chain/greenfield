@@ -19,7 +19,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 
 	// Register the upgrade handlers here
 	app.registerNagquUpgradeHandler()
-	app.registerXxxxxUpgradeHandler()
+	app.registerPampasUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -65,18 +65,18 @@ func (app *App) registerNagquUpgradeHandler() {
 		})
 }
 
-func (app *App) registerXxxxxUpgradeHandler() {
+func (app *App) registerPampasUpgradeHandler() {
 	// Register the upgrade handler
-	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Xxxxx,
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pampas,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
 	// Register the upgrade initializer
-	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Xxxxx,
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pampas,
 		func() error {
-			app.Logger().Info("Init Xxxxx upgrade")
+			app.Logger().Info("Init Pampas upgrade")
 			return nil
 		})
 }

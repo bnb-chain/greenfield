@@ -1188,17 +1188,14 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 }
 
 func (msg *MsgPutPolicy) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Xxxxx) {
-		var grn grn2.GRN
-		_ = grn.ParseFromString(msg.Resource, true) // no error after ValidateBasic
-		for _, s := range msg.Statements {
-			err := s.ValidateRuntime(ctx, grn.ResourceType())
-			if err != nil {
-				return err
-			}
+	var grn grn2.GRN
+	_ = grn.ParseFromString(msg.Resource, true) // no error after ValidateBasic
+	for _, s := range msg.Statements {
+		err := s.ValidateRuntime(ctx, grn.ResourceType())
+		if err != nil {
+			return err
 		}
 	}
-
 	return nil
 }
 
@@ -1255,7 +1252,7 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 }
 
 func (msg *MsgDeletePolicy) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Xxxxx) {
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
 		if err := msg.Principal.ValidateBasic(); err != nil {
 			return err
 		}

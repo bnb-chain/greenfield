@@ -37,7 +37,7 @@ var (
 
 		ACTION_TYPE_ALL: true,
 	}
-	BucketAllowedActionsAfterXxxxx = map[ActionType]bool{
+	BucketAllowedActionsAfterPampas = map[ActionType]bool{
 		ACTION_UPDATE_BUCKET_INFO: true,
 		ACTION_DELETE_BUCKET:      true,
 
@@ -256,8 +256,8 @@ func (s *Statement) ValidateAfterNagqu(resType resource.ResourceType) error {
 
 func (s *Statement) ValidateRuntime(ctx sdk.Context, resType resource.ResourceType) error {
 	var bucketAllowedActions map[ActionType]bool
-	if ctx.IsUpgraded(upgradetypes.Xxxxx) {
-		bucketAllowedActions = BucketAllowedActionsAfterXxxxx
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		bucketAllowedActions = BucketAllowedActionsAfterPampas
 	} else {
 		bucketAllowedActions = BucketAllowedActions
 	}
