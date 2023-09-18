@@ -115,9 +115,11 @@ modify the related configrations as you need. Example:
 			}
 
 			spMsg, ok := msgs[0].(*types.MsgCreateStorageProvider)
-			if !ok || spMsg.ValidateBasic() != nil {
-				return fmt.Errorf("invalid create storage provider message")
+			err = spMsg.ValidateBasic()
+			if !ok || err != nil {
+				return fmt.Errorf("invalid create storage provider message:%s", err.Error())
 			}
+
 
 			fundingAddr, err := sdk.AccAddressFromHexUnsafe(spMsg.FundingAddress)
 			if err != nil {
