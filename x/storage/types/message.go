@@ -1188,12 +1188,14 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 }
 
 func (msg *MsgPutPolicy) ValidateRuntime(ctx sdk.Context) error {
-	var grn grn2.GRN
-	_ = grn.ParseFromString(msg.Resource, true) // no error after ValidateBasic
-	for _, s := range msg.Statements {
-		err := s.ValidateRuntime(ctx, grn.ResourceType())
-		if err != nil {
-			return err
+	if ctx.IsUpgraded(upgradetypes.Xxxxx) {
+		var grn grn2.GRN
+		_ = grn.ParseFromString(msg.Resource, true) // no error after ValidateBasic
+		for _, s := range msg.Statements {
+			err := s.ValidateRuntime(ctx, grn.ResourceType())
+			if err != nil {
+				return err
+			}
 		}
 	}
 
