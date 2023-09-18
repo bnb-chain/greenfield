@@ -248,17 +248,18 @@ func (mr *MockStorageKeeperMockRecorder) GetObjectInfoCount(ctx interface{}) *go
 }
 
 // MaxSegmentSize mocks base method.
-func (m *MockStorageKeeper) MaxSegmentSize(ctx types2.Context) uint64 {
+func (m *MockStorageKeeper) MaxSegmentSize(ctx types2.Context, timestamp int64) (uint64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MaxSegmentSize", ctx)
+	ret := m.ctrl.Call(m, "MaxSegmentSize", ctx, timestamp)
 	ret0, _ := ret[0].(uint64)
-	return ret0
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // MaxSegmentSize indicates an expected call of MaxSegmentSize.
-func (mr *MockStorageKeeperMockRecorder) MaxSegmentSize(ctx interface{}) *gomock.Call {
+func (mr *MockStorageKeeperMockRecorder) MaxSegmentSize(ctx, timestamp interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxSegmentSize", reflect.TypeOf((*MockStorageKeeper)(nil).MaxSegmentSize), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxSegmentSize", reflect.TypeOf((*MockStorageKeeper)(nil).MaxSegmentSize), ctx, timestamp)
 }
 
 // MustGetPrimarySPForBucket mocks base method.

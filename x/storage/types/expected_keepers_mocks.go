@@ -11,7 +11,6 @@ import (
 
 	math "cosmossdk.io/math"
 	resource "github.com/bnb-chain/greenfield/types/resource"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	types "github.com/bnb-chain/greenfield/x/payment/types"
 	types0 "github.com/bnb-chain/greenfield/x/permission/types"
 	types1 "github.com/bnb-chain/greenfield/x/sp/types"
@@ -345,6 +344,20 @@ func (mr *MockPaymentKeeperMockRecorder) IsPaymentAccountOwner(ctx, addr, owner 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsPaymentAccountOwner", reflect.TypeOf((*MockPaymentKeeper)(nil).IsPaymentAccountOwner), ctx, addr, owner)
 }
 
+// MergeOutFlows mocks base method.
+func (m *MockPaymentKeeper) MergeOutFlows(flows []types.OutFlow) []types.OutFlow {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MergeOutFlows", flows)
+	ret0, _ := ret[0].([]types.OutFlow)
+	return ret0
+}
+
+// MergeOutFlows indicates an expected call of MergeOutFlows.
+func (mr *MockPaymentKeeperMockRecorder) MergeOutFlows(flows interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MergeOutFlows", reflect.TypeOf((*MockPaymentKeeper)(nil).MergeOutFlows), flows)
+}
+
 // UpdateStreamRecordByAddr mocks base method.
 func (m *MockPaymentKeeper) UpdateStreamRecordByAddr(ctx types3.Context, change *types.StreamRecordChange) (*types.StreamRecord, error) {
 	m.ctrl.T.Helper()
@@ -358,20 +371,6 @@ func (m *MockPaymentKeeper) UpdateStreamRecordByAddr(ctx types3.Context, change 
 func (mr *MockPaymentKeeperMockRecorder) UpdateStreamRecordByAddr(ctx, change interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateStreamRecordByAddr", reflect.TypeOf((*MockPaymentKeeper)(nil).UpdateStreamRecordByAddr), ctx, change)
-}
-
-// MergeOutFlows mocks base method.
-func (m *MockPaymentKeeper) MergeOutFlows(flows []paymenttypes.OutFlow) []paymenttypes.OutFlow {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "MergeOutFlows", flows)
-	ret0, _ := ret[0].([]paymenttypes.OutFlow)
-	return ret0
-}
-
-// MergeOutFlows indicates an expected call of MergeOutFlows.
-func (mr *MockPaymentKeeperMockRecorder) MergeOutFlows(flows interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MergeOutFlows", reflect.TypeOf((*MockPaymentKeeper)(nil).MergeOutFlows), flows)
 }
 
 // MockPermissionKeeper is a mock of PermissionKeeper interface.
