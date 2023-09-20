@@ -637,21 +637,22 @@ func (k Keeper) CreateObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err = ctx.EventManager().EmitTypedEvents(&types.EventCreateObject{
-		Creator:        operator.String(),
-		Owner:          objectInfo.Owner,
-		BucketName:     bucketInfo.BucketName,
-		ObjectName:     objectInfo.ObjectName,
-		BucketId:       bucketInfo.Id,
-		ObjectId:       objectInfo.Id,
-		CreateAt:       objectInfo.CreateAt,
-		PayloadSize:    objectInfo.PayloadSize,
-		Visibility:     objectInfo.Visibility,
-		PrimarySpId:    sp.Id,
-		ContentType:    objectInfo.ContentType,
-		Status:         objectInfo.ObjectStatus,
-		RedundancyType: objectInfo.RedundancyType,
-		SourceType:     objectInfo.SourceType,
-		Checksums:      objectInfo.Checksums,
+		Creator:             operator.String(),
+		Owner:               objectInfo.Owner,
+		BucketName:          bucketInfo.BucketName,
+		ObjectName:          objectInfo.ObjectName,
+		BucketId:            bucketInfo.Id,
+		ObjectId:            objectInfo.Id,
+		CreateAt:            objectInfo.CreateAt,
+		PayloadSize:         objectInfo.PayloadSize,
+		Visibility:          objectInfo.Visibility,
+		PrimarySpId:         sp.Id,
+		ContentType:         objectInfo.ContentType,
+		Status:              objectInfo.ObjectStatus,
+		RedundancyType:      objectInfo.RedundancyType,
+		SourceType:          objectInfo.SourceType,
+		Checksums:           objectInfo.Checksums,
+		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
 	}); err != nil {
 		return objectInfo.Id, err
 	}
@@ -1071,13 +1072,14 @@ func (k Keeper) CopyObject(
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCopyObject{
-		Operator:      operator.String(),
-		SrcBucketName: srcObjectInfo.BucketName,
-		SrcObjectName: srcObjectInfo.ObjectName,
-		DstBucketName: objectInfo.BucketName,
-		DstObjectName: objectInfo.ObjectName,
-		SrcObjectId:   srcObjectInfo.Id,
-		DstObjectId:   objectInfo.Id,
+		Operator:            operator.String(),
+		SrcBucketName:       srcObjectInfo.BucketName,
+		SrcObjectName:       srcObjectInfo.ObjectName,
+		DstBucketName:       objectInfo.BucketName,
+		DstObjectName:       objectInfo.ObjectName,
+		SrcObjectId:         srcObjectInfo.Id,
+		DstObjectId:         objectInfo.Id,
+		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
