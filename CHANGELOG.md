@@ -1,5 +1,8 @@
 # Changelog
 
+## v0.2.6
+This is a maintenance release to update the cosmos-sdk dependency to the latest version.
+
 ## v0.2.6-alpha.1
 This release contains 3 new bugfixes.
 
