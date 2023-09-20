@@ -183,18 +183,6 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	case resource.RESOURCE_TYPE_UNSPECIFIED:
 		return ErrInvalidStatement.Wrap("Please specify the ResourceType explicitly. Not allowed set RESOURCE_TYPE_UNSPECIFIED")
 	case resource.RESOURCE_TYPE_BUCKET:
-		//containsCreateObject := false
-		//for _, a := range s.Actions {
-		//	if !BucketAllowedActions[a] {
-		//		return ErrInvalidStatement.Wrapf("%s not allowed to be used on bucket.", a.String())
-		//	}
-		//	if a == ACTION_CREATE_OBJECT {
-		//		containsCreateObject = true
-		//	}
-		//}
-		//if !containsCreateObject && s.LimitSize != nil {
-		//	return ErrInvalidStatement.Wrap("The LimitSize option can only be used with CreateObject actions at the bucket level. .")
-		//}
 		for _, r := range s.Resources {
 			var grn gnfd.GRN
 			err := grn.ParseFromString(r, true)
