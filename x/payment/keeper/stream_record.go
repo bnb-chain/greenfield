@@ -186,6 +186,12 @@ func (k Keeper) UpdateStreamRecord(ctx sdk.Context, streamRecord *types.StreamRe
 				ctx.Logger().Info("auto transfer failed", "account", streamRecord.Account, "err", err, "coins", coins)
 			} else {
 				streamRecord.StaticBalance = sdkmath.ZeroInt()
+				// emit event for self deposit of owner account
+				_ = ctx.EventManager().EmitTypedEvents(&types.EventDeposit{
+					From:   account.String(),
+					To:     account.String(),
+					Amount: coins.AmountOf(params.FeeDenom),
+				})
 			}
 		}
 	}
