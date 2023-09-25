@@ -58,6 +58,7 @@ service Msg {
   rpc MigrateBucket(MsgMigrateBucket) returns (MsgMigrateBucketResponse);
   rpc CompleteMigrateBucket(MsgCompleteMigrateBucket) returns (MsgCompleteMigrateBucketResponse);
   rpc CancelMigrateBucket(MsgCancelMigrateBucket) returns (MsgCancelMigrateBucketResponse);
+  rpc RejectMigrateBucket(MsgRejectMigrateBucket) returns (MsgRejectMigrateBucketResponse);
 }
 message MsgCreateBucket {
   option (cosmos.msg.v1.signer) = "creator";
@@ -615,3 +616,15 @@ message MsgCancelMigrateBucket {
 }
 
 message MsgCancelMigrateBucketResponse {}
+
+message MsgRejectMigrateBucket {
+  option (cosmos.msg.v1.signer) = "operator";
+
+  // operator defines the account address of the msg operator.
+  // only the Dest SP can send this transaction to reject the bucket migration.
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // bucket_name defines the name of the bucket that need to be migrated
+  string bucket_name = 2;
+}
+
+message MsgRejectMigrateBucketResponse {}

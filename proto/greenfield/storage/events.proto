@@ -523,6 +523,19 @@ message EventCancelMigrationBucket {
   ];
 }
 
+message EventRejectMigrateBucket {
+  // The address of the operator that reject the bucket migration, must be the dest SP
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
+  string bucket_name = 2;
+  // bucket_id define an u256 id for object
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
 message EventCompleteMigrationBucket {
   // The address of the operator that initiated the bucket migration,
   // usually the owner of the bucket or another account which has permission to operate

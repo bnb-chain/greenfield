@@ -683,6 +683,19 @@ func (k msgServer) CancelMigrateBucket(goCtx context.Context, msg *types.MsgCanc
 	return &types.MsgCancelMigrateBucketResponse{}, nil
 }
 
+func (k msgServer) RejectMigrateBucket(goCtx context.Context, msg *storagetypes.MsgRejectMigrateBucket) (*storagetypes.MsgRejectMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.RejectBucketMigration(ctx, operator, msg.BucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRejectMigrateBucketResponse{}, nil
+}
+
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
 	// verify secondary sp signature
 	for _, newLvg2gvg := range gvgMappings {
