@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/bnb-chain/greenfield/types/common"
+
 	cmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -37,6 +39,8 @@ func GetTxCmd() *cobra.Command {
 		CmdUpdateBucketInfo(),
 		CmdMirrorBucket(),
 		CmdDiscontinueBucket(),
+		CmdMigrateBucket(),
+		CmdCancelMigrateBucket(),
 	)
 
 	cmd.AddCommand(
@@ -63,8 +67,6 @@ func GetTxCmd() *cobra.Command {
 		CmdPutPolicy(),
 		CmdDeletePolicy(),
 	)
-
-	cmd.AddCommand(CmdCancelMigrateBucket())
 	// this line is used by starport scaffolding # 1
 
 	return cmd
@@ -323,19 +325,6 @@ func CmdCreateObject() *cobra.Command {
 				approveTimeoutHeight,
 				approveSignatureBytes,
 			)
-			primarySP, err := cmd.Flags().GetString(FlagPrimarySP)
-			if err != nil {
-				return err
-			}
-			_, spKeyName, _, err := GetPrimarySPField(clientCtx.Keyring, primarySP)
-			if err != nil {
-				return err
-			}
-			sig, _, err := clientCtx.Keyring.Sign(spKeyName, msg.GetApprovalBytes())
-			if err != nil {
-				return err
-			}
-			msg.PrimarySpApproval.Sig = sig
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -957,6 +946,47 @@ func CmdDiscontinueBucket() *cobra.Command {
 
 	flags.AddTxFlagsToCmd(cmd)
 
+	return cmd
+}
+
+func CmdMigrateBucket() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "migrate-bucket [bucket-name] [dest-primary-sp-id]",
+		Short: "migrate a bucket to another primary storage provider by user",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			bucketName := args[0]
+			destPrimarySpID, err := strconv.ParseUint(args[1], 10, 32)
+			if err != nil {
+				return err
+			}
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			approveSignature, _ := cmd.Flags().GetString(FlagApproveSignature)
+			approveTimeoutHeight, _ := cmd.Flags().GetUint64(FlagApproveTimeoutHeight)
+			approveSignatureBytes, err := hex.DecodeString(approveSignature)
+			if err != nil {
+				return err
+			}
+			spApproval := &common.Approval{ExpiredHeight: approveTimeoutHeight, Sig: approveSignatureBytes}
+
+			msg := &types.MsgMigrateBucket{
+				Operator:             clientCtx.GetFromAddress().String(),
+				BucketName:           bucketName,
+				DstPrimarySpId:       uint32(destPrimarySpID),
+				DstPrimarySpApproval: spApproval,
+			}
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	flags.AddTxFlagsToCmd(cmd)
+	cmd.Flags().AddFlagSet(FlagSetApproval())
 	return cmd
 }
 
