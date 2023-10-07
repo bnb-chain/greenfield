@@ -260,7 +260,7 @@ func CmdEditStorageProvider() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(FlagEndpoint, types.DoNotModifyDesc, "The storage provider's endpoint")
+	cmd.Flags().String(FlagEndpoint, "", "The storage provider's endpoint")
 	// DescriptionEdit
 	cmd.Flags().String(FlagEditMoniker, types.DoNotModifyDesc, "The storage provider's name")
 	cmd.Flags().String(FlagIdentity, types.DoNotModifyDesc, "The (optional) identity signature (ex. UPort or Keybase)")
