@@ -27,11 +27,11 @@ func (msg *MsgRejectMigrateBucket) Type() string {
 }
 
 func (msg *MsgRejectMigrateBucket) GetSigners() []sdk.AccAddress {
-	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{creator}
+	return []sdk.AccAddress{operator}
 }
 
 func (msg *MsgRejectMigrateBucket) GetSignBytes() []byte {
@@ -42,7 +42,7 @@ func (msg *MsgRejectMigrateBucket) GetSignBytes() []byte {
 func (msg *MsgRejectMigrateBucket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid operator address (%s)", err)
 	}
 
 	err = s3util.CheckValidBucketName(msg.BucketName)
