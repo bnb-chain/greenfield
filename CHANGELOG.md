@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.0.0
+This release contains 1 chore.
+
+Chores:
+* [#496](https://github.com/bnb-chain/greenfield/pull/496) chore: add events for parameter updates
+
 ## v0.2.6-hf.1
 This is a hotfix version to enable the chain to emit deposit events for user accounts and add local virtual group id for related events.
 
