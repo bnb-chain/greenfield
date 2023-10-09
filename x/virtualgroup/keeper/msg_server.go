@@ -7,6 +7,7 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/errors"
@@ -40,6 +41,11 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 	if err := k.SetParams(ctx, req.Params); err != nil {
 		return nil, err
+	}
+
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
+		params := k.GetParams(ctx)
+		_ = ctx.EventManager().EmitTypedEvents(&params)
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
