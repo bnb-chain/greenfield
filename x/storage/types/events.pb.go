@@ -401,7 +401,7 @@ type EventCreateObject struct {
 	BucketName string `protobuf:"bytes,3,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
 	// object_name define the name of object
 	ObjectName string `protobuf:"bytes,4,opt,name=object_name,json=objectName,proto3" json:"object_name,omitempty"`
-	// bucket_id define an u256 id for object
+	// bucket_id define an u256 id for bucket
 	BucketId Uint `protobuf:"bytes,6,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 	// object_id define an u256 id for object
 	ObjectId Uint `protobuf:"bytes,7,opt,name=object_id,json=objectId,proto3,customtype=Uint" json:"object_id"`
@@ -2070,7 +2070,7 @@ type EventMigrationBucket struct {
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	// bucket_id define an u256 id for object
+	// bucket_id define an u256 id for bucket
 	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 	// The id of the destination primary sp
 	DstPrimarySpId uint32 `protobuf:"varint,4,opt,name=dst_primary_sp_id,json=dstPrimarySpId,proto3" json:"dst_primary_sp_id,omitempty"`
@@ -2136,7 +2136,7 @@ type EventCancelMigrationBucket struct {
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	// bucket_id define an u256 id for object
+	// bucket_id define an u256 id for bucket
 	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 }
 
@@ -2192,7 +2192,7 @@ type EventRejectMigrateBucket struct {
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	// bucket_id define an u256 id for object
+	// bucket_id define an u256 id for bucket
 	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 }
 
@@ -2249,7 +2249,7 @@ type EventCompleteMigrationBucket struct {
 	Operator string `protobuf:"bytes,1,opt,name=operator,proto3" json:"operator,omitempty"`
 	// The name of the bucket to be migrated
 	BucketName string `protobuf:"bytes,2,opt,name=bucket_name,json=bucketName,proto3" json:"bucket_name,omitempty"`
-	// bucket_id define an u256 id for object
+	// bucket_id define an u256 id for bucket
 	BucketId Uint `protobuf:"bytes,3,opt,name=bucket_id,json=bucketId,proto3,customtype=Uint" json:"bucket_id"`
 	// The family id that the bucket to be migrated to
 	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,4,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`

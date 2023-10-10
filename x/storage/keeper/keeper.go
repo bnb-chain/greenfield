@@ -2087,7 +2087,7 @@ func (k Keeper) RejectBucketMigration(ctx sdk.Context, operator sdk.AccAddress, 
 
 	migrationBucketInfo, found := k.GetMigrationBucketInfo(ctx, bucketInfo.Id)
 	if !found {
-		panic("migration bucket key not found for a migrating bucket. Should not happen")
+		return types.ErrMigrationBucketFailed.Wrapf("reject bucket migration failed due to the migrate bucket info not found.")
 	}
 
 	sp := k.spKeeper.MustGetStorageProvider(ctx, migrationBucketInfo.DstSpId)
