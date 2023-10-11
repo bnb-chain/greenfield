@@ -98,6 +98,8 @@ jobs:
           mv ./macos/gnfd ./macos/macos
           cp -r ./asset/configs/testnet_config ./testnet_config
           zip -r ./testnet_config.zip ./testnet_config
+          cp -r ./asset/configs/mainnet_config ./mainnet_config
+          zip -r ./mainnet_config.zip ./mainnet_config
 
       # ==============================
       #       Create release
@@ -126,3 +128,4 @@ jobs:
             ./linux/linux
             ./macos/macos
             ./testnet_config.zip
+            ./mainnet_config.zip
