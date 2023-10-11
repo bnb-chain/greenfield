@@ -278,8 +278,8 @@ func CmdEditStorageProvider() *cobra.Command {
 func CmdDeposit() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "deposit [sp-address] [fund-address] [value]",
-		Short: "Deposit tokens for an active proposal",
-		Args:  cobra.ExactArgs(2),
+		Short: "SP stake tokens from funding account",
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -672,7 +672,7 @@ func BuildCreateStorageProviderMsg(config TxCreateStorageProviderConfig, txBldr 
 
 func CmdUpdateStorageProviderStatus() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-status [sp-address] [new-status] --duration",
+		Use:   "update-status [sp-address] [new-status] [flags]",
 		Short: "Update status of a storage provider",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`update the storage provider status between STATUS_IN_SERVICE and STATUS_IN_MAINTENANCE, need to provide the maintenance duration in second if status is to STATUS_IN_MAINTENANCE.
