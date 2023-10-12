@@ -19,6 +19,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 
 	// Register the upgrade handlers here
 	app.registerNagquUpgradeHandler()
+	app.registerPampasUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -62,5 +63,21 @@ func (app *App) registerNagquUpgradeHandler() {
 			mm.SetConsensusVersion(2)
 			return nil
 
+		})
+}
+
+func (app *App) registerPampasUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pampas,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pampas,
+		func() error {
+			app.Logger().Info("Init Pampas upgrade")
+			return nil
 		})
 }

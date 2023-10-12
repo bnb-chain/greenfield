@@ -758,6 +758,11 @@ func (app *App) Name() string { return app.BaseApp.Name() }
 
 // BeginBlocker application updates every begin block
 func (app *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
+	// enable cross-chain functions for op bnb
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		app.CrossChainKeeper.SetDestOpChainID(sdk.ChainID(app.appConfig.CrossChain.DestOpChainId))
+	}
+
 	return app.mm.BeginBlock(ctx, req)
 }
 
