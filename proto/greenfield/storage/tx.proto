@@ -434,7 +434,7 @@ message MsgPutPolicy {
 
   // expiration_time defines the whole expiration time of all the statements.
   // Notices: Its priority is higher than the expiration time inside the Statement
-  google.protobuf.Timestamp expiration_time = 5 [
+  google.protobuf.Timestamp expiration_time = 7 [
     (gogoproto.stdtime) = true,
     (gogoproto.nullable) = true
   ];

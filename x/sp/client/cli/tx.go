@@ -724,8 +724,15 @@ func CmdUpdateStorageProviderStoragePrice() *cobra.Command {
 		Short: "Update prices and free read quota of a storage provider, all prices in BNB wei",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`update the storage provider read, store price and free read quota, if there is no change to a specific value, the current value should also be provided.
+
+The unit of price is a decimal, which indicates wei BNB per byte per second. 
+E.g. the price is 0.02183945725, means approximately $0.018 / GB / Month. 
+(0.02183945725 * (30 * 86400) * (1024 * 1024 * 1024) * 300 / 10 ** 18 ≈ 0.018, assume the BNB price is 300 USD)
+
+The free-read-quota unit is bytes, for 1GB free quota, it is 1073741824.
+
 Examples:
- $ %s tx %s update-price 0x... 10000000 10000000 10000000
+ $ %s tx %s update-price 0x... 0.1469890427 0.02183945725 1073741824
 	`, version.AppName, types.ModuleName),
 		),
 		Args: cobra.ExactArgs(4),
