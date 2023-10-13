@@ -1,5 +1,13 @@
 # Changelog
 
+## v1.0.1
+This release contains 2 chores.
+
+Chores:
+* [#500](https://github.com/bnb-chain/greenfield/pull/500) chore: add mainnet assets
+* [#501](https://github.com/bnb-chain/greenfield/pull/501) chore: add sp price related cli and refine cli and comments
+
+
 ## v1.0.0
 This release contains 1 chore.
 
