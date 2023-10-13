@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -37,6 +38,7 @@ func GetTxCmd() *cobra.Command {
 		CmdEditStorageProvider(),
 		CmdGrantDepositAuthorization(),
 		CmdUpdateStorageProviderStatus(),
+		CmdUpdateStorageProviderStoragePrice(),
 	)
 
 	// this line is used by starport scaffolding # 1
@@ -258,7 +260,7 @@ func CmdEditStorageProvider() *cobra.Command {
 	}
 
 	flags.AddTxFlagsToCmd(cmd)
-	cmd.Flags().String(FlagEndpoint, types.DoNotModifyDesc, "The storage provider's endpoint")
+	cmd.Flags().String(FlagEndpoint, "", "The storage provider's endpoint")
 	// DescriptionEdit
 	cmd.Flags().String(FlagEditMoniker, types.DoNotModifyDesc, "The storage provider's name")
 	cmd.Flags().String(FlagIdentity, types.DoNotModifyDesc, "The (optional) identity signature (ex. UPort or Keybase)")
@@ -713,5 +715,53 @@ Examples:
 	}
 	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().Int64(FlagDuration, 0, "maintenance duration requested by a SP")
+	return cmd
+}
+
+func CmdUpdateStorageProviderStoragePrice() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-price [sp-address] [read-price] [store-price] [free-read-quota]",
+		Short: "Update prices and free read quota of a storage provider, all prices in BNB wei",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`update the storage provider read, store price and free read quota, if there is no change to a specific value, the current value should also be provided.
+Examples:
+ $ %s tx %s update-price 0x... 10000000 10000000 10000000
+	`, version.AppName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(4),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+			spAddress, err := sdk.AccAddressFromHexUnsafe(args[0])
+			if err != nil {
+				return err
+			}
+			readPrice, err := sdk.NewDecFromStr(args[1])
+			if err != nil {
+				return err
+			}
+			storePrice, err := sdk.NewDecFromStr(args[2])
+			if err != nil {
+				return err
+			}
+			quota, err := strconv.ParseUint(args[3], 10, 64)
+			if err != nil {
+				return err
+			}
+			msg := types.MsgUpdateSpStoragePrice{
+				SpAddress:     spAddress.String(),
+				ReadPrice:     readPrice,
+				StorePrice:    storePrice,
+				FreeReadQuota: quota,
+			}
+			if err = msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), &msg)
+		},
+	}
+	flags.AddTxFlagsToCmd(cmd)
 	return cmd
 }

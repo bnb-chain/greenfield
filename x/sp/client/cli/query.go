@@ -29,6 +29,8 @@ func GetQueryCmd() *cobra.Command {
 		CmdStorageProvider(),
 		CmdStorageProviderByOperatorAddress(),
 		CmdMaintenanceRecordsBySPOperatorAddress(),
+		CmdStorageProviderPrice(),
+		CmdStorageProviderGlobalPrice(),
 	)
 
 	// this line is used by starport scaffolding # 1
@@ -172,5 +174,62 @@ func CmdMaintenanceRecordsBySPOperatorAddress() *cobra.Command {
 
 	flags.AddQueryFlagsToCmd(cmd)
 
+	return cmd
+}
+
+func CmdStorageProviderPrice() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "price [sp-address]",
+		Short: "Query storage provider prices, including read, store price and free quota",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			spAddr, err := sdk.AccAddressFromHexUnsafe(args[0])
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			res, err := types.NewQueryClient(clientCtx).
+				QuerySpStoragePrice(cmd.Context(), &types.QuerySpStoragePriceRequest{
+					SpAddr: spAddr.String(),
+				})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func CmdStorageProviderGlobalPrice() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "global-price [timestamp]",
+		Short: "Query the global price at a specific time(in unix), return latest price price if timestamp is 0",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			ts, err := strconv.ParseInt(args[0], 10, 64)
+			if err != nil {
+				return err
+			}
+			res, err := types.NewQueryClient(clientCtx).
+				QueryGlobalSpStorePriceByTime(cmd.Context(), &types.QueryGlobalSpStorePriceByTimeRequest{
+					Timestamp: ts,
+				})
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
