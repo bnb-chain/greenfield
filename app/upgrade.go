@@ -1,6 +1,8 @@
 package app
 
 import (
+	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
+	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -62,7 +64,6 @@ func (app *App) registerNagquUpgradeHandler() {
 			}
 			mm.SetConsensusVersion(2)
 			return nil
-
 		})
 }
 
@@ -71,6 +72,13 @@ func (app *App) registerPampasUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pampas,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
+
+			// open resource channels for opbnb
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.BucketChannelId, sdk.ChannelAllow)
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
+
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
