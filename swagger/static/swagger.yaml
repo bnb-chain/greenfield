@@ -4828,8 +4828,8 @@ paths:
                           when the type is a group, its value is
                           math.Uint().String()
                     description: >-
-                      Principal define the roles that can grant permissions.
-                      Currently, it can be account or group.
+                      Principal define the roles that can be grant permissions
+                      to. Currently, it can be account or group.
                   resource_type:
                     title: >-
                       resource_type defines the type of resource that grants
@@ -5022,8 +5022,8 @@ paths:
                           when the type is a group, its value is
                           math.Uint().String()
                     description: >-
-                      Principal define the roles that can grant permissions.
-                      Currently, it can be account or group.
+                      Principal define the roles that can be grant permissions
+                      to. Currently, it can be account or group.
                   resource_type:
                     title: >-
                       resource_type defines the type of resource that grants
@@ -5220,8 +5220,8 @@ paths:
                           when the type is a group, its value is
                           math.Uint().String()
                     description: >-
-                      Principal define the roles that can grant permissions.
-                      Currently, it can be account or group.
+                      Principal define the roles that can be grant permissions
+                      to. Currently, it can be account or group.
                   resource_type:
                     title: >-
                       resource_type defines the type of resource that grants
@@ -33672,8 +33672,8 @@ definitions:
 
               when the type is a group, its value is math.Uint().String()
         description: >-
-          Principal define the roles that can grant permissions. Currently, it
-          can be account or group.
+          Principal define the roles that can be grant permissions to.
+          Currently, it can be account or group.
       resource_type:
         title: resource_type defines the type of resource that grants permission for
         type: string
@@ -33800,8 +33800,8 @@ definitions:
           When the type is an account, its value is sdk.AccAddress().String();
           when the type is a group, its value is math.Uint().String()
     description: >-
-      Principal define the roles that can grant permissions. Currently, it can
-      be account or group.
+      Principal define the roles that can be grant permissions to. Currently, it
+      can be account or group.
   greenfield.permission.PrincipalType:
     type: string
     enum:
@@ -35407,8 +35407,8 @@ definitions:
 
                   when the type is a group, its value is math.Uint().String()
             description: >-
-              Principal define the roles that can grant permissions. Currently,
-              it can be account or group.
+              Principal define the roles that can be grant permissions to.
+              Currently, it can be account or group.
           resource_type:
             title: >-
               resource_type defines the type of resource that grants permission
@@ -35559,8 +35559,8 @@ definitions:
 
                   when the type is a group, its value is math.Uint().String()
             description: >-
-              Principal define the roles that can grant permissions. Currently,
-              it can be account or group.
+              Principal define the roles that can be grant permissions to.
+              Currently, it can be account or group.
           resource_type:
             title: >-
               resource_type defines the type of resource that grants permission
@@ -35711,8 +35711,8 @@ definitions:
 
                   when the type is a group, its value is math.Uint().String()
             description: >-
-              Principal define the roles that can grant permissions. Currently,
-              it can be account or group.
+              Principal define the roles that can be grant permissions to.
+              Currently, it can be account or group.
           resource_type:
             title: >-
               resource_type defines the type of resource that grants permission

@@ -236,7 +236,7 @@ func (m *Statement) GetLimitSize() *common.UInt64Value {
 	return nil
 }
 
-// Principal define the roles that can grant permissions. Currently, it can be account or group.
+// Principal define the roles that can be grant permissions to. Currently, it can be account or group.
 type Principal struct {
 	Type PrincipalType `protobuf:"varint,1,opt,name=type,proto3,enum=greenfield.permission.PrincipalType" json:"type,omitempty"`
 	// When the type is an account, its value is sdk.AccAddress().String();

@@ -21,7 +21,6 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerNagquUpgradeHandler()
 	// app.register...()
 	// ...
-	//app.registerXxxUpgradeHandler()
 	return nil
 }
 
@@ -65,20 +64,3 @@ func (app *App) registerNagquUpgradeHandler() {
 
 		})
 }
-
-//func (app *App) registerXxxUpgradeHandler() {
-//	// Register the upgrade handler
-//	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Xxx,
-//		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-//			app.Logger().Info("upgrade to ", plan.Name)
-//			app.GashubKeeper.SetMsgGasParams(ctx, *types.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgRejectMigrateBucket", 1.2e3))
-//			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-//		})
-//
-//	// Register the upgrade initializer
-//	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Xxx,
-//		func() error {
-//			app.Logger().Info("Init Xxx upgrade")
-//			return nil
-//		})
-//}

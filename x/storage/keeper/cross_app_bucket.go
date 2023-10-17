@@ -235,8 +235,9 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
 			PaymentAddress:   createBucketPackage.PaymentAddress.String(),
 			PrimarySpApproval: &common.Approval{
-				ExpiredHeight: createBucketPackage.PrimarySpApprovalExpiredHeight,
-				Sig:           createBucketPackage.PrimarySpApprovalSignature,
+				ExpiredHeight:              createBucketPackage.PrimarySpApprovalExpiredHeight,
+				GlobalVirtualGroupFamilyId: createBucketPackage.GlobalVirtualGroupFamilyId,
+				Sig:                        createBucketPackage.PrimarySpApprovalSignature,
 			},
 			ApprovalMsgBytes: createBucketPackage.GetApprovalBytes(),
 		},
