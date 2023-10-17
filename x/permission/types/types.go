@@ -214,35 +214,29 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	return nil
 }
 
-func (s *Statement) ValidateAfterNagqu(resType resource.ResourceType) error {
-	if s.Effect == EFFECT_UNSPECIFIED {
-		return ErrInvalidStatement.Wrap("Please specify the Effect explicitly. Not allowed set EFFECT_UNSPECIFIED")
-	}
-	switch resType {
-	case resource.RESOURCE_TYPE_UNSPECIFIED:
-		return ErrInvalidStatement.Wrap("Please specify the ResourceType explicitly. Not allowed set RESOURCE_TYPE_UNSPECIFIED")
-	case resource.RESOURCE_TYPE_BUCKET:
-		for _, r := range s.Resources {
-			_, err := regexp.Compile(r)
-			if err != nil {
-				return ErrInvalidStatement.Wrapf("The Resources regexp compile failed, err: %s", err)
-			}
-		}
-	case resource.RESOURCE_TYPE_OBJECT:
-		if s.Resources != nil {
-			return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
-		}
-	case resource.RESOURCE_TYPE_GROUP:
-		if s.Resources != nil {
-			return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
-		}
-	default:
-		return ErrInvalidStatement.Wrap("unknown resource type.")
-	}
-	return nil
-}
-
 func (s *Statement) ValidateRuntime(ctx sdk.Context, resType resource.ResourceType) error {
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
+		switch resType {
+		case resource.RESOURCE_TYPE_BUCKET:
+			for _, r := range s.Resources {
+				_, err := regexp.Compile(r)
+				if err != nil {
+					return ErrInvalidStatement.Wrapf("The Resources regexp compile failed, err: %s", err)
+				}
+			}
+		case resource.RESOURCE_TYPE_OBJECT:
+			if s.Resources != nil {
+				return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
+			}
+		case resource.RESOURCE_TYPE_GROUP:
+			if s.Resources != nil {
+				return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
+			}
+		default:
+			return ErrInvalidStatement.Wrap("unknown resource type.")
+		}
+	}
+
 	var bucketAllowedActions map[ActionType]bool
 	if ctx.IsUpgraded(upgradetypes.Pampas) {
 		bucketAllowedActions = BucketAllowedActionsAfterPampas

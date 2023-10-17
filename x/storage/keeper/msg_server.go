@@ -8,7 +8,6 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
@@ -369,12 +368,6 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 	for _, s := range msg.Statements {
 		if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
 			return nil, permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
-		}
-		if ctx.IsUpgraded(upgradetypes.Nagqu) {
-			err := s.ValidateAfterNagqu(grn.ResourceType())
-			if err != nil {
-				return nil, err
-			}
 		}
 	}
 
