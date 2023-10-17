@@ -25,6 +25,7 @@ done < "${change_log_file}"
 LINUX_BIN_SUM="$(checksum ./linux/linux)"
 MAC_BIN_SUM="$(checksum ./macos/macos)"
 TESTNET_CONFIG_SUM="$(checksum ./testnet_config.zip)"
+MAINNET_CONFIG_SUM="$(checksum ./mainnet_config.zip)"
 
 OUTPUT=$(cat <<-END
 ## Changelog\n
@@ -35,6 +36,7 @@ ${CHANGE_LOG}\n
 | linux | ${LINUX_BIN_SUM} |
 | mac  | ${MAC_BIN_SUM} |
 | testnet_config.zip  | ${TESTNET_CONFIG_SUM} |\n
+| mainnet_config.zip  | ${MAINNET_CONFIG_SUM} |\n
 END
 )
 
