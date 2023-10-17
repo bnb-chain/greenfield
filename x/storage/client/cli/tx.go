@@ -420,7 +420,7 @@ func CmdDeleteObject() *cobra.Command {
 
 func CmdUpdateObjectInfo() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-object-info [bucket-name] [object-name] [visibility]",
+		Use:   "update-object-info [bucket-name] [object-name] [flags]",
 		Short: "Update the meta of object, Currently only support: Visibility",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -510,7 +510,7 @@ func CmdDiscontinueObject() *cobra.Command {
 func CmdCreateGroup() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-group [group-name]",
-		Short: "Create a new group with optional members, split member addresses by ','",
+		Short: "Create a new group without group members",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
@@ -650,7 +650,7 @@ func CmdUpdateGroupMember() *cobra.Command {
 			}
 
 			var memberAddrsToDelete []sdk.AccAddress
-			if len(argMemberToDelete) == 0 {
+			if len(argMemberToDelete) != 0 {
 				membersToDelete := strings.Split(argMemberToDelete, ",")
 				for _, member := range membersToDelete {
 					if len(member) > 0 {
@@ -913,6 +913,7 @@ func CmdMirrorBucket() *cobra.Command {
 
 	cmd.Flags().String(FlagBucketId, "", "Id of the bucket to mirror")
 	cmd.Flags().String(FlagBucketName, "", "Name of the bucket to mirror")
+	cmd.Flags().String(FlagDestChainId, "", "the destination chain id")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -1049,6 +1050,7 @@ func CmdMirrorObject() *cobra.Command {
 	cmd.Flags().String(FlagObjectId, "", "Id of the object to mirror")
 	cmd.Flags().String(FlagObjectName, "", "Name of the object to mirror")
 	cmd.Flags().String(FlagBucketName, "", "Name of the bucket that the object belongs to")
+	cmd.Flags().String(FlagDestChainId, "", "the destination chain id")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -1108,6 +1110,7 @@ func CmdMirrorGroup() *cobra.Command {
 
 	cmd.Flags().String(FlagGroupId, "", "Id of the group to mirror")
 	cmd.Flags().String(FlagGroupName, "", "Name of the group to mirror")
+	cmd.Flags().String(FlagDestChainId, "", "the destination chain id")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

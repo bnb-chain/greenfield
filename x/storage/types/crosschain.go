@@ -347,6 +347,7 @@ type CreateBucketSynPackage struct {
 	PaymentAddress                 sdk.AccAddress
 	PrimarySpAddress               sdk.AccAddress
 	PrimarySpApprovalExpiredHeight uint64
+	GlobalVirtualGroupFamilyId     uint32
 	PrimarySpApprovalSignature     []byte
 	ChargedReadQuota               uint64
 	ExtraData                      []byte
@@ -359,6 +360,7 @@ type CreateBucketSynPackageStruct struct {
 	PaymentAddress                 common.Address
 	PrimarySpAddress               common.Address
 	PrimarySpApprovalExpiredHeight uint64
+	GlobalVirtualGroupFamilyId     uint32
 	PrimarySpApprovalSignature     []byte
 	ChargedReadQuota               uint64
 	ExtraData                      []byte
@@ -372,6 +374,7 @@ var (
 		{Name: "PaymentAddress", Type: "address"},
 		{Name: "PrimarySpAddress", Type: "address"},
 		{Name: "PrimarySpApprovalExpiredHeight", Type: "uint64"},
+		{Name: "GlobalVirtualGroupFamilyId", Type: "uint32"},
 		{Name: "PrimarySpApprovalSignature", Type: "bytes"},
 		{Name: "ChargedReadQuota", Type: "uint64"},
 		{Name: "ExtraData", Type: "bytes"},
@@ -390,6 +393,7 @@ func (p CreateBucketSynPackage) MustSerialize() []byte {
 		PaymentAddress:                 common.BytesToAddress(p.PaymentAddress),
 		PrimarySpAddress:               common.BytesToAddress(p.PrimarySpAddress),
 		PrimarySpApprovalExpiredHeight: p.PrimarySpApprovalExpiredHeight,
+		GlobalVirtualGroupFamilyId:     p.GlobalVirtualGroupFamilyId,
 		PrimarySpApprovalSignature:     p.PrimarySpApprovalSignature,
 		ChargedReadQuota:               p.ChargedReadQuota,
 		ExtraData:                      p.ExtraData,
@@ -408,8 +412,9 @@ func (p CreateBucketSynPackage) ValidateBasic() error {
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
 		PrimarySpApproval: &gnfdcommon.Approval{
-			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
-			Sig:           p.PrimarySpApprovalSignature,
+			ExpiredHeight:              p.PrimarySpApprovalExpiredHeight,
+			GlobalVirtualGroupFamilyId: p.GlobalVirtualGroupFamilyId,
+			Sig:                        p.PrimarySpApprovalSignature,
 		},
 		ChargedReadQuota: p.ChargedReadQuota,
 	}
@@ -425,8 +430,9 @@ func (p CreateBucketSynPackage) GetApprovalBytes() []byte {
 		PaymentAddress:   p.PaymentAddress.String(),
 		PrimarySpAddress: p.PrimarySpAddress.String(),
 		PrimarySpApproval: &gnfdcommon.Approval{
-			ExpiredHeight: p.PrimarySpApprovalExpiredHeight,
-			Sig:           p.PrimarySpApprovalSignature,
+			ExpiredHeight:              p.PrimarySpApprovalExpiredHeight,
+			GlobalVirtualGroupFamilyId: p.GlobalVirtualGroupFamilyId,
+			Sig:                        p.PrimarySpApprovalSignature,
 		},
 		ChargedReadQuota: p.ChargedReadQuota,
 	}
@@ -452,6 +458,7 @@ func DeserializeCreateBucketSynPackage(serializedPackage []byte) (interface{}, e
 		pkgStruct.PaymentAddress.Bytes(),
 		pkgStruct.PrimarySpAddress.Bytes(),
 		pkgStruct.PrimarySpApprovalExpiredHeight,
+		pkgStruct.GlobalVirtualGroupFamilyId,
 		pkgStruct.PrimarySpApprovalSignature,
 		pkgStruct.ChargedReadQuota,
 		pkgStruct.ExtraData,
