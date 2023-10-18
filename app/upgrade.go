@@ -90,6 +90,7 @@ func (app *App) registerPampasUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pampas,
 		func() error {
 			app.Logger().Info("Init Pampas upgrade")
+
 			// enable chain id for opbnb
 			app.CrossChainKeeper.SetDestOpChainID(sdk.ChainID(app.appConfig.CrossChain.DestOpChainId))
 			return nil

@@ -370,12 +370,6 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 		if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
 			return nil, permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
 		}
-		if ctx.IsUpgraded(upgradetypes.Nagqu) {
-			err := s.ValidateAfterNagqu(grn.ResourceType())
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	policy := &permtypes.Policy{

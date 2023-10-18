@@ -8,6 +8,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 	"github.com/cosmos/gogoproto/proto"
 
 	grn2 "github.com/bnb-chain/greenfield/types"
@@ -970,6 +971,11 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
+	_, err = sdk.AccAddressFromHexUnsafe(msg.GroupOwner)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid group owner (%s)", err)
+	}
+
 	err = s3util.CheckValidGroupName(msg.GroupName)
 	if err != nil {
 		return err
@@ -1158,6 +1164,10 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
+	if msg.Principal == nil {
+		return gnfderrors.ErrInvalidPrincipal.Wrapf("principal cannot be empty")
+	}
+
 	if msg.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
 	}
@@ -1174,6 +1184,18 @@ func (msg *MsgPutPolicy) ValidateBasic() error {
 		}
 	}
 
+	return nil
+}
+
+func (msg *MsgPutPolicy) ValidateRuntime(ctx sdk.Context) error {
+	var grn grn2.GRN
+	_ = grn.ParseFromString(msg.Resource, true) // no error after ValidateBasic
+	for _, s := range msg.Statements {
+		err := s.ValidateRuntime(ctx, grn.ResourceType())
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -1218,8 +1240,22 @@ func (msg *MsgDeletePolicy) ValidateBasic() error {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
+	if msg.Principal == nil {
+		return gnfderrors.ErrInvalidPrincipal.Wrapf("principal cannot be empty")
+	}
+
 	if msg.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP && grn.ResourceType() == resource.RESOURCE_TYPE_GROUP {
 		return gnfderrors.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
+	}
+
+	return nil
+}
+
+func (msg *MsgDeletePolicy) ValidateRuntime(ctx sdk.Context) error {
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		if err := msg.Principal.ValidateBasic(); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -1266,7 +1302,7 @@ func (msg *MsgMirrorBucket) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Id.GT(sdk.NewUint(0)) {
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
 		}
@@ -1324,7 +1360,7 @@ func (msg *MsgMirrorObject) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Id.GT(sdk.NewUint(0)) {
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.BucketName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidBucketName, "Bucket name should be empty")
 		}
@@ -1389,7 +1425,7 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
 	}
 
-	if msg.Id.GT(sdk.NewUint(0)) {
+	if !msg.Id.IsNil() && msg.Id.GT(sdk.NewUint(0)) {
 		if msg.GroupName != "" {
 			return errors.Wrap(gnfderrors.ErrInvalidGroupName, "Group name should be empty")
 		}

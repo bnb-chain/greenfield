@@ -163,8 +163,6 @@ github.com/bnb-chain/greenfield-cometbft v1.0.0 h1:0r6hOJWD/+es0gxP/exKuN/krgXAr
 github.com/bnb-chain/greenfield-cometbft v1.0.0/go.mod h1:f35mk/r5ab6yvzlqEWZt68LfUje68sYgMpVlt2CUYMk=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1 h1:XcWulGacHVRiSCx90Q8Y//ajOrLNBQWR/KDB89dy3cU=
 github.com/bnb-chain/greenfield-cometbft-db v0.8.1-alpha.1/go.mod h1:ey1CiK4bYo1RBNJLRiVbYr5CMdSxci9S/AZRINLtppI=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20231017121821-7b897e5a86e1 h1:Wef+0FD76aE9l3DjE4tGqeRKvEw98z1YkjJ5rHPL6G4=
-github.com/bnb-chain/greenfield-cosmos-sdk v0.2.3-alpha.3.0.20231017121821-7b897e5a86e1/go.mod h1:BGVMW9gRFKGzCwK/8CmDGe3sK9r9QujL1Uz2FMMM+/s=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230816082903-b48770f5e210 h1:GHPbV2bC+gmuO6/sG0Tm8oGal3KKSRlyE+zPscDjlA8=
 github.com/bnb-chain/greenfield-cosmos-sdk/api v0.0.0-20230816082903-b48770f5e210/go.mod h1:vhsZxXE9tYJeYB5JR4hPhd6Pc/uPf7j1T8IJ7p9FdeM=
 github.com/bnb-chain/greenfield-cosmos-sdk/math v0.0.0-20230816082903-b48770f5e210 h1:FLVOn4+OVbsKi2+YJX5kmD27/4dRu4FW7xCXFhzDO5s=
@@ -370,6 +368,8 @@ github.com/fjl/memsize v0.0.0-20190710130421-bcb5799ab5e5/go.mod h1:VvhXpOYNQvB+
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/flynn/noise v1.0.0/go.mod h1:xbMo+0i6+IGbYdJhF31t2eR1BIU0CYc12+BNAKwUTag=
 github.com/fogleman/gg v1.2.1-0.20190220221249-0403632d5b90/go.mod h1:R/bRT+9gY/C5z7JzPU0zXsXHKM4/ayA+zqcVNZzPa1k=
+github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20231016120649-fcdced9e012e h1:nHk7ex6a2iwYl/L5ZpffJSlWC81+2IVyw5q9S1dsnKU=
+github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20231016120649-fcdced9e012e/go.mod h1:BGVMW9gRFKGzCwK/8CmDGe3sK9r9QujL1Uz2FMMM+/s=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/francoispqt/gojay v1.2.13/go.mod h1:ehT5mTG4ua4581f1++1WLG0vPdaA9HaiDsoyrBGkyDY=
