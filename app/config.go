@@ -14,6 +14,8 @@ type CrossChainConfig struct {
 	SrcChainId uint32 `mapstructure:"src-chain-id"`
 
 	DestBscChainId uint32 `mapstructure:"dest-bsc-chain-id"`
+
+	DestOpChainId uint32 `mapstructure:"dest-op-chain-id"`
 }
 
 var CustomAppTemplate = serverconfig.DefaultConfigTemplate + `
@@ -25,6 +27,8 @@ var CustomAppTemplate = serverconfig.DefaultConfigTemplate + `
 src-chain-id = {{ .CrossChain.SrcChainId }}
 # chain-id for bsc destination chain
 dest-bsc-chain-id = {{ .CrossChain.DestBscChainId }}
+# chain-id for op bnb destination chain
+dest-op-chain-id = {{ .CrossChain.DestOpChainId }}
 `
 
 func NewDefaultAppConfig() *AppConfig {
@@ -48,6 +52,7 @@ func NewDefaultAppConfig() *AppConfig {
 		CrossChain: CrossChainConfig{
 			SrcChainId:     1,
 			DestBscChainId: 2,
+			DestOpChainId:  3,
 		},
 	}
 }
