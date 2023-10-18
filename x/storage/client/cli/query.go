@@ -3,6 +3,11 @@ package cli
 import (
 	"context"
 	"fmt"
+	"strings"
+
+	gnfd "github.com/bnb-chain/greenfield/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -31,7 +36,10 @@ func GetQueryCmd() *cobra.Command {
 		CmdVerifyPermission(),
 		CmdHeadGroup(),
 		CmdListGroups(),
-		CmdHeadGroupMember())
+		CmdHeadGroupMember(),
+		CmdQueryAccountPolicy(),
+		CmdQueryGroupPolicy(),
+	)
 
 	// this line is used by starport scaffolding # 1
 
@@ -310,6 +318,97 @@ func CmdHeadGroupMember() *cobra.Command {
 				return err
 			}
 
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryAccountPolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "account-policy [grn] [principle-address]",
+		Short: "Query the policy for a account that enforced on the resource",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the polciy that a account has on the resource.
+
+Examples:
+ $ %s query %s account-policy grn:o::bucketName/objectName 0x....
+	`, version.AppName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			grnStr := args[0]
+			var grn gnfd.GRN
+			err = grn.ParseFromString(grnStr, false)
+			if err != nil {
+				return err
+			}
+			principalAcc, err := sdk.AccAddressFromHexUnsafe(args[1])
+			if err != nil {
+				return err
+			}
+
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			params := &types.QueryPolicyForAccountRequest{
+				Resource:         grn.String(),
+				PrincipalAddress: principalAcc.String(),
+			}
+			res, err := queryClient.QueryPolicyForAccount(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdQueryGroupPolicy() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "group-policy [grn] [principle-group-id]",
+		Short: "Query the policy for a group that enforced on the resource",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the policy for a group that enforced on the resource
+
+Examples:
+ $ %s query %s group-policy grn:o::bucketName/objectName 1
+	`, version.AppName, types.ModuleName),
+		),
+		Args: cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			grnStr := args[0]
+			var grn gnfd.GRN
+			err = grn.ParseFromString(grnStr, false)
+			if err != nil {
+				return err
+			}
+			groupID, ok := sdk.NewIntFromString(args[1])
+			if !ok {
+				return fmt.Errorf("failed to convert group id")
+			}
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+			params := &types.QueryPolicyForGroupRequest{
+				Resource:         grn.String(),
+				PrincipalGroupId: groupID.String(),
+			}
+			res, err := queryClient.QueryPolicyForGroup(cmd.Context(), params)
+			if err != nil {
+				return err
+			}
 			return clientCtx.PrintProto(res)
 		},
 	}

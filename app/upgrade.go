@@ -6,8 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/module"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
+	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
+	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.Config) error {
@@ -19,6 +21,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 
 	// Register the upgrade handlers here
 	app.registerNagquUpgradeHandler()
+	app.registerPampasUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -61,6 +64,30 @@ func (app *App) registerNagquUpgradeHandler() {
 			}
 			mm.SetConsensusVersion(2)
 			return nil
+		})
+}
 
+func (app *App) registerPampasUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Pampas,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+
+			// open resource channels for opbnb
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), bridgemoduletypes.SyncParamsChannelID, sdk.ChannelAllow)
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.BucketChannelId, sdk.ChannelAllow)
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
+			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Pampas,
+		func() error {
+			app.Logger().Info("Init Pampas upgrade")
+			// enable chain id for opbnb
+			app.CrossChainKeeper.SetDestOpChainID(sdk.ChainID(app.appConfig.CrossChain.DestOpChainId))
+			return nil
 		})
 }

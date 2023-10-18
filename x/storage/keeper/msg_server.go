@@ -465,7 +465,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 	relayerFee := k.Keeper.MirrorObjectRelayerFee(ctx, destChainId)
 	ackRelayerFee := k.Keeper.MirrorObjectAckRelayerFee(ctx, destChainId)
 
-	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, destChainId,
 		types.ObjectChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
 	if err != nil {
 		return nil, err
@@ -540,7 +540,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	relayerFee := k.Keeper.MirrorBucketRelayerFee(ctx, destChainId)
 	ackRelayerFee := k.Keeper.MirrorBucketAckRelayerFee(ctx, destChainId)
 
-	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, destChainId,
 		types.BucketChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
 	if err != nil {
 		return nil, err
@@ -610,7 +610,7 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	relayerFee := k.Keeper.MirrorGroupRelayerFee(ctx, destChainId)
 	ackRelayerFee := k.Keeper.MirrorGroupAckRelayerFee(ctx, destChainId)
 
-	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, destChainId,
 		types.GroupChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
 	if err != nil {
 		return nil, err
