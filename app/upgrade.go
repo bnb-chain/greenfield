@@ -4,6 +4,7 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	"github.com/cosmos/cosmos-sdk/x/gashub/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
@@ -78,6 +79,9 @@ func (app *App) registerPampasUpgradeHandler() {
 			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.BucketChannelId, sdk.ChannelAllow)
 			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
 			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
+
+			// register MsgRejectMigrateBucket Gas param
+			app.GashubKeeper.SetMsgGasParams(ctx, *types.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgRejectMigrateBucket", 1.2e3))
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
