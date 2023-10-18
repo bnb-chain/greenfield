@@ -181,4 +181,5 @@ replace (
 	github.com/cosmos/cosmos-sdk => github.com/forcodedancing/greenfield-cosmos-sdk v0.2.1-0.20231016120649-fcdced9e012e
 	github.com/cosmos/iavl => github.com/bnb-chain/greenfield-iavl v0.20.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
+	github.com/wercker/journalhook => github.com/wercker/journalhook v0.0.0-20230927020745-64542ffa4117
 )
