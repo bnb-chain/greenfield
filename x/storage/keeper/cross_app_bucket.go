@@ -4,10 +4,12 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/math"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/x/storage/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 var _ sdk.CrossChainApplication = &BucketApp{}
@@ -57,7 +59,13 @@ func (app *BucketApp) ExecuteAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 }
 
 func (app *BucketApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
-	pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
+	var pack interface{}
+	var err error
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		pack, err = types.DeserializeCrossChainPackageV2(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
+	} else {
+		pack, err = types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
+	}
 	if err != nil {
 		app.storageKeeper.Logger(ctx).Error("deserialize bucket cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
 		panic("deserialize bucket cross chain package error")
@@ -72,6 +80,9 @@ func (app *BucketApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 	case *types.CreateBucketSynPackage:
 		operationType = types.OperationCreateBucket
 		result = app.handleCreateBucketFailAckPackage(ctx, appCtx, p)
+	case *types.CreateBucketSynPackageV2:
+		operationType = types.OperationCreateBucket
+		result = app.handleCreateBucketFailAckPackageV2(ctx, appCtx, p)
 	case *types.DeleteBucketSynPackage:
 		operationType = types.OperationDeleteBucket
 		result = app.handleDeleteBucketFailAckPackage(ctx, appCtx, p)
@@ -91,7 +102,13 @@ func (app *BucketApp) ExecuteFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 }
 
 func (app *BucketApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, payload []byte) sdk.ExecuteResult {
-	pack, err := types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.SynCrossChainPackageType)
+	var pack interface{}
+	var err error
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		pack, err = types.DeserializeCrossChainPackageV2(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
+	} else {
+		pack, err = types.DeserializeCrossChainPackage(payload, types.BucketChannelId, sdk.FailAckCrossChainPackageType)
+	}
 	if err != nil {
 		app.storageKeeper.Logger(ctx).Error("deserialize bucket cross chain package error", "payload", hex.EncodeToString(payload), "error", err.Error())
 		panic("deserialize bucket cross chain package error")
@@ -106,6 +123,9 @@ func (app *BucketApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainA
 	case *types.CreateBucketSynPackage:
 		operationType = types.OperationCreateBucket
 		result = app.handleCreateBucketSynPackage(ctx, appCtx, p)
+	case *types.CreateBucketSynPackageV2:
+		operationType = types.OperationCreateBucket
+		result = app.handleCreateBucketSynPackageV2(ctx, appCtx, p)
 	case *types.DeleteBucketSynPackage:
 		operationType = types.OperationDeleteBucket
 		result = app.handleDeleteBucketSynPackage(ctx, appCtx, p)
@@ -204,6 +224,12 @@ func (app *BucketApp) handleCreateBucketFailAckPackage(ctx sdk.Context, appCtx *
 	return sdk.ExecuteResult{}
 }
 
+func (app *BucketApp) handleCreateBucketFailAckPackageV2(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, synPackage *types.CreateBucketSynPackageV2) sdk.ExecuteResult {
+	app.storageKeeper.Logger(ctx).Error("received create bucket fail ack package ")
+
+	return sdk.ExecuteResult{}
+}
+
 func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createBucketPackage *types.CreateBucketSynPackage) sdk.ExecuteResult {
 	err := createBucketPackage.ValidateBasic()
 	if err != nil {
@@ -235,9 +261,8 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 			ChargedReadQuota: createBucketPackage.ChargedReadQuota,
 			PaymentAddress:   createBucketPackage.PaymentAddress.String(),
 			PrimarySpApproval: &common.Approval{
-				ExpiredHeight:              createBucketPackage.PrimarySpApprovalExpiredHeight,
-				GlobalVirtualGroupFamilyId: createBucketPackage.GlobalVirtualGroupFamilyId,
-				Sig:                        createBucketPackage.PrimarySpApprovalSignature,
+				ExpiredHeight: createBucketPackage.PrimarySpApprovalExpiredHeight,
+				Sig:           createBucketPackage.PrimarySpApprovalSignature,
 			},
 			ApprovalMsgBytes: createBucketPackage.GetApprovalBytes(),
 		},
@@ -259,6 +284,65 @@ func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.
 			Id:        bucketId.BigInt(),
 			Creator:   createBucketPackage.Creator,
 			ExtraData: createBucketPackage.ExtraData,
+		}.MustSerialize(),
+	}
+}
+
+func (app *BucketApp) handleCreateBucketSynPackageV2(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createBucketPackageV2 *types.CreateBucketSynPackageV2) sdk.ExecuteResult {
+	err := createBucketPackageV2.ValidateBasic()
+	if err != nil {
+		return sdk.ExecuteResult{
+			Payload: types.CreateBucketAckPackage{
+				Status:    types.StatusFail,
+				Creator:   createBucketPackageV2.Creator,
+				ExtraData: createBucketPackageV2.ExtraData,
+			}.MustSerialize(),
+			Err: err,
+		}
+	}
+	app.storageKeeper.Logger(ctx).Info("process create bucket syn package v2", "bucket name", createBucketPackageV2.BucketName)
+
+	sourceType, err := app.storageKeeper.GetSourceTypeByChainId(ctx, appCtx.SrcChainId)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Err: err,
+		}
+	}
+
+	bucketId, err := app.storageKeeper.CreateBucket(ctx,
+		createBucketPackageV2.Creator,
+		createBucketPackageV2.BucketName,
+		createBucketPackageV2.PrimarySpAddress,
+		&types.CreateBucketOptions{
+			Visibility:       types.VisibilityType(createBucketPackageV2.Visibility),
+			SourceType:       sourceType,
+			ChargedReadQuota: createBucketPackageV2.ChargedReadQuota,
+			PaymentAddress:   createBucketPackageV2.PaymentAddress.String(),
+			PrimarySpApproval: &common.Approval{
+				ExpiredHeight:              createBucketPackageV2.PrimarySpApprovalExpiredHeight,
+				GlobalVirtualGroupFamilyId: createBucketPackageV2.GlobalVirtualGroupFamilyId,
+				Sig:                        createBucketPackageV2.PrimarySpApprovalSignature,
+			},
+			ApprovalMsgBytes: createBucketPackageV2.GetApprovalBytes(),
+		},
+	)
+	if err != nil {
+		return sdk.ExecuteResult{
+			Payload: types.CreateBucketAckPackage{
+				Status:    types.StatusFail,
+				Creator:   createBucketPackageV2.Creator,
+				ExtraData: createBucketPackageV2.ExtraData,
+			}.MustSerialize(),
+			Err: err,
+		}
+	}
+
+	return sdk.ExecuteResult{
+		Payload: types.CreateBucketAckPackage{
+			Status:    types.StatusSuccess,
+			Id:        bucketId.BigInt(),
+			Creator:   createBucketPackageV2.Creator,
+			ExtraData: createBucketPackageV2.ExtraData,
 		}.MustSerialize(),
 	}
 }
