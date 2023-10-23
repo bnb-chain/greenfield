@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"encoding/hex"
-	"fmt"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -231,17 +229,6 @@ func (app *BucketApp) handleCreateBucketFailAckPackageV2(ctx sdk.Context, appCtx
 }
 
 func (app *BucketApp) handleCreateBucketSynPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, createBucketPackage *types.CreateBucketSynPackage) sdk.ExecuteResult {
-	if ctx.IsUpgraded(upgradetypes.Pampas) {
-		return sdk.ExecuteResult{
-			Payload: types.CreateBucketAckPackage{
-				Status:    types.StatusFail,
-				Creator:   createBucketPackage.Creator,
-				ExtraData: createBucketPackage.ExtraData,
-			}.MustSerialize(),
-			Err: fmt.Errorf("old CreateBucketSynPackage is not supported after pampas upgrade"),
-		}
-	}
-
 	err := createBucketPackage.ValidateBasic()
 	if err != nil {
 		return sdk.ExecuteResult{

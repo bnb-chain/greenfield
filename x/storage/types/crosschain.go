@@ -23,19 +23,16 @@ const (
 	GroupChannelId  sdk.ChannelID = 6
 
 	// bucket operation types
-
 	OperationMirrorBucket uint8 = 1
 	OperationCreateBucket uint8 = 2
 	OperationDeleteBucket uint8 = 3
 
 	// object operation types
-
 	OperationMirrorObject uint8 = 1
 	// OperationCreateObject uint8 = 2 // not used
 	OperationDeleteObject uint8 = 3
 
 	// group operation types
-
 	OperationMirrorGroup       uint8 = 1
 	OperationCreateGroup       uint8 = 2
 	OperationDeleteGroup       uint8 = 3
@@ -123,6 +120,7 @@ var (
 		},
 	}
 
+	// DeserializeFuncMapV2 used after Pamela upgrade
 	DeserializeFuncMapV2 = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
 		BucketChannelId: {
 			OperationMirrorBucket: {
