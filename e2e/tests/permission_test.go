@@ -1965,54 +1965,71 @@ func (s *StorageTestSuite) TestExpiredAccountPolicyGCAndRePut() {
 }
 
 func (s *StorageTestSuite) TestExpiredGroupPolicyGCAndRePut() {
-	var err error
 	ctx := context.Background()
-	user1 := s.GenAndChargeAccounts(1, 1000000)[0]
+	user := s.GenAndChargeAccounts(3, 10000)
+	_, owner, bucketName, bucketId, _, _ := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 
-	_, owner, bucketName, _, _, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+	// Create Group
+	testGroupName := "testGroup"
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), testGroupName, "")
+	s.SendTxBlock(owner, msgCreateGroup)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: user[1].GetAddr().String()},
+	}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), testGroupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
 
-	principal := types.NewPrincipalWithAccount(user1.GetAddr())
+	// Head Group
+	headGroupRequest := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: testGroupName}
+	headGroupResponse, err := s.Client.HeadGroup(ctx, &headGroupRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupResponse.GroupInfo.GroupName, testGroupName)
+	s.Require().True(owner.GetAddr().Equals(sdk.MustAccAddressFromHex(headGroupResponse.GroupInfo.Owner)))
+	s.T().Logf("GroupInfo: %s", headGroupResponse.GetGroupInfo().String())
 
-	// Put bucket policy
+	principal := types.NewPrincipalWithGroupId(headGroupResponse.GroupInfo.Id)
+	// Put bucket policy for group
+	expirationTime := time.Now().Add(5 * time.Second)
+
 	bucketStatement := &types.Statement{
 		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
 		Effect:  types.EFFECT_ALLOW,
 	}
-	expirationTime := time.Now().Add(5 * time.Second)
-
 	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{bucketStatement}, &expirationTime)
 	s.SendTxBlock(owner, msgPutBucketPolicy)
 
-	// Query the policy which is enforced on bucket
-	grn1 := types2.NewBucketGRN(bucketName)
-	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
-		Resource:         grn1.String(),
-		PrincipalAddress: user1.GetAddr().String(),
-	})
+	// Query bucket policy for group
+	grn := types2.NewBucketGRN(bucketName)
+	queryPolicyForGroupReq := storagetypes.QueryPolicyForGroupRequest{
+		Resource:         grn.String(),
+		PrincipalGroupId: headGroupResponse.GroupInfo.Id.String(),
+	}
+
+	queryPolicyForGroupResp, err := s.Client.QueryPolicyForGroup(ctx, &queryPolicyForGroupReq)
 	s.Require().NoError(err)
-	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+	s.Require().Equal(bucketId, queryPolicyForGroupResp.Policy.ResourceId)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
+	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
+	bucketPolicyId := queryPolicyForGroupResp.Policy.Id
 
 	// wait for policy expired
 	time.Sleep(5 * time.Second)
 
-	// query the policy, which is already GC, should get err.
-	_, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
-		Resource:         grn1.String(),
-		PrincipalAddress: user1.GetAddr().String(),
-	})
+	// policy is GC
+	_, err = s.Client.QueryPolicyById(ctx, &storagetypes.QueryPolicyByIdRequest{PolicyId: bucketPolicyId.String()})
 	s.Require().Error(err)
+	s.Require().ErrorContains(err, "No such Policy")
 
 	// the user should be able to re-put policy for the bucket.
 	msgPutBucketPolicy = storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{bucketStatement}, nil)
 	s.SendTxBlock(owner, msgPutBucketPolicy)
 
-	// Query the policy which is enforced on bucket.
-	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
-		Resource:         grn1.String(),
-		PrincipalAddress: user1.GetAddr().String(),
-	})
+	queryPolicyForGroupResp, err = s.Client.QueryPolicyForGroup(ctx, &queryPolicyForGroupReq)
 	s.Require().NoError(err)
-	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+	s.Require().Equal(bucketId, queryPolicyForGroupResp.Policy.ResourceId)
+	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
+	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
 }

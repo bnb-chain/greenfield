@@ -537,6 +537,8 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		k.cdc.MustUnmarshal(store.Get(types.GetPolicyByIDKey(policyId)), &policy)
 
 		store.Delete(types.GetPolicyByIDKey(policyId))
+		ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{PolicyId: policyId}) //nolint: errcheck
+		count++
 
 		//1. the policy is an account policy, delete policyKey -> policyId.
 		//2. the policy is group policy within a policy group, delete the index in the policy group
@@ -565,8 +567,6 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 					}
 				}
 			}
-			ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{PolicyId: policyId}) //nolint: errcheck
-			count++
 		}
 	}
 }
