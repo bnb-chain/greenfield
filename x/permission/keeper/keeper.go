@@ -531,8 +531,19 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		}
 		store.Delete(iterator.Key())
 
+		// delete policyId -> policy
 		policyId := types.ParsePolicyIdFromQueueKey(iterator.Key())
+		var policy types.Policy
+		k.cdc.MustUnmarshal(store.Get(types.GetPolicyByIDKey(policyId)), &policy)
 		store.Delete(types.GetPolicyByIDKey(policyId))
+
+		// delete policyKey -> policyId
+		if ctx.IsUpgraded(upgradetypes.Pampas) {
+			policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
+				policy.Principal.MustGetAccountAddress())
+			store.Delete(policyKey)
+		}
+
 		ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{PolicyId: policyId}) //nolint: errcheck
 
 		count++
