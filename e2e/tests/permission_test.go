@@ -1942,19 +1942,20 @@ func (s *StorageTestSuite) TestExpiredPolicyGCAndRePut() {
 
 	// wait for policy expired
 	time.Sleep(5 * time.Second)
-	// Query the policy which is enforced on bucket and object
-	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
+
+	// query the policy, which is already GC, should get err.
+	_, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
 		Resource:         grn1.String(),
 		PrincipalAddress: user1.GetAddr().String(),
 	})
 	s.Require().Error(err)
 
-	// the user should be able to re-put policy for the resource.
+	// the user should be able to re-put policy for the bucket.
 	msgPutBucketPolicy = storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{bucketStatement}, nil)
 	s.SendTxBlock(owner, msgPutBucketPolicy)
 
-	// Query the policy which is enforced on bucket
+	// Query the policy which is enforced on bucket.
 	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
 		Resource:         grn1.String(),
 		PrincipalAddress: user1.GetAddr().String(),
