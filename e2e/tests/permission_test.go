@@ -1916,7 +1916,7 @@ func (s *StorageTestSuite) TestExpiredAccountPolicyGCAndRePut() {
 	ctx := context.Background()
 	user1 := s.GenAndChargeAccounts(1, 1000000)[0]
 
-	_, owner, bucketName, _, _, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+	_, owner, bucketName, bucketId, _, _ := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
 
 	principal := types.NewPrincipalWithAccount(user1.GetAddr())
 
@@ -1938,7 +1938,7 @@ func (s *StorageTestSuite) TestExpiredAccountPolicyGCAndRePut() {
 		PrincipalAddress: user1.GetAddr().String(),
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+	s.Require().Equal(bucketId, queryPolicyForAccountResp.Policy.ResourceId)
 
 	// wait for policy expired
 	time.Sleep(5 * time.Second)
@@ -1961,7 +1961,7 @@ func (s *StorageTestSuite) TestExpiredAccountPolicyGCAndRePut() {
 		PrincipalAddress: user1.GetAddr().String(),
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+	s.Require().Equal(bucketId, queryPolicyForAccountResp.Policy.ResourceId)
 }
 
 func (s *StorageTestSuite) TestExpiredGroupPolicyGCAndRePut() {
