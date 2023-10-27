@@ -1911,7 +1911,60 @@ func (s *StorageTestSuite) TestGrantsPermissionToObjectWithWildcardInName() {
 	s.Require().True(strings.Contains(err.Error(), "No such object"))
 }
 
-func (s *StorageTestSuite) TestExpiredPolicyGCAndRePut() {
+func (s *StorageTestSuite) TestExpiredAccountPolicyGCAndRePut() {
+	var err error
+	ctx := context.Background()
+	user1 := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	_, owner, bucketName, _, _, objectId := s.createObjectWithVisibility(storagetypes.VISIBILITY_TYPE_PUBLIC_READ)
+
+	principal := types.NewPrincipalWithAccount(user1.GetAddr())
+
+	// Put bucket policy
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	expirationTime := time.Now().Add(5 * time.Second)
+
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, &expirationTime)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
+
+	// Query the policy which is enforced on bucket
+	grn1 := types2.NewBucketGRN(bucketName)
+	queryPolicyForAccountResp, err := s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
+		Resource:         grn1.String(),
+		PrincipalAddress: user1.GetAddr().String(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+
+	// wait for policy expired
+	time.Sleep(5 * time.Second)
+
+	// query the policy, which is already GC, should get err.
+	_, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
+		Resource:         grn1.String(),
+		PrincipalAddress: user1.GetAddr().String(),
+	})
+	s.Require().Error(err)
+
+	// the user should be able to re-put policy for the bucket.
+	msgPutBucketPolicy = storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
+		principal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(owner, msgPutBucketPolicy)
+
+	// Query the policy which is enforced on bucket.
+	queryPolicyForAccountResp, err = s.Client.QueryPolicyForAccount(ctx, &storagetypes.QueryPolicyForAccountRequest{
+		Resource:         grn1.String(),
+		PrincipalAddress: user1.GetAddr().String(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(objectId, queryPolicyForAccountResp.Policy.ResourceId)
+}
+
+func (s *StorageTestSuite) TestExpiredGroupPolicyGCAndRePut() {
 	var err error
 	ctx := context.Background()
 	user1 := s.GenAndChargeAccounts(1, 1000000)[0]

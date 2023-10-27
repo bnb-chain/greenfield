@@ -535,17 +535,38 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		policyId := types.ParsePolicyIdFromQueueKey(iterator.Key())
 		var policy types.Policy
 		k.cdc.MustUnmarshal(store.Get(types.GetPolicyByIDKey(policyId)), &policy)
+
 		store.Delete(types.GetPolicyByIDKey(policyId))
 
-		// delete policyKey -> policyId
+		//1. the policy is an account policy, delete policyKey -> policyId.
+		//2. the policy is group policy within a policy group, delete the index in the policy group
 		if ctx.IsUpgraded(upgradetypes.Pampas) {
-			policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
-				policy.Principal.MustGetAccountAddress())
-			store.Delete(policyKey)
+			if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
+				policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
+					policy.Principal.MustGetAccountAddress())
+				store.Delete(policyKey)
+			} else if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_GROUP {
+				policyGroupKey := types.GetPolicyForGroupKey(policy.ResourceId, policy.ResourceType)
+				bz := store.Get(policyGroupKey)
+				if bz != nil {
+					policyGroup := types.PolicyGroup{}
+					k.cdc.MustUnmarshal(bz, &policyGroup)
+					for i := 0; i < len(policyGroup.Items); i++ {
+						if policyGroup.Items[i].PolicyId.Equal(policyId) {
+							policyGroup.Items = append(policyGroup.Items[:i], policyGroup.Items[i+1:]...)
+							break
+						}
+					}
+					if len(policyGroup.Items) == 0 {
+						// delete the key if no item left
+						store.Delete(policyGroupKey)
+					} else {
+						store.Set(policyGroupKey, k.cdc.MustMarshal(&policyGroup))
+					}
+				}
+			}
+			ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{PolicyId: policyId}) //nolint: errcheck
+			count++
 		}
-
-		ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{PolicyId: policyId}) //nolint: errcheck
-
-		count++
 	}
 }
