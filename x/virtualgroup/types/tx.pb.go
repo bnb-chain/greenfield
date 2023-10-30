@@ -853,7 +853,8 @@ var xxx_messageInfo_MsgCancelSwapOutResponse proto.InternalMessageInfo
 // Firstly, the handler will do stream settlement for the payment account; and
 // secondly, the income will be distributed to related storage providers.
 type MsgSettle struct {
-	// storage_provider defines the operator/funding account address of the storage provider who initial settle request.
+	// storage_provider defines the account address who initiates the settle request.
+	// After Pampas upgrade, not only storage provider, anyone can submit this message.
 	StorageProvider string `protobuf:"bytes,1,opt,name=storage_provider,json=storageProvider,proto3" json:"storage_provider,omitempty"`
 	// global_virtual_group_family_id is the identifier of the global virtual group family.
 	GlobalVirtualGroupFamilyId uint32 `protobuf:"varint,2,opt,name=global_virtual_group_family_id,json=globalVirtualGroupFamilyId,proto3" json:"global_virtual_group_family_id,omitempty"`
