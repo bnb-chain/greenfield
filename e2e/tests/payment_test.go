@@ -1147,14 +1147,14 @@ func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
 
 	// settle gvg family
 	msgSettle := virtualgrouptypes.MsgSettle{
-		Submitter:                  user.GetAddr().String(),
+		StorageProvider:            user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: family.Id,
 	}
 	s.SendTxBlock(user, &msgSettle)
 
 	// settle gvg
 	msgSettle = virtualgrouptypes.MsgSettle{
-		Submitter:                  user.GetAddr().String(),
+		StorageProvider:            user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: 0,
 		GlobalVirtualGroupIds:      []uint32{gvg.Id},
 	}

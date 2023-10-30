@@ -345,7 +345,7 @@ func TestMsgSettle_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid address",
 			msg: MsgSettle{
-				Submitter:                  "invalid_address",
+				StorageProvider:            "invalid_address",
 				GlobalVirtualGroupFamilyId: 1,
 			},
 			err: sdkerrors.ErrInvalidAddress,
@@ -353,7 +353,7 @@ func TestMsgSettle_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg ids",
 			msg: MsgSettle{
-				Submitter:                  sample.RandAccAddressHex(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 			},
 			err: ErrInvalidGVGCount,
@@ -361,7 +361,7 @@ func TestMsgSettle_ValidateBasic(t *testing.T) {
 		{
 			name: "invalid gvg ids",
 			msg: MsgSettle{
-				Submitter:                  sample.RandAccAddressHex(),
+				StorageProvider:            sample.RandAccAddressHex(),
 				GlobalVirtualGroupFamilyId: 0,
 				GlobalVirtualGroupIds:      []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11},
 			},

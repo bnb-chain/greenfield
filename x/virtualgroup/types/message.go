@@ -285,7 +285,7 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 
 func NewMsgSettle(submitter sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32) *MsgSettle {
 	return &MsgSettle{
-		Submitter:                  submitter.String(),
+		StorageProvider:            submitter.String(),
 		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
 		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
 	}
@@ -306,13 +306,13 @@ func (msg *MsgSettle) GetSignBytes() []byte {
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
 func (msg *MsgSettle) GetSigners() []sdk.AccAddress {
-	addr, _ := sdk.AccAddressFromHexUnsafe(msg.Submitter)
+	addr, _ := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	return []sdk.AccAddress{addr}
 }
 
 // ValidateBasic does a sanity check on the provided data.
 func (msg *MsgSettle) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.Submitter)
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
 		return sdkerrors.ErrInvalidAddress.Wrapf("invalid submitter address (%s)", err)
 	}

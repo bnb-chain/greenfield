@@ -224,7 +224,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 
 	// settle gvg family
 	msgSettle := virtualgroupmoduletypes.MsgSettle{
-		Submitter:                  user.GetAddr().String(),
+		StorageProvider:            user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
 	}
 	s.SendTxBlock(user, &msgSettle)
@@ -239,7 +239,7 @@ func (s *VirtualGroupTestSuite) TestSettle() {
 
 	// settle gvg
 	msgSettle = virtualgroupmoduletypes.MsgSettle{
-		Submitter:                  user.GetAddr().String(),
+		StorageProvider:            user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: 0,
 		GlobalVirtualGroupIds:      []uint32{gvgId},
 	}

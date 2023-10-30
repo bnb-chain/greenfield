@@ -348,7 +348,7 @@ func (k msgServer) CompleteSwapOut(goCtx context.Context, msg *types.MsgComplete
 func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.MsgSettleResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	addr := sdk.MustAccAddressFromHex(req.Submitter)
+	addr := sdk.MustAccAddressFromHex(req.StorageProvider)
 	var sp *sptypes.StorageProvider
 
 	pampasUpgraded := ctx.IsUpgraded(upgradetypes.Pampas)
