@@ -348,14 +348,18 @@ func (k msgServer) CompleteSwapOut(goCtx context.Context, msg *types.MsgComplete
 func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.MsgSettleResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	addr := sdk.MustAccAddressFromHex(req.StorageProvider)
+	addr := sdk.MustAccAddressFromHex(req.Submitter)
 	var sp *sptypes.StorageProvider
-	found := false
-	sp, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, addr)
-	if !found {
-		sp, found = k.spKeeper.GetStorageProviderByFundingAddr(ctx, addr)
+
+	pampasUpgraded := ctx.IsUpgraded(upgradetypes.Pampas)
+	if !pampasUpgraded {
+		found := false
+		sp, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, addr)
 		if !found {
-			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+			sp, found = k.spKeeper.GetStorageProviderByFundingAddr(ctx, addr)
+			if !found {
+				return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator/funding address of sp.")
+			}
 		}
 	}
 
@@ -363,6 +367,13 @@ func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.M
 		family, found := k.GetGVGFamily(ctx, req.GlobalVirtualGroupFamilyId)
 		if !found {
 			return nil, types.ErrGVGFamilyNotExist
+		}
+
+		if pampasUpgraded {
+			sp, found = k.spKeeper.GetStorageProvider(ctx, family.PrimarySpId)
+			if !found {
+				return nil, sptypes.ErrStorageProviderNotFound.Wrapf("Cannot find storage provider %d.", family.PrimarySpId)
+			}
 		}
 
 		err := k.SettleAndDistributeGVGFamily(ctx, sp, family)
@@ -374,21 +385,24 @@ func (k msgServer) Settle(goCtx context.Context, req *types.MsgSettle) (*types.M
 		for _, gvgID := range req.GlobalVirtualGroupIds {
 			m[gvgID] = struct{}{}
 		}
+
 		for gvgID := range m {
 			gvg, found := k.GetGVG(ctx, gvgID)
 			if !found {
 				return nil, types.ErrGVGNotExist
 			}
 
-			permitted := false
-			for _, id := range gvg.SecondarySpIds {
-				if id == sp.Id {
-					permitted = true
-					break
+			if !pampasUpgraded {
+				permitted := false
+				for _, id := range gvg.SecondarySpIds {
+					if id == sp.Id {
+						permitted = true
+						break
+					}
 				}
-			}
-			if !permitted {
-				return nil, sdkerrors.Wrapf(types.ErrSettleFailed, "storage provider %d is not in the group", sp.Id)
+				if !permitted {
+					return nil, sdkerrors.Wrapf(types.ErrSettleFailed, "storage provider %d is not in the group", sp.Id)
+				}
 			}
 
 			err := k.SettleAndDistributeGVG(ctx, gvg)

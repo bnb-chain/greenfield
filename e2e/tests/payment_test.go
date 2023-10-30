@@ -1147,27 +1147,18 @@ func (s *PaymentTestSuite) TestVirtualGroup_Settle() {
 
 	// settle gvg family
 	msgSettle := virtualgrouptypes.MsgSettle{
-		StorageProvider:            sp.FundingKey.GetAddr().String(),
+		Submitter:                  user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: family.Id,
 	}
-	s.SendTxBlock(sp.FundingKey, &msgSettle)
+	s.SendTxBlock(user, &msgSettle)
 
 	// settle gvg
-	var secondarySp *core.StorageProvider
-	for _, sp := range s.StorageProviders {
-		for _, id := range gvg.SecondarySpIds {
-			if sp.Info.Id == id {
-				secondarySp = sp
-				break
-			}
-		}
-	}
 	msgSettle = virtualgrouptypes.MsgSettle{
-		StorageProvider:            secondarySp.FundingKey.GetAddr().String(),
+		Submitter:                  user.GetAddr().String(),
 		GlobalVirtualGroupFamilyId: 0,
 		GlobalVirtualGroupIds:      []uint32{gvg.Id},
 	}
-	s.SendTxBlock(secondarySp.FundingKey, &msgSettle)
+	s.SendTxBlock(user, &msgSettle)
 
 	// assertions - balance has been checked in other tests in virtual group
 	streamRecordsAfter := s.getStreamRecords(streamAddresses)

@@ -159,10 +159,10 @@ message MsgCancelSwapOutResponse {}
 // Firstly, the handler will do stream settlement for the payment account; and
 // secondly, the income will be distributed to related storage providers.
 message MsgSettle {
-  option (cosmos.msg.v1.signer) = "storage_provider";
+  option (cosmos.msg.v1.signer) = "submitter";
 
-  // storage_provider defines the operator/funding account address of the storage provider who initial settle request.
-  string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // submitter defines the account address who initiates the settle request.
+  string submitter = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // global_virtual_group_family_id is the identifier of the global virtual group family.
   uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_id is the identifier of the global virtual group.
