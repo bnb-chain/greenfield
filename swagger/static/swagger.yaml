@@ -22061,6 +22061,22 @@ paths:
                     value:
                       type: string
                       format: byte
+      parameters:
+        - name: claim_src_chain
+          description: |-
+            ClaimSrcChain defines the src chain of a claim.
+
+             - CLAIM_SRC_CHAIN_UNSPECIFIED: CLAIM_SRC_CHAIN_UNSPECIFIED
+             - CLAIM_SRC_CHAIN_BSC: CLAIM_SRC_CHAIN_BSC defines BSC source chain
+             - CLAIM_SRC_CHAIN_OP_BNB: CLAIM_SRC_CHAIN_OP_BNB defines OPBNB source chain
+          in: query
+          required: false
+          type: string
+          enum:
+            - CLAIM_SRC_CHAIN_UNSPECIFIED
+            - CLAIM_SRC_CHAIN_BSC
+            - CLAIM_SRC_CHAIN_OP_BNB
+          default: CLAIM_SRC_CHAIN_UNSPECIFIED
       tags:
         - Query
   /cosmos/oracle/v1/params:
@@ -48081,6 +48097,18 @@ definitions:
             format: uint64
             title: expected blocks per year
     description: QueryParamsResponse is the response type for the Query/Params RPC method.
+  cosmos.oracle.v1.ClaimSrcChain:
+    type: string
+    enum:
+      - CLAIM_SRC_CHAIN_UNSPECIFIED
+      - CLAIM_SRC_CHAIN_BSC
+      - CLAIM_SRC_CHAIN_OP_BNB
+    default: CLAIM_SRC_CHAIN_UNSPECIFIED
+    description: |-
+      - CLAIM_SRC_CHAIN_UNSPECIFIED: CLAIM_SRC_CHAIN_UNSPECIFIED
+       - CLAIM_SRC_CHAIN_BSC: CLAIM_SRC_CHAIN_BSC defines BSC source chain
+       - CLAIM_SRC_CHAIN_OP_BNB: CLAIM_SRC_CHAIN_OP_BNB defines OPBNB source chain
+    title: ClaimSrcChain defines the src chain of a claim
   cosmos.oracle.v1.Params:
     type: object
     properties:
