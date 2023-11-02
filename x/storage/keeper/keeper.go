@@ -2075,6 +2075,40 @@ func (k Keeper) CancelBucketMigration(ctx sdk.Context, operator sdk.AccAddress, 
 	return nil
 }
 
+func (k Keeper) RejectBucketMigration(ctx sdk.Context, operator sdk.AccAddress, bucketName string) error {
+	store := ctx.KVStore(k.storeKey)
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+	if bucketInfo.BucketStatus != types.BUCKET_STATUS_MIGRATING {
+		return types.ErrInvalidBucketStatus.Wrapf("The bucket is not in migrating status")
+	}
+
+	migrationBucketInfo, found := k.GetMigrationBucketInfo(ctx, bucketInfo.Id)
+	if !found {
+		return types.ErrMigrationBucketFailed.Wrapf("reject bucket migration failed due to the migrate bucket info not found.")
+	}
+
+	sp := k.spKeeper.MustGetStorageProvider(ctx, migrationBucketInfo.DstSpId)
+	if !sdk.MustAccAddressFromHex(sp.OperatorAddress).Equals(operator) {
+		return types.ErrAccessDenied.Wrap("Only the dest SP can reject the bucket migration.")
+	}
+
+	bucketInfo.BucketStatus = types.BUCKET_STATUS_CREATED
+	k.SetBucketInfo(ctx, bucketInfo)
+	store.Delete(types.GetMigrationBucketKey(bucketInfo.Id))
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventRejectMigrateBucket{
+		Operator:   operator.String(),
+		BucketName: bucketName,
+		BucketId:   bucketInfo.Id,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k Keeper) GetMigrationBucketInfo(ctx sdk.Context, bucketID sdkmath.Uint) (*types.MigrationBucketInfo, bool) {
 	store := ctx.KVStore(k.storeKey)
 

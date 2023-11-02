@@ -105,8 +105,9 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.GcAddress); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid gc address (%s)", err)
 	}
+	//MaintenanceAddress is validated in msg server
 	if !msg.Deposit.IsValid() || !msg.Deposit.Amount.IsPositive() {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid deposit amount")
+		return errors.Wrap(sdkerrors.ErrInvalidCoins, "invalid deposit amount")
 	}
 	if msg.Description == (Description{}) {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
@@ -114,11 +115,10 @@ func (msg *MsgCreateStorageProvider) ValidateBasic() error {
 	if err := validateBlsKeyAndProof(msg.BlsKey, msg.BlsProof); err != nil {
 		return err
 	}
-	err := IsValidEndpointURL(msg.Endpoint)
-	if err != nil {
+	if err := ValidateEndpointURL(msg.Endpoint); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
 	}
-	if msg.ReadPrice.IsNegative() || msg.StorePrice.IsNegative() {
+	if msg.ReadPrice.IsNil() || msg.ReadPrice.IsNegative() || msg.StorePrice.IsNil() || msg.StorePrice.IsNegative() {
 		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid price")
 	}
 	return nil
@@ -177,7 +177,7 @@ func (msg *MsgEditStorageProvider) ValidateBasic() error {
 	}
 
 	if len(msg.Endpoint) != 0 {
-		err = IsValidEndpointURL(msg.Endpoint)
+		err = ValidateEndpointURL(msg.Endpoint)
 		if err != nil {
 			return errors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid endpoint (%s)", err)
 		}
@@ -369,7 +369,7 @@ func (msg *MsgUpdateStorageProviderStatus) ValidateBasic() error {
 		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "not allowed to update to status %s", msg.Status)
 	}
 	if msg.Status == STATUS_IN_MAINTENANCE && msg.Duration <= 0 {
-		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "maintenanceDuration need to be set for %s", msg.Status)
+		return errors.Wrapf(sdkerrors.ErrInvalidRequest, "maintenance duration need to be set for %s", msg.Status)
 	}
 	return nil
 }

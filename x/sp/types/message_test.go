@@ -30,7 +30,7 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 	}{
 		{"basic", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinPos, nil},
 		{"basic_empty", "a", "b", "c", "d", sdk.AccAddress{}, spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinPos, sdkerrors.ErrInvalidAddress},
-		{"zero deposit", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinZero, nil},
+		{"zero deposit", "a", "b", "c", "d", spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, spAddr, blsPubKey, blsProof, coinZero, sdkerrors.ErrInvalidCoins},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -48,7 +48,7 @@ func TestMsgCreateStorageProvider_ValidateBasic(t *testing.T) {
 				Endpoint:           "http://127.0.0.1:9033",
 				StorePrice:         sdk.ZeroDec(),
 				ReadPrice:          sdk.ZeroDec(),
-				Deposit:            coinPos,
+				Deposit:            tt.deposit,
 			}
 			err := msg.ValidateBasic()
 			if tt.err != nil {

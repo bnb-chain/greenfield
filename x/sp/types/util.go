@@ -7,7 +7,7 @@ import (
 )
 
 // Verify if input endpoint URL is valid.
-func IsValidEndpointURL(endpointURL string) error {
+func ValidateEndpointURL(endpointURL string) error {
 	if endpointURL == "" {
 		return errors.Wrap(ErrInvalidEndpointURL, "Endpoint url cannot be empty.")
 	}

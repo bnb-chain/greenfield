@@ -1,5 +1,25 @@
 # Changelog
 
+## v1.1.0
+This release contains 2 new features, 3 bugfixes and 6 chores.  
+
+Features:
+* [#493](https://github.com/bnb-chain/greenfield/pull/493) feat: support reject bucket migration
+* [#504](https://github.com/bnb-chain/greenfield/pull/504) feat: add a hardfork for the link to opBNB
+
+Bugfixes:
+* [#506](https://github.com/bnb-chain/greenfield/pull/506) fix: add GlobalVirtualGroupFamilyId to createBucketPackage
+* [#509](https://github.com/bnb-chain/greenfield/pull/509) fix: make handleCreateBucketSynPackage forward compatible
+* [#511](https://github.com/bnb-chain/greenfield/pull/511) fix: policy key is not GC while a expired policy is GC
+
+Chores:
+* [#484](https://github.com/bnb-chain/greenfield/pull/484) chore: improve the validations of messages
+* [#497](https://github.com/bnb-chain/greenfield/pull/497) chore: add cmd
+* [#503](https://github.com/bnb-chain/greenfield/pull/503) chore: add potential impacts for PR template
+* [#508](https://github.com/bnb-chain/greenfield/pull/508) chore: update cosmos-sdk version
+* [#512](https://github.com/bnb-chain/greenfield/pull/512) chore: allow anyone to trigger the settlement of GVG/GVG family
+* [#514](https://github.com/bnb-chain/greenfield/pull/514) chore: update cosmos-sdk and cometbft
+
 ## v1.0.1
 This release contains 2 chores.
 

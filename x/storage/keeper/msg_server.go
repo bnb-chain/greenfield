@@ -370,12 +370,6 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 		if s.ExpirationTime != nil && s.ExpirationTime.Before(ctx.BlockTime()) {
 			return nil, permtypes.ErrPermissionExpired.Wrapf("The specified statement expiration time is less than the current block time, block time: %s", ctx.BlockTime().String())
 		}
-		if ctx.IsUpgraded(upgradetypes.Nagqu) {
-			err := s.ValidateAfterNagqu(grn.ResourceType())
-			if err != nil {
-				return nil, err
-			}
-		}
 	}
 
 	policy := &permtypes.Policy{
@@ -465,7 +459,7 @@ func (k msgServer) MirrorObject(goCtx context.Context, msg *types.MsgMirrorObjec
 	relayerFee := k.Keeper.MirrorObjectRelayerFee(ctx, destChainId)
 	ackRelayerFee := k.Keeper.MirrorObjectAckRelayerFee(ctx, destChainId)
 
-	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, destChainId,
 		types.ObjectChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
 	if err != nil {
 		return nil, err
@@ -540,7 +534,7 @@ func (k msgServer) MirrorBucket(goCtx context.Context, msg *types.MsgMirrorBucke
 	relayerFee := k.Keeper.MirrorBucketRelayerFee(ctx, destChainId)
 	ackRelayerFee := k.Keeper.MirrorBucketAckRelayerFee(ctx, destChainId)
 
-	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, destChainId,
 		types.BucketChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
 	if err != nil {
 		return nil, err
@@ -610,7 +604,7 @@ func (k msgServer) MirrorGroup(goCtx context.Context, msg *types.MsgMirrorGroup)
 	relayerFee := k.Keeper.MirrorGroupRelayerFee(ctx, destChainId)
 	ackRelayerFee := k.Keeper.MirrorGroupAckRelayerFee(ctx, destChainId)
 
-	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, k.crossChainKeeper.GetDestBscChainID(),
+	_, err = k.crossChainKeeper.CreateRawIBCPackageWithFee(ctx, destChainId,
 		types.GroupChannelId, sdk.SynCrossChainPackageType, encodedWrapPackage, relayerFee, ackRelayerFee)
 	if err != nil {
 		return nil, err
@@ -686,6 +680,19 @@ func (k msgServer) CancelMigrateBucket(goCtx context.Context, msg *types.MsgCanc
 	}
 
 	return &types.MsgCancelMigrateBucketResponse{}, nil
+}
+
+func (k msgServer) RejectMigrateBucket(goCtx context.Context, msg *storagetypes.MsgRejectMigrateBucket) (*storagetypes.MsgRejectMigrateBucketResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operator := sdk.MustAccAddressFromHex(msg.Operator)
+
+	err := k.RejectBucketMigration(ctx, operator, msg.BucketName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgRejectMigrateBucketResponse{}, nil
 }
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {

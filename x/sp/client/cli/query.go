@@ -171,9 +171,7 @@ func CmdMaintenanceRecordsBySPOperatorAddress() *cobra.Command {
 			return clientCtx.PrintProto(res)
 		},
 	}
-
 	flags.AddQueryFlagsToCmd(cmd)
-
 	return cmd
 }
 

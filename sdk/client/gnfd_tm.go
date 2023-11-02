@@ -8,6 +8,10 @@ import (
 	"github.com/cometbft/cometbft/votepool"
 )
 
+func (c *GreenfieldClient) ABCIInfo(ctx context.Context) (*ctypes.ResultABCIInfo, error) {
+	return c.tendermintClient.ABCIInfo(ctx)
+}
+
 // GetBlock by height, gets the latest block if height is nil
 func (c *GreenfieldClient) GetBlock(ctx context.Context, height *int64) (*ctypes.ResultBlock, error) {
 	return c.tendermintClient.Block(ctx, height)
@@ -52,7 +56,6 @@ func (c *GreenfieldClient) GetStatus(ctx context.Context) (*ctypes.ResultStatus,
 
 func (c *GreenfieldClient) BroadcastVote(ctx context.Context, vote votepool.Vote) error {
 	_, err := c.tendermintClient.BroadcastVote(ctx, vote)
-
 	return err
 }
 

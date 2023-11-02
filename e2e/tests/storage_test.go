@@ -2010,3 +2010,67 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 	s.Require().NoError(err)
 	s.Require().Equal(sptypes.STATUS_IN_SERVICE, spResp.StorageProvider.Status)
 }
+
+func (s *StorageTestSuite) TestRejectMigrateBucket() {
+	// construct bucket and object
+	primarySP := s.BaseSuite.PickStorageProvider()
+	gvg, found := primarySP.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	objectName := storageutils.GenRandomObjectName()
+	s.BaseSuite.CreateObject(user, primarySP, gvg.Id, bucketName, objectName)
+
+	var err error
+	dstPrimarySP := s.CreateNewStorageProvider()
+
+	// migrate bucket
+	msgMigrationBucket := storagetypes.NewMsgMigrateBucket(user.GetAddr(), bucketName, dstPrimarySP.Info.Id)
+	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
+	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
+	s.SendTxBlock(user, msgMigrationBucket)
+	s.Require().NoError(err)
+
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketStatus, storagetypes.BUCKET_STATUS_MIGRATING)
+
+	// Dest SP reject the migration
+	rejectMigration := storagetypes.NewMsgRejectMigrateBucket(dstPrimarySP.OperatorKey.GetAddr(), bucketName)
+	s.SendTxBlock(dstPrimarySP.OperatorKey, rejectMigration)
+	s.Require().NoError(err)
+
+	queryHeadBucketRequest = storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketStatus, storagetypes.BUCKET_STATUS_CREATED)
+
+	// migrate bucket again
+	msgMigrationBucket = storagetypes.NewMsgMigrateBucket(user.GetAddr(), bucketName, dstPrimarySP.Info.Id)
+	msgMigrationBucket.DstPrimarySpApproval.ExpiredHeight = math.MaxInt
+	msgMigrationBucket.DstPrimarySpApproval.Sig, err = dstPrimarySP.ApprovalKey.Sign(msgMigrationBucket.GetApprovalBytes())
+	s.SendTxBlock(user, msgMigrationBucket)
+	s.Require().NoError(err)
+
+	// cancel migration by user
+	msgCancelMigrationBucket := storagetypes.NewMsgCancelMigrateBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(user, msgCancelMigrationBucket)
+	s.Require().NoError(err)
+
+	queryHeadBucketResponse, err = s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketStatus, storagetypes.BUCKET_STATUS_CREATED)
+
+	// dest SP should fail to reject
+	s.Client.SetKeyManager(dstPrimarySP.OperatorKey)
+	_, err = s.Client.BroadcastTx(context.Background(), []sdk.Msg{rejectMigration}, nil)
+	s.Require().Error(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketStatus, storagetypes.BUCKET_STATUS_CREATED)
+}

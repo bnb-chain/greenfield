@@ -161,7 +161,8 @@ message MsgCancelSwapOutResponse {}
 message MsgSettle {
   option (cosmos.msg.v1.signer) = "storage_provider";
 
-  // storage_provider defines the operator/funding account address of the storage provider who initial settle request.
+  // storage_provider defines the account address who initiates the settle request.
+  // After Pampas upgrade, not only storage provider, anyone can submit this message.
   string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // global_virtual_group_family_id is the identifier of the global virtual group family.
   uint32 global_virtual_group_family_id = 2;

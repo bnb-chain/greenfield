@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
@@ -32,6 +34,20 @@ var (
 		ACTION_COPY_OBJECT:    true,
 		ACTION_EXECUTE_OBJECT: true,
 		ACTION_LIST_OBJECT:    true,
+
+		ACTION_TYPE_ALL: true,
+	}
+	BucketAllowedActionsAfterPampas = map[ActionType]bool{
+		ACTION_UPDATE_BUCKET_INFO: true,
+		ACTION_DELETE_BUCKET:      true,
+
+		ACTION_CREATE_OBJECT:      true,
+		ACTION_DELETE_OBJECT:      true,
+		ACTION_GET_OBJECT:         true,
+		ACTION_COPY_OBJECT:        true,
+		ACTION_EXECUTE_OBJECT:     true,
+		ACTION_LIST_OBJECT:        true,
+		ACTION_UPDATE_OBJECT_INFO: true,
 
 		ACTION_TYPE_ALL: true,
 	}
@@ -167,25 +183,12 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	case resource.RESOURCE_TYPE_UNSPECIFIED:
 		return ErrInvalidStatement.Wrap("Please specify the ResourceType explicitly. Not allowed set RESOURCE_TYPE_UNSPECIFIED")
 	case resource.RESOURCE_TYPE_BUCKET:
-		containsCreateObject := false
-		for _, a := range s.Actions {
-			if !BucketAllowedActions[a] {
-				return ErrInvalidStatement.Wrapf("%s not allowed to be used on bucket.", a.String())
-			}
-			if a == ACTION_CREATE_OBJECT {
-				containsCreateObject = true
-			}
-		}
 		for _, r := range s.Resources {
 			var grn gnfd.GRN
 			err := grn.ParseFromString(r, true)
 			if err != nil {
 				return ErrInvalidStatement.Wrapf("GRN parse from string failed, err: %s", err)
 			}
-		}
-
-		if !containsCreateObject && s.LimitSize != nil {
-			return ErrInvalidStatement.Wrap("The LimitSize option can only be used with CreateObject actions at the bucket level. .")
 		}
 	case resource.RESOURCE_TYPE_OBJECT:
 		for _, a := range s.Actions {
@@ -211,30 +214,48 @@ func (s *Statement) ValidateBasic(resType resource.ResourceType) error {
 	return nil
 }
 
-func (s *Statement) ValidateAfterNagqu(resType resource.ResourceType) error {
-	if s.Effect == EFFECT_UNSPECIFIED {
-		return ErrInvalidStatement.Wrap("Please specify the Effect explicitly. Not allowed set EFFECT_UNSPECIFIED")
+func (s *Statement) ValidateRuntime(ctx sdk.Context, resType resource.ResourceType) error {
+	if ctx.IsUpgraded(upgradetypes.Nagqu) {
+		switch resType {
+		case resource.RESOURCE_TYPE_BUCKET:
+			for _, r := range s.Resources {
+				_, err := regexp.Compile(r)
+				if err != nil {
+					return ErrInvalidStatement.Wrapf("The Resources regexp compile failed, err: %s", err)
+				}
+			}
+		case resource.RESOURCE_TYPE_OBJECT:
+			if s.Resources != nil {
+				return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
+			}
+		case resource.RESOURCE_TYPE_GROUP:
+			if s.Resources != nil {
+				return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
+			}
+		default:
+			return ErrInvalidStatement.Wrap("unknown resource type.")
+		}
 	}
-	switch resType {
-	case resource.RESOURCE_TYPE_UNSPECIFIED:
-		return ErrInvalidStatement.Wrap("Please specify the ResourceType explicitly. Not allowed set RESOURCE_TYPE_UNSPECIFIED")
-	case resource.RESOURCE_TYPE_BUCKET:
-		for _, r := range s.Resources {
-			_, err := regexp.Compile(r)
-			if err != nil {
-				return ErrInvalidStatement.Wrapf("The Resources regexp compile failed, err: %s", err)
+
+	var bucketAllowedActions map[ActionType]bool
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		bucketAllowedActions = BucketAllowedActionsAfterPampas
+	} else {
+		bucketAllowedActions = BucketAllowedActions
+	}
+	if resType == resource.RESOURCE_TYPE_BUCKET {
+		containsCreateObject := false
+		for _, a := range s.Actions {
+			if !bucketAllowedActions[a] {
+				return ErrInvalidStatement.Wrapf("%s not allowed to be used on bucket.", a.String())
+			}
+			if a == ACTION_CREATE_OBJECT {
+				containsCreateObject = true
 			}
 		}
-	case resource.RESOURCE_TYPE_OBJECT:
-		if s.Resources != nil {
-			return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
+		if !containsCreateObject && s.LimitSize != nil {
+			return ErrInvalidStatement.Wrap("The LimitSize option can only be used with CreateObject actions at the bucket level. .")
 		}
-	case resource.RESOURCE_TYPE_GROUP:
-		if s.Resources != nil {
-			return ErrInvalidStatement.Wrap("The Resources option can only be used at the bucket level. ")
-		}
-	default:
-		return ErrInvalidStatement.Wrap("unknown resource type.")
 	}
 	return nil
 }

@@ -68,59 +68,116 @@ func DeserializeRawCrossChainPackage(serializedPackage []byte) (*CrossChainPacka
 
 type DeserializeFunc func(serializedPackage []byte) (interface{}, error)
 
-var DeserializeFuncMap = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
-	BucketChannelId: {
-		OperationMirrorBucket: {
-			DeserializeMirrorBucketSynPackage,
-			DeserializeMirrorBucketAckPackage,
-			DeserializeMirrorBucketSynPackage,
+var (
+	DeserializeFuncMap = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
+		BucketChannelId: {
+			OperationMirrorBucket: {
+				DeserializeMirrorBucketSynPackage,
+				DeserializeMirrorBucketAckPackage,
+				DeserializeMirrorBucketSynPackage,
+			},
+			OperationCreateBucket: {
+				DeserializeCreateBucketSynPackage,
+				DeserializeCreateBucketAckPackage,
+				DeserializeCreateBucketSynPackage,
+			},
+			OperationDeleteBucket: {
+				DeserializeDeleteBucketSynPackage,
+				DeserializeDeleteBucketAckPackage,
+				DeserializeDeleteBucketSynPackage,
+			},
 		},
-		OperationCreateBucket: {
-			DeserializeCreateBucketSynPackage,
-			DeserializeCreateBucketAckPackage,
-			DeserializeCreateBucketSynPackage,
+		ObjectChannelId: {
+			OperationMirrorObject: {
+				DeserializeMirrorObjectSynPackage,
+				DeserializeMirrorObjectAckPackage,
+				DeserializeMirrorObjectSynPackage,
+			},
+			OperationDeleteObject: {
+				DeserializeDeleteObjectSynPackage,
+				DeserializeDeleteObjectAckPackage,
+				DeserializeDeleteObjectSynPackage,
+			},
 		},
-		OperationDeleteBucket: {
-			DeserializeDeleteBucketSynPackage,
-			DeserializeDeleteBucketAckPackage,
-			DeserializeDeleteBucketSynPackage,
+		GroupChannelId: {
+			OperationMirrorGroup: {
+				DeserializeMirrorGroupSynPackage,
+				DeserializeMirrorGroupAckPackage,
+				DeserializeMirrorGroupSynPackage,
+			},
+			OperationCreateGroup: {
+				DeserializeCreateGroupSynPackage,
+				DeserializeCreateGroupAckPackage,
+				DeserializeCreateGroupSynPackage,
+			},
+			OperationDeleteGroup: {
+				DeserializeDeleteGroupSynPackage,
+				DeserializeDeleteGroupAckPackage,
+				DeserializeDeleteGroupSynPackage,
+			},
+			OperationUpdateGroupMember: {
+				DeserializeUpdateGroupMemberSynPackage,
+				DeserializeUpdateGroupMemberAckPackage,
+				DeserializeUpdateGroupMemberSynPackage,
+			},
 		},
-	},
-	ObjectChannelId: {
-		OperationMirrorObject: {
-			DeserializeMirrorObjectSynPackage,
-			DeserializeMirrorObjectAckPackage,
-			DeserializeMirrorObjectSynPackage,
+	}
+
+	// DeserializeFuncMapV2 used after Pampas upgrade
+	DeserializeFuncMapV2 = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
+		BucketChannelId: {
+			OperationMirrorBucket: {
+				DeserializeMirrorBucketSynPackage,
+				DeserializeMirrorBucketAckPackage,
+				DeserializeMirrorBucketSynPackage,
+			},
+			OperationCreateBucket: {
+				DeserializeCreateBucketSynPackageV2,
+				DeserializeCreateBucketAckPackage,
+				DeserializeCreateBucketSynPackageV2,
+			},
+			OperationDeleteBucket: {
+				DeserializeDeleteBucketSynPackage,
+				DeserializeDeleteBucketAckPackage,
+				DeserializeDeleteBucketSynPackage,
+			},
 		},
-		OperationDeleteObject: {
-			DeserializeDeleteObjectSynPackage,
-			DeserializeDeleteObjectAckPackage,
-			DeserializeDeleteObjectSynPackage,
+		ObjectChannelId: {
+			OperationMirrorObject: {
+				DeserializeMirrorObjectSynPackage,
+				DeserializeMirrorObjectAckPackage,
+				DeserializeMirrorObjectSynPackage,
+			},
+			OperationDeleteObject: {
+				DeserializeDeleteObjectSynPackage,
+				DeserializeDeleteObjectAckPackage,
+				DeserializeDeleteObjectSynPackage,
+			},
 		},
-	},
-	GroupChannelId: {
-		OperationMirrorGroup: {
-			DeserializeMirrorGroupSynPackage,
-			DeserializeMirrorGroupAckPackage,
-			DeserializeMirrorGroupSynPackage,
+		GroupChannelId: {
+			OperationMirrorGroup: {
+				DeserializeMirrorGroupSynPackage,
+				DeserializeMirrorGroupAckPackage,
+				DeserializeMirrorGroupSynPackage,
+			},
+			OperationCreateGroup: {
+				DeserializeCreateGroupSynPackage,
+				DeserializeCreateGroupAckPackage,
+				DeserializeCreateGroupSynPackage,
+			},
+			OperationDeleteGroup: {
+				DeserializeDeleteGroupSynPackage,
+				DeserializeDeleteGroupAckPackage,
+				DeserializeDeleteGroupSynPackage,
+			},
+			OperationUpdateGroupMember: {
+				DeserializeUpdateGroupMemberSynPackage,
+				DeserializeUpdateGroupMemberAckPackage,
+				DeserializeUpdateGroupMemberSynPackage,
+			},
 		},
-		OperationCreateGroup: {
-			DeserializeCreateGroupSynPackage,
-			DeserializeCreateGroupAckPackage,
-			DeserializeCreateGroupSynPackage,
-		},
-		OperationDeleteGroup: {
-			DeserializeDeleteGroupSynPackage,
-			DeserializeDeleteGroupAckPackage,
-			DeserializeDeleteGroupSynPackage,
-		},
-		OperationUpdateGroupMember: {
-			DeserializeUpdateGroupMemberSynPackage,
-			DeserializeUpdateGroupMemberAckPackage,
-			DeserializeUpdateGroupMemberSynPackage,
-		},
-	},
-}
+	}
+)
 
 func DeserializeCrossChainPackage(rawPack []byte, channelId sdk.ChannelID, packageType sdk.CrossChainPackageType) (interface{}, error) {
 	if packageType >= 3 {
@@ -133,6 +190,24 @@ func DeserializeCrossChainPackage(rawPack []byte, channelId sdk.ChannelID, packa
 	}
 
 	operationMap, ok := DeserializeFuncMap[channelId][pack.OperationType]
+	if !ok {
+		return nil, ErrInvalidCrossChainPackage
+	}
+
+	return operationMap[packageType](pack.Package)
+}
+
+func DeserializeCrossChainPackageV2(rawPack []byte, channelId sdk.ChannelID, packageType sdk.CrossChainPackageType) (interface{}, error) {
+	if packageType >= 3 {
+		return nil, ErrInvalidCrossChainPackage
+	}
+
+	pack, err := DeserializeRawCrossChainPackage(rawPack)
+	if err != nil {
+		return nil, err
+	}
+
+	operationMap, ok := DeserializeFuncMapV2[channelId][pack.OperationType]
 	if !ok {
 		return nil, ErrInvalidCrossChainPackage
 	}
@@ -352,6 +427,19 @@ type CreateBucketSynPackage struct {
 	ExtraData                      []byte
 }
 
+type CreateBucketSynPackageV2 struct {
+	Creator                        sdk.AccAddress
+	BucketName                     string
+	Visibility                     uint32
+	PaymentAddress                 sdk.AccAddress
+	PrimarySpAddress               sdk.AccAddress
+	PrimarySpApprovalExpiredHeight uint64
+	GlobalVirtualGroupFamilyId     uint32
+	PrimarySpApprovalSignature     []byte
+	ChargedReadQuota               uint64
+	ExtraData                      []byte
+}
+
 type CreateBucketSynPackageStruct struct {
 	Creator                        common.Address
 	BucketName                     string
@@ -359,6 +447,19 @@ type CreateBucketSynPackageStruct struct {
 	PaymentAddress                 common.Address
 	PrimarySpAddress               common.Address
 	PrimarySpApprovalExpiredHeight uint64
+	PrimarySpApprovalSignature     []byte
+	ChargedReadQuota               uint64
+	ExtraData                      []byte
+}
+
+type CreateBucketSynPackageV2Struct struct {
+	Creator                        common.Address
+	BucketName                     string
+	Visibility                     uint32
+	PaymentAddress                 common.Address
+	PrimarySpAddress               common.Address
+	PrimarySpApprovalExpiredHeight uint64
+	GlobalVirtualGroupFamilyId     uint32
 	PrimarySpApprovalSignature     []byte
 	ChargedReadQuota               uint64
 	ExtraData                      []byte
@@ -379,6 +480,23 @@ var (
 
 	createBucketSynPackageStructArgs = abi.Arguments{
 		{Type: createBucketSynPackageStructType},
+	}
+
+	createBucketSynPackageV2StructType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Creator", Type: "address"},
+		{Name: "BucketName", Type: "string"},
+		{Name: "Visibility", Type: "uint32"},
+		{Name: "PaymentAddress", Type: "address"},
+		{Name: "PrimarySpAddress", Type: "address"},
+		{Name: "PrimarySpApprovalExpiredHeight", Type: "uint64"},
+		{Name: "GlobalVirtualGroupFamilyId", Type: "uint32"},
+		{Name: "PrimarySpApprovalSignature", Type: "bytes"},
+		{Name: "ChargedReadQuota", Type: "uint64"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	createBucketSynPackageV2StructArgs = abi.Arguments{
+		{Type: createBucketSynPackageV2StructType},
 	}
 )
 
@@ -452,6 +570,87 @@ func DeserializeCreateBucketSynPackage(serializedPackage []byte) (interface{}, e
 		pkgStruct.PaymentAddress.Bytes(),
 		pkgStruct.PrimarySpAddress.Bytes(),
 		pkgStruct.PrimarySpApprovalExpiredHeight,
+		pkgStruct.PrimarySpApprovalSignature,
+		pkgStruct.ChargedReadQuota,
+		pkgStruct.ExtraData,
+	}
+	return &tp, nil
+}
+
+func (p CreateBucketSynPackageV2) MustSerialize() []byte {
+	encodedBytes, err := createBucketSynPackageStructArgs.Pack(&CreateBucketSynPackageV2Struct{
+		Creator:                        common.BytesToAddress(p.Creator),
+		BucketName:                     p.BucketName,
+		Visibility:                     p.Visibility,
+		PaymentAddress:                 common.BytesToAddress(p.PaymentAddress),
+		PrimarySpAddress:               common.BytesToAddress(p.PrimarySpAddress),
+		PrimarySpApprovalExpiredHeight: p.PrimarySpApprovalExpiredHeight,
+		GlobalVirtualGroupFamilyId:     p.GlobalVirtualGroupFamilyId,
+		PrimarySpApprovalSignature:     p.PrimarySpApprovalSignature,
+		ChargedReadQuota:               p.ChargedReadQuota,
+		ExtraData:                      p.ExtraData,
+	})
+	if err != nil {
+		panic("encode create bucket syn package v2 error")
+	}
+	return encodedBytes
+}
+
+func (p CreateBucketSynPackageV2) ValidateBasic() error {
+	msg := MsgCreateBucket{
+		Creator:          p.Creator.String(),
+		BucketName:       p.BucketName,
+		Visibility:       VisibilityType(p.Visibility),
+		PaymentAddress:   p.PaymentAddress.String(),
+		PrimarySpAddress: p.PrimarySpAddress.String(),
+		PrimarySpApproval: &gnfdcommon.Approval{
+			ExpiredHeight:              p.PrimarySpApprovalExpiredHeight,
+			GlobalVirtualGroupFamilyId: p.GlobalVirtualGroupFamilyId,
+			Sig:                        p.PrimarySpApprovalSignature,
+		},
+		ChargedReadQuota: p.ChargedReadQuota,
+	}
+
+	return msg.ValidateBasic()
+}
+
+func (p CreateBucketSynPackageV2) GetApprovalBytes() []byte {
+	msg := MsgCreateBucket{
+		Creator:          p.Creator.String(),
+		BucketName:       p.BucketName,
+		Visibility:       VisibilityType(p.Visibility),
+		PaymentAddress:   p.PaymentAddress.String(),
+		PrimarySpAddress: p.PrimarySpAddress.String(),
+		PrimarySpApproval: &gnfdcommon.Approval{
+			ExpiredHeight:              p.PrimarySpApprovalExpiredHeight,
+			GlobalVirtualGroupFamilyId: p.GlobalVirtualGroupFamilyId,
+			Sig:                        p.PrimarySpApprovalSignature,
+		},
+		ChargedReadQuota: p.ChargedReadQuota,
+	}
+	return msg.GetApprovalBytes()
+}
+
+func DeserializeCreateBucketSynPackageV2(serializedPackage []byte) (interface{}, error) {
+	unpacked, err := createBucketSynPackageV2StructArgs.Unpack(serializedPackage)
+	if err != nil {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create bucket syn package v2 failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], CreateBucketSynPackageV2Struct{})
+	pkgStruct, ok := unpackedStruct.(CreateBucketSynPackageV2Struct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create bucket syn package v2 failed")
+	}
+
+	tp := CreateBucketSynPackageV2{
+		pkgStruct.Creator.Bytes(),
+		pkgStruct.BucketName,
+		pkgStruct.Visibility,
+		pkgStruct.PaymentAddress.Bytes(),
+		pkgStruct.PrimarySpAddress.Bytes(),
+		pkgStruct.PrimarySpApprovalExpiredHeight,
+		pkgStruct.GlobalVirtualGroupFamilyId,
 		pkgStruct.PrimarySpApprovalSignature,
 		pkgStruct.ChargedReadQuota,
 		pkgStruct.ExtraData,

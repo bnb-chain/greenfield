@@ -192,7 +192,7 @@ func (msg *MsgWithdraw) ValidateBasic() error {
 	}
 
 	if !msg.Withdraw.IsValid() || !msg.Withdraw.Amount.IsPositive() {
-		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid or non-positive deposit amount")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "invalid or non-positive withdraw amount")
 	}
 	return nil
 }
@@ -283,9 +283,9 @@ func (msg *MsgUpdateParams) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgSettle(fundingAddress sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32) *MsgSettle {
+func NewMsgSettle(submitter sdk.AccAddress, globalVirtualGroupFamilyID uint32, globalVirtualGroupIDs []uint32) *MsgSettle {
 	return &MsgSettle{
-		StorageProvider:            fundingAddress.String(),
+		StorageProvider:            submitter.String(),
 		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
 		GlobalVirtualGroupIds:      globalVirtualGroupIDs,
 	}
@@ -314,7 +314,7 @@ func (msg *MsgSettle) GetSigners() []sdk.AccAddress {
 func (msg *MsgSettle) ValidateBasic() error {
 	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
 	if err != nil {
-		return sdkerrors.ErrInvalidAddress.Wrapf("invalid storage provider address (%s)", err)
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid submitter address (%s)", err)
 	}
 
 	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {

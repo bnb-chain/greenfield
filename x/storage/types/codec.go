@@ -26,6 +26,7 @@ func RegisterCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(&MsgMigrateBucket{}, "storage/MigrateBucket", nil)
 	cdc.RegisterConcrete(&MsgCompleteMigrateBucket{}, "storage/CompleteMigrateBucket", nil)
 	cdc.RegisterConcrete(&MsgCancelMigrateBucket{}, "storage/CancelMigrateBucket", nil)
+	cdc.RegisterConcrete(&MsgRejectMigrateBucket{}, "storage/RejectMigrateBucket", nil)
 	// this line is used by starport scaffolding # 2
 }
 
@@ -111,6 +112,9 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	)
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCancelMigrateBucket{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgRejectMigrateBucket{},
 	)
 	// this line is used by starport scaffolding # 3
 

@@ -105,7 +105,7 @@ message EventCreateObject {
   string bucket_name = 3;
   // object_name define the name of object
   string object_name = 4;
-  // bucket_id define an u256 id for object
+  // bucket_id define an u256 id for bucket
   string bucket_id = 6 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
@@ -499,7 +499,7 @@ message EventMigrationBucket {
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The name of the bucket to be migrated
   string bucket_name = 2;
-  // bucket_id define an u256 id for object
+  // bucket_id define an u256 id for bucket
   string bucket_id = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
@@ -515,7 +515,20 @@ message EventCancelMigrationBucket {
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The name of the bucket to be migrated
   string bucket_name = 2;
-  // bucket_id define an u256 id for object
+  // bucket_id define an u256 id for bucket
+  string bucket_id = 3 [
+    (cosmos_proto.scalar) = "cosmos.Uint",
+    (gogoproto.customtype) = "Uint",
+    (gogoproto.nullable) = false
+  ];
+}
+
+message EventRejectMigrateBucket {
+  // The address of the operator that reject the bucket migration, must be the dest SP
+  string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
+  // The name of the bucket to be migrated
+  string bucket_name = 2;
+  // bucket_id define an u256 id for bucket
   string bucket_id = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
@@ -529,7 +542,7 @@ message EventCompleteMigrationBucket {
   string operator = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // The name of the bucket to be migrated
   string bucket_name = 2;
-  // bucket_id define an u256 id for object
+  // bucket_id define an u256 id for bucket
   string bucket_id = 3 [
     (cosmos_proto.scalar) = "cosmos.Uint",
     (gogoproto.customtype) = "Uint",
