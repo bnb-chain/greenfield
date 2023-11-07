@@ -45,7 +45,6 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	paymentKeeper types.PaymentKeeper,
-	storageKeeper types.StorageKeeper,
 ) *Keeper {
 
 	k := Keeper{
@@ -57,13 +56,16 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 		paymentKeeper: paymentKeeper,
-		storageKeeper: storageKeeper,
 	}
 
 	k.gvgSequence = sequence.NewSequence[uint32](types.GVGSequencePrefix)
 	k.gvgFamilySequence = sequence.NewSequence[uint32](types.GVGFamilySequencePrefix)
 
 	return &k
+}
+
+func (k *Keeper) SetStorageKeeper(storageKeeper types.StorageKeeper) {
+	k.storageKeeper = storageKeeper
 }
 
 func (k Keeper) GetAuthority() string {

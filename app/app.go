@@ -472,9 +472,7 @@ func New(
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.PaymentKeeper,
-		app.StorageKeeper,
 	)
-	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
 
 	app.PermissionmoduleKeeper = *permissionmodulekeeper.NewKeeper(
 		appCodec,
@@ -497,6 +495,9 @@ func New(
 		authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	)
 	storageModule := storagemodule.NewAppModule(appCodec, app.StorageKeeper, app.AccountKeeper, app.BankKeeper, app.SpKeeper)
+
+	app.VirtualgroupKeeper.SetStorageKeeper(&app.StorageKeeper)
+	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
 
 	app.ChallengeKeeper = *challengemodulekeeper.NewKeeper(
 		appCodec,
