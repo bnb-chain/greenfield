@@ -472,6 +472,7 @@ func New(
 		app.AccountKeeper,
 		app.BankKeeper,
 		app.PaymentKeeper,
+		app.StorageKeeper,
 	)
 	virtualgroupModule := virtualgroupmodule.NewAppModule(appCodec, app.VirtualgroupKeeper, app.SpKeeper)
 

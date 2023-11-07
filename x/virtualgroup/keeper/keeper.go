@@ -29,6 +29,7 @@ type (
 		accountKeeper types.AccountKeeper
 		bankKeeper    types.BankKeeper
 		paymentKeeper types.PaymentKeeper
+		storageKeeper types.StorageKeeper
 		// sequence
 		gvgSequence       sequence.Sequence[uint32]
 		gvgFamilySequence sequence.Sequence[uint32]
@@ -44,6 +45,7 @@ func NewKeeper(
 	accountKeeper types.AccountKeeper,
 	bankKeeper types.BankKeeper,
 	paymentKeeper types.PaymentKeeper,
+	storageKeeper types.StorageKeeper,
 ) *Keeper {
 
 	k := Keeper{
@@ -55,6 +57,7 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 		paymentKeeper: paymentKeeper,
+		storageKeeper: storageKeeper,
 	}
 
 	k.gvgSequence = sequence.NewSequence[uint32](types.GVGSequencePrefix)

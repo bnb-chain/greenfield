@@ -48,6 +48,7 @@ func (s *TestSuite) SetupTest() {
 	accountKeeper := types.NewMockAccountKeeper(ctrl)
 	spKeeper := types.NewMockSpKeeper(ctrl)
 	paymentKeeper := types.NewMockPaymentKeeper(ctrl)
+	storageKeeper := types.NewMockStorageKeeper(ctrl)
 
 	s.ctx = testCtx.Ctx
 	s.virtualgroupKeeper = keeper.NewKeeper(
@@ -59,6 +60,7 @@ func (s *TestSuite) SetupTest() {
 		accountKeeper,
 		bankKeeper,
 		paymentKeeper,
+		storageKeeper,
 	)
 
 	s.cdc = encCfg.Codec
