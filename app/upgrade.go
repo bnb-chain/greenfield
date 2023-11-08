@@ -4,7 +4,6 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/gashub/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
@@ -80,8 +79,17 @@ func (app *App) registerPampasUpgradeHandler() {
 			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.ObjectChannelId, sdk.ChannelAllow)
 			app.CrossChainKeeper.SetChannelSendPermission(ctx, sdk.ChainID(app.appConfig.CrossChain.DestOpChainId), storagemoduletypes.GroupChannelId, sdk.ChannelAllow)
 
-			// register MsgRejectMigrateBucket Gas param
-			app.GashubKeeper.SetMsgGasParams(ctx, *types.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgRejectMigrateBucket", 1.2e3))
+			// disable sp exit
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgSwapOut")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCompleteSwapOut")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCancelSwapOut")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgStorageProviderExit")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCompleteStorageProviderExit")
+
+			// disable bucket migration.
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgMigrateBucket")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgCancelMigrateBucket")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgCompleteMigrateBucket")
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
