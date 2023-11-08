@@ -89,6 +89,12 @@ func (k Keeper) ForceUpdateMaintenanceRecords(ctx sdk.Context) {
 						sp.Status = types.STATUS_IN_SERVICE
 						k.SetStorageProvider(ctx, sp)
 						changed = true
+						_ = ctx.EventManager().EmitTypedEvents(&types.EventUpdateStorageProviderStatus{
+							SpId:      sp.Id,
+							SpAddress: sp.OperatorAddress,
+							PreStatus: types.STATUS_IN_MAINTENANCE.String(),
+							NewStatus: types.STATUS_IN_SERVICE.String(),
+						})
 					}
 				}
 			}
