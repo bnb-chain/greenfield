@@ -170,6 +170,39 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 		context.Background(),
 		&virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{GlobalVirtualGroupId: newGVG.Id})
 	s.Require().Error(err)
+
+	// test number of secondary SP doest not match onchain requirement
+	secondarySPIDs = append(secondarySPIDs, secondarySPIDs[0])
+	msgCreateGVG := virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
+		StorageProvider: primarySP.OperatorKey.GetAddr().String(),
+		FamilyId:        virtualgroupmoduletypes.NoSpecifiedFamilyId,
+		SecondarySpIds:  secondarySPIDs,
+		Deposit: sdk.Coin{
+			Denom:  s.Config.Denom,
+			Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
+		},
+	}
+	s.SendTxBlockWithExpectErrorString(&msgCreateGVG, primarySP.OperatorKey, virtualgroupmoduletypes.ErrInvalidSecondarySPCount.Error())
+
+	// test GVG has duplicated secondary Sp
+	secondarySPIDs = make([]uint32, 0)
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != primarySP.Info.Id {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+		}
+	}
+	secondarySPIDs[len(secondarySPIDs)-1] = secondarySPIDs[0]
+	msgCreateGVG = virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
+		StorageProvider: primarySP.OperatorKey.GetAddr().String(),
+		FamilyId:        virtualgroupmoduletypes.NoSpecifiedFamilyId,
+		SecondarySpIds:  secondarySPIDs,
+		Deposit: sdk.Coin{
+			Denom:  s.Config.Denom,
+			Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
+		},
+	}
+	s.SendTxBlockWithExpectErrorString(&msgCreateGVG, primarySP.OperatorKey, virtualgroupmoduletypes.ErrDuplicateSecondarySP.Error())
+
 }
 
 func (s *VirtualGroupTestSuite) TestSettle() {

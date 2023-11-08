@@ -19,9 +19,9 @@ var (
 	ErrInvalidGVGCount         = errors.Register(ModuleName, 1120, "the count of global virtual group ids is invalid.")
 	ErrWithdrawFailed          = errors.Register(ModuleName, 1121, "with draw failed.")
 	ErrInvalidSecondarySPCount = errors.Register(ModuleName, 1122, "the number of secondary sp within the global virtual group is invalid.")
-
-	ErrLimitationExceed    = errors.Register(ModuleName, 1123, "limitation exceed.")
-	ErrInsufficientStaking = errors.Register(ModuleName, 1125, "insufficient staking for gvg")
+	ErrLimitationExceed        = errors.Register(ModuleName, 1123, "limitation exceed.")
+	ErrDuplicateSecondarySP    = errors.Register(ModuleName, 1124, "the global virtual group has duplicate secondary sp.")
+	ErrInsufficientStaking     = errors.Register(ModuleName, 1125, "insufficient staking for gvg")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )
