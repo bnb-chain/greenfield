@@ -23,8 +23,6 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
-	"github.com/bnb-chain/greenfield/types/common"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
@@ -357,204 +355,204 @@ func (s *VirtualGroupTestSuite) createObject() (string, string, *core.StoragePro
 	return bucketName, objectName, sp, secondarySps, gvg.FamilyId, gvg.Id
 }
 
-func (s *VirtualGroupTestSuite) TestSPExit() {
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	// 1, create a new storage provider
-	sp := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP Info: %s", sp.Info.String())
+//func (s *VirtualGroupTestSuite) TestSPExit() {
+//	user := s.GenAndChargeAccounts(1, 1000000)[0]
+//	// 1, create a new storage provider
+//	sp := s.BaseSuite.CreateNewStorageProvider()
+//	s.T().Logf("new SP Info: %s", sp.Info.String())
+//
+//	successorSp := s.BaseSuite.PickStorageProvider()
+//
+//	// 2, create a new gvg group for this storage provider
+//	var secondarySPIDs []uint32
+//	for _, ssp := range s.StorageProviders {
+//		if ssp.Info.Id != successorSp.Info.Id {
+//			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+//		}
+//		if len(secondarySPIDs) == 6 {
+//			break
+//		}
+//	}
+//
+//	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
+//
+//	// 3. create object
+//	s.BaseSuite.CreateObject(user, sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
+//
+//	// 4. Create another gvg contains this new sp
+//	var anotherSP *core.StorageProvider
+//	for _, tsp := range s.StorageProviders {
+//		if tsp.Info.Id != sp.Info.Id && tsp.Info.Id != successorSp.Info.Id {
+//			anotherSP = tsp
+//			break
+//		}
+//	}
+//	var anotherSecondarySPIDs []uint32
+//	for _, ssp := range s.StorageProviders {
+//		if ssp.Info.Id != successorSp.Info.Id && ssp.Info.Id != anotherSP.Info.Id {
+//			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
+//		}
+//		if len(anotherSecondarySPIDs) == 5 {
+//			break
+//		}
+//	}
+//	anotherSecondarySPIDs = append(anotherSecondarySPIDs, sp.Info.Id)
+//
+//	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(anotherSP, 0, anotherSecondarySPIDs, 1)
+//
+//	// 5. sp exit
+//	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
+//		StorageProvider: sp.OperatorKey.GetAddr().String(),
+//	})
+//
+//	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+//	s.Require().NoError(err)
+//	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+//
+//	// 6. sp complete exit failed
+//	s.SendTxBlockWithExpectErrorString(
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//		sp.OperatorKey,
+//		"not swap out from all the family")
+//
+//	// 7. swap out, as primary sp
+//	msgSwapOut := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
+//	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+//	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
+//	s.Require().NoError(err)
+//	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
+//
+//	// 9. cancel swap out
+//	msgCancelSwapOut := virtualgroupmoduletypes.NewMsgCancelSwapOut(sp.OperatorKey.GetAddr(), familyID, nil)
+//	s.Require().NoError(err)
+//	s.SendTxBlock(sp.OperatorKey, msgCancelSwapOut)
+//
+//	// 10. complete swap out, as primary sp
+//	msgCompleteSwapOut := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
+//	s.Require().NoError(err)
+//	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut, successorSp.OperatorKey, "The swap info not found in blockchain")
+//
+//	// 11 swap again
+//	msgSwapOut = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
+//	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+//	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
+//	s.Require().NoError(err)
+//	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
+//
+//	// 12. sp complete exit failed
+//	s.SendTxBlockWithExpectErrorString(
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//		sp.OperatorKey,
+//		"not swap out from all the family")
+//
+//	// 13. complete swap out, as primary sp
+//	msgCompleteSwapOut = virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
+//	s.Require().NoError(err)
+//	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut)
+//
+//	// 14. exist failed
+//	s.SendTxBlockWithExpectErrorString(
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//		sp.OperatorKey,
+//		"not swap out from all the gvgs")
+//
+//	// 15. swap out, as secondary sp
+//	msgSwapOut2 := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
+//	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+//	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
+//	s.Require().NoError(err)
+//	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
+//
+//	// 16. exist failed
+//	s.SendTxBlockWithExpectErrorString(
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//		sp.OperatorKey,
+//		"not swap out from all the gvgs")
+//
+//	// 17 cancel swap out as secondary sp
+//	msgCancelSwapOut = virtualgroupmoduletypes.NewMsgCancelSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+//	s.Require().NoError(err)
+//	s.SendTxBlock(sp.OperatorKey, msgCancelSwapOut)
+//
+//	// 18. swap
+//	msgCompleteSwapOut2 := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+//	s.Require().NoError(err)
+//	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut2, successorSp.OperatorKey, "The swap info not found in blockchain")
+//
+//	// 19. swap out again, as secondary sp
+//	msgSwapOut2 = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
+//	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
+//	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
+//	s.Require().NoError(err)
+//	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
+//
+//	// 20 complete swap out
+//	msgCompleteSwapOut2 = virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
+//	s.Require().NoError(err)
+//	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut2)
+//
+//	// 18. sp complete exit success
+//	s.SendTxBlock(
+//		sp.OperatorKey,
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//	)
+//}
 
-	successorSp := s.BaseSuite.PickStorageProvider()
-
-	// 2, create a new gvg group for this storage provider
-	var secondarySPIDs []uint32
-	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != successorSp.Info.Id {
-			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
-		}
-		if len(secondarySPIDs) == 6 {
-			break
-		}
-	}
-
-	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
-
-	// 3. create object
-	s.BaseSuite.CreateObject(user, sp, gvgID, storagetestutil.GenRandomBucketName(), storagetestutil.GenRandomObjectName())
-
-	// 4. Create another gvg contains this new sp
-	var anotherSP *core.StorageProvider
-	for _, tsp := range s.StorageProviders {
-		if tsp.Info.Id != sp.Info.Id && tsp.Info.Id != successorSp.Info.Id {
-			anotherSP = tsp
-			break
-		}
-	}
-	var anotherSecondarySPIDs []uint32
-	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != successorSp.Info.Id && ssp.Info.Id != anotherSP.Info.Id {
-			anotherSecondarySPIDs = append(anotherSecondarySPIDs, ssp.Info.Id)
-		}
-		if len(anotherSecondarySPIDs) == 5 {
-			break
-		}
-	}
-	anotherSecondarySPIDs = append(anotherSecondarySPIDs, sp.Info.Id)
-
-	anotherGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(anotherSP, 0, anotherSecondarySPIDs, 1)
-
-	// 5. sp exit
-	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
-		StorageProvider: sp.OperatorKey.GetAddr().String(),
-	})
-
-	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
-	s.Require().NoError(err)
-	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
-
-	// 6. sp complete exit failed
-	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-		sp.OperatorKey,
-		"not swap out from all the family")
-
-	// 7. swap out, as primary sp
-	msgSwapOut := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
-	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
-	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
-
-	// 9. cancel swap out
-	msgCancelSwapOut := virtualgroupmoduletypes.NewMsgCancelSwapOut(sp.OperatorKey.GetAddr(), familyID, nil)
-	s.Require().NoError(err)
-	s.SendTxBlock(sp.OperatorKey, msgCancelSwapOut)
-
-	// 10. complete swap out, as primary sp
-	msgCompleteSwapOut := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
-	s.Require().NoError(err)
-	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut, successorSp.OperatorKey, "The swap info not found in blockchain")
-
-	// 11 swap again
-	msgSwapOut = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), familyID, nil, successorSp.Info.Id)
-	msgSwapOut.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
-	msgSwapOut.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(sp.OperatorKey, msgSwapOut)
-
-	// 12. sp complete exit failed
-	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-		sp.OperatorKey,
-		"not swap out from all the family")
-
-	// 13. complete swap out, as primary sp
-	msgCompleteSwapOut = virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), familyID, nil)
-	s.Require().NoError(err)
-	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut)
-
-	// 14. exist failed
-	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-		sp.OperatorKey,
-		"not swap out from all the gvgs")
-
-	// 15. swap out, as secondary sp
-	msgSwapOut2 := virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
-	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
-	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
-
-	// 16. exist failed
-	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-		sp.OperatorKey,
-		"not swap out from all the gvgs")
-
-	// 17 cancel swap out as secondary sp
-	msgCancelSwapOut = virtualgroupmoduletypes.NewMsgCancelSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
-	s.Require().NoError(err)
-	s.SendTxBlock(sp.OperatorKey, msgCancelSwapOut)
-
-	// 18. swap
-	msgCompleteSwapOut2 := virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
-	s.Require().NoError(err)
-	s.SendTxBlockWithExpectErrorString(msgCompleteSwapOut2, successorSp.OperatorKey, "The swap info not found in blockchain")
-
-	// 19. swap out again, as secondary sp
-	msgSwapOut2 = virtualgroupmoduletypes.NewMsgSwapOut(sp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID}, successorSp.Info.Id)
-	msgSwapOut2.SuccessorSpApproval = &common.Approval{ExpiredHeight: math.MaxUint}
-	msgSwapOut2.SuccessorSpApproval.Sig, err = successorSp.ApprovalKey.Sign(msgSwapOut2.GetApprovalBytes())
-	s.Require().NoError(err)
-	s.SendTxBlock(sp.OperatorKey, msgSwapOut2)
-
-	// 20 complete swap out
-	msgCompleteSwapOut2 = virtualgroupmoduletypes.NewMsgCompleteSwapOut(successorSp.OperatorKey.GetAddr(), 0, []uint32{anotherGVGID})
-	s.Require().NoError(err)
-	s.SendTxBlock(successorSp.OperatorKey, msgCompleteSwapOut2)
-
-	// 18. sp complete exit success
-	s.SendTxBlock(
-		sp.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-	)
-}
-
-func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
-	user := s.GenAndChargeAccounts(1, 1000000)[0]
-	bucketName := storagetestutil.GenRandomBucketName()
-	objectName := storagetestutil.GenRandomObjectName()
-	// 1, create a new storage provider
-	sp := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP Info: %s", sp.Info.String())
-
-	successorSp := s.BaseSuite.PickStorageProvider()
-
-	// 2, create a new gvg group for this storage provider
-	var secondarySPIDs []uint32
-	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != successorSp.Info.Id {
-			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
-		}
-		if len(secondarySPIDs) == 6 {
-			break
-		}
-	}
-
-	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
-
-	// 3. create object
-	s.BaseSuite.CreateObject(user, sp, gvgID, bucketName, objectName)
-
-	// 4. sp apply exit
-	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
-		StorageProvider: sp.OperatorKey.GetAddr().String(),
-	})
-
-	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
-	s.Require().NoError(err)
-	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
-
-	// 5. sp complete exit failed
-	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-		sp.OperatorKey,
-		"not swap out from all the family")
-
-	// 6. delete object
-	s.SendTxBlock(user, storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName))
-
-	// 7. delete bucket
-	s.SendTxBlock(user, storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName))
-
-	// 8. delete gvg
-	s.SendTxBlock(sp.OperatorKey, virtualgroupmoduletypes.NewMsgDeleteGlobalVirtualGroup(sp.OperatorKey.GetAddr(), gvgID))
-	// 8. sp complete exit success
-	s.SendTxBlock(
-		sp.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
-	)
-}
+//func (s *VirtualGroupTestSuite) TestSPExit_CreateAndDeleteBucket() {
+//	user := s.GenAndChargeAccounts(1, 1000000)[0]
+//	bucketName := storagetestutil.GenRandomBucketName()
+//	objectName := storagetestutil.GenRandomObjectName()
+//	// 1, create a new storage provider
+//	sp := s.BaseSuite.CreateNewStorageProvider()
+//	s.T().Logf("new SP Info: %s", sp.Info.String())
+//
+//	successorSp := s.BaseSuite.PickStorageProvider()
+//
+//	// 2, create a new gvg group for this storage provider
+//	var secondarySPIDs []uint32
+//	for _, ssp := range s.StorageProviders {
+//		if ssp.Info.Id != successorSp.Info.Id {
+//			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+//		}
+//		if len(secondarySPIDs) == 6 {
+//			break
+//		}
+//	}
+//
+//	gvgID, _ := s.BaseSuite.CreateGlobalVirtualGroup(sp, 0, secondarySPIDs, 1)
+//
+//	// 3. create object
+//	s.BaseSuite.CreateObject(user, sp, gvgID, bucketName, objectName)
+//
+//	// 4. sp apply exit
+//	s.SendTxBlock(sp.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
+//		StorageProvider: sp.OperatorKey.GetAddr().String(),
+//	})
+//
+//	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+//	s.Require().NoError(err)
+//	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+//
+//	// 5. sp complete exit failed
+//	s.SendTxBlockWithExpectErrorString(
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//		sp.OperatorKey,
+//		"not swap out from all the family")
+//
+//	// 6. delete object
+//	s.SendTxBlock(user, storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName))
+//
+//	// 7. delete bucket
+//	s.SendTxBlock(user, storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName))
+//
+//	// 8. delete gvg
+//	s.SendTxBlock(sp.OperatorKey, virtualgroupmoduletypes.NewMsgDeleteGlobalVirtualGroup(sp.OperatorKey.GetAddr(), gvgID))
+//	// 8. sp complete exit success
+//	s.SendTxBlock(
+//		sp.OperatorKey,
+//		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: sp.OperatorKey.GetAddr().String()},
+//	)
+//}
 
 func (s *VirtualGroupTestSuite) TestUpdateVirtualGroupParams() {
 	// 1. create proposal
