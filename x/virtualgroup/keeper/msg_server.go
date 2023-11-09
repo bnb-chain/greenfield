@@ -58,7 +58,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		if len(req.GetSecondarySpIds()) != expectSecondarySPNum {
 			return nil, types.ErrInvalidSecondarySPCount.Wrapf("the number of secondary sp in the Global virtual group should be %d", expectSecondarySPNum)
 		}
-		spIdSet := make(map[uint32]struct{})
+		spIdSet := make(map[uint32]struct{}, len(req.GetSecondarySpIds()))
 		for _, spId := range req.GetSecondarySpIds() {
 			if _, ok := spIdSet[spId]; ok {
 				return nil, types.ErrDuplicateSecondarySP.Wrapf("the SP(id=%d) is duplicate in the Global virtual group.", spId)
