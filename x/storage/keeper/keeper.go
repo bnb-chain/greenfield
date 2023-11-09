@@ -569,7 +569,6 @@ func (k Keeper) CreateObject(
 			operator.String(), bucketName)
 	}
 
-	// We use the last address in SecondarySpAddresses to store the creator so that it can be identified when canceling create
 	var creator sdk.AccAddress
 	if !operator.Equals(sdk.MustAccAddressFromHex(bucketInfo.Owner)) {
 		creator = operator
