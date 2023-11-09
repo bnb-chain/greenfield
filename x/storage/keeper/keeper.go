@@ -469,7 +469,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	if count+1 > max {
 		return types.ErrNoMoreDiscontinue.Wrapf("no more buckets can be requested in this window")
 	}
-
+	previousStatus := bucketInfo.BucketStatus
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_DISCONTINUED
 
 	store := ctx.KVStore(k.storeKey)
@@ -481,7 +481,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	k.appendDiscontinueBucketIds(ctx, deleteAt, []sdkmath.Uint{bucketInfo.Id})
 	k.SetDiscontinueBucketCount(ctx, operator, count+1)
 
-	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+	if previousStatus == types.BUCKET_STATUS_MIGRATING {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
 			Operator:   operator.String(),
 			BucketName: bucketInfo.BucketName,
