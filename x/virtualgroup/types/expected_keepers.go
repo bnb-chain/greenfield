@@ -44,3 +44,7 @@ type PaymentKeeper interface {
 	Withdraw(ctx sdk.Context, fromAddr, toAddr sdk.AccAddress, amount sdkmath.Int) error
 	IsEmptyNetFlow(ctx sdk.Context, account sdk.AccAddress) bool
 }
+
+type StorageKeeper interface {
+	GetExpectSecondarySPNumForECObject(ctx sdk.Context, time int64) (res uint32)
+}

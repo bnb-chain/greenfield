@@ -1699,7 +1699,7 @@ func (s *StorageTestSuite) TestRejectSealObject() {
 //			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
 //			secondarySPs = append(secondarySPs, ssp)
 //		}
-//		if len(secondarySPIDs) == 5 {
+//		if len(secondarySPIDs) == 6 {
 //			break
 //		}
 //	}

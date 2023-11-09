@@ -1925,7 +1925,7 @@ func (s *StorageTestSuite) TestExpiredAccountPolicyGCAndRePut() {
 		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
 		Effect:  types.EFFECT_ALLOW,
 	}
-	expirationTime := time.Now().Add(5 * time.Second)
+	expirationTime := time.Now().Add(3 * time.Second)
 
 	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewBucketGRN(bucketName).String(),
 		principal, []*types.Statement{bucketStatement}, &expirationTime)
@@ -1990,7 +1990,7 @@ func (s *StorageTestSuite) TestExpiredGroupPolicyGCAndRePut() {
 
 	principal := types.NewPrincipalWithGroupId(headGroupResponse.GroupInfo.Id)
 	// Put bucket policy for group
-	expirationTime := time.Now().Add(5 * time.Second)
+	expirationTime := time.Now().Add(3 * time.Second)
 
 	bucketStatement := &types.Statement{
 		Actions: []types.ActionType{types.ACTION_DELETE_BUCKET},
