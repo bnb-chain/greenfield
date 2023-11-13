@@ -53,6 +53,20 @@ func (k msgServer) UpdateParams(goCtx context.Context, req *types.MsgUpdateParam
 
 func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.MsgCreateGlobalVirtualGroup) (*types.MsgCreateGlobalVirtualGroupResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		expectSecondarySPNum := int(k.storageKeeper.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix()))
+		if len(req.GetSecondarySpIds()) != expectSecondarySPNum {
+			return nil, types.ErrInvalidSecondarySPCount.Wrapf("the number of secondary sp in the Global virtual group should be %d", expectSecondarySPNum)
+		}
+		spIdSet := make(map[uint32]struct{}, len(req.GetSecondarySpIds()))
+		for _, spId := range req.GetSecondarySpIds() {
+			if _, ok := spIdSet[spId]; ok {
+				return nil, types.ErrDuplicateSecondarySP.Wrapf("the SP(id=%d) is duplicate in the Global virtual group.", spId)
+			}
+			spIdSet[spId] = struct{}{}
+		}
+	}
+
 	var gvgStatisticsWithinSPs []*types.GVGStatisticsWithinSP
 
 	spOperatorAddr := sdk.MustAccAddressFromHex(req.StorageProvider)

@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: bufbuild/buf-setup-action@v1
+      - uses: bufbuild/buf-setup-action@v1.28.0
       - run: buf format --diff --exit-code
       - name: Install Go
         uses: actions/setup-go@v3

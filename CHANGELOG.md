@@ -1,16 +1,20 @@
 # Changelog
 
 ## v1.1.0
-This release contains 2 new features, 3 bugfixes and 6 chores.  
+This release contains 4 new features, 5 bugfixes and 6 chores.  
 
 Features:
 * [#493](https://github.com/bnb-chain/greenfield/pull/493) feat: support reject bucket migration
 * [#504](https://github.com/bnb-chain/greenfield/pull/504) feat: add a hardfork for the link to opBNB
+* [#520](https://github.com/bnb-chain/greenfield/pull/520) feat: shuffle the result of StorageProviders query method
+* [#521](https://github.com/bnb-chain/greenfield/pull/521) feat: disable sp exit and bucket migration msg
 
 Bugfixes:
 * [#506](https://github.com/bnb-chain/greenfield/pull/506) fix: add GlobalVirtualGroupFamilyId to createBucketPackage
 * [#509](https://github.com/bnb-chain/greenfield/pull/509) fix: make handleCreateBucketSynPackage forward compatible
 * [#511](https://github.com/bnb-chain/greenfield/pull/511) fix: policy key is not GC while a expired policy is GC
+* [#518](https://github.com/bnb-chain/greenfield/pull/518) fix: emit event when sp status is forced updated
+* [#519](https://github.com/bnb-chain/greenfield/pull/519) fix: enforce validation on SSP when creating GVG
 
 Chores:
 * [#484](https://github.com/bnb-chain/greenfield/pull/484) chore: improve the validations of messages
