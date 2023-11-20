@@ -7,6 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	flag "github.com/spf13/pflag"
 
+	"strings"
+
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
@@ -147,4 +149,29 @@ func FlagSetApproval() *flag.FlagSet {
 	fs.String(FlagApproveSignature, "", "The approval signature of primarySp")
 	fs.Uint64(FlagApproveTimeoutHeight, math.MaxUint, "The approval timeout height of primarySp")
 	return fs
+}
+
+func GetTags(str string) map[string]string {
+	tags := make(map[string]string)
+	if str == "" {
+		return tags
+	}
+
+	tagsStr := str
+	if tagsStr[0] == '{' {
+		tagsStr = tagsStr[1:]
+	}
+	if tagsStr[len(tagsStr)-1] == '}' {
+		tagsStr = tagsStr[:len(tagsStr)-1]
+	}
+
+	for _, tagStr := range strings.Split(tagsStr, ",") {
+		kv := strings.Split(tagStr, "=")
+		if len(kv) != 2 {
+			continue
+		}
+		tags[kv[0]] = kv[1]
+	}
+
+	return tags
 }

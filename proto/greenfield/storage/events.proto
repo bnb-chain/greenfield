@@ -4,6 +4,7 @@ package greenfield.storage;
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
+import "greenfield/resource/types.proto";
 import "greenfield/storage/common.proto";
 import "greenfield/storage/types.proto";
 
@@ -552,4 +553,13 @@ message EventCompleteMigrationBucket {
   uint32 global_virtual_group_family_id = 4;
   // The src_primary_sp_id defines the primary sp id of the bucket before migrate.
   uint32 src_primary_sp_id = 5;
+}
+
+message EventSetTag {
+  // resource_type define the type of the source that the tag belongs to
+  greenfield.resource.ResourceType resource_type = 1;
+  // resource_id define the u256 id of the source that the tag belongs to
+  string resource_id = 2;
+  // tags define the tag of the source
+  map<string, string> tags = 3;
 }

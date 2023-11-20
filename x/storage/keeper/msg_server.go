@@ -695,6 +695,23 @@ func (k msgServer) RejectMigrateBucket(goCtx context.Context, msg *storagetypes.
 	return &types.MsgRejectMigrateBucketResponse{}, nil
 }
 
+func (k msgServer) SetTag(goCtx context.Context, msg *types.MsgSetTag) (*types.MsgSetTagResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+
+	var grn types2.GRN
+	err := grn.ParseFromString(msg.Resource, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := k.Keeper.SetTag(ctx, operatorAddr, grn, msg.Tags); err != nil {
+		return nil, err
+	}
+	return &types.MsgSetTagResponse{}, nil
+}
+
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
 	// verify secondary sp signature
 	for _, newLvg2gvg := range gvgMappings {

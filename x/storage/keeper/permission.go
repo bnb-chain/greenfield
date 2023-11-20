@@ -291,7 +291,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 
 	if !operator.Equals(resOwner) {
 		return math.ZeroUint(), types.ErrAccessDenied.Wrapf(
-			"Only resource owner can put bucket policy, operator (%s), owner(%s)",
+			"Only resource owner can put policy, operator (%s), owner(%s)",
 			operator.String(), resOwner.String())
 	}
 	k.normalizePrincipal(ctx, policy.Principal)
@@ -304,8 +304,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 }
 
 func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal *permtypes.Principal,
-	grn types2.GRN) (math.Uint,
-	error) {
+	grn types2.GRN) (math.Uint, error) {
 	var resOwner sdk.AccAddress
 	var resID math.Uint
 
@@ -353,6 +352,71 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal
 			operator.String(), resOwner.String())
 	}
 	return k.permKeeper.DeletePolicy(ctx, principal, grn.ResourceType(), resID)
+}
+
+func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN, tags map[string]string) error {
+	var resOwner sdk.AccAddress
+	var resType gnfdresource.ResourceType
+	var resID math.Uint
+	switch grn.ResourceType() {
+	case gnfdresource.RESOURCE_TYPE_BUCKET:
+		resType = gnfdresource.RESOURCE_TYPE_BUCKET
+		bucketName, grnErr := grn.GetBucketName()
+		if grnErr != nil {
+			return grnErr
+		}
+		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+		if !found {
+			return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		resID = bucketInfo.Id
+	case gnfdresource.RESOURCE_TYPE_OBJECT:
+		resType = gnfdresource.RESOURCE_TYPE_OBJECT
+		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
+		if grnErr != nil {
+			return grnErr
+		}
+		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+		if !found {
+			return types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
+		}
+
+		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
+		resID = objectInfo.Id
+	case gnfdresource.RESOURCE_TYPE_GROUP:
+		resType = gnfdresource.RESOURCE_TYPE_GROUP
+		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
+		if grnErr != nil {
+			return grnErr
+		}
+		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
+		if !found {
+			return types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
+		}
+
+		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
+		resID = groupInfo.Id
+	default:
+		return gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	}
+
+	if !operator.Equals(resOwner) {
+		return types.ErrAccessDenied.Wrapf(
+			"Only resource owner can set tag, operator (%s), owner(%s)",
+			operator.String(), resOwner.String())
+	}
+
+	// emit Event
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventSetTag{
+		ResourceType: resType,
+		ResourceId:   resID.String(),
+		Tags:         tags,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (k Keeper) normalizePrincipal(ctx sdk.Context, principal *permtypes.Principal) {

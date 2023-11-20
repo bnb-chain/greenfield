@@ -68,6 +68,10 @@ func GetTxCmd() *cobra.Command {
 		CmdDeletePolicy(),
 	)
 
+	cmd.AddCommand(
+		CmdSetTag(),
+	)
+
 	return cmd
 }
 
@@ -1110,6 +1114,35 @@ func CmdMirrorGroup() *cobra.Command {
 	cmd.Flags().String(FlagGroupId, "", "Id of the group to mirror")
 	cmd.Flags().String(FlagGroupName, "", "Name of the group to mirror")
 	cmd.Flags().String(FlagDestChainId, "", "the destination chain id")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdSetTag() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-tag [resource] [tags]",
+		Short: "set a bucket/object/group's tag. The tags should be like: key1=value1,key2=value2",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argResource := args[0]
+			argTags := args[1]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			tags := GetTags(argTags)
+
+			msg := types.NewMsgSetTag(clientCtx.GetFromAddress(), argResource, tags)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

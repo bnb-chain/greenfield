@@ -10,6 +10,7 @@ import (
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 )
 
 func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.Config) error {
@@ -111,6 +112,10 @@ func (app *App) registerEddystoneUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Eddystone,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
+
+			typeUrl := sdk.MsgTypeURL(&storagemoduletypes.MsgSetTag{})
+			msgSetTagGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1.2e3)
+			app.GashubKeeper.SetMsgGasParams(ctx, *msgSetTagGasParams)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})

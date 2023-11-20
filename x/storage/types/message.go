@@ -53,6 +53,8 @@ const (
 	TypeMsgPutPolicy    = "put_policy"
 	TypeMsgDeletePolicy = "delete_policy"
 
+	TypeMsgSetTag = "set_tag"
+
 	MaxGroupMemberLimitOnce = 20
 
 	// For discontinue
@@ -1528,6 +1530,55 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 		if member.ExpirationTime != nil && member.ExpirationTime.UTC().After(MaxTimeStamp) {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Expiration time is bigger than max timestamp [%s]", MaxTimeStamp)
 		}
+	}
+
+	return nil
+}
+
+func NewMsgSetTag(operator sdk.AccAddress, resource string, tags map[string]string) *MsgSetTag {
+	return &MsgSetTag{
+		Operator: operator.String(),
+		Resource: resource,
+		Tags:     tags,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg *MsgSetTag) Route() string {
+	return RouterKey
+}
+
+// Type implements the sdk.Msg interface.
+func (msg *MsgSetTag) Type() string {
+	return TypeMsgSetTag
+}
+
+// GetSigners implements the sdk.Msg interface.
+func (msg *MsgSetTag) GetSigners() []sdk.AccAddress {
+	creator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{creator}
+}
+
+// GetSignBytes returns the message bytes to sign over.
+func (msg *MsgSetTag) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg *MsgSetTag) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+	}
+
+	var grn grn2.GRN
+	err = grn.ParseFromString(msg.Resource, true)
+	if err != nil {
+		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
 	}
 
 	return nil
