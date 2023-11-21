@@ -1121,8 +1121,8 @@ func CmdMirrorGroup() *cobra.Command {
 
 func CmdSetTag() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "set-tag [resource] [tags]",
-		Short: "set a bucket/object/group's tag. The tags should be like: key1=value1,key2=value2",
+		Use:   "set-tag [grn] [tags]",
+		Short: "set a bucket/object/group's tag. The tags should be like: `key1=value1,key2=value2`",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argResource := args[0]

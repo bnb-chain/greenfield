@@ -12,6 +12,7 @@ import "greenfield/common/wrapper.proto";
 import "greenfield/permission/common.proto";
 import "greenfield/storage/common.proto";
 import "greenfield/storage/params.proto";
+import "greenfield/storage/types.proto";
 
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
@@ -641,7 +642,7 @@ message MsgSetTag {
   string resource = 2;
 
   // tags defines a list of tags which will be set to the resource
-  map<string, string> tags = 3;
+  ResourceTags tags = 3;
 }
 
 message MsgSetTagResponse {}

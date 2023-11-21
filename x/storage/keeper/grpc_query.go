@@ -15,6 +15,8 @@ import (
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/errors"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
+	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -658,4 +660,65 @@ func (k Keeper) QueryGroupsExistById(goCtx context.Context, req *types.QueryGrou
 		exists[groupId] = found
 	}
 	return &types.QueryGroupsExistResponse{Exists: exists}, nil
+}
+
+func (k Keeper) QueryResourceTag(goCtx context.Context, req *types.QueryResourceTagRequest) (*types.QueryResourceTagResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	var grn gnfd.GRN
+	err := grn.ParseFromString(req.Resource, false)
+	if err != nil {
+		return nil, status.Errorf(codes.InvalidArgument, "failed to parse GRN %s: %v", req.Resource, err)
+	}
+
+	var resID math.Uint
+	switch grn.ResourceType() {
+	case gnfdresource.RESOURCE_TYPE_BUCKET:
+		bucketName, grnErr := grn.GetBucketName()
+		if grnErr != nil {
+			return nil, grnErr
+		}
+		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+		if !found {
+			return nil, types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+		}
+		resID = bucketInfo.Id
+	case gnfdresource.RESOURCE_TYPE_OBJECT:
+		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
+		if grnErr != nil {
+			return nil, grnErr
+		}
+		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+		if !found {
+			return nil, types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
+		}
+		resID = objectInfo.Id
+	case gnfdresource.RESOURCE_TYPE_GROUP:
+		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
+		if grnErr != nil {
+			return nil, grnErr
+		}
+		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
+		if !found {
+			return nil, types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
+		}
+		resID = groupInfo.Id
+	default:
+		return nil, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	tagKey := types.GetResourceTagKey(string(grn.ResourceType()), resID)
+	bz := store.Get(tagKey)
+	if bz == nil {
+		return &types.QueryResourceTagResponse{Tags: nil}, nil
+	}
+	var tags types.ResourceTags
+	k.cdc.MustUnmarshal(bz, &tags)
+
+	return &types.QueryResourceTagResponse{Tags: &tags}, nil
 }

@@ -56,6 +56,7 @@ const (
 	TypeMsgSetTag = "set_tag"
 
 	MaxGroupMemberLimitOnce = 20
+	MaxTagCount             = 4
 
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
@@ -1535,7 +1536,7 @@ func (msg *MsgRenewGroupMember) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgSetTag(operator sdk.AccAddress, resource string, tags map[string]string) *MsgSetTag {
+func NewMsgSetTag(operator sdk.AccAddress, resource string, tags *ResourceTags) *MsgSetTag {
 	return &MsgSetTag{
 		Operator: operator.String(),
 		Resource: resource,
@@ -1579,6 +1580,10 @@ func (msg *MsgSetTag) ValidateBasic() error {
 	err = grn.ParseFromString(msg.Resource, true)
 	if err != nil {
 		return errors.Wrapf(gnfderrors.ErrInvalidGRN, "invalid greenfield resource name (%s)", err)
+	}
+
+	if len(msg.Tags.GetTags()) > MaxTagCount {
+		return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
 	}
 
 	return nil

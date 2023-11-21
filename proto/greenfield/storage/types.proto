@@ -173,3 +173,12 @@ message MigrationBucketInfo {
     (gogoproto.nullable) = false
   ];
 }
+
+message ResourceTags {
+  message Tag {
+    string key = 1;
+    string value = 2;
+  }
+  // tags defines a list of tags the resource has
+  repeated Tag tags = 1;
+}

@@ -27,6 +27,7 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storageutils "github.com/bnb-chain/greenfield/testutil/storage"
+	types2 "github.com/bnb-chain/greenfield/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -2073,3 +2074,37 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 //	s.Require().Error(err)
 //	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketStatus, storagetypes.BUCKET_STATUS_CREATED)
 //}
+
+func (s *StorageTestSuite) TestSetTag() {
+	var err error
+	user := s.GenAndChargeAccounts(1, 1000000)
+
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user[0].GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user[0], msgCreateBucket)
+
+	// Set tag
+	grn := types2.NewBucketGRN(bucketName)
+	var tags storagetypes.ResourceTags
+	tags.Tags = append(tags.Tags, &storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
+	msgSetTag := storagetypes.NewMsgSetTag(user[0].GetAddr(), grn.String(), &tags)
+	s.SendTxBlock(user[0], msgSetTag)
+
+	// Query
+	req := storagetypes.QueryResourceTagRequest{
+		Resource: grn.String(),
+	}
+	resp, err := s.Client.QueryResourceTag(context.Background(), &req)
+	s.Require().NoError(err)
+	s.Require().Equal(tags, &resp.Tags)
+}

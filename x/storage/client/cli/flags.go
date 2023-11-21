@@ -151,10 +151,10 @@ func FlagSetApproval() *flag.FlagSet {
 	return fs
 }
 
-func GetTags(str string) map[string]string {
-	tags := make(map[string]string)
+func GetTags(str string) *storagetypes.ResourceTags {
+	var tags storagetypes.ResourceTags
 	if str == "" {
-		return tags
+		return &tags
 	}
 
 	tagsStr := str
@@ -170,8 +170,8 @@ func GetTags(str string) map[string]string {
 		if len(kv) != 2 {
 			continue
 		}
-		tags[kv[0]] = kv[1]
+		tags.Tags = append(tags.Tags, &storagetypes.ResourceTags_Tag{Key: kv[0], Value: kv[1]})
 	}
 
-	return tags
+	return &tags
 }

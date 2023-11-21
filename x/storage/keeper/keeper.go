@@ -15,8 +15,11 @@ import (
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
+	types2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/resource"
+	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -2198,4 +2201,73 @@ func (k Keeper) GetSourceTypeByChainId(ctx sdk.Context, chainId sdk.ChainID) (ty
 	}
 
 	return 0, types.ErrChainNotSupported
+}
+
+func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN, tags *types.ResourceTags) error {
+	var resOwner sdk.AccAddress
+	var resID sdkmath.Uint
+	switch grn.ResourceType() {
+	case gnfdresource.RESOURCE_TYPE_BUCKET:
+		bucketName, grnErr := grn.GetBucketName()
+		if grnErr != nil {
+			return grnErr
+		}
+		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+		if !found {
+			return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		resID = bucketInfo.Id
+	case gnfdresource.RESOURCE_TYPE_OBJECT:
+		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
+		if grnErr != nil {
+			return grnErr
+		}
+		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+		if !found {
+			return types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
+		resID = objectInfo.Id
+	case gnfdresource.RESOURCE_TYPE_GROUP:
+		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
+		if grnErr != nil {
+			return grnErr
+		}
+		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
+		if !found {
+			return types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
+		resID = groupInfo.Id
+	default:
+		return gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	}
+
+	if !operator.Equals(resOwner) {
+		return types.ErrAccessDenied.Wrapf(
+			"Only resource owner can set tag, operator (%s), owner(%s)",
+			operator.String(), resOwner.String())
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	tagKey := types.GetResourceTagKey(string(grn.ResourceType()), resID)
+	bz := k.cdc.MustMarshal(tags)
+	store.Set(tagKey, bz)
+
+	tagMap := make(map[string]string)
+	for _, tag := range tags.GetTags() {
+		tagMap[tag.Key] = tag.Value
+	}
+
+	// emit Event
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventSetTag{
+		ResourceType: grn.ResourceType(),
+		ResourceId:   resID.String(),
+		Tags:         tagMap,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }
