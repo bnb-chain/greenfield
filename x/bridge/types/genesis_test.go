@@ -27,7 +27,6 @@ func TestGenesisState_Validate(t *testing.T) {
 					BscTransferOutRelayerFee:    sdkmath.NewInt(1),
 					BscTransferOutAckRelayerFee: sdkmath.NewInt(0),
 				},
-				// this line is used by starport scaffolding # types/genesis/validField
 			},
 			valid: true,
 		},

@@ -45,7 +45,7 @@ import (
 )
 
 var (
-	appConfig *app.AppConfig = app.NewDefaultAppConfig()
+	appConfig = app.NewDefaultAppConfig()
 )
 
 // NewRootCmd creates a new root command for a Cosmos SDK application
@@ -64,7 +64,7 @@ func NewRootCmd() (*cobra.Command, appparams.EncodingConfig) {
 
 	rootCmd := &cobra.Command{
 		Use:   app.ShortName,
-		Short: "Stargate CosmosHub App",
+		Short: "Greenfield Daemon(server)",
 		PersistentPreRunE: func(cmd *cobra.Command, _ []string) error {
 			// set the default command outputs
 			cmd.SetOut(cmd.OutOrStdout())

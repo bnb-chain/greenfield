@@ -16,8 +16,7 @@ func DefaultGenesis() *GenesisState {
 		PaymentAccountCountList: []PaymentAccountCount{},
 		PaymentAccountList:      []PaymentAccount{},
 		AutoSettleRecordList:    []AutoSettleRecord{},
-		// this line is used by starport scaffolding # genesis/types/default
-		Params: DefaultParams(),
+		Params:                  DefaultParams(),
 	}
 }
 
@@ -65,7 +64,6 @@ func (gs GenesisState) Validate() error {
 		}
 		autoSettleRecordIndexMap[index] = struct{}{}
 	}
-	// this line is used by starport scaffolding # genesis/types/validate
 
 	return gs.Params.Validate()
 }

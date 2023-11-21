@@ -27,8 +27,6 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdAttestedChallenge())
 	cmd.AddCommand(CmdInturnChallenger())
 
-	// this line is used by starport scaffolding # 1
-
 	return cmd
 }
 

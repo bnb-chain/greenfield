@@ -4,7 +4,6 @@ package greenfield.virtualgroup;
 
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/msg/v1/msg.proto";
-// this line is used by starport scaffolding # proto/tx/import
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "greenfield/common/approval.proto";
@@ -14,7 +13,6 @@ option go_package = "github.com/bnb-chain/greenfield/x/virtualgroup/types";
 
 // Msg defines the Msg service.
 service Msg {
-  // this line is used by starport scaffolding # proto/tx/import
   rpc CreateGlobalVirtualGroup(MsgCreateGlobalVirtualGroup) returns (MsgCreateGlobalVirtualGroupResponse);
   rpc DeleteGlobalVirtualGroup(MsgDeleteGlobalVirtualGroup) returns (MsgDeleteGlobalVirtualGroupResponse);
   rpc Deposit(MsgDeposit) returns (MsgDepositResponse);
@@ -172,7 +170,6 @@ message MsgSettle {
 
 message MsgSettleResponse {}
 
-// this line is used by starport scaffolding # proto/tx/message
 message MsgStorageProviderExit {
   option (cosmos.msg.v1.signer) = "storage_provider";
 

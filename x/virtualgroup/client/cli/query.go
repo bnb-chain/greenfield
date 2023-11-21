@@ -28,8 +28,6 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdGlobalVirtualGroupFamilies())
 	cmd.AddCommand(CmdQueryParams())
 
-	// this line is used by starport scaffolding # 1
-
 	return cmd
 }
 

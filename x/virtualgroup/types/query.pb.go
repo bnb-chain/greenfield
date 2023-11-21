@@ -383,7 +383,6 @@ func (m *QueryGlobalVirtualGroupFamilyResponse) GetGlobalVirtualGroupFamily() *G
 	return nil
 }
 
-// this line is used by starport scaffolding # 3
 type QueryGlobalVirtualGroupFamiliesRequest struct {
 	Pagination *query.PageRequest `protobuf:"bytes,1,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }

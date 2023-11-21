@@ -26,8 +26,6 @@ const (
 	opWeightMsgTransferOut = "op_weight_msg_transfer_out"
 	// TODO: Determine the simulation weight value
 	defaultWeightMsgTransferOut int = 100
-
-	// this line is used by starport scaffolding # simapp/module/const
 )
 
 // GenerateGenesisState creates a randomized GenState of the module
@@ -38,7 +36,6 @@ func (AppModule) GenerateGenesisState(simState *module.SimulationState) {
 	}
 	bridgeGenesis := types.GenesisState{
 		Params: types.DefaultParams(),
-		// this line is used by starport scaffolding # simapp/module/genesisState
 	}
 	simState.GenState[types.ModuleName] = simState.Cdc.MustMarshalJSON(&bridgeGenesis)
 }
@@ -65,8 +62,6 @@ func (am AppModule) WeightedOperations(simState module.SimulationState) []simtyp
 		weightMsgTransferOut,
 		bridgesimulation.SimulateMsgTransferOut(am.accountKeeper, am.bankKeeper, am.keeper),
 	))
-
-	// this line is used by starport scaffolding # simapp/module/operation
 
 	return operations
 }

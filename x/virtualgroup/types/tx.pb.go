@@ -952,7 +952,6 @@ func (m *MsgSettleResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgSettleResponse proto.InternalMessageInfo
 
-// this line is used by starport scaffolding # proto/tx/message
 type MsgStorageProviderExit struct {
 	// storage_provider defines the operator account address of the storage provider who want to exit from the greenfield storage network.
 	StorageProvider string `protobuf:"bytes,1,opt,name=storage_provider,json=storageProvider,proto3" json:"storage_provider,omitempty"`
@@ -1221,7 +1220,6 @@ const _ = grpc.SupportPackageIsVersion4
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type MsgClient interface {
-	// this line is used by starport scaffolding # proto/tx/import
 	CreateGlobalVirtualGroup(ctx context.Context, in *MsgCreateGlobalVirtualGroup, opts ...grpc.CallOption) (*MsgCreateGlobalVirtualGroupResponse, error)
 	DeleteGlobalVirtualGroup(ctx context.Context, in *MsgDeleteGlobalVirtualGroup, opts ...grpc.CallOption) (*MsgDeleteGlobalVirtualGroupResponse, error)
 	Deposit(ctx context.Context, in *MsgDeposit, opts ...grpc.CallOption) (*MsgDepositResponse, error)
@@ -1345,7 +1343,6 @@ func (c *msgClient) CancelSwapOut(ctx context.Context, in *MsgCancelSwapOut, opt
 
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
-	// this line is used by starport scaffolding # proto/tx/import
 	CreateGlobalVirtualGroup(context.Context, *MsgCreateGlobalVirtualGroup) (*MsgCreateGlobalVirtualGroupResponse, error)
 	DeleteGlobalVirtualGroup(context.Context, *MsgDeleteGlobalVirtualGroup) (*MsgDeleteGlobalVirtualGroupResponse, error)
 	Deposit(context.Context, *MsgDeposit) (*MsgDepositResponse, error)
