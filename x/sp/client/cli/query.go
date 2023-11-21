@@ -33,7 +33,6 @@ func GetQueryCmd() *cobra.Command {
 		CmdStorageProviderGlobalPrice(),
 	)
 
-	// this line is used by starport scaffolding # 1
 	return cmd
 }
 

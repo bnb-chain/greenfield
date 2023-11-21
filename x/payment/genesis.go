@@ -40,7 +40,6 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper) *types.GenesisState {
 	genesis.PaymentAccountCountList = k.GetAllPaymentAccountCount(ctx)
 	genesis.PaymentAccountList = k.GetAllPaymentAccount(ctx)
 	genesis.AutoSettleRecordList = k.GetAllAutoSettleRecord(ctx)
-	// this line is used by starport scaffolding # genesis/module/export
 
 	return genesis
 }

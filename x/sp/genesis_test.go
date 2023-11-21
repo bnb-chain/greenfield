@@ -54,7 +54,6 @@ func TestGenesis(t *testing.T) {
 				Status:          types.STATUS_IN_SERVICE,
 			},
 		},
-		// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	ctx := testCtx.Ctx
@@ -65,6 +64,4 @@ func TestGenesis(t *testing.T) {
 
 	nullify.Fill(&genesisState)
 	nullify.Fill(got)
-
-	// this line is used by starport scaffolding # genesis/test/assert
 }
