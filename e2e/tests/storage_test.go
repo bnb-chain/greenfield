@@ -2106,5 +2106,5 @@ func (s *StorageTestSuite) TestSetTag() {
 	}
 	resp, err := s.Client.QueryResourceTag(context.Background(), &req)
 	s.Require().NoError(err)
-	s.Require().Equal(tags, &resp.Tags)
+	s.Require().Equal(tags, *resp.Tags)
 }
