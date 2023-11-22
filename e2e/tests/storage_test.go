@@ -2101,10 +2101,10 @@ func (s *StorageTestSuite) TestSetTag() {
 	s.SendTxBlock(user[0], msgSetTag)
 
 	// Query
-	req := storagetypes.QueryResourceTagRequest{
-		Resource: grn.String(),
+	req := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
 	}
-	resp, err := s.Client.QueryResourceTag(context.Background(), &req)
+	resp, err := s.Client.HeadBucket(context.Background(), &req)
 	s.Require().NoError(err)
-	s.Require().Equal(tags, *resp.Tags)
+	s.Require().Equal(tags, *resp.BucketInfo.Tags)
 }

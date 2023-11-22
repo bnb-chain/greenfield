@@ -156,7 +156,3 @@ func GetInternalBucketInfoKey(bucketID math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
 	return append(InternalBucketInfoPrefix, seq.EncodeSequence(bucketID)...)
 }
-
-func GetResourceTagKey(resourceType string, resourceID math.Uint) []byte {
-	return append([]byte(resourceType), resourceID.Bytes()...)
-}

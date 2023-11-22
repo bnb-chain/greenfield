@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	gnfd "github.com/bnb-chain/greenfield/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
+	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
@@ -39,7 +38,6 @@ func GetQueryCmd() *cobra.Command {
 		CmdHeadGroupMember(),
 		CmdQueryAccountPolicy(),
 		CmdQueryGroupPolicy(),
-		CmdQueryResourceTag(),
 	)
 
 	return storageQueryCmd
@@ -405,40 +403,6 @@ Examples:
 				PrincipalGroupId: groupID.String(),
 			}
 			res, err := queryClient.QueryPolicyForGroup(cmd.Context(), params)
-			if err != nil {
-				return err
-			}
-			return clientCtx.PrintProto(res)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-
-	return cmd
-}
-
-func CmdQueryResourceTag() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "resource-tag [grn]",
-		Short: "Query resource tag",
-		Args:  cobra.ExactArgs(1),
-		RunE: func(cmd *cobra.Command, args []string) (err error) {
-			grnStr := args[0]
-			var grn gnfd.GRN
-			err = grn.ParseFromString(grnStr, false)
-			if err != nil {
-				return err
-			}
-
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(clientCtx)
-			req := &types.QueryResourceTagRequest{
-				Resource: grn.String(),
-			}
-			res, err := queryClient.QueryResourceTag(cmd.Context(), req)
 			if err != nil {
 				return err
 			}

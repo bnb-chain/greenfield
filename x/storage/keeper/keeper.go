@@ -2204,7 +2204,8 @@ func (k Keeper) GetSourceTypeByChainId(ctx sdk.Context, chainId sdk.ChainID) (ty
 }
 
 func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN, tags *types.ResourceTags) error {
-	var resOwner sdk.AccAddress
+	store := ctx.KVStore(k.storeKey)
+
 	var resID sdkmath.Uint
 	switch grn.ResourceType() {
 	case gnfdresource.RESOURCE_TYPE_BUCKET:
@@ -2216,7 +2217,17 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
 		}
-		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		resOwner := sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		if !operator.Equals(resOwner) {
+			return types.ErrAccessDenied.Wrapf(
+				"Only resource owner can set tag, operator (%s), owner(%s)",
+				operator.String(), resOwner.String())
+		}
+
+		bucketInfo.Tags = tags
+		bz := k.cdc.MustMarshal(bucketInfo)
+		store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+
 		resID = bucketInfo.Id
 	case gnfdresource.RESOURCE_TYPE_OBJECT:
 		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
@@ -2227,7 +2238,17 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
 		}
-		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
+		resOwner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+		if !operator.Equals(resOwner) {
+			return types.ErrAccessDenied.Wrapf(
+				"Only resource owner can set tag, operator (%s), owner(%s)",
+				operator.String(), resOwner.String())
+		}
+
+		objectInfo.Tags = tags
+		obz := k.cdc.MustMarshal(objectInfo)
+		store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+
 		resID = objectInfo.Id
 	case gnfdresource.RESOURCE_TYPE_GROUP:
 		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
@@ -2238,33 +2259,27 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
 		}
-		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
+		resOwner := sdk.MustAccAddressFromHex(groupInfo.Owner)
+		if !operator.Equals(resOwner) {
+			return types.ErrAccessDenied.Wrapf(
+				"Only resource owner can set tag, operator (%s), owner(%s)",
+				operator.String(), resOwner.String())
+		}
+
+		groupInfo.Tags = tags
+		gbz := k.cdc.MustMarshal(groupInfo)
+		store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
+
 		resID = groupInfo.Id
 	default:
 		return gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
-	}
-
-	if !operator.Equals(resOwner) {
-		return types.ErrAccessDenied.Wrapf(
-			"Only resource owner can set tag, operator (%s), owner(%s)",
-			operator.String(), resOwner.String())
-	}
-
-	store := ctx.KVStore(k.storeKey)
-	tagKey := types.GetResourceTagKey(string(grn.ResourceType()), resID)
-	bz := k.cdc.MustMarshal(tags)
-	store.Set(tagKey, bz)
-
-	tagMap := make(map[string]string)
-	for _, tag := range tags.GetTags() {
-		tagMap[tag.Key] = tag.Value
 	}
 
 	// emit Event
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSetTag{
 		ResourceType: grn.ResourceType(),
 		ResourceId:   resID.String(),
-		Tags:         tagMap,
+		Tags:         tags,
 	}); err != nil {
 		return err
 	}

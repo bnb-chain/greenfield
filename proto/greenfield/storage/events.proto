@@ -561,5 +561,5 @@ message EventSetTag {
   // resource_id define the u256 id of the source that the tag belongs to
   string resource_id = 2;
   // tags define the tag of the source
-  map<string, string> tags = 3;
+  ResourceTags tags = 3;
 }
