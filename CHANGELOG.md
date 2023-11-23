@@ -1,5 +1,8 @@
 # Changelog
 
+## v1.1.1
+This release introduces the Pampas upgrade to the mainnet.
+
 ## v1.1.0
 This release contains 4 new features, 5 bugfixes and 6 chores.  
 
