@@ -38,6 +38,8 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/keys"
 	"github.com/bnb-chain/greenfield/testutil"
 	"github.com/bnb-chain/greenfield/testutil/sample"
+	"github.com/bnb-chain/greenfield/types/common"
+	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 )
 
 type AnteTestSuite struct {
@@ -203,6 +205,23 @@ func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgGrant(from sdk.AccAddres
 	msgGrant, err := authz.NewMsgGrant(from, allowed, stakeAuthorization, nil)
 	suite.Require().NoError(err)
 	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgGrant)
+}
+
+func (suite *AnteTestSuite) CreateTestEIP712TxBuilderMsgCreateBucket(from sdk.AccAddress, priv keys.KeyManager, chainId string, gas uint64, gasAmount sdk.Coins) client.TxBuilder {
+	msgCreateBucket := &storagetypes.MsgCreateBucket{
+		Creator:          from.String(),
+		BucketName:       "test",
+		Visibility:       0,
+		PaymentAddress:   from.String(),
+		PrimarySpAddress: from.String(),
+		PrimarySpApproval: &common.Approval{
+			ExpiredHeight:              1,
+			GlobalVirtualGroupFamilyId: 1,
+			Sig:                        []byte("test"),
+		},
+		ChargedReadQuota: 0,
+	}
+	return suite.CreateTestEIP712CosmosTxBuilder(from, priv, chainId, gas, gasAmount, msgCreateBucket)
 }
 
 func (suite *AnteTestSuite) CreateTestEIP712CosmosTxBuilder(

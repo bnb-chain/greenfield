@@ -4,13 +4,13 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
-	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 )
 
 func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.Config) error {

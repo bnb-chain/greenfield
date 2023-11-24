@@ -2,12 +2,11 @@ package cli
 
 import (
 	"math"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	flag "github.com/spf13/pflag"
-
-	"strings"
 
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	permissiontypes "github.com/bnb-chain/greenfield/x/permission/types"
@@ -31,6 +30,7 @@ const (
 	FlagGroupId              = "group-id"
 	FlagGroupName            = "group-name"
 	FlagExtra                = "extra"
+	FlagTags                 = "tags"
 )
 
 func GetVisibilityType(str string) (storagetypes.VisibilityType, error) {
@@ -75,7 +75,6 @@ func GetPrincipal(str string) (permissiontypes.Principal, error) {
 		Type:  principalType,
 		Value: principalValue,
 	}, nil
-
 }
 
 // GetPrimarySPField returns a from account address, account name and keyring type, given either an address or key name.
@@ -136,7 +135,7 @@ func GetPaymentAccountField(kr keyring.Keyring, paymentAcc string) (sdk.AccAddre
 	return addr, k.Name, k.GetType(), nil
 }
 
-// FlagSetVisibility Returns the flagset for set visibility related operations.
+// FlagSetVisibility Returns the flagSet for set visibility related operations.
 func FlagSetVisibility() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	fs.String(FlagVisibility, "VISIBILITY_TYPE_PRIVATE", "If private, only owner and grantee can access it. Otherwise,"+
@@ -153,8 +152,8 @@ func FlagSetApproval() *flag.FlagSet {
 
 func GetTags(str string) *storagetypes.ResourceTags {
 	var tags storagetypes.ResourceTags
-	if str == "" {
-		return &tags
+	if str == "" || str == "{}" {
+		return nil
 	}
 
 	tagsStr := str
@@ -170,7 +169,7 @@ func GetTags(str string) *storagetypes.ResourceTags {
 		if len(kv) != 2 {
 			continue
 		}
-		tags.Tags = append(tags.Tags, &storagetypes.ResourceTags_Tag{Key: kv[0], Value: kv[1]})
+		tags.Tags = append(tags.Tags, storagetypes.ResourceTags_Tag{Key: kv[0], Value: kv[1]})
 	}
 
 	return &tags

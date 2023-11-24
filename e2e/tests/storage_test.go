@@ -2096,7 +2096,7 @@ func (s *StorageTestSuite) TestSetTag() {
 	// Set tag
 	grn := types2.NewBucketGRN(bucketName)
 	var tags storagetypes.ResourceTags
-	tags.Tags = append(tags.Tags, &storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
+	tags.Tags = append(tags.Tags, storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
 	msgSetTag := storagetypes.NewMsgSetTag(user[0].GetAddr(), grn.String(), &tags)
 	s.SendTxBlock(user[0], msgSetTag)
 

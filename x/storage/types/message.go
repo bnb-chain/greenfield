@@ -104,8 +104,9 @@ var (
 
 // NewMsgCreateBucket creates a new MsgCreateBucket instance.
 func NewMsgCreateBucket(
-	creator sdk.AccAddress, bucketName string, Visibility VisibilityType,
-	primarySPAddress sdk.AccAddress, paymentAddress sdk.AccAddress, timeoutHeight uint64, sig []byte, chargedReadQuota uint64) *MsgCreateBucket {
+	creator sdk.AccAddress, bucketName string, Visibility VisibilityType, primarySPAddress, paymentAddress sdk.AccAddress,
+	timeoutHeight uint64, sig []byte, chargedReadQuota uint64,
+) *MsgCreateBucket {
 	return &MsgCreateBucket{
 		Creator:           creator.String(),
 		BucketName:        bucketName,
@@ -114,6 +115,24 @@ func NewMsgCreateBucket(
 		PrimarySpAddress:  primarySPAddress.String(),
 		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 		ChargedReadQuota:  chargedReadQuota,
+	}
+}
+
+// NewMsgCreateBucketWithTags creates a new MsgCreateBucket instance with tags.
+// Since: Eddystone upgrade
+func NewMsgCreateBucketWithTags(
+	creator sdk.AccAddress, bucketName string, Visibility VisibilityType, primarySPAddress, paymentAddress sdk.AccAddress,
+	timeoutHeight uint64, sig []byte, chargedReadQuota uint64, tags ResourceTags,
+) *MsgCreateBucket {
+	return &MsgCreateBucket{
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		Visibility:        Visibility,
+		PaymentAddress:    paymentAddress.String(),
+		PrimarySpAddress:  primarySPAddress.String(),
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
+		ChargedReadQuota:  chargedReadQuota,
+		Tags:              tags,
 	}
 }
 
@@ -180,6 +199,19 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
+	}
+	return nil
+}
+
+func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
+	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+		if len(msg.Tags.GetTags()) > MaxTagCount {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		}
+	} else {
+		if len(msg.Tags.GetTags()) > 0 {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Tags are not supported")
+		}
 	}
 	return nil
 }
@@ -292,9 +324,9 @@ func (msg *MsgUpdateBucketInfo) ValidateBasic() error {
 
 // NewMsgCreateObject creates a new MsgCreateObject instance.
 func NewMsgCreateObject(
-	creator sdk.AccAddress, bucketName string, objectName string, payloadSize uint64,
-	Visibility VisibilityType, expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte) *MsgCreateObject {
-
+	creator sdk.AccAddress, bucketName, objectName string, payloadSize uint64, Visibility VisibilityType,
+	expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
+) *MsgCreateObject {
 	return &MsgCreateObject{
 		Creator:           creator.String(),
 		BucketName:        bucketName,
@@ -305,6 +337,27 @@ func NewMsgCreateObject(
 		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
 		ExpectChecksums:   expectChecksums,
 		RedundancyType:    redundancyType,
+	}
+}
+
+// NewMsgCreateObjectWithTags creates a new MsgCreateObject instance with tags.
+// Since: Eddystone upgrade
+func NewMsgCreateObjectWithTags(
+	creator sdk.AccAddress, bucketName, objectName string, payloadSize uint64, Visibility VisibilityType,
+	expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
+	tags ResourceTags,
+) *MsgCreateObject {
+	return &MsgCreateObject{
+		Creator:           creator.String(),
+		BucketName:        bucketName,
+		ObjectName:        objectName,
+		PayloadSize:       payloadSize,
+		Visibility:        Visibility,
+		ContentType:       contentType,
+		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
+		ExpectChecksums:   expectChecksums,
+		RedundancyType:    redundancyType,
+		Tags:              tags,
 	}
 }
 
@@ -370,6 +423,19 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 	return nil
 }
 
+func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
+	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+		if len(msg.Tags.GetTags()) > MaxTagCount {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		}
+	} else {
+		if len(msg.Tags.GetTags()) > 0 {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Tags are not supported")
+		}
+	}
+	return nil
+}
+
 // GetApprovalBytes returns the message bytes of approval info.
 func (msg *MsgCreateObject) GetApprovalBytes() []byte {
 	fakeMsg := proto.Clone(msg).(*MsgCreateObject)
@@ -377,7 +443,7 @@ func (msg *MsgCreateObject) GetApprovalBytes() []byte {
 	return fakeMsg.GetSignBytes()
 }
 
-func NewMsgCancelCreateObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgCancelCreateObject {
+func NewMsgCancelCreateObject(operator sdk.AccAddress, bucketName, objectName string) *MsgCancelCreateObject {
 	return &MsgCancelCreateObject{
 		Operator:   operator.String(),
 		BucketName: bucketName,
@@ -424,7 +490,7 @@ func (msg *MsgCancelCreateObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDeleteObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgDeleteObject {
+func NewMsgDeleteObject(operator sdk.AccAddress, bucketName, objectName string) *MsgDeleteObject {
 	return &MsgDeleteObject{
 		Operator:   operator.String(),
 		BucketName: bucketName,
@@ -477,9 +543,9 @@ func (msg *MsgDeleteObject) ValidateBasic() error {
 }
 
 func NewMsgSealObject(
-	operator sdk.AccAddress, bucketName string, objectName string, globalVirtualGroupID uint32,
-	secondarySpBlsSignatures []byte) *MsgSealObject {
-
+	operator sdk.AccAddress, bucketName, objectName string, globalVirtualGroupID uint32,
+	secondarySpBlsSignatures []byte,
+) *MsgSealObject {
 	return &MsgSealObject{
 		Operator:                    operator.String(),
 		BucketName:                  bucketName,
@@ -541,8 +607,9 @@ func (msg *MsgSealObject) ValidateBasic() error {
 }
 
 func NewMsgCopyObject(
-	operator sdk.AccAddress, srcBucketName string, dstBucketName string,
-	srcObjectName string, dstObjectName string, timeoutHeight uint64, sig []byte) *MsgCopyObject {
+	operator sdk.AccAddress, srcBucketName, dstBucketName string,
+	srcObjectName, dstObjectName string, timeoutHeight uint64, sig []byte,
+) *MsgCopyObject {
 	return &MsgCopyObject{
 		Operator:             operator.String(),
 		SrcBucketName:        srcBucketName,
@@ -617,7 +684,7 @@ func (msg *MsgCopyObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgRejectUnsealedObject(operator sdk.AccAddress, bucketName string, objectName string) *MsgRejectSealObject {
+func NewMsgRejectUnsealedObject(operator sdk.AccAddress, bucketName, objectName string) *MsgRejectSealObject {
 	return &MsgRejectSealObject{
 		Operator:   operator.String(),
 		BucketName: bucketName,
@@ -726,7 +793,7 @@ func (msg *MsgDiscontinueObject) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgDiscontinueBucket(operator sdk.AccAddress, bucketName string, reason string) *MsgDiscontinueBucket {
+func NewMsgDiscontinueBucket(operator sdk.AccAddress, bucketName, reason string) *MsgDiscontinueBucket {
 	return &MsgDiscontinueBucket{
 		Operator:   operator.String(),
 		BucketName: bucketName,
@@ -779,8 +846,9 @@ func (msg *MsgDiscontinueBucket) ValidateBasic() error {
 }
 
 func NewMsgUpdateObjectInfo(
-	operator sdk.AccAddress, bucketName string, objectName string,
-	visibility VisibilityType) *MsgUpdateObjectInfo {
+	operator sdk.AccAddress, bucketName, objectName string,
+	visibility VisibilityType,
+) *MsgUpdateObjectInfo {
 	return &MsgUpdateObjectInfo{
 		Operator:   operator.String(),
 		BucketName: bucketName,
@@ -837,11 +905,20 @@ func (msg *MsgUpdateObjectInfo) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgCreateGroup(creator sdk.AccAddress, groupName string, extra string) *MsgCreateGroup {
+func NewMsgCreateGroup(creator sdk.AccAddress, groupName, extra string) *MsgCreateGroup {
 	return &MsgCreateGroup{
 		Creator:   creator.String(),
 		GroupName: groupName,
 		Extra:     extra,
+	}
+}
+
+func NewMsgCreateGroupWithTags(creator sdk.AccAddress, groupName, extra string, tags ResourceTags) *MsgCreateGroup {
+	return &MsgCreateGroup{
+		Creator:   creator.String(),
+		GroupName: groupName,
+		Extra:     extra,
+		Tags:      tags,
 	}
 }
 
@@ -884,6 +961,19 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
 		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
+	}
+	return nil
+}
+
+func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
+	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+		if len(msg.Tags.GetTags()) > MaxTagCount {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		}
+	} else {
+		if len(msg.Tags.GetTags()) > 0 {
+			return gnfderrors.ErrInvalidParameter.Wrapf("Tags are not supported")
+		}
 	}
 	return nil
 }
@@ -934,7 +1024,7 @@ func (msg *MsgDeleteGroup) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgLeaveGroup(member sdk.AccAddress, groupOwner sdk.AccAddress, groupName string) *MsgLeaveGroup {
+func NewMsgLeaveGroup(member, groupOwner sdk.AccAddress, groupName string) *MsgLeaveGroup {
 	return &MsgLeaveGroup{
 		Member:     member.String(),
 		GroupOwner: groupOwner.String(),
@@ -987,8 +1077,9 @@ func (msg *MsgLeaveGroup) ValidateBasic() error {
 }
 
 func NewMsgUpdateGroupMember(
-	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, membersToAdd []*MsgGroupMember,
-	membersToDelete []sdk.AccAddress) *MsgUpdateGroupMember {
+	operator, groupOwner sdk.AccAddress, groupName string, membersToAdd []*MsgGroupMember,
+	membersToDelete []sdk.AccAddress,
+) *MsgUpdateGroupMember {
 	var membersAddrToDelete []string
 	for _, member := range membersToDelete {
 		membersAddrToDelete = append(membersAddrToDelete, member.String())
@@ -1066,7 +1157,7 @@ func (msg *MsgUpdateGroupMember) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateGroupExtra(operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName, extra string) *MsgUpdateGroupExtra {
+func NewMsgUpdateGroupExtra(operator, groupOwner sdk.AccAddress, groupName, extra string) *MsgUpdateGroupExtra {
 	return &MsgUpdateGroupExtra{
 		Operator:   operator.String(),
 		GroupOwner: groupOwner.String(),
@@ -1124,7 +1215,8 @@ func (msg *MsgUpdateGroupExtra) ValidateBasic() error {
 }
 
 func NewMsgPutPolicy(operator sdk.AccAddress, resource string,
-	principal *permtypes.Principal, statements []*permtypes.Statement, expirationTime *time.Time) *MsgPutPolicy {
+	principal *permtypes.Principal, statements []*permtypes.Statement, expirationTime *time.Time,
+) *MsgPutPolicy {
 	return &MsgPutPolicy{
 		Operator:       operator.String(),
 		Resource:       resource,
@@ -1444,8 +1536,8 @@ func (msg *MsgMirrorGroup) ValidateBasic() error {
 }
 
 // GetSignBytes implements the LegacyMsg interface.
-func (m MsgUpdateParams) GetSignBytes() []byte {
-	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(&m))
+func (m *MsgUpdateParams) GetSignBytes() []byte {
+	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(m))
 }
 
 // GetSigners returns the expected signers for a MsgUpdateParams message.
@@ -1468,8 +1560,8 @@ func (m *MsgUpdateParams) ValidateBasic() error {
 }
 
 func NewMsgRenewGroupMember(
-	operator sdk.AccAddress, groupOwner sdk.AccAddress, groupName string, members []*MsgGroupMember) *MsgRenewGroupMember {
-
+	operator, groupOwner sdk.AccAddress, groupName string, members []*MsgGroupMember,
+) *MsgRenewGroupMember {
 	return &MsgRenewGroupMember{
 		Operator:   operator.String(),
 		GroupOwner: groupOwner.String(),

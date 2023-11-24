@@ -185,5 +185,5 @@ message ResourceTags {
     string value = 2;
   }
   // tags defines a list of tags the resource has
-  repeated Tag tags = 1;
+  repeated Tag tags = 1 [(gogoproto.nullable) = false];
 }

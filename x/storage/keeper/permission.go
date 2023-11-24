@@ -189,42 +189,10 @@ func (k Keeper) VerifyPolicy(ctx sdk.Context, resourceID math.Uint, resourceType
 	return permtypes.EFFECT_UNSPECIFIED
 }
 
-func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes.Principal) (*permtypes.Policy, error) {
-	var resID math.Uint
-	switch grn.ResourceType() {
-	case gnfdresource.RESOURCE_TYPE_BUCKET:
-		bucketName, grnErr := grn.GetBucketName()
-		if grnErr != nil {
-			return nil, grnErr
-		}
-		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
-		if !found {
-			return nil, types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
-		}
-		resID = bucketInfo.Id
-	case gnfdresource.RESOURCE_TYPE_OBJECT:
-		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
-		if grnErr != nil {
-			return nil, grnErr
-		}
-		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
-		if !found {
-			return nil, types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
-		}
-
-		resID = objectInfo.Id
-	case gnfdresource.RESOURCE_TYPE_GROUP:
-		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
-		if grnErr != nil {
-			return nil, grnErr
-		}
-		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
-		if !found {
-			return nil, types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
-		}
-		resID = groupInfo.Id
-	default:
-		return nil, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+func (k Keeper) GetPolicy(ctx sdk.Context, grn types2.GRN, principal *permtypes.Principal) (*permtypes.Policy, error) {
+	_, resID, err := k.getResourceOwnerAndIdFromGRN(ctx, grn)
+	if err != nil {
+		return nil, err
 	}
 
 	var policy *permtypes.Policy
@@ -247,50 +215,9 @@ func (k Keeper) GetPolicy(ctx sdk.Context, grn *types2.GRN, principal *permtypes
 func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 	policy *permtypes.Policy,
 ) (math.Uint, error) {
-	var resOwner sdk.AccAddress
-	var resID math.Uint
-	switch grn.ResourceType() {
-	case gnfdresource.RESOURCE_TYPE_BUCKET:
-		bucketName, grnErr := grn.GetBucketName()
-		if grnErr != nil {
-			return math.ZeroUint(), grnErr
-		}
-		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
-		if !found {
-			return math.ZeroUint(), types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
-		resID = bucketInfo.Id
-	case gnfdresource.RESOURCE_TYPE_OBJECT:
-		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
-		if grnErr != nil {
-			return math.ZeroUint(), grnErr
-		}
-		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
-		if !found {
-			return math.ZeroUint(), types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
-		}
-
-		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
-		resID = objectInfo.Id
-	case gnfdresource.RESOURCE_TYPE_GROUP:
-		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
-		if grnErr != nil {
-			return math.ZeroUint(), grnErr
-		}
-		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
-		if !found {
-			return math.ZeroUint(), types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
-		}
-
-		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
-		resID = groupInfo.Id
-
-		if policy.Principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
-			return math.ZeroUint(), permtypes.ErrInvalidPrincipal.Wrapf("Not allow grant group's permission to another group")
-		}
-	default:
-		return math.ZeroUint(), gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	resOwner, resID, err := k.getResourceOwnerAndIdFromGRN(ctx, grn)
+	if err != nil {
+		return math.ZeroUint(), err
 	}
 
 	if !operator.Equals(resOwner) {
@@ -299,7 +226,7 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 			operator.String(), resOwner.String())
 	}
 	k.normalizePrincipal(ctx, policy.Principal)
-	err := k.validatePrincipal(ctx, resOwner, policy.Principal)
+	err = k.validatePrincipal(ctx, resOwner, policy.Principal)
 	if err != nil {
 		return math.ZeroUint(), err
 	}
@@ -307,48 +234,12 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 	return k.permKeeper.PutPolicy(ctx, policy)
 }
 
-func (k Keeper) DeletePolicy(ctx sdk.Context, operator sdk.AccAddress, principal *permtypes.Principal,
-	grn types2.GRN,
+func (k Keeper) DeletePolicy(
+	ctx sdk.Context, operator sdk.AccAddress, principal *permtypes.Principal, grn types2.GRN,
 ) (math.Uint, error) {
-	var resOwner sdk.AccAddress
-	var resID math.Uint
-
-	switch grn.ResourceType() {
-	case gnfdresource.RESOURCE_TYPE_BUCKET:
-		bucketName, grnErr := grn.GetBucketName()
-		if grnErr != nil {
-			return math.ZeroUint(), grnErr
-		}
-		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
-		if !found {
-			return math.ZeroUint(), types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
-		resID = bucketInfo.Id
-	case gnfdresource.RESOURCE_TYPE_OBJECT:
-		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
-		if grnErr != nil {
-			return math.ZeroUint(), grnErr
-		}
-		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
-		if !found {
-			return math.ZeroUint(), types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
-		resID = objectInfo.Id
-	case gnfdresource.RESOURCE_TYPE_GROUP:
-		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
-		if grnErr != nil {
-			return math.ZeroUint(), grnErr
-		}
-		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
-		if !found {
-			return math.ZeroUint(), types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
-		}
-		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
-		resID = groupInfo.Id
-	default:
-		return math.ZeroUint(), gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	resOwner, resID, err := k.getResourceOwnerAndIdFromGRN(ctx, grn)
+	if err != nil {
+		return math.ZeroUint(), err
 	}
 
 	if !operator.Equals(resOwner) {
@@ -401,4 +292,46 @@ func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, prin
 		return permtypes.ErrInvalidPrincipal.Wrapf("Unknown principal type.")
 	}
 	return nil
+}
+
+func (k Keeper) getResourceOwnerAndIdFromGRN(ctx sdk.Context, grn types2.GRN) (resOwner sdk.AccAddress, resID math.Uint, err error) {
+	switch grn.ResourceType() {
+	case gnfdresource.RESOURCE_TYPE_BUCKET:
+		bucketName, grnErr := grn.GetBucketName()
+		if grnErr != nil {
+			return resOwner, resID, grnErr
+		}
+		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+		if !found {
+			return resOwner, resID, types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		resID = bucketInfo.Id
+	case gnfdresource.RESOURCE_TYPE_OBJECT:
+		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
+		if grnErr != nil {
+			return resOwner, resID, grnErr
+		}
+		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+		if !found {
+			return resOwner, resID, types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(objectInfo.Owner)
+		resID = objectInfo.Id
+	case gnfdresource.RESOURCE_TYPE_GROUP:
+		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
+		if grnErr != nil {
+			return resOwner, resID, grnErr
+		}
+		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
+		if !found {
+			return resOwner, resID, types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
+		}
+		resOwner = sdk.MustAccAddressFromHex(groupInfo.Owner)
+		resID = groupInfo.Id
+	default:
+		return resOwner, resID, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	}
+
+	return resOwner, resID, nil
 }

@@ -424,7 +424,7 @@ func (k Keeper) QueryPolicyForAccount(goCtx context.Context, req *types.QueryPol
 		return nil, err
 	}
 
-	policy, err := k.GetPolicy(ctx, &grn, permtypes.NewPrincipalWithAccount(principalAcc))
+	policy, err := k.GetPolicy(ctx, grn, permtypes.NewPrincipalWithAccount(principalAcc))
 	if err != nil {
 		return nil, err
 	}
@@ -452,9 +452,7 @@ func (k Keeper) QueryPolicyForGroup(goCtx context.Context, req *types.QueryPolic
 		return nil, status.Errorf(codes.InvalidArgument, "failed to parse GRN %s: %v", req.Resource, err)
 	}
 
-	policy, err := k.GetPolicy(
-		ctx, &grn, permtypes.NewPrincipalWithGroupId(id),
-	)
+	policy, err := k.GetPolicy(ctx, grn, permtypes.NewPrincipalWithGroupId(id))
 	if err != nil {
 		return nil, err
 	}
