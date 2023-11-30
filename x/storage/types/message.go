@@ -57,6 +57,7 @@ const (
 
 	MaxGroupMemberLimitOnce = 20
 	MaxTagCount             = 4
+	MaxTagKeyValueLength    = 24
 
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
@@ -207,6 +208,16 @@ func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
 	if ctx.IsUpgraded(upgradetypes.Eddystone) {
 		if len(msg.Tags.GetTags()) > MaxTagCount {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		}
+		if len(msg.Tags.GetTags()) > 0 {
+			for _, tag := range msg.Tags.GetTags() {
+				if len(tag.GetKey()) > MaxTagKeyValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+				}
+				if len(tag.GetValue()) > MaxTagKeyValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+				}
+			}
 		}
 	} else {
 		if len(msg.Tags.GetTags()) > 0 {
@@ -427,6 +438,16 @@ func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
 	if ctx.IsUpgraded(upgradetypes.Eddystone) {
 		if len(msg.Tags.GetTags()) > MaxTagCount {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		}
+		if len(msg.Tags.GetTags()) > 0 {
+			for _, tag := range msg.Tags.GetTags() {
+				if len(tag.GetKey()) > MaxTagKeyValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+				}
+				if len(tag.GetValue()) > MaxTagKeyValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+				}
+			}
 		}
 	} else {
 		if len(msg.Tags.GetTags()) > 0 {
@@ -969,6 +990,16 @@ func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
 	if ctx.IsUpgraded(upgradetypes.Eddystone) {
 		if len(msg.Tags.GetTags()) > MaxTagCount {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+		}
+		if len(msg.Tags.GetTags()) > 0 {
+			for _, tag := range msg.Tags.GetTags() {
+				if len(tag.GetKey()) > MaxTagKeyValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+				}
+				if len(tag.GetValue()) > MaxTagKeyValueLength {
+					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+				}
+			}
 		}
 	} else {
 		if len(msg.Tags.GetTags()) > 0 {
@@ -1676,6 +1707,16 @@ func (msg *MsgSetTag) ValidateBasic() error {
 
 	if len(msg.Tags.GetTags()) > MaxTagCount {
 		return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
+	}
+	if len(msg.Tags.GetTags()) > 0 {
+		for _, tag := range msg.Tags.GetTags() {
+			if len(tag.GetKey()) > MaxTagKeyValueLength {
+				return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
+			}
+			if len(tag.GetValue()) > MaxTagKeyValueLength {
+				return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
+			}
+		}
 	}
 
 	return nil
