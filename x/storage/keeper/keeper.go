@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -375,6 +376,14 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 	// check bucket source
 	if bucketInfo.SourceType != opts.SourceType {
 		return types.ErrSourceTypeMismatch
+	}
+
+	//TODO change name
+	if ctx.IsUpgraded(upgradetypes.Pampas) {
+		sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
+		if sp.Status == sptypes.STATUS_GRACEFUL_EXITING || sp.Status == sptypes.STATUS_FORCE_EXITING {
+			return types.ErrUpdateQuotaFailed.Wrapf("The SP is in %s, bucket can not be updated", sp.Status)
+		}
 	}
 
 	// check permission
@@ -1161,7 +1170,18 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 
 	if sp.Id != spInState.Id {
-		return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
+		if ctx.IsUpgraded(upgradetypes.Eddystone) {
+			swapInInfo, found := k.virtualGroupKeeper.GetSwapInInfo(ctx, bucketInfo.GlobalVirtualGroupFamilyId, virtualgroupmoduletypes.NoSpecifiedGVGId)
+			if found {
+				if swapInInfo.TargetSpId != spInState.Id ||
+					swapInInfo.SuccessorSpId != sp.Id ||
+					uint64(ctx.BlockTime().Unix()) > swapInInfo.ExpirationTime {
+					return errors.Wrapf(types.ErrAccessDenied, "the sp is allowed to do discontinue objects, reserved swapInfo=%s", swapInInfo.String())
+				}
+			}
+		} else {
+			return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
+		}
 	}
 
 	count := k.GetDiscontinueObjectCount(ctx, operator)

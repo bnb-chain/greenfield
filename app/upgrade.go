@@ -92,7 +92,6 @@ func (app *App) registerPampasUpgradeHandler() {
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgMigrateBucket")
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgCancelMigrateBucket")
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgCompleteMigrateBucket")
-
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
@@ -116,6 +115,15 @@ func (app *App) registerEddystoneUpgradeHandler() {
 			typeUrl := sdk.MsgTypeURL(&storagemoduletypes.MsgSetTag{})
 			msgSetTagGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1.2e3)
 			app.GashubKeeper.SetMsgGasParams(ctx, *msgSetTagGasParams)
+
+			// TODO use a new harfork
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgReserveSwapIn", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCancelSwapIn", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteSwapIn", 1.2e3))
+
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderForceExit", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderExit", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteStorageProviderExit", 1.2e3))
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})

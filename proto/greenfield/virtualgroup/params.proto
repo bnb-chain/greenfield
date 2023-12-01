@@ -25,4 +25,8 @@ message Params {
   uint32 max_global_virtual_group_num_per_family = 4;
   // if the store size reach the exceed, the family is not allowed to sever more buckets
   uint64 max_store_size_per_family = 5;
+  // the validity period that a successor SP can reserve to complete the swap for Global virtual group/family
+  uint64 swap_in_validity_period = 6;
+  // sp_concurrent_exit_num defines the number of sp allowed for exit concurrently.
+  uint32 sp_concurrent_exit_num = 7;
 }

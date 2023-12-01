@@ -174,3 +174,41 @@ message EventCompleteStorageProviderExit {
     (gogoproto.nullable) = false
   ];
 }
+
+message EventSwapIn {
+  // The id of the storage provider who wants to swap in
+  uint32 storage_provider_id = 1;
+  // The id of the gvg family which the storage provider wants to swap in as primary sp
+  uint32 global_virtual_group_family_id = 2;
+  // The id of the gvg which the storage provider wants to swap in as secondary sp
+  uint32 global_virtual_group_id = 3;
+  // The id of the target sp who will be swapped
+  uint32 target_sp_id = 4;
+}
+
+message EventCompleteSwapIn {
+  // The id of the storage provider who complete swap in.
+  uint32 storage_provider_id = 1;
+  // The id of the storage provider who swap in the family or gvgs
+  uint32 target_storage_provider_id = 2;
+  // The id of the gvg family
+  uint32 global_virtual_group_family_id = 3;
+  // The id of the gvg
+  uint32 global_virtual_group_id = 4;
+}
+
+message EventCancelSwapIn {
+  // The id of the storage provider who cancel swap in.
+  uint32 storage_provider_id = 1;
+  // The id of the gvg family
+  uint32 global_virtual_group_family_id = 2;
+  // The id of the gvg
+  uint32 global_virtual_group_id = 3;
+  // The id of the target sp who was swapped from family or gvgs
+  uint32 target_sp_id = 4;
+}
+
+message EventStorageProviderForceExit {
+  // The id of the storage provider who wants to exit
+  uint32 storage_provider_id = 1;
+}

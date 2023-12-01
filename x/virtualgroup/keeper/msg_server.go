@@ -443,6 +443,26 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("sp not in service, status: %s", sp.Status.String())
 	}
 
+	stat, found := k.GetGVGStatisticsWithinSP(ctx, sp.Id)
+	if found && stat.BreakRedundancyReqmtGvgCount != 0 {
+		return nil, types.ErrSPCanNotExit.Wrapf("The SP has %d GVG that break the redundancy requirement, need to be resolved before exit.", stat.BreakRedundancyReqmtGvgCount)
+	}
+
+	// can only allow 1 sp exit at a time, a GVG can have only 1 SwapInInfo associated.
+	exittingSPNum := uint32(0)
+	sps := k.spKeeper.GetAllStorageProviders(ctx)
+	for _, curSP := range sps {
+		// TODO Remove FORCE_EXIT SP info from chain
+		if curSP.Status == sptypes.STATUS_GRACEFUL_EXITING ||
+			curSP.Status == sptypes.STATUS_FORCE_EXITING {
+			exittingSPNum++
+		}
+	}
+	maxSPExitingNum := k.SpConcurrentExitNum(ctx)
+	if exittingSPNum >= maxSPExitingNum {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("There are %d SP exiting, only allow %d sp exit concurrently", exittingSPNum, maxSPExitingNum)
+	}
+
 	sp.Status = sptypes.STATUS_GRACEFUL_EXITING
 
 	k.spKeeper.SetStorageProvider(ctx, sp)
@@ -495,4 +515,98 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 		return nil, err
 	}
 	return &types.MsgCompleteStorageProviderExitResponse{}, nil
+}
+
+func (k msgServer) SwapIn(goCtx context.Context, msg *types.MsgReserveSwapIn) (*types.MsgReserveSwapInResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	successorSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be the operator address of sp.")
+	}
+	if successorSP.Id == msg.TargetSpId {
+		return nil, types.ErrSwapInFailed.Wrapf("The SP(ID=%d) can not swap itself", successorSP.Id)
+	}
+	targetSP, found := k.spKeeper.GetStorageProvider(ctx, msg.TargetSpId)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("Target sp(ID=%d) try to swap not found.", msg.TargetSpId)
+	}
+	if err := k.Keeper.SwapIn(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupId, successorSP.Id, targetSP); err != nil {
+		return nil, err
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventSwapIn{
+		StorageProviderId:          successorSP.Id,
+		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
+		GlobalVirtualGroupId:       msg.GlobalVirtualGroupId,
+		TargetSpId:                 msg.TargetSpId,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgReserveSwapInResponse{}, nil
+}
+
+func (k msgServer) CancelSwapIn(goCtx context.Context, msg *types.MsgCancelSwapIn) (*types.MsgCancelSwapInResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	successorSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
+	}
+	err := k.DeleteSwapInInfo(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupId, successorSP.Id)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgCancelSwapInResponse{}, nil
+}
+
+func (k msgServer) CompleteSwapIn(goCtx context.Context, msg *types.MsgCompleteSwapIn) (*types.MsgCompleteSwapInResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	successorSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
+	}
+	err := k.Keeper.CompleteSwapIn(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupId, successorSP)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgCompleteSwapInResponse{}, nil
+}
+func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.MsgStorageProviderForceExit) (*types.MsgStorageProviderForceExitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	if k.GetAuthority() != msg.Authority {
+		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority)
+	}
+
+	spAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The SP with operator address %s must not found", msg.StorageProvider)
+	}
+
+	exittingSPNum := uint32(0)
+	sps := k.spKeeper.GetAllStorageProviders(ctx)
+	for _, curSP := range sps {
+		if curSP.Status == sptypes.STATUS_GRACEFUL_EXITING ||
+			curSP.Status == sptypes.STATUS_FORCE_EXITING {
+			exittingSPNum++
+		}
+	}
+	maxSPExitingNum := k.SpConcurrentExitNum(ctx)
+	if exittingSPNum >= maxSPExitingNum {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("%d SP exiting, allow %d sp exit concurrently, s: %s", exittingSPNum, maxSPExitingNum)
+	}
+
+	// Governance can put an SP into force exiting status no matter what status it is in.
+	sp.Status = sptypes.STATUS_FORCE_EXITING
+	k.spKeeper.SetStorageProvider(ctx, sp)
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventStorageProviderForceExit{
+		StorageProviderId: sp.Id,
+	}); err != nil {
+		return nil, err
+	}
+	return &types.MsgStorageProviderForceExitResponse{}, nil
 }

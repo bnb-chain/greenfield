@@ -277,6 +277,7 @@ func (s *BaseSuite) SendTxBlockWithExpectErrorString(msg sdk.Msg, from keys.KeyM
 	_, err := s.Client.BroadcastTx(context.Background(), []sdk.Msg{msg}, txOpt)
 	s.T().Logf("tx failed, err: %v, expect error string: %s", err, expectErrorString)
 	s.Require().Error(err)
+	fmt.Println(err.Error())
 	s.Require().True(strings.Contains(err.Error(), expectErrorString))
 }
 
@@ -729,6 +730,15 @@ func (s *BaseSuite) GetChainID() string {
 func (s *BaseSuite) PickStorageProvider() *StorageProvider {
 	for _, sp := range s.StorageProviders {
 		return sp
+	}
+	return nil
+}
+
+func (s *BaseSuite) PickStorageProviderByID(id uint32) *StorageProvider {
+	for _, sp := range s.StorageProviders {
+		if sp.Info.Id == id {
+			return sp
+		}
 	}
 	return nil
 }

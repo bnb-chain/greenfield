@@ -41,6 +41,11 @@ service Query {
   rpc AvailableGlobalVirtualGroupFamilies(AvailableGlobalVirtualGroupFamiliesRequest) returns (AvailableGlobalVirtualGroupFamiliesResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/available_global_virtual_group_families";
   }
+
+  // AvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+  rpc SwapInInfo(QuerySwapInInfoRequest) returns (QuerySwapInInfoResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/swap_in_info";
+  }
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -91,4 +96,13 @@ message AvailableGlobalVirtualGroupFamiliesRequest {
 
 message AvailableGlobalVirtualGroupFamiliesResponse {
   repeated uint32 global_virtual_group_family_ids = 1;
+}
+
+message QuerySwapInInfoRequest {
+  uint32 global_virtual_group_family_id  = 1;
+  uint32 global_virtual_group_id  = 2;
+}
+
+message QuerySwapInInfoResponse {
+    SwapInInfo swap_in_info = 1;
 }

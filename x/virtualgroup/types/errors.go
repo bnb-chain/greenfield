@@ -22,6 +22,9 @@ var (
 	ErrLimitationExceed        = errors.Register(ModuleName, 1123, "limitation exceed.")
 	ErrDuplicateSecondarySP    = errors.Register(ModuleName, 1124, "the global virtual group has duplicate secondary sp.")
 	ErrInsufficientStaking     = errors.Register(ModuleName, 1125, "insufficient staking for gvg")
+	ErrSwapInFailed            = errors.Register(ModuleName, 1127, "swap in failed.")
+	ErrSwapInInfoNotExist      = errors.Register(ModuleName, 1128, "swap in info not exist.")
+	ErrSwapInInfoExpired       = errors.Register(ModuleName, 1129, "swap in info expired")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

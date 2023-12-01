@@ -59,11 +59,18 @@ message GlobalVirtualGroupsBindingOnBucket {
 message GVGStatisticsWithinSP {
   // storage_provider_id defines the id of the sp which the statistics associated to
   uint32 storage_provider_id = 1;
-  // primary_sp_family_count defines the number of the family which this sp serves as primary sp
+  // primary_count defines the number of global virtual groups (GVGs) which this sp serves as primary sp
   uint32 primary_count = 2;
   // secondary_count defines the number of global virtual groups (GVGs) in
   // which this storage provider serves as a secondary storage provider.
   uint32 secondary_count = 3;
+  // Redundancy defines the number of gvg that sp serves as sp and secondary sp, which breaks the data redundancy requirement.
+  // In most case, this should not happen,
+  // during sp exit, a successor sp might need to swapIn GVG(s) that it is already a secondary and become the primary SP
+  // of whole family.
+  // a successor sp which need to swapIn a GVG as secondary must be unique to all other SP. So this will not be used for
+  // swapIn individual GVG as secondary
+  uint32 break_redundancy_reqmt_gvg_count = 4;
 }
 
 message SwapOutInfo {
@@ -71,4 +78,13 @@ message SwapOutInfo {
   uint32 sp_id = 1;
   // successor_sp_id is the id of the successor storage provider.
   uint32 successor_sp_id = 2;
+}
+
+message SwapInInfo {
+  // successor_sp_id defines the id of sp who want to join the family or GVG
+  uint32 successor_sp_id = 1;
+  // target_sp_id is the id of SP in the family or GVG to be swapped.
+  uint32 target_sp_id = 2;
+  // expiration_time is the expiration of epoch time for the swapInInfo
+  uint64 expiration_time = 4;
 }

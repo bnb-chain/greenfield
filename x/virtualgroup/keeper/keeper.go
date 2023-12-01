@@ -647,3 +647,282 @@ func (k Keeper) CompleteSwapOut(ctx sdk.Context, gvgFamilyID uint32, gvgIDs []ui
 	}
 	return nil
 }
+
+func (k Keeper) SwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32, successorSPID uint32, targetSP *sptypes.StorageProvider) error {
+	curTime := uint64(ctx.BlockTime().Unix())
+	// swapIn a family, the target sp needs to be exiting status if swapIn the family's as primary SP.
+	if gvgFamilyID != types.NoSpecifiedFamilyId {
+		if targetSP.Status != sptypes.STATUS_GRACEFUL_EXITING && targetSP.Status != sptypes.STATUS_FORCE_EXITING {
+			return sptypes.ErrStorageProviderWrongStatus.Wrapf("The target sp is not exiting, can not be swapped")
+		}
+		family, found := k.GetGVGFamily(ctx, gvgFamilyID)
+		if !found {
+			return types.ErrGVGFamilyNotExist
+		}
+		if family.PrimarySpId != targetSP.Id {
+			return types.ErrSwapInFailed.Wrapf("the family(ID: %d) primary SP(ID: %d) does not match the target SP(ID: %d) which need to be swapped", family.Id, family.PrimarySpId, targetSP.Id)
+		}
+		return k.setSwapInInfo(ctx, types.GetSwapInFamilyKey(gvgFamilyID), successorSPID, targetSP.Id, curTime)
+	}
+
+	gvg, found := k.GetGVG(ctx, gvgID)
+	if !found {
+		return types.ErrGVGNotExist
+	}
+	if gvg.PrimarySpId == successorSPID {
+		return types.ErrSwapInFailed.Wrapf("The SP(ID=%d) is already the primary SP of GVG(ID=%d)", successorSPID, gvgID)
+	}
+	exist := false
+	for _, sspID := range gvg.GetSecondarySpIds() {
+		if sspID == successorSPID {
+			return types.ErrSwapInFailed.Wrapf("The sp(ID: %d) is already one of the secondary in this GVG(ID:%d)", successorSPID, gvgID)
+		}
+		if sspID == targetSP.Id {
+			exist = true
+		}
+	}
+	if !exist {
+		return types.ErrSwapInFailed.Wrapf("The sp(ID: %d) that needs swap out is not one of the secondary sps of gvg gvg(%s).", targetSP.Id, gvg.String())
+	}
+
+	// swap into GVG when there is a secondary SP is exiting.
+	if targetSP.Status == sptypes.STATUS_GRACEFUL_EXITING || targetSP.Status == sptypes.STATUS_FORCE_EXITING {
+		return k.setSwapInInfo(ctx, types.GetSwapInGVGKey(gvgID), successorSPID, targetSP.Id, curTime)
+	}
+	// swap into GVG that not fulfil redundancy requirement. e.g. [1|2,3,4,5,6,1]
+	breakRedundancy := false
+	for _, sspID := range gvg.GetSecondarySpIds() {
+		if sspID == gvg.PrimarySpId {
+			breakRedundancy = true
+		}
+	}
+	if !breakRedundancy {
+		return types.ErrSwapInFailed.Wrap("can not swap into GVG which all SP are unique")
+	}
+	return k.setSwapInInfo(ctx, types.GetSwapInGVGKey(gvgID), successorSPID, targetSP.Id, curTime)
+}
+
+func (k Keeper) setSwapInInfo(ctx sdk.Context, key []byte, successorSPID, targetSPID uint32, curTime uint64) error {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(key)
+	if bz == nil {
+		swapInInfo := &types.SwapInInfo{
+			SuccessorSpId:  successorSPID,
+			TargetSpId:     targetSPID,
+			ExpirationTime: curTime + k.SwapInValidityPeriod(ctx),
+		}
+		store.Set(key, k.cdc.MustMarshal(swapInInfo))
+	} else {
+		prevSwapInInfo := &types.SwapInInfo{}
+		k.cdc.MustUnmarshal(bz, prevSwapInInfo)
+		if curTime < prevSwapInInfo.ExpirationTime {
+			return types.ErrSwapInFailed.Wrapf("already exist SP(ID=%d) try to swap in", prevSwapInInfo.SuccessorSpId)
+		}
+		// override the stale swapIn info of prev successor sp
+		if prevSwapInInfo.SuccessorSpId == successorSPID {
+			return types.ErrSwapInFailed.Wrapf("already tried to swap in but expired")
+		}
+		swapInInfo := &types.SwapInInfo{
+			SuccessorSpId:  successorSPID,
+			TargetSpId:     targetSPID,
+			ExpirationTime: curTime + k.SwapInValidityPeriod(ctx),
+		}
+		store.Set(key, k.cdc.MustMarshal(swapInInfo))
+	}
+	return nil
+}
+
+func (k Keeper) DeleteSwapInInfo(ctx sdk.Context, gvgFamilyID, gvgID uint32, successorSPID uint32) error {
+	store := ctx.KVStore(k.storeKey)
+
+	swapInInfo := types.SwapInInfo{}
+	if gvgFamilyID != types.NoSpecifiedFamilyId {
+		key := types.GetSwapInFamilyKey(gvgFamilyID)
+		bz := store.Get(key)
+		if bz == nil {
+			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		}
+		k.cdc.MustUnmarshal(bz, &swapInInfo)
+		if swapInInfo.SuccessorSpId != successorSPID {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapInInfo", successorSPID, swapInInfo.SuccessorSpId)
+		}
+		store.Delete(key)
+	} else {
+		key := types.GetSwapInGVGKey(gvgID)
+		bz := store.Get(key)
+		if bz == nil {
+			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		}
+		k.cdc.MustUnmarshal(bz, &swapInInfo)
+		if swapInInfo.SuccessorSpId != successorSPID {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapInInfo", successorSPID, swapInInfo.SuccessorSpId)
+		}
+		store.Delete(key)
+	}
+
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelSwapIn{
+		StorageProviderId:          swapInInfo.SuccessorSpId,
+		GlobalVirtualGroupFamilyId: gvgFamilyID,
+		GlobalVirtualGroupId:       gvgID,
+		TargetSpId:                 swapInInfo.TargetSpId,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) CompleteSwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32, successorSP *sptypes.StorageProvider) error {
+	store := ctx.KVStore(k.storeKey)
+	swapInInfo := types.SwapInInfo{}
+	// swapIn family
+	if gvgFamilyID != types.NoSpecifiedFamilyId {
+		key := types.GetSwapInFamilyKey(gvgFamilyID)
+		bz := store.Get(key)
+		if bz == nil {
+			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		}
+		k.cdc.MustUnmarshal(bz, &swapInInfo)
+		if successorSP.Id != swapInInfo.SuccessorSpId {
+			return types.ErrSwapInFailed.Wrapf("The SP(ID: %d) has not reserved the swap(swapInfo=%s)", successorSP.Id, swapInInfo.String())
+		}
+		if uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
+			return types.ErrSwapInFailed.Wrapf("reserved swap expired")
+		}
+
+		targetPrimarySP, found := k.spKeeper.GetStorageProvider(ctx, swapInInfo.TargetSpId)
+		if !found {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("The storage provider(ID: %d) not found when complete swap in.", swapInInfo.TargetSpId)
+		}
+		if err := k.completeSwapInFamily(ctx, successorSP, targetPrimarySP, gvgFamilyID); err != nil {
+			return err
+		}
+		store.Delete(key)
+	} else {
+		key := types.GetSwapInGVGKey(gvgID)
+		bz := store.Get(key)
+		if bz == nil {
+			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		}
+		k.cdc.MustUnmarshal(bz, &swapInInfo)
+		if successorSP.Id != swapInInfo.SuccessorSpId {
+			return types.ErrSwapInFailed.Wrapf("The sp(ID: %d) has not reserved the swap for secondary SP(ID: %d)", successorSP.Id, swapInInfo.TargetSpId)
+		}
+		targetSecondarySP, found := k.spKeeper.GetStorageProvider(ctx, swapInInfo.TargetSpId)
+		if !found {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("The storage provider(ID: %d) not found when complete swap in.", swapInInfo.TargetSpId)
+		}
+		if err := k.completeSwapInGVG(ctx, successorSP.Id, targetSecondarySP.Id, gvgID); err != nil {
+			return err
+		}
+		store.Delete(key)
+	}
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteSwapIn{
+		StorageProviderId:          successorSP.Id,
+		TargetStorageProviderId:    swapInInfo.TargetSpId,
+		GlobalVirtualGroupFamilyId: gvgFamilyID,
+		GlobalVirtualGroupId:       gvgID,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) completeSwapInFamily(ctx sdk.Context, successorSP, targetPrimarySP *sptypes.StorageProvider, familyID uint32) error {
+	family, found := k.GetGVGFamily(ctx, familyID)
+	if !found {
+		return types.ErrGVGFamilyNotExist
+	}
+	srcStat := k.MustGetGVGStatisticsWithinSP(ctx, targetPrimarySP.Id)
+	dstStat := k.GetOrCreateGVGStatisticsWithinSP(ctx, successorSP.Id)
+
+	gvgs := make([]*types.GlobalVirtualGroup, len(family.GlobalVirtualGroupIds))
+	for i, gvgID := range family.GlobalVirtualGroupIds {
+		gvg, found := k.GetGVG(ctx, gvgID)
+		if !found {
+			return types.ErrGVGNotExist
+		}
+		if gvg.PrimarySpId != targetPrimarySP.Id {
+			return types.ErrSwapInFailed.Wrapf(
+				"the primary id (%d) in global virtual group does not match the target primary sp id (%d)", gvg.PrimarySpId, targetPrimarySP.Id)
+		}
+		// swap deposit
+		if !gvg.TotalDeposit.IsZero() {
+			coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), gvg.TotalDeposit))
+			err := k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromHex(targetPrimarySP.FundingAddress), sdk.MustAccAddressFromHex(successorSP.FundingAddress), coins)
+			if err != nil {
+				return err
+			}
+		}
+
+		// the successor SP might have played a secondary already in this GVG
+		for _, secondarySPID := range gvg.SecondarySpIds {
+			if successorSP.Id == secondarySPID {
+				dstStat.BreakRedundancyReqmtGvgCount++
+				break
+			}
+		}
+		gvg.PrimarySpId = successorSP.Id
+		gvgs[i] = gvg
+		srcStat.PrimaryCount--
+		dstStat.PrimaryCount++
+	}
+	family.PrimarySpId = successorSP.Id
+
+	// settlement
+	err := k.SettleAndDistributeGVGFamily(ctx, targetPrimarySP, family)
+	if err != nil {
+		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
+	}
+
+	if err := k.SetGVGFamilyAndEmitUpdateEvent(ctx, family); err != nil {
+		return types.ErrSwapOutFailed.Wrapf("failed to set gvg family and emit update event, err: %s", err)
+	}
+
+	for _, gvg := range gvgs {
+		if err := k.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil {
+			return types.ErrSwapOutFailed.Wrapf("failed to set gvg and emit update event, err: %s", err)
+		}
+	}
+	k.SetGVGStatisticsWithSP(ctx, srcStat)
+	k.SetGVGStatisticsWithSP(ctx, dstStat)
+	return nil
+}
+
+func (k Keeper) completeSwapInGVG(ctx sdk.Context, successorSPID, targetSecondarySPID uint32, gvgID uint32) error {
+	gvg, found := k.GetGVG(ctx, gvgID)
+	if !found {
+		return types.ErrGVGNotExist
+	}
+	if successorSPID == gvg.PrimarySpId {
+		return types.ErrSwapInFailed.Wrapf("the primary SP(ID: %d) can not swap into GVG's secondary (%s).", successorSPID, gvg.String())
+	}
+
+	// settlement
+	err := k.SettleAndDistributeGVG(ctx, gvg)
+	if err != nil {
+		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
+	}
+	secondarySPIndex := -1
+	for i, sspID := range gvg.GetSecondarySpIds() {
+		if sspID == targetSecondarySPID {
+			secondarySPIndex = i
+		}
+	}
+	if secondarySPIndex == -1 {
+		panic("secondary sp found but the index is not correct when swap out as secondary sp")
+	}
+	gvg.SecondarySpIds[secondarySPIndex] = successorSPID
+	origin := k.MustGetGVGStatisticsWithinSP(ctx, targetSecondarySPID)
+	successor, found := k.GetGVGStatisticsWithinSP(ctx, successorSPID)
+	if !found {
+		successor = &types.GVGStatisticsWithinSP{StorageProviderId: successorSPID}
+	}
+	if targetSecondarySPID == gvg.PrimarySpId {
+		origin.BreakRedundancyReqmtGvgCount--
+	}
+	origin.SecondaryCount--
+	successor.SecondaryCount++
+	k.SetGVGStatisticsWithSP(ctx, origin)
+	k.SetGVGStatisticsWithSP(ctx, successor)
+	return k.SetGVGAndEmitUpdateEvent(ctx, gvg)
+}
