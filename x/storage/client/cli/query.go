@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"strings"
 
-	gnfd "github.com/bnb-chain/greenfield/types"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/version"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
+	gnfd "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 

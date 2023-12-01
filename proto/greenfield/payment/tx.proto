@@ -7,8 +7,6 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "greenfield/payment/params.proto";
 
-// this line is used by starport scaffolding # proto/tx/import
-
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // Msg defines the Msg service.

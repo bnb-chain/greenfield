@@ -540,8 +540,8 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{PolicyId: policyId}) //nolint: errcheck
 		count++
 
-		//1. the policy is an account policy, delete policyKey -> policyId.
-		//2. the policy is group policy within a policy group, delete the index in the policy group
+		// 1. the policy is an account policy, delete policyKey -> policyId.
+		// 2. the policy is group policy within a policy group, delete the index in the policy group
 		if ctx.IsUpgraded(upgradetypes.Pampas) {
 			if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 				policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,

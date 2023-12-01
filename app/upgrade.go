@@ -4,6 +4,7 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
@@ -111,6 +112,10 @@ func (app *App) registerEddystoneUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Eddystone,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
+
+			typeUrl := sdk.MsgTypeURL(&storagemoduletypes.MsgSetTag{})
+			msgSetTagGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1.2e3)
+			app.GashubKeeper.SetMsgGasParams(ctx, *msgSetTagGasParams)
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})

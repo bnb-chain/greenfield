@@ -7,8 +7,6 @@ import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "greenfield/bridge/params.proto";
 
-// this line is used by starport scaffolding # proto/tx/import
-
 option go_package = "github.com/bnb-chain/greenfield/x/bridge/types";
 
 // Msg defines the Msg service.
@@ -20,7 +18,6 @@ service Msg {
   //
   // Since: cosmos-sdk 0.47
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 // MsgTransferOut is the Msg/TransferOut request type.
@@ -54,5 +51,3 @@ message MsgUpdateParams {
 // MsgUpdateParamsResponse defines the response structure for executing a
 // MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
-
-// this line is used by starport scaffolding # proto/tx/message

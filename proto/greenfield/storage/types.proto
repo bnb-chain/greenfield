@@ -8,7 +8,6 @@ import "greenfield/payment/out_flow.proto";
 import "greenfield/payment/stream_record.proto";
 import "greenfield/storage/common.proto";
 
-// this line is used by starport scaffolding # proto/tx/import
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 message BucketInfo {
@@ -38,6 +37,8 @@ message BucketInfo {
   uint64 charged_read_quota = 9;
   // bucket_status define the status of the bucket.
   BucketStatus bucket_status = 10;
+  // tags defines a list of tags the bucket has
+  ResourceTags tags = 11;
 }
 
 message InternalBucketInfo {
@@ -84,6 +85,8 @@ message ObjectInfo {
   // checksums define the root hash of the pieces which stored in a SP.
   // add omit tag to omit the field when converting to NFT metadata
   repeated bytes checksums = 14 [(gogoproto.moretags) = "traits:\"omit\""];
+  // tags defines a list of tags the object has
+  ResourceTags tags = 15;
 }
 
 message GroupInfo {
@@ -101,6 +104,8 @@ message GroupInfo {
   ];
   // extra is used to store extra info for the group
   string extra = 5;
+  // tags defines a list of tags the group has
+  ResourceTags tags = 6;
 }
 
 message Trait {
@@ -172,4 +177,13 @@ message MigrationBucketInfo {
     (gogoproto.customtype) = "Uint",
     (gogoproto.nullable) = false
   ];
+}
+
+message ResourceTags {
+  message Tag {
+    string key = 1;
+    string value = 2;
+  }
+  // tags defines a list of tags the resource has
+  repeated Tag tags = 1 [(gogoproto.nullable) = false];
 }

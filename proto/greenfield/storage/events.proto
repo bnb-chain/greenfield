@@ -4,6 +4,7 @@ package greenfield.storage;
 import "cosmos_proto/cosmos.proto";
 import "gogoproto/gogo.proto";
 import "google/protobuf/timestamp.proto";
+import "greenfield/resource/types.proto";
 import "greenfield/storage/common.proto";
 import "greenfield/storage/types.proto";
 
@@ -37,6 +38,8 @@ message EventCreateBucket {
   uint32 global_virtual_group_family_id = 10;
   // status define the status of the bucket.
   BucketStatus status = 11;
+  // tags define the tag of the bucket
+  ResourceTags tags = 12;
 }
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
@@ -137,6 +140,8 @@ message EventCreateObject {
   repeated bytes checksums = 16;
   // local_virtual_group_id defines the unique id of lvg which the object stored
   uint32 local_virtual_group_id = 17;
+  // tags define the tag of the object
+  ResourceTags tags = 18;
 }
 
 // EventCancelCreateObject is emitted on MsgCancelCreateObject
@@ -291,6 +296,8 @@ message EventCreateGroup {
   SourceType source_type = 4;
   // extra defines extra info for the group
   string extra = 5;
+  // tags define the tag of the group
+  ResourceTags tags = 6;
 }
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
@@ -552,4 +559,13 @@ message EventCompleteMigrationBucket {
   uint32 global_virtual_group_family_id = 4;
   // The src_primary_sp_id defines the primary sp id of the bucket before migrate.
   uint32 src_primary_sp_id = 5;
+}
+
+message EventSetTag {
+  // resource_type define the type of the source that the tag belongs to
+  greenfield.resource.ResourceType resource_type = 1;
+  // resource_id define the u256 id of the source that the tag belongs to
+  string resource_id = 2;
+  // tags define the tag of the source
+  ResourceTags tags = 3;
 }

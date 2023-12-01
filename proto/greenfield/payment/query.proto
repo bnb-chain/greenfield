@@ -14,8 +14,6 @@ import "greenfield/payment/payment_account.proto";
 import "greenfield/payment/payment_account_count.proto";
 import "greenfield/payment/stream_record.proto";
 
-// this line is used by starport scaffolding # 1
-
 option go_package = "github.com/bnb-chain/greenfield/x/payment/types";
 
 // Query defines the gRPC querier service.
