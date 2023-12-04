@@ -378,8 +378,8 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrSourceTypeMismatch
 	}
 
-	//TODO change name
-	if ctx.IsUpgraded(upgradetypes.Pampas) {
+	//TODO rename the  harfork
+	if ctx.IsUpgraded(upgradetypes.Eddystone) {
 		sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 		if sp.Status == sptypes.STATUS_GRACEFUL_EXITING || sp.Status == sptypes.STATUS_FORCE_EXITING {
 			return types.ErrUpdateQuotaFailed.Wrapf("The SP is in %s, bucket can not be updated", sp.Status)
@@ -905,6 +905,13 @@ func (k Keeper) DeleteObject(
 	}
 
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
+
+	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+		if spInState.Status == sptypes.STATUS_GRACEFUL_EXITING || spInState.Status == sptypes.STATUS_FORCE_EXITING {
+			return types.ErrUpdateQuotaFailed.Wrapf("The SP is in %s, object can not be deleted", spInState.Status)
+		}
+	}
+
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
 	err := k.UnChargeObjectStoreFee(ctx, spInState.Id, bucketInfo, internalBucketInfo, objectInfo)
@@ -1175,7 +1182,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 			if found {
 				if swapInInfo.TargetSpId != spInState.Id ||
 					swapInInfo.SuccessorSpId != sp.Id ||
-					uint64(ctx.BlockTime().Unix()) > swapInInfo.ExpirationTime {
+					uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
 					return errors.Wrapf(types.ErrAccessDenied, "the sp is allowed to do discontinue objects, reserved swapInfo=%s", swapInInfo.String())
 				}
 			}

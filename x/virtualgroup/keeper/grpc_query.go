@@ -129,7 +129,7 @@ func (k Keeper) SwapInInfo(goCtx context.Context, req *types.QuerySwapInInfoRequ
 	if !found {
 		return nil, types.ErrSwapInInfoNotExist
 	}
-	if uint64(ctx.BlockTime().Unix()) > swapInInfo.ExpirationTime {
+	if uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
 		return nil, types.ErrSwapInInfoExpired
 	}
 	return &types.QuerySwapInInfoResponse{

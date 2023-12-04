@@ -38,8 +38,7 @@ func (msg *MsgStorageProviderForceExit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
 	}
-	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
-	if err != nil {
+	if _, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider); err != nil {
 		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid sp address (%s)", err)
 	}
 	return nil

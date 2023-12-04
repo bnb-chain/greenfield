@@ -1001,6 +1001,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 
 func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	ctx := context.Background()
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
 
 	// 1. create SPs
 	spx := s.BaseSuite.CreateNewStorageProvider()
@@ -1008,7 +1009,16 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	// 2. SP-x creates a new family with a gvg: {[x|2,3,4,5,6,7]}
 	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(spx, 0, []uint32{2, 3, 4, 5, 6, 7}, 1)
 
-	// 3. create a proposal that put SP-x to FORCE_EXIT
+	//  User creates an object and sealed by the SP-x's GVG
+	bucketName := storagetestutil.GenRandomBucketName()
+	objectName := storagetestutil.GenRandomBucketName()
+	s.BaseSuite.CreateObject(user, spx, gvgID, bucketName, objectName)
+	objectResp, err := s.Client.HeadObject(context.Background(), &storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName, ObjectName: objectName,
+	})
+	s.Require().NoError(err)
+
+	// 3. create a proposal that puts SP-x to FORCE_EXIT
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
 	msgForceExit := virtualgroupmoduletypes.NewMsgStorageProviderForceExit(govAddr, spx.OperatorKey.GetAddr())
 
@@ -1070,9 +1080,22 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	s.Require().Equal(swapInInfo.SwapInInfo.SuccessorSpId, spy.Info.Id)
 	s.Require().Equal(swapInInfo.SwapInInfo.TargetSpId, spx.Info.Id)
 
-	// should be null
+	// object not found
 	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupId: gvgID,
+	})
+	s.Require().Error(err)
+
+	// SP-y is able to discontinue the object as a successor Primary SP
+	msgDiscontinueObject := &storagetypes.MsgDiscontinueObject{
+		Operator:   spy.GcKey.GetAddr().String(),
+		BucketName: bucketName,
+		ObjectIds:  []sdk.Uint{objectResp.ObjectInfo.Id},
+	}
+	s.SendTxBlock(spy.GcKey, msgDiscontinueObject)
+	time.Sleep(2 * time.Second)
+	_, err = s.Client.HeadObject(context.Background(), &storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName, ObjectName: objectName,
 	})
 	s.Require().Error(err)
 
