@@ -922,84 +922,6 @@ func (s *VirtualGroupTestSuite) TestSPExit2() {
 	s.Require().Error(err)
 }
 
-func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
-
-	// update the param, swapInInfo validity period is 10s
-	queryParamsResp, err := s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
-	s.Require().NoError(err)
-	updatedParams := queryParamsResp.Params
-	updatedParams.SwapInValidityPeriod = 5 // the swapInInfo will expire in 10 seconds
-	s.updateParams(updatedParams)
-
-	queryParamsResp, err = s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
-	s.Require().NoError(err)
-	s.Require().Equal(5, int(queryParamsResp.Params.SwapInValidityPeriod))
-
-	// 1. create an SP-x that wants to exit
-	spx := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP(successor) Info: %s", spx.Info.String())
-
-	// 2. create a successor SP-y,  successor SP-z
-	spy := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP(successor) Info: %s", spy.Info.String())
-	spz := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP(successor) Info: %s", spz.Info.String())
-
-	// 3 SP-x create a new family with a GVG. Family {GVG: [x|2, 3, 4, 5, 6, 7]}
-	_, familyID := s.BaseSuite.CreateGlobalVirtualGroup(spx, 0, []uint32{2, 3, 4, 5, 6, 7}, 1)
-
-	// 4. SP-x declare to exit
-	s.SendTxBlock(spx.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
-		StorageProvider: spx.OperatorKey.GetAddr().String(),
-	})
-	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
-	s.Require().NoError(err)
-	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
-
-	// 5 SP-y reserves the swap
-	msgReserveSwapIn := virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
-	s.SendTxBlock(spy.OperatorKey, msgReserveSwapIn)
-
-	// 6 query the swapInInfo onchain, show reservation is recorded onchain
-	swapInInfo, err := s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
-		GlobalVirtualGroupFamilyId: familyID,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(swapInInfo.SwapInInfo.SuccessorSpId, spy.Info.Id)
-	s.Require().Equal(swapInInfo.SwapInInfo.TargetSpId, spx.Info.Id)
-
-	// SP-z try swapIn, failes
-	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
-	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spz.OperatorKey, "already exist SP")
-
-	// 7 waits for 6 seconds, the swapIno is expired
-	time.Sleep(6 * time.Second)
-	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
-		GlobalVirtualGroupFamilyId: familyID,
-	})
-	s.Require().Error(err)
-	s.Require().ErrorContains(err, "swap in info expired")
-
-	// SP-y try to complete
-	msgCompleteSwapIn := virtualgroupmoduletypes.NewMsgCompleteSwapIn(spy.OperatorKey.GetAddr(), familyID, 0)
-	s.SendTxBlockWithExpectErrorString(msgCompleteSwapIn, spy.OperatorKey, "reserved swap expired")
-
-	// SP-y try to reserve again and it is not allowed
-	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
-	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spy.OperatorKey, "already tried to swap in but expired")
-
-	// SP-z can reserve the swap since the previous one is expired
-	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
-	s.SendTxBlock(spz.OperatorKey, msgReserveSwapIn)
-
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
-		GlobalVirtualGroupFamilyId: familyID,
-	})
-	s.Require().NoError(err)
-	s.Require().Equal(spz.Info.Id, swapInInfo.SwapInInfo.SuccessorSpId)
-	s.Require().Equal(spx.Info.Id, swapInInfo.SwapInInfo.TargetSpId)
-}
-
 func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	ctx := context.Background()
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -1061,12 +983,12 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	time.Sleep(*queryVoteParamsResp.Params.VotingPeriod + time.Second)
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(ctx, queryProposal)
 	s.Require().NoError(err)
-	s.Require().Equal(proposalRes.Proposal.Status, v1.ProposalStatus_PROPOSAL_STATUS_PASSED)
+	s.Require().Equal(v1.ProposalStatus_PROPOSAL_STATUS_PASSED, proposalRes.Proposal.Status)
 
 	// 6. SP-x status will be FORCE_EXITING
 	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
 	s.Require().NoError(err)
-	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_FORCE_EXITING)
+	s.Require().Equal(sptypes.STATUS_FORCE_EXITING, resp.StorageProvider.Status)
 
 	// 7. SP-x successor SP try swapIn family
 	msgReserveSwapIn := virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
@@ -1162,4 +1084,99 @@ func (s *VirtualGroupTestSuite) updateParams(params virtualgroupmoduletypes.Para
 	proposalRes, err := s.Client.GovQueryClientV1.Proposal(context.Background(), queryProposal)
 	s.Require().NoError(err)
 	s.Require().Equal(proposalRes.Proposal.Status, v1.ProposalStatus_PROPOSAL_STATUS_PASSED)
+}
+
+func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
+
+	// update the param, swapInInfo validity period is 10s
+	queryParamsResp, err := s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	updatedParams := queryParamsResp.Params
+	updatedParams.SwapInValidityPeriod = 10 // the swapInInfo will expire in 10 seconds
+	s.updateParams(updatedParams)
+
+	queryParamsResp, err = s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
+	s.Require().NoError(err)
+	s.Require().Equal(10, int(queryParamsResp.Params.SwapInValidityPeriod))
+
+	// 1. create an SP-x that wants to exit
+	spx := s.BaseSuite.CreateNewStorageProvider()
+	s.T().Logf("new SP(successor) Info: %s", spx.Info.String())
+
+	// 2. create a successor SP-y,  successor SP-z
+	spy := s.BaseSuite.CreateNewStorageProvider()
+	s.T().Logf("new SP(successor) Info: %s", spy.Info.String())
+	spz := s.BaseSuite.CreateNewStorageProvider()
+	s.T().Logf("new SP(successor) Info: %s", spz.Info.String())
+
+	// 3 SP-x create a new family with a GVG. Family {GVG: [x|2, 3, 4, 5, 6, 7]}
+	_, familyID := s.BaseSuite.CreateGlobalVirtualGroup(spx, 0, []uint32{2, 3, 4, 5, 6, 7}, 1)
+
+	// 4. SP-x declare to exit
+	s.SendTxBlock(spx.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
+		StorageProvider: spx.OperatorKey.GetAddr().String(),
+	})
+	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// 5 SP-y reserves the swap
+	msgReserveSwapIn := virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
+	s.SendTxBlock(spy.OperatorKey, msgReserveSwapIn)
+
+	// 6 query the swapInInfo onchain, show reservation is recorded onchain
+	swapInInfo, err := s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+		GlobalVirtualGroupFamilyId: familyID,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(swapInInfo.SwapInInfo.SuccessorSpId, spy.Info.Id)
+	s.Require().Equal(swapInInfo.SwapInInfo.TargetSpId, spx.Info.Id)
+
+	// SP-z try swapIn, failes
+	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
+	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spz.OperatorKey, "already exist SP")
+
+	// 7 waits for 11 seconds, the swapIno is expired
+	time.Sleep(11 * time.Second)
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+		GlobalVirtualGroupFamilyId: familyID,
+	})
+	s.Require().Error(err)
+	s.Require().ErrorContains(err, "swap in info expired")
+
+	// SP-y try to complete
+	msgCompleteSwapIn := virtualgroupmoduletypes.NewMsgCompleteSwapIn(spy.OperatorKey.GetAddr(), familyID, 0)
+	s.SendTxBlockWithExpectErrorString(msgCompleteSwapIn, spy.OperatorKey, "reserved swap expired")
+
+	// SP-y try to reserve again and it is not allowed
+	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
+	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spy.OperatorKey, "already tried to swap in but expired")
+
+	// SP-z can reserve the swap since the previous one is expired
+	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
+	s.SendTxBlock(spz.OperatorKey, msgReserveSwapIn)
+
+	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+		GlobalVirtualGroupFamilyId: familyID,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(spz.Info.Id, swapInInfo.SwapInInfo.SuccessorSpId)
+	s.Require().Equal(spx.Info.Id, swapInInfo.SwapInInfo.TargetSpId)
+
+	// SP-z completes the swapIn
+	msgCompleteSwapIn = virtualgroupmoduletypes.NewMsgCompleteSwapIn(spz.OperatorKey.GetAddr(), familyID, 0)
+	s.SendTxBlock(spz.OperatorKey, msgCompleteSwapIn)
+
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+		GlobalVirtualGroupFamilyId: familyID,
+	})
+	s.Require().Error(err)
+
+	// sp-x completes the exit
+	s.SendTxBlock(
+		spx.OperatorKey,
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spx.OperatorKey.GetAddr().String()},
+	)
+	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
+	s.Require().Error(err)
 }

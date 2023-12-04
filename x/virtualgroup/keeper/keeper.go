@@ -694,6 +694,7 @@ func (k Keeper) SwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32, succes
 	for _, sspID := range gvg.GetSecondarySpIds() {
 		if sspID == gvg.PrimarySpId {
 			breakRedundancy = true
+			break
 		}
 	}
 	if !breakRedundancy {
@@ -713,13 +714,13 @@ func (k Keeper) setSwapInInfo(ctx sdk.Context, key []byte, successorSPID, target
 		}
 		store.Set(key, k.cdc.MustMarshal(swapInInfo))
 	} else {
-		prevSwapInInfo := &types.SwapInInfo{}
-		k.cdc.MustUnmarshal(bz, prevSwapInInfo)
-		if curTime < prevSwapInInfo.ExpirationTime {
-			return types.ErrSwapInFailed.Wrapf("already exist SP(ID=%d) try to swap in", prevSwapInInfo.SuccessorSpId)
+		curSwapInInfo := &types.SwapInInfo{}
+		k.cdc.MustUnmarshal(bz, curSwapInInfo)
+		if curTime < curSwapInInfo.ExpirationTime {
+			return types.ErrSwapInFailed.Wrapf("already exist SP(ID=%d) try to swap in", curSwapInInfo.SuccessorSpId)
 		}
 		// override the stale swapIn info of prev successor sp
-		if prevSwapInInfo.SuccessorSpId == successorSPID {
+		if curSwapInInfo.SuccessorSpId == successorSPID {
 			return types.ErrSwapInFailed.Wrapf("already tried to swap in but expired")
 		}
 		swapInInfo := &types.SwapInInfo{

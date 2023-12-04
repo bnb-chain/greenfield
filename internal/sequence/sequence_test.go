@@ -61,8 +61,6 @@ func TestSequenceIncrementsUint256(t *testing.T) {
 		i = i.Incr()
 		assert.True(t, i.Equal(id))
 		assert.True(t, i.Equal(curId))
-		fmt.Printf("bytes len %d\n", len(id.Bytes()))
-		fmt.Print("i= ", i.Uint64(), "id=", id.Uint64(), "curID", curId.Uint64())
 	}
 }
 
