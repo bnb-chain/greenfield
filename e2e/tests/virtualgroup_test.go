@@ -1093,7 +1093,7 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 		ObjectIds:  []sdk.Uint{objectResp.ObjectInfo.Id},
 	}
 	s.SendTxBlock(spy.GcKey, msgDiscontinueObject)
-	time.Sleep(2 * time.Second)
+	time.Sleep(5 * time.Second)
 	_, err = s.Client.HeadObject(context.Background(), &storagetypes.QueryHeadObjectRequest{
 		BucketName: bucketName, ObjectName: objectName,
 	})
