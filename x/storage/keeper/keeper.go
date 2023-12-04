@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
+
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"cosmossdk.io/errors"

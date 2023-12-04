@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"math"
 	"reflect"
 	"strconv"
 	"testing"
 	"time"
+
+	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -752,7 +753,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	s.SendTxBlock(spy.OperatorKey, msgCompleteSwapIn)
 
 	// 13. query the swapInInfo should be not found onChain.
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
 	s.Require().Error(err)
@@ -794,7 +795,7 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 	s.SendTxBlock(spy.OperatorKey, msgCancelSwapIn)
 
 	// 18 query the swapInInfo not found
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupId: gvgID2,
 	})
 	s.Require().Error(err)
@@ -971,9 +972,9 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
 	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spz.OperatorKey, "already exist SP")
 
-	// 7 waits for 5 seconds, the swapIno is expired
+	// 7 waits for 6 seconds, the swapIno is expired
 	time.Sleep(6 * time.Second)
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
 	s.Require().Error(err)
@@ -1081,7 +1082,7 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	s.Require().Equal(swapInInfo.SwapInInfo.TargetSpId, spx.Info.Id)
 
 	// object not found
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupId: gvgID,
 	})
 	s.Require().Error(err)
@@ -1090,7 +1091,7 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	msgDiscontinueObject := &storagetypes.MsgDiscontinueObject{
 		Operator:   spy.GcKey.GetAddr().String(),
 		BucketName: bucketName,
-		ObjectIds:  []sdk.Uint{objectResp.ObjectInfo.Id},
+		ObjectIds:  []sdkmath.Uint{objectResp.ObjectInfo.Id},
 	}
 	s.SendTxBlock(spy.GcKey, msgDiscontinueObject)
 	time.Sleep(5 * time.Second)
@@ -1104,7 +1105,7 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	s.SendTxBlock(spy.OperatorKey, msgCompleteSwapIn)
 
 	// 9. query the swapInInfo should be not found
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
 	s.Require().Error(err)

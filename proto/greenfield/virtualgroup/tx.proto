@@ -244,6 +244,7 @@ message MsgCancelSwapIn {
 }
 
 message MsgCancelSwapInResponse {}
+
 // this line is used by starport scaffolding # proto/tx/message
 message MsgStorageProviderForceExit {
   option (cosmos.msg.v1.signer) = "authority";

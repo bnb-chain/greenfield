@@ -597,7 +597,7 @@ func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.Ms
 	}
 	maxSPExitingNum := k.SpConcurrentExitNum(ctx)
 	if exittingSPNum >= maxSPExitingNum {
-		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("%d SP exiting, allow %d sp exit concurrently, s: %s", exittingSPNum, maxSPExitingNum)
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("%d SP are exiting, allow %d sp exit concurrently", exittingSPNum, maxSPExitingNum)
 	}
 
 	// Governance can put an SP into force exiting status no matter what status it is in.

@@ -99,10 +99,10 @@ message AvailableGlobalVirtualGroupFamiliesResponse {
 }
 
 message QuerySwapInInfoRequest {
-  uint32 global_virtual_group_family_id  = 1;
-  uint32 global_virtual_group_id  = 2;
+  uint32 global_virtual_group_family_id = 1;
+  uint32 global_virtual_group_id = 2;
 }
 
 message QuerySwapInInfoResponse {
-    SwapInInfo swap_in_info = 1;
+  SwapInInfo swap_in_info = 1;
 }
