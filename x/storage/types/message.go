@@ -57,7 +57,8 @@ const (
 
 	MaxGroupMemberLimitOnce = 20
 	MaxTagCount             = 4
-	MaxTagKeyValueLength    = 24
+	MaxTagKeyLength         = 32
+	MaxTagValueLength       = 64
 
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
@@ -211,10 +212,10 @@ func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
 		}
 		if len(msg.Tags.GetTags()) > 0 {
 			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyValueLength {
+				if len(tag.GetKey()) > MaxTagKeyLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 				}
-				if len(tag.GetValue()) > MaxTagKeyValueLength {
+				if len(tag.GetValue()) > MaxTagValueLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 				}
 			}
@@ -441,10 +442,10 @@ func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
 		}
 		if len(msg.Tags.GetTags()) > 0 {
 			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyValueLength {
+				if len(tag.GetKey()) > MaxTagKeyLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 				}
-				if len(tag.GetValue()) > MaxTagKeyValueLength {
+				if len(tag.GetValue()) > MaxTagValueLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 				}
 			}
@@ -993,10 +994,10 @@ func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
 		}
 		if len(msg.Tags.GetTags()) > 0 {
 			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyValueLength {
+				if len(tag.GetKey()) > MaxTagKeyLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 				}
-				if len(tag.GetValue()) > MaxTagKeyValueLength {
+				if len(tag.GetValue()) > MaxTagValueLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 				}
 			}
@@ -1710,10 +1711,10 @@ func (msg *MsgSetTag) ValidateBasic() error {
 	}
 	if len(msg.Tags.GetTags()) > 0 {
 		for _, tag := range msg.Tags.GetTags() {
-			if len(tag.GetKey()) > MaxTagKeyValueLength {
+			if len(tag.GetKey()) > MaxTagKeyLength {
 				return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 			}
-			if len(tag.GetValue()) > MaxTagKeyValueLength {
+			if len(tag.GetValue()) > MaxTagValueLength {
 				return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 			}
 		}
