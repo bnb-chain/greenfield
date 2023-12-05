@@ -42,6 +42,19 @@ func TestVirtualGroupTestSuite(t *testing.T) {
 	suite.Run(t, new(VirtualGroupTestSuite))
 }
 
+func (s *VirtualGroupTestSuite) getSecondarySPIDs(primarySPID uint32) []uint32 {
+	var secondarySPIDs []uint32
+	for _, ssp := range s.StorageProviders {
+		if ssp.Info.Id != primarySPID {
+			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
+		}
+		if len(secondarySPIDs) == 6 {
+			break
+		}
+	}
+	return secondarySPIDs
+}
+
 func (s *VirtualGroupTestSuite) queryGlobalVirtualGroup(gvgID uint32) *virtualgroupmoduletypes.GlobalVirtualGroup {
 	resp, err := s.Client.GlobalVirtualGroup(
 		context.Background(),
@@ -50,7 +63,7 @@ func (s *VirtualGroupTestSuite) queryGlobalVirtualGroup(gvgID uint32) *virtualgr
 	return resp.GlobalVirtualGroup
 }
 
-func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupByFamily(familyID uint32) []*virtualgroupmoduletypes.GlobalVirtualGroup {
+func (s *VirtualGroupTestSuite) queryGlobalVirtualGroupsByFamily(familyID uint32) []*virtualgroupmoduletypes.GlobalVirtualGroup {
 	s.T().Logf("familyID: %d", familyID)
 	resp, err := s.Client.GlobalVirtualGroupByFamilyID(
 		context.Background(),
@@ -93,17 +106,12 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	availableGvgFamilyIds := s.queryAvailableGlobalVirtualGroupFamilies([]uint32{gvg.FamilyId})
 	s.Require().Equal(availableGvgFamilyIds[0], gvg.FamilyId)
 
-	srcGVGs := s.queryGlobalVirtualGroupByFamily(gvg.FamilyId)
+	srcGVGs := s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
 
-	var secondarySPIDs []uint32
-	for _, ssp := range s.StorageProviders {
-		if ssp.Info.Id != primarySP.Info.Id {
-			secondarySPIDs = append(secondarySPIDs, ssp.Info.Id)
-		}
-	}
+	secondarySPIDs := s.getSecondarySPIDs(primarySP.Info.Id)
 	s.BaseSuite.CreateGlobalVirtualGroup(primarySP, gvg.FamilyId, secondarySPIDs, 1)
 
-	gvgs = s.queryGlobalVirtualGroupByFamily(gvg.FamilyId)
+	gvgs = s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
 	s.Require().Equal(len(gvgs), len(srcGVGs)+1)
 
 	oldGVGIDs := make(map[uint32]bool)
@@ -159,7 +167,7 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	}
 	s.SendTxBlock(primarySP.OperatorKey, &msgDeleteGVG)
 
-	newGVGs := s.queryGlobalVirtualGroupByFamily(newGVG.FamilyId)
+	newGVGs := s.queryGlobalVirtualGroupsByFamily(newGVG.FamilyId)
 
 	for _, gvg := range newGVGs {
 		if gvg.Id == newGVG.Id {
@@ -203,6 +211,26 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	}
 	s.SendTxBlockWithExpectErrorString(&msgCreateGVG, primarySP.OperatorKey, virtualgroupmoduletypes.ErrDuplicateSecondarySP.Error())
 
+	// test create a duplicated GVG in a family
+	secondarySPIDs = s.getSecondarySPIDs(primarySP.Info.Id)
+	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(primarySP, 0, secondarySPIDs, 1)
+	gvgResp, err := s.Client.VirtualGroupQueryClient.GlobalVirtualGroup(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{
+		GlobalVirtualGroupId: gvgID,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(secondarySPIDs, gvgResp.GlobalVirtualGroup.SecondarySpIds)
+	s.Require().Equal(familyID, gvgResp.GlobalVirtualGroup.FamilyId)
+
+	msgCreateGVG = virtualgroupmoduletypes.MsgCreateGlobalVirtualGroup{
+		StorageProvider: primarySP.OperatorKey.GetAddr().String(),
+		FamilyId:        familyID,
+		SecondarySpIds:  secondarySPIDs,
+		Deposit: sdk.Coin{
+			Denom:  s.Config.Denom,
+			Amount: types.NewIntFromInt64WithDecimal(1, types.DecimalBNB),
+		},
+	}
+	s.SendTxBlockWithExpectErrorString(&msgCreateGVG, primarySP.OperatorKey, virtualgroupmoduletypes.ErrDuplicateGVG.Error())
 }
 
 func (s *VirtualGroupTestSuite) TestSettle() {
@@ -678,4 +706,59 @@ CheckProposalStatus:
 	} else {
 		s.T().Errorf("update params failed")
 	}
+}
+
+func (s *VirtualGroupTestSuite) TestEmptyGlobalVirtualGroupFamily() {
+	primarySP := s.BaseSuite.PickStorageProvider()
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	secondarySPIDs := s.getSecondarySPIDs(primarySP.Info.Id)
+
+	// The Sp creates a family which has 1 GVG.
+	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(primarySP, 0, secondarySPIDs, 1)
+	gvgs := s.queryGlobalVirtualGroupsByFamily(familyID)
+	s.Require().Equal(1, len(gvgs))
+
+	// a User creates an object served by this GVG
+	bucketName := storagetestutil.GenRandomBucketName()
+	objectName := storagetestutil.GenRandomObjectName()
+	s.BaseSuite.CreateObject(user, primarySP, gvgID, bucketName, objectName)
+
+	// The User deletes the object
+	s.SendTxBlock(user, storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName))
+
+	// object isn't found onchain
+	_, err := s.Client.HeadObject(context.Background(), &storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	})
+	s.Require().Error(err)
+
+	// The SP deletes the GVG
+	msgDeleteGVG := virtualgroupmoduletypes.MsgDeleteGlobalVirtualGroup{
+		StorageProvider:      primarySP.OperatorKey.GetAddr().String(),
+		GlobalVirtualGroupId: gvgID,
+	}
+	s.SendTxBlock(primarySP.OperatorKey, &msgDeleteGVG)
+	_, err = s.Client.GlobalVirtualGroup(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupRequest{GlobalVirtualGroupId: gvgID})
+	s.Require().Error(err)
+
+	// The bucket onchain still shows the family info, and the family is indeed exist
+	bucket, err := s.Client.HeadBucket(context.Background(), &storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(familyID, bucket.BucketInfo.GlobalVirtualGroupFamilyId)
+
+	family, err := s.Client.GlobalVirtualGroupFamily(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupFamilyRequest{
+		FamilyId: bucket.BucketInfo.GlobalVirtualGroupFamilyId,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(0, len(family.GlobalVirtualGroupFamily.GlobalVirtualGroupIds))
+
+	//the SP can create new GVG on this empty family
+	newGVGID, _ := s.BaseSuite.CreateGlobalVirtualGroup(primarySP, familyID, secondarySPIDs, 1)
+	gvgs = s.queryGlobalVirtualGroupsByFamily(familyID)
+	s.Require().Equal(1, len(gvgs))
+	s.Require().Equal(gvgs[0].Id, newGVGID)
 }
