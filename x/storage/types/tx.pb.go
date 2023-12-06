@@ -3477,7 +3477,7 @@ type MsgClient interface {
 	CompleteMigrateBucket(ctx context.Context, in *MsgCompleteMigrateBucket, opts ...grpc.CallOption) (*MsgCompleteMigrateBucketResponse, error)
 	CancelMigrateBucket(ctx context.Context, in *MsgCancelMigrateBucket, opts ...grpc.CallOption) (*MsgCancelMigrateBucketResponse, error)
 	RejectMigrateBucket(ctx context.Context, in *MsgRejectMigrateBucket, opts ...grpc.CallOption) (*MsgRejectMigrateBucketResponse, error)
-	// Since: Eddystone upgrade
+	// Since: Manchurian upgrade
 	SetTag(ctx context.Context, in *MsgSetTag, opts ...grpc.CallOption) (*MsgSetTagResponse, error)
 }
 
@@ -3785,7 +3785,7 @@ type MsgServer interface {
 	CompleteMigrateBucket(context.Context, *MsgCompleteMigrateBucket) (*MsgCompleteMigrateBucketResponse, error)
 	CancelMigrateBucket(context.Context, *MsgCancelMigrateBucket) (*MsgCancelMigrateBucketResponse, error)
 	RejectMigrateBucket(context.Context, *MsgRejectMigrateBucket) (*MsgRejectMigrateBucketResponse, error)
-	// Since: Eddystone upgrade
+	// Since: Manchurian upgrade
 	SetTag(context.Context, *MsgSetTag) (*MsgSetTagResponse, error)
 }
 

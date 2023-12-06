@@ -59,7 +59,7 @@ service Msg {
   rpc CancelMigrateBucket(MsgCancelMigrateBucket) returns (MsgCancelMigrateBucketResponse);
   rpc RejectMigrateBucket(MsgRejectMigrateBucket) returns (MsgRejectMigrateBucketResponse);
 
-  // Since: Eddystone upgrade
+  // Since: Manchurian upgrade
   rpc SetTag(MsgSetTag) returns (MsgSetTagResponse);
 }
 

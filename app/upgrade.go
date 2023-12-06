@@ -23,7 +23,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	// Register the upgrade handlers here
 	app.registerNagquUpgradeHandler()
 	app.registerPampasUpgradeHandler()
-	app.registerEddystoneUpgradeHandler()
+	app.registerManchurianUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -107,9 +107,9 @@ func (app *App) registerPampasUpgradeHandler() {
 		})
 }
 
-func (app *App) registerEddystoneUpgradeHandler() {
+func (app *App) registerManchurianUpgradeHandler() {
 	// Register the upgrade handler
-	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Eddystone,
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Manchurian,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
 
@@ -121,9 +121,9 @@ func (app *App) registerEddystoneUpgradeHandler() {
 		})
 
 	// Register the upgrade initializer
-	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Eddystone,
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Manchurian,
 		func() error {
-			app.Logger().Info("Init Eddystone upgrade")
+			app.Logger().Info("Init Manchurian upgrade")
 
 			return nil
 		})
