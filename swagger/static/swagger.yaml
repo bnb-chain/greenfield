@@ -6152,11 +6152,97 @@ paths:
                       format: byte
       tags:
         - Query
+  /greenfield/virtualgroup/sp_gvg_statistics:
+    get:
+      summary: >-
+        SwapInInfo gets reserved swapIn info for a specific global virtual group
+        family or global virtual group
+      operationId: GVGStatistics
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              gvg_stats:
+                type: object
+                properties:
+                  storage_provider_id:
+                    type: integer
+                    format: int64
+                    title: >-
+                      storage_provider_id defines the id of the sp which the
+                      statistics associated to
+                  primary_count:
+                    type: integer
+                    format: int64
+                    title: >-
+                      primary_count defines the number of global virtual groups
+                      (GVGs) which this sp serves as primary sp
+                  secondary_count:
+                    type: integer
+                    format: int64
+                    description: >-
+                      secondary_count defines the number of global virtual
+                      groups (GVGs) in
+
+                      which this storage provider serves as a secondary storage
+                      provider.
+                  break_redundancy_reqmt_gvg_count:
+                    type: integer
+                    format: int64
+                    title: >-
+                      Redundancy defines the number of gvg that sp serves as sp
+                      and secondary sp, which breaks the data redundancy
+                      requirement.
+
+                      In most case, this should not happen,
+
+                      during sp exit, a successor sp might need to swapIn GVG(s)
+                      that it is already a secondary and become the primary SP
+
+                      of whole family.
+
+                      a successor sp which need to swapIn a GVG as secondary
+                      must be unique to all other SP. So this will not be used
+                      for
+
+                      swapIn individual GVG as secondary
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: sp_id
+          in: query
+          required: false
+          type: integer
+          format: int64
+      tags:
+        - Query
   /greenfield/virtualgroup/swap_in_info:
     get:
       summary: >-
-        AvailableGlobalVirtualGroupFamilies filters a list of
-        GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+        SwapInInfo gets reserved swapIn info for a specific global virtual group
+        family or global virtual group
       operationId: SwapInInfo
       responses:
         '200':
@@ -36347,6 +36433,45 @@ definitions:
         items:
           type: integer
           format: int64
+  greenfield.virtualgroup.GVGStatisticsWithinSP:
+    type: object
+    properties:
+      storage_provider_id:
+        type: integer
+        format: int64
+        title: >-
+          storage_provider_id defines the id of the sp which the statistics
+          associated to
+      primary_count:
+        type: integer
+        format: int64
+        title: >-
+          primary_count defines the number of global virtual groups (GVGs) which
+          this sp serves as primary sp
+      secondary_count:
+        type: integer
+        format: int64
+        description: |-
+          secondary_count defines the number of global virtual groups (GVGs) in
+          which this storage provider serves as a secondary storage provider.
+      break_redundancy_reqmt_gvg_count:
+        type: integer
+        format: int64
+        title: >-
+          Redundancy defines the number of gvg that sp serves as sp and
+          secondary sp, which breaks the data redundancy requirement.
+
+          In most case, this should not happen,
+
+          during sp exit, a successor sp might need to swapIn GVG(s) that it is
+          already a secondary and become the primary SP
+
+          of whole family.
+
+          a successor sp which need to swapIn a GVG as secondary must be unique
+          to all other SP. So this will not be used for
+
+          swapIn individual GVG as secondary
   greenfield.virtualgroup.GlobalVirtualGroupFamily:
     type: object
     properties:
@@ -36657,6 +36782,51 @@ definitions:
               sp_concurrent_exit_num defines the number of sp allowed for exit
               concurrently.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
+  greenfield.virtualgroup.QuerySPGVGStatisticsResponse:
+    type: object
+    properties:
+      gvg_stats:
+        type: object
+        properties:
+          storage_provider_id:
+            type: integer
+            format: int64
+            title: >-
+              storage_provider_id defines the id of the sp which the statistics
+              associated to
+          primary_count:
+            type: integer
+            format: int64
+            title: >-
+              primary_count defines the number of global virtual groups (GVGs)
+              which this sp serves as primary sp
+          secondary_count:
+            type: integer
+            format: int64
+            description: >-
+              secondary_count defines the number of global virtual groups (GVGs)
+              in
+
+              which this storage provider serves as a secondary storage
+              provider.
+          break_redundancy_reqmt_gvg_count:
+            type: integer
+            format: int64
+            title: >-
+              Redundancy defines the number of gvg that sp serves as sp and
+              secondary sp, which breaks the data redundancy requirement.
+
+              In most case, this should not happen,
+
+              during sp exit, a successor sp might need to swapIn GVG(s) that it
+              is already a secondary and become the primary SP
+
+              of whole family.
+
+              a successor sp which need to swapIn a GVG as secondary must be
+              unique to all other SP. So this will not be used for
+
+              swapIn individual GVG as secondary
   greenfield.virtualgroup.QuerySwapInInfoResponse:
     type: object
     properties:

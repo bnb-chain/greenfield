@@ -42,9 +42,14 @@ service Query {
     option (google.api.http).get = "/greenfield/virtualgroup/available_global_virtual_group_families";
   }
 
-  // AvailableGlobalVirtualGroupFamilies filters a list of GlobalVirtualGroupFamilies ID which are qualified to create bucket on
+  // SwapInInfo gets reserved swapIn info for a specific global virtual group family or global virtual group
   rpc SwapInInfo(QuerySwapInInfoRequest) returns (QuerySwapInInfoResponse) {
     option (google.api.http).get = "/greenfield/virtualgroup/swap_in_info";
+  }
+
+  // GVGStatistics gets gvg statistics for a SP
+  rpc GVGStatistics(QuerySPGVGStatisticsRequest) returns (QuerySPGVGStatisticsResponse) {
+    option (google.api.http).get = "/greenfield/virtualgroup/sp_gvg_statistics";
   }
 }
 
@@ -105,4 +110,12 @@ message QuerySwapInInfoRequest {
 
 message QuerySwapInInfoResponse {
   SwapInInfo swap_in_info = 1;
+}
+
+message QuerySPGVGStatisticsRequest {
+  uint32 sp_id = 1;
+}
+
+message QuerySPGVGStatisticsResponse {
+  GVGStatisticsWithinSP gvg_stats = 1;
 }

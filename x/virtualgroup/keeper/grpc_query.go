@@ -153,3 +153,18 @@ func (k Keeper) GetSwapInInfo(ctx sdk.Context, globalVirtualGroupFamilyId, globa
 	k.cdc.MustUnmarshal(bz, swapInInfo)
 	return swapInInfo, true
 }
+
+func (k Keeper) GVGStatistics(goCtx context.Context, req *types.QuerySPGVGStatisticsRequest) (*types.QuerySPGVGStatisticsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	stats, found := k.GetGVGStatisticsWithinSP(ctx, req.GetSpId())
+	if !found {
+		return nil, types.ErrGVGStatisticsNotExist
+	}
+	return &types.QuerySPGVGStatisticsResponse{
+		GvgStats: stats,
+	}, nil
+}
