@@ -105,7 +105,7 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, err
 	}
 
-	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+	if ctx.IsUpgraded(upgradetypes.Manchurian) {
 		for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
 			gvg, found := k.GetGVG(ctx, gvgID)
 			if !found {
