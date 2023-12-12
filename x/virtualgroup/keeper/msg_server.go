@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -479,45 +480,63 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types.MsgCompleteStorageProviderExit) (*types.MsgCompleteStorageProviderExitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
 
-	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	operator, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
-	if sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
+	exitSPAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+
+	exitSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, exitSPAddr)
+	if !found {
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address of SP is not found")
+	}
+
+	if exitSP.Status != sptypes.STATUS_GRACEFUL_EXITING && exitSP.Status != sptypes.STATUS_FORCE_EXITING {
 		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
-			"sp(id : %d, operator address: %s) not in the process of exiting", sp.Id, sp.OperatorAddress)
+			"sp(id : %d, operator address: %s) not in the process of exiting", exitSP.Id, exitSP.OperatorAddress)
 	}
 
-	err := k.StorageProviderExitable(ctx, sp.Id)
+	err := k.StorageProviderExitable(ctx, exitSP.Id)
 	if err != nil {
 		return nil, err
 	}
 
-	// send back the total deposit
-	coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), sp.TotalDeposit))
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, sptypes.ModuleName, sdk.MustAccAddressFromHex(sp.FundingAddress), coins)
-	if err != nil {
-		return nil, err
+	var forcedExit bool
+	if exitSP.Status == sptypes.STATUS_GRACEFUL_EXITING {
+		// send back the total deposit
+		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), exitSP.TotalDeposit))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, sptypes.ModuleName, sdk.MustAccAddressFromHex(exitSP.FundingAddress), coins)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		forcedExit = true
+		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), exitSP.TotalDeposit))
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, sptypes.ModuleName, paymenttypes.ModuleName, coins)
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	err = k.spKeeper.Exit(ctx, sp)
+	err = k.spKeeper.Exit(ctx, exitSP)
 	if err != nil {
 		return nil, err
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
-		StorageProviderId: sp.Id,
-		OperatorAddress:   sp.OperatorAddress,
-		TotalDeposit:      sp.TotalDeposit,
+		StorageProviderId:      exitSP.Id,
+		OperatorAddress:        operator.OperatorAddress,
+		StorageProviderAddress: exitSP.OperatorAddress,
+		TotalDeposit:           exitSP.TotalDeposit,
+		ForcedExit:             forcedExit,
 	}); err != nil {
 		return nil, err
 	}
 	return &types.MsgCompleteStorageProviderExitResponse{}, nil
 }
 
-func (k msgServer) SwapIn(goCtx context.Context, msg *types.MsgReserveSwapIn) (*types.MsgReserveSwapInResponse, error) {
+func (k msgServer) ReserveSwapIn(goCtx context.Context, msg *types.MsgReserveSwapIn) (*types.MsgReserveSwapInResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 	successorSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)

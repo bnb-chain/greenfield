@@ -876,7 +876,7 @@ type QueryClient interface {
 	AvailableGlobalVirtualGroupFamilies(ctx context.Context, in *AvailableGlobalVirtualGroupFamiliesRequest, opts ...grpc.CallOption) (*AvailableGlobalVirtualGroupFamiliesResponse, error)
 	// SwapInInfo gets reserved swapIn info for a specific global virtual group family or global virtual group
 	SwapInInfo(ctx context.Context, in *QuerySwapInInfoRequest, opts ...grpc.CallOption) (*QuerySwapInInfoResponse, error)
-	// SwapInInfo gets reserved swapIn info for a specific global virtual group family or global virtual group
+	// GVGStatistics gets gvg statistics for a SP
 	GVGStatistics(ctx context.Context, in *QuerySPGVGStatisticsRequest, opts ...grpc.CallOption) (*QuerySPGVGStatisticsResponse, error)
 }
 
@@ -976,7 +976,7 @@ type QueryServer interface {
 	AvailableGlobalVirtualGroupFamilies(context.Context, *AvailableGlobalVirtualGroupFamiliesRequest) (*AvailableGlobalVirtualGroupFamiliesResponse, error)
 	// SwapInInfo gets reserved swapIn info for a specific global virtual group family or global virtual group
 	SwapInInfo(context.Context, *QuerySwapInInfoRequest) (*QuerySwapInInfoResponse, error)
-	// SwapInInfo gets reserved swapIn info for a specific global virtual group family or global virtual group
+	// GVGStatistics gets gvg statistics for a SP
 	GVGStatistics(context.Context, *QuerySPGVGStatisticsRequest) (*QuerySPGVGStatisticsResponse, error)
 }
 

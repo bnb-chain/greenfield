@@ -6154,9 +6154,7 @@ paths:
         - Query
   /greenfield/virtualgroup/sp_gvg_statistics:
     get:
-      summary: >-
-        SwapInInfo gets reserved swapIn info for a specific global virtual group
-        family or global virtual group
+      summary: GVGStatistics gets gvg statistics for a SP
       operationId: GVGStatistics
       responses:
         '200':
