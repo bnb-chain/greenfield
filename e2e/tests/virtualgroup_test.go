@@ -714,7 +714,9 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 
 	// 7. SP-x complete exit, it would fail due to there are family and GVG binded to it.
 	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spx.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
+			Operator:        spx.OperatorKey.GetAddr().String(),
+			StorageProvider: spx.OperatorKey.GetAddr().String()},
 		spx.OperatorKey,
 		"not swap out from all the family")
 
@@ -772,7 +774,9 @@ func (s *VirtualGroupTestSuite) TestSPExit() {
 
 	// 15. SP-x tries to complete exit, but would fail, since SP-2 has a GVG that includes SP-x [2|x,3,4,5,6,7]
 	s.SendTxBlockWithExpectErrorString(
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spx.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
+			Operator:        spx.OperatorKey.GetAddr().String(),
+			StorageProvider: spx.OperatorKey.GetAddr().String()},
 		spx.OperatorKey,
 		"not swap out from all the gvgs")
 
@@ -870,7 +874,9 @@ func (s *VirtualGroupTestSuite) TestSPExit2() {
 	// 6. SP-x now can complete the exit, since it has only 1 family and it has been taken by SP-y
 	s.SendTxBlock(
 		spx.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spx.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
+			Operator:        spx.OperatorKey.GetAddr().String(),
+			StorageProvider: spx.OperatorKey.GetAddr().String()},
 	)
 	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
 	s.Require().Error(err)
@@ -913,10 +919,12 @@ func (s *VirtualGroupTestSuite) TestSPExit2() {
 	s.Require().Equal(familyID, gvgAfterSwapIn.GlobalVirtualGroup.FamilyId)
 	s.Require().Equal([]uint32{spz.Info.Id, 3, 4, 5, 6, 7}, gvgAfterSwapIn.GlobalVirtualGroup.SecondarySpIds)
 
-	// 11 SP-y complete the exit
+	// 11 SP-y complete the exit by sp-z
 	s.SendTxBlock(
 		spy.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spy.OperatorKey.GetAddr().String()},
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
+			Operator:        spz.OperatorKey.GetAddr().String(),
+			StorageProvider: spy.OperatorKey.GetAddr().String()},
 	)
 	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spy.Info.Id})
 	s.Require().Error(err)
@@ -1037,6 +1045,14 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	s.Require().Equal(spy.Info.Id, gvgAfterSwapIn.GlobalVirtualGroup.PrimarySpId)
 	s.Require().Equal(familyID, gvgAfterSwapIn.GlobalVirtualGroup.FamilyId)
 	s.Require().Equal([]uint32{2, 3, 4, 5, 6, 7}, gvgAfterSwapIn.GlobalVirtualGroup.SecondarySpIds)
+
+	// 11 SP-y help complete the exit
+	s.SendTxBlock(
+		spy.OperatorKey,
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{Operator: spy.OperatorKey.GetAddr().String(), StorageProvider: spx.OperatorKey.GetAddr().String()},
+	)
+	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spy.Info.Id})
+	s.Require().Error(err)
 }
 
 func (s *VirtualGroupTestSuite) updateParams(params virtualgroupmoduletypes.Params) {

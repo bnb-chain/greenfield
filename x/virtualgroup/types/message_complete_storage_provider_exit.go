@@ -38,9 +38,14 @@ func (msg *MsgCompleteStorageProviderExit) GetSignBytes() []byte {
 }
 
 func (msg *MsgCompleteStorageProviderExit) ValidateBasic() error {
-	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+
+	_, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
 	if err != nil {
-		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid creator address (%s)", err)
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid operator address (%s)", err)
+	}
+	_, err = sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		return errors.Wrapf(sdkerrors.ErrInvalidAddress, "invalid storage provider address (%s)", err)
 	}
 	return nil
 }
