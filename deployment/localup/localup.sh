@@ -173,7 +173,7 @@ function generate_genesis() {
         sed -i -e "s/log_level = \"info\"/\log_level= \"debug\"/g" ${workspace}/.local/validator${i}/config/config.toml
         echo -e '[[upgrade]]\nname = "Nagqu"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
         echo -e '[[upgrade]]\nname = "Pampas"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
-        echo -e '[[upgrade]]\nname = "Eddystone"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
+        echo -e '[[upgrade]]\nname = "Manchurian"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
         echo -e '[[upgrade]]\nname = "Hulunbeier"\nheight = 20\ninfo = ""' >> ${workspace}/.local/validator${i}/config/app.toml
     done
 

@@ -1,4 +1,19 @@
 # Changelog
+## v1.2.0
+This release introduces the Manchurian upgrade to the testnet.
+
+Features:
+* [#525](https://github.com/bnb-chain/greenfield/pull/525) feat: introduce the Eddystone upgrade
+* [#526](https://github.com/bnb-chain/greenfield/pull/526) feat: add new msg MsgSetTag
+
+Chore:
+* [#527](https://github.com/bnb-chain/greenfield/pull/527) chore: cleanup legacy annotation
+* [#535](https://github.com/bnb-chain/greenfield/pull/535) chore: update fields of EventSetTag
+* [#536](https://github.com/bnb-chain/greenfield/pull/536) chore: change max length limit of resource tags key value
+
+Bugfixes:
+* [#532](https://github.com/bnb-chain/greenfield/pull/532) fix: restrict on creating GVG and allow empty family
+* [#522](https://github.com/bnb-chain/greenfield/pull/522) fix: bucket status causing event emitted
 
 ## v1.1.1
 This release introduces the Pampas upgrade to the mainnet.

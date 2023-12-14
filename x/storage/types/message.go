@@ -57,7 +57,8 @@ const (
 
 	MaxGroupMemberLimitOnce = 20
 	MaxTagCount             = 4
-	MaxTagKeyValueLength    = 24
+	MaxTagKeyLength         = 32
+	MaxTagValueLength       = 64
 
 	// For discontinue
 	MaxDiscontinueReasonLen = 128
@@ -120,7 +121,7 @@ func NewMsgCreateBucket(
 }
 
 // NewMsgCreateBucketWithTags creates a new MsgCreateBucket instance with tags.
-// Since: Eddystone upgrade
+// Since: Manchurian upgrade
 func NewMsgCreateBucketWithTags(
 	creator sdk.AccAddress, bucketName string, Visibility VisibilityType, primarySPAddress, paymentAddress sdk.AccAddress,
 	timeoutHeight uint64, sig []byte, chargedReadQuota uint64, tags ResourceTags,
@@ -205,16 +206,16 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 }
 
 func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+	if ctx.IsUpgraded(upgradetypes.Manchurian) {
 		if len(msg.Tags.GetTags()) > MaxTagCount {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
 		}
 		if len(msg.Tags.GetTags()) > 0 {
 			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyValueLength {
+				if len(tag.GetKey()) > MaxTagKeyLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 				}
-				if len(tag.GetValue()) > MaxTagKeyValueLength {
+				if len(tag.GetValue()) > MaxTagValueLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 				}
 			}
@@ -352,7 +353,7 @@ func NewMsgCreateObject(
 }
 
 // NewMsgCreateObjectWithTags creates a new MsgCreateObject instance with tags.
-// Since: Eddystone upgrade
+// Since: Manchurian upgrade
 func NewMsgCreateObjectWithTags(
 	creator sdk.AccAddress, bucketName, objectName string, payloadSize uint64, Visibility VisibilityType,
 	expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
@@ -435,16 +436,16 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 }
 
 func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+	if ctx.IsUpgraded(upgradetypes.Manchurian) {
 		if len(msg.Tags.GetTags()) > MaxTagCount {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
 		}
 		if len(msg.Tags.GetTags()) > 0 {
 			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyValueLength {
+				if len(tag.GetKey()) > MaxTagKeyLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 				}
-				if len(tag.GetValue()) > MaxTagKeyValueLength {
+				if len(tag.GetValue()) > MaxTagValueLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 				}
 			}
@@ -987,16 +988,16 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 }
 
 func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+	if ctx.IsUpgraded(upgradetypes.Manchurian) {
 		if len(msg.Tags.GetTags()) > MaxTagCount {
 			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
 		}
 		if len(msg.Tags.GetTags()) > 0 {
 			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyValueLength {
+				if len(tag.GetKey()) > MaxTagKeyLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 				}
-				if len(tag.GetValue()) > MaxTagKeyValueLength {
+				if len(tag.GetValue()) > MaxTagValueLength {
 					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 				}
 			}
@@ -1710,10 +1711,10 @@ func (msg *MsgSetTag) ValidateBasic() error {
 	}
 	if len(msg.Tags.GetTags()) > 0 {
 		for _, tag := range msg.Tags.GetTags() {
-			if len(tag.GetKey()) > MaxTagKeyValueLength {
+			if len(tag.GetKey()) > MaxTagKeyLength {
 				return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
 			}
-			if len(tag.GetValue()) > MaxTagKeyValueLength {
+			if len(tag.GetValue()) > MaxTagValueLength {
 				return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
 			}
 		}

@@ -23,7 +23,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	// Register the upgrade handlers here
 	app.registerNagquUpgradeHandler()
 	app.registerPampasUpgradeHandler()
-	app.registerEddystoneUpgradeHandler()
+	app.registerManchurianUpgradeHandler()
 	app.registerHulunbeierUpgradeHandler()
 
 	// app.register...()
@@ -94,6 +94,7 @@ func (app *App) registerPampasUpgradeHandler() {
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgMigrateBucket")
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgCancelMigrateBucket")
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgCompleteMigrateBucket")
+
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
@@ -108,22 +109,23 @@ func (app *App) registerPampasUpgradeHandler() {
 		})
 }
 
-func (app *App) registerEddystoneUpgradeHandler() {
+func (app *App) registerManchurianUpgradeHandler() {
 	// Register the upgrade handler
-	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Eddystone,
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Manchurian,
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
 
 			typeUrl := sdk.MsgTypeURL(&storagemoduletypes.MsgSetTag{})
 			msgSetTagGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1.2e3)
 			app.GashubKeeper.SetMsgGasParams(ctx, *msgSetTagGasParams)
+
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
 
 	// Register the upgrade initializer
-	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Eddystone,
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Manchurian,
 		func() error {
-			app.Logger().Info("Init Eddystone upgrade")
+			app.Logger().Info("Init Manchurian upgrade")
 
 			return nil
 		})
