@@ -27,6 +27,6 @@ message Params {
   uint64 max_store_size_per_family = 5;
   // the validity period that a successor SP can reserve to complete the swap for Global virtual group/family
   uint64 swap_in_validity_period = 6;
-  // sp_concurrent_exit_num defines the number of sp allowed for exit concurrently.
+  // the the number of sp allowed to exit concurrently.
   uint32 sp_concurrent_exit_num = 7;
 }

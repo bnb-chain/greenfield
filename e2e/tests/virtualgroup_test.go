@@ -996,7 +996,7 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 	// 6. SP-x status will be FORCE_EXITING
 	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
 	s.Require().NoError(err)
-	s.Require().Equal(sptypes.STATUS_FORCE_EXITING, resp.StorageProvider.Status)
+	s.Require().Equal(sptypes.STATUS_FORCED_EXITING, resp.StorageProvider.Status)
 
 	// 7. SP-x successor SP try swapIn family
 	msgReserveSwapIn := virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)

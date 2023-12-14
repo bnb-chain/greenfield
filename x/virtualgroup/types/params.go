@@ -91,7 +91,7 @@ func (p Params) Validate() error {
 	if err := validateSwapInValidityPeriod(p.SwapInValidityPeriod); err != nil {
 		return err
 	}
-	if err := validateSwapInValidityPeriod(p.SwapInValidityPeriod); err != nil {
+	if err := validateSPConcurrentExitNum(p.SpConcurrentExitNum); err != nil {
 		return err
 	}
 

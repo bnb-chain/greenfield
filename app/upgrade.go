@@ -24,6 +24,8 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerNagquUpgradeHandler()
 	app.registerPampasUpgradeHandler()
 	app.registerEddystoneUpgradeHandler()
+	app.registerHulunbeierUpgradeHandler()
+
 	// app.register...()
 	// ...
 	return nil
@@ -115,8 +117,24 @@ func (app *App) registerEddystoneUpgradeHandler() {
 			typeUrl := sdk.MsgTypeURL(&storagemoduletypes.MsgSetTag{})
 			msgSetTagGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1.2e3)
 			app.GashubKeeper.SetMsgGasParams(ctx, *msgSetTagGasParams)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
 
-			// TODO use a new harfork
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Eddystone,
+		func() error {
+			app.Logger().Info("Init Eddystone upgrade")
+
+			return nil
+		})
+}
+
+func (app *App) registerHulunbeierUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Hulunbeier,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgReserveSwapIn", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCancelSwapIn", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteSwapIn", 1.2e3))
@@ -129,9 +147,9 @@ func (app *App) registerEddystoneUpgradeHandler() {
 		})
 
 	// Register the upgrade initializer
-	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Eddystone,
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Hulunbeier,
 		func() error {
-			app.Logger().Info("Init Eddystone upgrade")
+			app.Logger().Info("Init Hulunbeier upgrade")
 
 			return nil
 		})

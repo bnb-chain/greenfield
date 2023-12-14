@@ -652,7 +652,7 @@ func (k Keeper) SwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32, succes
 	curTime := uint64(ctx.BlockTime().Unix())
 	// swapIn a family, the target sp needs to be exiting status if swapIn the family's as primary SP.
 	if gvgFamilyID != types.NoSpecifiedFamilyId {
-		if targetSP.Status != sptypes.STATUS_GRACEFUL_EXITING && targetSP.Status != sptypes.STATUS_FORCE_EXITING {
+		if targetSP.Status != sptypes.STATUS_GRACEFUL_EXITING && targetSP.Status != sptypes.STATUS_FORCED_EXITING {
 			return sptypes.ErrStorageProviderWrongStatus.Wrapf("The target sp is not exiting, can not be swapped")
 		}
 		family, found := k.GetGVGFamily(ctx, gvgFamilyID)
@@ -686,7 +686,7 @@ func (k Keeper) SwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32, succes
 	}
 
 	// swap into GVG when there is a secondary SP is exiting.
-	if targetSP.Status == sptypes.STATUS_GRACEFUL_EXITING || targetSP.Status == sptypes.STATUS_FORCE_EXITING {
+	if targetSP.Status == sptypes.STATUS_GRACEFUL_EXITING || targetSP.Status == sptypes.STATUS_FORCED_EXITING {
 		return k.setSwapInInfo(ctx, types.GetSwapInGVGKey(gvgID), successorSPID, targetSP.Id, curTime)
 	}
 	// swap into GVG that not fulfil redundancy requirement. e.g. [1|2,3,4,5,6,1]
@@ -849,7 +849,7 @@ func (k Keeper) completeSwapInFamily(ctx sdk.Context, successorSP, targetPrimary
 		// swap deposit
 		if !gvg.TotalDeposit.IsZero() {
 			coins := sdk.NewCoins(sdk.NewCoin(k.DepositDenomForGVG(ctx), gvg.TotalDeposit))
-			err := k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromHex(targetPrimarySP.FundingAddress), sdk.MustAccAddressFromHex(successorSP.FundingAddress), coins)
+			err := k.bankKeeper.SendCoins(ctx, sdk.MustAccAddressFromHex(successorSP.FundingAddress), sdk.MustAccAddressFromHex(targetPrimarySP.FundingAddress), coins)
 			if err != nil {
 				return err
 			}
@@ -872,16 +872,16 @@ func (k Keeper) completeSwapInFamily(ctx sdk.Context, successorSP, targetPrimary
 	// settlement
 	err := k.SettleAndDistributeGVGFamily(ctx, targetPrimarySP, family)
 	if err != nil {
-		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG family %d", familyID)
+		return types.ErrSwapInFailed.Wrapf("fail to settle GVG family %d", familyID)
 	}
 
 	if err := k.SetGVGFamilyAndEmitUpdateEvent(ctx, family); err != nil {
-		return types.ErrSwapOutFailed.Wrapf("failed to set gvg family and emit update event, err: %s", err)
+		return types.ErrSwapInFailed.Wrapf("failed to set gvg family and emit update event, err: %s", err)
 	}
 
 	for _, gvg := range gvgs {
 		if err := k.SetGVGAndEmitUpdateEvent(ctx, gvg); err != nil {
-			return types.ErrSwapOutFailed.Wrapf("failed to set gvg and emit update event, err: %s", err)
+			return types.ErrSwapInFailed.Wrapf("failed to set gvg and emit update event, err: %s", err)
 		}
 	}
 	k.SetGVGStatisticsWithSP(ctx, srcStat)

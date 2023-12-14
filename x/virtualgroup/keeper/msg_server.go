@@ -444,26 +444,27 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("sp not in service, status: %s", sp.Status.String())
 	}
 
-	stat, found := k.GetGVGStatisticsWithinSP(ctx, sp.Id)
-	if found && stat.BreakRedundancyReqmtGvgCount != 0 {
-		return nil, types.ErrSPCanNotExit.Wrapf("The SP has %d GVG that break the redundancy requirement, need to be resolved before exit.", stat.BreakRedundancyReqmtGvgCount)
-	}
+	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
+		stat, found := k.GetGVGStatisticsWithinSP(ctx, sp.Id)
+		if found && stat.BreakRedundancyReqmtGvgCount != 0 {
+			return nil, types.ErrSPCanNotExit.Wrapf("The SP has %d GVG that break the redundancy requirement, need to be resolved before exit.", stat.BreakRedundancyReqmtGvgCount)
+		}
 
-	// can only allow 1 sp exit at a time, a GVG can have only 1 SwapInInfo associated.
-	exittingSPNum := uint32(0)
-	sps := k.spKeeper.GetAllStorageProviders(ctx)
-	for _, curSP := range sps {
-		// TODO Remove FORCE_EXIT SP info from chain
-		if curSP.Status == sptypes.STATUS_GRACEFUL_EXITING ||
-			curSP.Status == sptypes.STATUS_FORCE_EXITING {
-			exittingSPNum++
+		// can only allow 1 sp exit at a time, a GVG can have only 1 SwapInInfo associated.
+		exitingSPNum := uint32(0)
+		sps := k.spKeeper.GetAllStorageProviders(ctx)
+		maxSPExitingNum := k.SpConcurrentExitNum(ctx)
+
+		for _, curSP := range sps {
+			if curSP.Status == sptypes.STATUS_GRACEFUL_EXITING ||
+				curSP.Status == sptypes.STATUS_FORCED_EXITING {
+				exitingSPNum++
+				if exitingSPNum >= maxSPExitingNum {
+					return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("There are %d SP exiting, only allow %d sp exit concurrently", exitingSPNum, maxSPExitingNum)
+				}
+			}
 		}
 	}
-	maxSPExitingNum := k.SpConcurrentExitNum(ctx)
-	if exittingSPNum >= maxSPExitingNum {
-		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("There are %d SP exiting, only allow %d sp exit concurrently", exittingSPNum, maxSPExitingNum)
-	}
-
 	sp.Status = sptypes.STATUS_GRACEFUL_EXITING
 
 	k.spKeeper.SetStorageProvider(ctx, sp)
@@ -480,23 +481,33 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types.MsgCompleteStorageProviderExit) (*types.MsgCompleteStorageProviderExitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 
-	operator, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
-	exitSPAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	var exitSP *sptypes.StorageProvider
 
-	exitSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, exitSPAddr)
-	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address of SP is not found")
-	}
+	isHulunbeierUpgrade := ctx.IsUpgraded(upgradetypes.Hulunbeier)
+	if !isHulunbeierUpgrade {
+		exitSP = sp
+	} else {
+		exitSPAddr, err := sdk.AccAddressFromHexUnsafe(msg.ExitStorageProvider)
+		if err != nil {
+			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("Invalid address of SP")
+		}
 
-	if exitSP.Status != sptypes.STATUS_GRACEFUL_EXITING && exitSP.Status != sptypes.STATUS_FORCE_EXITING {
-		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
-			"sp(id : %d, operator address: %s) not in the process of exiting", exitSP.Id, exitSP.OperatorAddress)
+		exitSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, exitSPAddr)
+		if !found {
+			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address of SP is not found")
+		}
+
+		if exitSP.Status != sptypes.STATUS_GRACEFUL_EXITING && exitSP.Status != sptypes.STATUS_FORCED_EXITING {
+			return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
+				"sp(id : %d, operator address: %s) is not exiting", exitSP.Id, exitSP.OperatorAddress)
+		}
 	}
 
 	err := k.StorageProviderExitable(ctx, exitSP.Id)
@@ -525,11 +536,11 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 		return nil, err
 	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
-		StorageProviderId:      exitSP.Id,
-		OperatorAddress:        operator.OperatorAddress,
-		StorageProviderAddress: exitSP.OperatorAddress,
-		TotalDeposit:           exitSP.TotalDeposit,
-		ForcedExit:             forcedExit,
+		StorageProviderId:          exitSP.Id,
+		OperatorAddress:            sp.OperatorAddress,
+		ExitStorageProviderAddress: exitSP.OperatorAddress,
+		TotalDeposit:               exitSP.TotalDeposit,
+		ForcedExit:                 forcedExit,
 	}); err != nil {
 		return nil, err
 	}
@@ -610,7 +621,7 @@ func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.Ms
 	sps := k.spKeeper.GetAllStorageProviders(ctx)
 	for _, curSP := range sps {
 		if curSP.Status == sptypes.STATUS_GRACEFUL_EXITING ||
-			curSP.Status == sptypes.STATUS_FORCE_EXITING {
+			curSP.Status == sptypes.STATUS_FORCED_EXITING {
 			exittingSPNum++
 		}
 	}
@@ -620,7 +631,7 @@ func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.Ms
 	}
 
 	// Governance can put an SP into force exiting status no matter what status it is in.
-	sp.Status = sptypes.STATUS_FORCE_EXITING
+	sp.Status = sptypes.STATUS_FORCED_EXITING
 	k.spKeeper.SetStorageProvider(ctx, sp)
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventStorageProviderForceExit{
 		StorageProviderId: sp.Id,

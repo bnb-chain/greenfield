@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -24,8 +25,11 @@ func (k msgServer) Submit(goCtx context.Context, msg *types.MsgSubmit) (*types.M
 		return nil, types.ErrUnknownBucketObject
 	}
 	sp := k.StorageKeeper.MustGetPrimarySPForBucket(ctx, bucketInfo)
+
 	if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
-		return nil, types.ErrInvalidSpStatus
+		if !ctx.IsUpgraded(upgradetypes.Hulunbeier) || sp.Status != sptypes.STATUS_FORCED_EXITING {
+			return nil, types.ErrInvalidSpStatus
+		}
 	}
 
 	// check object & read needed data

@@ -379,10 +379,9 @@ func (k Keeper) UpdateBucketInfo(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrSourceTypeMismatch
 	}
 
-	//TODO rename the  harfork
-	if ctx.IsUpgraded(upgradetypes.Eddystone) {
+	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
 		sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
-		if sp.Status == sptypes.STATUS_GRACEFUL_EXITING || sp.Status == sptypes.STATUS_FORCE_EXITING {
+		if sp.Status == sptypes.STATUS_GRACEFUL_EXITING || sp.Status == sptypes.STATUS_FORCED_EXITING {
 			return types.ErrUpdateQuotaFailed.Wrapf("The SP is in %s, bucket can not be updated", sp.Status)
 		}
 	}
@@ -907,8 +906,8 @@ func (k Keeper) DeleteObject(
 
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 
-	if ctx.IsUpgraded(upgradetypes.Eddystone) {
-		if spInState.Status == sptypes.STATUS_GRACEFUL_EXITING || spInState.Status == sptypes.STATUS_FORCE_EXITING {
+	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
+		if spInState.Status == sptypes.STATUS_GRACEFUL_EXITING || spInState.Status == sptypes.STATUS_FORCED_EXITING {
 			return types.ErrUpdateQuotaFailed.Wrapf("The SP is in %s, object can not be deleted", spInState.Status)
 		}
 	}
@@ -1178,17 +1177,12 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 
 	if sp.Id != spInState.Id {
-		if ctx.IsUpgraded(upgradetypes.Eddystone) {
-			swapInInfo, found := k.virtualGroupKeeper.GetSwapInInfo(ctx, bucketInfo.GlobalVirtualGroupFamilyId, virtualgroupmoduletypes.NoSpecifiedGVGId)
-			if found {
-				if swapInInfo.TargetSpId != spInState.Id ||
-					swapInInfo.SuccessorSpId != sp.Id ||
-					uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
-					return errors.Wrapf(types.ErrAccessDenied, "the sp is allowed to do discontinue objects, reserved swapInfo=%s", swapInInfo.String())
-				}
-			}
-		} else {
+		if !ctx.IsUpgraded(upgradetypes.Hulunbeier) {
 			return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
+		}
+		swapInInfo, found := k.virtualGroupKeeper.GetSwapInInfo(ctx, bucketInfo.GlobalVirtualGroupFamilyId, virtualgroupmoduletypes.NoSpecifiedGVGId)
+		if !found || swapInInfo.TargetSpId != spInState.Id || swapInInfo.SuccessorSpId != sp.Id || uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
+			return errors.Wrapf(types.ErrAccessDenied, "the sp is allowed to do discontinue objects")
 		}
 	}
 

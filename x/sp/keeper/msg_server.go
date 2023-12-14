@@ -424,7 +424,7 @@ func (k msgServer) UpdateSpStatus(goCtx context.Context, msg *types.MsgUpdateSto
 			return nil, types.ErrStorageProviderStatusUpdateNotAllow
 		}
 		k.UpdateToInService(ctx, sp)
-	case types.STATUS_IN_JAILED, types.STATUS_GRACEFUL_EXITING:
+	case types.STATUS_IN_JAILED, types.STATUS_GRACEFUL_EXITING, types.STATUS_FORCED_EXITING:
 		return nil, types.ErrStorageProviderStatusUpdateNotAllow
 	}
 	k.SetStorageProvider(ctx, sp)
