@@ -2,6 +2,7 @@ package challenge
 
 import (
 	"fmt"
+
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"

@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"cosmossdk.io/errors"

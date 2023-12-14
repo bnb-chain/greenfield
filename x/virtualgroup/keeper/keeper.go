@@ -708,31 +708,26 @@ func (k Keeper) SwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32, succes
 
 func (k Keeper) setSwapInInfo(ctx sdk.Context, key []byte, successorSPID, targetSPID uint32, curTime uint64) error {
 	store := ctx.KVStore(k.storeKey)
+	swapInInfo := &types.SwapInInfo{
+		SuccessorSpId:  successorSPID,
+		TargetSpId:     targetSPID,
+		ExpirationTime: curTime + k.SwapInValidityPeriod(ctx),
+	}
 	bz := store.Get(key)
 	if bz == nil {
-		swapInInfo := &types.SwapInInfo{
-			SuccessorSpId:  successorSPID,
-			TargetSpId:     targetSPID,
-			ExpirationTime: curTime + k.SwapInValidityPeriod(ctx),
-		}
 		store.Set(key, k.cdc.MustMarshal(swapInInfo))
-	} else {
-		curSwapInInfo := &types.SwapInInfo{}
-		k.cdc.MustUnmarshal(bz, curSwapInInfo)
-		if curTime < curSwapInInfo.ExpirationTime {
-			return types.ErrSwapInFailed.Wrapf("already exist SP(ID=%d) try to swap in", curSwapInInfo.SuccessorSpId)
-		}
-		// override the stale swapIn info of prev successor sp
-		if curSwapInInfo.SuccessorSpId == successorSPID {
-			return types.ErrSwapInFailed.Wrapf("already tried to swap in but expired")
-		}
-		swapInInfo := &types.SwapInInfo{
-			SuccessorSpId:  successorSPID,
-			TargetSpId:     targetSPID,
-			ExpirationTime: curTime + k.SwapInValidityPeriod(ctx),
-		}
-		store.Set(key, k.cdc.MustMarshal(swapInInfo))
+		return nil
 	}
+	curSwapInInfo := &types.SwapInInfo{}
+	k.cdc.MustUnmarshal(bz, curSwapInInfo)
+	if curTime < curSwapInInfo.ExpirationTime {
+		return types.ErrSwapInFailed.Wrapf("already exist SP(ID=%d) try to swap in", curSwapInInfo.SuccessorSpId)
+	}
+	// override the stale swapIn info of prev successor sp
+	if curSwapInInfo.SuccessorSpId == successorSPID {
+		return types.ErrSwapInFailed.Wrapf("already tried to swap in but expired")
+	}
+	store.Set(key, k.cdc.MustMarshal(swapInInfo))
 	return nil
 }
 
@@ -740,28 +735,27 @@ func (k Keeper) DeleteSwapInInfo(ctx sdk.Context, gvgFamilyID, gvgID uint32, suc
 	store := ctx.KVStore(k.storeKey)
 
 	swapInInfo := types.SwapInInfo{}
+	deleteSwapInfo := func(key []byte) error {
+		bz := store.Get(key)
+		if bz == nil {
+			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		}
+		k.cdc.MustUnmarshal(bz, &swapInInfo)
+		if swapInInfo.SuccessorSpId != successorSPID {
+			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapInInfo", successorSPID, swapInInfo.SuccessorSpId)
+		}
+		store.Delete(key)
+		return nil
+	}
+
 	if gvgFamilyID != types.NoSpecifiedFamilyId {
-		key := types.GetSwapInFamilyKey(gvgFamilyID)
-		bz := store.Get(key)
-		if bz == nil {
-			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		if err := deleteSwapInfo(types.GetSwapInFamilyKey(gvgFamilyID)); err != nil {
+			return err
 		}
-		k.cdc.MustUnmarshal(bz, &swapInInfo)
-		if swapInInfo.SuccessorSpId != successorSPID {
-			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapInInfo", successorSPID, swapInInfo.SuccessorSpId)
-		}
-		store.Delete(key)
 	} else {
-		key := types.GetSwapInGVGKey(gvgID)
-		bz := store.Get(key)
-		if bz == nil {
-			return types.ErrSwapInFailed.Wrapf("The swap info not found in blockchain.")
+		if err := deleteSwapInfo(types.GetSwapInGVGKey(gvgID)); err != nil {
+			return err
 		}
-		k.cdc.MustUnmarshal(bz, &swapInInfo)
-		if swapInInfo.SuccessorSpId != successorSPID {
-			return sptypes.ErrStorageProviderNotFound.Wrapf("spID(%d) is different from the spID(%d) in swapInInfo", successorSPID, swapInInfo.SuccessorSpId)
-		}
-		store.Delete(key)
 	}
 
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelSwapIn{

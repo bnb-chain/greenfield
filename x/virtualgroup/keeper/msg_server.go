@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"context"
-	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 
 	sdkerrors "cosmossdk.io/errors"
 	"cosmossdk.io/math"
@@ -516,7 +515,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("Invalid address of SP")
 		}
 
-		exitSP, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, exitSPAddr)
+		exitSP, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, exitSPAddr)
 		if !found {
 			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address of SP is not found")
 		}
@@ -543,7 +542,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 	} else {
 		forcedExit = true
 		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), exitSP.TotalDeposit))
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, sptypes.ModuleName, paymenttypes.ModuleName, coins)
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, sptypes.ModuleName, govtypes.ModuleName, coins)
 		if err != nil {
 			return nil, err
 		}
@@ -631,20 +630,20 @@ func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.Ms
 
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The SP with operator address %s must not found", msg.StorageProvider)
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The SP with operator address %s not found", msg.StorageProvider)
 	}
 
-	exittingSPNum := uint32(0)
+	exitingSPNum := uint32(0)
+	maxSPExitingNum := k.SpConcurrentExitNum(ctx)
 	sps := k.spKeeper.GetAllStorageProviders(ctx)
 	for _, curSP := range sps {
 		if curSP.Status == sptypes.STATUS_GRACEFUL_EXITING ||
 			curSP.Status == sptypes.STATUS_FORCED_EXITING {
-			exittingSPNum++
+			exitingSPNum++
+			if exitingSPNum >= maxSPExitingNum {
+				return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("%d SP are exiting, allow %d sp exit concurrently", exitingSPNum, maxSPExitingNum)
+			}
 		}
-	}
-	maxSPExitingNum := k.SpConcurrentExitNum(ctx)
-	if exittingSPNum >= maxSPExitingNum {
-		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf("%d SP are exiting, allow %d sp exit concurrently", exittingSPNum, maxSPExitingNum)
 	}
 
 	// Governance can put an SP into force exiting status no matter what status it is in.
