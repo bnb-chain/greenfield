@@ -4,6 +4,7 @@ import (
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	gashubtypes "github.com/cosmos/cosmos-sdk/x/gashub/types"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	bridgemoduletypes "github.com/bnb-chain/greenfield/x/bridge/types"
@@ -22,6 +23,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	// Register the upgrade handlers here
 	app.registerNagquUpgradeHandler()
 	app.registerPampasUpgradeHandler()
+	app.registerManchurianUpgradeHandler()
 	// app.register...()
 	// ...
 	return nil
@@ -101,6 +103,28 @@ func (app *App) registerPampasUpgradeHandler() {
 
 			// enable chain id for opbnb
 			app.CrossChainKeeper.SetDestOpChainID(sdk.ChainID(app.appConfig.CrossChain.DestOpChainId))
+			return nil
+		})
+}
+
+func (app *App) registerManchurianUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Manchurian,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+
+			typeUrl := sdk.MsgTypeURL(&storagemoduletypes.MsgSetTag{})
+			msgSetTagGasParams := gashubtypes.NewMsgGasParamsWithFixedGas(typeUrl, 1.2e3)
+			app.GashubKeeper.SetMsgGasParams(ctx, *msgSetTagGasParams)
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Manchurian,
+		func() error {
+			app.Logger().Info("Init Manchurian upgrade")
+
 			return nil
 		})
 }

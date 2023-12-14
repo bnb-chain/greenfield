@@ -15,8 +15,11 @@ import (
 
 	"github.com/bnb-chain/greenfield/internal/sequence"
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
+	types2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
+	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/types/resource"
+	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
@@ -136,6 +139,7 @@ func (k Keeper) CreateBucket(
 		ChargedReadQuota:           opts.ChargedReadQuota,
 		PaymentAddress:             paymentAcc.String(),
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
+		Tags:                       opts.Tags,
 	}
 
 	internalBucketInfo := types.InternalBucketInfo{PriceTime: ctx.BlockTime().Unix()}
@@ -170,6 +174,7 @@ func (k Keeper) CreateBucket(
 		PaymentAddress:             bucketInfo.PaymentAddress,
 		PrimarySpId:                sp.Id,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
+		Tags:                       bucketInfo.Tags,
 	}); err != nil {
 		return sdkmath.Uint{}, err
 	}
@@ -469,7 +474,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	if count+1 > max {
 		return types.ErrNoMoreDiscontinue.Wrapf("no more buckets can be requested in this window")
 	}
-
+	previousStatus := bucketInfo.BucketStatus
 	bucketInfo.BucketStatus = types.BUCKET_STATUS_DISCONTINUED
 
 	store := ctx.KVStore(k.storeKey)
@@ -481,7 +486,7 @@ func (k Keeper) DiscontinueBucket(ctx sdk.Context, operator sdk.AccAddress, buck
 	k.appendDiscontinueBucketIds(ctx, deleteAt, []sdkmath.Uint{bucketInfo.Id})
 	k.SetDiscontinueBucketCount(ctx, operator, count+1)
 
-	if bucketInfo.BucketStatus == types.BUCKET_STATUS_MIGRATING {
+	if previousStatus == types.BUCKET_STATUS_MIGRATING {
 		if err := ctx.EventManager().EmitTypedEvents(&types.EventCancelMigrationBucket{
 			Operator:   operator.String(),
 			BucketName: bucketInfo.BucketName,
@@ -536,8 +541,8 @@ func (k Keeper) GetBucketInfoById(ctx sdk.Context, bucketId sdkmath.Uint) (*type
 }
 
 func (k Keeper) CreateObject(
-	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string,
-	payloadSize uint64, opts types.CreateObjectOptions,
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, payloadSize uint64,
+	opts types.CreateObjectOptions,
 ) (sdkmath.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
 
@@ -613,6 +618,7 @@ func (k Keeper) CreateObject(
 		RedundancyType: opts.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      opts.Checksums,
+		Tags:           opts.Tags,
 	}
 
 	if objectInfo.PayloadSize == 0 {
@@ -652,6 +658,7 @@ func (k Keeper) CreateObject(
 		SourceType:          objectInfo.SourceType,
 		Checksums:           objectInfo.Checksums,
 		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
+		Tags:                opts.Tags,
 	}); err != nil {
 		return objectInfo.Id, err
 	}
@@ -1252,6 +1259,7 @@ func (k Keeper) CreateGroup(
 		Id:         k.GenNextGroupId(ctx),
 		GroupName:  groupName,
 		Extra:      opts.Extra,
+		Tags:       opts.Tags,
 	}
 
 	// Can not create a group with the same name.
@@ -1270,6 +1278,7 @@ func (k Keeper) CreateGroup(
 		GroupId:    groupInfo.Id,
 		SourceType: groupInfo.SourceType,
 		Extra:      opts.Extra,
+		Tags:       opts.Tags,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}
@@ -2198,4 +2207,80 @@ func (k Keeper) GetSourceTypeByChainId(ctx sdk.Context, chainId sdk.ChainID) (ty
 	}
 
 	return 0, types.ErrChainNotSupported
+}
+
+func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN, tags *types.ResourceTags) error {
+	store := ctx.KVStore(k.storeKey)
+
+	switch grn.ResourceType() {
+	case gnfdresource.RESOURCE_TYPE_BUCKET:
+		bucketName, grnErr := grn.GetBucketName()
+		if grnErr != nil {
+			return grnErr
+		}
+		bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+		if !found {
+			return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+		}
+		resOwner := sdk.MustAccAddressFromHex(bucketInfo.Owner)
+		if !operator.Equals(resOwner) {
+			return types.ErrAccessDenied.Wrapf(
+				"Only resource owner can set tag, operator (%s), owner(%s)",
+				operator.String(), resOwner.String())
+		}
+
+		bucketInfo.Tags = tags
+		bz := k.cdc.MustMarshal(bucketInfo)
+		store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
+	case gnfdresource.RESOURCE_TYPE_OBJECT:
+		bucketName, objectName, grnErr := grn.GetBucketAndObjectName()
+		if grnErr != nil {
+			return grnErr
+		}
+		objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+		if !found {
+			return types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
+		}
+		resOwner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+		if !operator.Equals(resOwner) {
+			return types.ErrAccessDenied.Wrapf(
+				"Only resource owner can set tag, operator (%s), owner(%s)",
+				operator.String(), resOwner.String())
+		}
+
+		objectInfo.Tags = tags
+		obz := k.cdc.MustMarshal(objectInfo)
+		store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+	case gnfdresource.RESOURCE_TYPE_GROUP:
+		groupOwner, groupName, grnErr := grn.GetGroupOwnerAndAccount()
+		if grnErr != nil {
+			return grnErr
+		}
+		groupInfo, found := k.GetGroupInfo(ctx, groupOwner, groupName)
+		if !found {
+			return types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
+		}
+		resOwner := sdk.MustAccAddressFromHex(groupInfo.Owner)
+		if !operator.Equals(resOwner) {
+			return types.ErrAccessDenied.Wrapf(
+				"Only resource owner can set tag, operator (%s), owner(%s)",
+				operator.String(), resOwner.String())
+		}
+
+		groupInfo.Tags = tags
+		gbz := k.cdc.MustMarshal(groupInfo)
+		store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
+	default:
+		return gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
+	}
+
+	// emit Event
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventSetTag{
+		Resource: grn.String(),
+		Tags:     tags,
+	}); err != nil {
+		return err
+	}
+
+	return nil
 }

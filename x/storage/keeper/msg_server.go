@@ -45,6 +45,7 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		PrimarySpApproval: msg.PrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
+		Tags:              &msg.Tags,
 	})
 	if err != nil {
 		return nil, err
@@ -121,6 +122,7 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		Checksums:         msg.ExpectChecksums,
 		PrimarySpApproval: msg.PrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
+		Tags:              &msg.Tags,
 	})
 	if err != nil {
 		return nil, err
@@ -153,7 +155,6 @@ func (k msgServer) SealObject(goCtx context.Context, msg *types.MsgSealObject) (
 		GlobalVirtualGroupId:     msg.GlobalVirtualGroupId,
 		SecondarySpBlsSignatures: msg.SecondarySpBlsAggSignatures,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -189,7 +190,6 @@ func (k msgServer) DeleteObject(goCtx context.Context, msg *types.MsgDeleteObjec
 	err := k.Keeper.DeleteObject(ctx, operatorAcc, msg.BucketName, msg.ObjectName, storagetypes.DeleteObjectOptions{
 		SourceType: types.SOURCE_TYPE_ORIGIN,
 	})
-
 	if err != nil {
 		return nil, err
 	}
@@ -234,7 +234,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra})
+	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra, Tags: &msg.Tags})
 	if err != nil {
 		return nil, err
 	}
@@ -384,7 +384,6 @@ func (k msgServer) PutPolicy(goCtx context.Context, msg *types.MsgPutPolicy) (*t
 		return nil, err
 	}
 	return &types.MsgPutPolicyResponse{PolicyId: policyID}, nil
-
 }
 
 func (k msgServer) DeletePolicy(goCtx context.Context, msg *types.MsgDeletePolicy) (*types.MsgDeletePolicyResponse, error) {
@@ -693,6 +692,23 @@ func (k msgServer) RejectMigrateBucket(goCtx context.Context, msg *storagetypes.
 	}
 
 	return &types.MsgRejectMigrateBucketResponse{}, nil
+}
+
+func (k msgServer) SetTag(goCtx context.Context, msg *types.MsgSetTag) (*types.MsgSetTagResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAddr := sdk.MustAccAddressFromHex(msg.Operator)
+
+	var grn types2.GRN
+	err := grn.ParseFromString(msg.Resource, true)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := k.Keeper.SetTag(ctx, operatorAddr, grn, msg.Tags); err != nil {
+		return nil, err
+	}
+	return &types.MsgSetTagResponse{}, nil
 }
 
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {

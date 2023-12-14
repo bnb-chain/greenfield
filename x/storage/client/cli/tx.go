@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/bnb-chain/greenfield/types/common"
-
 	cmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -19,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
+	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
@@ -67,7 +66,10 @@ func GetTxCmd() *cobra.Command {
 		CmdPutPolicy(),
 		CmdDeletePolicy(),
 	)
-	// this line is used by starport scaffolding # 1
+
+	cmd.AddCommand(
+		CmdSetTag(),
+	)
 
 	return cmd
 }
@@ -115,6 +117,9 @@ func CmdCreateBucket() *cobra.Command {
 			approveSignature, _ := cmd.Flags().GetString(FlagApproveSignature)
 			approveTimeoutHeight, _ := cmd.Flags().GetUint64(FlagApproveTimeoutHeight)
 
+			tagsStr, _ := cmd.Flags().GetString(FlagTags)
+			tags := GetTags(tagsStr)
+
 			approveSignatureBytes, err := hex.DecodeString(approveSignature)
 			if err != nil {
 				return err
@@ -129,6 +134,10 @@ func CmdCreateBucket() *cobra.Command {
 				approveSignatureBytes,
 				chargedReadQuota,
 			)
+			if tags != nil {
+				msg.Tags = *tags
+			}
+
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -141,6 +150,7 @@ func CmdCreateBucket() *cobra.Command {
 	cmd.Flags().AddFlagSet(FlagSetApproval())
 	cmd.Flags().String(FlagPaymentAccount, "", "The address of the account used to pay for the read fee. The default is the sender account.")
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
+	cmd.Flags().String(FlagTags, "", "The tags of the resource. It should be like: `key1=value1,key2=value2`")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -285,6 +295,8 @@ func CmdCreateObject() *cobra.Command {
 			redundancyTypeFlag, _ := cmd.Flags().GetString(FlagRedundancyType)
 			approveSignature, _ := cmd.Flags().GetString(FlagApproveSignature)
 			approveTimeoutHeight, _ := cmd.Flags().GetUint64(FlagApproveTimeoutHeight)
+			tagsStr, _ := cmd.Flags().GetString(FlagTags)
+			tags := GetTags(tagsStr)
 
 			approveSignatureBytes, err := hex.DecodeString(approveSignature)
 			if err != nil {
@@ -325,6 +337,9 @@ func CmdCreateObject() *cobra.Command {
 				approveTimeoutHeight,
 				approveSignatureBytes,
 			)
+			if tags != nil {
+				msg.Tags = *tags
+			}
 
 			if err := msg.ValidateBasic(); err != nil {
 				return err
@@ -333,12 +348,14 @@ func CmdCreateObject() *cobra.Command {
 		},
 	}
 
-	flags.AddTxFlagsToCmd(cmd)
 	cmd.Flags().AddFlagSet(FlagSetVisibility())
 	cmd.Flags().AddFlagSet(FlagSetApproval())
 	cmd.Flags().String(FlagPrimarySP, "", "The operator account address of primarySp")
 	cmd.Flags().String(FlagExpectChecksums, "", "The checksums that calculate by redundancy algorithm")
 	cmd.Flags().String(FlagRedundancyType, "", "The redundancy type, EC or Replica ")
+	cmd.Flags().String(FlagTags, "", "The tags of the resource. It should be like: `key1=value1,key2=value2`")
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -514,18 +531,25 @@ func CmdCreateGroup() *cobra.Command {
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			argGroupName := args[0]
-			extra, _ := cmd.Flags().GetString(FlagExtra)
 
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
 
+			extra, _ := cmd.Flags().GetString(FlagExtra)
+			tagsStr, _ := cmd.Flags().GetString(FlagTags)
+			tags := GetTags(tagsStr)
+
 			msg := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
 				extra,
 			)
+			if tags != nil {
+				msg.Tags = *tags
+			}
+
 			if err := msg.ValidateBasic(); err != nil {
 				return err
 			}
@@ -534,6 +558,7 @@ func CmdCreateGroup() *cobra.Command {
 	}
 
 	cmd.Flags().String(FlagExtra, "", "extra info for the group")
+	cmd.Flags().String(FlagTags, "", "The tags of the resource. It should be like: `key1=value1,key2=value2`")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd
@@ -1111,6 +1136,36 @@ func CmdMirrorGroup() *cobra.Command {
 	cmd.Flags().String(FlagGroupId, "", "Id of the group to mirror")
 	cmd.Flags().String(FlagGroupName, "", "Name of the group to mirror")
 	cmd.Flags().String(FlagDestChainId, "", "the destination chain id")
+	flags.AddTxFlagsToCmd(cmd)
+
+	return cmd
+}
+
+func CmdSetTag() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "set-tag [grn]",
+		Short: "set a bucket/object/group's tag.",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) (err error) {
+			argResource := args[0]
+
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			tagsStr, _ := cmd.Flags().GetString(FlagTags)
+			tags := GetTags(tagsStr)
+
+			msg := types.NewMsgSetTag(clientCtx.GetFromAddress(), argResource, tags)
+			if err := msg.ValidateBasic(); err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+
+	cmd.Flags().String(FlagTags, "", "The tags of the resource. It should be like: `key1=value1,key2=value2`")
 	flags.AddTxFlagsToCmd(cmd)
 
 	return cmd

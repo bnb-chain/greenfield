@@ -9,8 +9,6 @@ import "google/api/annotations.proto";
 import "greenfield/challenge/params.proto";
 import "greenfield/challenge/types.proto";
 
-// this line is used by starport scaffolding # 1
-
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 
 // Query defines the gRPC querier service.
@@ -31,8 +29,6 @@ service Query {
   rpc InturnAttestationSubmitter(QueryInturnAttestationSubmitterRequest) returns (QueryInturnAttestationSubmitterResponse) {
     option (google.api.http).get = "/greenfield/challenge/inturn_attestation_submitter";
   }
-
-  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -77,5 +73,3 @@ message SubmitInterval {
   uint64 start = 1;
   uint64 end = 2;
 }
-
-// this line is used by starport scaffolding # 3

@@ -113,6 +113,15 @@ func (suite *AnteTestSuite) TestAnteHandler() {
 			}, true, false, true,
 		},
 		{
+			"success - DeliverTx EIP712 signed Cosmos Tx MsgCreateBucket",
+			func() sdk.Tx {
+				gas := uint64(16e3)
+				fee := sdk.NewCoins(sdk.NewCoin(test.TEST_TOKEN_NAME, sdk.NewIntFromUint64(gas)))
+				txBuilder := suite.CreateTestEIP712TxBuilderMsgCreateBucket(addr, privKey, test.TEST_CHAIN_ID, gas, fee)
+				return txBuilder.GetTx()
+			}, true, false, true,
+		},
+		{
 			"fails - DeliverTx legacy msg MsgSubmitProposal v1beta",
 			func() sdk.Tx {
 				gas := uint64(2000000000)

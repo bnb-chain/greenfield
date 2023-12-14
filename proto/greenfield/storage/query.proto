@@ -12,8 +12,6 @@ import "greenfield/storage/params.proto";
 import "greenfield/storage/types.proto";
 import "greenfield/virtualgroup/types.proto";
 
-// this line is used by starport scaffolding # 1
-
 option go_package = "github.com/bnb-chain/greenfield/x/storage/types";
 
 // Query defines the gRPC querier service.
@@ -147,8 +145,6 @@ service Query {
   rpc QueryGroupsExistById(QueryGroupsExistByIdRequest) returns (QueryGroupsExistResponse) {
     option (google.api.http).get = "/greenfield/storage/groups_exist_by_id/{group_ids}";
   }
-
-  // this line is used by starport scaffolding # 2
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -406,5 +402,3 @@ message QueryGroupsExistByIdRequest {
 message QueryGroupsExistResponse {
   map<string, bool> exists = 1;
 }
-
-// this line is used by starport scaffolding # 3

@@ -2607,6 +2607,20 @@ paths:
                       - BUCKET_STATUS_DISCONTINUED
                       - BUCKET_STATUS_MIGRATING
                     default: BUCKET_STATUS_CREATED
+                  tags:
+                    title: tags defines a list of tags the bucket has
+                    type: object
+                    properties:
+                      tags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                        title: tags defines a list of tags the resource has
         default:
           description: An unexpected error response.
           schema:
@@ -2717,6 +2731,20 @@ paths:
                       - BUCKET_STATUS_DISCONTINUED
                       - BUCKET_STATUS_MIGRATING
                     default: BUCKET_STATUS_CREATED
+                  tags:
+                    title: tags defines a list of tags the bucket has
+                    type: object
+                    properties:
+                      tags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                        title: tags defines a list of tags the resource has
         default:
           description: An unexpected error response.
           schema:
@@ -2951,6 +2979,20 @@ paths:
                   extra:
                     type: string
                     title: extra is used to store extra info for the group
+                  tags:
+                    title: tags defines a list of tags the group has
+                    type: object
+                    properties:
+                      tags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                        title: tags defines a list of tags the resource has
         default:
           description: An unexpected error response.
           schema:
@@ -3217,6 +3259,20 @@ paths:
 
                       add omit tag to omit the field when converting to NFT
                       metadata
+                  tags:
+                    title: tags defines a list of tags the object has
+                    type: object
+                    properties:
+                      tags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                        title: tags defines a list of tags the resource has
               global_virtual_group:
                 type: object
                 properties:
@@ -3405,6 +3461,20 @@ paths:
 
                       add omit tag to omit the field when converting to NFT
                       metadata
+                  tags:
+                    title: tags defines a list of tags the object has
+                    type: object
+                    properties:
+                      tags:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            key:
+                              type: string
+                            value:
+                              type: string
+                        title: tags defines a list of tags the resource has
               global_virtual_group:
                 type: object
                 properties:
@@ -3691,6 +3761,20 @@ paths:
                         - BUCKET_STATUS_DISCONTINUED
                         - BUCKET_STATUS_MIGRATING
                       default: BUCKET_STATUS_CREATED
+                    tags:
+                      title: tags defines a list of tags the bucket has
+                      type: object
+                      properties:
+                        tags:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                          title: tags defines a list of tags the resource has
               pagination:
                 type: object
                 properties:
@@ -3868,6 +3952,20 @@ paths:
                     extra:
                       type: string
                       title: extra is used to store extra info for the group
+                    tags:
+                      title: tags defines a list of tags the group has
+                      type: object
+                      properties:
+                        tags:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                          title: tags defines a list of tags the resource has
         default:
           description: An unexpected error response.
           schema:
@@ -4057,6 +4155,20 @@ paths:
 
                         add omit tag to omit the field when converting to NFT
                         metadata
+                    tags:
+                      title: tags defines a list of tags the object has
+                      type: object
+                      properties:
+                        tags:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                          title: tags defines a list of tags the resource has
               pagination:
                 type: object
                 properties:
@@ -4274,6 +4386,20 @@ paths:
 
                         add omit tag to omit the field when converting to NFT
                         metadata
+                    tags:
+                      title: tags defines a list of tags the object has
+                      type: object
+                      properties:
+                        tags:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              key:
+                                type: string
+                              value:
+                                type: string
+                          title: tags defines a list of tags the resource has
               pagination:
                 type: object
                 properties:
@@ -34292,6 +34418,20 @@ definitions:
           - BUCKET_STATUS_DISCONTINUED
           - BUCKET_STATUS_MIGRATING
         default: BUCKET_STATUS_CREATED
+      tags:
+        title: tags defines a list of tags the bucket has
+        type: object
+        properties:
+          tags:
+            type: array
+            items:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+            title: tags defines a list of tags the resource has
   greenfield.storage.BucketMetaData:
     type: object
     properties:
@@ -34356,6 +34496,20 @@ definitions:
       extra:
         type: string
         title: extra is used to store extra info for the group
+      tags:
+        title: tags defines a list of tags the group has
+        type: object
+        properties:
+          tags:
+            type: array
+            items:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+            title: tags defines a list of tags the resource has
   greenfield.storage.GroupMetaData:
     type: object
     properties:
@@ -34558,6 +34712,20 @@ definitions:
         title: |-
           checksums define the root hash of the pieces which stored in a SP.
           add omit tag to omit the field when converting to NFT metadata
+      tags:
+        title: tags defines a list of tags the object has
+        type: object
+        properties:
+          tags:
+            type: array
+            items:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+            title: tags defines a list of tags the resource has
   greenfield.storage.ObjectMetaData:
     type: object
     properties:
@@ -34928,6 +35096,20 @@ definitions:
               - BUCKET_STATUS_DISCONTINUED
               - BUCKET_STATUS_MIGRATING
             default: BUCKET_STATUS_CREATED
+          tags:
+            title: tags defines a list of tags the bucket has
+            type: object
+            properties:
+              tags:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                    value:
+                      type: string
+                title: tags defines a list of tags the resource has
   greenfield.storage.QueryHeadGroupMemberResponse:
     type: object
     properties:
@@ -34978,6 +35160,20 @@ definitions:
           extra:
             type: string
             title: extra is used to store extra info for the group
+          tags:
+            title: tags defines a list of tags the group has
+            type: object
+            properties:
+              tags:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                    value:
+                      type: string
+                title: tags defines a list of tags the resource has
   greenfield.storage.QueryHeadObjectResponse:
     type: object
     properties:
@@ -35065,6 +35261,20 @@ definitions:
             title: |-
               checksums define the root hash of the pieces which stored in a SP.
               add omit tag to omit the field when converting to NFT metadata
+          tags:
+            title: tags defines a list of tags the object has
+            type: object
+            properties:
+              tags:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    key:
+                      type: string
+                    value:
+                      type: string
+                title: tags defines a list of tags the resource has
       global_virtual_group:
         type: object
         properties:
@@ -35210,6 +35420,20 @@ definitions:
                 - BUCKET_STATUS_DISCONTINUED
                 - BUCKET_STATUS_MIGRATING
               default: BUCKET_STATUS_CREATED
+            tags:
+              title: tags defines a list of tags the bucket has
+              type: object
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                      value:
+                        type: string
+                  title: tags defines a list of tags the resource has
       pagination:
         type: object
         properties:
@@ -35295,6 +35519,20 @@ definitions:
             extra:
               type: string
               title: extra is used to store extra info for the group
+            tags:
+              title: tags defines a list of tags the group has
+              type: object
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                      value:
+                        type: string
+                  title: tags defines a list of tags the resource has
   greenfield.storage.QueryListObjectsResponse:
     type: object
     properties:
@@ -35386,6 +35624,20 @@ definitions:
                 SP.
 
                 add omit tag to omit the field when converting to NFT metadata
+            tags:
+              title: tags defines a list of tags the object has
+              type: object
+              properties:
+                tags:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      key:
+                        type: string
+                      value:
+                        type: string
+                  title: tags defines a list of tags the resource has
       pagination:
         type: object
         properties:
@@ -36183,6 +36435,26 @@ definitions:
     description: |-
       RedundancyType represents the redundancy algorithm type for object data,
       which can be either multi-replica or erasure coding.
+  greenfield.storage.ResourceTags:
+    type: object
+    properties:
+      tags:
+        type: array
+        items:
+          type: object
+          properties:
+            key:
+              type: string
+            value:
+              type: string
+        title: tags defines a list of tags the resource has
+  greenfield.storage.ResourceTags.Tag:
+    type: object
+    properties:
+      key:
+        type: string
+      value:
+        type: string
   greenfield.storage.SourceType:
     type: string
     enum:

@@ -13,7 +13,6 @@ func InitGenesis(ctx sdk.Context, stakingKeeper types.StakingKeeper,
 	deliverTx deliverTxfn, genesisState types.GenesisState,
 	txEncodingConfig client.TxEncodingConfig,
 ) (validators []abci.ValidatorUpdate, err error) {
-	// this line is used by starport scaffolding # genesis/module/init
 	if len(genesisState.GenspTxs) > 0 {
 		validators, err = DeliverGenTxs(ctx, genesisState.GenspTxs, stakingKeeper, deliverTx, txEncodingConfig)
 	}

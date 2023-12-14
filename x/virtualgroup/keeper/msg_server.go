@@ -105,6 +105,23 @@ func (k msgServer) CreateGlobalVirtualGroup(goCtx context.Context, req *types.Ms
 		return nil, err
 	}
 
+	if ctx.IsUpgraded(upgradetypes.Manchurian) {
+		for _, gvgID := range gvgFamily.GlobalVirtualGroupIds {
+			gvg, found := k.GetGVG(ctx, gvgID)
+			if !found {
+				return nil, types.ErrGVGNotExist
+			}
+			for i, secondarySPId := range gvg.SecondarySpIds {
+				if secondarySPId != secondarySpIds[i] {
+					break
+				}
+				if i == len(secondarySpIds)-1 {
+					return nil, types.ErrDuplicateGVG.Wrapf("the global virtual group family already has a GVG with same SP in same order")
+				}
+			}
+		}
+	}
+
 	// Each family supports only a limited number of GVGS
 	if k.MaxGlobalVirtualGroupNumPerFamily(ctx) < uint32(len(gvgFamily.GlobalVirtualGroupIds)) {
 		return nil, types.ErrLimitationExceed.Wrapf("The gvg number within the family exceeds the limit.")

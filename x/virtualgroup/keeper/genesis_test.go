@@ -12,8 +12,6 @@ import (
 func (s *TestSuite) TestGenesis() {
 	genesisState := types.GenesisState{
 		Params: types.DefaultParams(),
-
-		// this line is used by starport scaffolding # genesis/test/state
 	}
 
 	s.accountKeeper.EXPECT().GetModuleAccount(gomock.Any(), gomock.Any()).Return(types2.NewEmptyModuleAccount(types.ModuleName))

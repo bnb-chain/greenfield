@@ -7,8 +7,6 @@ import "gogoproto/gogo.proto";
 import "greenfield/challenge/params.proto";
 import "greenfield/challenge/types.proto";
 
-// this line is used by starport scaffolding # proto/tx/import
-
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 
 // Msg defines the Msg service.
@@ -21,7 +19,6 @@ service Msg {
   //
   // Since: cosmos-sdk 0.47
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 // MsgSubmit defines the message for submitting challenges.
@@ -103,4 +100,3 @@ message MsgUpdateParams {
 
 // MsgUpdateParamsResponse defines the response structure for executing a MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
-// this line is used by starport scaffolding # proto/tx/message

@@ -30,7 +30,6 @@ func GetQueryCmd() *cobra.Command {
 	cmd.AddCommand(CmdDynamicBalance())
 	cmd.AddCommand(CmdGetPaymentAccountsByOwner())
 	cmd.AddCommand(CmdListAutoSettleRecord())
-	// this line is used by starport scaffolding # 1
 
 	return cmd
 }

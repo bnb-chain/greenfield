@@ -8,8 +8,6 @@ import "gogoproto/gogo.proto";
 import "greenfield/sp/params.proto";
 import "greenfield/sp/types.proto";
 
-// this line is used by starport scaffolding # proto/tx/import
-
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Msg defines the Msg service for creating a new storage provider.
@@ -26,7 +24,6 @@ service Msg {
   //
   // Since: cosmos-sdk 0.47
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
-  // this line is used by starport scaffolding # proto/tx/rpc
 }
 
 // MsgCreateStorageProvider defines message for creating a new storage provider.

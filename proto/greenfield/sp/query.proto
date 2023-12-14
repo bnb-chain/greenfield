@@ -9,7 +9,6 @@ import "google/api/annotations.proto";
 import "greenfield/sp/params.proto";
 import "greenfield/sp/types.proto";
 
-// this line is used by starport scaffolding # 1
 option go_package = "github.com/bnb-chain/greenfield/x/sp/types";
 
 // Query defines the gRPC querier service.
@@ -18,8 +17,6 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/greenfield/sp/params";
   }
-
-  // this line is used by starport scaffolding # 2
 
   // Queries a list of GetStorageProviders items.
   rpc StorageProviders(QueryStorageProvidersRequest) returns (QueryStorageProvidersResponse) {
@@ -61,7 +58,6 @@ message QueryParamsResponse {
   Params params = 1 [(gogoproto.nullable) = false];
 }
 
-// this line is used by starport scaffolding # 3
 message QueryStorageProvidersRequest {
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 1;

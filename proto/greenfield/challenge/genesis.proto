@@ -4,12 +4,10 @@ package greenfield.challenge;
 import "gogoproto/gogo.proto";
 import "greenfield/challenge/params.proto";
 import "greenfield/challenge/types.proto";
-// this line is used by starport scaffolding # genesis/proto/import
 
 option go_package = "github.com/bnb-chain/greenfield/x/challenge/types";
 
 // GenesisState defines the challenge module's genesis state.
 message GenesisState {
   Params params = 1 [(gogoproto.nullable) = false];
-  // this line is used by starport scaffolding # genesis/proto/state
 }
