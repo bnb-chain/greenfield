@@ -497,68 +497,61 @@ func (k msgServer) StorageProviderExit(goCtx context.Context, msg *types.MsgStor
 func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types.MsgCompleteStorageProviderExit) (*types.MsgCompleteStorageProviderExitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	operatorAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
+	spAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 
-	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, operatorAddr)
+	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
 	}
 
-	var exitSP *sptypes.StorageProvider
-
-	isHulunbeierUpgrade := ctx.IsUpgraded(upgradetypes.Hulunbeier)
-	if !isHulunbeierUpgrade {
-		exitSP = sp
-	} else {
-		exitSPAddr, err := sdk.AccAddressFromHexUnsafe(msg.ExitStorageProvider)
-		if err != nil {
-			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("Invalid address of SP")
-		}
-
-		exitSP, found = k.spKeeper.GetStorageProviderByOperatorAddr(ctx, exitSPAddr)
-		if !found {
-			return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address of SP is not found")
-		}
-
-		if exitSP.Status != sptypes.STATUS_GRACEFUL_EXITING && exitSP.Status != sptypes.STATUS_FORCED_EXITING {
-			return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
-				"sp(id : %d, operator address: %s) is not exiting", exitSP.Id, exitSP.OperatorAddress)
-		}
+	if sp.Status != sptypes.STATUS_GRACEFUL_EXITING && sp.Status != sptypes.STATUS_FORCED_EXITING {
+		return nil, sptypes.ErrStorageProviderExitFailed.Wrapf(
+			"sp(id : %d, operator address: %s) not in the process of exiting", sp.Id, sp.OperatorAddress)
 	}
 
-	err := k.StorageProviderExitable(ctx, exitSP.Id)
+	err := k.StorageProviderExitable(ctx, sp.Id)
 	if err != nil {
 		return nil, err
 	}
 
 	var forcedExit bool
-	if exitSP.Status == sptypes.STATUS_GRACEFUL_EXITING {
+	if sp.Status == sptypes.STATUS_GRACEFUL_EXITING {
 		// send back the total deposit
-		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), exitSP.TotalDeposit))
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, sptypes.ModuleName, sdk.MustAccAddressFromHex(exitSP.FundingAddress), coins)
+		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), sp.TotalDeposit))
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, sptypes.ModuleName, sdk.MustAccAddressFromHex(sp.FundingAddress), coins)
 		if err != nil {
 			return nil, err
 		}
 	} else {
 		forcedExit = true
-		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), exitSP.TotalDeposit))
+		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), sp.TotalDeposit))
 		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, sptypes.ModuleName, govtypes.ModuleName, coins)
 		if err != nil {
 			return nil, err
 		}
 	}
-	err = k.spKeeper.Exit(ctx, exitSP)
+	err = k.spKeeper.Exit(ctx, sp)
 	if err != nil {
 		return nil, err
 	}
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
-		StorageProviderId:          exitSP.Id,
-		OperatorAddress:            sp.OperatorAddress,
-		ExitStorageProviderAddress: exitSP.OperatorAddress,
-		TotalDeposit:               exitSP.TotalDeposit,
-		ForcedExit:                 forcedExit,
-	}); err != nil {
-		return nil, err
+	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
+			StorageProviderId:      sp.Id,
+			OperatorAddress:        msg.Operator,
+			StorageProviderAddress: sp.OperatorAddress,
+			TotalDeposit:           sp.TotalDeposit,
+			ForcedExit:             forcedExit,
+		}); err != nil {
+			return nil, err
+		}
+	} else {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
+			StorageProviderId: sp.Id,
+			OperatorAddress:   sp.OperatorAddress,
+			TotalDeposit:      sp.TotalDeposit,
+		}); err != nil {
+			return nil, err
+		}
 	}
 	return &types.MsgCompleteStorageProviderExitResponse{}, nil
 }
