@@ -1295,27 +1295,3 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
 	s.Require().Error(err)
 }
-
-func (s *VirtualGroupTestSuite) TestSPExitBeforeHardFork() {
-	// 1. Create SP-x
-	spx := s.BaseSuite.CreateNewStorageProvider()
-
-	// 3. SP-x announces to exit
-	s.SendTxBlock(spx.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
-		StorageProvider: spx.OperatorKey.GetAddr().String(),
-	})
-	resp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
-	s.Require().NoError(err)
-	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
-
-	// 11 complete SPy's exit by sp-z
-	s.SendTxBlock(
-		spx.OperatorKey,
-		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
-			StorageProvider: spx.OperatorKey.GetAddr().String(),
-		})
-
-	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
-	s.Require().Error(err)
-
-}

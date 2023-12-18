@@ -2,14 +2,15 @@ package v1
 
 import (
 	fmt "fmt"
+	io "io"
+	math "math"
+	math_bits "math/bits"
+
 	_ "github.com/cosmos/cosmos-proto"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
 	"gopkg.in/yaml.v2"
-	io "io"
-	math "math"
-	math_bits "math/bits"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -28,6 +29,7 @@ type Params struct {
 	// deposit_denom defines the staking coin denomination.
 	DepositDenom string `protobuf:"bytes,1,opt,name=deposit_denom,json=depositDenom,proto3" json:"deposit_denom,omitempty"`
 	// store price, in bnb wei per charge byte
+	//nolint
 	GvgStakingPerBytes github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=gvg_staking_per_bytes,json=gvgStakingPerBytes,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"gvg_staking_per_bytes"`
 	// the max number of lvg which allowed in a bucket
 	MaxLocalVirtualGroupNumPerBucket uint32 `protobuf:"varint,3,opt,name=max_local_virtual_group_num_per_bucket,json=maxLocalVirtualGroupNumPerBucket,proto3" json:"max_local_virtual_group_num_per_bucket,omitempty"`
@@ -269,6 +271,8 @@ func (m *Params) Size() (n int) {
 func sovParams(x uint64) (n int) {
 	return (math_bits.Len64(x|1) + 6) / 7
 }
+
+//lint:ignore U1000 Ignore unused function for it is auto generated ealier
 func sozParams(x uint64) (n int) {
 	return sovParams(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }

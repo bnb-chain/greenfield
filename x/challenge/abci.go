@@ -3,8 +3,6 @@ package challenge
 import (
 	"fmt"
 
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
@@ -90,10 +88,8 @@ func EndBlocker(ctx sdk.Context, keeper k.Keeper) {
 		if !found {
 			continue
 		}
-		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING {
-			if !ctx.IsUpgraded(upgradetypes.Hulunbeier) || sp.Status != sptypes.STATUS_FORCED_EXITING {
-				continue
-			}
+		if sp.Status != sptypes.STATUS_IN_SERVICE && sp.Status != sptypes.STATUS_GRACEFUL_EXITING && sp.Status != sptypes.STATUS_FORCED_EXITING {
+			continue
 		}
 
 		mapKey := fmt.Sprintf("%d-%s", spOperatorId, objectInfo.Id.String())

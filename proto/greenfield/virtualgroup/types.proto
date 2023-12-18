@@ -86,5 +86,5 @@ message SwapInInfo {
   // target_sp_id is the id of SP in the family or GVG to be swapped.
   uint32 target_sp_id = 2;
   // expiration_time is the expiration of epoch time for the swapInInfo
-  uint64 expiration_time = 4;
+  uint64 expiration_time = 3;
 }
