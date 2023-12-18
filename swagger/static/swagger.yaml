@@ -6122,9 +6122,7 @@ paths:
                   sp_concurrent_exit_num:
                     type: integer
                     format: int64
-                    description: >-
-                      sp_concurrent_exit_num defines the number of sp allowed
-                      for exit concurrently.
+                    description: the the number of sp allowed to exit concurrently.
             description: >-
               QueryParamsResponse is response type for the Query/Params RPC
               method.
@@ -36532,9 +36530,7 @@ definitions:
       sp_concurrent_exit_num:
         type: integer
         format: int64
-        description: >-
-          sp_concurrent_exit_num defines the number of sp allowed for exit
-          concurrently.
+        description: the the number of sp allowed to exit concurrently.
     description: Params defines the parameters for the module.
   greenfield.virtualgroup.QueryGlobalVirtualGroupByFamilyIDResponse:
     type: object
@@ -36776,9 +36772,7 @@ definitions:
           sp_concurrent_exit_num:
             type: integer
             format: int64
-            description: >-
-              sp_concurrent_exit_num defines the number of sp allowed for exit
-              concurrently.
+            description: the the number of sp allowed to exit concurrently.
     description: QueryParamsResponse is response type for the Query/Params RPC method.
   greenfield.virtualgroup.QuerySPGVGStatisticsResponse:
     type: object
