@@ -22,6 +22,7 @@ import (
 	"github.com/bnb-chain/greenfield/sdk/types"
 	"github.com/bnb-chain/greenfield/testutil/sample"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
+	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 type StorageProviderTestSuite struct {
@@ -37,39 +38,40 @@ func (s *StorageProviderTestSuite) SetupSuite() {
 func (s *StorageProviderTestSuite) SetupTest() {
 }
 
-//func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
-//	// Create a New SP
-//	sp := s.BaseSuite.CreateNewStorageProvider()
-//
-//	// query sp by id
-//	querySPResp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{
-//		Id: sp.Info.Id,
-//	})
-//	s.Require().NoError(err)
-//	s.Require().Equal(querySPResp.StorageProvider, querySPResp.StorageProvider)
-//
-//	// sp exit
-//	msgSPExit := virtualgroupmoduletypes.MsgStorageProviderExit{
-//		StorageProvider: sp.OperatorKey.GetAddr().String(),
-//	}
-//	s.SendTxBlock(sp.OperatorKey, &msgSPExit)
-//
-//	// 9 query sp status
-//	querySPResp2, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
-//	s.Require().NoError(err)
-//	s.Require().Equal(querySPResp2.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
-//
-//	// 10 complete sp exit
-//	msgCompleteSPExit := virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
-//		StorageProvider: sp.OperatorKey.GetAddr().String(),
-//	}
-//
-//	s.SendTxBlock(sp.OperatorKey, &msgCompleteSPExit)
-//
-//	// 10 query sp
-//	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
-//	s.Require().Error(err)
-//}
+func (s *StorageProviderTestSuite) TestCreateStorageProvider() {
+	// Create a New SP
+	sp := s.BaseSuite.CreateNewStorageProvider()
+
+	// query sp by id
+	querySPResp, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{
+		Id: sp.Info.Id,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(querySPResp.StorageProvider, querySPResp.StorageProvider)
+
+	// sp exit
+	msgSPExit := virtualgroupmoduletypes.MsgStorageProviderExit{
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
+	}
+	s.SendTxBlock(sp.OperatorKey, &msgSPExit)
+
+	// 9 query sp status
+	querySPResp2, err := s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(querySPResp2.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// 10 complete sp exit
+	msgCompleteSPExit := virtualgroupmoduletypes.MsgCompleteStorageProviderExit{
+		StorageProvider: sp.OperatorKey.GetAddr().String(),
+		Operator:        sp.OperatorKey.GetAddr().String(),
+	}
+
+	s.SendTxBlock(sp.OperatorKey, &msgCompleteSPExit)
+
+	// 10 query sp
+	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: sp.Info.Id})
+	s.Require().Error(err)
+}
 
 func (s *StorageProviderTestSuite) TestEditStorageProvider() {
 	ctx := context.Background()

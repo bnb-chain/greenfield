@@ -138,13 +138,19 @@ func (app *App) registerHulunbeierUpgradeHandler() {
 		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
 			app.Logger().Info("upgrade to ", plan.Name)
 
+			// enable SP exit
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgReserveSwapIn", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCancelSwapIn", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteSwapIn", 1.2e3))
-
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderForcedExit", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderExit", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteStorageProviderExit", 1.2e3))
+
+			// enable bucket migration
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgMigrateBucket", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgCancelMigrateBucket", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgCompleteMigrateBucket", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.storage.MsgRejectMigrateBucket", 1.2e3))
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
