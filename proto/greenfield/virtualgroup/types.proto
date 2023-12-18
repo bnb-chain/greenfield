@@ -81,7 +81,7 @@ message SwapOutInfo {
 }
 
 message SwapInInfo {
-  // successor_sp_id defines the id of sp who want to join the family or GVG
+  // successor_sp_id defines the id of SP who wants to join the family or GVG
   uint32 successor_sp_id = 1;
   // target_sp_id is the id of SP in the family or GVG to be swapped.
   uint32 target_sp_id = 2;

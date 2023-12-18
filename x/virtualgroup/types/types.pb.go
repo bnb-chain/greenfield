@@ -383,7 +383,7 @@ func (m *SwapOutInfo) GetSuccessorSpId() uint32 {
 }
 
 type SwapInInfo struct {
-	// successor_sp_id defines the id of sp who want to join the family or GVG
+	// successor_sp_id defines the id of SP who wants to join the family or GVG
 	SuccessorSpId uint32 `protobuf:"varint,1,opt,name=successor_sp_id,json=successorSpId,proto3" json:"successor_sp_id,omitempty"`
 	// target_sp_id is the id of SP in the family or GVG to be swapped.
 	TargetSpId uint32 `protobuf:"varint,2,opt,name=target_sp_id,json=targetSpId,proto3" json:"target_sp_id,omitempty"`

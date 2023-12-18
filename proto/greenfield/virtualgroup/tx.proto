@@ -33,9 +33,9 @@ service Msg {
   rpc CancelSwapIn(MsgCancelSwapIn) returns (MsgCancelSwapInResponse);
   rpc CompleteSwapIn(MsgCompleteSwapIn) returns (MsgCompleteSwapInResponse);
 
-  // StorageProviderForceExit defines a governance operation for a SP force exit
+  // StorageProviderForcedExit defines a governance operation for a SP to be forced to exit
   // The authority is defined in the keeper.
-  rpc StorageProviderForceExit(MsgStorageProviderForceExit) returns (MsgStorageProviderForceExitResponse);
+  rpc StorageProviderForcedExit(MsgStorageProviderForcedExit) returns (MsgStorageProviderForcedExitResponse);
 }
 
 // MsgUpdateParams is the Msg/UpdateParams request type.
@@ -192,7 +192,7 @@ message MsgCompleteStorageProviderExit {
   // storage_provider defines the operator account address of the storage provider who will exit
   string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  // operator defines the operator account address of the storage provider who initials this transaction.
+  // operator defines the operator account address who initials this transaction.
   string operator = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
@@ -210,7 +210,7 @@ message MsgReserveSwapIn {
   // it it set to zero, it represents that the operator swap in as the secondary storage provider.
   uint32 global_virtual_group_family_id = 3;
   // global_virtual_group_id is a global virtual group ID associated with the swap in.
-  // It allows to be empty only when the operator is the primary storage provider.
+  // It allows to be empty only when the operator wants to be the successor primary storage provider in a family.
   uint32 global_virtual_group_id = 4;
 }
 
@@ -219,14 +219,14 @@ message MsgReserveSwapInResponse {}
 message MsgCompleteSwapIn {
   option (cosmos.msg.v1.signer) = "storage_provider";
 
-  // storage_provider defines the operator account address of the storage provider who want to swap into the virtual group family or global virtual group.
+  // storage_provider defines the operator account address of the storage provider who wants to swap into the virtual group family or global virtual group.
   string storage_provider = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
   // virtual_group_family_id is the identifier of the virtual group family.
   // if it set to non-zero, it represents that the operator swap in as the primary storage provider
   // it it set to zero, it represents that the operator swap in as the secondary storage provider.
   uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_id is a global virtual group ID associated with the swap in.
-  // It allows to be empty only when the operator is the primary storage provider.
+  // It allows to be empty only when the operator wants to be the successor primary storage provider in a family.
   uint32 global_virtual_group_id = 3;
 }
 
@@ -242,21 +242,21 @@ message MsgCancelSwapIn {
   // it it set to zero, it represents that the operator swap in as the secondary storage provider.
   uint32 global_virtual_group_family_id = 2;
   // global_virtual_group_id is a global virtual group IDs associated with the swap in.
-  // It allows to be empty only when the operator is the primary storage provider.
+  // It allows to be empty only when the operator wants to be the successor primary storage provider in a family.
   uint32 global_virtual_group_id = 3;
 }
 
 message MsgCancelSwapInResponse {}
 
 // this line is used by starport scaffolding # proto/tx/message
-message MsgStorageProviderForceExit {
+message MsgStorageProviderForcedExit {
   option (cosmos.msg.v1.signer) = "authority";
 
   // authority is the address that controls the module (defaults to x/gov unless overwritten).
   string authority = 1 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 
-  // storage_provider defines the account address of the storage provider which need to force exit
+  // storage_provider defines the account address of the storage provider forced to exit
   string storage_provider = 2 [(cosmos_proto.scalar) = "cosmos.AddressString"];
 }
 
-message MsgStorageProviderForceExitResponse {}
+message MsgStorageProviderForcedExitResponse {}

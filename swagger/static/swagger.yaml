@@ -6253,7 +6253,7 @@ paths:
                     type: integer
                     format: int64
                     title: >-
-                      successor_sp_id defines the id of sp who want to join the
+                      successor_sp_id defines the id of SP who wants to join the
                       family or GVG
                   target_sp_id:
                     type: integer
@@ -37142,7 +37142,7 @@ definitions:
             type: integer
             format: int64
             title: >-
-              successor_sp_id defines the id of sp who want to join the family
+              successor_sp_id defines the id of SP who wants to join the family
               or GVG
           target_sp_id:
             type: integer
@@ -37159,7 +37159,7 @@ definitions:
         type: integer
         format: int64
         title: >-
-          successor_sp_id defines the id of sp who want to join the family or
+          successor_sp_id defines the id of SP who wants to join the family or
           GVG
       target_sp_id:
         type: integer

@@ -17,7 +17,7 @@ const (
 	TypeMsgSwapOut                  = "swap_out"
 	TypeMsgUpdateParams             = "update_params"
 	TypeMsgSettle                   = "settle"
-	TypeMsgReserveSwapIn            = "swap_in"
+	TypeMsgReserveSwapIn            = "reserve_swap_in"
 	TypeMsgCancelSwapIn             = "cancel_swap_in"
 	TypeMsgCompleteSwapIn           = "complete_swap_in"
 )

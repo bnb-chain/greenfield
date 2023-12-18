@@ -1,6 +1,8 @@
 package app
 
 import (
+	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -87,8 +89,8 @@ func (app *App) registerPampasUpgradeHandler() {
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgSwapOut")
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCompleteSwapOut")
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCancelSwapOut")
-			//app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgStorageProviderExit")
-			//app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCompleteStorageProviderExit")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgStorageProviderExit")
+			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.virtualgroup.MsgCompleteStorageProviderExit")
 
 			// disable bucket migration.
 			app.GashubKeeper.DeleteMsgGasParams(ctx, "/greenfield.storage.MsgMigrateBucket")
@@ -126,7 +128,6 @@ func (app *App) registerManchurianUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Manchurian,
 		func() error {
 			app.Logger().Info("Init Manchurian upgrade")
-
 			return nil
 		})
 }
@@ -141,7 +142,7 @@ func (app *App) registerHulunbeierUpgradeHandler() {
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCancelSwapIn", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteSwapIn", 1.2e3))
 
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderForceExit", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderForcedExit", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderExit", 1.2e3))
 			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteStorageProviderExit", 1.2e3))
 
@@ -152,7 +153,11 @@ func (app *App) registerHulunbeierUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Hulunbeier,
 		func() error {
 			app.Logger().Info("Init Hulunbeier upgrade")
-
+			mm, ok := app.mm.Modules[virtualgrouptypes.ModuleName].(*virtualgroupmodule.AppModule)
+			if !ok {
+				panic("*virtualgroupmodule.AppModule not found")
+			}
+			mm.SetConsensusVersion(2)
 			return nil
 		})
 }

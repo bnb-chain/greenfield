@@ -501,7 +501,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 
 	sp, found := k.spKeeper.GetStorageProviderByOperatorAddr(ctx, spAddr)
 	if !found {
-		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be operator address of sp.")
+		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("The address must be the operator address of sp.")
 	}
 
 	if sp.Status != sptypes.STATUS_GRACEFUL_EXITING && sp.Status != sptypes.STATUS_FORCED_EXITING {
@@ -535,7 +535,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 		return nil, err
 	}
 	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
-		if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
+		if err = ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
 			StorageProviderId:      sp.Id,
 			OperatorAddress:        msg.Operator,
 			StorageProviderAddress: sp.OperatorAddress,
@@ -545,7 +545,7 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 			return nil, err
 		}
 	} else {
-		if err := ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
+		if err = ctx.EventManager().EmitTypedEvents(&types.EventCompleteStorageProviderExit{
 			StorageProviderId: sp.Id,
 			OperatorAddress:   sp.OperatorAddress,
 			TotalDeposit:      sp.TotalDeposit,
@@ -570,14 +570,17 @@ func (k msgServer) ReserveSwapIn(goCtx context.Context, msg *types.MsgReserveSwa
 	if !found {
 		return nil, sptypes.ErrStorageProviderNotFound.Wrapf("Target sp(ID=%d) try to swap not found.", msg.TargetSpId)
 	}
-	if err := k.Keeper.SwapIn(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupId, successorSP.Id, targetSP); err != nil {
+	expirationTime := ctx.BlockTime().Unix() + int64(k.SwapInValidityPeriod(ctx))
+
+	if err := k.Keeper.SwapIn(ctx, msg.GlobalVirtualGroupFamilyId, msg.GlobalVirtualGroupId, successorSP.Id, targetSP, expirationTime); err != nil {
 		return nil, err
 	}
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventSwapIn{
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventReserveSwapIn{
 		StorageProviderId:          successorSP.Id,
 		GlobalVirtualGroupFamilyId: msg.GlobalVirtualGroupFamilyId,
 		GlobalVirtualGroupId:       msg.GlobalVirtualGroupId,
 		TargetSpId:                 msg.TargetSpId,
+		ExpirationTime:             uint64(expirationTime),
 	}); err != nil {
 		return nil, err
 	}
@@ -613,7 +616,7 @@ func (k msgServer) CompleteSwapIn(goCtx context.Context, msg *types.MsgCompleteS
 	}
 	return &types.MsgCompleteSwapInResponse{}, nil
 }
-func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.MsgStorageProviderForceExit) (*types.MsgStorageProviderForceExitResponse, error) {
+func (k msgServer) StorageProviderForcedExit(goCtx context.Context, msg *types.MsgStorageProviderForcedExit) (*types.MsgStorageProviderForcedExitResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	if k.GetAuthority() != msg.Authority {
 		return nil, sdkerrors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.GetAuthority(), msg.Authority)
@@ -642,10 +645,10 @@ func (k msgServer) StorageProviderForceExit(goCtx context.Context, msg *types.Ms
 	// Governance can put an SP into force exiting status no matter what status it is in.
 	sp.Status = sptypes.STATUS_FORCED_EXITING
 	k.spKeeper.SetStorageProvider(ctx, sp)
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventStorageProviderForceExit{
+	if err := ctx.EventManager().EmitTypedEvents(&types.EventStorageProviderForcedExit{
 		StorageProviderId: sp.Id,
 	}); err != nil {
 		return nil, err
 	}
-	return &types.MsgStorageProviderForceExitResponse{}, nil
+	return &types.MsgStorageProviderForcedExitResponse{}, nil
 }

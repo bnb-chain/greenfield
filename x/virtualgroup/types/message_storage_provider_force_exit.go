@@ -6,35 +6,35 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const TypeMsgStorageProviderForceExit = "storage_provider_force_exit"
+const TypeMsgStorageProviderForcedExit = "storage_provider_force_exit"
 
-var _ sdk.Msg = &MsgStorageProviderForceExit{}
+var _ sdk.Msg = &MsgStorageProviderForcedExit{}
 
-func NewMsgStorageProviderForceExit(authority string, spAddress sdk.AccAddress) *MsgStorageProviderForceExit {
-	return &MsgStorageProviderForceExit{
+func NewMsgStorageProviderForcedExit(authority string, spAddress sdk.AccAddress) *MsgStorageProviderForcedExit {
+	return &MsgStorageProviderForcedExit{
 		Authority:       authority,
 		StorageProvider: spAddress.String(),
 	}
 }
 
-func (msg *MsgStorageProviderForceExit) Route() string {
+func (msg *MsgStorageProviderForcedExit) Route() string {
 	return RouterKey
 }
 
-func (msg *MsgStorageProviderForceExit) Type() string {
-	return TypeMsgStorageProviderForceExit
+func (msg *MsgStorageProviderForcedExit) Type() string {
+	return TypeMsgStorageProviderForcedExit
 }
 
-func (msg *MsgStorageProviderForceExit) GetSigners() []sdk.AccAddress {
+func (msg *MsgStorageProviderForcedExit) GetSigners() []sdk.AccAddress {
 	addr, _ := sdk.AccAddressFromHexUnsafe(msg.Authority)
 	return []sdk.AccAddress{addr}
 }
 
-func (msg *MsgStorageProviderForceExit) GetSignBytes() []byte {
+func (msg *MsgStorageProviderForcedExit) GetSignBytes() []byte {
 	return sdk.MustSortJSON(ModuleCdc.MustMarshalJSON(msg))
 }
 
-func (msg *MsgStorageProviderForceExit) ValidateBasic() error {
+func (msg *MsgStorageProviderForcedExit) ValidateBasic() error {
 	if _, err := sdk.AccAddressFromHexUnsafe(msg.Authority); err != nil {
 		return errors.Wrap(err, "invalid authority address")
 	}

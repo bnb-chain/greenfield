@@ -904,13 +904,6 @@ func (k Keeper) DeleteObject(
 	}
 
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
-
-	if ctx.IsUpgraded(upgradetypes.Hulunbeier) {
-		if spInState.Status == sptypes.STATUS_GRACEFUL_EXITING || spInState.Status == sptypes.STATUS_FORCED_EXITING {
-			return types.ErrUpdateQuotaFailed.Wrapf("The SP is in %s, object can not be deleted", spInState.Status)
-		}
-	}
-
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
 	err := k.UnChargeObjectStoreFee(ctx, spInState.Id, bucketInfo, internalBucketInfo, objectInfo)

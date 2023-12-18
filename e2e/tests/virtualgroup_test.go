@@ -1012,7 +1012,7 @@ func (s *VirtualGroupTestSuite) TestSPExit2() {
 	s.Require().Error(err)
 }
 
-func (s *VirtualGroupTestSuite) TestSPForceExit() {
+func (s *VirtualGroupTestSuite) TestSPForcedExit() {
 
 	ctx := context.Background()
 	user := s.GenAndChargeAccounts(1, 1000000)[0]
@@ -1041,9 +1041,9 @@ func (s *VirtualGroupTestSuite) TestSPForceExit() {
 
 	// 3. create a proposal that puts SP-x to FORCE_EXIT
 	govAddr := authtypes.NewModuleAddress(govtypes.ModuleName).String()
-	msgForceExit := virtualgroupmoduletypes.NewMsgStorageProviderForceExit(govAddr, spx.OperatorKey.GetAddr())
+	msgForcedExit := virtualgroupmoduletypes.NewMsgStorageProviderForcedExit(govAddr, spx.OperatorKey.GetAddr())
 
-	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgForceExit}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
+	proposal, err := v1.NewMsgSubmitProposal([]sdk.Msg{msgForcedExit}, sdk.NewCoins(sdk.NewCoin("BNB", sdk.NewInt(1000000000000000000))),
 		s.Validator.GetAddr().String(), "", "put SP to force exit status", "put SP to force exit status")
 	s.Require().NoError(err)
 	txBroadCastResp, err := s.SendTxBlockWithoutCheck(proposal, s.Validator)
