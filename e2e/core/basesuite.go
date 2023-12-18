@@ -12,6 +12,8 @@ import (
 	"sync"
 	"time"
 
+	"golang.org/x/exp/slices"
+
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmlog "github.com/cometbft/cometbft/libs/log"
@@ -682,6 +684,17 @@ func (s *BaseSuite) CreateObject(user keys.KeyManager, primarySP *StorageProvide
 }
 
 func (s *BaseSuite) CreateGlobalVirtualGroup(sp *StorageProvider, familyID uint32, secondarySPIDs []uint32, depositAmount int64) (uint32, uint32) {
+
+	// check if the GVG already exits
+	if familyID != 0 {
+		resp, _ := s.Client.GlobalVirtualGroupByFamilyID(context.Background(), &virtualgroupmoduletypes.QueryGlobalVirtualGroupByFamilyIDRequest{GlobalVirtualGroupFamilyId: familyID})
+		for _, gvg := range resp.GlobalVirtualGroups {
+			if slices.Equal(secondarySPIDs, gvg.SecondarySpIds) {
+				return gvg.Id, familyID
+			}
+		}
+	}
+
 	// Create a GVG for each sp by default
 	deposit := sdk.Coin{
 		Denom:  s.Config.Denom,
