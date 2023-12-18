@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/json"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"math/big"
 	time "time"
 
@@ -14,13 +16,15 @@ import (
 )
 
 const (
-	BucketChannel = "bucket"
-	ObjectChannel = "object"
-	GroupChannel  = "group"
+	BucketChannel     = "bucket"
+	ObjectChannel     = "object"
+	GroupChannel      = "group"
+	PermissionChannel = "permission"
 
-	BucketChannelId sdk.ChannelID = 4
-	ObjectChannelId sdk.ChannelID = 5
-	GroupChannelId  sdk.ChannelID = 6
+	BucketChannelId     sdk.ChannelID = 4
+	ObjectChannelId     sdk.ChannelID = 5
+	GroupChannelId      sdk.ChannelID = 6
+	PermissionChannelId sdk.ChannelID = 7
 
 	// bucket operation types
 
@@ -40,6 +44,10 @@ const (
 	OperationCreateGroup       uint8 = 2
 	OperationDeleteGroup       uint8 = 3
 	OperationUpdateGroupMember uint8 = 4
+
+	// permission operation types
+	OperationCreatePolicy uint8 = 1
+	OperationDeletePolicy uint8 = 2
 )
 
 func SafeBigInt(input *big.Int) *big.Int {
@@ -69,7 +77,7 @@ func DeserializeRawCrossChainPackage(serializedPackage []byte) (*CrossChainPacka
 type DeserializeFunc func(serializedPackage []byte) (interface{}, error)
 
 var (
-	DeserializeFuncMap = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
+	DeserializeFuncMap = map[sdk.ChannelID]map[uint8][4]DeserializeFunc{
 		BucketChannelId: {
 			OperationMirrorBucket: {
 				DeserializeMirrorBucketSynPackage,
@@ -119,12 +127,24 @@ var (
 				DeserializeUpdateGroupMemberSynPackage,
 				DeserializeUpdateGroupMemberAckPackage,
 				DeserializeUpdateGroupMemberSynPackage,
+			},
+		},
+		PermissionChannelId: {
+			OperationCreatePolicy: {
+				DeserializeCreatePolicySynPackage,
+				DeserializeCreatePolicyAckPackage,
+				DeserializeCreatePolicySynPackage,
+			},
+			OperationDeletePolicy: {
+				DeserializeDeletePolicySynPackage,
+				DeserializeDeletePolicyAckPackage,
+				DeserializeDeletePolicySynPackage,
 			},
 		},
 	}
 
 	// DeserializeFuncMapV2 used after Pampas upgrade
-	DeserializeFuncMapV2 = map[sdk.ChannelID]map[uint8][3]DeserializeFunc{
+	DeserializeFuncMapV2 = map[sdk.ChannelID]map[uint8][4]DeserializeFunc{
 		BucketChannelId: {
 			OperationMirrorBucket: {
 				DeserializeMirrorBucketSynPackage,
@@ -174,6 +194,18 @@ var (
 				DeserializeUpdateGroupMemberSynPackage,
 				DeserializeUpdateGroupMemberAckPackage,
 				DeserializeUpdateGroupMemberSynPackage,
+			},
+		},
+		PermissionChannelId: {
+			OperationCreatePolicy: {
+				DeserializeCreatePolicySynPackage,
+				DeserializeCreatePolicyAckPackage,
+				DeserializeCreatePolicySynPackage,
+			},
+			OperationDeletePolicy: {
+				DeserializeDeletePolicySynPackage,
+				DeserializeDeletePolicyAckPackage,
+				DeserializeDeletePolicySynPackage,
 			},
 		},
 	}
@@ -1070,6 +1102,74 @@ func (p DeleteGroupAckPackage) MustSerialize() []byte {
 	return encodedBytes
 }
 
+type DeletePolicySynPackage struct {
+	Operator  sdk.AccAddress
+	Id        *big.Int
+	ExtraData []byte
+}
+
+func (p DeletePolicySynPackage) ValidateBasic() error {
+	if p.Operator.Empty() {
+		return sdkerrors.ErrInvalidAddress
+	}
+	if p.Id == nil || p.Id.Cmp(big.NewInt(0)) < 0 {
+		return ErrInvalidId
+	}
+	return nil
+}
+
+func DeserializeDeletePolicySynPackage(serializedPackage []byte) (interface{}, error) {
+	unpacked, err := generalDeleteSynPackageArgs.Unpack(serializedPackage)
+	if err != nil {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete policy syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralDeleteSynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralDeleteSynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete policy syn package failed")
+	}
+
+	tp := DeletePolicySynPackage{
+		Operator:  pkgStruct.Operator.Bytes(),
+		Id:        pkgStruct.Id,
+		ExtraData: pkgStruct.ExtraData,
+	}
+	return &tp, nil
+}
+
+type DeletePolicyAckPackage struct {
+	Status    uint8
+	Id        *big.Int
+	ExtraData []byte
+}
+
+func DeserializeDeletePolicyAckPackage(serializedPackage []byte) (interface{}, error) {
+	unpacked, err := generalDeleteAckPackageArgs.Unpack(serializedPackage)
+	if err != nil {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize delete policy ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], DeletePolicyAckPackage{})
+	tp, ok := unpackedStruct.(DeletePolicyAckPackage)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect delete Policy ack package failed")
+	}
+	return &tp, nil
+}
+
+func (p DeletePolicyAckPackage) MustSerialize() []byte {
+	encodedBytes, err := generalDeleteAckPackageArgs.Pack(&DeletePolicyAckPackage{
+		p.Status,
+		SafeBigInt(p.Id),
+		p.ExtraData,
+	})
+	if err != nil {
+		panic("encode delete policy ack package error")
+	}
+	return encodedBytes
+}
+
 const (
 	OperationAddGroupMember    uint8 = 0
 	OperationDeleteGroupMember uint8 = 1
@@ -1285,4 +1385,115 @@ func (p UpdateGroupMemberAckPackage) MustSerialize() []byte {
 		panic("encode update group member ack package error")
 	}
 	return encodedBytes
+}
+
+type CreatePolicySynPackage struct {
+	Operator  sdk.AccAddress
+	Data      []byte
+	ExtraData []byte
+}
+
+type CreatePolicySynPackageStruct struct {
+	Operator  common.Address
+	Data      []byte
+	ExtraData []byte
+}
+
+var (
+	createPolicySynPackageType, _ = abi.NewType("tuple", "", []abi.ArgumentMarshaling{
+		{Name: "Operator", Type: "address"},
+		{Name: "Data", Type: "bytes"},
+		{Name: "ExtraData", Type: "bytes"},
+	})
+
+	createPolicySynPackageArgs = abi.Arguments{
+		{Type: createPolicySynPackageType},
+	}
+)
+
+func (p CreatePolicySynPackage) ValidateBasic() error {
+	if p.Operator.Empty() {
+		return sdkerrors.ErrInvalidAddress
+	}
+
+	var policy permtypes.Policy
+	err := json.Unmarshal(p.Data, &policy)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (p CreatePolicySynPackage) MustSerialize() []byte {
+	encodedBytes, err := createPolicySynPackageArgs.Pack(&CreatePolicySynPackageStruct{
+		Operator:  common.BytesToAddress(p.Operator),
+		Data:      p.Data,
+		ExtraData: p.ExtraData,
+	})
+	if err != nil {
+		panic("encode create policy syn package error")
+	}
+	return encodedBytes
+}
+
+func DeserializeCreatePolicySynPackage(serializedPackage []byte) (interface{}, error) {
+	unpacked, err := createPolicySynPackageArgs.Unpack(serializedPackage)
+	if err != nil {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create policy syn package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], CreatePolicySynPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(CreatePolicySynPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create policy syn package failed")
+	}
+
+	tp := CreatePolicySynPackage{
+		pkgStruct.Operator.Bytes(),
+		pkgStruct.Data,
+		pkgStruct.ExtraData,
+	}
+	return &tp, nil
+}
+
+type CreatePolicyAckPackage struct {
+	Status    uint8
+	Id        *big.Int
+	Creator   sdk.AccAddress
+	ExtraData []byte
+}
+
+func (p CreatePolicyAckPackage) MustSerialize() []byte {
+	encodedBytes, err := generalCreateAckPackageArgs.Pack(&GeneralCreateAckPackageStruct{
+		Status:    p.Status,
+		Id:        SafeBigInt(p.Id),
+		Creator:   common.BytesToAddress(p.Creator),
+		ExtraData: p.ExtraData,
+	})
+	if err != nil {
+		panic("encode create policy ack package error")
+	}
+	return encodedBytes
+}
+
+func DeserializeCreatePolicyAckPackage(serializedPackage []byte) (interface{}, error) {
+	unpacked, err := generalCreateAckPackageArgs.Unpack(serializedPackage)
+	if err != nil {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "deserialize create policy ack package failed")
+	}
+
+	unpackedStruct := abi.ConvertType(unpacked[0], GeneralCreateAckPackageStruct{})
+	pkgStruct, ok := unpackedStruct.(GeneralCreateAckPackageStruct)
+	if !ok {
+		return nil, errors.Wrapf(ErrInvalidCrossChainPackage, "reflect create policy ack package failed")
+	}
+
+	tp := CreatePolicyAckPackage{
+		Status:    pkgStruct.Status,
+		Id:        pkgStruct.Id,
+		Creator:   pkgStruct.Creator.Bytes(),
+		ExtraData: pkgStruct.ExtraData,
+	}
+	return &tp, nil
 }

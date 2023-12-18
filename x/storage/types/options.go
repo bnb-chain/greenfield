@@ -76,3 +76,13 @@ type RenewGroupMemberOptions struct {
 type DeleteGroupOptions struct {
 	SourceType SourceType
 }
+
+type CreatePolicyOptions struct {
+	SourceType SourceType
+	Extra      string
+	Tags       *ResourceTags
+}
+
+type DeletePolicyOptions struct {
+	SourceType SourceType
+}
