@@ -1,8 +1,6 @@
 package app
 
 import (
-	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
-	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 	serverconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -13,6 +11,8 @@ import (
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.Config) error {

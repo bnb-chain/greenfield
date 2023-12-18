@@ -103,8 +103,8 @@ func NewAppModule(
 	cdc codec.Codec,
 	keeper keeper.Keeper,
 	spKeeper types.SpKeeper,
-) AppModule {
-	return AppModule{
+) *AppModule {
+	return &AppModule{
 		AppModuleBasic: NewAppModuleBasic(cdc),
 		keeper:         keeper,
 		spKeeper:       spKeeper,
