@@ -1150,7 +1150,7 @@ func (s *VirtualGroupTestSuite) TestSPForcedExit() {
 		Address: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(govModuleBalance.Balance.Amount.Add(types.NewIntFromInt64WithDecimal(10000, types.DecimalBNB)), govModuleBalanceAfterSPForcedExit.Balance.Amount)
+	s.Require().Equal(govModuleBalance.Balance.Amount.Add(resp.StorageProvider.TotalDeposit), govModuleBalanceAfterSPForcedExit.Balance.Amount)
 }
 
 func (s *VirtualGroupTestSuite) updateParams(params virtualgroupmoduletypes.Params) {
