@@ -363,6 +363,9 @@ func (msg *MsgReserveSwapIn) ValidateBasic() error {
 			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be empty(0) when familyID is specified.")
 		}
 	}
+	if msg.TargetSpId == 0 {
+		return gnfderrors.ErrInvalidMessage.Wrap("The target sp id is not specified.")
+	}
 	return nil
 }
 

@@ -21,9 +21,17 @@ func TestMsgCompleteStorageProviderExit_ValidateBasic(t *testing.T) {
 				StorageProvider: "invalid_address",
 			},
 			err: sdkerrors.ErrInvalidAddress,
-		}, {
+		},
+		{
+			name: "invalid operator",
+			msg: MsgCompleteStorageProviderExit{
+				Operator: "invalid_address",
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
 			name: "valid address",
-			msg:  *NewMsgCompleteStorageProviderExit(sample.RandAccAddress()),
+			msg:  *NewMsgCompleteStorageProviderExit(sample.RandAccAddress(), sample.RandAccAddress()),
 		},
 	}
 	for _, tt := range tests {

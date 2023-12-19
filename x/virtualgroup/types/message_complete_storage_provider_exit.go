@@ -11,9 +11,10 @@ const TypeMsgCompleteStorageProviderExit = "complete_storage_provider_exit"
 
 var _ sdk.Msg = &MsgCompleteStorageProviderExit{}
 
-func NewMsgCompleteStorageProviderExit(operator sdk.AccAddress) *MsgCompleteStorageProviderExit {
+func NewMsgCompleteStorageProviderExit(operator, storageProvider sdk.AccAddress) *MsgCompleteStorageProviderExit {
 	return &MsgCompleteStorageProviderExit{
-		StorageProvider: operator.String(),
+		Operator:        operator.String(),
+		StorageProvider: storageProvider.String(),
 	}
 }
 
