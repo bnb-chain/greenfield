@@ -231,11 +231,6 @@ type MockBankKeeper struct {
 	recorder *MockBankKeeperMockRecorder
 }
 
-func (m *MockBankKeeper) SendCoinsFromModuleToModule(ctx types0.Context, senderModule, recipientModule string, amt types0.Coins) error {
-	//TODO implement me
-	panic("implement me")
-}
-
 // MockBankKeeperMockRecorder is the mock recorder for MockBankKeeper.
 type MockBankKeeperMockRecorder struct {
 	mock *MockBankKeeper

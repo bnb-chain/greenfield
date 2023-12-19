@@ -11,6 +11,7 @@ import (
 
 	gnfdtypes "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/errors"
+	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	"github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
@@ -525,7 +526,9 @@ func (k msgServer) CompleteStorageProviderExit(goCtx context.Context, msg *types
 	} else {
 		forcedExit = true
 		coins := sdk.NewCoins(sdk.NewCoin(k.spKeeper.DepositDenomForSP(ctx), sp.TotalDeposit))
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, sptypes.ModuleName, govtypes.ModuleName, coins)
+		// the deposit will be transfer to the payment module gov addr stream record related bank account, when a stream record lack of
+		// static balance, it will check for its related bank account
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, sptypes.ModuleName, paymenttypes.GovernanceAddress, coins)
 		if err != nil {
 			return nil, err
 		}

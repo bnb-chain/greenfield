@@ -23,6 +23,7 @@ import (
 	"github.com/bnb-chain/greenfield/e2e/core"
 	"github.com/bnb-chain/greenfield/sdk/types"
 	storagetestutil "github.com/bnb-chain/greenfield/testutil/storage"
+	types3 "github.com/bnb-chain/greenfield/x/payment/types"
 	sptypes "github.com/bnb-chain/greenfield/x/sp/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
 	virtualgroupmoduletypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
@@ -1021,12 +1022,13 @@ func (s *VirtualGroupTestSuite) TestSPForcedExit() {
 	spx := s.BaseSuite.CreateNewStorageProvider()
 	spy := s.BaseSuite.CreateNewStorageProvider()
 
-	// gov module balance
-	govModuleBalance, err := s.Client.Balance(context.Background(), &types2.QueryBalanceRequest{
-		Denom:   s.Config.Denom,
-		Address: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	// get the dynamic balance of gov address account i payment module
+	govAddrInPaymentBalance, err := s.Client.DynamicBalance(context.Background(), &types3.QueryDynamicBalanceRequest{
+		Account: types3.GovernanceAddress.String(),
 	})
 	s.Require().NoError(err)
+	s.T().Logf("payment module gov stream record balance is %s", core.YamlString(govAddrInPaymentBalance))
+
 	// 2. SP-x creates a new family with a gvg: {[x|2,3,4,5,6,7]}
 	gvgID, familyID := s.BaseSuite.CreateGlobalVirtualGroup(spx, 0, []uint32{2, 3, 4, 5, 6, 7}, 1)
 
@@ -1145,12 +1147,12 @@ func (s *VirtualGroupTestSuite) TestSPForcedExit() {
 	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
 	s.Require().Error(err)
 
-	govModuleBalanceAfterSPForcedExit, err := s.Client.Balance(context.Background(), &types2.QueryBalanceRequest{
-		Denom:   s.Config.Denom,
-		Address: authtypes.NewModuleAddress(govtypes.ModuleName).String(),
+	govAddrInPaymentBalanceAfter, err := s.Client.DynamicBalance(context.Background(), &types3.QueryDynamicBalanceRequest{
+		Account: types3.GovernanceAddress.String(),
 	})
 	s.Require().NoError(err)
-	s.Require().Equal(govModuleBalance.Balance.Amount.Add(resp.StorageProvider.TotalDeposit), govModuleBalanceAfterSPForcedExit.Balance.Amount)
+	s.T().Logf("payment module gov stream record balance is %s", core.YamlString(govAddrInPaymentBalanceAfter))
+	s.Require().Equal(govAddrInPaymentBalance.BankBalance.Add(resp.StorageProvider.TotalDeposit), govAddrInPaymentBalanceAfter.BankBalance)
 }
 
 func (s *VirtualGroupTestSuite) updateParams(params virtualgroupmoduletypes.Params) {
@@ -1262,7 +1264,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	msgCompleteSwapIn := virtualgroupmoduletypes.NewMsgCompleteSwapIn(spy.OperatorKey.GetAddr(), familyID, 0)
 	s.SendTxBlock(spy.OperatorKey, msgCompleteSwapIn)
 
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
 	s.Require().Error(err)
@@ -1289,7 +1291,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	s.SendTxBlock(spz.OperatorKey, msgReserveSwapIn)
 
 	// 13 query the swapInInfo onchain, show reservation is recorded onchain
-	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
 	s.Require().NoError(err)
