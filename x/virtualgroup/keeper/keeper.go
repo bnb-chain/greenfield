@@ -799,10 +799,6 @@ func (k Keeper) CompleteSwapIn(ctx sdk.Context, gvgFamilyID uint32, gvgID uint32
 		if successorSP.Id != swapInInfo.SuccessorSpId {
 			return types.ErrSwapInFailed.Wrapf("The SP(ID: %d) has not reserved the swap(swapInfo=%s)", successorSP.Id, swapInInfo.String())
 		}
-		if uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
-			return types.ErrSwapInFailed.Wrapf("reserved swap expired")
-		}
-
 		targetPrimarySP, found := k.spKeeper.GetStorageProvider(ctx, swapInInfo.TargetSpId)
 		if !found {
 			return sptypes.ErrStorageProviderNotFound.Wrapf("The storage provider(ID: %d) not found when complete swap in.", swapInInfo.TargetSpId)
@@ -853,7 +849,7 @@ func (k Keeper) completeSwapInGVG(ctx sdk.Context, successorSPID, targetSecondar
 	// settlement
 	err := k.SettleAndDistributeGVG(ctx, gvg)
 	if err != nil {
-		return types.ErrSwapOutFailed.Wrapf("fail to settle GVG %d", gvgID)
+		return types.ErrSwapInFailed.Wrapf("fail to settle GVG %d", gvgID)
 	}
 	secondarySPIndex := -1
 	for i, sspID := range gvg.GetSecondarySpIds() {

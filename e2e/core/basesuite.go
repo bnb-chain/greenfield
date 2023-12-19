@@ -12,8 +12,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/exp/slices"
-
 	sdkmath "cosmossdk.io/math"
 	"github.com/cometbft/cometbft/crypto/tmhash"
 	tmlog "github.com/cometbft/cometbft/libs/log"
@@ -30,6 +28,7 @@ import (
 	"github.com/prysmaticlabs/prysm/crypto/bls"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/suite"
+	"golang.org/x/exp/slices"
 
 	"github.com/bnb-chain/greenfield/cmd/gnfd/cmd"
 	"github.com/bnb-chain/greenfield/sdk/client"

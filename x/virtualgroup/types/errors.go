@@ -25,8 +25,7 @@ var (
 	ErrDuplicateGVG            = errors.Register(ModuleName, 1126, "global virtual group is duplicate")
 	ErrSwapInFailed            = errors.Register(ModuleName, 1127, "swap in failed.")
 	ErrSwapInInfoNotExist      = errors.Register(ModuleName, 1128, "swap in info not exist.")
-	ErrSwapInInfoExpired       = errors.Register(ModuleName, 1129, "swap in info expired")
-	ErrGVGStatisticsNotExist   = errors.Register(ModuleName, 1130, "gvg statistics not exist.")
+	ErrGVGStatisticsNotExist   = errors.Register(ModuleName, 1129, "gvg statistics not exist.")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

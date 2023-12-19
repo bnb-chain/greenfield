@@ -1215,13 +1215,13 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 
 	// 1. create an SP-x that wants to exit
 	spx := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP(successor) Info: %s", spx.Info.String())
+	s.T().Logf("new SPx(successor) Info: %s", spx.Info.String())
 
 	// 2. create a successor SP-y,  successor SP-z
 	spy := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP(successor) Info: %s", spy.Info.String())
+	s.T().Logf("new SPy(successor) Info: %s", spy.Info.String())
 	spz := s.BaseSuite.CreateNewStorageProvider()
-	s.T().Logf("new SP(successor) Info: %s", spz.Info.String())
+	s.T().Logf("new SPz(successor) Info: %s", spz.Info.String())
 
 	// 3 SP-x create a new family with a GVG. Family {GVG: [x|2, 3, 4, 5, 6, 7]}
 	_, familyID := s.BaseSuite.CreateGlobalVirtualGroup(spx, 0, []uint32{2, 3, 4, 5, 6, 7}, 1)
@@ -1234,7 +1234,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	s.Require().NoError(err)
 	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
 
-	// 5 SP-y reserves the swap
+	// 5 SP-y reserves the swapIn family
 	msgReserveSwapIn := virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
 	s.SendTxBlock(spy.OperatorKey, msgReserveSwapIn)
 
@@ -1246,52 +1246,70 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	s.Require().Equal(swapInInfo.SwapInInfo.SuccessorSpId, spy.Info.Id)
 	s.Require().Equal(swapInInfo.SwapInInfo.TargetSpId, spx.Info.Id)
 
-	// SP-z try swapIn, failes
+	// 7. SP-z try to swapIn family, it would fail
 	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
 	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spz.OperatorKey, "already exist SP")
 
-	// 7 waits for 11 seconds, the swapIno is expired
+	// 8 waits for swapIno is expired, it can still be queried but with expired info
 	time.Sleep(11 * time.Second)
 	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
-	s.Require().Error(err)
-	s.Require().ErrorContains(err, "swap in info expired")
+	s.Require().NoError(err)
+	s.Require().True(swapInInfo.SwapInInfo.ExpirationTime < uint64(time.Now().Unix()))
 
-	// SP-y try to complete
+	// 9 SP-y try to complete swapIn family, it is allowed, since no other SP apply swapIn, and swapIn info will be gone after completion
 	msgCompleteSwapIn := virtualgroupmoduletypes.NewMsgCompleteSwapIn(spy.OperatorKey.GetAddr(), familyID, 0)
-	s.SendTxBlockWithExpectErrorString(msgCompleteSwapIn, spy.OperatorKey, "reserved swap expired")
-
-	// SP-y try to reserve again and it is not allowed
-	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spy.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
-	s.SendTxBlockWithExpectErrorString(msgReserveSwapIn, spy.OperatorKey, "already tried to swap in but expired")
-
-	// SP-z can reserve the swap since the previous one is expired
-	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spx.Info.Id, familyID, 0)
-	s.SendTxBlock(spz.OperatorKey, msgReserveSwapIn)
+	s.SendTxBlock(spy.OperatorKey, msgCompleteSwapIn)
 
 	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
 		GlobalVirtualGroupFamilyId: familyID,
 	})
-	s.Require().NoError(err)
-	s.Require().Equal(spz.Info.Id, swapInInfo.SwapInInfo.SuccessorSpId)
-	s.Require().Equal(spx.Info.Id, swapInInfo.SwapInInfo.TargetSpId)
-
-	// SP-z completes the swapIn
-	msgCompleteSwapIn = virtualgroupmoduletypes.NewMsgCompleteSwapIn(spz.OperatorKey.GetAddr(), familyID, 0)
-	s.SendTxBlock(spz.OperatorKey, msgCompleteSwapIn)
-
-	_, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
-		GlobalVirtualGroupFamilyId: familyID,
-	})
 	s.Require().Error(err)
 
-	// sp-x completes the exit
+	// 10 sp-x completes the exit
 	s.SendTxBlock(
 		spx.OperatorKey,
 		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spx.OperatorKey.GetAddr().String(),
 			Operator: spx.OperatorKey.GetAddr().String()},
 	)
 	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spx.Info.Id})
+	s.Require().Error(err)
+
+	// 11. SP-y declare to exit
+	s.SendTxBlock(spy.OperatorKey, &virtualgroupmoduletypes.MsgStorageProviderExit{
+		StorageProvider: spy.OperatorKey.GetAddr().String(),
+	})
+	resp, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spy.Info.Id})
+	s.Require().NoError(err)
+	s.Require().Equal(resp.StorageProvider.Status, sptypes.STATUS_GRACEFUL_EXITING)
+
+	// 12 SP-z reserves the swapIn family but not complete it
+	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spz.OperatorKey.GetAddr(), spy.Info.Id, familyID, 0)
+	s.SendTxBlock(spz.OperatorKey, msgReserveSwapIn)
+
+	// 13 query the swapInInfo onchain, show reservation is recorded onchain
+	swapInInfo, err = s.Client.SwapInInfo(context.Background(), &virtualgroupmoduletypes.QuerySwapInInfoRequest{
+		GlobalVirtualGroupFamilyId: familyID,
+	})
+	s.Require().NoError(err)
+	// 14. wait for swapIn info expired
+	time.Sleep(11 * time.Second)
+
+	// 15 a new SP can reserve since the prev one is expired
+	spn := s.BaseSuite.CreateNewStorageProvider()
+	msgReserveSwapIn = virtualgroupmoduletypes.NewMsgReserveSwapIn(spn.OperatorKey.GetAddr(), spy.Info.Id, familyID, 0)
+	s.SendTxBlock(spn.OperatorKey, msgReserveSwapIn)
+
+	msgCompleteSwapIn = virtualgroupmoduletypes.NewMsgCompleteSwapIn(spn.OperatorKey.GetAddr(), familyID, 0)
+	s.SendTxBlock(spn.OperatorKey, msgCompleteSwapIn)
+
+	// 16 spy complete exit
+	s.SendTxBlock(
+		spy.OperatorKey,
+		&virtualgroupmoduletypes.MsgCompleteStorageProviderExit{StorageProvider: spy.OperatorKey.GetAddr().String(),
+			Operator: spy.OperatorKey.GetAddr().String()},
+	)
+	_, err = s.Client.StorageProvider(context.Background(), &sptypes.QueryStorageProviderRequest{Id: spy.Info.Id})
 	s.Require().Error(err)
 }

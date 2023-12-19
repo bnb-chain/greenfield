@@ -26,16 +26,12 @@ func (msg *MsgCompleteStorageProviderExit) Type() string {
 }
 
 func (msg *MsgCompleteStorageProviderExit) GetSigners() []sdk.AccAddress {
+	spAddr := sdk.MustAccAddressFromHex(msg.StorageProvider)
 	operator, err := sdk.AccAddressFromHexUnsafe(msg.Operator)
-	if err != nil {
-		spAddr, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
-		if err != nil {
-			panic(err)
-		}
-		return []sdk.AccAddress{spAddr}
+	if err == nil {
+		return []sdk.AccAddress{operator}
 	}
-	// the operator address will be validated in runtime after harfork and treated as signer
-	return []sdk.AccAddress{operator}
+	return []sdk.AccAddress{spAddr}
 }
 
 func (msg *MsgCompleteStorageProviderExit) GetSignBytes() []byte {

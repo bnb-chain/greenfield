@@ -1173,7 +1173,7 @@ func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, buck
 			return errors.Wrapf(types.ErrAccessDenied, "only primary sp is allowed to do discontinue objects")
 		}
 		swapInInfo, found := k.virtualGroupKeeper.GetSwapInInfo(ctx, bucketInfo.GlobalVirtualGroupFamilyId, virtualgroupmoduletypes.NoSpecifiedGVGId)
-		if !found || swapInInfo.TargetSpId != spInState.Id || swapInInfo.SuccessorSpId != sp.Id || uint64(ctx.BlockTime().Unix()) >= swapInInfo.ExpirationTime {
+		if !found || swapInInfo.TargetSpId != spInState.Id || swapInInfo.SuccessorSpId != sp.Id {
 			return errors.Wrapf(types.ErrAccessDenied, "the sp is not allowed to do discontinue objects")
 		}
 	}
