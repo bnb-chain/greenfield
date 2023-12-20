@@ -45,7 +45,6 @@ func (k msgServer) CreateBucket(goCtx context.Context, msg *types.MsgCreateBucke
 		SourceType:        types.SOURCE_TYPE_ORIGIN,
 		PrimarySpApproval: msg.PrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
-		Tags:              &msg.Tags,
 	})
 	if err != nil {
 		return nil, err
@@ -122,7 +121,6 @@ func (k msgServer) CreateObject(goCtx context.Context, msg *types.MsgCreateObjec
 		Checksums:         msg.ExpectChecksums,
 		PrimarySpApproval: msg.PrimarySpApproval,
 		ApprovalMsgBytes:  msg.GetApprovalBytes(),
-		Tags:              &msg.Tags,
 	})
 	if err != nil {
 		return nil, err
@@ -234,7 +232,7 @@ func (k msgServer) CreateGroup(goCtx context.Context, msg *types.MsgCreateGroup)
 
 	ownerAcc := sdk.MustAccAddressFromHex(msg.Creator)
 
-	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra, Tags: &msg.Tags})
+	id, err := k.Keeper.CreateGroup(ctx, ownerAcc, msg.GroupName, storagetypes.CreateGroupOptions{Extra: msg.Extra})
 	if err != nil {
 		return nil, err
 	}

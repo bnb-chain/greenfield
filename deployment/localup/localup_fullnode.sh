@@ -33,7 +33,7 @@ function init_fullnode() {
         cp ${workspace}/.local/validator0/config/config.toml ${workspace}/.local/dataseed${i}/config/config.toml
 
         # set state sync info
-        sed -i 'N;s/\# starting from the height of the snapshot\.\nenable = false/\# starting from the height of the snapshot\.\nenable = true/Mg'sed -i -e 'N;s/\# starting from the height of the snapshot\.\nenable = false/\# starting from the height of the snapshot\.\nenable = true/g' ${workspace}/.local/dataseed${i}/config/config.toml
+        sed -i -e 'N;s/\# starting from the height of the snapshot\.\nenable = false/\# starting from the height of the snapshot\.\nenable = true/g' ${workspace}/.local/dataseed${i}/config/config.toml
         sed -i -e "s/trust_height = 0/trust_height = ${trust_height}/g" ${workspace}/.local/dataseed${i}/config/config.toml
         sed -i -e "s/trust_hash = \"\"/trust_hash = \"${trust_hash}\"/g" ${workspace}/.local/dataseed${i}/config/config.toml
         sed -i -e "s/rpc_servers = \"\"/rpc_servers = \"${rpc_servers}\"/g" ${workspace}/.local/dataseed${i}/config/config.toml
