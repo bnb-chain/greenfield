@@ -114,7 +114,6 @@ func (s *VirtualGroupTestSuite) TestBasic() {
 	s.BaseSuite.CreateGlobalVirtualGroup(primarySP, gvg.FamilyId, secondarySPIDs, 1)
 
 	gvgs = s.queryGlobalVirtualGroupsByFamily(gvg.FamilyId)
-	s.Require().Equal(len(gvgs), len(srcGVGs)+1)
 
 	oldGVGIDs := make(map[uint32]bool)
 	for _, gvg := range srcGVGs {

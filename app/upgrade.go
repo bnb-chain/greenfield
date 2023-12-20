@@ -139,12 +139,12 @@ func (app *App) registerHulunbeierUpgradeHandler() {
 			app.Logger().Info("upgrade to ", plan.Name)
 
 			// enable SP exit
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgReserveSwapIn", 1.2e3))
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCancelSwapIn", 1.2e3))
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteSwapIn", 1.2e3))
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderForcedExit", 1.2e3))
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgStorageProviderExit", 1.2e3))
-			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas("/greenfield.virtualgroup.MsgCompleteStorageProviderExit", 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgReserveSwapIn{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgCancelSwapIn{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgCompleteSwapIn{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgStorageProviderForcedExit{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgStorageProviderExit{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgCompleteStorageProviderExit{}), 1.2e3))
 
 			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
 		})
