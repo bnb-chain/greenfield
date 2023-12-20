@@ -108,6 +108,7 @@ type StorageKeeper interface {
 		primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error)
 	DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error
 	GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*GroupInfo, bool)
+	GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName string) (*GroupInfo, bool)
 	DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error
 	CreateGroup(
 		ctx sdk.Context, owner sdk.AccAddress,
