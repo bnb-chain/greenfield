@@ -67,14 +67,6 @@ func (app *PermissionApp) ExecuteSynPackage(ctx sdk.Context, appCtx *sdk.CrossCh
 	return result
 }
 
-func (app *PermissionApp) handleDeletePolicyAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, ackPackage *types.DeletePolicyAckPackage) sdk.ExecuteResult {
-	return sdk.ExecuteResult{}
-}
-
-func (app *PermissionApp) handleDeletePolicyFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, synPackage *types.DeletePolicySynPackage) sdk.ExecuteResult {
-	return sdk.ExecuteResult{}
-}
-
 func (app *PermissionApp) handleDeletePolicySynPackage(ctx sdk.Context, deletePolicyPackage *types.DeletePolicySynPackage) sdk.ExecuteResult {
 	err := deletePolicyPackage.ValidateBasic()
 	if err != nil {
@@ -141,14 +133,6 @@ func (app *PermissionApp) handleDeletePolicySynPackage(ctx sdk.Context, deletePo
 			ExtraData: deletePolicyPackage.ExtraData,
 		}.MustSerialize(),
 	}
-}
-
-func (app *PermissionApp) handleCreatePolicyAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, ackPackage *types.CreatePolicyAckPackage) sdk.ExecuteResult {
-	return sdk.ExecuteResult{}
-}
-
-func (app *PermissionApp) handleCreatePolicyFailAckPackage(ctx sdk.Context, appCtx *sdk.CrossChainAppContext, ackPackage *types.CreatePolicySynPackage) sdk.ExecuteResult {
-	return sdk.ExecuteResult{}
 }
 
 func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPolicyPackage *types.CreatePolicySynPackage) sdk.ExecuteResult {
