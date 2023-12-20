@@ -2075,7 +2075,7 @@ func (s *StorageTestSuite) TestMaintenanceSPCreateBucketAndObject() {
 //	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketStatus, storagetypes.BUCKET_STATUS_CREATED)
 //}
 
-func (s *StorageTestSuite) TestSetTag() {
+func (s *StorageTestSuite) TestCreateBucketAndSetTag() {
 	var err error
 	user := s.GenAndChargeAccounts(1, 1000000)
 
@@ -2091,20 +2091,246 @@ func (s *StorageTestSuite) TestSetTag() {
 	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
 	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
 	s.Require().NoError(err)
-	s.SendTxBlock(user[0], msgCreateBucket)
 
-	// Set tag
 	grn := types2.NewBucketGRN(bucketName)
 	var tags storagetypes.ResourceTags
 	tags.Tags = append(tags.Tags, storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
 	msgSetTag := storagetypes.NewMsgSetTag(user[0].GetAddr(), grn.String(), &tags)
-	s.SendTxBlock(user[0], msgSetTag)
+	s.SendTxBlock(user[0], msgCreateBucket, msgSetTag)
 
-	// Query
+	// HeadBucket
 	req := storagetypes.QueryHeadBucketRequest{
 		BucketName: bucketName,
 	}
 	resp, err := s.Client.HeadBucket(context.Background(), &req)
 	s.Require().NoError(err)
 	s.Require().Equal(tags, *resp.BucketInfo.Tags)
+}
+
+func (s *StorageTestSuite) TestCreateObjectAndSetTag() {
+	var err error
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+	bucketName := storageutils.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		user.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PRIVATE, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+	s.SendTxBlock(user, msgCreateBucket)
+
+	// HeadBucket
+	ctx := context.Background()
+	queryHeadBucketRequest := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	queryHeadBucketResponse, err := s.Client.HeadBucket(ctx, &queryHeadBucketRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.GlobalVirtualGroupFamilyId, gvg.FamilyId)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.PaymentAddress, user.GetAddr().String())
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadBucketResponse.BucketInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+
+	// CreateObject
+	objectName := storageutils.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(user.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+
+	grn := types2.NewObjectGRN(bucketName, objectName)
+	var tags storagetypes.ResourceTags
+	tags.Tags = append(tags.Tags, storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
+	msgSetTag := storagetypes.NewMsgSetTag(user.GetAddr(), grn.String(), &tags)
+	s.SendTxBlock(user, msgCreateObject, msgSetTag)
+
+	// HeadObject
+	queryHeadObjectRequest := storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	}
+	queryHeadObjectResponse, err := s.Client.HeadObject(ctx, &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectName, objectName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.BucketName, bucketName)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.PayloadSize, uint64(payloadSize))
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_PRIVATE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ObjectStatus, storagetypes.OBJECT_STATUS_CREATED)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Owner, user.GetAddr().String())
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.Checksums, expectChecksum)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.SourceType, storagetypes.SOURCE_TYPE_ORIGIN)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.RedundancyType, storagetypes.REDUNDANCY_EC_TYPE)
+	s.Require().Equal(queryHeadObjectResponse.ObjectInfo.ContentType, contextType)
+	s.Require().Equal(*queryHeadObjectResponse.ObjectInfo.Tags, tags)
+
+	// SealObject
+	gvgId := gvg.Id
+	msgSealObject := storagetypes.NewMsgSealObject(sp.SealKey.GetAddr(), bucketName, objectName, gvg.Id, nil)
+	secondarySigs := make([][]byte, 0)
+	secondarySPBlsPubKeys := make([]bls.PublicKey, 0)
+	blsSignHash := storagetypes.NewSecondarySpSealObjectSignDoc(s.GetChainID(), gvgId, queryHeadObjectResponse.ObjectInfo.Id, storagetypes.GenerateHash(queryHeadObjectResponse.ObjectInfo.Checksums[:])).GetBlsSignHash()
+	// every secondary sp signs the checksums
+	for _, spID := range gvg.SecondarySpIds {
+		sig, err := core.BlsSignAndVerify(s.StorageProviders[spID], blsSignHash)
+		s.Require().NoError(err)
+		secondarySigs = append(secondarySigs, sig)
+		pk, err := bls.PublicKeyFromBytes(s.StorageProviders[spID].BlsKey.PubKey().Bytes())
+		s.Require().NoError(err)
+		secondarySPBlsPubKeys = append(secondarySPBlsPubKeys, pk)
+	}
+	aggBlsSig, err := core.BlsAggregateAndVerify(secondarySPBlsPubKeys, blsSignHash, secondarySigs)
+	s.Require().NoError(err)
+	msgSealObject.SecondarySpBlsAggSignatures = aggBlsSig
+	s.T().Logf("msg %s", msgSealObject.String())
+	s.SendTxBlock(sp.SealKey, msgSealObject)
+
+	// ListBuckets
+	queryListBucketsRequest := storagetypes.QueryListBucketsRequest{}
+	queryListBucketResponse, err := s.Client.ListBuckets(ctx, &queryListBucketsRequest)
+	s.Require().NoError(err)
+	s.Require().Greater(len(queryListBucketResponse.BucketInfos), 0)
+
+	// ListObject
+	queryListObjectsRequest := storagetypes.QueryListObjectsRequest{
+		BucketName: bucketName,
+	}
+	queryListObjectsResponse, err := s.Client.ListObjects(ctx, &queryListObjectsRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
+	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
+
+	// verify ListObjectsByBucketId
+	queryListObjectsResponse, err = s.Client.ListObjectsByBucketId(ctx, &storagetypes.QueryListObjectsByBucketIdRequest{
+		BucketId: queryHeadBucketResponse.BucketInfo.Id.String(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(len(queryListObjectsResponse.ObjectInfos), 1)
+	s.Require().Equal(queryListObjectsResponse.ObjectInfos[0].ObjectName, objectName)
+
+	// verify HeadObjectNFT
+	headObjectNftResponse, err := s.Client.HeadObjectNFT(ctx, &storagetypes.QueryNFTRequest{
+		TokenId: queryListObjectsResponse.ObjectInfos[0].Id.String(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(headObjectNftResponse.MetaData.ObjectName, objectName)
+
+	// UpdateObjectInfo
+	updateObjectInfo := storagetypes.NewMsgUpdateObjectInfo(
+		user.GetAddr(), bucketName, objectName, storagetypes.VISIBILITY_TYPE_INHERIT)
+	s.Require().NoError(err)
+	s.SendTxBlock(user, updateObjectInfo)
+	s.Require().NoError(err)
+
+	// verify modified objectinfo
+	// head object
+	queryHeadObjectAfterUpdateObjectResponse, err := s.Client.HeadObject(context.Background(), &queryHeadObjectRequest)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_INHERIT)
+
+	// verify HeadObjectById
+	queryHeadObjectAfterUpdateObjectResponse, err = s.Client.HeadObjectById(context.Background(), &storagetypes.QueryHeadObjectByIdRequest{ObjectId: queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Id.String()})
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.Visibility, storagetypes.VISIBILITY_TYPE_INHERIT)
+	s.Require().Equal(queryHeadObjectAfterUpdateObjectResponse.ObjectInfo.ObjectName, objectName)
+
+	// DeleteObject
+	msgDeleteObject := storagetypes.NewMsgDeleteObject(user.GetAddr(), bucketName, objectName)
+	s.SendTxBlock(user, msgDeleteObject)
+
+	// DeleteBucket
+	msgDeleteBucket := storagetypes.NewMsgDeleteBucket(user.GetAddr(), bucketName)
+	s.SendTxBlock(user, msgDeleteBucket)
+}
+
+func (s *StorageTestSuite) TestCreateGroupAndSetTag() {
+	ctx := context.Background()
+
+	owner := s.GenAndChargeAccounts(1, 1000000)[0]
+	member := s.GenAndChargeAccounts(1, 1000000)[0]
+	groupName := storageutils.GenRandomGroupName()
+
+	// 1. CreateGroup
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
+	grn := types2.NewGroupGRN(owner.GetAddr(), groupName)
+	var tags storagetypes.ResourceTags
+	tags.Tags = append(tags.Tags, storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
+	msgSetTag := storagetypes.NewMsgSetTag(owner.GetAddr(), grn.String(), &tags)
+	s.SendTxBlock(owner, msgCreateGroup, msgSetTag)
+	s.T().Logf("CerateGroup success, owner: %s, group name: %s", owner.GetAddr().String(), groupName)
+
+	// 2. HeadGroup
+	queryHeadGroupReq := storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: groupName}
+	queryHeadGroupResp, err := s.Client.HeadGroup(ctx, &queryHeadGroupReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadGroupResp.GroupInfo.GroupName, groupName)
+	s.Require().Equal(queryHeadGroupResp.GroupInfo.Owner, owner.GetAddr().String())
+	s.Require().Equal(*queryHeadGroupResp.GroupInfo.Tags, tags)
+
+	// 2.1. HeadGroupNFT
+	headGroupNftResponse, err := s.Client.HeadGroupNFT(ctx, &storagetypes.QueryNFTRequest{
+		TokenId: queryHeadGroupResp.GroupInfo.Id.String(),
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(headGroupNftResponse.MetaData.GroupName, groupName)
+
+	// 3. ListGroup
+	queryListGroupReq := storagetypes.QueryListGroupsRequest{GroupOwner: owner.GetAddr().String()}
+	queryListGroupResp, err := s.Client.ListGroups(ctx, &queryListGroupReq)
+	s.Require().NoError(err)
+	s.Require().GreaterOrEqual(len(queryListGroupResp.GroupInfos), 1)
+
+	// 4. UpdateGroupMember(add)
+	membersToAdd := []*storagetypes.MsgGroupMember{
+		{Member: member.GetAddr().String()},
+	}
+	membersToDelete := []sdk.AccAddress{}
+	msgUpdateGroupMember := storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
+
+	// 4-1. HeadGroupMember(add)
+	queryHeadGroupMemberReq := storagetypes.QueryHeadGroupMemberRequest{
+		Member:     member.GetAddr().String(),
+		GroupName:  groupName,
+		GroupOwner: owner.GetAddr().String(),
+	}
+	queryHeadGroupMemberResp, err := s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReq)
+	s.Require().NoError(err)
+	s.Require().Equal(queryHeadGroupMemberResp.GroupMember.GroupId, queryHeadGroupResp.GroupInfo.Id)
+
+	// 5. UpdateGroupMember(delete)
+	member2 := s.GenAndChargeAccounts(1, 1000000)[0]
+	membersToAdd = []*storagetypes.MsgGroupMember{
+		{Member: member2.GetAddr().String()},
+	}
+	membersToDelete = []sdk.AccAddress{member.GetAddr()}
+	msgUpdateGroupMember = storagetypes.NewMsgUpdateGroupMember(owner.GetAddr(), owner.GetAddr(), groupName, membersToAdd, membersToDelete)
+	s.SendTxBlock(owner, msgUpdateGroupMember)
+
+	// 5-1. HeadGroupMember (delete)
+	queryHeadGroupMemberReqDelete := storagetypes.QueryHeadGroupMemberRequest{
+		Member:     member.GetAddr().String(),
+		GroupName:  groupName,
+		GroupOwner: owner.GetAddr().String(),
+	}
+	_, err = s.Client.HeadGroupMember(ctx, &queryHeadGroupMemberReqDelete)
+	s.Require().True(strings.Contains(err.Error(), storagetypes.ErrNoSuchGroupMember.Error()))
+
+	// 6. Create a group with the same name
+	msgCreateGroup = storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
+	s.SendTxBlockWithExpectErrorString(msgCreateGroup, owner, "exists")
 }
