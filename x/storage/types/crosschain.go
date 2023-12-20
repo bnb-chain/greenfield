@@ -2,7 +2,6 @@ package types
 
 import (
 	"encoding/json"
-	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 	"math/big"
 	time "time"
 
@@ -13,6 +12,7 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	gnfdcommon "github.com/bnb-chain/greenfield/types/common"
+	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 const (
