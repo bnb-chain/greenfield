@@ -29,12 +29,12 @@ func (k Keeper) MaxStoreSizePerFamily(ctx sdk.Context) (res uint64) {
 
 func (k Keeper) SwapInValidityPeriod(ctx sdk.Context) (res uint64) {
 	params := k.GetParams(ctx)
-	return params.SwapInValidityPeriod
+	return params.SwapInValidityPeriod.Uint64()
 }
 
 func (k Keeper) SpConcurrentExitNum(ctx sdk.Context) (res uint32) {
 	params := k.GetParams(ctx)
-	return params.SpConcurrentExitNum
+	return uint32(params.SpConcurrentExitNum.Uint64())
 }
 
 // GetParams returns the current sp module parameters.

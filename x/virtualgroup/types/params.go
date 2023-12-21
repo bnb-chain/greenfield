@@ -21,8 +21,8 @@ var (
 	DefaultGVGStakingPerBytes                = sdk.NewInt(16000) // 20%~30% of store price
 	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 * 1024 //64T
-	DefaultSwapInValidityPeriod              = uint64(60) * 60 * 24 * 7               // 7 days
-	DefaultSPConcurrentExitNum               = uint32(1)
+	DefaultSwapInValidityPeriod              = math.NewInt(60 * 60 * 24 * 7)          // 7 days
+	DefaultSPConcurrentExitNum               = math.NewInt(1)
 
 	KeyDepositDenom                      = []byte("DepositDenom")
 	KeyGVGStakingPerBytes                = []byte("GVGStakingPerBytes")
@@ -41,14 +41,14 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(depositDenom string, gvgStakingPerBytes math.Int, maxGlobalVirtualGroupPerFamily uint32,
-	maxStoreSizePerFamily, swapInValidityPeriod uint64, spConcurrentExitNum uint32) Params {
+	maxStoreSizePerFamily uint64, swapInValidityPeriod, spConcurrentExitNum math.Int) Params {
 	return Params{
 		DepositDenom:                      depositDenom,
 		GvgStakingPerBytes:                gvgStakingPerBytes,
 		MaxGlobalVirtualGroupNumPerFamily: maxGlobalVirtualGroupPerFamily,
 		MaxStoreSizePerFamily:             maxStoreSizePerFamily,
-		SwapInValidityPeriod:              swapInValidityPeriod,
-		SpConcurrentExitNum:               spConcurrentExitNum,
+		SwapInValidityPeriod:              &swapInValidityPeriod,
+		SpConcurrentExitNum:               &spConcurrentExitNum,
 	}
 }
 
@@ -159,25 +159,28 @@ func validateMaxStoreSizePerFamily(i interface{}) error {
 }
 
 func validateSwapInValidityPeriod(i interface{}) error {
-	v, ok := i.(uint64)
+	v, ok := i.(*math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
-	if v == 0 {
-		return fmt.Errorf("swapIn info validity period must be positive: %d", v)
+	if v != nil && !v.IsNil() {
+		if !v.IsPositive() {
+			return fmt.Errorf("swapIn info validity period must be positive: %s", v)
+		}
 	}
 	return nil
 }
 
 func validateSPConcurrentExitNum(i interface{}) error {
-	v, ok := i.(uint32)
+	v, ok := i.(*math.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
 
-	if v == 0 {
-		return fmt.Errorf("number of sp concurrent exit must be positive: %d", v)
+	if v != nil && !v.IsNil() {
+		if !v.IsPositive() {
+			return fmt.Errorf("number of sp concurrent exit must be positive: %s", v)
+		}
 	}
-
 	return nil
 }

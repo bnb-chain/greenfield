@@ -1207,12 +1207,14 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	queryParamsResp, err := s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
 	s.Require().NoError(err)
 	updatedParams := queryParamsResp.Params
-	updatedParams.SwapInValidityPeriod = 10 // the swapInInfo will expire in 10 seconds
+
+	swapInValidityPeriod := sdk.NewInt(1)
+	updatedParams.SwapInValidityPeriod = &swapInValidityPeriod // the swapInInfo will expire in 10 seconds
 	s.updateParams(updatedParams)
 
 	queryParamsResp, err = s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(10, int(queryParamsResp.Params.SwapInValidityPeriod))
+	s.Require().Equal(10, queryParamsResp.Params.SwapInValidityPeriod.Uint64())
 
 	// 1. create an SP-x that wants to exit
 	spx := s.BaseSuite.CreateNewStorageProvider()
