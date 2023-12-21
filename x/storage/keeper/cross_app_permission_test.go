@@ -45,10 +45,10 @@ func (s *TestSuite) TestSynCreatePolicy() {
 	serializedSynPackage := synPackage.MustSerialize()
 	serializedSynPackage = append([]byte{storageTypes.OperationCreatePolicy}, serializedSynPackage...)
 
-	// normal case
-	permissionKeeper.EXPECT().PutPolicy(gomock.Any(), gomock.Any()).Return(math.NewUint(0), nil)
+	// case 1: bucket not found
+	storageKeeper.EXPECT().GetBucketInfoById(gomock.Any(), gomock.Any()).Return(nil, false)
 	res := app.ExecuteSynPackage(s.ctx, &sdk.CrossChainAppContext{}, serializedSynPackage)
-	s.Require().NoError(res.Err)
+	s.Require().ErrorIs(res.Err, storageTypes.ErrNoSuchBucket)
 }
 
 func (s *TestSuite) TestSynDeletePolicy() {

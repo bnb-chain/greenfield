@@ -121,4 +121,7 @@ type StorageKeeper interface {
 	DeleteObject(
 		ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error
 	GetSourceTypeByChainId(ctx sdk.Context, chainId sdk.ChainID) (SourceType, error)
+
+	NormalizePrincipal(ctx sdk.Context, principal *permtypes.Principal)
+	ValidatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error
 }

@@ -745,7 +745,7 @@ func (app *App) initBridge() {
 }
 
 func (app *App) initStorage() {
-	storagemodulekeeper.RegisterCrossApps(app.StorageKeeper, app.PermissionmoduleKeeper)
+	storagemodulekeeper.RegisterCrossApps(app.StorageKeeper)
 }
 
 func (app *App) initGov() {

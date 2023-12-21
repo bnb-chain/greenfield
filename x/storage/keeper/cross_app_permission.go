@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	types2 "github.com/bnb-chain/greenfield/types"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	gnfdresource "github.com/bnb-chain/greenfield/types/resource"
 	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
@@ -186,8 +185,8 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 		}
 	}
 
-	app.normalizePrincipal(ctx, policy.Principal)
-	err = app.validatePrincipal(ctx, resOwner, policy.Principal)
+	app.storageKeeper.NormalizePrincipal(ctx, policy.Principal)
+	err = app.storageKeeper.ValidatePrincipal(ctx, resOwner, policy.Principal)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreatePolicyAckPackage{
@@ -245,48 +244,4 @@ func (app *PermissionApp) getResourceOwner(ctx sdk.Context, policy *permtypes.Po
 		return resOwner, gnfderrors.ErrInvalidGRN.Wrap("Unknown resource type in greenfield resource name")
 	}
 	return resOwner, nil
-}
-
-func (app *PermissionApp) normalizePrincipal(ctx sdk.Context, principal *permtypes.Principal) {
-	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
-		if _, err := math.ParseUint(principal.Value); err == nil {
-			return
-		}
-		var grn types2.GRN
-		if err := grn.ParseFromString(principal.Value, false); err != nil {
-			return
-		}
-		groupOwner, groupName, err := grn.GetGroupOwnerAndAccount()
-		if err != nil {
-			return
-		}
-
-		if groupInfo, found := app.storageKeeper.GetGroupInfo(ctx, groupOwner, groupName); found {
-			principal.Value = groupInfo.Id.String()
-		}
-	}
-}
-
-func (app *PermissionApp) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {
-	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_ACCOUNT {
-		principalAccAddress, err := principal.GetAccountAddress()
-		if err != nil {
-			return err
-		}
-		if principalAccAddress.Equals(resOwner) {
-			return gnfderrors.ErrInvalidPrincipal.Wrapf("principal account can not be the bucket owner")
-		}
-	} else if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
-		groupID, err := math.ParseUint(principal.Value)
-		if err != nil {
-			return err
-		}
-		_, found := app.storageKeeper.GetGroupInfoById(ctx, groupID)
-		if !found {
-			return types.ErrNoSuchGroup
-		}
-	} else {
-		return permtypes.ErrInvalidPrincipal.Wrapf("Unknown principal type.")
-	}
-	return nil
 }

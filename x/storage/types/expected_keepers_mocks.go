@@ -897,6 +897,30 @@ type MockStorageKeeper struct {
 	recorder *MockStorageKeeperMockRecorder
 }
 
+func (m *MockStorageKeeper) NormalizePrincipal(ctx types3.Context, principal *types0.Principal) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "NormalizePrincipal", ctx, principal)
+}
+
+// NormalizePrincipal indicates an expected call of NormalizePrincipal.
+func (mr *MockStorageKeeperMockRecorder) NormalizePrincipal(ctx types3.Context, principal *types0.Principal) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizePrincipal", reflect.TypeOf((*MockStorageKeeper)(nil).NormalizePrincipal), ctx, principal)
+}
+
+func (m *MockStorageKeeper) ValidatePrincipal(ctx types3.Context, resOwner types3.AccAddress, principal *types0.Principal) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ValidatePrincipal", ctx, resOwner, principal)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// NormalizePrincipal indicates an expected call of NormalizePrincipal.
+func (mr *MockStorageKeeperMockRecorder) ValidatePrincipal(ctx types3.Context, resOwner types3.AccAddress, principal *types0.Principal) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ValidatePrincipal", reflect.TypeOf((*MockStorageKeeper)(nil).ValidatePrincipal), ctx, resOwner, principal)
+}
+
 // MockStorageKeeperMockRecorder is the mock recorder for MockStorageKeeper.
 type MockStorageKeeperMockRecorder struct {
 	mock *MockStorageKeeper

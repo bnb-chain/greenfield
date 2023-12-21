@@ -1,11 +1,10 @@
 package keeper
 
 import (
-	permissionmodulekeeper "github.com/bnb-chain/greenfield/x/permission/keeper"
 	"github.com/bnb-chain/greenfield/x/storage/types"
 )
 
-func RegisterCrossApps(keeper Keeper, permissionKeeper permissionmodulekeeper.Keeper) {
+func RegisterCrossApps(keeper Keeper) {
 	bucketApp := NewBucketApp(keeper)
 	err := keeper.crossChainKeeper.RegisterChannel(types.BucketChannel, types.BucketChannelId, bucketApp)
 	if err != nil {
@@ -24,7 +23,7 @@ func RegisterCrossApps(keeper Keeper, permissionKeeper permissionmodulekeeper.Ke
 		panic(err)
 	}
 
-	permissionApp := NewPermissionApp(keeper, permissionKeeper)
+	permissionApp := NewPermissionApp(keeper, keeper.permKeeper)
 	err = keeper.crossChainKeeper.RegisterChannel(types.PermissionChannel, types.PermissionChannelId, permissionApp)
 	if err != nil {
 		panic(err)
