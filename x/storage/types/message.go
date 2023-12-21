@@ -120,24 +120,6 @@ func NewMsgCreateBucket(
 	}
 }
 
-// NewMsgCreateBucketWithTags creates a new MsgCreateBucket instance with tags.
-// Since: Manchurian upgrade
-func NewMsgCreateBucketWithTags(
-	creator sdk.AccAddress, bucketName string, Visibility VisibilityType, primarySPAddress, paymentAddress sdk.AccAddress,
-	timeoutHeight uint64, sig []byte, chargedReadQuota uint64, tags ResourceTags,
-) *MsgCreateBucket {
-	return &MsgCreateBucket{
-		Creator:           creator.String(),
-		BucketName:        bucketName,
-		Visibility:        Visibility,
-		PaymentAddress:    paymentAddress.String(),
-		PrimarySpAddress:  primarySPAddress.String(),
-		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
-		ChargedReadQuota:  chargedReadQuota,
-		Tags:              tags,
-	}
-}
-
 // Route implements the sdk.Msg interface.
 func (msg *MsgCreateBucket) Route() string {
 	return RouterKey
@@ -201,29 +183,6 @@ func (msg *MsgCreateBucket) ValidateBasic() error {
 	err = s3util.CheckValidBucketName(msg.BucketName)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-
-func (msg *MsgCreateBucket) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Manchurian) {
-		if len(msg.Tags.GetTags()) > MaxTagCount {
-			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
-		}
-		if len(msg.Tags.GetTags()) > 0 {
-			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyLength {
-					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
-				}
-				if len(tag.GetValue()) > MaxTagValueLength {
-					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
-				}
-			}
-		}
-	} else {
-		if len(msg.Tags.GetTags()) > 0 {
-			return gnfderrors.ErrInvalidParameter.Wrapf("Tags are not supported")
-		}
 	}
 	return nil
 }
@@ -352,27 +311,6 @@ func NewMsgCreateObject(
 	}
 }
 
-// NewMsgCreateObjectWithTags creates a new MsgCreateObject instance with tags.
-// Since: Manchurian upgrade
-func NewMsgCreateObjectWithTags(
-	creator sdk.AccAddress, bucketName, objectName string, payloadSize uint64, Visibility VisibilityType,
-	expectChecksums [][]byte, contentType string, redundancyType RedundancyType, timeoutHeight uint64, sig []byte,
-	tags ResourceTags,
-) *MsgCreateObject {
-	return &MsgCreateObject{
-		Creator:           creator.String(),
-		BucketName:        bucketName,
-		ObjectName:        objectName,
-		PayloadSize:       payloadSize,
-		Visibility:        Visibility,
-		ContentType:       contentType,
-		PrimarySpApproval: &common.Approval{ExpiredHeight: timeoutHeight, Sig: sig},
-		ExpectChecksums:   expectChecksums,
-		RedundancyType:    redundancyType,
-		Tags:              tags,
-	}
-}
-
 // Route implements the sdk.Msg interface.
 func (msg *MsgCreateObject) Route() string {
 	return RouterKey
@@ -431,29 +369,6 @@ func (msg *MsgCreateObject) ValidateBasic() error {
 
 	if msg.Visibility == VISIBILITY_TYPE_UNSPECIFIED {
 		return errors.Wrapf(ErrInvalidVisibility, "Unspecified visibility is not allowed.")
-	}
-	return nil
-}
-
-func (msg *MsgCreateObject) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Manchurian) {
-		if len(msg.Tags.GetTags()) > MaxTagCount {
-			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
-		}
-		if len(msg.Tags.GetTags()) > 0 {
-			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyLength {
-					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
-				}
-				if len(tag.GetValue()) > MaxTagValueLength {
-					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
-				}
-			}
-		}
-	} else {
-		if len(msg.Tags.GetTags()) > 0 {
-			return gnfderrors.ErrInvalidParameter.Wrapf("Tags are not supported")
-		}
 	}
 	return nil
 }
@@ -935,15 +850,6 @@ func NewMsgCreateGroup(creator sdk.AccAddress, groupName, extra string) *MsgCrea
 	}
 }
 
-func NewMsgCreateGroupWithTags(creator sdk.AccAddress, groupName, extra string, tags ResourceTags) *MsgCreateGroup {
-	return &MsgCreateGroup{
-		Creator:   creator.String(),
-		GroupName: groupName,
-		Extra:     extra,
-		Tags:      tags,
-	}
-}
-
 // Route implements the sdk.Msg interface.
 func (msg *MsgCreateGroup) Route() string {
 	return RouterKey
@@ -983,29 +889,6 @@ func (msg *MsgCreateGroup) ValidateBasic() error {
 
 	if len(msg.Extra) > MaxGroupExtraInfoLimit {
 		return errors.Wrapf(gnfderrors.ErrInvalidParameter, "extra is too long with length %d, limit to %d", len(msg.Extra), MaxGroupExtraInfoLimit)
-	}
-	return nil
-}
-
-func (msg *MsgCreateGroup) ValidateRuntime(ctx sdk.Context) error {
-	if ctx.IsUpgraded(upgradetypes.Manchurian) {
-		if len(msg.Tags.GetTags()) > MaxTagCount {
-			return gnfderrors.ErrInvalidParameter.Wrapf("Tags count limit exceeded")
-		}
-		if len(msg.Tags.GetTags()) > 0 {
-			for _, tag := range msg.Tags.GetTags() {
-				if len(tag.GetKey()) > MaxTagKeyLength {
-					return gnfderrors.ErrInvalidParameter.Wrapf("Tag key length exceeded")
-				}
-				if len(tag.GetValue()) > MaxTagValueLength {
-					return gnfderrors.ErrInvalidParameter.Wrapf("Tag value length exceeded")
-				}
-			}
-		}
-	} else {
-		if len(msg.Tags.GetTags()) > 0 {
-			return gnfderrors.ErrInvalidParameter.Wrapf("Tags are not supported")
-		}
 	}
 	return nil
 }

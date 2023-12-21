@@ -38,8 +38,6 @@ message EventCreateBucket {
   uint32 global_virtual_group_family_id = 10;
   // status define the status of the bucket.
   BucketStatus status = 11;
-  // tags define the tag of the bucket
-  ResourceTags tags = 12;
 }
 
 // EventDeleteBucket is emitted on MsgDeleteBucket
@@ -140,8 +138,6 @@ message EventCreateObject {
   repeated bytes checksums = 16;
   // local_virtual_group_id defines the unique id of lvg which the object stored
   uint32 local_virtual_group_id = 17;
-  // tags define the tag of the object
-  ResourceTags tags = 18;
 }
 
 // EventCancelCreateObject is emitted on MsgCancelCreateObject
@@ -296,8 +292,6 @@ message EventCreateGroup {
   SourceType source_type = 4;
   // extra defines extra info for the group
   string extra = 5;
-  // tags define the tag of the group
-  ResourceTags tags = 6;
 }
 
 // EventDeleteGroup is emitted on MsgDeleteGroup
