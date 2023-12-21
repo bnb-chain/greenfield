@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/json"
 	"math/big"
 	time "time"
 
@@ -12,7 +11,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	gnfdcommon "github.com/bnb-chain/greenfield/types/common"
-	permtypes "github.com/bnb-chain/greenfield/x/permission/types"
 )
 
 const (
@@ -1412,14 +1410,8 @@ var (
 )
 
 func (p CreatePolicySynPackage) ValidateBasic() error {
-	if p.Operator.Empty() {
+	if p.Operator.Empty() || len(p.Data) == 0 {
 		return sdkerrors.ErrInvalidAddress
-	}
-
-	var policy permtypes.Policy
-	err := json.Unmarshal(p.Data, &policy)
-	if err != nil {
-		return err
 	}
 
 	return nil

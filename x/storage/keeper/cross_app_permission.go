@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"encoding/json"
-
 	"cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -148,7 +146,7 @@ func (app *PermissionApp) handleCreatePolicySynPackage(ctx sdk.Context, createPo
 	}
 
 	var policy permtypes.Policy
-	err = json.Unmarshal(createPolicyPackage.Data, &policy)
+	err = policy.Unmarshal(createPolicyPackage.Data)
 	if err != nil {
 		return sdk.ExecuteResult{
 			Payload: types.CreatePolicyAckPackage{

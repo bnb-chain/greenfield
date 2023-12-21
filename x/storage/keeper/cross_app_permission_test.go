@@ -1,7 +1,6 @@
 package keeper_test
 
 import (
-	"encoding/json"
 	"math/big"
 	"math/rand"
 
@@ -34,7 +33,7 @@ func (s *TestSuite) TestSynCreatePolicy() {
 	}
 
 	app := keeper.NewPermissionApp(storageKeeper, permissionKeeper)
-	data, err := json.Marshal(&policy)
+	data, err := policy.Marshal()
 	s.NoError(err)
 
 	synPackage := storageTypes.CreatePolicySynPackage{
