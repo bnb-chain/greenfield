@@ -1214,7 +1214,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 
 	queryParamsResp, err = s.Client.VirtualGroupQueryClient.Params(context.Background(), &virtualgroupmoduletypes.QueryParamsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(10, queryParamsResp.Params.SwapInValidityPeriod.Uint64())
+	s.Require().Equal(uint64(10), queryParamsResp.Params.SwapInValidityPeriod.Uint64())
 
 	// 1. create an SP-x that wants to exit
 	spx := s.BaseSuite.CreateNewStorageProvider()
