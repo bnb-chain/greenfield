@@ -1208,7 +1208,7 @@ func (s *VirtualGroupTestSuite) TestSPExit_SwapInfo_Expired() {
 	s.Require().NoError(err)
 	updatedParams := queryParamsResp.Params
 
-	swapInValidityPeriod := sdk.NewInt(1)
+	swapInValidityPeriod := sdk.NewInt(10)
 	updatedParams.SwapInValidityPeriod = &swapInValidityPeriod // the swapInInfo will expire in 10 seconds
 	s.updateParams(updatedParams)
 
