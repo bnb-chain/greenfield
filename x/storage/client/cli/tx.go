@@ -17,6 +17,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 
+	types2 "github.com/bnb-chain/greenfield/types"
 	"github.com/bnb-chain/greenfield/types/common"
 	gnfderrors "github.com/bnb-chain/greenfield/types/errors"
 	"github.com/bnb-chain/greenfield/x/storage/types"
@@ -124,7 +125,7 @@ func CmdCreateBucket() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			msg := types.NewMsgCreateBucket(
+			msgCreateBucket := types.NewMsgCreateBucket(
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				visibilityType,
@@ -134,15 +135,20 @@ func CmdCreateBucket() *cobra.Command {
 				approveSignatureBytes,
 				chargedReadQuota,
 			)
-			if tags != nil {
-				msg.Tags = *tags
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
+			if err := msgCreateBucket.ValidateBasic(); err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+			if tags != nil {
+				grn := types2.NewBucketGRN(argBucketName)
+				msgSetTag := types.NewMsgSetTag(clientCtx.GetFromAddress(), grn.String(), tags)
+				if err := msgSetTag.ValidateBasic(); err != nil {
+					return err
+				}
+				return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateBucket, msgSetTag)
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateBucket)
 		},
 	}
 
@@ -325,7 +331,7 @@ func CmdCreateObject() *cobra.Command {
 				return types.ErrInvalidRedundancyType
 			}
 
-			msg := types.NewMsgCreateObject(
+			msgCreateObject := types.NewMsgCreateObject(
 				clientCtx.GetFromAddress(),
 				argBucketName,
 				argObjectName,
@@ -337,14 +343,20 @@ func CmdCreateObject() *cobra.Command {
 				approveTimeoutHeight,
 				approveSignatureBytes,
 			)
-			if tags != nil {
-				msg.Tags = *tags
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
+			if err := msgCreateObject.ValidateBasic(); err != nil {
 				return err
 			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+
+			if tags != nil {
+				grn := types2.NewObjectGRN(argBucketName, argObjectName)
+				msgSetTag := types.NewMsgSetTag(clientCtx.GetFromAddress(), grn.String(), tags)
+				if err := msgSetTag.ValidateBasic(); err != nil {
+					return err
+				}
+				return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateObject, msgSetTag)
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateObject)
 		},
 	}
 
@@ -541,19 +553,25 @@ func CmdCreateGroup() *cobra.Command {
 			tagsStr, _ := cmd.Flags().GetString(FlagTags)
 			tags := GetTags(tagsStr)
 
-			msg := types.NewMsgCreateGroup(
+			msgCreateGroup := types.NewMsgCreateGroup(
 				clientCtx.GetFromAddress(),
 				argGroupName,
 				extra,
 			)
-			if tags != nil {
-				msg.Tags = *tags
-			}
-
-			if err := msg.ValidateBasic(); err != nil {
+			if err := msgCreateGroup.ValidateBasic(); err != nil {
 				return err
 			}
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+
+			if tags != nil {
+				grn := types2.NewGroupGRN(clientCtx.GetFromAddress(), argGroupName)
+				msgSetTag := types.NewMsgSetTag(clientCtx.GetFromAddress(), grn.String(), tags)
+				if err := msgSetTag.ValidateBasic(); err != nil {
+					return err
+				}
+				return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateGroup, msgSetTag)
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msgCreateGroup)
 		},
 	}
 
