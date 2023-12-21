@@ -17,6 +17,7 @@ import (
 
 func (s *TestSuite) TestSynCreatePolicy() {
 	ctrl := gomock.NewController(s.T())
+	storageKeeper := storageTypes.NewMockStorageKeeper(ctrl)
 	permissionKeeper := storageTypes.NewMockPermissionKeeper(ctrl)
 
 	resourceIds := []math.Uint{math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64())}
@@ -32,7 +33,7 @@ func (s *TestSuite) TestSynCreatePolicy() {
 		ExpirationTime: nil,
 	}
 
-	app := keeper.NewPermissionApp(permissionKeeper)
+	app := keeper.NewPermissionApp(storageKeeper, permissionKeeper)
 	data, err := json.Marshal(&policy)
 	s.NoError(err)
 
@@ -52,9 +53,10 @@ func (s *TestSuite) TestSynCreatePolicy() {
 
 func (s *TestSuite) TestSynDeletePolicy() {
 	ctrl := gomock.NewController(s.T())
+	storageKeeper := storageTypes.NewMockStorageKeeper(ctrl)
 	permissionKeeper := storageTypes.NewMockPermissionKeeper(ctrl)
 
-	app := keeper.NewPermissionApp(permissionKeeper)
+	app := keeper.NewPermissionApp(storageKeeper, permissionKeeper)
 	synPackage := storageTypes.DeleteBucketSynPackage{
 		Operator:  sample.RandAccAddress(),
 		Id:        big.NewInt(10),

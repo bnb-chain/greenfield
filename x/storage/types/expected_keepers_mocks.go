@@ -1010,6 +1010,14 @@ func (m *MockStorageKeeper) GetGroupInfoById(ctx types3.Context, groupId math.Ui
 	return ret0, ret1
 }
 
+func (m *MockStorageKeeper) GetGroupInfo(ctx types3.Context, ownerAddr types3.AccAddress, groupName string) (*GroupInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetGroupInfo", ctx, ownerAddr, groupName)
+	ret0, _ := ret[0].(*GroupInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
 // GetGroupInfoById indicates an expected call of GetGroupInfoById.
 func (mr *MockStorageKeeperMockRecorder) GetGroupInfoById(ctx, groupId interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
