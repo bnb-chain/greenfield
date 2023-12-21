@@ -140,7 +140,6 @@ func (k Keeper) CreateBucket(
 		ChargedReadQuota:           opts.ChargedReadQuota,
 		PaymentAddress:             paymentAcc.String(),
 		GlobalVirtualGroupFamilyId: gvgFamily.Id,
-		Tags:                       opts.Tags,
 	}
 
 	internalBucketInfo := types.InternalBucketInfo{PriceTime: ctx.BlockTime().Unix()}
@@ -175,7 +174,6 @@ func (k Keeper) CreateBucket(
 		PaymentAddress:             bucketInfo.PaymentAddress,
 		PrimarySpId:                sp.Id,
 		GlobalVirtualGroupFamilyId: bucketInfo.GlobalVirtualGroupFamilyId,
-		Tags:                       bucketInfo.Tags,
 	}); err != nil {
 		return sdkmath.Uint{}, err
 	}
@@ -626,7 +624,6 @@ func (k Keeper) CreateObject(
 		RedundancyType: opts.RedundancyType,
 		SourceType:     opts.SourceType,
 		Checksums:      opts.Checksums,
-		Tags:           opts.Tags,
 	}
 
 	if objectInfo.PayloadSize == 0 {
@@ -666,7 +663,6 @@ func (k Keeper) CreateObject(
 		SourceType:          objectInfo.SourceType,
 		Checksums:           objectInfo.Checksums,
 		LocalVirtualGroupId: objectInfo.LocalVirtualGroupId,
-		Tags:                opts.Tags,
 	}); err != nil {
 		return objectInfo.Id, err
 	}
@@ -1273,7 +1269,6 @@ func (k Keeper) CreateGroup(
 		Id:         k.GenNextGroupId(ctx),
 		GroupName:  groupName,
 		Extra:      opts.Extra,
-		Tags:       opts.Tags,
 	}
 
 	// Can not create a group with the same name.
@@ -1292,7 +1287,6 @@ func (k Keeper) CreateGroup(
 		GroupId:    groupInfo.Id,
 		SourceType: groupInfo.SourceType,
 		Extra:      opts.Extra,
-		Tags:       opts.Tags,
 	}); err != nil {
 		return sdkmath.ZeroUint(), err
 	}

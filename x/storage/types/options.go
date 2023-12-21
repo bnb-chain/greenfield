@@ -13,7 +13,6 @@ type CreateBucketOptions struct {
 	PaymentAddress    string
 	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
-	Tags              *ResourceTags
 }
 
 type DeleteBucketOptions struct {
@@ -35,7 +34,6 @@ type CreateObjectOptions struct {
 	Checksums         [][]byte
 	PrimarySpApproval *common.Approval
 	ApprovalMsgBytes  []byte
-	Tags              *ResourceTags
 }
 
 type CancelCreateObjectOptions struct {
@@ -56,7 +54,6 @@ type CopyObjectOptions struct {
 type CreateGroupOptions struct {
 	SourceType SourceType
 	Extra      string
-	Tags       *ResourceTags
 }
 
 type LeaveGroupOptions struct {
