@@ -225,8 +225,8 @@ func (k Keeper) PutPolicy(ctx sdk.Context, operator sdk.AccAddress, grn types2.G
 			"Only resource owner can put policy, operator (%s), owner(%s)",
 			operator.String(), resOwner.String())
 	}
-	k.normalizePrincipal(ctx, policy.Principal)
-	err = k.validatePrincipal(ctx, resOwner, policy.Principal)
+	k.NormalizePrincipal(ctx, policy.Principal)
+	err = k.ValidatePrincipal(ctx, resOwner, policy.Principal)
 	if err != nil {
 		return math.ZeroUint(), err
 	}
@@ -250,7 +250,7 @@ func (k Keeper) DeletePolicy(
 	return k.permKeeper.DeletePolicy(ctx, principal, grn.ResourceType(), resID)
 }
 
-func (k Keeper) normalizePrincipal(ctx sdk.Context, principal *permtypes.Principal) {
+func (k Keeper) NormalizePrincipal(ctx sdk.Context, principal *permtypes.Principal) {
 	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_GROUP {
 		if _, err := math.ParseUint(principal.Value); err == nil {
 			return
@@ -270,7 +270,7 @@ func (k Keeper) normalizePrincipal(ctx sdk.Context, principal *permtypes.Princip
 	}
 }
 
-func (k Keeper) validatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {
+func (k Keeper) ValidatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error {
 	if principal.Type == permtypes.PRINCIPAL_TYPE_GNFD_ACCOUNT {
 		principalAccAddress, err := principal.GetAccountAddress()
 		if err != nil {
