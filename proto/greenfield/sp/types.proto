@@ -29,6 +29,7 @@ enum Status {
   STATUS_IN_JAILED = 1;
   STATUS_GRACEFUL_EXITING = 2;
   STATUS_IN_MAINTENANCE = 3;
+  STATUS_FORCED_EXITING = 4;
 }
 
 // StorageProvider defines the meta info of storage provider

@@ -23,6 +23,9 @@ var (
 	ErrDuplicateSecondarySP    = errors.Register(ModuleName, 1124, "the global virtual group has duplicate secondary sp.")
 	ErrInsufficientStaking     = errors.Register(ModuleName, 1125, "insufficient staking for gvg")
 	ErrDuplicateGVG            = errors.Register(ModuleName, 1126, "global virtual group is duplicate")
+	ErrSwapInFailed            = errors.Register(ModuleName, 1127, "swap in failed.")
+	ErrSwapInInfoNotExist      = errors.Register(ModuleName, 1128, "swap in info not exist.")
+	ErrGVGStatisticsNotExist   = errors.Register(ModuleName, 1129, "gvg statistics not exist.")
 
 	ErrInvalidDenom = errors.Register(ModuleName, 2000, "Invalid denom.")
 )

@@ -119,3 +119,49 @@ func (k Keeper) AvailableGlobalVirtualGroupFamilies(goCtx context.Context, req *
 	}
 	return &types.AvailableGlobalVirtualGroupFamiliesResponse{GlobalVirtualGroupFamilyIds: availableFamilyIds}, nil
 }
+
+func (k Keeper) SwapInInfo(goCtx context.Context, req *types.QuerySwapInInfoRequest) (*types.QuerySwapInInfoResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	swapInInfo, found := k.GetSwapInInfo(ctx, req.GetGlobalVirtualGroupFamilyId(), req.GetGlobalVirtualGroupId())
+	if !found {
+		return nil, types.ErrSwapInInfoNotExist
+	}
+	return &types.QuerySwapInInfoResponse{
+		SwapInInfo: swapInInfo,
+	}, nil
+}
+
+func (k Keeper) GetSwapInInfo(ctx sdk.Context, globalVirtualGroupFamilyId, globalVirtualGroupId uint32) (*types.SwapInInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+	var key []byte
+	if globalVirtualGroupFamilyId != types.NoSpecifiedFamilyId {
+		key = types.GetSwapInFamilyKey(globalVirtualGroupFamilyId)
+	} else {
+		key = types.GetSwapInGVGKey(globalVirtualGroupId)
+	}
+	bz := store.Get(key)
+	if bz == nil {
+		return nil, false
+	}
+	swapInInfo := &types.SwapInInfo{}
+	k.cdc.MustUnmarshal(bz, swapInInfo)
+	return swapInInfo, true
+}
+
+func (k Keeper) GVGStatistics(goCtx context.Context, req *types.QuerySPGVGStatisticsRequest) (*types.QuerySPGVGStatisticsResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "invalid request")
+	}
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	stats, found := k.GetGVGStatisticsWithinSP(ctx, req.GetSpId())
+	if !found {
+		return nil, types.ErrGVGStatisticsNotExist
+	}
+	return &types.QuerySPGVGStatisticsResponse{
+		GvgStats: stats,
+	}, nil
+}

@@ -21,11 +21,15 @@ var (
 	DefaultGVGStakingPerBytes                = sdk.NewInt(16000) // 20%~30% of store price
 	DefaultMaxGlobalVirtualGroupNumPerFamily = uint32(10)
 	DefaultMaxStoreSizePerFamily             = uint64(64) * 1024 * 1024 * 1024 * 1024 //64T
+	DefaultSwapInValidityPeriod              = math.NewInt(60 * 60 * 24 * 7)          // 7 days
+	DefaultSPConcurrentExitNum               = math.NewInt(1)
 
 	KeyDepositDenom                      = []byte("DepositDenom")
 	KeyGVGStakingPerBytes                = []byte("GVGStakingPerBytes")
 	KeyMaxGlobalVirtualGroupNumPerFamily = []byte("MaxGlobalVirtualGroupNumPerFamily")
 	KeyMaxStoreSizePerFamily             = []byte("MaxStoreSizePerFamily")
+	KeySwapInValidityPeriod              = []byte("SwapInValidityPeriod")
+	KeySPConcurrentExitNum               = []byte("SPConcurrentExitNum")
 )
 
 var _ paramtypes.ParamSet = (*Params)(nil)
@@ -37,18 +41,25 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params instance
 func NewParams(depositDenom string, gvgStakingPerBytes math.Int, maxGlobalVirtualGroupPerFamily uint32,
-	maxStoreSizePerFamily uint64) Params {
+	maxStoreSizePerFamily uint64, swapInValidityPeriod, spConcurrentExitNum math.Int) Params {
 	return Params{
 		DepositDenom:                      depositDenom,
 		GvgStakingPerBytes:                gvgStakingPerBytes,
 		MaxGlobalVirtualGroupNumPerFamily: maxGlobalVirtualGroupPerFamily,
 		MaxStoreSizePerFamily:             maxStoreSizePerFamily,
+		SwapInValidityPeriod:              &swapInValidityPeriod,
+		SpConcurrentExitNum:               &spConcurrentExitNum,
 	}
 }
 
 // DefaultParams returns a default set of parameters
 func DefaultParams() Params {
-	return NewParams(DefaultDepositDenom, DefaultGVGStakingPerBytes, DefaultMaxGlobalVirtualGroupNumPerFamily, DefaultMaxStoreSizePerFamily)
+	return NewParams(DefaultDepositDenom,
+		DefaultGVGStakingPerBytes,
+		DefaultMaxGlobalVirtualGroupNumPerFamily,
+		DefaultMaxStoreSizePerFamily,
+		DefaultSwapInValidityPeriod,
+		DefaultSPConcurrentExitNum)
 }
 
 // ParamSetPairs get the params.ParamSet
@@ -58,6 +69,8 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyGVGStakingPerBytes, &p.GvgStakingPerBytes, validateGVGStakingPerBytes),
 		paramtypes.NewParamSetPair(KeyMaxGlobalVirtualGroupNumPerFamily, &p.MaxGlobalVirtualGroupNumPerFamily, validateMaxGlobalVirtualGroupNumPerFamily),
 		paramtypes.NewParamSetPair(KeyMaxStoreSizePerFamily, &p.MaxStoreSizePerFamily, validateMaxStoreSizePerFamily),
+		paramtypes.NewParamSetPair(KeySwapInValidityPeriod, &p.SwapInValidityPeriod, validateSwapInValidityPeriod),
+		paramtypes.NewParamSetPair(KeySPConcurrentExitNum, &p.SpConcurrentExitNum, validateSPConcurrentExitNum),
 	}
 }
 
@@ -75,6 +88,13 @@ func (p Params) Validate() error {
 	if err := validateMaxStoreSizePerFamily(p.MaxStoreSizePerFamily); err != nil {
 		return err
 	}
+	if err := validateSwapInValidityPeriod(p.SwapInValidityPeriod); err != nil {
+		return err
+	}
+	if err := validateSPConcurrentExitNum(p.SpConcurrentExitNum); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -135,5 +155,32 @@ func validateMaxStoreSizePerFamily(i interface{}) error {
 		return fmt.Errorf("max store size per GVG family must be positive: %d", v)
 	}
 
+	return nil
+}
+
+func validateSwapInValidityPeriod(i interface{}) error {
+	v, ok := i.(*math.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v != nil && !v.IsNil() {
+		if !v.IsPositive() {
+			return fmt.Errorf("swapIn info validity period must be positive: %s", v)
+		}
+	}
+	return nil
+}
+
+func validateSPConcurrentExitNum(i interface{}) error {
+	v, ok := i.(*math.Int)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v != nil && !v.IsNil() {
+		if !v.IsPositive() {
+			return fmt.Errorf("number of sp concurrent exit must be positive: %s", v)
+		}
+	}
 	return nil
 }

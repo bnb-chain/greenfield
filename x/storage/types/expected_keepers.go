@@ -95,6 +95,7 @@ type VirtualGroupKeeper interface {
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
 	GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, familyID uint32) (*types.GlobalVirtualGroupFamily, error)
 	GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, expectedStoreSize uint64) (*types.GlobalVirtualGroup, error)
+	GetSwapInInfo(ctx sdk.Context, familyID, gvgID uint32) (*types.SwapInInfo, bool)
 }
 
 // StorageKeeper used by the cross-chain applications

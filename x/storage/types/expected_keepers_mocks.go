@@ -876,6 +876,21 @@ func (mr *MockVirtualGroupKeeperMockRecorder) SettleAndDistributeGVGFamily(ctx, 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SettleAndDistributeGVGFamily", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).SettleAndDistributeGVGFamily), ctx, sp, family)
 }
 
+// GetSwapInInfo mocks base method.
+func (m *MockVirtualGroupKeeper) GetSwapInInfo(ctx types3.Context, familyID, gvgID uint32) (*types2.SwapInInfo, bool) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSwapInInfo", ctx, familyID, gvgID)
+	ret0, _ := ret[0].(*types2.SwapInInfo)
+	ret1, _ := ret[1].(bool)
+	return ret0, ret1
+}
+
+// GetSwapInInfo indicates an expected call of GetSwapInInfo.
+func (mr *MockVirtualGroupKeeperMockRecorder) GetSwapInInfo(ctx, familyID, gvgID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSwapInInfo", reflect.TypeOf((*MockVirtualGroupKeeper)(nil).GetSwapInInfo), ctx, familyID, gvgID)
+}
+
 // MockStorageKeeper is a mock of StorageKeeper interface.
 type MockStorageKeeper struct {
 	ctrl     *gomock.Controller

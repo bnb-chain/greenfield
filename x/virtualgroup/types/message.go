@@ -17,6 +17,9 @@ const (
 	TypeMsgSwapOut                  = "swap_out"
 	TypeMsgUpdateParams             = "update_params"
 	TypeMsgSettle                   = "settle"
+	TypeMsgReserveSwapIn            = "reserve_swap_in"
+	TypeMsgCancelSwapIn             = "cancel_swap_in"
+	TypeMsgCompleteSwapIn           = "complete_swap_in"
 )
 
 var (
@@ -27,6 +30,9 @@ var (
 	_ sdk.Msg = &MsgSwapOut{}
 	_ sdk.Msg = &MsgUpdateParams{}
 	_ sdk.Msg = &MsgSettle{}
+	_ sdk.Msg = &MsgReserveSwapIn{}
+	_ sdk.Msg = &MsgCancelSwapIn{}
+	_ sdk.Msg = &MsgCompleteSwapIn{}
 )
 
 func NewMsgCreateGlobalVirtualGroup(primarySpAddress sdk.AccAddress, globalVirtualFamilyId uint32, secondarySpIds []uint32, deposit sdk.Coin) *MsgCreateGlobalVirtualGroup {
@@ -323,5 +329,142 @@ func (msg *MsgSettle) ValidateBasic() error {
 		}
 	}
 
+	return nil
+}
+
+func NewMsgReserveSwapIn(storageProvider sdk.AccAddress, targetSPId, globalVirtualGroupFamilyID, globalVirtualGroupID uint32) *MsgReserveSwapIn {
+	return &MsgReserveSwapIn{
+		StorageProvider:            storageProvider.String(),
+		TargetSpId:                 targetSPId,
+		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
+		GlobalVirtualGroupId:       globalVirtualGroupID,
+	}
+}
+
+func (msg *MsgReserveSwapIn) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgReserveSwapIn) Type() string {
+	return TypeMsgReserveSwapIn
+}
+
+func (msg *MsgReserveSwapIn) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
+	}
+	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
+		if msg.GlobalVirtualGroupId == NoSpecifiedGVGId {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be specified when familyID is not specified.")
+		}
+	} else {
+		if msg.GlobalVirtualGroupId != NoSpecifiedGVGId {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be empty(0) when familyID is specified.")
+		}
+	}
+	if msg.TargetSpId == 0 {
+		return gnfderrors.ErrInvalidMessage.Wrap("The target sp id is not specified.")
+	}
+	return nil
+}
+
+func (msg *MsgReserveSwapIn) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+func (msg *MsgReserveSwapIn) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func NewMsgCancelSwapIn(storageProvider sdk.AccAddress, globalVirtualGroupFamilyID, globalVirtualGroupID uint32) *MsgCancelSwapIn {
+	return &MsgCancelSwapIn{
+		StorageProvider:            storageProvider.String(),
+		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
+		GlobalVirtualGroupId:       globalVirtualGroupID,
+	}
+}
+
+func (msg *MsgCancelSwapIn) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgCancelSwapIn) Type() string {
+	return TypeMsgCancelSwapIn
+}
+
+func (msg *MsgCancelSwapIn) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+func (msg *MsgCancelSwapIn) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
+	}
+	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
+		if msg.GlobalVirtualGroupId == NoSpecifiedGVGId {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be specified when familyID is not specified.")
+		}
+	} else {
+		if msg.GlobalVirtualGroupId != NoSpecifiedGVGId {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be empty(0) when familyID is specified.")
+		}
+	}
+	return nil
+}
+
+func NewMsgCompleteSwapIn(storageProvider sdk.AccAddress, globalVirtualGroupFamilyID, globalVirtualGroupID uint32) *MsgCompleteSwapIn {
+	return &MsgCompleteSwapIn{
+		StorageProvider:            storageProvider.String(),
+		GlobalVirtualGroupFamilyId: globalVirtualGroupFamilyID,
+		GlobalVirtualGroupId:       globalVirtualGroupID,
+	}
+}
+
+func (msg *MsgCompleteSwapIn) Route() string {
+	return RouterKey
+}
+
+func (msg *MsgCompleteSwapIn) Type() string {
+	return TypeMsgCompleteSwapIn
+}
+
+func (msg *MsgCompleteSwapIn) GetSigners() []sdk.AccAddress {
+	operator, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{operator}
+}
+
+func (msg *MsgCompleteSwapIn) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg *MsgCompleteSwapIn) ValidateBasic() error {
+	_, err := sdk.AccAddressFromHexUnsafe(msg.StorageProvider)
+	if err != nil {
+		return sdkerrors.ErrInvalidAddress.Wrapf("invalid creator address (%s)", err)
+	}
+	if msg.GlobalVirtualGroupFamilyId == NoSpecifiedFamilyId {
+		if msg.GlobalVirtualGroupId == NoSpecifiedGVGId {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be specified when familyID is not specified.")
+		}
+	} else {
+		if msg.GlobalVirtualGroupId != NoSpecifiedGVGId {
+			return gnfderrors.ErrInvalidMessage.Wrap("The gvg id need to be empty(0) when familyID is specified.")
+		}
+	}
 	return nil
 }
