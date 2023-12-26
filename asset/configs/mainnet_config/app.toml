@@ -258,3 +258,5 @@ max-txs = "5000"
 src-chain-id = 1017
 # chain-id for bsc destination chain
 dest-bsc-chain-id = 56
+# chain-id for op bnb destination chain
+dest-op-chain-id = 204

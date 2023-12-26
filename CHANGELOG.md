@@ -1,4 +1,10 @@
 # Changelog
+## v1.2.1
+This release fixes the bugs within resource tags.
+
+Bugfixes:
+* [#543](https://github.com/bnb-chain/greenfield/pull/543) fix: remove `tags` field from existed msgs
+
 ## v1.2.0
 This release introduces the Manchurian upgrade to the testnet.
 
