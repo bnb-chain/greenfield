@@ -22,4 +22,10 @@ func RegisterCrossApps(keeper Keeper) {
 	if err != nil {
 		panic(err)
 	}
+
+	permissionApp := NewPermissionApp(keeper, keeper.permKeeper)
+	err = keeper.crossChainKeeper.RegisterChannel(types.PermissionChannel, types.PermissionChannelId, permissionApp)
+	if err != nil {
+		panic(err)
+	}
 }

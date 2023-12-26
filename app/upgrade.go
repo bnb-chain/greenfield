@@ -11,6 +11,8 @@ import (
 	paymentmodule "github.com/bnb-chain/greenfield/x/payment"
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
 	storagemoduletypes "github.com/bnb-chain/greenfield/x/storage/types"
+	virtualgroupmodule "github.com/bnb-chain/greenfield/x/virtualgroup"
+	virtualgrouptypes "github.com/bnb-chain/greenfield/x/virtualgroup/types"
 )
 
 func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.Config) error {
@@ -24,6 +26,8 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerNagquUpgradeHandler()
 	app.registerPampasUpgradeHandler()
 	app.registerManchurianUpgradeHandler()
+	app.registerHulunbeierUpgradeHandler()
+
 	// app.register...()
 	// ...
 	return nil
@@ -124,7 +128,36 @@ func (app *App) registerManchurianUpgradeHandler() {
 	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Manchurian,
 		func() error {
 			app.Logger().Info("Init Manchurian upgrade")
+			return nil
+		})
+}
 
+func (app *App) registerHulunbeierUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.Hulunbeier,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+
+			// enable SP exit
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgReserveSwapIn{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgCancelSwapIn{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgCompleteSwapIn{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgStorageProviderForcedExit{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgStorageProviderExit{}), 1.2e3))
+			app.GashubKeeper.SetMsgGasParams(ctx, *gashubtypes.NewMsgGasParamsWithFixedGas(sdk.MsgTypeURL(&virtualgrouptypes.MsgCompleteStorageProviderExit{}), 1.2e3))
+
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Hulunbeier,
+		func() error {
+			app.Logger().Info("Init Hulunbeier upgrade")
+			mm, ok := app.mm.Modules[virtualgrouptypes.ModuleName].(*virtualgroupmodule.AppModule)
+			if !ok {
+				panic("*virtualgroupmodule.AppModule not found")
+			}
+			mm.SetConsensusVersion(2)
 			return nil
 		})
 }

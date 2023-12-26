@@ -25,4 +25,14 @@ message Params {
   uint32 max_global_virtual_group_num_per_family = 4;
   // if the store size reach the exceed, the family is not allowed to sever more buckets
   uint64 max_store_size_per_family = 5;
+  // the validity period that a successor SP can reserve to complete the swap for Global virtual group/family
+  string swap_in_validity_period = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  // the the number of sp allowed to exit concurrently.
+  string sp_concurrent_exit_num = 7 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }

@@ -24,6 +24,7 @@ var (
 	ErrStorageProviderStatusUpdateNotAllow  = errors.Register(ModuleName, 16, "StorageProvider status is not allow to change")
 	ErrStorageProviderMaintenanceAddrExists = errors.Register(ModuleName, 17, "StorageProvider already exist for this maintenance address; must use new StorageProvider maintenance address.")
 	ErrStorageProviderPriceUpdateNotAllow   = errors.Register(ModuleName, 18, "StorageProvider update price is disallowed")
+	ErrStorageProviderWrongStatus           = errors.Register(ModuleName, 19, "StorageProvider is in wrong status")
 
 	ErrSignerNotGovModule  = errors.Register(ModuleName, 40, "signer is not gov module account")
 	ErrSignerEmpty         = errors.Register(ModuleName, 41, "signer is empty")

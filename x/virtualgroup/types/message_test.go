@@ -379,3 +379,204 @@ func TestMsgSettle_ValidateBasic(t *testing.T) {
 		})
 	}
 }
+
+func TestMsgReserveSwapIn_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgReserveSwapIn
+		err  error
+	}{
+		{
+			name: "valid case",
+			msg: MsgReserveSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				TargetSpId:                 1,
+				GlobalVirtualGroupId:       0,
+			},
+		},
+		{
+			name: "valid case",
+			msg: MsgReserveSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				TargetSpId:                 1,
+				GlobalVirtualGroupId:       1,
+			},
+		},
+		{
+			name: "invalid address",
+			msg: MsgReserveSwapIn{
+				StorageProvider:            "invalid_address",
+				GlobalVirtualGroupFamilyId: 0,
+				TargetSpId:                 1,
+				GlobalVirtualGroupId:       1,
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name: "invalid virtual group family",
+			msg: MsgReserveSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				TargetSpId:                 1,
+				GlobalVirtualGroupId:       0,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+		{
+			name: "invalid virtual group",
+			msg: MsgReserveSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				TargetSpId:                 1,
+				GlobalVirtualGroupId:       1,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+		{
+			name: "invalid successor sp id",
+			msg: MsgReserveSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupId:       0,
+				TargetSpId:                 0,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgCompleteSwapIn_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgCompleteSwapIn
+		err  error
+	}{
+		{
+			name: "valid case",
+			msg: MsgCompleteSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupId:       0,
+			},
+		},
+		{
+			name: "valid case",
+			msg: MsgCompleteSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupId:       1,
+			},
+		},
+		{
+			name: "invalid address",
+			msg: MsgCompleteSwapIn{
+				StorageProvider:            "invalid_address",
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupId:       1,
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name: "invalid virtual group family",
+			msg: MsgCompleteSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupId:       0,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+		{
+			name: "invalid virtual group",
+			msg: MsgCompleteSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupId:       1,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestMsgCancelSwapIn_ValidateBasic(t *testing.T) {
+	tests := []struct {
+		name string
+		msg  MsgCancelSwapIn
+		err  error
+	}{
+		{
+			name: "valid case",
+			msg: MsgCancelSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupId:       0,
+			},
+		},
+		{
+			name: "valid case",
+			msg: MsgCancelSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupId:       1,
+			},
+		},
+		{
+			name: "invalid address",
+			msg: MsgCancelSwapIn{
+				StorageProvider:            "invalid_address",
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupId:       1,
+			},
+			err: sdkerrors.ErrInvalidAddress,
+		},
+		{
+			name: "invalid virtual group family",
+			msg: MsgCancelSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 0,
+				GlobalVirtualGroupId:       0,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+		{
+			name: "invalid virtual group",
+			msg: MsgCancelSwapIn{
+				StorageProvider:            sample.RandAccAddressHex(),
+				GlobalVirtualGroupFamilyId: 1,
+				GlobalVirtualGroupId:       1,
+			},
+			err: gnfderrors.ErrInvalidMessage,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := tt.msg.ValidateBasic()
+			if tt.err != nil {
+				require.ErrorIs(t, err, tt.err)
+				return
+			}
+			require.NoError(t, err)
+		})
+	}
+}

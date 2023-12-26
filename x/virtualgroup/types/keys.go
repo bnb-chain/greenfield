@@ -28,6 +28,8 @@ const (
 
 	// NoSpecifiedFamilyId defines
 	NoSpecifiedFamilyId = uint32(0)
+
+	NoSpecifiedGVGId = uint32(0)
 )
 
 var (
@@ -43,6 +45,9 @@ var (
 
 	SwapOutFamilyKey = []byte{0x51}
 	SwapOutGVGKey    = []byte{0x61}
+
+	SwapInFamilyKey = []byte{0x52}
+	SwapInGVGKey    = []byte{0x62}
 )
 
 func GetGVGKey(gvgID uint32) []byte {
@@ -68,4 +73,14 @@ func GetSwapOutFamilyKey(globalVirtualGroupFamilyID uint32) []byte {
 func GetSwapOutGVGKey(globalVirtualGroupID uint32) []byte {
 	var uint32Seq sequence.Sequence[uint32]
 	return append(SwapOutGVGKey, uint32Seq.EncodeSequence(globalVirtualGroupID)...)
+}
+
+func GetSwapInFamilyKey(globalVirtualGroupFamilyID uint32) []byte {
+	var uint32Seq sequence.Sequence[uint32]
+	return append(SwapInFamilyKey, uint32Seq.EncodeSequence(globalVirtualGroupFamilyID)...)
+}
+
+func GetSwapInGVGKey(globalVirtualGroupID uint32) []byte {
+	var uint32Seq sequence.Sequence[uint32]
+	return append(SwapInGVGKey, uint32Seq.EncodeSequence(globalVirtualGroupID)...)
 }

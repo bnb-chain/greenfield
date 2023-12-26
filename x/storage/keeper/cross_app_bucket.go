@@ -4,12 +4,11 @@ import (
 	"encoding/hex"
 
 	"cosmossdk.io/math"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 
 	"github.com/bnb-chain/greenfield/types/common"
 	"github.com/bnb-chain/greenfield/x/storage/types"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
 )
 
 var _ sdk.CrossChainApplication = &BucketApp{}

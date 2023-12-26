@@ -95,6 +95,7 @@ type VirtualGroupKeeper interface {
 	SettleAndDistributeGVG(ctx sdk.Context, gvg *types.GlobalVirtualGroup) error
 	GetAndCheckGVGFamilyAvailableForNewBucket(ctx sdk.Context, familyID uint32) (*types.GlobalVirtualGroupFamily, error)
 	GetGlobalVirtualGroupIfAvailable(ctx sdk.Context, gvgID uint32, expectedStoreSize uint64) (*types.GlobalVirtualGroup, error)
+	GetSwapInInfo(ctx sdk.Context, familyID, gvgID uint32) (*types.SwapInInfo, bool)
 }
 
 // StorageKeeper used by the cross-chain applications
@@ -107,6 +108,7 @@ type StorageKeeper interface {
 		primarySpAcc sdk.AccAddress, opts *CreateBucketOptions) (sdkmath.Uint, error)
 	DeleteBucket(ctx sdk.Context, operator sdk.AccAddress, bucketName string, opts DeleteBucketOptions) error
 	GetGroupInfoById(ctx sdk.Context, groupId sdkmath.Uint) (*GroupInfo, bool)
+	GetGroupInfo(ctx sdk.Context, ownerAddr sdk.AccAddress, groupName string) (*GroupInfo, bool)
 	DeleteGroup(ctx sdk.Context, operator sdk.AccAddress, groupName string, opts DeleteGroupOptions) error
 	CreateGroup(
 		ctx sdk.Context, owner sdk.AccAddress,
@@ -119,4 +121,7 @@ type StorageKeeper interface {
 	DeleteObject(
 		ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, opts DeleteObjectOptions) error
 	GetSourceTypeByChainId(ctx sdk.Context, chainId sdk.ChainID) (SourceType, error)
+
+	NormalizePrincipal(ctx sdk.Context, principal *permtypes.Principal)
+	ValidatePrincipal(ctx sdk.Context, resOwner sdk.AccAddress, principal *permtypes.Principal) error
 }

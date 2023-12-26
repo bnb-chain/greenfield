@@ -122,6 +122,20 @@ func (mr *MockSpKeeperMockRecorder) SetStorageProvider(ctx, sp any) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetStorageProvider", reflect.TypeOf((*MockSpKeeper)(nil).SetStorageProvider), ctx, sp)
 }
 
+// GetAllStorageProviders mocks base method.
+func (m *MockSpKeeper) GetAllStorageProviders(ctx types0.Context) (sps []types.StorageProvider) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllStorageProviders", ctx)
+	ret0, _ := ret[0].([]types.StorageProvider)
+	return ret0
+}
+
+// GetAllStorageProviders indicates an expected call of GetAllStorageProviders.
+func (mr *MockSpKeeperMockRecorder) GetAllStorageProviders(ctx any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllStorageProviders", reflect.TypeOf((*MockSpKeeper)(nil).GetAllStorageProviders), ctx)
+}
+
 // MockAccountKeeper is a mock of AccountKeeper interface.
 type MockAccountKeeper struct {
 	ctrl     *gomock.Controller
