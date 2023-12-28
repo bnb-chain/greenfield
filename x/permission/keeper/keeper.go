@@ -392,6 +392,10 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 			}
 		}
 		policyId := k.policySeq.DecodeSequence(iterator.Value())
+		if policyId == math.NewUint(2868) {
+			ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
+			panic("debug")
+		}
 		policy, _ := k.GetPolicyByID(ctx, policyId)
 		if policy != nil && policy.ExpirationTime != nil {
 			// delete the policy expire queue
@@ -438,6 +442,10 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 				}
 			}
 			policyId := policyGroup.Items[i].PolicyId
+			if policyId == math.NewUint(2868) {
+				ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
+				panic("debug")
+			}
 			policy, _ := k.GetPolicyByID(ctx, policyId)
 			if policy != nil && policy.ExpirationTime != nil {
 				// delete the policy expire queue
