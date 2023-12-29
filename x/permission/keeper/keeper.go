@@ -609,7 +609,7 @@ func (k Keeper) MigrateAccountPolicyForResources(ctx sdk.Context) {
 		resourceAccountPolicyStore := prefix.NewStore(store, resourcePolicyForAccountPrefix)
 		iterator := resourceAccountPolicyStore.Iterator(nil, nil)
 		for ; iterator.Valid(); iterator.Next() {
-			resourceIDBz := iterator.Value()[:len(iterator.Key())-sdk.EthAddressLength]
+			resourceIDBz := iterator.Key()[:len(iterator.Key())-sdk.EthAddressLength]
 			addrBz := iterator.Key()[len(iterator.Key())-sdk.EthAddressLength:]
 			resourceAccountPolicyStore.Delete(iterator.Key())
 
@@ -621,34 +621,4 @@ func (k Keeper) MigrateAccountPolicyForResources(ctx sdk.Context) {
 	migration(types.BucketPolicyForAccountPrefix, resource.RESOURCE_TYPE_BUCKET)
 	migration(types.ObjectPolicyForAccountPrefix, resource.RESOURCE_TYPE_OBJECT)
 	migration(types.GroupPolicyForAccountPrefix, resource.RESOURCE_TYPE_GROUP)
-}
-
-func (k Keeper) CountAccountPolicy(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	resourceAccountsPolicyStore := prefix.NewStore(store, types.BucketPolicyForAccountPrefix)
-	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
-	bTotal := 0
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		bTotal++
-	}
-	fmt.Printf("bucket policy %d\n", bTotal)
-
-	resourceAccountsPolicyStore = prefix.NewStore(store, types.ObjectPolicyForAccountPrefix)
-	iterator = resourceAccountsPolicyStore.Iterator(nil, nil)
-	oTotal := 0
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		oTotal++
-	}
-	fmt.Printf("object policy %d\n", oTotal)
-
-	resourceAccountsPolicyStore = prefix.NewStore(store, types.GroupPolicyForAccountPrefix)
-	iterator = resourceAccountsPolicyStore.Iterator(nil, nil)
-	gTotal := 0
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		gTotal++
-	}
-	fmt.Printf("group policy %d\n", gTotal)
 }

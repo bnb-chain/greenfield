@@ -8,5 +8,4 @@ import (
 
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
 	k.RemoveExpiredPolicies(ctx)
-	k.CountAccountPolicy(ctx)
 }
