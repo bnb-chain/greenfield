@@ -367,10 +367,6 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 	}
 	// emit DeletePolicy Event
 
-	if policyID.Uint64() == 2868 {
-		ctx.Logger().Error("debug", "policyId", policyID.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
-		panic("debug")
-	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{
 		PolicyId: policyID,
 	}); err != nil {
@@ -447,10 +443,6 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 				}
 			}
 			policyId := policyGroup.Items[i].PolicyId
-			if policyId.Uint64() == 2868 {
-				ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
-				panic("debug")
-			}
 			policy, _ := k.GetPolicyByID(ctx, policyId)
 			if policy != nil && policy.ExpirationTime != nil {
 				// delete the policy expire queue
@@ -546,10 +538,6 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 
 		// delete policyId -> policy
 		policyId := types.ParsePolicyIdFromQueueKey(iterator.Key())
-		if policyId.Uint64() == 2868 {
-			ctx.Logger().Error("debug", "policyId", policyId.String(), "key", iterator.Key(), "exp", exp)
-			panic("debug")
-		}
 		var policy types.Policy
 		k.cdc.MustUnmarshal(store.Get(types.GetPolicyByIDKey(policyId)), &policy)
 
