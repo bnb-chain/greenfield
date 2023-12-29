@@ -174,7 +174,7 @@ func (app *App) registerHulunbeierPatchUpgradeHandler() {
 		})
 
 	// Register the upgrade initializer
-	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Hulunbeier,
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.HulunbeierPatch,
 		func() error {
 			app.Logger().Info("Init Hulunbeier patch upgrade")
 			return nil
