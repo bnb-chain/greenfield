@@ -63,8 +63,8 @@ var (
 
 // GetBucketKey return the bucket name store key
 func GetBucketKey(bucketName string) []byte {
-	objectNameHash := sdk.Keccak256([]byte(bucketName))
-	return append(BucketInfoPrefix, objectNameHash...)
+	bucketNameHash := sdk.Keccak256([]byte(bucketName))
+	return append(BucketInfoPrefix, bucketNameHash...)
 }
 
 // GetObjectKey return the object name store key

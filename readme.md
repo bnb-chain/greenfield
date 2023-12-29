@@ -110,8 +110,8 @@ Refer to the [docs](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfi
 
 - [Interacting with the Node](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/interact-node)
 - [Run Local Network](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/run-local-network)
-- [Run Testnet Node](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/run-testnet-node)
-- [Become Testnet Validator](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/become-testnet-validator)
+- [Run Node](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node)
+- [Become Validator](https://docs.bnbchain.org/greenfield-docs/docs/guide/greenfield-blockchain/run-node/become-validator)
 
 ## Related Projects
 - [Greenfield-Contract](https://github.com/bnb-chain/greenfield-contracts): the cross chain contract for Greenfield that deployed on BSC network.
