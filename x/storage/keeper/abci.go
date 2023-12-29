@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	paymenttypes "github.com/bnb-chain/greenfield/x/payment/types"
-	"fmt"
 )
 
 func BeginBlocker(ctx sdk.Context, keeper Keeper) {
@@ -47,11 +46,8 @@ func EndBlocker(ctx sdk.Context, keeper Keeper) {
 	keeper.PersistDeleteInfo(ctx)
 
 	// Permission GC
-	if ctx.BlockHeight() == 3684712 {
-		fmt.Println("debug")
-	}
 	keeper.GarbageCollectResourcesStalePolicy(ctx)
-	if ctx.BlockHeight() == 3684712 {
-		panic("debug")
+	if ctx.BlockHeight() == 3684713 {
+		panic("panic at block 3684713")
 	}
 }
