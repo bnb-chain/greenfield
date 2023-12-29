@@ -570,3 +570,33 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		}
 	}
 }
+
+func (k Keeper) CountAccountPolicy(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	resourceAccountsPolicyStore := prefix.NewStore(store, types.BucketPolicyForAccountPrefix)
+	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
+	bTotal := 0
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		bTotal++
+	}
+	fmt.Printf("bucket poliyc %d\n", bTotal)
+
+	resourceAccountsPolicyStore = prefix.NewStore(store, types.ObjectPolicyForAccountPrefix)
+	iterator = resourceAccountsPolicyStore.Iterator(nil, nil)
+	oTotal := 0
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		oTotal++
+	}
+	fmt.Printf("object poliyc %d\n", oTotal)
+
+	resourceAccountsPolicyStore = prefix.NewStore(store, types.GroupPolicyForAccountPrefix)
+	iterator = resourceAccountsPolicyStore.Iterator(nil, nil)
+	gTotal := 0
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		gTotal++
+	}
+	fmt.Printf("object poliyc %d\n", gTotal)
+}
