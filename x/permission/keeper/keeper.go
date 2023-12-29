@@ -541,6 +541,10 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 
 		// delete policyId -> policy
 		policyId := types.ParsePolicyIdFromQueueKey(iterator.Key())
+		if policyId == math.NewUint(2868) {
+			ctx.Logger().Error("debug", "policyId", policyId.String(), "key", iterator.Key(), "exp", exp)
+			panic("debug")
+		}
 		var policy types.Policy
 		k.cdc.MustUnmarshal(store.Get(types.GetPolicyByIDKey(policyId)), &policy)
 
