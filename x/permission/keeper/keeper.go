@@ -366,6 +366,11 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		return math.ZeroUint(), types.ErrInvalidPrincipal.Wrap("Unknown principal type.")
 	}
 	// emit DeletePolicy Event
+
+	if policyID == math.NewUint(2868) {
+		ctx.Logger().Error("debug", "policyId", policyID.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
+		panic("debug")
+	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventDeletePolicy{
 		PolicyId: policyID,
 	}); err != nil {
