@@ -367,7 +367,7 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 	}
 	// emit DeletePolicy Event
 
-	if policyID == math.NewUint(2868) {
+	if policyID.Uint64() == 2868 {
 		ctx.Logger().Error("debug", "policyId", policyID.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
 		panic("debug")
 	}
@@ -397,7 +397,7 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 			}
 		}
 		policyId := k.policySeq.DecodeSequence(iterator.Value())
-		if policyId == math.NewUint(2868) {
+		if policyId.Uint64() == 2868 {
 			ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
 			panic("debug")
 		}
@@ -447,7 +447,7 @@ func (k Keeper) ForceDeleteGroupPolicyForResource(ctx sdk.Context, maxDelete, de
 				}
 			}
 			policyId := policyGroup.Items[i].PolicyId
-			if policyId == math.NewUint(2868) {
+			if policyId.Uint64() == 2868 {
 				ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
 				panic("debug")
 			}
@@ -546,7 +546,7 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 
 		// delete policyId -> policy
 		policyId := types.ParsePolicyIdFromQueueKey(iterator.Key())
-		if policyId == math.NewUint(2868) {
+		if policyId.Uint64() == 2868 {
 			ctx.Logger().Error("debug", "policyId", policyId.String(), "key", iterator.Key(), "exp", exp)
 			panic("debug")
 		}
