@@ -394,7 +394,7 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 		}
 		policyId := k.policySeq.DecodeSequence(iterator.Value())
 		if policyId.Uint64() == 2868 {
-			ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String())
+			ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String(), "iterator", iterator.Value())
 			panic("debug")
 		}
 		policy, _ := k.GetPolicyByID(ctx, policyId)
