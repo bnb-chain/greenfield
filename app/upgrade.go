@@ -27,6 +27,7 @@ func (app *App) RegisterUpgradeHandlers(chainID string, serverCfg *serverconfig.
 	app.registerPampasUpgradeHandler()
 	app.registerManchurianUpgradeHandler()
 	app.registerHulunbeierUpgradeHandler()
+	app.registerHulunbeierPatchUpgradeHandler()
 
 	// app.register...()
 	// ...
@@ -158,6 +159,24 @@ func (app *App) registerHulunbeierUpgradeHandler() {
 				panic("*virtualgroupmodule.AppModule not found")
 			}
 			mm.SetConsensusVersion(2)
+			return nil
+		})
+}
+
+func (app *App) registerHulunbeierPatchUpgradeHandler() {
+	// Register the upgrade handler
+	app.UpgradeKeeper.SetUpgradeHandler(upgradetypes.HulunbeierPatch,
+		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
+			app.Logger().Info("upgrade to ", plan.Name)
+
+			app.PermissionmoduleKeeper.MigrateAccountPolicyForResources(ctx)
+			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
+		})
+
+	// Register the upgrade initializer
+	app.UpgradeKeeper.SetUpgradeInitializer(upgradetypes.Hulunbeier,
+		func() error {
+			app.Logger().Info("Init Hulunbeier patch upgrade")
 			return nil
 		})
 }

@@ -143,11 +143,16 @@ func (k Keeper) updatePolicy(ctx sdk.Context, policy, newPolicy *types.Policy) *
 
 func (k Keeper) PutPolicy(ctx sdk.Context, policy *types.Policy) (math.Uint, error) {
 	store := ctx.KVStore(k.storeKey)
-
 	var newPolicy *types.Policy
 	if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
-		policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
-			policy.Principal.MustGetAccountAddress())
+		var policyKey []byte
+		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+			policyKey = types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
+				policy.Principal.MustGetAccountAddress(), true)
+		} else {
+			policyKey = types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
+				policy.Principal.MustGetAccountAddress(), false)
+		}
 		bz := store.Get(policyKey)
 		if bz != nil {
 			id := k.policySeq.DecodeSequence(bz)
@@ -257,13 +262,16 @@ func (k Keeper) GetPolicyForAccount(ctx sdk.Context, resourceID math.Uint,
 	isFound bool,
 ) {
 	store := ctx.KVStore(k.storeKey)
-	policyKey := types.GetPolicyForAccountKey(resourceID, resourceType, addr)
-
+	var policyKey []byte
+	if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+		policyKey = types.GetPolicyForAccountKey(resourceID, resourceType, addr, true)
+	} else {
+		policyKey = types.GetPolicyForAccountKey(resourceID, resourceType, addr, false)
+	}
 	bz := store.Get(policyKey)
 	if bz == nil {
 		return policy, false
 	}
-
 	return k.GetPolicyByID(ctx, k.policySeq.DecodeSequence(bz))
 }
 
@@ -315,7 +323,11 @@ func (k Keeper) DeletePolicy(ctx sdk.Context, principal *types.Principal, resour
 		accAddr := sdk.MustAccAddressFromHex(principal.Value)
 		policy, found := k.GetPolicyForAccount(ctx, resourceID, resourceType, accAddr)
 		if found {
-			store.Delete(types.GetPolicyForAccountKey(resourceID, resourceType, accAddr))
+			if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+				store.Delete(types.GetPolicyForAccountKey(resourceID, resourceType, accAddr, true))
+			} else {
+				store.Delete(types.GetPolicyForAccountKey(resourceID, resourceType, accAddr, false))
+			}
 			store.Delete(types.GetPolicyByIDKey(policy.Id))
 			if policy.ExpirationTime != nil {
 				store.Delete(types.PolicyPrefixQueue(policy.ExpirationTime, policy.Id.Bytes()))
@@ -380,7 +392,12 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 		return deletedTotal, true
 	}
 	store := ctx.KVStore(k.storeKey)
-	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	var resourceAccountsPolicyStore prefix.Store
+	if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+		resourceAccountsPolicyStore = prefix.NewStore(store, types.PolicyForAccountPrefixV2(resourceID, resourceType))
+	} else {
+		resourceAccountsPolicyStore = prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	}
 	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
 	defer iterator.Close()
 	isNagquUpgraded := ctx.IsUpgraded(upgradetypes.Nagqu)
@@ -494,7 +511,12 @@ func (k Keeper) ExistAccountPolicyForResource(ctx sdk.Context, resourceType reso
 		return false
 	}
 	store := ctx.KVStore(k.storeKey)
-	resourceAccountsPolicyStore := prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	var resourceAccountsPolicyStore prefix.Store
+	if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+		resourceAccountsPolicyStore = prefix.NewStore(store, types.PolicyForAccountPrefixV2(resourceID, resourceType))
+	} else {
+		resourceAccountsPolicyStore = prefix.NewStore(store, types.PolicyForAccountPrefix(resourceID, resourceType))
+	}
 	iterator := resourceAccountsPolicyStore.Iterator(nil, nil)
 	defer iterator.Close()
 	return iterator.Valid()
@@ -544,8 +566,14 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 		// 2. the policy is group policy within a policy group, delete the index in the policy group
 		if ctx.IsUpgraded(upgradetypes.Pampas) {
 			if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_ACCOUNT {
-				policyKey := types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
-					policy.Principal.MustGetAccountAddress())
+				var policyKey []byte
+				if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+					policyKey = types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
+						policy.Principal.MustGetAccountAddress(), true)
+				} else {
+					policyKey = types.GetPolicyForAccountKey(policy.ResourceId, policy.ResourceType,
+						policy.Principal.MustGetAccountAddress(), false)
+				}
 				store.Delete(policyKey)
 			} else if policy.Principal.Type == types.PRINCIPAL_TYPE_GNFD_GROUP {
 				policyGroupKey := types.GetPolicyForGroupKey(policy.ResourceId, policy.ResourceType)
@@ -571,6 +599,30 @@ func (k Keeper) RemoveExpiredPolicies(ctx sdk.Context) {
 	}
 }
 
+func (k Keeper) MigrateAccountPolicyForResources(ctx sdk.Context) {
+	store := ctx.KVStore(k.storeKey)
+	// PolicyForAccountKey:
+	// ResourcePolicyForAccountPrefix| ResourceID | AccountAddr
+	// iterator key:
+	// ResourceID | AccountAddr
+	migration := func(resourcePolicyForAccountPrefix []byte, resourceType resource.ResourceType) {
+		resourceAccountPolicyStore := prefix.NewStore(store, resourcePolicyForAccountPrefix)
+		iterator := resourceAccountPolicyStore.Iterator(nil, nil)
+		for ; iterator.Valid(); iterator.Next() {
+			resourceIDBz := iterator.Value()[:len(iterator.Key())-sdk.EthAddressLength]
+			addrBz := iterator.Key()[len(iterator.Key())-sdk.EthAddressLength:]
+			resourceAccountPolicyStore.Delete(iterator.Key())
+
+			// newkey might be the same as the previous one
+			newKey := types.GetPolicyForAccountKey(math.ZeroUint().SetBytes(resourceIDBz), resourceType, addrBz, true)
+			store.Set(newKey, iterator.Value())
+		}
+	}
+	migration(types.BucketPolicyForAccountPrefix, resource.RESOURCE_TYPE_BUCKET)
+	migration(types.ObjectPolicyForAccountPrefix, resource.RESOURCE_TYPE_OBJECT)
+	migration(types.GroupPolicyForAccountPrefix, resource.RESOURCE_TYPE_GROUP)
+}
+
 func (k Keeper) CountAccountPolicy(ctx sdk.Context) {
 	store := ctx.KVStore(k.storeKey)
 	resourceAccountsPolicyStore := prefix.NewStore(store, types.BucketPolicyForAccountPrefix)
@@ -580,7 +632,7 @@ func (k Keeper) CountAccountPolicy(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		bTotal++
 	}
-	fmt.Printf("bucket poliyc %d\n", bTotal)
+	fmt.Printf("bucket policy %d\n", bTotal)
 
 	resourceAccountsPolicyStore = prefix.NewStore(store, types.ObjectPolicyForAccountPrefix)
 	iterator = resourceAccountsPolicyStore.Iterator(nil, nil)
@@ -589,7 +641,7 @@ func (k Keeper) CountAccountPolicy(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		oTotal++
 	}
-	fmt.Printf("object poliyc %d\n", oTotal)
+	fmt.Printf("object policy %d\n", oTotal)
 
 	resourceAccountsPolicyStore = prefix.NewStore(store, types.GroupPolicyForAccountPrefix)
 	iterator = resourceAccountsPolicyStore.Iterator(nil, nil)
@@ -598,5 +650,5 @@ func (k Keeper) CountAccountPolicy(ctx sdk.Context) {
 	for ; iterator.Valid(); iterator.Next() {
 		gTotal++
 	}
-	fmt.Printf("object poliyc %d\n", gTotal)
+	fmt.Printf("group policy %d\n", gTotal)
 }
