@@ -16,6 +16,7 @@ import (
 	"github.com/bnb-chain/greenfield/types/resource"
 	"github.com/bnb-chain/greenfield/x/permission/types"
 	storagetypes "github.com/bnb-chain/greenfield/x/storage/types"
+	"encoding/hex"
 )
 
 type (
@@ -393,8 +394,9 @@ func (k Keeper) ForceDeleteAccountPolicyForResource(ctx sdk.Context, maxDelete, 
 			}
 		}
 		policyId := k.policySeq.DecodeSequence(iterator.Value())
+		hexBz := hex.EncodeToString(iterator.Value())
 		if policyId.Uint64() == 2868 {
-			ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String(), "iterator", iterator.Value())
+			ctx.Logger().Error("debug", "policyId", policyId.String(), "resourceID", resourceID.String(), "resourceType", resourceType.String(), "iterator", hexBz)
 			panic("debug")
 		}
 		policy, _ := k.GetPolicyByID(ctx, policyId)
