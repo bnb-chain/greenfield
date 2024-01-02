@@ -1,4 +1,18 @@
 # Changelog
+
+## v1.3.0
+This release introduces the Hulunbeier upgrade to the testnet.
+
+Features:
+* [#542](https://github.com/bnb-chain/greenfield/pull/542) feat: add crosschain permission app
+* [#534](https://github.com/bnb-chain/greenfield/pull/534) feat: implement Msgs for SP exit
+
+Bugfixes:
+* [#552](https://github.com/bnb-chain/greenfield/pull/552) fix: resource account policy key collision
+
+Chore:
+* [#551](https://github.com/bnb-chain/greenfield/pull/551) chore: fix typo and update doc
+
 ## v1.2.1
 This release fixes the bugs within resource tags.
 

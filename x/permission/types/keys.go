@@ -47,7 +47,7 @@ var (
 	PolicyQueueKeyPrefix = []byte{0x51}
 )
 
-func PolicyForAccountPrefix(resourceID math.Uint, resourceType resource.ResourceType) []byte {
+func PolicyForAccountPrefix(resourceID math.Uint, resourceType resource.ResourceType, useV2 bool) []byte {
 	var key []byte
 	switch resourceType {
 	case resource.RESOURCE_TYPE_BUCKET:
@@ -59,12 +59,17 @@ func PolicyForAccountPrefix(resourceID math.Uint, resourceType resource.Resource
 	default:
 		panic(fmt.Sprintf("GetPolicyForAccountKey Invalid Resource Type, %s", resourceType.String()))
 	}
-	key = append(key, resourceID.Bytes()...)
+	if useV2 {
+		key = append(key, LengthPrefix(resourceID)...)
+	} else {
+		key = append(key, resourceID.Bytes()...)
+	}
 	return key
 }
 
-func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress) []byte {
-	key := PolicyForAccountPrefix(resourceID, resourceType)
+func GetPolicyForAccountKey(resourceID math.Uint, resourceType resource.ResourceType, addr sdk.AccAddress, useV2 bool) []byte {
+	var key []byte
+	key = PolicyForAccountPrefix(resourceID, resourceType, useV2)
 	key = append(key, addr.Bytes()...)
 	return key
 }
