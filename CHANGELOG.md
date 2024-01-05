@@ -1,4 +1,8 @@
 # Changelog
+
+## v1.2.2
+This release introduces the Manchurian upgrade to the mainnet.
+
 ## v1.2.1
 This release fixes the bugs within resource tags.
 
