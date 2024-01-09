@@ -44,8 +44,8 @@ const (
 	OperationUpdateGroupMember uint8 = 4
 
 	// permission operation types
-	OperationCreatePolicy uint8 = 1
-	OperationDeletePolicy uint8 = 2
+	OperationCreatePolicy uint8 = 2
+	OperationDeletePolicy uint8 = 3
 )
 
 func SafeBigInt(input *big.Int) *big.Int {
