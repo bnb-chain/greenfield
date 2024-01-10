@@ -2230,13 +2230,21 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
 		}
-		resOwner := sdk.MustAccAddressFromHex(bucketInfo.Owner)
-		if !operator.Equals(resOwner) {
-			return types.ErrAccessDenied.Wrapf(
-				"Only resource owner can set tag, operator (%s), owner(%s)",
-				operator.String(), resOwner.String())
+		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+			// check permission
+			effect := k.VerifyBucketPermission(ctx, bucketInfo, operator, permtypes.ACTION_UPDATE_BUCKET_INFO, nil)
+			if effect != permtypes.EFFECT_ALLOW {
+				return types.ErrAccessDenied.Wrapf("The operator(%s) has no updateBucketInfo permission of the bucket(%s)",
+					operator.String(), bucketName)
+			}
+		} else {
+			resOwner := sdk.MustAccAddressFromHex(bucketInfo.Owner)
+			if !operator.Equals(resOwner) {
+				return types.ErrAccessDenied.Wrapf(
+					"Only resource owner can set tag, operator (%s), owner(%s)",
+					operator.String(), resOwner.String())
+			}
 		}
-
 		bucketInfo.Tags = tags
 		bz := k.cdc.MustMarshal(bucketInfo)
 		store.Set(types.GetBucketByIDKey(bucketInfo.Id), bz)
@@ -2249,13 +2257,25 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchObject.Wrapf("BucketName: %s, objectName: %s", bucketName, objectName)
 		}
-		resOwner := sdk.MustAccAddressFromHex(objectInfo.Owner)
-		if !operator.Equals(resOwner) {
-			return types.ErrAccessDenied.Wrapf(
-				"Only resource owner can set tag, operator (%s), owner(%s)",
-				operator.String(), resOwner.String())
+		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+			bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+			if !found {
+				return types.ErrNoSuchBucket.Wrapf("bucketName: %s", bucketName)
+			}
+			effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_UPDATE_OBJECT_INFO)
+			if effect != permtypes.EFFECT_ALLOW {
+				return types.ErrAccessDenied.Wrapf(
+					"The operator(%s) has no updateObjectInfo permission of the bucket(%s), object(%s)",
+					operator.String(), bucketName, objectName)
+			}
+		} else {
+			resOwner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+			if !operator.Equals(resOwner) {
+				return types.ErrAccessDenied.Wrapf(
+					"Only resource owner can set tag, operator (%s), owner(%s)",
+					operator.String(), resOwner.String())
+			}
 		}
-
 		objectInfo.Tags = tags
 		obz := k.cdc.MustMarshal(objectInfo)
 		store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
@@ -2268,13 +2288,22 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 		if !found {
 			return types.ErrNoSuchBucket.Wrapf("groupOwner: %s, groupName: %s", groupOwner.String(), groupName)
 		}
-		resOwner := sdk.MustAccAddressFromHex(groupInfo.Owner)
-		if !operator.Equals(resOwner) {
-			return types.ErrAccessDenied.Wrapf(
-				"Only resource owner can set tag, operator (%s), owner(%s)",
-				operator.String(), resOwner.String())
-		}
+		if ctx.IsUpgraded(upgradetypes.HulunbeierPatch) {
+			effect := k.VerifyGroupPermission(ctx, groupInfo, operator, permtypes.ACTION_UPDATE_GROUP_INFO)
+			if effect != permtypes.EFFECT_ALLOW {
+				return types.ErrAccessDenied.Wrapf(
+					"The operator(%s) has no updateGroupInfo permission of the group(%s), owner(%s)",
+					operator.String(), groupInfo.GroupName, groupInfo.Owner)
+			}
+		} else {
+			resOwner := sdk.MustAccAddressFromHex(groupInfo.Owner)
+			if !operator.Equals(resOwner) {
+				return types.ErrAccessDenied.Wrapf(
+					"Only resource owner can set tag, operator (%s), owner(%s)",
+					operator.String(), resOwner.String())
+			}
 
+		}
 		groupInfo.Tags = tags
 		gbz := k.cdc.MustMarshal(groupInfo)
 		store.Set(types.GetGroupByIDKey(groupInfo.Id), gbz)
