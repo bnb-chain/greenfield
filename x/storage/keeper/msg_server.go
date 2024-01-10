@@ -709,6 +709,37 @@ func (k msgServer) SetTag(goCtx context.Context, msg *types.MsgSetTag) (*types.M
 	return &types.MsgSetTagResponse{}, nil
 }
 
+func (k msgServer) UpdateObjectContent(goCtx context.Context, msg *storagetypes.MsgUpdateObjectContent) (*storagetypes.MsgUpdateObjectContentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if len(msg.ExpectChecksums) != int(1+k.GetExpectSecondarySPNumForECObject(ctx, ctx.BlockTime().Unix())) {
+		return nil, gnfderrors.ErrInvalidChecksum.Wrapf("ExpectChecksums missing, expect: %d, actual: %d",
+			1+k.Keeper.RedundantParityChunkNum(ctx)+k.Keeper.RedundantDataChunkNum(ctx),
+			len(msg.ExpectChecksums))
+	}
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.UpdateObjectContent(ctx, operatorAcc, msg.BucketName, msg.ObjectName, msg.PayloadSize, storagetypes.UpdateObjectOptions{
+		Checksums:   msg.ExpectChecksums,
+		ContentType: msg.ContentType,
+		SourceType:  types.SOURCE_TYPE_ORIGIN,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgUpdateObjectContentResponse{}, nil
+}
+
+func (k msgServer) CancelUpdateObjectContent(goCtx context.Context, msg *storagetypes.MsgCancelUpdateObjectContent) (*storagetypes.MsgCancelUpdateObjectContentResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	operatorAcc := sdk.MustAccAddressFromHex(msg.Operator)
+	err := k.Keeper.CancelUpdateObjectContent(ctx, operatorAcc, msg.BucketName, msg.ObjectName)
+	if err != nil {
+		return nil, err
+	}
+	return &types.MsgCancelUpdateObjectContentResponse{}, nil
+}
+
 func (k Keeper) verifyGVGSignatures(ctx sdk.Context, bucketID math.Uint, dstSP *sptypes.StorageProvider, gvgMappings []*storagetypes.GVGMapping) error {
 	// verify secondary sp signature
 	for _, newLvg2gvg := range gvgMappings {

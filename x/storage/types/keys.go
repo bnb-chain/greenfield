@@ -38,9 +38,13 @@ var (
 	QuotaPrefix              = []byte{0x14}
 	InternalBucketInfoPrefix = []byte{0x15}
 
+	ShadowObjectInfoPrefix = []byte{0x16}
+
 	BucketByIDPrefix = []byte{0x21}
 	ObjectByIDPrefix = []byte{0x22}
 	GroupByIDPrefix  = []byte{0x23}
+
+	ShadowObjectByIDPrefix = []byte{0x24}
 
 	BucketSequencePrefix = []byte{0x31}
 	ObjectSequencePrefix = []byte{0x32}
@@ -78,6 +82,13 @@ func GetObjectKeyOnlyBucketPrefix(bucketName string) []byte {
 	return append(ObjectInfoPrefix, sdk.Keccak256([]byte(bucketName))...)
 }
 
+// GetShadowObjectKey return the shadow object name store key
+func GetShadowObjectKey(bucketName string, objectName string) []byte {
+	bucketNameHash := sdk.Keccak256([]byte(bucketName))
+	objectNameHash := sdk.Keccak256([]byte(objectName))
+	return append(ShadowObjectInfoPrefix, append(bucketNameHash, objectNameHash...)...)
+}
+
 // GetGroupKey return the group name store key
 func GetGroupKey(owner sdk.AccAddress, groupName string) []byte {
 	groupNameHash := sdk.Keccak256([]byte(groupName))
@@ -99,6 +110,12 @@ func GetBucketByIDKey(bucketId math.Uint) []byte {
 func GetObjectByIDKey(objectId math.Uint) []byte {
 	var seq sequence.Sequence[math.Uint]
 	return append(ObjectByIDPrefix, seq.EncodeSequence(objectId)...)
+}
+
+// GetShadowObjectByIDKey return the shadowObjectId store key
+func GetShadowObjectByIDKey(objectId math.Uint) []byte {
+	var seq sequence.Sequence[math.Uint]
+	return append(ShadowObjectByIDPrefix, seq.EncodeSequence(objectId)...)
 }
 
 // GetGroupByIDKey return the groupId store key

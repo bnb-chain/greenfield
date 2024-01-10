@@ -336,7 +336,7 @@ func (k Keeper) ForceDeleteBucket(ctx sdk.Context, bucketId sdkmath.Uint, cap ui
 			}
 		} else if objectStatus == types.OBJECT_STATUS_SEALED {
 			internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-			if err = k.UnChargeObjectStoreFee(ctx, sp.Id, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
+			if err = k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, &objectInfo); err != nil {
 				ctx.Logger().Error("charge delete object error", "err", err)
 				return false, deleted, err
 			}
@@ -730,6 +730,38 @@ func (k Keeper) GetObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*type
 	return &objectInfo, true
 }
 
+func (k Keeper) GetShadowObjectInfo(ctx sdk.Context, bucketName, objectName string) (*types.ShadowObjectInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetShadowObjectKey(bucketName, objectName))
+	if bz == nil {
+		return nil, false
+	}
+
+	return k.GetShadowObjectInfoById(ctx, k.objectSeq.DecodeSequence(bz))
+}
+
+func (k Keeper) MustGetShadowObjectInfo(ctx sdk.Context, bucketName, objectName string) *types.ShadowObjectInfo {
+	shadowObjectInfo, found := k.GetShadowObjectInfo(ctx, bucketName, objectName)
+	if !found {
+		panic("Shadow Object Info not found")
+	}
+	return shadowObjectInfo
+}
+
+func (k Keeper) GetShadowObjectInfoById(ctx sdk.Context, objectId sdkmath.Uint) (*types.ShadowObjectInfo, bool) {
+	store := ctx.KVStore(k.storeKey)
+
+	bz := store.Get(types.GetShadowObjectByIDKey(objectId))
+	if bz == nil {
+		return nil, false
+	}
+
+	var objectInfo types.ShadowObjectInfo
+	k.cdc.MustUnmarshal(bz, &objectInfo)
+	return &objectInfo, true
+}
+
 type SealObjectOptions struct {
 	GlobalVirtualGroupId     uint32
 	SecondarySpBlsSignatures []byte
@@ -759,8 +791,36 @@ func (k Keeper) SealObject(
 	if !found {
 		return types.ErrNoSuchObject
 	}
+	store := ctx.KVStore(k.storeKey)
 
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
+	prevPayloadSize := objectInfo.PayloadSize
+	prevCheckSums := objectInfo.Checksums
+
+	isUpdate := objectInfo.IsUpdating
+	if isUpdate {
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
+		k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
+		err = k.DeleteObjectFromVirtualGroup(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
+
+		shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketName, objectName)
+		objectInfo.UpdatedAt = shadowObjectInfo.UpdatedAt // the updated_at in objetInfo will not be visible until the object is sealed.
+		objectInfo.Version = shadowObjectInfo.Version
+		objectInfo.Checksums = shadowObjectInfo.Checksums
+		objectInfo.PayloadSize = shadowObjectInfo.PayloadSize
+		objectInfo.UpdatedBy = shadowObjectInfo.Operator
+		objectInfo.ContentType = shadowObjectInfo.ContentType
+		objectInfo.IsUpdating = false
+
+		store.Delete(types.GetShadowObjectKey(bucketInfo.BucketName, objectName))
+		store.Delete(types.GetShadowObjectByIDKey(shadowObjectInfo.Id))
+	} else if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectAlreadySealed
 	}
 
@@ -772,8 +832,7 @@ func (k Keeper) SealObject(
 	if gvg.FamilyId != bucketInfo.GlobalVirtualGroupFamilyId || gvg.PrimarySpId != spInState.Id {
 		return types.ErrInvalidGlobalVirtualGroup.Wrapf("Global virtual group mismatch, familyID: %d, bucket family ID: %d", gvg.FamilyId, bucketInfo.GlobalVirtualGroupFamilyId)
 	}
-
-	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx, objectInfo.CreateAt)
+	expectSecondarySPNum := k.GetExpectSecondarySPNumForECObject(ctx, objectInfo.GetLatestUpdatedTime())
 	if int(expectSecondarySPNum) != len(gvg.SecondarySpIds) {
 		return types.ErrInvalidGlobalVirtualGroup.Wrapf("secondary sp num mismatch, expect (%d), but (%d)",
 			expectSecondarySPNum, len(gvg.SecondarySpIds))
@@ -792,13 +851,29 @@ func (k Keeper) SealObject(
 
 	objectInfo.ObjectStatus = types.OBJECT_STATUS_SEALED
 
-	store := ctx.KVStore(k.storeKey)
 	bbz := k.cdc.MustMarshal(bucketInfo)
 	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
 
 	obz := k.cdc.MustMarshal(objectInfo)
 	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
 
+	if isUpdate {
+		if err := ctx.EventManager().EmitTypedEvents(&types.EventUpdateObjectContentSuccess{
+			Operator:        spSealAcc.String(),
+			BucketName:      bucketInfo.BucketName,
+			ObjectName:      objectInfo.ObjectName,
+			ObjectId:        objectInfo.Id,
+			ContentType:     objectInfo.ContentType,
+			PrevPayloadSize: prevPayloadSize,
+			NewPayloadSize:  objectInfo.PayloadSize,
+			PrevChecksums:   prevCheckSums,
+			NewChecksums:    objectInfo.Checksums,
+			Version:         objectInfo.Version,
+			UpdatedAt:       objectInfo.UpdatedAt,
+		}); err != nil {
+			return err
+		}
+	}
 	if err := ctx.EventManager().EmitTypedEvents(&types.EventSealObject{
 		Operator:             spSealAcc.String(),
 		BucketName:           bucketInfo.BucketName,
@@ -807,6 +882,7 @@ func (k Keeper) SealObject(
 		Status:               objectInfo.ObjectStatus,
 		GlobalVirtualGroupId: opts.GlobalVirtualGroupId,
 		LocalVirtualGroupId:  objectInfo.LocalVirtualGroupId,
+		ForUpdate:            isUpdate,
 	}); err != nil {
 		return err
 	}
@@ -828,7 +904,6 @@ func (k Keeper) CancelCreateObject(
 	}
 
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
-
 	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
 		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
@@ -892,7 +967,10 @@ func (k Keeper) DeleteObject(
 		}
 		return types.ErrObjectNotSealed
 	}
-
+	// user should cancel the update first to delete an object.
+	if objectInfo.IsUpdating {
+		return types.ErrObjectIsUpdating
+	}
 	// check permission
 	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_DELETE_OBJECT)
 	if effect != permtypes.EFFECT_ALLOW {
@@ -901,10 +979,10 @@ func (k Keeper) DeleteObject(
 			operator.String(), bucketName, objectName)
 	}
 
-	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
+	_ = k.MustGetPrimarySPForBucket(ctx, bucketInfo)
 	internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
 
-	err := k.UnChargeObjectStoreFee(ctx, spInState.Id, bucketInfo, internalBucketInfo, objectInfo)
+	err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 	if err != nil {
 		return err
 	}
@@ -975,12 +1053,21 @@ func (k Keeper) ForceDeleteObject(ctx sdk.Context, objectId sdkmath.Uint) error 
 		}
 	} else if objectStatus == types.OBJECT_STATUS_SEALED {
 		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
-		err := k.UnChargeObjectStoreFee(ctx, spInState.Id, bucketInfo, internalBucketInfo, objectInfo)
+		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, internalBucketInfo, objectInfo)
 		if err != nil {
 			ctx.Logger().Error("charge delete object error", "err", err)
 			return err
 		}
 		k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
+
+		// if an object is updating, also need to unlock the shadowObject fee
+		if objectInfo.IsUpdating {
+			shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketInfo.BucketName, objectInfo.ObjectName)
+			err = k.UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx, bucketInfo, shadowObjectInfo, objectInfo.ObjectName)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	err = k.doDeleteObject(ctx, sdk.MustAccAddressFromHex(spInState.OperatorAddress), bucketInfo, objectInfo)
@@ -1109,8 +1196,7 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return types.ErrNoSuchObject
 	}
 	spInState := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
-
-	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED {
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_CREATED && !objectInfo.IsUpdating {
 		return types.ErrObjectNotCreated.Wrapf("Object status: %s", objectInfo.ObjectStatus.String())
 	}
 
@@ -1122,30 +1208,37 @@ func (k Keeper) RejectSealObject(ctx sdk.Context, operator sdk.AccAddress, bucke
 		return sptypes.ErrStorageProviderNotInService
 	}
 	if sp.Id != spInState.Id {
-		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary SP to do cancel create object")
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed primary SP to do reject seal object")
 	}
-
-	err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
-	if err != nil {
-		return err
+	forUpdate := objectInfo.IsUpdating
+	if forUpdate {
+		shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketName, objectName)
+		err := k.UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx, bucketInfo, shadowObjectInfo, objectName)
+		if err != nil {
+			return err
+		}
+		// only this field need to revert
+		objectInfo.IsUpdating = false
+		obz := k.cdc.MustMarshal(objectInfo)
+		store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
+		store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+	} else {
+		err := k.UnlockObjectStoreFee(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
+		bbz := k.cdc.MustMarshal(bucketInfo)
+		store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+		store.Delete(types.GetObjectKey(bucketName, objectName))
+		store.Delete(types.GetObjectByIDKey(objectInfo.Id))
 	}
-
-	bbz := k.cdc.MustMarshal(bucketInfo)
-
-	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
-
-	store.Delete(types.GetObjectKey(bucketName, objectName))
-	store.Delete(types.GetObjectByIDKey(objectInfo.Id))
-
-	if err := ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
+	return ctx.EventManager().EmitTypedEvents(&types.EventRejectSealObject{
 		Operator:   operator.String(),
 		BucketName: bucketInfo.BucketName,
 		ObjectName: objectInfo.ObjectName,
 		ObjectId:   objectInfo.Id,
-	}); err != nil {
-		return err
-	}
-	return nil
+		ForUpdate:  forUpdate,
+	})
 }
 
 func (k Keeper) DiscontinueObject(ctx sdk.Context, operator sdk.AccAddress, bucketName string, objectIds []sdkmath.Uint, reason string) error {
@@ -2322,4 +2415,167 @@ func (k Keeper) SetTag(ctx sdk.Context, operator sdk.AccAddress, grn types2.GRN,
 	}
 
 	return nil
+}
+
+func (k Keeper) UpdateObjectContent(
+	ctx sdk.Context, operator sdk.AccAddress, bucketName, objectName string, payloadSize uint64,
+	opts types.UpdateObjectOptions,
+) error {
+	store := ctx.KVStore(k.storeKey)
+
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+	err := bucketInfo.CheckBucketStatus()
+	if err != nil {
+		return err
+	}
+	objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+	if !found {
+		return types.ErrNoSuchObject
+	}
+	// check object status
+	if objectInfo.ObjectStatus != types.OBJECT_STATUS_SEALED {
+		return types.ErrUpdateObjectNotAllowed.Wrapf("The object is not sealed yet")
+	}
+	if objectInfo.IsUpdating {
+		return types.ErrObjectIsUpdating.Wrapf("The object is already being updated")
+	}
+	if objectInfo.SourceType != opts.SourceType {
+		return types.ErrSourceTypeMismatch
+	}
+	// check permission
+	effect := k.VerifyObjectPermission(ctx, bucketInfo, objectInfo, operator, permtypes.ACTION_UPDATE_OBJECT_CONTENT)
+	if effect != permtypes.EFFECT_ALLOW {
+		return types.ErrAccessDenied.Wrapf(
+			"The operator(%s) has no updateObjectContent permission of the bucket(%s), object(%s)",
+			operator.String(), bucketName, objectName)
+	}
+
+	// check payload size
+	if payloadSize > k.MaxPayloadSize(ctx) {
+		return types.ErrTooLargeObject
+	}
+
+	// primary sp
+	sp := k.MustGetPrimarySPForBucket(ctx, bucketInfo)
+	// a sp is not in service, neither in maintenance
+	if sp.Status != sptypes.STATUS_IN_SERVICE && !k.fromSpMaintenanceAcct(sp, operator) {
+		return errors.Wrap(types.ErrNoSuchStorageProvider, "the storage provider is not in service")
+	}
+
+	nextVersion := objectInfo.Version + 1
+
+	if payloadSize == 0 {
+		internalBucketInfo := k.MustGetInternalBucketInfo(ctx, bucketInfo.Id)
+		err := k.UnChargeObjectStoreFee(ctx, bucketInfo, k.MustGetInternalBucketInfo(ctx, bucketInfo.Id), objectInfo)
+		if err != nil {
+			return err
+		}
+		k.SetInternalBucketInfo(ctx, bucketInfo.Id, internalBucketInfo)
+		err = k.DeleteObjectFromVirtualGroup(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
+
+		objectInfo.UpdatedAt = ctx.BlockTime().Unix()
+		objectInfo.Version = nextVersion
+		objectInfo.PayloadSize = 0
+		objectInfo.Checksums = opts.Checksums
+		objectInfo.UpdatedBy = operator.String()
+		objectInfo.ContentType = opts.ContentType
+
+		_, err = k.SealEmptyObjectOnVirtualGroup(ctx, bucketInfo, objectInfo)
+		if err != nil {
+			return err
+		}
+	} else {
+		objectInfo.IsUpdating = true
+		shadowObjectInfo := &types.ShadowObjectInfo{
+			Operator:    operator.String(),
+			Id:          objectInfo.Id,
+			PayloadSize: payloadSize,
+			Checksums:   opts.Checksums,
+			ContentType: opts.ContentType,
+			UpdatedAt:   ctx.BlockTime().Unix(),
+			Version:     nextVersion,
+		}
+		store.Set(types.GetShadowObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
+		store.Set(types.GetShadowObjectByIDKey(shadowObjectInfo.Id), k.cdc.MustMarshal(shadowObjectInfo))
+
+		err = k.LockShadowObjectStoreFee(ctx, bucketInfo, shadowObjectInfo, objectName)
+		if err != nil {
+			return err
+		}
+	}
+
+	bbz := k.cdc.MustMarshal(bucketInfo)
+	store.Set(types.GetBucketByIDKey(bucketInfo.Id), bbz)
+
+	obz := k.cdc.MustMarshal(objectInfo)
+	store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+
+	if err = ctx.EventManager().EmitTypedEvents(&types.EventUpdateObjectContent{
+		Operator:    operator.String(),
+		ObjectId:    objectInfo.Id,
+		PayloadSize: payloadSize,
+		Checksums:   opts.Checksums,
+		Version:     nextVersion,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (k Keeper) UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx sdk.Context, bucketInfo *types.BucketInfo, shadowObjectInfo *types.ShadowObjectInfo, objectName string) (err error) {
+	err = k.UnlockShadowObjectStoreFee(ctx, bucketInfo, shadowObjectInfo)
+	if err != nil {
+		return err
+	}
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetShadowObjectKey(bucketInfo.BucketName, objectName))
+	store.Delete(types.GetShadowObjectByIDKey(shadowObjectInfo.Id))
+	return
+}
+
+func (k Keeper) CancelUpdateObjectContent(
+	ctx sdk.Context, operator sdk.AccAddress,
+	bucketName, objectName string,
+) error {
+	store := ctx.KVStore(k.storeKey)
+	bucketInfo, found := k.GetBucketInfo(ctx, bucketName)
+	if !found {
+		return types.ErrNoSuchBucket
+	}
+	objectInfo, found := k.GetObjectInfo(ctx, bucketName, objectName)
+	if !found {
+		return types.ErrNoSuchObject
+	}
+	if !objectInfo.IsUpdating {
+		return types.ErrObjectIsNotUpdating
+	}
+	shadowObjectInfo := k.MustGetShadowObjectInfo(ctx, bucketName, objectName)
+	err := k.UnlockShadowObjectFeeAndDeleteShadowObjectInfo(ctx, bucketInfo, shadowObjectInfo, objectName)
+	if err != nil {
+		return err
+	}
+	updater := sdk.MustAccAddressFromHex(shadowObjectInfo.Operator)
+	owner := sdk.MustAccAddressFromHex(objectInfo.Owner)
+	if !operator.Equals(owner) && !operator.Equals(updater) {
+		return errors.Wrapf(types.ErrAccessDenied, "Only allowed owner/updater to do cancel update object")
+	}
+
+	objectInfo.IsUpdating = false
+	obz := k.cdc.MustMarshal(objectInfo)
+	store.Set(types.GetObjectKey(bucketName, objectName), k.objectSeq.EncodeSequence(objectInfo.Id))
+	store.Set(types.GetObjectByIDKey(objectInfo.Id), obz)
+
+	return ctx.EventManager().EmitTypedEvents(&types.EventCancelUpdateObjectContent{
+		Operator:   operator.String(),
+		BucketName: bucketInfo.BucketName,
+		ObjectName: objectInfo.ObjectName,
+		ObjectId:   objectInfo.Id,
+	})
 }

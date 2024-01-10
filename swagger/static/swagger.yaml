@@ -3276,6 +3276,24 @@ paths:
                             value:
                               type: string
                         title: tags defines a list of tags the resource has
+                  is_updating:
+                    type: boolean
+                    description: is_updating indicates whether a object is being updated.
+                  updated_at:
+                    type: string
+                    format: int64
+                    description: >-
+                      updated_at define the block timestamp when the object is
+                      updated. Will not be visible until object is re-sealed.
+                  updated_by:
+                    type: string
+                    description: >-
+                      updated_by defined the account address of updater(if there
+                      is). Will not be visible until object is re-sealed.
+                  version:
+                    type: string
+                    format: int64
+                    title: version define the version of object
               global_virtual_group:
                 type: object
                 properties:
@@ -3478,6 +3496,24 @@ paths:
                             value:
                               type: string
                         title: tags defines a list of tags the resource has
+                  is_updating:
+                    type: boolean
+                    description: is_updating indicates whether a object is being updated.
+                  updated_at:
+                    type: string
+                    format: int64
+                    description: >-
+                      updated_at define the block timestamp when the object is
+                      updated. Will not be visible until object is re-sealed.
+                  updated_by:
+                    type: string
+                    description: >-
+                      updated_by defined the account address of updater(if there
+                      is). Will not be visible until object is re-sealed.
+                  version:
+                    type: string
+                    format: int64
+                    title: version define the version of object
               global_virtual_group:
                 type: object
                 properties:
@@ -3619,6 +3655,83 @@ paths:
                       format: byte
       parameters:
         - name: token_id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Query
+  /greenfield/storage/head_shadow_object/{bucket_name}/{object_name}:
+    get:
+      summary: Queries a shadow object with specify name.
+      operationId: HeadShadowObject
+      responses:
+        '200':
+          description: A successful response.
+          schema:
+            type: object
+            properties:
+              object_info:
+                type: object
+                properties:
+                  operator:
+                    type: string
+                    title: operator define the account address of object updater
+                  id:
+                    type: string
+                    title: id defines the object id
+                  content_type:
+                    type: string
+                    title: content_type define the content type of the payload data
+                  payload_size:
+                    type: string
+                    format: uint64
+                    title: payload_size is the total size of the object payload
+                  checksums:
+                    type: array
+                    items:
+                      type: string
+                      format: byte
+                    description: >-
+                      checksums define the root hash of the pieces which stored
+                      in a SP.
+                  updated_at:
+                    type: string
+                    format: int64
+                    title: >-
+                      updated_at define the block timestamp when the object is
+                      updated
+                  version:
+                    type: string
+                    format: int64
+                    title: version define the version of object
+        default:
+          description: An unexpected error response.
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              code:
+                type: integer
+                format: int32
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    type_url:
+                      type: string
+                    value:
+                      type: string
+                      format: byte
+      parameters:
+        - name: bucket_name
+          in: path
+          required: true
+          type: string
+        - name: object_name
           in: path
           required: true
           type: string
@@ -4172,6 +4285,25 @@ paths:
                               value:
                                 type: string
                           title: tags defines a list of tags the resource has
+                    is_updating:
+                      type: boolean
+                      description: is_updating indicates whether a object is being updated.
+                    updated_at:
+                      type: string
+                      format: int64
+                      description: >-
+                        updated_at define the block timestamp when the object is
+                        updated. Will not be visible until object is re-sealed.
+                    updated_by:
+                      type: string
+                      description: >-
+                        updated_by defined the account address of updater(if
+                        there is). Will not be visible until object is
+                        re-sealed.
+                    version:
+                      type: string
+                      format: int64
+                      title: version define the version of object
               pagination:
                 type: object
                 properties:
@@ -4403,6 +4535,25 @@ paths:
                               value:
                                 type: string
                           title: tags defines a list of tags the resource has
+                    is_updating:
+                      type: boolean
+                      description: is_updating indicates whether a object is being updated.
+                    updated_at:
+                      type: string
+                      format: int64
+                      description: >-
+                        updated_at define the block timestamp when the object is
+                        updated. Will not be visible until object is re-sealed.
+                    updated_by:
+                      type: string
+                      description: >-
+                        updated_by defined the account address of updater(if
+                        there is). Will not be visible until object is
+                        re-sealed.
+                    version:
+                      type: string
+                      format: int64
+                      title: version define the version of object
               pagination:
                 type: object
                 properties:
@@ -5009,6 +5160,7 @@ paths:
                               - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_UPDATE_GROUP_EXTRA
                               - ACTION_UPDATE_GROUP_INFO
+                              - ACTION_UPDATE_OBJECT_CONTENT
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -5204,6 +5356,7 @@ paths:
                               - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_UPDATE_GROUP_EXTRA
                               - ACTION_UPDATE_GROUP_INFO
+                              - ACTION_UPDATE_OBJECT_CONTENT
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -5403,6 +5556,7 @@ paths:
                               - ACTION_UPDATE_OBJECT_INFO
                               - ACTION_UPDATE_GROUP_EXTRA
                               - ACTION_UPDATE_GROUP_INFO
+                              - ACTION_UPDATE_OBJECT_CONTENT
                               - ACTION_TYPE_ALL
                             default: ACTION_UNSPECIFIED
                             title: >-
@@ -5616,6 +5770,7 @@ paths:
             - ACTION_UPDATE_OBJECT_INFO
             - ACTION_UPDATE_GROUP_EXTRA
             - ACTION_UPDATE_GROUP_INFO
+            - ACTION_UPDATE_OBJECT_CONTENT
             - ACTION_TYPE_ALL
         - name: object_name
           in: query
@@ -34235,6 +34390,7 @@ definitions:
       - ACTION_UPDATE_OBJECT_INFO
       - ACTION_UPDATE_GROUP_EXTRA
       - ACTION_UPDATE_GROUP_INFO
+      - ACTION_UPDATE_OBJECT_CONTENT
       - ACTION_TYPE_ALL
     default: ACTION_UNSPECIFIED
     title: >-
@@ -34348,6 +34504,7 @@ definitions:
                   - ACTION_UPDATE_OBJECT_INFO
                   - ACTION_UPDATE_GROUP_EXTRA
                   - ACTION_UPDATE_GROUP_INFO
+                  - ACTION_UPDATE_OBJECT_CONTENT
                   - ACTION_TYPE_ALL
                 default: ACTION_UNSPECIFIED
                 title: >-
@@ -34471,6 +34628,7 @@ definitions:
             - ACTION_UPDATE_OBJECT_INFO
             - ACTION_UPDATE_GROUP_EXTRA
             - ACTION_UPDATE_GROUP_INFO
+            - ACTION_UPDATE_OBJECT_CONTENT
             - ACTION_TYPE_ALL
           default: ACTION_UNSPECIFIED
           title: >-
@@ -34901,6 +35059,24 @@ definitions:
                 value:
                   type: string
             title: tags defines a list of tags the resource has
+      is_updating:
+        type: boolean
+        description: is_updating indicates whether a object is being updated.
+      updated_at:
+        type: string
+        format: int64
+        description: >-
+          updated_at define the block timestamp when the object is updated. Will
+          not be visible until object is re-sealed.
+      updated_by:
+        type: string
+        description: >-
+          updated_by defined the account address of updater(if there is). Will
+          not be visible until object is re-sealed.
+      version:
+        type: string
+        format: int64
+        title: version define the version of object
   greenfield.storage.ObjectMetaData:
     type: object
     properties:
@@ -35450,6 +35626,24 @@ definitions:
                     value:
                       type: string
                 title: tags defines a list of tags the resource has
+          is_updating:
+            type: boolean
+            description: is_updating indicates whether a object is being updated.
+          updated_at:
+            type: string
+            format: int64
+            description: >-
+              updated_at define the block timestamp when the object is updated.
+              Will not be visible until object is re-sealed.
+          updated_by:
+            type: string
+            description: >-
+              updated_by defined the account address of updater(if there is).
+              Will not be visible until object is re-sealed.
+          version:
+            type: string
+            format: int64
+            title: version define the version of object
       global_virtual_group:
         type: object
         properties:
@@ -35501,6 +35695,39 @@ definitions:
           objects of each
 
           bucket must be stored in a GVG within a group family.
+  greenfield.storage.QueryHeadShadowObjectResponse:
+    type: object
+    properties:
+      object_info:
+        type: object
+        properties:
+          operator:
+            type: string
+            title: operator define the account address of object updater
+          id:
+            type: string
+            title: id defines the object id
+          content_type:
+            type: string
+            title: content_type define the content type of the payload data
+          payload_size:
+            type: string
+            format: uint64
+            title: payload_size is the total size of the object payload
+          checksums:
+            type: array
+            items:
+              type: string
+              format: byte
+            description: checksums define the root hash of the pieces which stored in a SP.
+          updated_at:
+            type: string
+            format: int64
+            title: updated_at define the block timestamp when the object is updated
+          version:
+            type: string
+            format: int64
+            title: version define the version of object
   greenfield.storage.QueryIsPriceChangedResponse:
     type: object
     properties:
@@ -35813,6 +36040,24 @@ definitions:
                       value:
                         type: string
                   title: tags defines a list of tags the resource has
+            is_updating:
+              type: boolean
+              description: is_updating indicates whether a object is being updated.
+            updated_at:
+              type: string
+              format: int64
+              description: >-
+                updated_at define the block timestamp when the object is
+                updated. Will not be visible until object is re-sealed.
+            updated_by:
+              type: string
+              description: >-
+                updated_by defined the account address of updater(if there is).
+                Will not be visible until object is re-sealed.
+            version:
+              type: string
+              format: int64
+              title: version define the version of object
       pagination:
         type: object
         properties:
@@ -36215,6 +36460,7 @@ definitions:
                       - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_UPDATE_GROUP_EXTRA
                       - ACTION_UPDATE_GROUP_INFO
+                      - ACTION_UPDATE_OBJECT_CONTENT
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -36368,6 +36614,7 @@ definitions:
                       - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_UPDATE_GROUP_EXTRA
                       - ACTION_UPDATE_GROUP_INFO
+                      - ACTION_UPDATE_OBJECT_CONTENT
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -36521,6 +36768,7 @@ definitions:
                       - ACTION_UPDATE_OBJECT_INFO
                       - ACTION_UPDATE_GROUP_EXTRA
                       - ACTION_UPDATE_GROUP_INFO
+                      - ACTION_UPDATE_OBJECT_CONTENT
                       - ACTION_TYPE_ALL
                     default: ACTION_UNSPECIFIED
                     title: >-
@@ -36633,6 +36881,36 @@ definitions:
         type: string
       value:
         type: string
+  greenfield.storage.ShadowObjectInfo:
+    type: object
+    properties:
+      operator:
+        type: string
+        title: operator define the account address of object updater
+      id:
+        type: string
+        title: id defines the object id
+      content_type:
+        type: string
+        title: content_type define the content type of the payload data
+      payload_size:
+        type: string
+        format: uint64
+        title: payload_size is the total size of the object payload
+      checksums:
+        type: array
+        items:
+          type: string
+          format: byte
+        description: checksums define the root hash of the pieces which stored in a SP.
+      updated_at:
+        type: string
+        format: int64
+        title: updated_at define the block timestamp when the object is updated
+      version:
+        type: string
+        format: int64
+        title: version define the version of object
   greenfield.storage.SourceType:
     type: string
     enum:

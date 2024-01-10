@@ -86,3 +86,9 @@ type CreatePolicyOptions struct {
 type DeletePolicyOptions struct {
 	SourceType SourceType
 }
+
+type UpdateObjectOptions struct {
+	SourceType  SourceType
+	ContentType string
+	Checksums   [][]byte
+}

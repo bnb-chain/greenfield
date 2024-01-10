@@ -115,6 +115,12 @@ func RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgRejectMigrateBucket{},
 	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgUpdateObjectContent{},
+	)
+	registry.RegisterImplementations((*sdk.Msg)(nil),
+		&MsgCancelUpdateObjectContent{},
+	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
