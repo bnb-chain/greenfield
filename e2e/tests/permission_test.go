@@ -2033,3 +2033,107 @@ func (s *StorageTestSuite) TestExpiredGroupPolicyGCAndRePut() {
 	s.Require().Equal(queryPolicyForGroupResp.Policy.ResourceType, resource.RESOURCE_TYPE_BUCKET)
 	s.Require().Equal(types.EFFECT_ALLOW, queryPolicyForGroupResp.Policy.Statements[0].Effect)
 }
+
+func (s *StorageTestSuite) TestSetResourceTagWithPermission() {
+	var err error
+	owner := s.GenAndChargeAccounts(1, 1000000)[0]
+	user := s.GenAndChargeAccounts(1, 1000000)[0]
+
+	// CreateBucket
+	sp := s.BaseSuite.PickStorageProvider()
+	gvg, found := sp.GetFirstGlobalVirtualGroup()
+	s.Require().True(found)
+
+	bucketName := storageutil.GenRandomBucketName()
+	msgCreateBucket := storagetypes.NewMsgCreateBucket(
+		owner.GetAddr(), bucketName, storagetypes.VISIBILITY_TYPE_PUBLIC_READ, sp.OperatorKey.GetAddr(),
+		nil, math.MaxUint, nil, 0)
+	msgCreateBucket.PrimarySpApproval.GlobalVirtualGroupFamilyId = gvg.FamilyId
+	msgCreateBucket.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateBucket.GetApprovalBytes())
+	s.Require().NoError(err)
+
+	// Put bucket policy, grant the user updateBucket permission
+	userPrincipal := types.NewPrincipalWithAccount(user.GetAddr())
+	bucketStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_BUCKET_INFO},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	bucketGRN := types2.NewBucketGRN(bucketName).String()
+	msgPutBucketPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), bucketGRN,
+		userPrincipal, []*types.Statement{bucketStatement}, nil)
+	s.SendTxBlock(owner, msgCreateBucket, msgPutBucketPolicy)
+
+	// set bucket tag by user
+	var tags storagetypes.ResourceTags
+	tags.Tags = append(tags.Tags, storagetypes.ResourceTags_Tag{Key: "key1", Value: "value1"})
+	msgSetTag := storagetypes.NewMsgSetTag(user.GetAddr(), bucketGRN, &tags)
+	s.SendTxBlock(user, msgSetTag)
+
+	req := storagetypes.QueryHeadBucketRequest{
+		BucketName: bucketName,
+	}
+	resp, err := s.Client.HeadBucket(context.Background(), &req)
+	s.Require().NoError(err)
+	s.Require().Equal(tags, *resp.BucketInfo.Tags)
+
+	// Create object by owner
+	objectName := storageutil.GenRandomObjectName()
+	// create test buffer
+	var buffer bytes.Buffer
+	// Create 1MiB content where each line contains 1024 characters.
+	for i := 0; i < 1024; i++ {
+		buffer.WriteString(fmt.Sprintf("[%05d] %s\n", i, line))
+	}
+	payloadSize := buffer.Len()
+	checksum := sdk.Keccak256(buffer.Bytes())
+	expectChecksum := [][]byte{checksum, checksum, checksum, checksum, checksum, checksum, checksum}
+	contextType := "text/event-stream"
+	msgCreateObject := storagetypes.NewMsgCreateObject(owner.GetAddr(), bucketName, objectName, uint64(payloadSize), storagetypes.VISIBILITY_TYPE_PRIVATE, expectChecksum, contextType, storagetypes.REDUNDANCY_EC_TYPE, math.MaxUint, nil)
+	msgCreateObject.PrimarySpApproval.Sig, err = sp.ApprovalKey.Sign(msgCreateObject.GetApprovalBytes())
+	s.Require().NoError(err)
+
+	// Put object policy, grant the user updateBucket permission
+	objectStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_OBJECT_INFO},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	objectGRN := types2.NewObjectGRN(bucketName, objectName).String()
+	msgPutObjectPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), objectGRN,
+		userPrincipal, []*types.Statement{objectStatement}, nil)
+	s.SendTxBlock(owner, msgCreateObject, msgPutObjectPolicy)
+
+	// set object tag by user
+	msgSetTag = storagetypes.NewMsgSetTag(user.GetAddr(), objectGRN, &tags)
+	s.SendTxBlock(user, msgSetTag)
+
+	// Head object, tag shown
+	objectResp, err := s.Client.HeadObject(context.Background(), &storagetypes.QueryHeadObjectRequest{
+		BucketName: bucketName,
+		ObjectName: objectName,
+	})
+	s.Require().NoError(err)
+	s.Require().Equal(tags, *objectResp.ObjectInfo.Tags)
+
+	// Create a group by owner
+	groupName := storageutil.GenRandomGroupName()
+	msgCreateGroup := storagetypes.NewMsgCreateGroup(owner.GetAddr(), groupName, "")
+	groupGRN := types2.NewGroupGRN(owner.GetAddr(), groupName).String()
+
+	// Put group policy by owner, grant the user updateGroupMeta permission
+	groupStatement := &types.Statement{
+		Actions: []types.ActionType{types.ACTION_UPDATE_GROUP_INFO},
+		Effect:  types.EFFECT_ALLOW,
+	}
+	msgPutGroupPolicy := storagetypes.NewMsgPutPolicy(owner.GetAddr(), types2.NewGroupGRN(owner.GetAddr(), groupName).String(),
+		types.NewPrincipalWithAccount(user.GetAddr()), []*types.Statement{groupStatement}, nil)
+	s.SendTxBlock(owner, msgCreateGroup, msgPutGroupPolicy)
+
+	// // set group tag by user
+	msgSetTag = storagetypes.NewMsgSetTag(user.GetAddr(), groupGRN, &tags)
+	s.SendTxBlock(user, msgSetTag)
+
+	// Head group, tag shown
+	headGroupResponse, err := s.Client.HeadGroup(context.Background(), &storagetypes.QueryHeadGroupRequest{GroupOwner: owner.GetAddr().String(), GroupName: groupName})
+	s.Require().NoError(err)
+	s.Require().Equal(tags, *headGroupResponse.GroupInfo.Tags)
+}
