@@ -14,10 +14,9 @@ import (
 )
 
 func TestParsePolicyIdFromQueueKey(t *testing.T) {
-	policyIds := []math.Uint{math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64()), math.NewUint(rand.Uint64())}
-
-	expiration := time.Now()
-	for _, policyId := range policyIds {
+	for i := 0; i < 100; i++ {
+		expiration := time.Now().Add(time.Duration(rand.Int63()))
+		policyId := math.NewUint(rand.Uint64())
 		key := PolicyPrefixQueue(&expiration, policyId.Bytes())
 		recoverId := ParsePolicyIdFromQueueKey(key)
 		if !recoverId.Equal(policyId) {

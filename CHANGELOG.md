@@ -13,6 +13,9 @@ Bugfixes:
 Chore:
 * [#551](https://github.com/bnb-chain/greenfield/pull/551) chore: fix typo and update doc
 
+## v1.2.2
+This release introduces the Manchurian upgrade to the mainnet.
+
 ## v1.2.1
 This release fixes the bugs within resource tags.
 
